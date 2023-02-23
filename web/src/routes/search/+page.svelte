@@ -2,18 +2,17 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 
-	let q = '';
+	let query = '';
 	let timeline: Event[] = [];
 	let users: Map<string, User> = new Map();
 
 	const searchRelay = 'wss://relay.nostr.band';
 
 	afterNavigate(async () => {
-		const query = $page.url.searchParams.get('q');
-		if (query !== null) {
+		query = $page.url.searchParams.get('q') ?? '';
+		timeline = [];
+		if (query !== '') {
 			console.log('[q]', query);
-			q = query;
-			timeline = [];
 			await search(searchRelay, query);
 		}
 	});
@@ -105,13 +104,13 @@
 </script>
 
 <svelte:head>
-	<title>nostter - {q ? `Search: ${q}` : 'Search'}</title>
+	<title>nostter - {query ? `Search: ${query}` : 'Search'}</title>
 </svelte:head>
 
 <main>
-	<h1>Search</h1>
+	<h1><a href="/search">Search</a></h1>
 	<form action="/search">
-		<input type="text" name="q" value={q} />
+		<input type="text" name="q" value={query} />
 		<input type="submit" value="Search" />
 	</form>
 
@@ -137,6 +136,10 @@
 </main>
 
 <style>
+	h1 a {
+		color: inherit;
+		text-decoration: none;
+	}
 	ul {
 		list-style: none;
 		padding: 0;
