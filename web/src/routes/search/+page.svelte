@@ -30,7 +30,7 @@
 					Math.floor(Math.random() * 99999).toString(),
 					{
 						search: query,
-						limit: 500,
+						limit: 1000,
 					},
 				])
 			);
