@@ -47,15 +47,16 @@
 			switch (data[0]) {
 				case 'EOSE':
 					eose = true;
+					console.log('[length]', timeline.length);
+
+					// for reactivity https://svelte.dev/docs#component-format-script-2-assignments-are-reactive
+					timeline = timeline;
+
+					ws.close();
 					break;
 				case 'EVENT':
 					const e: Event = data[2];
-					if (eose) {
-						timeline.unshift(e);
-					} else {
-						timeline.push(e);
-					}
-					timeline = timeline;
+					timeline.push(e);
 					break;
 			}
 		};
