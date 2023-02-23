@@ -104,6 +104,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>nostter - {q ? `Search: ${q}` : 'Search'}</title>
+</svelte:head>
+
 <main>
 	<h1>Search</h1>
 	<form action="/search">
