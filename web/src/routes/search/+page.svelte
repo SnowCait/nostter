@@ -2,6 +2,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 
+	let q = '';
 	let timeline: Event[] = [];
 
 	const searchRelay = 'wss://relay.nostr.band';
@@ -10,6 +11,7 @@
 		const query = $page.url.searchParams.get('q');
 		if (query !== null) {
 			console.log('[q]', query);
+			q = query;
 			timeline = [];
 			await search(searchRelay, query);
 		}
@@ -73,7 +75,7 @@
 <main>
 	<h1>Search</h1>
 	<form action="/search">
-		<input type="text" name="q" />
+		<input type="text" name="q" value="{q}" />
 		<input type="submit" value="Search" />
 	</form>
 
