@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
+	import Note from '../Note.svelte';
+	import type { Event, User } from '../types';
 
 	let query = '';
 	let timeline: Event[] = [];
@@ -85,22 +87,6 @@
 			}
 		};
 	}
-
-	interface Event {
-		id: string;
-		pubkey: string;
-		created_at: number;
-		kind: number;
-		tags: string[][];
-		content: string;
-		sig: string;
-	}
-
-	interface User {
-		name: string;
-		display_name: string;
-		picture: string;
-	}
 </script>
 
 <svelte:head>
@@ -117,19 +103,7 @@
 	<ul>
 		{#each timeline as note}
 			<li>
-				<article>
-					<div>
-						<img class="picture" src={users.get(note.pubkey)?.picture} alt="" />
-					</div>
-					<div class="note">
-						<div class="user">
-							<span class="display_name">{users.get(note.pubkey)?.display_name}</span>
-							<span class="name">@{users.get(note.pubkey)?.name}</span>
-						</div>
-						<div class="content">{note.content}</div>
-						<div class="created_at">{new Date(note.created_at * 1000)}</div>
-					</div>
-				</article>
+				<Note {note} user={users.get(note.pubkey)} />
 			</li>
 		{/each}
 	</ul>
@@ -140,6 +114,7 @@
 		color: inherit;
 		text-decoration: none;
 	}
+
 	ul {
 		list-style: none;
 		padding: 0;
@@ -149,50 +124,5 @@
 
 	li {
 		border-bottom: 1px solid rgb(239, 243, 244);
-	}
-
-	article {
-		padding: 12px 16px;
-		display: flex;
-		flex-direction: row;
-	}
-
-	.picture {
-		width: 48px;
-		height: 48px;
-		border-radius: 50%;
-		margin-right: 12px;
-	}
-
-	.note {
-		color: rgb(15, 20, 25);
-		font-size: 15px;
-		font-weight: 400;
-	}
-
-	.user {
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
-		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-	}
-
-	.display_name {
-		margin-right: 4px;
-		font-weight: 700;
-	}
-
-	.name {
-		color: rgb(83, 100, 113);
-		font-size: 15px;
-	}
-
-	.content {
-		line-height: 20px;
-	}
-
-	.created_at {
-		color: gray;
-		font-size: 0.5em;
 	}
 </style>
