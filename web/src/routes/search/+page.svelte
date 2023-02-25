@@ -2,12 +2,12 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import TimelineView from '../TimelineView.svelte';
-	import type { Timeline, Event } from '../types';
+	import type { Timeline, Event, UserEvent, User } from '../types';
 
 	let query = '';
 	let timeline: Timeline = {
 		events: [],
-		users: new Map(),
+		userEvents: new Map()
 	};
 
 	const searchRelay = 'wss://relay.nostr.band';
@@ -15,7 +15,7 @@
 	afterNavigate(async () => {
 		query = $page.url.searchParams.get('q') ?? '';
 		timeline.events = [];
-		timeline.users = new Map();
+		timeline.userEvents = new Map();
 		if (query !== '') {
 			console.log('[q]', query);
 			await search(searchRelay, query);
@@ -51,7 +51,7 @@
 				case 'EOSE':
 					console.log('[result]', timeline);
 
-					if (timeline.events.length > 0 && timeline.users.size === 0) {
+					if (timeline.events.length > 0 && timeline.userEvents.size === 0) {
 						const pubkeys = new Set(timeline.events.map((x) => x.pubkey));
 						console.log(Array.from(pubkeys));
 						ws.send(
@@ -75,9 +75,13 @@
 					const e = data[2] as Event;
 					switch (e.kind) {
 						case 0:
-							const user = JSON.parse(e.content);
+							const user = JSON.parse(e.content) as User;
 							console.log(user);
-							timeline.users.set(e.pubkey, user);
+							const userEvent: UserEvent = {
+								...e,
+								user
+							};
+							timeline.userEvents.set(e.pubkey, userEvent);
 							break;
 						case 1:
 							timeline.events.push(e);
@@ -100,7 +104,7 @@
 		<input type="submit" value="Search" />
 	</form>
 
-	<TimelineView timeline={timeline} />
+	<TimelineView {timeline} />
 </main>
 
 <style>
