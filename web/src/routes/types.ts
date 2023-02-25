@@ -16,5 +16,12 @@ export interface Event {
 export interface User {
 	name: string;
 	display_name: string;
+	nip05: string;
 	picture: string;
+	website: string;
+}
+
+export interface RelayPermission {
+	read: boolean;
+	write: boolean;
 }
