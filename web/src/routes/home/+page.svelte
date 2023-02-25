@@ -77,16 +77,19 @@
 			}
 		});
 		subscribeProfile.on('eose', () => {
-			let initialized = false;
 			subscribeProfile.unsub();
+
+			let initialized = false;
+			const limit = 500;
+			const since = Math.floor(Date.now() / 1000 - 24 * 60 * 60);
 			const subscribeNotes = pool.sub(
 				Array.from(relays).map((x) => x.href),
 				[
 					{
 						kinds: [1],
 						authors: Array.from(followee),
-						limit: 500,
-						since: Math.floor(Date.now() / 1000 - 24 * 60 * 60)
+						limit,
+						since,
 					}
 				]
 			);
@@ -100,6 +103,8 @@
 				}
 			});
 			subscribeNotes.on('eose', () => {
+				subscribeNotes.unsub();
+
 				const pubkeys = new Set(timeline.events.map((x) => x.pubkey));
 
 				const subscribeUsers = pool.sub(
@@ -118,8 +123,10 @@
 				});
 
 				subscribeUsers.on('eose', () => {
+					subscribeUsers.unsub();
+
 					timeline.events.sort((x, y) => y.created_at - x.created_at);
-					timeline = timeline;
+					timeline.events = timeline.events.slice(0, limit / 2);
 					initialized = true;
 				});
 			});
