@@ -131,6 +131,7 @@
 					initialized = true;
 
 					let upToDate = false;
+					let newEvents: Event[] = [];
 					const subscribe = pool.sub(
 						Array.from(relays).map((x) => x.href),
 						[
@@ -148,11 +149,13 @@
 							timeline.events.unshift(event);
 							timeline = timeline;
 						} else {
-							timeline.events.push(event);
+							newEvents.push(event);
 						}
 					});
 					subscribe.on('eose', () => {
 						upToDate = true;
+						timeline.events.unshift(...newEvents);
+						timeline = timeline;
 					});
 				});
 			});
