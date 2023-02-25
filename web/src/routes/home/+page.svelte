@@ -99,8 +99,31 @@
 			subscribeNotes.on('event', (event: Event) => {
 				console.log(event);
 				if (initialized) {
-					timeline.events.unshift(event);
-					timeline = timeline;
+					if (timeline.userEvents.has(event.pubkey)) {
+						timeline.events.unshift(event);
+						timeline = timeline;
+					} else {
+						const subscribeUser = pool.sub(
+							Array.from(relays).map((x) => x.href),
+							[
+								{
+									kinds: [0],
+									authors: [event.pubkey]
+								}
+							]
+						);
+						subscribeUser.on('event', (event: Event) => {
+							const user = JSON.parse(event.content) as User;
+							const userEvent: UserEvent = {
+								...event,
+								user
+							};
+							timeline.userEvents.set(event.pubkey, userEvent);
+						});
+						subscribeUser.on('eose', () => {
+							subscribeUser.unsub();
+						});
+					}
 				} else {
 					timeline.events.push(event);
 				}
