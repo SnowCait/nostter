@@ -116,18 +116,41 @@
 						}
 					]
 				);
-
 				subscribeUsers.on('event', (event: Event) => {
 					const user = JSON.parse(event.content);
 					timeline.users.set(event.pubkey, user);
 				});
-
 				subscribeUsers.on('eose', () => {
 					subscribeUsers.unsub();
 
 					timeline.events.sort((x, y) => y.created_at - x.created_at);
 					timeline.events = timeline.events.slice(0, limit / 2);
 					initialized = true;
+
+					let upToDate = false;
+					const subscribe = pool.sub(
+						Array.from(relays).map((x) => x.href),
+						[
+							{
+								kinds: [1],
+								authors: Array.from(followee),
+								limit,
+								since: timeline.events[0].created_at,
+							}
+						]
+					);
+					subscribe.on('event', (event: Event) => {
+						console.log(event);
+						if (upToDate) {
+							timeline.events.unshift(event);
+							timeline = timeline;
+						} else {
+							timeline.events.push(event);
+						}
+					});
+					subscribe.on('eose', () => {
+						upToDate = true;
+					});
 				});
 			});
 		});
