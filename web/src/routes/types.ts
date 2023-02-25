@@ -1,3 +1,8 @@
+export interface Timeline {
+	events: Event[];
+	users: Map<string, User>;
+}
+
 export interface Event {
 	id: string;
 	pubkey: string;
