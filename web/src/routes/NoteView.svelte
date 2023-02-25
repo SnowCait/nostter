@@ -2,9 +2,25 @@
 	import type { Event, User } from './types';
 	export let event: Event;
 	export let user: User | undefined;
+	let toggleJsonDisplay = (id: string) => {
+		console.log(id);
+		const classList = document
+			.getElementById(id)
+			?.getElementsByClassName('develop')
+			.item(0)?.classList;
+		if (classList === undefined) {
+			return;
+		}
+
+		if (classList.contains('hidden')) {
+			classList.remove('hidden');
+		} else {
+			classList.add('hidden');
+		}
+	};
 </script>
 
-<article>
+<article id={event.id}>
 	<div>
 		<img class="picture" src={user?.picture} alt="" />
 	</div>
@@ -13,8 +29,17 @@
 			<span class="display_name">{user?.display_name ? user.display_name : user?.name}</span>
 			<span class="name">@{user?.name}</span>
 		</div>
-		<div class="content">{event.content}</div>
+		<pre class="content">{event.content}</pre>
 		<div class="created_at">{new Date(event.created_at * 1000)}</div>
+		<div>
+			<button on:click={() => toggleJsonDisplay(event.id)}>{'{'} JSON {'}'}</button>
+		</div>
+		<div class="develop hidden">
+			<h5>Event JSON</h5>
+			<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
+			<h5>User JSON</h5>
+			<pre><code class="json">{JSON.stringify(user, null, 2)}</code></pre>
+		</div>
 	</div>
 </article>
 
@@ -57,10 +82,23 @@
 
 	.content {
 		line-height: 20px;
+		margin: 5px 0;
 	}
 
 	.created_at {
 		color: gray;
 		font-size: 0.5em;
+	}
+
+	.develop pre {
+		background-color: #f6f8fa;
+		padding: 0.5em;
+	}
+	.develop .json {
+		font-size: 0.8em;
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>
