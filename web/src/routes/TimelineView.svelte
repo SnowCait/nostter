@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Note from './Note.svelte';
+	import NoteView from './NoteView.svelte';
 	import type { Timeline } from './types';
 	export let timeline: Timeline;
 </script>
@@ -7,7 +7,7 @@
 <ul>
 	{#each timeline.events as event}
 		<li>
-			<Note {event} user={timeline.users.get(event.pubkey)} />
+			<NoteView {event} user={timeline.users.get(event.pubkey)} />
 		</li>
 	{/each}
 </ul>
