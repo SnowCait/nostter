@@ -92,7 +92,7 @@
 						kinds: [1],
 						authors: Array.from(followee),
 						limit,
-						since,
+						since
 					}
 				]
 			);
@@ -138,7 +138,7 @@
 								kinds: [1],
 								authors: Array.from(followee),
 								limit,
-								since: timeline.events[0].created_at,
+								since: timeline.events[0].created_at
 							}
 						]
 					);
