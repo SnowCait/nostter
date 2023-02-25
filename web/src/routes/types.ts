@@ -1,6 +1,6 @@
 export interface Timeline {
 	events: Event[];
-	userEvents: Map<string, UserEvent>
+	userEvents: Map<string, UserEvent>;
 }
 
 export interface Event {

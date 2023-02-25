@@ -79,7 +79,7 @@
 							console.log(user);
 							const userEvent: UserEvent = {
 								...e,
-								user,
+								user
 							};
 							timeline.userEvents.set(e.pubkey, userEvent);
 							break;
