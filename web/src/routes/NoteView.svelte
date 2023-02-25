@@ -10,7 +10,7 @@
 	</div>
 	<div class="note">
 		<div class="user">
-			<span class="display_name">{user?.display_name ?? user?.name}</span>
+			<span class="display_name">{user?.display_name ? user.display_name : user?.name}</span>
 			<span class="name">@{user?.name}</span>
 		</div>
 		<div class="content">{event.content}</div>
