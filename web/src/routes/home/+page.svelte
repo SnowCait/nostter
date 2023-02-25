@@ -119,6 +119,7 @@
 								user
 							};
 							timeline.userEvents.set(event.pubkey, userEvent);
+							timeline.userEvents = timeline.userEvents;
 						});
 						subscribeUser.on('eose', () => {
 							subscribeUser.unsub();
