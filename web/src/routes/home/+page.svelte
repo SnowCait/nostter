@@ -99,32 +99,8 @@
 			subscribeNotes.on('event', (event: Event) => {
 				console.log(event);
 				if (initialized) {
-					if (timeline.userEvents.has(event.pubkey)) {
-						timeline.events.unshift(event);
-						timeline = timeline;
-					} else {
-						const subscribeUser = pool.sub(
-							Array.from(relays).map((x) => x.href),
-							[
-								{
-									kinds: [0],
-									authors: [event.pubkey]
-								}
-							]
-						);
-						subscribeUser.on('event', (event: Event) => {
-							const user = JSON.parse(event.content) as User;
-							const userEvent: UserEvent = {
-								...event,
-								user
-							};
-							timeline.userEvents.set(event.pubkey, userEvent);
-							timeline.userEvents = timeline.userEvents;
-						});
-						subscribeUser.on('eose', () => {
-							subscribeUser.unsub();
-						});
-					}
+					timeline.events.unshift(event);
+					timeline = timeline;
 				} else {
 					timeline.events.push(event);
 				}
@@ -187,8 +163,32 @@
 					subscribe.on('event', (event: Event) => {
 						console.log(event);
 						if (upToDate) {
-							timeline.events.unshift(event);
-							timeline = timeline;
+							if (timeline.userEvents.has(event.pubkey)) {
+								timeline.events.unshift(event);
+								timeline = timeline;
+							} else {
+								const subscribeUser = pool.sub(
+									Array.from(relays).map((x) => x.href),
+									[
+										{
+											kinds: [0],
+											authors: [event.pubkey]
+										}
+									]
+								);
+								subscribeUser.on('event', (event: Event) => {
+									const user = JSON.parse(event.content) as User;
+									const userEvent: UserEvent = {
+										...event,
+										user
+									};
+									timeline.userEvents.set(event.pubkey, userEvent);
+									timeline.userEvents = timeline.userEvents;
+								});
+								subscribeUser.on('eose', () => {
+									subscribeUser.unsub();
+								});
+							}
 						} else {
 							newEvents.push(event);
 						}
