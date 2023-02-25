@@ -1,18 +1,21 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
-	import Note from '../Note.svelte';
-	import type { Event, User } from '../types';
+	import TimelineView from '../TimelineView.svelte';
+	import type { Timeline, Event } from '../types';
 
 	let query = '';
-	let timeline: Event[] = [];
-	let users: Map<string, User> = new Map();
+	let timeline: Timeline = {
+		events: [],
+		users: new Map(),
+	};
 
 	const searchRelay = 'wss://relay.nostr.band';
 
 	afterNavigate(async () => {
 		query = $page.url.searchParams.get('q') ?? '';
-		timeline = [];
+		timeline.events = [];
+		timeline.users = new Map();
 		if (query !== '') {
 			console.log('[q]', query);
 			await search(searchRelay, query);
@@ -20,8 +23,6 @@
 	});
 
 	async function search(relay: string, query: string) {
-		let eose = false;
-
 		const ws = new WebSocket(relay);
 		ws.onerror = (event) => {
 			console.error(event);
@@ -48,11 +49,10 @@
 			console.log(data);
 			switch (data[0]) {
 				case 'EOSE':
-					eose = true;
-					console.log('[result]', timeline, users);
+					console.log('[result]', timeline);
 
-					if (timeline.length > 0 && users.size === 0) {
-						const pubkeys = new Set(timeline.map((x) => x.pubkey));
+					if (timeline.events.length > 0 && timeline.users.size === 0) {
+						const pubkeys = new Set(timeline.events.map((x) => x.pubkey));
 						console.log(Array.from(pubkeys));
 						ws.send(
 							JSON.stringify([
@@ -72,15 +72,15 @@
 					}
 					break;
 				case 'EVENT':
-					const e: Event = data[2];
+					const e = data[2] as Event;
 					switch (e.kind) {
 						case 0:
 							const user = JSON.parse(e.content);
 							console.log(user);
-							users.set(e.pubkey, user);
+							timeline.users.set(e.pubkey, user);
 							break;
 						case 1:
-							timeline.push(e);
+							timeline.events.push(e);
 							break;
 					}
 					break;
@@ -100,29 +100,12 @@
 		<input type="submit" value="Search" />
 	</form>
 
-	<ul>
-		{#each timeline as note}
-			<li>
-				<Note {note} user={users.get(note.pubkey)} />
-			</li>
-		{/each}
-	</ul>
+	<TimelineView timeline={timeline} />
 </main>
 
 <style>
 	h1 a {
 		color: inherit;
 		text-decoration: none;
-	}
-
-	ul {
-		list-style: none;
-		padding: 0;
-		border: 1px solid rgb(239, 243, 244);
-		border-bottom-style: none;
-	}
-
-	li {
-		border-bottom: 1px solid rgb(239, 243, 244);
 	}
 </style>

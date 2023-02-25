@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Event, User } from './types';
-	export let note: Event;
+	export let event: Event;
 	export let user: User | undefined;
 </script>
 
@@ -13,8 +13,8 @@
 			<span class="display_name">{user?.display_name}</span>
 			<span class="name">@{user?.name}</span>
 		</div>
-		<div class="content">{note.content}</div>
-		<div class="created_at">{new Date(note.created_at * 1000)}</div>
+		<div class="content">{event.content}</div>
+		<div class="created_at">{new Date(event.created_at * 1000)}</div>
 	</div>
 </article>
 
