@@ -232,7 +232,7 @@
 	<button on:click={login} disabled={loggedIn}>Login with NIP-07</button>
 
 	<form on:submit|preventDefault={postNote}>
-		<textarea placeholder="いまどうしてる？" bind:value={content}></textarea>
+		<textarea placeholder="いまどうしてる？" bind:value={content} />
 		<input type="submit" value="投稿する" disabled={!loggedIn} />
 	</form>
 
