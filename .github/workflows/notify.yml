@@ -1,0 +1,21 @@
+name: Notify
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  notify:
+    if: ${{ github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: snow-actions/nostr@v1.1.0
+        with:
+          relays: ${{ vars.NOSTR_RELAYS }}
+          private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
+          content: |
+            Merge ${{ github.event.pull_request.title }} 
+            ${{ github.event.pull_request.html_url }}
+          
