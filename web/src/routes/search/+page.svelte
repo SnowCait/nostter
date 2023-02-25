@@ -7,7 +7,7 @@
 	let query = '';
 	let timeline: Timeline = {
 		events: [],
-		users: new Map(),
+		users: new Map()
 	};
 
 	const searchRelay = 'wss://relay.nostr.band';
@@ -100,7 +100,7 @@
 		<input type="submit" value="Search" />
 	</form>
 
-	<TimelineView timeline={timeline} />
+	<TimelineView {timeline} />
 </main>
 
 <style>
