@@ -8,9 +8,10 @@
 
 <script lang="ts">
 	import { SimplePool } from 'nostr-tools';
-	import type { Timeline, Event, User, RelayPermission } from '../types';
+	import type { Timeline, Event, UserEvent, User, RelayPermission } from '../types';
 	import TimelineView from '../TimelineView.svelte';
 
+	let content = '';
 	let timeline: Timeline = {
 		events: [],
 		userEvents: new Map()
@@ -202,6 +203,23 @@
 			});
 		});
 	}
+
+	async function postNote() {
+		const event = await window.nostr.signEvent({
+			created_at: Math.round(Date.now() / 1000),
+			kind: 1,
+			tags: [],
+			content
+		});
+		console.log(event);
+
+		pool.publish(
+			Array.from(relays).map((x) => x.href),
+			event
+		);
+
+		content = '';
+	}
 </script>
 
 <svelte:head>
@@ -213,5 +231,16 @@
 
 	<button on:click={login} disabled={loggedIn}>Login with NIP-07</button>
 
+	<form on:submit|preventDefault={postNote}>
+		<textarea placeholder="いまどうしてる？" bind:value={content}></textarea>
+		<input type="submit" value="投稿する" disabled={!loggedIn} />
+	</form>
+
 	<TimelineView {timeline} />
 </main>
+
+<style>
+	textarea {
+		width: 500px;
+	}
+</style>
