@@ -17,6 +17,7 @@
 	};
 	let followee: Set<string> = new Set();
 	let relays: Set<URL> = new Set();
+	let loggedIn = false;
 
 	const defaultRelays = [
 		'wss://relay.damus.io',
@@ -34,6 +35,8 @@
 			console.error('Please setup NIP-07');
 			return;
 		}
+
+		loggedIn = true;
 
 		const nip07Relays = (await window.nostr.getRelays()) as Map<string, RelayPermission>;
 		console.log(nip07Relays);
@@ -164,7 +167,7 @@
 <main>
 	<h1>home</h1>
 
-	<button on:click={login}>Login with NIP-07</button>
+	<button on:click={login} disabled={loggedIn}>Login with NIP-07</button>
 
 	<TimelineView {timeline} />
 </main>
