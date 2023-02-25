@@ -7,7 +7,7 @@
 <ul>
 	{#each timeline.events as event}
 		<li>
-			<NoteView {event} user={timeline.users.get(event.pubkey)} />
+			<NoteView {event} user={timeline.userEvents.get(event.pubkey)?.user} />
 		</li>
 	{/each}
 </ul>

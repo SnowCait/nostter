@@ -13,7 +13,7 @@
 
 	let timeline: Timeline = {
 		events: [],
-		users: new Map()
+		userEvents: new Map()
 	};
 	let followee: Set<string> = new Set();
 	let relays: Set<URL> = new Set();
@@ -120,8 +120,25 @@
 					]
 				);
 				subscribeUsers.on('event', (event: Event) => {
-					const user = JSON.parse(event.content);
-					timeline.users.set(event.pubkey, user);
+					const user = JSON.parse(event.content) as User;
+					const userEvent: UserEvent = {
+						...event,
+						user
+					};
+					if (timeline.userEvents.has(event.pubkey)) {
+						const e = timeline.userEvents.get(event.pubkey);
+						if (e === undefined) {
+							throw new Error('Logic error');
+						}
+
+						// Update if outdated
+						if (e.created_at < userEvent.created_at) {
+							timeline.userEvents.set(event.pubkey, userEvent);
+						}
+					} else {
+						// New
+						timeline.userEvents.set(event.pubkey, userEvent);
+					}
 				});
 				subscribeUsers.on('eose', () => {
 					subscribeUsers.unsub();

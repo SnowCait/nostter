@@ -1,6 +1,6 @@
 export interface Timeline {
 	events: Event[];
-	users: Map<string, User>;
+	userEvents: Map<string, UserEvent>
 }
 
 export interface Event {
@@ -11,6 +11,10 @@ export interface Event {
 	tags: string[][];
 	content: string;
 	sig: string;
+}
+
+export interface UserEvent extends Event {
+	user: User;
 }
 
 export interface User {
