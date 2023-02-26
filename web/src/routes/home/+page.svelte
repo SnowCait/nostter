@@ -19,6 +19,7 @@
 	let followee: Set<string> = new Set();
 	let relays: Set<URL> = new Set();
 	let loggedIn = false;
+	let pawPad = false;
 
 	const defaultRelays = [
 		'wss://relay.damus.io',
@@ -224,6 +225,10 @@
 	let reaction: Function = async (note: Event, content = '+') => {
 		console.log('[like]', note);
 
+		if (pawPad) {
+			content = '🐾';
+		}
+
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 7,
@@ -250,13 +255,14 @@
 	<h1>home</h1>
 
 	<button on:click={login} disabled={loggedIn}>Login with NIP-07</button>
+	<input type="checkbox" bind:checked={pawPad}>🐾
 
 	<form on:submit|preventDefault={postNote}>
 		<textarea placeholder="いまどうしてる？" bind:value={content} />
 		<input type="submit" value="投稿する" disabled={!loggedIn} />
 	</form>
 
-	<TimelineView {timeline} bind:reaction />
+	<TimelineView {timeline} bind:reaction {pawPad} />
 </main>
 
 <style>
