@@ -215,8 +215,8 @@
 	}
 
 	async function submitFromKeyboard(event: KeyboardEvent) {
-		console.debug(event.code, event.key, event.ctrlKey);
-		if (event.key === 'Enter' && event.ctrlKey) {
+		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
+		if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
 			await postNote();
 		}
 	}
