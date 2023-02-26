@@ -222,6 +222,24 @@
 		content = '';
 	}
 
+	async function repost(note: Event) {
+		const event = await window.nostr.signEvent({
+			created_at: Math.round(Date.now() / 1000),
+			kind: 6,
+			tags: [
+				['e', note.id],
+				['p', note.pubkey]
+			],
+			content: ''
+		});
+		console.log(event);
+
+		pool.publish(
+			Array.from(relays).map((x) => x.href),
+			event
+		);
+	}
+
 	let reaction: Function = async (note: Event, content = '+') => {
 		console.log('[like]', note);
 
@@ -255,14 +273,14 @@
 	<h1>home</h1>
 
 	<button on:click={login} disabled={loggedIn}>Login with NIP-07</button>
-	<input type="checkbox" bind:checked={pawPad}>🐾
+	<input type="checkbox" bind:checked={pawPad} />🐾
 
 	<form on:submit|preventDefault={postNote}>
 		<textarea placeholder="いまどうしてる？" bind:value={content} />
 		<input type="submit" value="投稿する" disabled={!loggedIn} />
 	</form>
 
-	<TimelineView {timeline} bind:reaction {pawPad} />
+	<TimelineView {timeline} {repost} {reaction} {pawPad} />
 </main>
 
 <style>

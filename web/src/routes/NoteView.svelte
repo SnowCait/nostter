@@ -2,6 +2,7 @@
 	import type { Event, User } from './types';
 	export let event: Event;
 	export let user: User | undefined;
+	export let repost: Function;
 	export let reaction: Function;
 	export let pawPad: boolean;
 	const toggleJsonDisplay = (id: string) => {
@@ -34,7 +35,10 @@
 		<pre class="content">{event.content}</pre>
 		<div class="created_at">{new Date(event.created_at * 1000)}</div>
 		<div class="action-menu">
-			<button on:click={() => reaction(event)}>{#if pawPad}🐾{:else}💖{/if}</button>
+			<button on:click={() => repost(event)}>🔁</button>
+			<button on:click={() => reaction(event)}>
+				{#if pawPad}🐾{:else}💖{/if}
+			</button>
 			<button on:click={() => toggleJsonDisplay(event.id)}>{'{'} JSON {'}'}</button>
 		</div>
 		<div class="develop hidden">
