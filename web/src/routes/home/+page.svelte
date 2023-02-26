@@ -20,6 +20,7 @@
 	let relays: Set<URL> = new Set();
 	let relaysCreatedAt: number;
 	let loggedIn = false;
+	let posting = false;
 	let pawPad = false;
 
 	const defaultRelays = [
@@ -215,13 +216,19 @@
 	}
 
 	async function submitFromKeyboard(event: KeyboardEvent) {
-		console.debug(event.code, event.key, event.ctrlKey);
-		if (event.key === 'Enter' && event.ctrlKey) {
+		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
+		if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
 			await postNote();
 		}
 	}
 
 	async function postNote() {
+		if (content === '') {
+			console.log('Content is empty');
+			return;
+		}
+
+		posting = true;
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 1,
@@ -236,6 +243,7 @@
 		);
 
 		content = '';
+		posting = false;
 	}
 
 	async function repost(note: Event) {
@@ -293,7 +301,7 @@
 
 	<form on:submit|preventDefault={postNote}>
 		<textarea placeholder="いまどうしてる？" bind:value={content} on:keydown={submitFromKeyboard} />
-		<input type="submit" value="投稿する" disabled={!loggedIn} />
+		<input type="submit" value="投稿する" disabled={!loggedIn || posting} />
 	</form>
 
 	<TimelineView {timeline} {repost} {reaction} {pawPad} />
