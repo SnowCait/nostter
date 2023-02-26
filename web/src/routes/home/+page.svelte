@@ -20,6 +20,7 @@
 	let relays: Set<URL> = new Set();
 	let relaysCreatedAt: number;
 	let loggedIn = false;
+	let posting = false;
 	let pawPad = false;
 
 	const defaultRelays = [
@@ -222,6 +223,7 @@
 	}
 
 	async function postNote() {
+		posting = true;
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 1,
@@ -236,6 +238,7 @@
 		);
 
 		content = '';
+		posting = false;
 	}
 
 	async function repost(note: Event) {
@@ -293,7 +296,7 @@
 
 	<form on:submit|preventDefault={postNote}>
 		<textarea placeholder="いまどうしてる？" bind:value={content} on:keydown={submitFromKeyboard} />
-		<input type="submit" value="投稿する" disabled={!loggedIn} />
+		<input type="submit" value="投稿する" disabled={!loggedIn || posting} />
 	</form>
 
 	<TimelineView {timeline} {repost} {reaction} {pawPad} />
