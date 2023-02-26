@@ -18,6 +18,7 @@
 	};
 	let followee: Set<string> = new Set();
 	let relays: Set<URL> = new Set();
+	let relaysCreatedAt: number;
 	let loggedIn = false;
 	let pawPad = false;
 
@@ -47,7 +48,7 @@
 		}
 
 		const profileRelays = new Set([...Object.keys(nip07Relays), ...defaultRelays]);
-		console.log(profileRelays);
+		console.log('[relays for profile]', profileRelays);
 
 		const pubkey: string = await window.nostr.getPublicKey();
 		console.log(pubkey);
@@ -67,18 +68,26 @@
 
 			if (event.kind === 2) {
 				const recommendedRelay = JSON.parse(event.content);
-				console.log(recommendedRelay);
+				console.log('[recommended relay]', recommendedRelay);
 			}
 
 			if (event.kind === 3) {
-				const relays = JSON.parse(event.content);
+				const relaysOfKind3 = JSON.parse(event.content) as Map<string, RelayPermission>;
 				followee = new Set(event.tags.map((x) => x[1]));
-				console.log(relays, followee);
+				console.log(relaysOfKind3, followee);
+				if (relaysCreatedAt === undefined || relaysCreatedAt < event.created_at) {
+					relaysCreatedAt = event.created_at;
+					relays = new Set(Array.from(relaysOfKind3.keys()).map(x => new URL(x)));
+				}
+				console.log('[kind 3]', relays);
 			}
 
 			if (event.kind === 10002) {
-				relays = new Set(event.tags.map((x) => new URL(x[1])));
-				console.log(profileRelays);
+				if (relaysCreatedAt === undefined || relaysCreatedAt < event.created_at) {
+					relaysCreatedAt = event.created_at;
+					relays = new Set(event.tags.map((x) => new URL(x[1])));
+				}
+				console.log('[kind 10002]', relays);
 			}
 		});
 		subscribeProfile.on('eose', () => {
