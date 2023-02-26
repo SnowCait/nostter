@@ -214,6 +214,13 @@
 		});
 	}
 
+	async function submitFromKeyboard(event: KeyboardEvent) {
+		console.debug(event.code, event.key, event.ctrlKey);
+		if (event.key === 'Enter' && event.ctrlKey) {
+			await postNote();
+		}
+	}
+
 	async function postNote() {
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
@@ -285,7 +292,7 @@
 	<input type="checkbox" bind:checked={pawPad} />🐾
 
 	<form on:submit|preventDefault={postNote}>
-		<textarea placeholder="いまどうしてる？" bind:value={content} />
+		<textarea placeholder="いまどうしてる？" bind:value={content} on:keydown={submitFromKeyboard} />
 		<input type="submit" value="投稿する" disabled={!loggedIn} />
 	</form>
 
