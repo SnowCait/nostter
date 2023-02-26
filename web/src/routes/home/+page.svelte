@@ -220,6 +220,26 @@
 
 		content = '';
 	}
+
+	let reaction: Function = async (note: Event, content = '+') => {
+		console.log('[like]', note);
+
+		const event = await window.nostr.signEvent({
+			created_at: Math.round(Date.now() / 1000),
+			kind: 7,
+			tags: [
+				['e', note.id],
+				['p', note.pubkey]
+			],
+			content
+		});
+		console.log(event);
+
+		pool.publish(
+			Array.from(relays).map((x) => x.href),
+			event
+		);
+	};
 </script>
 
 <svelte:head>
@@ -236,7 +256,7 @@
 		<input type="submit" value="投稿する" disabled={!loggedIn} />
 	</form>
 
-	<TimelineView {timeline} />
+	<TimelineView {timeline} bind:reaction />
 </main>
 
 <style>

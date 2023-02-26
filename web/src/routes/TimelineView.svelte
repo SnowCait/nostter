@@ -2,12 +2,13 @@
 	import NoteView from './NoteView.svelte';
 	import type { Timeline } from './types';
 	export let timeline: Timeline;
+	export let reaction: Function;
 </script>
 
 <ul>
 	{#each timeline.events as event}
 		<li>
-			<NoteView {event} user={timeline.userEvents.get(event.pubkey)?.user} />
+			<NoteView {event} user={timeline.userEvents.get(event.pubkey)?.user} bind:reaction />
 		</li>
 	{/each}
 </ul>
