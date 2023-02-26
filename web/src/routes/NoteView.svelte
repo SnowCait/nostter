@@ -2,7 +2,8 @@
 	import type { Event, User } from './types';
 	export let event: Event;
 	export let user: User | undefined;
-	let toggleJsonDisplay = (id: string) => {
+	export let reaction: Function;
+	const toggleJsonDisplay = (id: string) => {
 		console.log(id);
 		const classList = document
 			.getElementById(id)
@@ -32,6 +33,7 @@
 		<pre class="content">{event.content}</pre>
 		<div class="created_at">{new Date(event.created_at * 1000)}</div>
 		<div>
+			<button on:click={() => reaction(event)}>Like</button>
 			<button on:click={() => toggleJsonDisplay(event.id)}>{'{'} JSON {'}'}</button>
 		</div>
 		<div class="develop hidden">
