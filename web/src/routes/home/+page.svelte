@@ -223,6 +223,11 @@
 	}
 
 	async function postNote() {
+		if (content === '') {
+			console.log('Content is empty');
+			return;
+		}
+
 		posting = true;
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
