@@ -3,6 +3,7 @@
 	export let event: Event;
 	export let user: User | undefined;
 	export let reaction: Function;
+	export let pawPad: boolean;
 	const toggleJsonDisplay = (id: string) => {
 		console.log(id);
 		const classList = document
@@ -32,8 +33,8 @@
 		</div>
 		<pre class="content">{event.content}</pre>
 		<div class="created_at">{new Date(event.created_at * 1000)}</div>
-		<div>
-			<button on:click={() => reaction(event)}>Like</button>
+		<div class="action-menu">
+			<button on:click={() => reaction(event)}>{#if pawPad}🐾{:else}💖{/if}</button>
 			<button on:click={() => toggleJsonDisplay(event.id)}>{'{'} JSON {'}'}</button>
 		</div>
 		<div class="develop hidden">
@@ -98,6 +99,11 @@
 	}
 	.develop .json {
 		font-size: 0.8em;
+	}
+
+	.action-menu button {
+		border: none;
+		background-color: inherit;
 	}
 
 	.hidden {

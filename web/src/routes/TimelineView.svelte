@@ -3,12 +3,13 @@
 	import type { Timeline } from './types';
 	export let timeline: Timeline;
 	export let reaction: Function;
+	export let pawPad: boolean;
 </script>
 
 <ul>
 	{#each timeline.events as event}
 		<li>
-			<NoteView {event} user={timeline.userEvents.get(event.pubkey)?.user} bind:reaction />
+			<NoteView {event} user={timeline.userEvents.get(event.pubkey)?.user} bind:reaction {pawPad} />
 		</li>
 	{/each}
 </ul>
