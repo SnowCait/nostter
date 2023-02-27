@@ -22,6 +22,7 @@
 	let loggedIn = false;
 	let posting = false;
 	let pawPad = false;
+	let recommendedRelay = '';
 
 	const defaultRelays = [
 		'wss://relay.damus.io',
@@ -68,7 +69,7 @@
 			}
 
 			if (event.kind === 2) {
-				const recommendedRelay = JSON.parse(event.content);
+				recommendedRelay = event.content;
 				console.log('[recommended relay]', recommendedRelay);
 			}
 
@@ -251,7 +252,7 @@
 			created_at: Math.round(Date.now() / 1000),
 			kind: 6,
 			tags: [
-				['e', note.id],
+				['e', note.id, recommendedRelay, 'mention'],
 				['p', note.pubkey]
 			],
 			content: ''
