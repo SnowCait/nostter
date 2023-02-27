@@ -79,7 +79,7 @@
 				console.log(relaysOfKind3, followee);
 				if (relaysCreatedAt === undefined || relaysCreatedAt < event.created_at) {
 					relaysCreatedAt = event.created_at;
-					relays = new Set(Array.from(relaysOfKind3.keys()).map(x => new URL(x)));
+					relays = new Set(Array.from(relaysOfKind3.keys()).map((x) => new URL(x)));
 				}
 				console.log('[kind 3]', relays);
 			}
@@ -301,7 +301,11 @@
 	<input type="checkbox" bind:checked={pawPad} />🐾
 
 	<form on:submit|preventDefault={postNote}>
-		<textarea placeholder="いまどうしてる？" bind:value={content} on:keydown={submitFromKeyboard} />
+		<textarea
+			placeholder="いまどうしてる？"
+			bind:value={content}
+			on:keydown={submitFromKeyboard}
+		/>
 		<input type="submit" value="投稿する" disabled={!loggedIn || posting} />
 	</form>
 
