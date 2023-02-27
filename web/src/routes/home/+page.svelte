@@ -22,6 +22,7 @@
 	let loggedIn = false;
 	let posting = false;
 	let pawPad = false;
+	let recommendedRelay = '';
 
 	const defaultRelays = [
 		'wss://relay.damus.io',
@@ -68,7 +69,7 @@
 			}
 
 			if (event.kind === 2) {
-				const recommendedRelay = JSON.parse(event.content);
+				recommendedRelay = event.content;
 				console.log('[recommended relay]', recommendedRelay);
 			}
 
@@ -78,7 +79,7 @@
 				console.log(relaysOfKind3, followee);
 				if (relaysCreatedAt === undefined || relaysCreatedAt < event.created_at) {
 					relaysCreatedAt = event.created_at;
-					relays = new Set(Array.from(relaysOfKind3.keys()).map(x => new URL(x)));
+					relays = new Set(Array.from(relaysOfKind3.keys()).map((x) => new URL(x)));
 				}
 				console.log('[kind 3]', relays);
 			}
@@ -251,7 +252,7 @@
 			created_at: Math.round(Date.now() / 1000),
 			kind: 6,
 			tags: [
-				['e', note.id],
+				['e', note.id, recommendedRelay, 'mention'],
 				['p', note.pubkey]
 			],
 			content: ''
@@ -300,7 +301,11 @@
 	<input type="checkbox" bind:checked={pawPad} />🐾
 
 	<form on:submit|preventDefault={postNote}>
-		<textarea placeholder="いまどうしてる？" bind:value={content} on:keydown={submitFromKeyboard} />
+		<textarea
+			placeholder="いまどうしてる？"
+			bind:value={content}
+			on:keydown={submitFromKeyboard}
+		/>
 		<input type="submit" value="投稿する" disabled={!loggedIn || posting} />
 	</form>
 
