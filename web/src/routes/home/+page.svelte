@@ -299,6 +299,7 @@
 
 	<button on:click={login} disabled={loggedIn}>Login with NIP-07</button>
 	<input type="checkbox" bind:checked={pawPad} />🐾
+	<span>{timeline.events.length} notes</span>
 
 	<form on:submit|preventDefault={postNote}>
 		<textarea
