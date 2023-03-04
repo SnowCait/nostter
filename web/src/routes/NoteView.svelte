@@ -90,6 +90,8 @@
 	.content {
 		line-height: 20px;
 		margin: 5px 0;
+		white-space: pre-wrap;
+		word-break: break-all;
 	}
 
 	.created_at {
