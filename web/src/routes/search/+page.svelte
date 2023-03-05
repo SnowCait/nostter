@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
 	import TimelineView from '../TimelineView.svelte';
 	import type { Timeline, Event, UserEvent, User } from '../types';
 
 	let query = '';
 	let timeline: Timeline = {
-		events: [],
-		userEvents: new Map()
+		events: []
 	};
 
 	const searchRelay = 'wss://relay.nostr.band';
@@ -15,7 +15,6 @@
 	afterNavigate(async () => {
 		query = $page.url.searchParams.get('q') ?? '';
 		timeline.events = [];
-		timeline.userEvents = new Map();
 		if (query !== '') {
 			console.log('[q]', query);
 			await search(searchRelay, query);
@@ -51,7 +50,7 @@
 				case 'EOSE':
 					console.log('[result]', timeline);
 
-					if (timeline.events.length > 0 && timeline.userEvents.size === 0) {
+					if (timeline.events.length > 0 && $userEvents.size === 0) {
 						const pubkeys = new Set(timeline.events.map((x) => x.pubkey));
 						console.log(Array.from(pubkeys));
 						ws.send(
@@ -81,7 +80,7 @@
 								...e,
 								user
 							};
-							timeline.userEvents.set(e.pubkey, userEvent);
+							saveUserEvent(userEvent);
 							break;
 						case 1:
 							timeline.events.push(e);

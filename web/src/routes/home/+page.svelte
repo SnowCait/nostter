@@ -11,12 +11,11 @@
 	import { SimplePool } from 'nostr-tools';
 	import type { Timeline, Event, UserEvent, User, RelayPermission } from '../types';
 	import TimelineView from '../TimelineView.svelte';
-	import { saveUserEvent } from '../../stores/UserEvents';
+	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
 
 	let content = '';
 	let timeline: Timeline = {
-		events: [],
-		userEvents: new Map()
+		events: []
 	};
 	let followee: Set<string> = new Set();
 	let relays: Set<URL> = new Set();
@@ -142,20 +141,6 @@
 						user
 					};
 					saveUserEvent(userEvent);
-					if (timeline.userEvents.has(event.pubkey)) {
-						const e = timeline.userEvents.get(event.pubkey);
-						if (e === undefined) {
-							throw new Error('Logic error');
-						}
-
-						// Update if outdated
-						if (e.created_at < userEvent.created_at) {
-							timeline.userEvents.set(event.pubkey, userEvent);
-						}
-					} else {
-						// New
-						timeline.userEvents.set(event.pubkey, userEvent);
-					}
 				});
 				subscribeUsers.on('eose', () => {
 					subscribeUsers.unsub();
@@ -180,7 +165,7 @@
 					subscribe.on('event', (event: Event) => {
 						console.log(event);
 						if (upToDate) {
-							if (timeline.userEvents.has(event.pubkey)) {
+							if ($userEvents.has(event.pubkey)) {
 								timeline.events.unshift(event);
 								timeline = timeline;
 							} else {
@@ -200,8 +185,6 @@
 										user
 									};
 									saveUserEvent(userEvent);
-									timeline.userEvents.set(event.pubkey, userEvent);
-									timeline.userEvents = timeline.userEvents;
 								});
 								subscribeUser.on('eose', () => {
 									subscribeUser.unsub();

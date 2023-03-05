@@ -10,12 +10,7 @@
 <ul>
 	{#each timeline.events as event}
 		<li>
-			<NoteView
-				{event}
-				{repost}
-				{reaction}
-				{pawPad}
-			/>
+			<NoteView {event} {repost} {reaction} {pawPad} />
 		</li>
 	{/each}
 </ul>
