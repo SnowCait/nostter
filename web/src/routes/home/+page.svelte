@@ -95,6 +95,7 @@
 		subscribeProfile.on('eose', () => {
 			subscribeProfile.unsub();
 
+			// past notes
 			let initialized = false;
 			const limit = 500;
 			const since = Math.floor(Date.now() / 1000 - 24 * 60 * 60);
@@ -156,6 +157,7 @@
 						event.user = userEvent.user;
 					}
 
+					// new notes
 					let upToDate = false;
 					let newEvents: Event[] = [];
 					const subscribe = pool.sub(
