@@ -7,6 +7,7 @@
 </script>
 
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { SimplePool } from 'nostr-tools';
 	import type { Timeline, Event, UserEvent, User, RelayPermission } from '../types';
 	import TimelineView from '../TimelineView.svelte';
@@ -42,6 +43,7 @@
 		}
 
 		loggedIn = true;
+		sessionStorage.setItem('nostter:login', JSON.stringify(loggedIn));
 
 		const nip07Relays = (await window.nostr.getRelays()) as Map<string, RelayPermission>;
 		console.log(nip07Relays);
@@ -288,6 +290,13 @@
 			event
 		);
 	};
+
+	onMount(async () => {
+		const loginSession = sessionStorage.getItem('nostter:login');
+		if (loginSession !== null && JSON.parse(loginSession) === true) {
+			await login();
+		}
+	});
 </script>
 
 <svelte:head>
