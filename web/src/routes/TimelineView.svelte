@@ -1,14 +1,13 @@
 <script lang="ts">
 	import NoteView from './NoteView.svelte';
-	import type { Timeline } from './types';
-	export let timeline: Timeline;
+	import { events } from '../stores/Events';
 	export let repost: Function;
 	export let reaction: Function;
 	export let pawPad: boolean;
 </script>
 
 <ul>
-	{#each timeline.events as event}
+	{#each $events as event}
 		<li>
 			<NoteView {event} {repost} {reaction} {pawPad} />
 		</li>

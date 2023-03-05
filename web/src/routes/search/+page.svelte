@@ -1,20 +1,19 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { events } from '../../stores/Events';
 	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
 	import TimelineView from '../TimelineView.svelte';
-	import type { Timeline, Event, UserEvent, User } from '../types';
+	import type { Event, UserEvent, User } from '../types';
 
 	let query = '';
-	let timeline: Timeline = {
-		events: []
-	};
 
 	const searchRelay = 'wss://relay.nostr.band';
 
 	afterNavigate(async () => {
 		query = $page.url.searchParams.get('q') ?? '';
-		timeline.events = [];
+		$events = [];
+		$userEvents.clear();
 		if (query !== '') {
 			console.log('[q]', query);
 			await search(searchRelay, query);
@@ -48,10 +47,10 @@
 			console.log(data);
 			switch (data[0]) {
 				case 'EOSE':
-					console.log('[result]', timeline);
+					console.log('[result]', $events);
 
-					if (timeline.events.length > 0 && $userEvents.size === 0) {
-						const pubkeys = new Set(timeline.events.map((x) => x.pubkey));
+					if ($events.length > 0 && $userEvents.size === 0) {
+						const pubkeys = new Set($events.map((x) => x.pubkey));
 						console.log(Array.from(pubkeys));
 						ws.send(
 							JSON.stringify([
@@ -64,7 +63,7 @@
 							])
 						);
 					} else {
-						for (const event of timeline.events) {
+						for (const event of $events) {
 							const userEvent = $userEvents.get(event.pubkey);
 							if (userEvent === undefined) {
 								console.error(`${event.pubkey} is not found in $userEvents`);
@@ -73,8 +72,7 @@
 							event.user = userEvent.user;
 						}
 
-						// for reactivity https://svelte.dev/docs#component-format-script-2-assignments-are-reactive
-						timeline = timeline;
+						$events = $events;
 
 						ws.close();
 					}
@@ -92,7 +90,7 @@
 							saveUserEvent(userEvent);
 							break;
 						case 1:
-							timeline.events.push(e);
+							$events.push(e);
 							break;
 					}
 					break;
@@ -112,7 +110,7 @@
 		<input type="submit" value="Search" />
 	</form>
 
-	<TimelineView {timeline} />
+	<TimelineView />
 </main>
 
 <style>
