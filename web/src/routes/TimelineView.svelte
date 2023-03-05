@@ -10,13 +10,7 @@
 <ul>
 	{#each timeline.events as event}
 		<li>
-			<NoteView
-				{event}
-				user={timeline.userEvents.get(event.pubkey)?.user}
-				{repost}
-				{reaction}
-				{pawPad}
-			/>
+			<NoteView {event} {repost} {reaction} {pawPad} />
 		</li>
 	{/each}
 </ul>

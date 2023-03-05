@@ -11,11 +11,11 @@
 	import { SimplePool } from 'nostr-tools';
 	import type { Timeline, Event, UserEvent, User, RelayPermission } from '../types';
 	import TimelineView from '../TimelineView.svelte';
+	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
 
 	let content = '';
 	let timeline: Timeline = {
-		events: [],
-		userEvents: new Map()
+		events: []
 	};
 	let followee: Set<string> = new Set();
 	let relays: Set<URL> = new Set();
@@ -140,20 +140,7 @@
 						...event,
 						user
 					};
-					if (timeline.userEvents.has(event.pubkey)) {
-						const e = timeline.userEvents.get(event.pubkey);
-						if (e === undefined) {
-							throw new Error('Logic error');
-						}
-
-						// Update if outdated
-						if (e.created_at < userEvent.created_at) {
-							timeline.userEvents.set(event.pubkey, userEvent);
-						}
-					} else {
-						// New
-						timeline.userEvents.set(event.pubkey, userEvent);
-					}
+					saveUserEvent(userEvent);
 				});
 				subscribeUsers.on('eose', () => {
 					subscribeUsers.unsub();
@@ -161,6 +148,15 @@
 					timeline.events.sort((x, y) => y.created_at - x.created_at);
 					timeline.events = timeline.events.slice(0, limit / 2);
 					initialized = true;
+
+					for (const event of timeline.events) {
+						const userEvent = $userEvents.get(event.pubkey);
+						if (userEvent === undefined) {
+							console.error(`${event.pubkey} is not found in $userEvents`);
+							continue;
+						}
+						event.user = userEvent.user;
+					}
 
 					let upToDate = false;
 					let newEvents: Event[] = [];
@@ -177,8 +173,16 @@
 					);
 					subscribe.on('event', (event: Event) => {
 						console.log(event);
+
+						const userEvent = $userEvents.get(event.pubkey);
+						if (userEvent !== undefined) {
+							event.user = userEvent.user;
+						} else {
+							console.error(`${event.pubkey} is not found in $userEvents`);
+						}
+
 						if (upToDate) {
-							if (timeline.userEvents.has(event.pubkey)) {
+							if ($userEvents.has(event.pubkey)) {
 								timeline.events.unshift(event);
 								timeline = timeline;
 							} else {
@@ -197,8 +201,7 @@
 										...event,
 										user
 									};
-									timeline.userEvents.set(event.pubkey, userEvent);
-									timeline.userEvents = timeline.userEvents;
+									saveUserEvent(userEvent);
 								});
 								subscribeUser.on('eose', () => {
 									subscribeUser.unsub();
