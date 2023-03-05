@@ -64,6 +64,15 @@
 							])
 						);
 					} else {
+						for (const event of timeline.events) {
+							const userEvent = $userEvents.get(event.pubkey);
+							if (userEvent === undefined) {
+								console.error(`${event.pubkey} is not found in $userEvents`);
+								continue;
+							}
+							event.user = userEvent.user;
+						}
+
 						// for reactivity https://svelte.dev/docs#component-format-script-2-assignments-are-reactive
 						timeline = timeline;
 
