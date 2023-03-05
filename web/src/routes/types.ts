@@ -18,7 +18,11 @@ export interface User {
 	display_name: string;
 	nip05: string;
 	picture: string;
+	banner: string;
 	website: string;
+	about: string;
+	lud06: string;
+	lud16: string;
 }
 
 export interface RelayPermission {

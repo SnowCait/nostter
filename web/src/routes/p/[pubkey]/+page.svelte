@@ -21,6 +21,7 @@
 	<section class="profile">
 		<img src={user.picture} alt="" />
 		<h1>{user.display_name} @{user.name}</h1>
+		<p>{user.about}</p>
 	</section>
 </main>
 
