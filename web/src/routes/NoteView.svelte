@@ -2,6 +2,7 @@
 	import type { Event } from './types';
 	import { pawPad } from '../stores/Preference';
 	export let event: Event;
+	export let readonly: boolean;
 	export let repost: Function;
 	export let reaction: Function;
 	const toggleJsonDisplay = (id: string) => {
@@ -37,13 +38,15 @@
 		</div>
 		<pre class="content">{event.content}</pre>
 		<div class="created_at">{new Date(event.created_at * 1000)}</div>
-		<div class="action-menu">
-			<button on:click={() => repost(event)}>🔁</button>
-			<button on:click={() => reaction(event)}>
-				{#if $pawPad}🐾{:else}💖{/if}
-			</button>
-			<button on:click={() => toggleJsonDisplay(event.id)}>{'{'} JSON {'}'}</button>
-		</div>
+		{#if !readonly}
+			<div class="action-menu">
+				<button on:click={() => repost(event)}>🔁</button>
+				<button on:click={() => reaction(event)}>
+					{#if $pawPad}🐾{:else}💖{/if}
+				</button>
+				<button on:click={() => toggleJsonDisplay(event.id)}>{'{'} JSON {'}'}</button>
+			</div>
+		{/if}
 		<div class="develop hidden">
 			<h5>Event JSON</h5>
 			<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
