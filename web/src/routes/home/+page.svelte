@@ -178,12 +178,12 @@
 						if (userEvent !== undefined) {
 							event.user = userEvent.user;
 						} else {
-							console.error(`${event.pubkey} is not found in $userEvents`);
+							console.warn(`${event.pubkey} is not found in $userEvents`);
 						}
 
 						if (upToDate) {
+							$events.unshift(event);
 							if ($userEvents.has(event.pubkey)) {
-								$events.unshift(event);
 								$events = $events;
 							} else {
 								const subscribeUser = pool.sub(
@@ -202,6 +202,12 @@
 										user
 									};
 									saveUserEvent(userEvent);
+									console.log('[user found]', user);
+									for (const e of $events.filter(x => x.pubkey == event.pubkey)) {
+										console.log(e);
+										e.user = user;
+									}
+									$events = $events;
 								});
 								subscribeUser.on('eose', () => {
 									subscribeUser.unsub();
