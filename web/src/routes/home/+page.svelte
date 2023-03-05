@@ -95,6 +95,7 @@
 		subscribeProfile.on('eose', () => {
 			subscribeProfile.unsub();
 
+			// past notes
 			let initialized = false;
 			const limit = 500;
 			const since = Math.floor(Date.now() / 1000 - 24 * 60 * 60);
@@ -156,6 +157,7 @@
 						event.user = userEvent.user;
 					}
 
+					// new notes
 					let upToDate = false;
 					let newEvents: Event[] = [];
 					const subscribe = pool.sub(
@@ -176,12 +178,12 @@
 						if (userEvent !== undefined) {
 							event.user = userEvent.user;
 						} else {
-							console.error(`${event.pubkey} is not found in $userEvents`);
+							console.warn(`${event.pubkey} is not found in $userEvents`);
 						}
 
 						if (upToDate) {
+							$events.unshift(event);
 							if ($userEvents.has(event.pubkey)) {
-								$events.unshift(event);
 								$events = $events;
 							} else {
 								const subscribeUser = pool.sub(
@@ -200,6 +202,12 @@
 										user
 									};
 									saveUserEvent(userEvent);
+									console.log('[user found]', user);
+									for (const e of $events.filter(x => x.pubkey == event.pubkey)) {
+										console.log(e);
+										e.user = user;
+									}
+									$events = $events;
 								});
 								subscribeUser.on('eose', () => {
 									subscribeUser.unsub();
@@ -295,7 +303,11 @@
 	onMount(async () => {
 		const loginSession = sessionStorage.getItem('nostter:login');
 		if (loginSession !== null && JSON.parse(loginSession) === true) {
-			await login();
+			if ($events.length > 0) {
+				loggedIn = true;
+			} else {
+				await login();
+			}
 		}
 	});
 </script>
