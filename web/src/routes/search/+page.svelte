@@ -110,7 +110,11 @@
 		<input type="submit" value="Search" />
 	</form>
 
-	<TimelineView />
+	<TimelineView
+		readonly={true}
+		repost={() => console.warn('Not implemented')}
+		reaction={() => console.warn('Not implemented')}
+	/>
 </main>
 
 <style>
