@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Event } from './types';
+	import { pawPad } from '../stores/Preference';
 	export let event: Event;
 	export let repost: Function;
 	export let reaction: Function;
-	export let pawPad: boolean;
 	const toggleJsonDisplay = (id: string) => {
 		console.log(id);
 		const classList = document
@@ -38,7 +38,7 @@
 		<div class="action-menu">
 			<button on:click={() => repost(event)}>🔁</button>
 			<button on:click={() => reaction(event)}>
-				{#if pawPad}🐾{:else}💖{/if}
+				{#if $pawPad}🐾{:else}💖{/if}
 			</button>
 			<button on:click={() => toggleJsonDisplay(event.id)}>{'{'} JSON {'}'}</button>
 		</div>
