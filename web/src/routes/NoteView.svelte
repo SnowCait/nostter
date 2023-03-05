@@ -1,11 +1,9 @@
 <script lang="ts">
 	import type { Event } from './types';
-	import { userEvents } from '../stores/UserEvents';
 	export let event: Event;
 	export let repost: Function;
 	export let reaction: Function;
 	export let pawPad: boolean;
-	let user = $userEvents.get(event.pubkey)?.user;
 	const toggleJsonDisplay = (id: string) => {
 		console.log(id);
 		const classList = document
@@ -26,12 +24,14 @@
 
 <article id={event.id}>
 	<div>
-		<img class="picture" src={user?.picture} alt="" />
+		<img class="picture" src={event.user?.picture} alt="" />
 	</div>
 	<div class="note">
 		<div class="user">
-			<span class="display_name">{user?.display_name ? user.display_name : user?.name}</span>
-			<span class="name">@{user?.name}</span>
+			<span class="display_name"
+				>{event.user?.display_name ? event.user.display_name : event.user?.name}</span
+			>
+			<span class="name">@{event.user?.name}</span>
 		</div>
 		<pre class="content">{event.content}</pre>
 		<div class="created_at">{new Date(event.created_at * 1000)}</div>
@@ -46,7 +46,7 @@
 			<h5>Event JSON</h5>
 			<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
 			<h5>User JSON</h5>
-			<pre><code class="json">{JSON.stringify(user, null, 2)}</code></pre>
+			<pre><code class="json">{JSON.stringify(event.user, null, 2)}</code></pre>
 		</div>
 	</div>
 </article>

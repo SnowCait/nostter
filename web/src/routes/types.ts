@@ -10,6 +10,7 @@ export interface Event {
 	tags: string[][];
 	content: string;
 	sig: string;
+	user: User;
 }
 
 export interface UserEvent extends Event {

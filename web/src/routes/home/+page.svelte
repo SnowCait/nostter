@@ -149,6 +149,15 @@
 					timeline.events = timeline.events.slice(0, limit / 2);
 					initialized = true;
 
+					for (const event of timeline.events) {
+						const userEvent = $userEvents.get(event.pubkey);
+						if (userEvent === undefined) {
+							console.error(`${event.pubkey} is not found in $userEvents`);
+							continue;
+						}
+						event.user = userEvent.user;
+					}
+
 					let upToDate = false;
 					let newEvents: Event[] = [];
 					const subscribe = pool.sub(
@@ -164,6 +173,14 @@
 					);
 					subscribe.on('event', (event: Event) => {
 						console.log(event);
+
+						const userEvent = $userEvents.get(event.pubkey);
+						if (userEvent !== undefined) {
+							event.user = userEvent.user;
+						} else {
+							console.error(`${event.pubkey} is not found in $userEvents`);
+						}
+
 						if (upToDate) {
 							if ($userEvents.has(event.pubkey)) {
 								timeline.events.unshift(event);
