@@ -69,6 +69,7 @@
 		color: rgb(15, 20, 25);
 		font-size: 15px;
 		font-weight: 400;
+		width: 100%;
 	}
 
 	.user {
@@ -90,6 +91,8 @@
 
 	.content {
 		line-height: 20px;
+		max-height: 10em;
+		overflow: auto;
 		margin: 5px 0;
 		white-space: pre-wrap;
 		word-break: break-all;
