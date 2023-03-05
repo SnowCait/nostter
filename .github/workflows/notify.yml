@@ -16,6 +16,6 @@ jobs:
           relays: ${{ vars.NOSTR_RELAYS }}
           private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
           content: |
-            Merge ${{ github.event.pull_request.title }} 
+            #nostter ${{ github.event.pull_request.title }} 
             ${{ github.event.pull_request.html_url }}
           
