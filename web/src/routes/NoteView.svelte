@@ -28,9 +28,9 @@
 	</div>
 	<div class="note">
 		<div class="user">
-			<span class="display_name"
-				>{event.user?.display_name ? event.user.display_name : event.user?.name}</span
-			>
+			<span class="display_name">
+				{event.user?.display_name ? event.user.display_name : event.user?.name}
+			</span>
 			<span class="name">@{event.user?.name}</span>
 		</div>
 		<pre class="content">{event.content}</pre>
