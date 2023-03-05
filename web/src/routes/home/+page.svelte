@@ -9,14 +9,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { SimplePool } from 'nostr-tools';
-	import type { Timeline, Event, UserEvent, User, RelayPermission } from '../types';
+	import type { Event, UserEvent, User, RelayPermission } from '../types';
 	import TimelineView from '../TimelineView.svelte';
+	import { events } from '../../stores/Events';
 	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
 
 	let content = '';
-	let timeline: Timeline = {
-		events: []
-	};
 	let followee: Set<string> = new Set();
 	let relays: Set<URL> = new Set();
 	let relaysCreatedAt: number;
@@ -114,16 +112,16 @@
 			subscribeNotes.on('event', (event: Event) => {
 				console.log(event);
 				if (initialized) {
-					timeline.events.unshift(event);
-					timeline = timeline;
+					$events.unshift(event);
+					$events = $events;
 				} else {
-					timeline.events.push(event);
+					$events.push(event);
 				}
 			});
 			subscribeNotes.on('eose', () => {
 				subscribeNotes.unsub();
 
-				const pubkeys = new Set(timeline.events.map((x) => x.pubkey));
+				const pubkeys = new Set($events.map((x) => x.pubkey));
 
 				const subscribeUsers = pool.sub(
 					Array.from(relays).map((x) => x.href),
@@ -145,11 +143,11 @@
 				subscribeUsers.on('eose', () => {
 					subscribeUsers.unsub();
 
-					timeline.events.sort((x, y) => y.created_at - x.created_at);
-					timeline.events = timeline.events.slice(0, limit / 2);
+					$events.sort((x, y) => y.created_at - x.created_at);
+					$events = $events.slice(0, limit / 2);
 					initialized = true;
 
-					for (const event of timeline.events) {
+					for (const event of $events) {
 						const userEvent = $userEvents.get(event.pubkey);
 						if (userEvent === undefined) {
 							console.error(`${event.pubkey} is not found in $userEvents`);
@@ -167,7 +165,7 @@
 								kinds: [1],
 								authors: Array.from(followee),
 								limit,
-								since: timeline.events[0].created_at + 1
+								since: $events[0].created_at + 1
 							}
 						]
 					);
@@ -183,8 +181,8 @@
 
 						if (upToDate) {
 							if ($userEvents.has(event.pubkey)) {
-								timeline.events.unshift(event);
-								timeline = timeline;
+								$events.unshift(event);
+								$events = $events;
 							} else {
 								const subscribeUser = pool.sub(
 									Array.from(relays).map((x) => x.href),
@@ -213,8 +211,8 @@
 					});
 					subscribe.on('eose', () => {
 						upToDate = true;
-						timeline.events.unshift(...newEvents);
-						timeline = timeline;
+						$events.unshift(...newEvents);
+						$events = $events;
 					});
 				});
 			});
@@ -311,7 +309,7 @@
 
 	<button on:click={login} disabled={loggedIn}>Login with NIP-07</button>
 	<input type="checkbox" bind:checked={pawPad} />🐾
-	<span>{timeline.events.length} notes</span>
+	<span>{$events.length} notes</span>
 
 	<form on:submit|preventDefault={postNote}>
 		<textarea
@@ -322,7 +320,7 @@
 		<input type="submit" value="投稿する" disabled={!loggedIn || posting} />
 	</form>
 
-	<TimelineView {timeline} {repost} {reaction} {pawPad} />
+	<TimelineView {repost} {reaction} {pawPad} />
 </main>
 
 <style>

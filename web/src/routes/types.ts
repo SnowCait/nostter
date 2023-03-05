@@ -1,7 +1,3 @@
-export interface Timeline {
-	events: Event[];
-}
-
 export interface Event {
 	id: string;
 	pubkey: string;
