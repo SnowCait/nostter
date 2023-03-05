@@ -12,7 +12,6 @@
 		<li>
 			<NoteView
 				{event}
-				user={timeline.userEvents.get(event.pubkey)?.user}
 				{repost}
 				{reaction}
 				{pawPad}

@@ -11,6 +11,7 @@
 	import { SimplePool } from 'nostr-tools';
 	import type { Timeline, Event, UserEvent, User, RelayPermission } from '../types';
 	import TimelineView from '../TimelineView.svelte';
+	import { saveUserEvent } from '../../stores/UserEvents';
 
 	let content = '';
 	let timeline: Timeline = {
@@ -140,6 +141,7 @@
 						...event,
 						user
 					};
+					saveUserEvent(userEvent);
 					if (timeline.userEvents.has(event.pubkey)) {
 						const e = timeline.userEvents.get(event.pubkey);
 						if (e === undefined) {
@@ -197,6 +199,7 @@
 										...event,
 										user
 									};
+									saveUserEvent(userEvent);
 									timeline.userEvents.set(event.pubkey, userEvent);
 									timeline.userEvents = timeline.userEvents;
 								});

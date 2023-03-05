@@ -1,10 +1,11 @@
 <script lang="ts">
-	import type { Event, User } from './types';
+	import type { Event } from './types';
+	import { userEvents } from '../stores/UserEvents';
 	export let event: Event;
-	export let user: User | undefined;
 	export let repost: Function;
 	export let reaction: Function;
 	export let pawPad: boolean;
+	let user = $userEvents.get(event.pubkey)?.user;
 	const toggleJsonDisplay = (id: string) => {
 		console.log(id);
 		const classList = document
