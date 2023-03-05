@@ -295,7 +295,11 @@
 	onMount(async () => {
 		const loginSession = sessionStorage.getItem('nostter:login');
 		if (loginSession !== null && JSON.parse(loginSession) === true) {
-			await login();
+			if ($events.length > 0) {
+				loggedIn = true;
+			} else {
+				await login();
+			}
 		}
 	});
 </script>

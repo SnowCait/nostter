@@ -24,7 +24,9 @@
 
 <article id={event.id}>
 	<div>
-		<img class="picture" src={event.user?.picture} alt="" />
+		<a href="/p/{event.pubkey}">
+			<img class="picture" src={event.user?.picture} alt="" />
+		</a>
 	</div>
 	<div class="note">
 		<div class="user">
