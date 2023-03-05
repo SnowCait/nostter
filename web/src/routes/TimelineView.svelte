@@ -3,13 +3,12 @@
 	import { events } from '../stores/Events';
 	export let repost: Function;
 	export let reaction: Function;
-	export let pawPad: boolean;
 </script>
 
 <ul>
 	{#each $events as event}
 		<li>
-			<NoteView {event} {repost} {reaction} {pawPad} />
+			<NoteView {event} {repost} {reaction} />
 		</li>
 	{/each}
 </ul>

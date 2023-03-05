@@ -13,6 +13,7 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { events } from '../../stores/Events';
 	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
+	import { pawPad } from '../../stores/Preference';
 
 	let content = '';
 	let followee: Set<string> = new Set();
@@ -20,7 +21,6 @@
 	let relaysCreatedAt: number;
 	let loggedIn = false;
 	let posting = false;
-	let pawPad = false;
 	let recommendedRelay = '';
 
 	const defaultRelays = [
@@ -271,7 +271,7 @@
 	let reaction: Function = async (note: Event, content = '+') => {
 		console.log('[like]', note);
 
-		if (pawPad) {
+		if ($pawPad) {
 			content = '🐾';
 		}
 
@@ -308,7 +308,7 @@
 	<h1>home</h1>
 
 	<button on:click={login} disabled={loggedIn}>Login with NIP-07</button>
-	<input type="checkbox" bind:checked={pawPad} />🐾
+	<input type="checkbox" bind:checked={$pawPad} />🐾
 	<span>{$events.length} notes</span>
 
 	<form on:submit|preventDefault={postNote}>
@@ -320,7 +320,7 @@
 		<input type="submit" value="投稿する" disabled={!loggedIn || posting} />
 	</form>
 
-	<TimelineView {repost} {reaction} {pawPad} />
+	<TimelineView {repost} {reaction} />
 </main>
 
 <style>
