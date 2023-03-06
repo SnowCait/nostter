@@ -136,6 +136,11 @@
 			{#if user.name}
 				<h2>@{user.name}</h2>
 			{/if}
+			{#if user.website}
+				<div>
+					<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
+				</div>
+			{/if}
 			{#if user.about}
 				<pre>{user.about}</pre>
 			{/if}
