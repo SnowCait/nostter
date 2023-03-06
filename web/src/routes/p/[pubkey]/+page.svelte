@@ -149,7 +149,7 @@
 			{#each badges as badge}
 				<li>
 					<a href="https://badges.page/b/{badge.naddr}" target="_blank" rel="noreferrer">
-						<img src={badge.thumb} alt={badge.name} title={badge.name} />
+						<img src={badge.thumb ? badge.thumb : badge.image} alt={badge.name} title={badge.name} />
 					</a>
 				</li>
 			{/each}
