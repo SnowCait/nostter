@@ -8,12 +8,12 @@
 
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { SimplePool } from 'nostr-tools';
 	import type { Event, UserEvent, User, RelayPermission } from '../types';
 	import TimelineView from '../TimelineView.svelte';
 	import { events } from '../../stores/Events';
 	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
 	import { pawPad } from '../../stores/Preference';
+	import { pool } from '../../stores/Pool';
 
 	let content = '';
 	let followee: Set<string> = new Set();
@@ -31,8 +31,6 @@
 		'wss://nostr.holybea.com',
 		'wss://relay.nostr.or.jp'
 	];
-
-	const pool = new SimplePool();
 
 	async function login() {
 		if (window.nostr === undefined) {
@@ -54,7 +52,7 @@
 
 		const pubkey: string = await window.nostr.getPublicKey();
 		console.log(pubkey);
-		const subscribeProfile = pool.sub(Array.from(profileRelays), [
+		const subscribeProfile = $pool.sub(Array.from(profileRelays), [
 			{
 				kinds: [0, 2, 3, 10002],
 				authors: [pubkey]
@@ -99,7 +97,7 @@
 			let initialized = false;
 			const limit = 500;
 			const since = Math.floor(Date.now() / 1000 - 24 * 60 * 60);
-			const subscribeNotes = pool.sub(
+			const subscribeNotes = $pool.sub(
 				Array.from(relays).map((x) => x.href),
 				[
 					{
@@ -124,7 +122,7 @@
 
 				const pubkeys = new Set($events.map((x) => x.pubkey));
 
-				const subscribeUsers = pool.sub(
+				const subscribeUsers = $pool.sub(
 					Array.from(relays).map((x) => x.href),
 					[
 						{
@@ -160,7 +158,7 @@
 					// new notes
 					let upToDate = false;
 					let newEvents: Event[] = [];
-					const subscribe = pool.sub(
+					const subscribe = $pool.sub(
 						Array.from(relays).map((x) => x.href),
 						[
 							{
@@ -200,7 +198,7 @@
 
 	async function fetchUser(pubkey: string): Promise<User> {
 		return new Promise((resolve, reject) => {
-			const subscribeUser = pool.sub(
+			const subscribeUser = $pool.sub(
 				Array.from(relays).map((x) => x.href),
 				[
 					{
@@ -253,7 +251,7 @@
 		});
 		console.log(event);
 
-		pool.publish(
+		$pool.publish(
 			Array.from(relays).map((x) => x.href),
 			event
 		);
@@ -274,7 +272,7 @@
 		});
 		console.log(event);
 
-		pool.publish(
+		$pool.publish(
 			Array.from(relays).map((x) => x.href),
 			event
 		);
@@ -298,7 +296,7 @@
 		});
 		console.log(event);
 
-		pool.publish(
+		$pool.publish(
 			Array.from(relays).map((x) => x.href),
 			event
 		);
