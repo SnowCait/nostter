@@ -171,48 +171,19 @@
 							}
 						]
 					);
-					subscribe.on('event', (event: Event) => {
+					subscribe.on('event', async (event: Event) => {
 						console.log(event);
 
 						const userEvent = $userEvents.get(event.pubkey);
 						if (userEvent !== undefined) {
 							event.user = userEvent.user;
 						} else {
-							console.warn(`${event.pubkey} is not found in $userEvents`);
+							event.user = await fetchUser(event.pubkey); // not chronological
 						}
 
 						if (upToDate) {
 							$events.unshift(event);
-							if ($userEvents.has(event.pubkey)) {
-								$events = $events;
-							} else {
-								const subscribeUser = pool.sub(
-									Array.from(relays).map((x) => x.href),
-									[
-										{
-											kinds: [0],
-											authors: [event.pubkey]
-										}
-									]
-								);
-								subscribeUser.on('event', (event: Event) => {
-									const user = JSON.parse(event.content) as User;
-									const userEvent: UserEvent = {
-										...event,
-										user
-									};
-									saveUserEvent(userEvent);
-									console.log('[user found]', user);
-									for (const e of $events.filter(x => x.pubkey == event.pubkey)) {
-										console.log(e);
-										e.user = user;
-									}
-									$events = $events;
-								});
-								subscribeUser.on('eose', () => {
-									subscribeUser.unsub();
-								});
-							}
+							$events = $events;
 						} else {
 							newEvents.push(event);
 						}
@@ -223,6 +194,39 @@
 						$events = $events;
 					});
 				});
+			});
+		});
+	}
+
+	async function fetchUser(pubkey: string): Promise<User> {
+		return new Promise((resolve, reject) => {
+			const subscribeUser = pool.sub(
+				Array.from(relays).map((x) => x.href),
+				[
+					{
+						kinds: [0],
+						authors: [pubkey]
+					}
+				]
+			);
+			subscribeUser.on('event', (event: Event) => {
+				const user = JSON.parse(event.content) as User;
+				const userEvent: UserEvent = {
+					...event,
+					user
+				};
+				console.log('[user found]', userEvent);
+				saveUserEvent(userEvent);
+			});
+			subscribeUser.on('eose', () => {
+				subscribeUser.unsub();
+
+				const userEvent = $userEvents.get(pubkey);
+				if (userEvent !== undefined) {
+					resolve(userEvent.user);
+				} else {
+					reject();
+				}
 			});
 		});
 	}
