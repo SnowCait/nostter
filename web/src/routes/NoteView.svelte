@@ -5,6 +5,9 @@
 	export let readonly: boolean;
 	export let repost: Function;
 	export let reaction: Function;
+	const regexImage = new RegExp('https?://.+\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
+	const regexAudio = new RegExp('https?://.+\.(mp3|m4a|wav)', 'g');
+	const regexVideo = new RegExp('https?://.+\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)', 'g');
 	const toggleJsonDisplay = (id: string) => {
 		console.log(id);
 		const classList = document
@@ -37,6 +40,34 @@
 			<span class="name">@{event.user?.name}</span>
 		</div>
 		<pre class="content">{event.content}</pre>
+		<ol class="media">
+			{#each [...event.content.matchAll(regexImage)].map(x => new URL(x[0])) as url}
+			<li>
+				<a href="{url.href}" target="_blank" rel="noreferrer">
+					<img src="{url.href}" alt="">
+				</a>
+			</li>
+			{/each}
+		</ol>
+		<ol class="media">
+			{#each [...event.content.matchAll(regexAudio)].map(x => new URL(x[0])) as url}
+			<li>
+				<a href="{url.href}" target="_blank" rel="noreferrer">
+					<audio src="{url.href}" controls></audio>
+				</a>
+			</li>
+			{/each}
+		</ol>
+		<ol class="media">
+			{#each [...event.content.matchAll(regexVideo)].map(x => new URL(x[0])) as url}
+			<li>
+				<a href="{url.href}" target="_blank" rel="noreferrer">
+					<!-- svelte-ignore a11y-media-has-caption -->
+					<video src="{url.href}" controls></video>
+				</a>
+			</li>
+			{/each}
+		</ol>
 		<div class="created_at">{new Date(event.created_at * 1000)}</div>
 		{#if !readonly}
 			<div class="action-menu">
@@ -101,6 +132,19 @@
 		margin: 5px 0;
 		white-space: pre-wrap;
 		word-break: break-all;
+	}
+
+	.media {
+		list-style: none;
+		padding: 0;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+
+	.media img {
+		max-height: 20em;
+		margin: 0.5em;
 	}
 
 	.created_at {
