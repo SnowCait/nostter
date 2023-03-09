@@ -5,6 +5,7 @@
 	import type { Event } from '../../types';
 	import { userEvents } from '../../../stores/UserEvents';
 	import { pool } from '../../../stores/Pool';
+	import { defaultRelays } from '../../../stores/DefaultRelays';
 
 	const pubkey = $page.params.pubkey;
 
@@ -16,19 +17,12 @@
 	console.log(user);
 
 	// TODO: Replace to user relays
-	const defaultRelays = [
-		'wss://relay.damus.io',
-		'wss://relay-jp.nostr.wirednet.jp',
-		'wss://nostr-relay.nokotaro.com',
-		'wss://nostr.h3z.jp',
-		'wss://nostr.holybea.com',
-		'wss://relay.nostr.or.jp'
-	];
+	const relays = $defaultRelays;
 
 	// NIP-58 Badges
 	let badges: Badge[] = [];
 	let profileBadges: ProfileBadge[] = [];
-	const subscribeProfileBadges = $pool.sub(defaultRelays, [
+	const subscribeProfileBadges = $pool.sub(relays, [
 		{
 			kinds: [30008],
 			authors: [pubkey]
@@ -59,7 +53,7 @@
 	subscribeProfileBadges.on('eose', () => {
 		console.log('[profile badges]', profileBadges);
 		const pubkeys = new Set(profileBadges.map((x) => x.pubkey));
-		const subscribeBadgeDefinitions = $pool.sub(defaultRelays, [
+		const subscribeBadgeDefinitions = $pool.sub(relays, [
 			{
 				kinds: [30009],
 				authors: Array.from(pubkeys)
