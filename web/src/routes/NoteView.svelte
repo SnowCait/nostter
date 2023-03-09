@@ -5,24 +5,12 @@
 	export let readonly: boolean;
 	export let repost: Function;
 	export let reaction: Function;
-	const regexImage = new RegExp('https?://.+\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
-	const regexAudio = new RegExp('https?://.+\.(mp3|m4a|wav)', 'g');
-	const regexVideo = new RegExp('https?://.+\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)', 'g');
-	const toggleJsonDisplay = (id: string) => {
-		console.log(id);
-		const classList = document
-			.getElementById(id)
-			?.getElementsByClassName('develop')
-			.item(0)?.classList;
-		if (classList === undefined) {
-			return;
-		}
-
-		if (classList.contains('hidden')) {
-			classList.remove('hidden');
-		} else {
-			classList.add('hidden');
-		}
+	const regexImage = new RegExp('https?://.+\\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
+	const regexAudio = new RegExp('https?://.+\\.(mp3|m4a|wav)', 'g');
+	const regexVideo = new RegExp('https?://.+\\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)', 'g');
+	let jsonDisplay = false;
+	const toggleJsonDisplay = () => {
+		jsonDisplay = !jsonDisplay;
 	};
 </script>
 
@@ -41,31 +29,31 @@
 		</div>
 		<pre class="content">{event.content}</pre>
 		<ol class="media">
-			{#each [...event.content.matchAll(regexImage)].map(x => new URL(x[0])) as url}
-			<li>
-				<a href="{url.href}" target="_blank" rel="noreferrer">
-					<img src="{url.href}" alt="">
-				</a>
-			</li>
+			{#each [...event.content.matchAll(regexImage)].map((x) => new URL(x[0])) as url}
+				<li>
+					<a href={url.href} target="_blank" rel="noreferrer">
+						<img src={url.href} alt="" />
+					</a>
+				</li>
 			{/each}
 		</ol>
 		<ol class="media">
-			{#each [...event.content.matchAll(regexAudio)].map(x => new URL(x[0])) as url}
-			<li>
-				<a href="{url.href}" target="_blank" rel="noreferrer">
-					<audio src="{url.href}" controls></audio>
-				</a>
-			</li>
+			{#each [...event.content.matchAll(regexAudio)].map((x) => new URL(x[0])) as url}
+				<li>
+					<a href={url.href} target="_blank" rel="noreferrer">
+						<audio src={url.href} controls />
+					</a>
+				</li>
 			{/each}
 		</ol>
 		<ol class="media">
-			{#each [...event.content.matchAll(regexVideo)].map(x => new URL(x[0])) as url}
-			<li>
-				<a href="{url.href}" target="_blank" rel="noreferrer">
-					<!-- svelte-ignore a11y-media-has-caption -->
-					<video src="{url.href}" controls></video>
-				</a>
-			</li>
+			{#each [...event.content.matchAll(regexVideo)].map((x) => new URL(x[0])) as url}
+				<li>
+					<a href={url.href} target="_blank" rel="noreferrer">
+						<!-- svelte-ignore a11y-media-has-caption -->
+						<video src={url.href} controls />
+					</a>
+				</li>
 			{/each}
 		</ol>
 		<div class="created_at">{new Date(event.created_at * 1000)}</div>
@@ -75,15 +63,17 @@
 				<button on:click={() => reaction(event)}>
 					{#if $pawPad}🐾{:else}💖{/if}
 				</button>
-				<button on:click={() => toggleJsonDisplay(event.id)}>{'{'} JSON {'}'}</button>
+				<button on:click={toggleJsonDisplay}>{'{'} JSON {'}'}</button>
 			</div>
 		{/if}
-		<div class="develop hidden">
-			<h5>Event JSON</h5>
-			<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
-			<h5>User JSON</h5>
-			<pre><code class="json">{JSON.stringify(event.user, null, 2)}</code></pre>
-		</div>
+		{#if jsonDisplay}
+			<div class="develop">
+				<h5>Event JSON</h5>
+				<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
+				<h5>User JSON</h5>
+				<pre><code class="json">{JSON.stringify(event.user, null, 2)}</code></pre>
+			</div>
+		{/if}
 	</div>
 </article>
 
@@ -155,6 +145,7 @@
 	.develop pre {
 		background-color: #f6f8fa;
 		padding: 0.5em;
+		overflow: auto;
 	}
 	.develop .json {
 		font-size: 0.8em;
@@ -163,9 +154,5 @@
 	.action-menu button {
 		border: none;
 		background-color: inherit;
-	}
-
-	.hidden {
-		display: none;
 	}
 </style>
