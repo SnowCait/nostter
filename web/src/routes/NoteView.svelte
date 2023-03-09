@@ -5,9 +5,9 @@
 	export let readonly: boolean;
 	export let repost: Function;
 	export let reaction: Function;
-	const regexImage = new RegExp('https?://.+\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
-	const regexAudio = new RegExp('https?://.+\.(mp3|m4a|wav)', 'g');
-	const regexVideo = new RegExp('https?://.+\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)', 'g');
+	const regexImage = new RegExp('https?://.+\\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
+	const regexAudio = new RegExp('https?://.+\\.(mp3|m4a|wav)', 'g');
+	const regexVideo = new RegExp('https?://.+\\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)', 'g');
 	let jsonDisplay = false;
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
