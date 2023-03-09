@@ -29,31 +29,31 @@
 		</div>
 		<pre class="content">{event.content}</pre>
 		<ol class="media">
-			{#each [...event.content.matchAll(regexImage)].map(x => new URL(x[0])) as url}
-			<li>
-				<a href="{url.href}" target="_blank" rel="noreferrer">
-					<img src="{url.href}" alt="">
-				</a>
-			</li>
+			{#each [...event.content.matchAll(regexImage)].map((x) => new URL(x[0])) as url}
+				<li>
+					<a href={url.href} target="_blank" rel="noreferrer">
+						<img src={url.href} alt="" />
+					</a>
+				</li>
 			{/each}
 		</ol>
 		<ol class="media">
-			{#each [...event.content.matchAll(regexAudio)].map(x => new URL(x[0])) as url}
-			<li>
-				<a href="{url.href}" target="_blank" rel="noreferrer">
-					<audio src="{url.href}" controls></audio>
-				</a>
-			</li>
+			{#each [...event.content.matchAll(regexAudio)].map((x) => new URL(x[0])) as url}
+				<li>
+					<a href={url.href} target="_blank" rel="noreferrer">
+						<audio src={url.href} controls />
+					</a>
+				</li>
 			{/each}
 		</ol>
 		<ol class="media">
-			{#each [...event.content.matchAll(regexVideo)].map(x => new URL(x[0])) as url}
-			<li>
-				<a href="{url.href}" target="_blank" rel="noreferrer">
-					<!-- svelte-ignore a11y-media-has-caption -->
-					<video src="{url.href}" controls></video>
-				</a>
-			</li>
+			{#each [...event.content.matchAll(regexVideo)].map((x) => new URL(x[0])) as url}
+				<li>
+					<a href={url.href} target="_blank" rel="noreferrer">
+						<!-- svelte-ignore a11y-media-has-caption -->
+						<video src={url.href} controls />
+					</a>
+				</li>
 			{/each}
 		</ol>
 		<div class="created_at">{new Date(event.created_at * 1000)}</div>
