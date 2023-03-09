@@ -14,6 +14,7 @@
 	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
 	import { pawPad } from '../../stores/Preference';
 	import { pool } from '../../stores/Pool';
+	import { defaultRelays } from '../../stores/DefaultRelays';
 
 	let content = '';
 	let followee: Set<string> = new Set();
@@ -22,15 +23,6 @@
 	let loggedIn = false;
 	let posting = false;
 	let recommendedRelay = '';
-
-	const defaultRelays = [
-		'wss://relay.damus.io',
-		'wss://relay-jp.nostr.wirednet.jp',
-		'wss://nostr-relay.nokotaro.com',
-		'wss://nostr.h3z.jp',
-		'wss://nostr.holybea.com',
-		'wss://relay.nostr.or.jp'
-	];
 
 	async function login() {
 		if (window.nostr === undefined) {
@@ -47,7 +39,7 @@
 			console.warn('Please register relays on NIP-07');
 		}
 
-		const profileRelays = new Set([...Object.keys(nip07Relays), ...defaultRelays]);
+		const profileRelays = new Set([...Object.keys(nip07Relays), ...$defaultRelays]);
 		console.log('[relays for profile]', profileRelays);
 
 		const pubkey: string = await window.nostr.getPublicKey();
