@@ -8,21 +8,9 @@
 	const regexImage = new RegExp('https?://.+\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
 	const regexAudio = new RegExp('https?://.+\.(mp3|m4a|wav)', 'g');
 	const regexVideo = new RegExp('https?://.+\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)', 'g');
-	const toggleJsonDisplay = (id: string) => {
-		console.log(id);
-		const classList = document
-			.getElementById(id)
-			?.getElementsByClassName('develop')
-			.item(0)?.classList;
-		if (classList === undefined) {
-			return;
-		}
-
-		if (classList.contains('hidden')) {
-			classList.remove('hidden');
-		} else {
-			classList.add('hidden');
-		}
+	let jsonDisplay = false;
+	const toggleJsonDisplay = () => {
+		jsonDisplay = !jsonDisplay;
 	};
 </script>
 
@@ -75,15 +63,17 @@
 				<button on:click={() => reaction(event)}>
 					{#if $pawPad}🐾{:else}💖{/if}
 				</button>
-				<button on:click={() => toggleJsonDisplay(event.id)}>{'{'} JSON {'}'}</button>
+				<button on:click={toggleJsonDisplay}>{'{'} JSON {'}'}</button>
 			</div>
 		{/if}
-		<div class="develop hidden">
-			<h5>Event JSON</h5>
-			<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
-			<h5>User JSON</h5>
-			<pre><code class="json">{JSON.stringify(event.user, null, 2)}</code></pre>
-		</div>
+		{#if jsonDisplay}
+			<div class="develop">
+				<h5>Event JSON</h5>
+				<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
+				<h5>User JSON</h5>
+				<pre><code class="json">{JSON.stringify(event.user, null, 2)}</code></pre>
+			</div>
+		{/if}
 	</div>
 </article>
 
@@ -155,6 +145,7 @@
 	.develop pre {
 		background-color: #f6f8fa;
 		padding: 0.5em;
+		overflow: auto;
 	}
 	.develop .json {
 		font-size: 0.8em;
@@ -163,9 +154,5 @@
 	.action-menu button {
 		border: none;
 		background-color: inherit;
-	}
-
-	.hidden {
-		display: none;
 	}
 </style>
