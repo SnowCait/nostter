@@ -65,7 +65,9 @@
 			}
 
 			if (event.kind === 3) {
-				const relaysOfKind3 = new Map<string, RelayPermission>(Object.entries(JSON.parse(event.content)));
+				const relaysOfKind3 = new Map<string, RelayPermission>(
+					Object.entries(JSON.parse(event.content))
+				);
 				followee = new Set(event.tags.map((x) => x[1]));
 				console.log(relaysOfKind3, followee);
 				if (relaysCreatedAt === undefined || relaysCreatedAt < event.created_at) {
