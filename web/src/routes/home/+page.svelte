@@ -15,6 +15,7 @@
 	import { pawPad } from '../../stores/Preference';
 	import { pool } from '../../stores/Pool';
 	import { defaultRelays } from '../../stores/DefaultRelays';
+	import { pubkey } from '../../stores/Author';
 
 	let content = '';
 	let followee: Set<string> = new Set();
@@ -42,12 +43,12 @@
 		const profileRelays = new Set([...Object.keys(nip07Relays), ...$defaultRelays]);
 		console.log('[relays for profile]', profileRelays);
 
-		const pubkey: string = await window.nostr.getPublicKey();
-		console.log(pubkey);
+		$pubkey = await window.nostr.getPublicKey();
+		console.log($pubkey);
 		const subscribeProfile = $pool.sub(Array.from(profileRelays), [
 			{
 				kinds: [0, 2, 3, 10002],
-				authors: [pubkey]
+				authors: [$pubkey]
 			}
 		]);
 		subscribeProfile.on('event', (event: Event) => {
@@ -64,7 +65,9 @@
 			}
 
 			if (event.kind === 3) {
-				const relaysOfKind3 = new Map<string, RelayPermission>(Object.entries(JSON.parse(event.content)));
+				const relaysOfKind3 = new Map<string, RelayPermission>(
+					Object.entries(JSON.parse(event.content))
+				);
 				followee = new Set(event.tags.map((x) => x[1]));
 				console.log(relaysOfKind3, followee);
 				if (relaysCreatedAt === undefined || relaysCreatedAt < event.created_at) {
