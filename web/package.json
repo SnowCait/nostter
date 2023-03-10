@@ -33,6 +33,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@tabler/icons-svelte": "^2.9.0",
 		"nostr-tools": "^1.6.0"
 	}
 }
