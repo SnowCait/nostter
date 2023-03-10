@@ -1,6 +1,11 @@
 <script lang="ts">
-	import { IconHome, IconSearch, IconUser } from '@tabler/icons-svelte';
+	import { IconHome, IconSearch, IconUser, IconCirclePlus } from '@tabler/icons-svelte';
 	import { pubkey } from '../stores/Author';
+	import { openNoteDialog } from '../stores/NoteDialog';
+
+	function toggleNoteDialog() {
+		$openNoteDialog = !$openNoteDialog;
+	}
 </script>
 
 <nav>
@@ -21,6 +26,11 @@
 					<IconUser size={30} />
 				</li>
 			</a>
+			<li>
+				<button on:click={toggleNoteDialog}>
+					<IconCirclePlus size={30} />
+				</button>
+			</li>
 		{/if}
 	</ol>
 </nav>
@@ -41,5 +51,15 @@
 
 	a:visited {
 		color: inherit;
+	}
+
+	button {
+		background-color: transparent;
+		border: none;
+		cursor: pointer;
+		outline: none;
+		padding: 0;
+		width: inherit;
+		height: inherit;
 	}
 </style>
