@@ -5,6 +5,7 @@
 	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
 	import TimelineView from '../TimelineView.svelte';
 	import type { Event, UserEvent, User } from '../types';
+	import NoteIdsView from './NoteIdsView.svelte';
 
 	let query = '';
 
@@ -109,6 +110,8 @@
 		<input type="text" name="q" value={query} />
 		<input type="submit" value="Search" />
 	</form>
+
+	<NoteIdsView />
 
 	<TimelineView
 		readonly={true}
