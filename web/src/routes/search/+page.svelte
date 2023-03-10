@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { events } from '../../stores/Events';
+	import { searchEvents } from '../../stores/Events';
 	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
 	import TimelineView from '../TimelineView.svelte';
 	import type { Event, UserEvent, User } from '../types';
@@ -13,7 +13,7 @@
 
 	afterNavigate(async () => {
 		query = $page.url.searchParams.get('q') ?? '';
-		$events = [];
+		$searchEvents = [];
 		$userEvents.clear();
 		if (query !== '') {
 			console.log('[q]', query);
@@ -48,10 +48,10 @@
 			console.log(data);
 			switch (data[0]) {
 				case 'EOSE':
-					console.log('[result]', $events);
+					console.log('[result]', $searchEvents);
 
-					if ($events.length > 0 && $userEvents.size === 0) {
-						const pubkeys = new Set($events.map((x) => x.pubkey));
+					if ($searchEvents.length > 0 && $userEvents.size === 0) {
+						const pubkeys = new Set($searchEvents.map((x) => x.pubkey));
 						console.log(Array.from(pubkeys));
 						ws.send(
 							JSON.stringify([
@@ -64,7 +64,7 @@
 							])
 						);
 					} else {
-						for (const event of $events) {
+						for (const event of $searchEvents) {
 							const userEvent = $userEvents.get(event.pubkey);
 							if (userEvent === undefined) {
 								console.error(`${event.pubkey} is not found in $userEvents`);
@@ -73,7 +73,7 @@
 							event.user = userEvent.user;
 						}
 
-						$events = $events;
+						$searchEvents = $searchEvents;
 
 						ws.close();
 					}
@@ -91,7 +91,7 @@
 							saveUserEvent(userEvent);
 							break;
 						case 1:
-							$events.push(e);
+							$searchEvents.push(e);
 							break;
 					}
 					break;
@@ -114,6 +114,7 @@
 	<NoteIdsView />
 
 	<TimelineView
+		events={$searchEvents}
 		readonly={true}
 		repost={() => console.warn('Not implemented')}
 		reaction={() => console.warn('Not implemented')}
