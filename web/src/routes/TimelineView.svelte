@@ -1,13 +1,14 @@
 <script lang="ts">
 	import NoteView from './NoteView.svelte';
-	import { events } from '../stores/Events';
+	import type { Event } from './types';
+	export let events: Event[] = [];
 	export let readonly: boolean = false;
 	export let repost: Function;
 	export let reaction: Function;
 </script>
 
 <ul>
-	{#each $events as event}
+	{#each events as event}
 		<li>
 			<NoteView {event} {readonly} {repost} {reaction} />
 		</li>

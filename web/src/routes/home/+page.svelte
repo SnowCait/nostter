@@ -286,5 +286,5 @@
 	<input type="checkbox" bind:checked={$pawPad} />🐾
 	<span>{$events.length} notes</span>
 
-	<TimelineView {repost} {reaction} />
+	<TimelineView events={$events} {repost} {reaction} />
 </main>
