@@ -1,8 +1,11 @@
-<script>
+<script lang="ts">
 	import Header from './Header.svelte';
+	import NoteDialog from './NoteDialog.svelte';
 </script>
 
 <div class="app">
+	<NoteDialog />
+
 	<header>
 		<Header />
 	</header>

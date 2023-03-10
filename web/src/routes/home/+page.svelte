@@ -15,14 +15,11 @@
 	import { pawPad } from '../../stores/Preference';
 	import { pool } from '../../stores/Pool';
 	import { defaultRelays } from '../../stores/DefaultRelays';
-	import { pubkey } from '../../stores/Author';
+	import { pubkey, relays } from '../../stores/Author';
 
-	let content = '';
 	let followee: Set<string> = new Set();
-	let relays: Set<URL> = new Set();
 	let relaysCreatedAt: number;
 	let loggedIn = false;
-	let posting = false;
 	let recommendedRelay = '';
 
 	async function login() {
@@ -72,7 +69,7 @@
 				console.log(relaysOfKind3, followee);
 				if (relaysCreatedAt === undefined || relaysCreatedAt < event.created_at) {
 					relaysCreatedAt = event.created_at;
-					relays = new Set(Array.from(relaysOfKind3.keys()).map((x) => new URL(x)));
+					$relays = new Set(Array.from(relaysOfKind3.keys()).map((x) => new URL(x)));
 				}
 				console.log('[kind 3]', relays);
 			}
@@ -80,7 +77,7 @@
 			if (event.kind === 10002) {
 				if (relaysCreatedAt === undefined || relaysCreatedAt < event.created_at) {
 					relaysCreatedAt = event.created_at;
-					relays = new Set(event.tags.map((x) => new URL(x[1])));
+					$relays = new Set(event.tags.map((x) => new URL(x[1])));
 				}
 				console.log('[kind 10002]', relays);
 			}
@@ -93,7 +90,7 @@
 			const limit = 500;
 			const since = Math.floor(Date.now() / 1000 - 24 * 60 * 60);
 			const subscribeNotes = $pool.sub(
-				Array.from(relays).map((x) => x.href),
+				Array.from($relays).map((x) => x.href),
 				[
 					{
 						kinds: [1],
@@ -118,7 +115,7 @@
 				const pubkeys = new Set($events.map((x) => x.pubkey));
 
 				const subscribeUsers = $pool.sub(
-					Array.from(relays).map((x) => x.href),
+					Array.from($relays).map((x) => x.href),
 					[
 						{
 							kinds: [0],
@@ -154,7 +151,7 @@
 					let upToDate = false;
 					let newEvents: Event[] = [];
 					const subscribe = $pool.sub(
-						Array.from(relays).map((x) => x.href),
+						Array.from($relays).map((x) => x.href),
 						[
 							{
 								kinds: [1],
@@ -194,7 +191,7 @@
 	async function fetchUser(pubkey: string): Promise<User> {
 		return new Promise((resolve, reject) => {
 			const subscribeUser = $pool.sub(
-				Array.from(relays).map((x) => x.href),
+				Array.from($relays).map((x) => x.href),
 				[
 					{
 						kinds: [0],
@@ -224,37 +221,6 @@
 		});
 	}
 
-	async function submitFromKeyboard(event: KeyboardEvent) {
-		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
-		if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-			await postNote();
-		}
-	}
-
-	async function postNote() {
-		if (content === '') {
-			console.log('Content is empty');
-			return;
-		}
-
-		posting = true;
-		const event = await window.nostr.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: 1,
-			tags: [],
-			content
-		});
-		console.log(event);
-
-		$pool.publish(
-			Array.from(relays).map((x) => x.href),
-			event
-		);
-
-		content = '';
-		posting = false;
-	}
-
 	async function repost(note: Event) {
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
@@ -268,7 +234,7 @@
 		console.log(event);
 
 		$pool.publish(
-			Array.from(relays).map((x) => x.href),
+			Array.from($relays).map((x) => x.href),
 			event
 		);
 	}
@@ -292,7 +258,7 @@
 		console.log(event);
 
 		$pool.publish(
-			Array.from(relays).map((x) => x.href),
+			Array.from($relays).map((x) => x.href),
 			event
 		);
 	};
@@ -320,20 +286,5 @@
 	<input type="checkbox" bind:checked={$pawPad} />🐾
 	<span>{$events.length} notes</span>
 
-	<form on:submit|preventDefault={postNote}>
-		<textarea
-			placeholder="いまどうしてる？"
-			bind:value={content}
-			on:keydown={submitFromKeyboard}
-		/>
-		<input type="submit" value="投稿する" disabled={!loggedIn || posting} />
-	</form>
-
 	<TimelineView {repost} {reaction} />
 </main>
-
-<style>
-	textarea {
-		width: 500px;
-	}
-</style>

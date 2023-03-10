@@ -1,3 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 
 export const pubkey = writable('');
+export const relays: Writable<Set<URL>> = writable(new Set());
