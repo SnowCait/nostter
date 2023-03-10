@@ -133,6 +133,7 @@
 	}
 
 	.media img {
+		max-width: 100%;
 		max-height: 20em;
 		margin: 0.5em;
 	}
