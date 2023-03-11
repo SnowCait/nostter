@@ -107,7 +107,7 @@
 <main>
 	<h1><a href="/search">Search</a></h1>
 	<form action="/search">
-		<input type="text" name="q" value={query} />
+		<input type="text" name="q" value={query} on:keyup|stopPropagation={() => {}} />
 		<input type="submit" value="Search" />
 	</form>
 
