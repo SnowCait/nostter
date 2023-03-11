@@ -187,43 +187,41 @@
 	{/if}
 </svelte:head>
 
-<main>
-	<section>
-		{#if user}
-			<div class="banner">
-				<img src={user.banner} alt="" />
-			</div>
-			<div class="profile">
-				<img src={user.picture} alt="" />
-				<h1>{user.display_name ?? user.name ?? ''}</h1>
-				{#if user.name}
-					<h2>@{user.name}</h2>
-				{/if}
-				{#if user.website}
-					<div>
-						<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
-					</div>
-				{/if}
-				{#if user.about}
-					<pre>{user.about}</pre>
-				{/if}
-			</div>
-		{/if}
-		<ul class="badges">
-			{#each badges as badge}
-				<li>
-					<a href="https://badges.page/b/{badge.naddr}" target="_blank" rel="noreferrer">
-						<img
-							src={badge.thumb ? badge.thumb : badge.image}
-							alt={badge.name}
-							title={badge.name}
-						/>
-					</a>
-				</li>
-			{/each}
-		</ul>
-	</section>
-</main>
+<section>
+	{#if user}
+		<div class="banner">
+			<img src={user.banner} alt="" />
+		</div>
+		<div class="profile">
+			<img src={user.picture} alt="" />
+			<h1>{user.display_name ?? user.name ?? ''}</h1>
+			{#if user.name}
+				<h2>@{user.name}</h2>
+			{/if}
+			{#if user.website}
+				<div>
+					<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
+				</div>
+			{/if}
+			{#if user.about}
+				<pre>{user.about}</pre>
+			{/if}
+		</div>
+	{/if}
+	<ul class="badges">
+		{#each badges as badge}
+			<li>
+				<a href="https://badges.page/b/{badge.naddr}" target="_blank" rel="noreferrer">
+					<img
+						src={badge.thumb ? badge.thumb : badge.image}
+						alt={badge.name}
+						title={badge.name}
+					/>
+				</a>
+			</li>
+		{/each}
+	</ul>
+</section>
 
 <style>
 	.banner img {

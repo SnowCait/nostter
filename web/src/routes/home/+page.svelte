@@ -279,12 +279,21 @@
 	<title>nostter - home</title>
 </svelte:head>
 
-<main>
-	<h1>home</h1>
+<h1>home</h1>
 
+<div>
 	<button on:click={login} disabled={loggedIn}>Login with NIP-07</button>
 	<input type="checkbox" bind:checked={$pawPad} />🐾
 	<span>{$events.length} notes</span>
+</div>
 
-	<TimelineView events={$events} {repost} {reaction} />
-</main>
+<TimelineView events={$events} {repost} {reaction} />
+
+<style>
+	@media screen and (max-width: 600px) {
+		h1,
+		div {
+			margin: 0.67em;
+		}
+	}
+</style>

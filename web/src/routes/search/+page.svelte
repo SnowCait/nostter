@@ -104,26 +104,32 @@
 	<title>nostter - {query ? `Search: ${query}` : 'Search'}</title>
 </svelte:head>
 
-<main>
-	<h1><a href="/search">Search</a></h1>
-	<form action="/search">
-		<input type="text" name="q" value={query} on:keyup|stopPropagation={() => {}} />
-		<input type="submit" value="Search" />
-	</form>
+<h1><a href="/search">Search</a></h1>
 
-	<NoteIdsView />
+<form action="/search">
+	<input type="text" name="q" value={query} on:keyup|stopPropagation={() => {}} />
+	<input type="submit" value="Search" />
+</form>
 
-	<TimelineView
-		events={$searchEvents}
-		readonly={true}
-		repost={() => console.warn('Not implemented')}
-		reaction={() => console.warn('Not implemented')}
-	/>
-</main>
+<NoteIdsView />
+
+<TimelineView
+	events={$searchEvents}
+	readonly={true}
+	repost={() => console.warn('Not implemented')}
+	reaction={() => console.warn('Not implemented')}
+/>
 
 <style>
 	h1 a {
 		color: inherit;
 		text-decoration: none;
+	}
+
+	@media screen and (max-width: 600px) {
+		h1,
+		form {
+			margin: 0.67em;
+		}
 	}
 </style>

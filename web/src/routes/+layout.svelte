@@ -34,11 +34,27 @@
 
 	header {
 		position: fixed;
+
+		/* min-width: 600px */
 		top: 0;
 		width: 50px;
 	}
 
 	main {
 		margin-left: 60px;
+	}
+
+	@media screen and (max-width: 600px) {
+		header {
+			top: auto;
+			bottom: 0;
+			width: 100%;
+			height: 50px;
+			background-color: white;
+		}
+
+		main {
+			margin-left: auto;
+		}
 	}
 </style>
