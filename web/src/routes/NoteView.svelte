@@ -2,13 +2,14 @@
 	import {
 		IconMessageCircle2,
 		IconRepeat,
+		IconQuote,
 		IconHeart,
 		IconPaw,
 		IconCodeDots
 	} from '@tabler/icons-svelte';
 	import type { Event } from './types';
 	import { pawPad } from '../stores/Preference';
-	import { openNoteDialog, replyTo } from '../stores/NoteDialog';
+	import { openNoteDialog, quotes, replyTo } from '../stores/NoteDialog';
 	import CreatedAt from './CreatedAt.svelte';
 	export let event: Event;
 	export let readonly: boolean;
@@ -25,6 +26,11 @@
 
 	function reply(event: Event) {
 		$replyTo = event;
+		$openNoteDialog = true;
+	}
+
+	function quote(event: Event) {
+		$quotes.push(event);
 		$openNoteDialog = true;
 	}
 </script>
@@ -81,6 +87,9 @@
 				</button>
 				<button on:click={() => repost(event)}>
 					<IconRepeat size={iconSize} />
+				</button>
+				<button on:click={() => quote(event)}>
+					<IconQuote size={iconSize} />
 				</button>
 				<button on:click={() => reaction(event)}>
 					{#if $pawPad}

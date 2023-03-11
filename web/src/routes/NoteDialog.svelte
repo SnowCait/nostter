@@ -9,17 +9,27 @@
 <script lang="ts">
 	import { pool } from '../stores/Pool';
 	import { pubkey, relays } from '../stores/Author';
-	import { openNoteDialog, replyTo } from '../stores/NoteDialog';
+	import { openNoteDialog, replyTo, quotes } from '../stores/NoteDialog';
 	import NoteView from './NoteView.svelte';
 
 	let content = '';
 	let posting = false;
 	let dialog: HTMLDialogElement;
+	let textarea: HTMLTextAreaElement;
 
 	openNoteDialog.subscribe((open) => {
 		console.log('[open]', open);
 		if (open) {
-			dialog.showModal();
+			if ($quotes.length > 0) {
+				content = $quotes.map((x, i) => `\n#[${i}]`).join('');
+			}
+			// Wait for content updated
+			setTimeout(() => {
+				console.log(textarea, textarea.selectionStart);
+				textarea.setSelectionRange(0, 0);
+				dialog.showModal();
+				textarea.focus();
+			}, 10);
 		}
 	});
 
@@ -40,7 +50,9 @@
 	async function closed(event: Event) {
 		console.log(`[${event.type}]`);
 		$openNoteDialog = false;
+		content = '';
 		$replyTo = undefined;
+		$quotes = [];
 	}
 
 	async function submitFromKeyboard(event: KeyboardEvent) {
@@ -79,6 +91,14 @@
 			}
 		}
 
+		if ($quotes.length > 0) {
+			for (const quote of $quotes) {
+				tags.push(['e', quote.id, '', 'mention']);
+			}
+			const pubkeys = new Set($quotes.map((quote) => quote.pubkey));
+			tags.push(...Array.from(pubkeys).map((pubkey) => ['p', pubkey]));
+		}
+
 		posting = true;
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
@@ -93,7 +113,6 @@
 			event
 		);
 
-		content = '';
 		posting = false;
 
 		dialog.close();
@@ -109,10 +128,16 @@
 		<textarea
 			placeholder="いまどうしてる？"
 			bind:value={content}
+			bind:this={textarea}
 			on:keydown={submitFromKeyboard}
 		/>
 		<input type="submit" value="投稿する" disabled={!pubkey || posting} />
 	</form>
+	{#if $quotes.length > 0}
+		{#each $quotes as quote}
+			<NoteView event={quote} readonly={true} />
+		{/each}
+	{/if}
 </dialog>
 
 <style>
