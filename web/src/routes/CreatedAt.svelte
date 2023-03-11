@@ -2,7 +2,7 @@
 	export let createdAt: number;
 	const date = new Date(createdAt * 1000);
 	const elapsedTime = Date.now() - date.getTime();
-	const oneDay = 24 * 60 * 60* 1000;
+	const oneDay = 24 * 60 * 60 * 1000;
 	let createdAtDisplay: string;
 	if (elapsedTime < oneDay) {
 		createdAtDisplay = date.toLocaleTimeString('ja-JP', {
@@ -17,7 +17,7 @@
 	} else {
 		createdAtDisplay = date.toLocaleDateString('ja-JP', {
 			year: 'numeric',
-			month: 'numeric',
+			month: 'numeric'
 		});
 	}
 </script>
