@@ -9,6 +9,7 @@
 	import type { Event } from './types';
 	import { pawPad } from '../stores/Preference';
 	import { openNoteDialog, replyTo } from '../stores/NoteDialog';
+	import CreatedAt from './CreatedAt.svelte';
 	export let event: Event;
 	export let readonly: boolean;
 	export let repost: Function = () => {};
@@ -36,10 +37,13 @@
 	</div>
 	<div class="note">
 		<div class="user">
-			<span class="display_name">
+			<div class="display_name">
 				{event.user?.display_name ? event.user.display_name : event.user?.name}
-			</span>
-			<span class="name">@{event.user?.name}</span>
+			</div>
+			<div class="name">@{event.user?.name}</div>
+			<div class="created_at">
+				<CreatedAt createdAt={event.created_at} />
+			</div>
 		</div>
 		<pre class="content">{event.content}</pre>
 		<ol class="media">
@@ -70,7 +74,6 @@
 				</li>
 			{/each}
 		</ol>
-		<div class="created_at">{new Date(event.created_at * 1000)}</div>
 		{#if !readonly}
 			<div class="action-menu">
 				<button on:click={() => reply(event)}>
@@ -140,6 +143,10 @@
 		font-size: 15px;
 	}
 
+	.created_at {
+		margin-left: auto;
+	}
+
 	.content {
 		line-height: 20px;
 		max-height: 10em;
@@ -162,11 +169,6 @@
 		max-width: 100%;
 		max-height: 20em;
 		margin: 0.5em;
-	}
-
-	.created_at {
-		color: gray;
-		font-size: 0.5em;
 	}
 
 	.develop pre {
