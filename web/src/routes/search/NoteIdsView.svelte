@@ -17,3 +17,11 @@
 		<pre>{noteIds.join('\n')}</pre>
 	{/if}
 </section>
+
+<style>
+	@media screen and (max-width: 600px) {
+		section {
+			margin: 0.67em;
+		}
+	}
+</style>

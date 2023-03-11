@@ -9,7 +9,7 @@
 </script>
 
 <nav>
-	<ol>
+	<ul>
 		<a href="/home">
 			<li>
 				<IconHome size={30} />
@@ -32,11 +32,11 @@
 				</button>
 			</li>
 		{/if}
-	</ol>
+	</ul>
 </nav>
 
 <style>
-	ol {
+	ul {
 		list-style: none;
 		padding: 0;
 	}
@@ -61,5 +61,14 @@
 		padding: 0;
 		width: inherit;
 		height: inherit;
+	}
+
+	@media screen and (max-width: 600px) {
+		ul {
+			display: flex;
+			flex-flow: row;
+			justify-content: space-around;
+			margin: 0;
+		}
 	}
 </style>
