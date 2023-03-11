@@ -28,6 +28,7 @@
 				console.log(textarea, textarea.selectionStart);
 				textarea.setSelectionRange(0, 0);
 				dialog.showModal();
+				textarea.focus();
 			}, 10);
 		}
 	});
