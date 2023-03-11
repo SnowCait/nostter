@@ -1,11 +1,18 @@
 <script lang="ts">
-	import { IconRepeat, IconHeart, IconPaw, IconCodeDots } from '@tabler/icons-svelte';
+	import {
+		IconMessageCircle2,
+		IconRepeat,
+		IconHeart,
+		IconPaw,
+		IconCodeDots
+	} from '@tabler/icons-svelte';
 	import type { Event } from './types';
 	import { pawPad } from '../stores/Preference';
+	import { openNoteDialog, replyTo } from '../stores/NoteDialog';
 	export let event: Event;
 	export let readonly: boolean;
-	export let repost: Function;
-	export let reaction: Function;
+	export let repost: Function = () => {};
+	export let reaction: Function = () => {};
 	const iconSize = 20;
 	const regexImage = new RegExp('https?://.+\\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
 	const regexAudio = new RegExp('https?://.+\\.(mp3|m4a|wav)', 'g');
@@ -14,6 +21,11 @@
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
 	};
+
+	function reply(event: Event) {
+		$replyTo = event;
+		$openNoteDialog = true;
+	}
 </script>
 
 <article id={event.id}>
@@ -61,6 +73,9 @@
 		<div class="created_at">{new Date(event.created_at * 1000)}</div>
 		{#if !readonly}
 			<div class="action-menu">
+				<button on:click={() => reply(event)}>
+					<IconMessageCircle2 size={iconSize} />
+				</button>
 				<button on:click={() => repost(event)}>
 					<IconRepeat size={iconSize} />
 				</button>
@@ -137,6 +152,7 @@
 	.media {
 		list-style: none;
 		padding: 0;
+		margin: 0;
 		display: flex;
 		flex-direction: row;
 		flex-wrap: wrap;

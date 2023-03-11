@@ -9,7 +9,8 @@
 <script lang="ts">
 	import { pool } from '../stores/Pool';
 	import { pubkey, relays } from '../stores/Author';
-	import { openNoteDialog } from '../stores/NoteDialog';
+	import { openNoteDialog, replyTo } from '../stores/NoteDialog';
+	import NoteView from './NoteView.svelte';
 
 	let content = '';
 	let posting = false;
@@ -39,6 +40,7 @@
 	async function closed(event: Event) {
 		console.log(`[${event.type}]`);
 		$openNoteDialog = false;
+		$replyTo = undefined;
 	}
 
 	async function submitFromKeyboard(event: KeyboardEvent) {
@@ -54,11 +56,34 @@
 			return;
 		}
 
+		let tags: string[][] = [];
+		if ($replyTo !== undefined) {
+			if ($replyTo.tags.filter((x) => x[0] === 'e').length === 0) {
+				// root
+				tags.push(['e', $replyTo.id, '', 'root']);
+				tags.push(['p', $replyTo.pubkey]);
+			} else {
+				// reply
+				tags.push(['e', $replyTo.id, '', 'reply']);
+				const root = $replyTo.tags.find(
+					([tagName, , , marker]) => tagName === 'e' && marker === 'root'
+				);
+				if (root !== undefined) {
+					tags.push(['e', root[1], '', 'root']);
+				}
+				const pubkeys = new Set([
+					$replyTo.pubkey,
+					...$replyTo.tags.filter((x) => x[0] === 'p').map((x) => x[1])
+				]);
+				tags.push(...Array.from(pubkeys).map((pubkey) => ['p', pubkey]));
+			}
+		}
+
 		posting = true;
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 1,
-			tags: [],
+			tags,
 			content
 		});
 		console.log(event);
@@ -77,6 +102,9 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog bind:this={dialog} on:click={closeDialog} on:close={closed}>
+	{#if $replyTo}
+		<NoteView event={$replyTo} readonly={true} />
+	{/if}
 	<form on:submit|preventDefault={postNote}>
 		<textarea
 			placeholder="いまどうしてる？"
