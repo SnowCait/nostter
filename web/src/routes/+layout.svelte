@@ -1,7 +1,18 @@
 <script lang="ts">
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
+	import { openNoteDialog } from '../stores/NoteDialog';
+
+	function keyboardShortcut(event: KeyboardEvent) {
+		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
+
+		if (event.key === 'n') {
+			$openNoteDialog = true;
+		}
+	}
 </script>
+
+<svelte:window on:keyup={keyboardShortcut} />
 
 <div class="app">
 	<NoteDialog />
