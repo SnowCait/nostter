@@ -32,9 +32,13 @@
 			event.y <= dialog.offsetTop + dialog.offsetHeight;
 
 		if (!insideDialog) {
-			$openNoteDialog = false;
 			dialog.close();
 		}
+	}
+
+	async function closed(event: Event) {
+		console.log(`[${event.type}]`);
+		$openNoteDialog = false;
 	}
 
 	async function submitFromKeyboard(event: KeyboardEvent) {
@@ -66,11 +70,13 @@
 
 		content = '';
 		posting = false;
+
+		dialog.close();
 	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<dialog bind:this={dialog} on:click={closeDialog}>
+<dialog bind:this={dialog} on:click={closeDialog} on:close={closed}>
 	<form on:submit|preventDefault={postNote}>
 		<textarea
 			placeholder="いまどうしてる？"
