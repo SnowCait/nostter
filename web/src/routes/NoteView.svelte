@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { nip19 } from 'nostr-tools';
 	import {
 		IconMessageCircle2,
 		IconRepeat,
@@ -10,6 +11,7 @@
 	import type { Event } from './types';
 	import { pawPad } from '../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../stores/NoteDialog';
+	import { userEvents } from '../stores/UserEvents';
 	import CreatedAt from './CreatedAt.svelte';
 	export let event: Event;
 	export let readonly: boolean;
@@ -51,6 +53,22 @@
 				<CreatedAt createdAt={event.created_at} />
 			</div>
 		</div>
+		{#if event.tags.some(([tagName, , , marker]) => tagName === 'e' && marker === 'reply') && event.tags.some(([tagName]) => tagName === 'p')}
+			<div class="reply">
+				<span>To</span>
+				<span>
+					@{event.tags
+						.filter(([tagName]) => tagName === 'p')
+						.map(([, pubkey]) => pubkey)
+						.map(
+							(pubkey) =>
+								$userEvents.get(pubkey)?.user.name ??
+								nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)
+						)
+						.join(' @')}
+				</span>
+			</div>
+		{/if}
 		<pre class="content">{event.content}</pre>
 		<ol class="media">
 			{#each [...event.content.matchAll(regexImage)].map((x) => new URL(x[0])) as url}
@@ -154,6 +172,11 @@
 
 	.created_at {
 		margin-left: auto;
+	}
+
+	.reply {
+		font-size: 0.8em;
+		color: gray;
 	}
 
 	.content {
