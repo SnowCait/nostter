@@ -21,6 +21,8 @@
 	onMount(async () => {
 		console.log('onMount');
 
+		history.replaceState(history.state, '', `/${nip19.npubEncode(pubkey)}`);
+
 		user = $userEvents.get(pubkey)?.user;
 		console.log('[cached user]', user);
 		if (user === undefined) {
