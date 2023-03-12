@@ -14,6 +14,8 @@
 
 	let content = '';
 	let posting = false;
+	let mediaFiles: File[] = [];
+	let dataUrls: string[] = [];
 	let dialog: HTMLDialogElement;
 	let textarea: HTMLTextAreaElement;
 
@@ -115,6 +117,45 @@
 
 		dialog.close();
 	}
+
+	async function paste(event: ClipboardEvent) {
+		console.log(`[${event.type}]`, event);
+		console.log(event.clipboardData?.types);
+		const index = event.clipboardData?.types.findIndex((x) => x === 'Files');
+		console.log(index);
+
+		if (index === undefined || index < 0) {
+			return;
+		}
+
+		const file = event.clipboardData?.items[index].getAsFile();
+
+		if (!file) {
+			console.error('File not found');
+			return;
+		}
+
+		console.log(file, Math.floor(file.size / 1024), 'KB');
+
+		if (file.size > 1024 * 1024) {
+			console.error(`File size > 1MB`);
+			return;
+		}
+
+		const reader = new FileReader();
+		reader.addEventListener('load', (e) => {
+			console.log(e.target?.result);
+			if (typeof e.target?.result === 'string') {
+				dataUrls.push(e.target.result);
+				dataUrls = dataUrls;
+			}
+		});
+		reader.readAsDataURL(file);
+
+		mediaFiles.push(file);
+		mediaFiles = mediaFiles;
+		console.log(mediaFiles);
+	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -128,9 +169,28 @@
 			bind:value={content}
 			bind:this={textarea}
 			on:keydown={submitFromKeyboard}
+			on:paste={paste}
 		/>
 		<input type="submit" value="投稿する" disabled={!pubkey || posting} />
 	</form>
+	{#if mediaFiles.length > 0}
+		<ul class="media">
+			{#each mediaFiles as file}
+				<li>
+					<img src="" alt={file.name} />
+				</li>
+			{/each}
+		</ul>
+	{/if}
+	{#if dataUrls.length > 0}
+		<ul class="media">
+			{#each dataUrls as dataUrl}
+				<li>
+					<img src={dataUrl} alt="" />
+				</li>
+			{/each}
+		</ul>
+	{/if}
 	{#if $quotes.length > 0}
 		{#each $quotes as quote}
 			<NoteView event={quote} readonly={true} />
