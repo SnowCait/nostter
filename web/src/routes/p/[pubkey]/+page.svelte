@@ -7,10 +7,13 @@
 	import { userEvents } from '../../../stores/UserEvents';
 	import { pool } from '../../../stores/Pool';
 	import { defaultRelays } from '../../../stores/DefaultRelays';
+	import TimelineView from '../../TimelineView.svelte';
+	import { pubkey as authorPubkey } from '../../../stores/Author';
 
 	const pubkey = $page.params.pubkey;
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
+	let notes: Event[] = [];
 
 	// TODO: Replace to user relays
 	const relays = $defaultRelays;
@@ -29,6 +32,7 @@
 		}
 
 		badges = await fetchBadges(relays, pubkey);
+		notes = await fetchPastNotes(pubkey);
 	});
 
 	async function fetchUser(relays: string[], pubkey: string): Promise<User | undefined> {
@@ -57,6 +61,10 @@
 
 				if (userEvent !== undefined) {
 					const user = JSON.parse(userEvent.content) as User;
+
+					userEvent.user = user;
+					$userEvents.set(userEvent.pubkey, userEvent);
+
 					resolve(user);
 				} else {
 					resolve(undefined);
@@ -161,6 +169,40 @@
 		});
 	}
 
+	async function fetchPastNotes(pubkey: string): Promise<Event[]> {
+		return new Promise((resolve) => {
+			setTimeout(() => {
+				resolve([]);
+			}, 10000);
+
+			let events: Event[] = [];
+			const subscribeNotes = $pool.sub(relays, [
+				{
+					kinds: [1],
+					authors: [pubkey],
+					limit: 100
+				}
+			]);
+			subscribeNotes.on('event', (event: Event) => {
+				console.log(event);
+
+				const userEvent = $userEvents.get(event.pubkey);
+				if (userEvent === undefined) {
+					console.error(`${pubkey} not found in $userEvents`);
+					return;
+				}
+				event.user = userEvent.user;
+
+				events.push(event);
+			});
+			subscribeNotes.on('eose', () => {
+				subscribeNotes.unsub();
+				events.sort((x, y) => y.created_at - x.created_at);
+				resolve(events);
+			});
+		});
+	}
+
 	interface Badge {
 		id: string;
 		name: string;
@@ -221,6 +263,10 @@
 			</li>
 		{/each}
 	</ul>
+</section>
+
+<section>
+	<TimelineView events={notes} readonly={!$authorPubkey} />
 </section>
 
 <style>

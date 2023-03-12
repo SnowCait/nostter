@@ -20,8 +20,8 @@
 	import { pawPad } from '../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../stores/NoteDialog';
 	import { userEvents } from '../stores/UserEvents';
-	import { relays, recommendedRelay } from "../stores/Author";
-	import { pool } from "../stores/Pool";
+	import { relays, recommendedRelay } from '../stores/Author';
+	import { pool } from '../stores/Pool';
 	import CreatedAt from './CreatedAt.svelte';
 	export let event: Event;
 	export let readonly: boolean;
@@ -84,7 +84,7 @@
 			Array.from($relays).map((x) => x.href),
 			event
 		);
-	};
+	}
 </script>
 
 <article id={event.id}>
