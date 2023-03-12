@@ -113,12 +113,7 @@
 
 <NoteIdsView />
 
-<TimelineView
-	events={$searchEvents}
-	readonly={true}
-	repost={() => console.warn('Not implemented')}
-	reaction={() => console.warn('Not implemented')}
-/>
+<TimelineView events={$searchEvents} readonly={true} />
 
 <style>
 	h1 a {
