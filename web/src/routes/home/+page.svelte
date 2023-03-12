@@ -17,7 +17,7 @@
 	import { defaultRelays } from '../../stores/DefaultRelays';
 	import { pubkey, relays, recommendedRelay } from '../../stores/Author';
 
-	let followee: Set<string> = new Set();
+	let followees: Set<string> = new Set();
 	let relaysCreatedAt: number;
 	let loggedIn = false;
 
@@ -64,8 +64,8 @@
 				const relaysOfKind3 = new Map<string, RelayPermission>(
 					Object.entries(JSON.parse(event.content))
 				);
-				followee = new Set(event.tags.map((x) => x[1]));
-				console.log(relaysOfKind3, followee);
+				followees = new Set(event.tags.map((x) => x[1]));
+				console.log(relaysOfKind3, followees);
 				if (relaysCreatedAt === undefined || relaysCreatedAt < event.created_at) {
 					relaysCreatedAt = event.created_at;
 					$relays = new Set(Array.from(relaysOfKind3.keys()).map((x) => new URL(x)));
@@ -93,7 +93,7 @@
 				[
 					{
 						kinds: [1],
-						authors: Array.from(followee),
+						authors: Array.from(followees),
 						limit,
 						since
 					}
@@ -154,7 +154,7 @@
 						[
 							{
 								kinds: [1],
-								authors: Array.from(followee),
+								authors: Array.from(followees),
 								limit,
 								since: $events[0].created_at + 1
 							}
