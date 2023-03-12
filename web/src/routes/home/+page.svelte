@@ -15,12 +15,11 @@
 	import { pawPad } from '../../stores/Preference';
 	import { pool } from '../../stores/Pool';
 	import { defaultRelays } from '../../stores/DefaultRelays';
-	import { pubkey, relays } from '../../stores/Author';
+	import { pubkey, relays, recommendedRelay } from '../../stores/Author';
 
 	let followee: Set<string> = new Set();
 	let relaysCreatedAt: number;
 	let loggedIn = false;
-	let recommendedRelay = '';
 
 	async function login() {
 		if (window.nostr === undefined) {
@@ -57,8 +56,8 @@
 			}
 
 			if (event.kind === 2) {
-				recommendedRelay = event.content;
-				console.log('[recommended relay]', recommendedRelay);
+				$recommendedRelay = event.content;
+				console.log('[recommended relay]', $recommendedRelay);
 			}
 
 			if (event.kind === 3) {
@@ -221,48 +220,6 @@
 		});
 	}
 
-	async function repost(note: Event) {
-		const event = await window.nostr.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: 6,
-			tags: [
-				['e', note.id, recommendedRelay, 'mention'],
-				['p', note.pubkey]
-			],
-			content: ''
-		});
-		console.log(event);
-
-		$pool.publish(
-			Array.from($relays).map((x) => x.href),
-			event
-		);
-	}
-
-	let reaction: Function = async (note: Event, content = '+') => {
-		console.log('[like]', note);
-
-		if ($pawPad) {
-			content = '🐾';
-		}
-
-		const event = await window.nostr.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: 7,
-			tags: [
-				['e', note.id],
-				['p', note.pubkey]
-			],
-			content
-		});
-		console.log(event);
-
-		$pool.publish(
-			Array.from($relays).map((x) => x.href),
-			event
-		);
-	};
-
 	onMount(async () => {
 		const loginSession = sessionStorage.getItem('nostter:login');
 		if (loginSession !== null && JSON.parse(loginSession) === true) {
@@ -287,7 +244,7 @@
 	<span>{$events.length} notes</span>
 </div>
 
-<TimelineView events={$events} {repost} {reaction} />
+<TimelineView events={$events} />
 
 <style>
 	@media screen and (max-width: 600px) {
