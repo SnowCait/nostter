@@ -53,7 +53,7 @@
 				<CreatedAt createdAt={event.created_at} />
 			</div>
 		</div>
-		{#if event.tags.some(([tagName, , , marker]) => tagName === 'e' && marker === 'reply') && event.tags.some(([tagName]) => tagName === 'p')}
+		{#if event.tags.some(([tagName]) => tagName === 'p')}
 			<div class="reply">
 				<span>To</span>
 				<span>
