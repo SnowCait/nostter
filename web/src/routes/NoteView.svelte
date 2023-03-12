@@ -25,7 +25,6 @@
 	import CreatedAt from './CreatedAt.svelte';
 	export let event: Event;
 	export let readonly: boolean;
-	export let reaction: Function = () => {};
 	const iconSize = 20;
 	const regexImage = new RegExp('https?://.+\\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
 	const regexAudio = new RegExp('https?://.+\\.(mp3|m4a|wav)', 'g');
@@ -62,6 +61,30 @@
 		$quotes.push(event);
 		$openNoteDialog = true;
 	}
+
+	async function reaction(note: Event, content = '+') {
+		console.log('[like]', note);
+
+		if ($pawPad) {
+			content = '🐾';
+		}
+
+		const event = await window.nostr.signEvent({
+			created_at: Math.round(Date.now() / 1000),
+			kind: 7,
+			tags: [
+				['e', note.id],
+				['p', note.pubkey]
+			],
+			content
+		});
+		console.log(event);
+
+		$pool.publish(
+			Array.from($relays).map((x) => x.href),
+			event
+		);
+	};
 </script>
 
 <article id={event.id}>

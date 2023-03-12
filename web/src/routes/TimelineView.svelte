@@ -3,13 +3,12 @@
 	import type { Event } from './types';
 	export let events: Event[] = [];
 	export let readonly: boolean = false;
-	export let reaction: Function;
 </script>
 
 <ul>
 	{#each events as event}
 		<li>
-			<NoteView {event} {readonly} {reaction} />
+			<NoteView {event} {readonly} />
 		</li>
 	{/each}
 </ul>

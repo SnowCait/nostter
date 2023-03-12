@@ -220,30 +220,6 @@
 		});
 	}
 
-	let reaction: Function = async (note: Event, content = '+') => {
-		console.log('[like]', note);
-
-		if ($pawPad) {
-			content = '🐾';
-		}
-
-		const event = await window.nostr.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: 7,
-			tags: [
-				['e', note.id],
-				['p', note.pubkey]
-			],
-			content
-		});
-		console.log(event);
-
-		$pool.publish(
-			Array.from($relays).map((x) => x.href),
-			event
-		);
-	};
-
 	onMount(async () => {
 		const loginSession = sessionStorage.getItem('nostter:login');
 		if (loginSession !== null && JSON.parse(loginSession) === true) {
@@ -268,7 +244,7 @@
 	<span>{$events.length} notes</span>
 </div>
 
-<TimelineView events={$events} {reaction} />
+<TimelineView events={$events} />
 
 <style>
 	@media screen and (max-width: 600px) {
