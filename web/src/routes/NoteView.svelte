@@ -1,3 +1,11 @@
+<script lang="ts" context="module">
+	interface Window {
+		// NIP-07
+		nostr: any;
+	}
+	declare var window: Window;
+</script>
+
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
 	import {
@@ -12,10 +20,11 @@
 	import { pawPad } from '../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../stores/NoteDialog';
 	import { userEvents } from '../stores/UserEvents';
+	import { relays, recommendedRelay } from "../stores/Author";
+	import { pool } from "../stores/Pool";
 	import CreatedAt from './CreatedAt.svelte';
 	export let event: Event;
 	export let readonly: boolean;
-	export let repost: Function = () => {};
 	export let reaction: Function = () => {};
 	const iconSize = 20;
 	const regexImage = new RegExp('https?://.+\\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
@@ -29,6 +38,24 @@
 	function reply(event: Event) {
 		$replyTo = event;
 		$openNoteDialog = true;
+	}
+
+	async function repost(note: Event) {
+		const event = await window.nostr.signEvent({
+			created_at: Math.round(Date.now() / 1000),
+			kind: 6,
+			tags: [
+				['e', note.id, $recommendedRelay, 'mention'],
+				['p', note.pubkey]
+			],
+			content: ''
+		});
+		console.log(event);
+
+		$pool.publish(
+			Array.from($relays).map((x) => x.href),
+			event
+		);
 	}
 
 	function quote(event: Event) {
