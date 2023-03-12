@@ -95,8 +95,6 @@
 			for (const quote of $quotes) {
 				tags.push(['e', quote.id, '', 'mention']);
 			}
-			const pubkeys = new Set($quotes.map((quote) => quote.pubkey));
-			tags.push(...Array.from(pubkeys).map((pubkey) => ['p', pubkey]));
 		}
 
 		posting = true;
