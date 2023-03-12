@@ -38,41 +38,20 @@
 	});
 
 	async function fetchUser(relays: string[], pubkey: string): Promise<User | undefined> {
-		return new Promise((resolve) => {
-			setTimeout(() => {
-				resolve(undefined);
-			}, 3000);
+		const userEvent = await $pool.get(relays, {
+			kinds: [0],
+			authors: [pubkey]
+		}) as UserEvent | null;
 
-			let userEvent: UserEvent;
+		if (userEvent !== null) {
+			const user = JSON.parse(userEvent.content) as User;
 
-			const subscribeProfile = $pool.sub(Array.from(relays), [
-				{
-					kinds: [0],
-					authors: [pubkey]
-				}
-			]);
-			subscribeProfile.on('event', (event: Event) => {
-				console.log(event);
-
-				if (userEvent === undefined || userEvent.created_at < event.created_at) {
-					userEvent = event;
-				}
-			});
-			subscribeProfile.on('eose', () => {
-				subscribeProfile.unsub();
-
-				if (userEvent !== undefined) {
-					const user = JSON.parse(userEvent.content) as User;
-
-					userEvent.user = user;
-					$userEvents.set(userEvent.pubkey, userEvent);
-
-					resolve(user);
-				} else {
-					resolve(undefined);
-				}
-			});
-		});
+			userEvent.user = user;
+			$userEvents.set(userEvent.pubkey, userEvent);
+			return user;
+		} else {
+			return undefined;
+		}
 	}
 
 	async function fetchBadges(relays: string[], pubkey: string): Promise<Badge[]> {
