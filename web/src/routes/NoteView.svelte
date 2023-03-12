@@ -57,15 +57,18 @@
 			<div class="reply">
 				<span>To</span>
 				<span>
-					@{event.tags
-						.filter(([tagName]) => tagName === 'p')
-						.map(([, pubkey]) => pubkey)
-						.map(
-							(pubkey) =>
-								$userEvents.get(pubkey)?.user.name ??
-								nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)
+					@{Array.from(
+						new Set(
+							event.tags
+								.filter(([tagName]) => tagName === 'p')
+								.map(([, pubkey]) => pubkey)
+								.map(
+									(pubkey) =>
+										$userEvents.get(pubkey)?.user.name ??
+										nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)
+								)
 						)
-						.join(' @')}
+					).join(' @')}
 				</span>
 			</div>
 		{/if}
