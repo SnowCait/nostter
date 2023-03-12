@@ -65,6 +65,7 @@
 					Object.entries(JSON.parse(event.content))
 				);
 				followees = new Set(event.tags.map((x) => x[1]));
+				followees.add($pubkey); // Add myself
 				console.log(relaysOfKind3, followees);
 				if (relaysCreatedAt === undefined || relaysCreatedAt < event.created_at) {
 					relaysCreatedAt = event.created_at;
