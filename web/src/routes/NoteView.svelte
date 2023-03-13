@@ -135,19 +135,15 @@
 		<ol class="media">
 			{#each [...event.content.matchAll(regexAudio)].map((x) => new URL(x[0])) as url}
 				<li>
-					<a href={url.href} target="_blank" rel="noreferrer">
-						<audio src={url.href} controls />
-					</a>
+					<audio src={url.href} controls />
 				</li>
 			{/each}
 		</ol>
 		<ol class="media">
 			{#each [...event.content.matchAll(regexVideo)].map((x) => new URL(x[0])) as url}
 				<li>
-					<a href={url.href} target="_blank" rel="noreferrer">
-						<!-- svelte-ignore a11y-media-has-caption -->
-						<video src={url.href} controls />
-					</a>
+					<!-- svelte-ignore a11y-media-has-caption -->
+					<video src={url.href} controls />
 				</li>
 			{/each}
 		</ol>
@@ -250,7 +246,8 @@
 		flex-wrap: wrap;
 	}
 
-	.media img {
+	.media img,
+	.media video {
 		max-width: 100%;
 		max-height: 20em;
 		margin: 0.5em;
