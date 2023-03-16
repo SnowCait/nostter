@@ -25,6 +25,11 @@
 	import CreatedAt from './CreatedAt.svelte';
 	export let event: Event;
 	export let readonly: boolean;
+
+	if (event.kind === 42) {
+		readonly = true;
+	}
+
 	const iconSize = 20;
 	const regexImage = new RegExp('https?://.+\\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
 	const regexAudio = new RegExp('https?://.+\\.(mp3|m4a|wav)', 'g');
