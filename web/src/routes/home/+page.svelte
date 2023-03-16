@@ -20,9 +20,11 @@
 	let followees: Set<string> = new Set();
 	let relaysCreatedAt: number;
 	let loggedIn = false;
+	let debugMessage = '';
 
 	async function login() {
 		if (window.nostr === undefined) {
+			debugMessage += 'window.nostr was not found\n';
 			console.error('Please setup NIP-07');
 			return;
 		}
@@ -222,6 +224,8 @@
 	}
 
 	onMount(async () => {
+		console.log('onMount');
+
 		const loginSession = sessionStorage.getItem('nostter:login');
 		if (loginSession !== null && JSON.parse(loginSession) === true) {
 			if ($events.length > 0) {
@@ -244,6 +248,9 @@
 	<input type="checkbox" bind:checked={$pawPad} />🐾
 	<span>{$events.length} notes</span>
 </div>
+{#if debugMessage}
+<pre>{debugMessage}</pre>
+{/if}
 
 <TimelineView events={$events} />
 
