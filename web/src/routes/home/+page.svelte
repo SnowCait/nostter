@@ -93,7 +93,7 @@
 				Array.from($relays).map((x) => x.href),
 				[
 					{
-						kinds: [1],
+						kinds: [1, 42],
 						authors: Array.from(followees),
 						limit,
 						since
@@ -154,7 +154,7 @@
 						Array.from($relays).map((x) => x.href),
 						[
 							{
-								kinds: [1],
+								kinds: [1, 42],
 								authors: Array.from(followees),
 								limit,
 								since: $events[0].created_at + 1
