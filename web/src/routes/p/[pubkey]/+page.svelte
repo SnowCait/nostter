@@ -33,15 +33,17 @@
 			throw error(404);
 		}
 
-		badges = await fetchBadges(relays, pubkey);
+		fetchBadges(relays, pubkey).then((data) => {
+			badges = data;
+		});
 		notes = await fetchPastNotes(pubkey);
 	});
 
 	async function fetchUser(relays: string[], pubkey: string): Promise<User | undefined> {
-		const userEvent = await $pool.get(relays, {
+		const userEvent = (await $pool.get(relays, {
 			kinds: [0],
 			authors: [pubkey]
-		}) as UserEvent | null;
+		})) as UserEvent | null;
 
 		if (userEvent !== null) {
 			const user = JSON.parse(userEvent.content) as User;
