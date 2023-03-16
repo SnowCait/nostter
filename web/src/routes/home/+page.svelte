@@ -157,7 +157,7 @@
 					}
 
 					// new notes
-					let upToDate = false;
+					let lastPastEvent: Event | undefined;
 					let newEvents: Event[] = [];
 					const subscribe = $pool.sub(
 						Array.from($relays).map((x) => x.href),
@@ -180,7 +180,10 @@
 							event.user = await fetchUser(event.pubkey); // not chronological
 						}
 
-						if (upToDate) {
+						if (lastPastEvent !== undefined) {
+							if (event.created_at < lastPastEvent.created_at) {
+								return;
+							}
 							$events.unshift(event);
 							$events = $events;
 						} else {
@@ -188,9 +191,9 @@
 						}
 					});
 					subscribe.on('eose', () => {
-						upToDate = true;
 						$events.unshift(...newEvents);
 						$events = $events;
+						lastPastEvent = $events.at(0);
 					});
 				});
 			});
