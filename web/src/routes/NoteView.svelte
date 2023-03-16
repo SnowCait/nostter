@@ -26,10 +26,6 @@
 	export let event: Event;
 	export let readonly: boolean;
 
-	if (event.kind === 42) {
-		readonly = true;
-	}
-
 	const iconSize = 20;
 	const regexImage = new RegExp('https?://.+\\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
 	const regexAudio = new RegExp('https?://.+\\.(mp3|m4a|wav)', 'g');
@@ -162,7 +158,7 @@
 				>
 			</div>
 		{/if}
-		{#if !readonly}
+		{#if !readonly && event.kind !== 42}
 			<div class="action-menu">
 				<button on:click={() => reply(event)}>
 					<IconMessageCircle2 size={iconSize} />
