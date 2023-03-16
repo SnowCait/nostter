@@ -43,6 +43,7 @@
 
 		$pubkey = await window.nostr.getPublicKey();
 		console.log($pubkey);
+		let profileLoaded = false; // Workaround
 		const subscribeProfile = $pool.sub(Array.from(profileRelays), [
 			{
 				kinds: [0, 2, 3, 10002],
@@ -86,6 +87,12 @@
 		});
 		subscribeProfile.on('eose', () => {
 			subscribeProfile.unsub();
+
+			// Skip 2nd EOSE
+			if (profileLoaded) {
+				return;
+			}
+			profileLoaded = true;
 
 			// past notes
 			let initialized = false;
@@ -150,7 +157,7 @@
 					}
 
 					// new notes
-					let upToDate = false;
+					let lastPastEvent: Event | undefined;
 					let newEvents: Event[] = [];
 					const subscribe = $pool.sub(
 						Array.from($relays).map((x) => x.href),
@@ -173,7 +180,10 @@
 							event.user = await fetchUser(event.pubkey); // not chronological
 						}
 
-						if (upToDate) {
+						if (lastPastEvent !== undefined) {
+							if (event.created_at < lastPastEvent.created_at) {
+								return;
+							}
 							$events.unshift(event);
 							$events = $events;
 						} else {
@@ -181,9 +191,9 @@
 						}
 					});
 					subscribe.on('eose', () => {
-						upToDate = true;
 						$events.unshift(...newEvents);
 						$events = $events;
+						lastPastEvent = $events.at(0);
 					});
 				});
 			});
