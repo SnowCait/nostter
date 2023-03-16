@@ -33,7 +33,9 @@
 			throw error(404);
 		}
 
-		badges = await fetchBadges(relays, pubkey);
+		fetchBadges(relays, pubkey).then((data) => {
+			badges = data;
+		});
 		notes = await fetchPastNotes(pubkey);
 	});
 
