@@ -43,6 +43,7 @@
 
 		$pubkey = await window.nostr.getPublicKey();
 		console.log($pubkey);
+		let profileLoaded = false; // Workaround
 		const subscribeProfile = $pool.sub(Array.from(profileRelays), [
 			{
 				kinds: [0, 2, 3, 10002],
@@ -86,6 +87,12 @@
 		});
 		subscribeProfile.on('eose', () => {
 			subscribeProfile.unsub();
+
+			// Skip 2nd EOSE
+			if (profileLoaded) {
+				return;
+			}
+			profileLoaded = true;
 
 			// past notes
 			let initialized = false;
