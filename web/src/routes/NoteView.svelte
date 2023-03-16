@@ -147,6 +147,16 @@
 				</li>
 			{/each}
 		</ol>
+		{#if event.kind === 42}
+			<div>
+				<a
+					href="https://garnet.nostrian.net/channels/{event.tags
+						.find(([tagName, , , marker]) => tagName === 'e' && marker === 'root')
+						?.at(1)}"
+					target="_blank">Open in GARNET</a
+				>
+			</div>
+		{/if}
 		{#if !readonly}
 			<div class="action-menu">
 				<button on:click={() => reply(event)}>
