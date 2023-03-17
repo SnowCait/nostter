@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { IconExternalLink } from '@tabler/icons-svelte';
 	import { nip19 } from 'nostr-tools';
 	import { userEvents } from '../../stores/UserEvents';
 	import Text from './Text.svelte';
@@ -11,7 +12,7 @@
 	<a href="/{nip19.npubEncode(tag[1])}">
 		@{$userEvents.has(tag[1]) && $userEvents.get(tag[1])?.user.name
 			? $userEvents.get(tag[1])?.user.name
-			: tag[1].substring(0, 7)}
+			: nip19.npubEncode(tag[1]).substring(0, 'npub1'.length + 7)}
 	</a>
 {:else if tag.at(0) === 'e' && tag.at(1) !== undefined}
 	<a
@@ -19,11 +20,11 @@
 		target="_blank"
 		rel="noopener noreferrer"
 	>
-		{nip19.noteEncode(tag[1])}
+		{nip19.noteEncode(tag[1]).substring(0, 'note1'.length + 7)}<IconExternalLink size={15} />
 	</a>
 {:else if tag.at(0) === 'r' && tag.at(1) !== undefined}
 	<a href={tag[1]}>
-		{tag[1]}
+		{tag[1]}<IconExternalLink size={15} />
 	</a>
 {:else}
 	<Text {text} />
