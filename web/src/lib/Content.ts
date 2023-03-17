@@ -1,25 +1,22 @@
 export class Token {
 	constructor(
-		readonly name: 'text' | 'ref' | 'hashtag' | 'url',
+		readonly name: 'text' | 'reference' | 'hashtag' | 'url',
 		readonly text: string,
 		readonly index?: number
 	) {}
 }
 
 export class Content {
-	constructor(readonly content: string) {}
+	static parse(content: string): Token[] {
+		const matches = [...content.matchAll(/#\S+/g), ...content.matchAll(/https?:\/\/\S+/g)].sort(
+			(x, y) => {
+				if (x.index === undefined || y.index === undefined) {
+					throw new Error('Index is undefined');
+				}
 
-	parse(): Token[] {
-		const matches = [
-			...this.content.matchAll(/#\S+/g),
-			...this.content.matchAll(/https?:\/\/\S+/g)
-		].sort((x, y) => {
-			if (x.index === undefined || y.index === undefined) {
-				throw new Error('Index is undefined');
+				return x.index - y.index;
 			}
-
-			return x.index - y.index;
-		});
+		);
 		console.debug([...matches]);
 
 		let tokens: Token[] = [];
@@ -35,14 +32,14 @@ export class Content {
 			}
 
 			if (matchIndex > index) {
-				tokens.push(new Token('text', this.content.slice(index, matchIndex)));
+				tokens.push(new Token('text', content.slice(index, matchIndex)));
 			}
 
 			if (text.startsWith('#')) {
-				const match = text.match(/#\[(?<i>\d+)]/);
-				if (match !== null) {
-					const i = Number(match.groups?.i);
-					tokens.push(new Token('ref', text, i));
+				const m = text.match(/#\[(?<i>\d+)]/);
+				if (m !== null) {
+					const i = Number(m.groups?.i);
+					tokens.push(new Token('reference', text, i));
 				} else {
 					tokens.push(new Token('hashtag', text));
 				}
@@ -53,8 +50,8 @@ export class Content {
 			index = matchIndex + text.length;
 		}
 
-		if (index < this.content.length) {
-			tokens.push(new Token('text', this.content.slice(index, this.content.length)));
+		if (index < content.length) {
+			tokens.push(new Token('text', content.slice(index, content.length)));
 		}
 
 		return tokens;

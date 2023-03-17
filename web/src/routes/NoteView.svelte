@@ -23,6 +23,9 @@
 	import { relays, recommendedRelay } from '../stores/Author';
 	import { pool } from '../stores/Pool';
 	import CreatedAt from './CreatedAt.svelte';
+	import { Content } from '$lib/Content';
+	import Text from './content/Text.svelte';
+	import Reference from './content/Reference.svelte';
 	export let event: Event;
 	export let readonly: boolean;
 
@@ -123,7 +126,15 @@
 				</span>
 			</div>
 		{/if}
-		<pre class="content">{event.content}</pre>
+		<p class="content">
+			{#each Content.parse(event.content) as token}
+				{#if token.name === 'reference' && token.index !== undefined && event.tags.at(token.index) !== undefined}
+					<Reference text={token.text} tag={event.tags[token.index]} />
+				{:else}
+					<Text text={token.text} />
+				{/if}
+			{/each}
+		</p>
 		<ol class="media">
 			{#each [...event.content.matchAll(regexImage)].map((x) => new URL(x[0])) as url}
 				<li>
@@ -246,6 +257,7 @@
 		margin: 5px 0;
 		white-space: pre-wrap;
 		word-break: break-all;
+		font-family: monospace;
 	}
 
 	.media {
