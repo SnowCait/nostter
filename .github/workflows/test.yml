@@ -4,6 +4,17 @@ on:
   pull_request:
 
 jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: npm run test:unit
+
   e2e-test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
