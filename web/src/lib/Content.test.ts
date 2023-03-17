@@ -9,8 +9,8 @@ describe('parse test', () => {
 	it('text', () => {
 		expect(Content.parse('text')).toStrictEqual([new Token('text', 'text')]);
 	});
-	it('ref', () => {
-		expect(Content.parse('#[0]')).toStrictEqual([new Token('ref', '#[0]', 0)]);
+	it('reference', () => {
+		expect(Content.parse('#[0]')).toStrictEqual([new Token('reference', '#[0]', 0)]);
 	});
 	it('hashtag', () => {
 		expect(Content.parse('#nostter')).toStrictEqual([new Token('hashtag', '#nostter')]);
