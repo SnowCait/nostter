@@ -138,48 +138,48 @@
 			</div>
 		{/if}
 		{#if !showContent}
-		<div class="content-warning">
-			<div>{contentWarning}</div>
-			<button on:click={showWarningContent}>Show</button>
-		</div>
+			<div class="content-warning">
+				<div>{contentWarning}</div>
+				<button on:click={showWarningContent}>Show</button>
+			</div>
 		{:else}
-		<p class="content">
-			{#each Content.parse(event.content, event.tags) as token}
-				{#if token.name === 'reference' && token.index !== undefined && event.tags.at(token.index) !== undefined}
-					<Reference text={token.text} tag={event.tags[token.index]} />
-				{:else if token.name === 'hashtag'}
-					<Hashtag text={token.text} />
-				{:else if token.name === 'url'}
-					<Url text={token.text} />
-				{:else}
-					<Text text={token.text} />
-				{/if}
-			{/each}
-		</p>
-		<ol class="media">
-			{#each [...event.content.matchAll(regexImage)].map((x) => new URL(x[0])) as url}
-				<li>
-					<a href={url.href} target="_blank" rel="noreferrer">
-						<img src={url.href} alt="" />
-					</a>
-				</li>
-			{/each}
-		</ol>
-		<ol class="media">
-			{#each [...event.content.matchAll(regexAudio)].map((x) => new URL(x[0])) as url}
-				<li>
-					<audio src={url.href} controls />
-				</li>
-			{/each}
-		</ol>
-		<ol class="media">
-			{#each [...event.content.matchAll(regexVideo)].map((x) => new URL(x[0])) as url}
-				<li>
-					<!-- svelte-ignore a11y-media-has-caption -->
-					<video src={url.href} controls />
-				</li>
-			{/each}
-		</ol>
+			<p class="content">
+				{#each Content.parse(event.content, event.tags) as token}
+					{#if token.name === 'reference' && token.index !== undefined && event.tags.at(token.index) !== undefined}
+						<Reference text={token.text} tag={event.tags[token.index]} />
+					{:else if token.name === 'hashtag'}
+						<Hashtag text={token.text} />
+					{:else if token.name === 'url'}
+						<Url text={token.text} />
+					{:else}
+						<Text text={token.text} />
+					{/if}
+				{/each}
+			</p>
+			<ol class="media">
+				{#each [...event.content.matchAll(regexImage)].map((x) => new URL(x[0])) as url}
+					<li>
+						<a href={url.href} target="_blank" rel="noreferrer">
+							<img src={url.href} alt="" />
+						</a>
+					</li>
+				{/each}
+			</ol>
+			<ol class="media">
+				{#each [...event.content.matchAll(regexAudio)].map((x) => new URL(x[0])) as url}
+					<li>
+						<audio src={url.href} controls />
+					</li>
+				{/each}
+			</ol>
+			<ol class="media">
+				{#each [...event.content.matchAll(regexVideo)].map((x) => new URL(x[0])) as url}
+					<li>
+						<!-- svelte-ignore a11y-media-has-caption -->
+						<video src={url.href} controls />
+					</li>
+				{/each}
+			</ol>
 		{/if}
 		{#if event.kind === 42}
 			<div>
