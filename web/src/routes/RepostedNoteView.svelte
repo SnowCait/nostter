@@ -47,15 +47,15 @@
 	}
 </script>
 
-<div>
+<article>
 	<IconRepeat size={18} color={'lightgreen'} /> by @{user !== undefined
 		? user.name
 		: event.pubkey.substring('npub1'.length + 7)}
-</div>
+</article>
 {#if originalEvent !== undefined}
 	<NoteView event={originalEvent} {readonly} />
 {:else if originalTag !== undefined}
-	<div>
+	<article>
 		<a
 			href="https://nostx.shino3.net/{nip19.noteEncode(originalTag[1])}"
 			target="_blank"
@@ -65,5 +65,11 @@
 				size={15}
 			/>
 		</a>
-	</div>
+	</article>
 {/if}
+
+<style>
+	article {
+		margin: 12px 16px;
+	}
+</style>
