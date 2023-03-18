@@ -10,10 +10,35 @@ describe('parse test', () => {
 		expect(Content.parse('text')).toStrictEqual([new Token('text', 'text')]);
 	});
 	it('reference', () => {
-		expect(Content.parse('#[0]')).toStrictEqual([new Token('reference', '#[0]', 0)]);
+		expect(Content.parse('#[0]', [[]])).toStrictEqual([new Token('reference', '#[0]', 0)]);
 	});
 	it('hashtag', () => {
-		expect(Content.parse('#nostter')).toStrictEqual([new Token('hashtag', '#nostter')]);
+		expect(Content.parse('#nostter', [['t', 'nostter']])).toStrictEqual([
+			new Token('hashtag', '#nostter')
+		]);
+	});
+	it('multi hashtags', () => {
+		expect(
+			Content.parse('#nostter #nostr', [
+				['t', 'nostter'],
+				['t', 'nostr']
+			])
+		).toStrictEqual([
+			new Token('hashtag', '#nostter'),
+			new Token('text', ' '),
+			new Token('hashtag', '#nostr')
+		]);
+	});
+	it('part hashtags', () => {
+		expect(Content.parse('#nostter #nostr', [['t', 'nostter']])).toStrictEqual([
+			new Token('hashtag', '#nostter'),
+			new Token('text', ' #nostr')
+		]);
+	});
+	it('invalid hashtags', () => {
+		expect(Content.parse('#nostr', [['t', 'nostter']])).toStrictEqual([
+			new Token('text', '#nostr')
+		]);
 	});
 	it('url', () => {
 		expect(Content.parse('https://example.com/')).toStrictEqual([
@@ -23,7 +48,7 @@ describe('parse test', () => {
 
 	// Complex
 	it('multi lines', () => {
-		expect(Content.parse('#[0]\n#nostter')).toStrictEqual([
+		expect(Content.parse('#[0]\n#nostter', [[], ['t', 'nostter']])).toStrictEqual([
 			new Token('reference', '#[0]', 0),
 			new Token('text', '\n'),
 			new Token('hashtag', '#nostter')
@@ -32,13 +57,12 @@ describe('parse test', () => {
 	it('multi lines', () => {
 		expect(
 			Content.parse(
-				'#[1] 𠮷#test #nostter #nostr\n#[0] https://example.com/ https://example.com/#tag'
+				'#[1] 𠮷#test #nostter #nostr\n#[0] https://example.com/ https://example.com/#tag',
+				[[], [], ['t', 'nostter'], ['t', 'nostr']]
 			)
 		).toStrictEqual([
 			new Token('reference', '#[1]', 1),
-			new Token('text', ' 𠮷'),
-			new Token('hashtag', '#test'),
-			new Token('text', ' '),
+			new Token('text', ' 𠮷#test '),
 			new Token('hashtag', '#nostter'),
 			new Token('text', ' '),
 			new Token('hashtag', '#nostr'),
