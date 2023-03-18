@@ -1,16 +1,15 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
 	import { nip19 } from 'nostr-tools';
-	import type { Event, User, UserEvent } from '../../types';
-	import { userEvents } from '../../../stores/UserEvents';
-	import { pool } from '../../../stores/Pool';
-	import { defaultRelays } from '../../../stores/DefaultRelays';
-	import TimelineView from '../../TimelineView.svelte';
-	import { pubkey as authorPubkey, relays as authorRelays } from '../../../stores/Author';
+	import type { Event, User, UserEvent } from '../types';
+	import { userEvents } from '../../stores/UserEvents';
+	import { pool } from '../../stores/Pool';
+	import { defaultRelays } from '../../stores/DefaultRelays';
+	import TimelineView from '../TimelineView.svelte';
+	import { pubkey as authorPubkey, relays as authorRelays } from '../../stores/Author';
+	import { afterNavigate } from '$app/navigation';
 
-	const pubkey = $page.params.pubkey;
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
 	let notes: Event[] = [];
@@ -18,10 +17,22 @@
 	const relays =
 		$authorRelays.size > 0 ? Array.from($authorRelays).map((x) => x.href) : $defaultRelays;
 
-	onMount(async () => {
-		console.log('onMount');
+	afterNavigate(async () => {
+		console.log('afterNavigate');
 
-		history.replaceState(history.state, '', `/${nip19.npubEncode(pubkey)}`);
+		badges = [];
+		notes = [];
+
+		const npub = $page.params.npub;
+		console.log(npub);
+		const { type, data } = nip19.decode(npub);
+		console.log(type, data);
+
+		if (type !== 'npub' || typeof data !== 'string') {
+			throw error(500);
+		}
+
+		const pubkey = data;
 
 		user = $userEvents.get(pubkey)?.user;
 		console.log('[cached user]', user);

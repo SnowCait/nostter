@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { IconHome, IconSearch, IconUser, IconCirclePlus } from '@tabler/icons-svelte';
+	import { nip19 } from 'nostr-tools';
 	import { pubkey } from '../stores/Author';
 	import { openNoteDialog } from '../stores/NoteDialog';
 
@@ -21,7 +22,7 @@
 			</li>
 		</a>
 		{#if $pubkey}
-			<a href="/p/{$pubkey}">
+			<a href="/{nip19.npubEncode($pubkey)}">
 				<li>
 					<IconUser size={30} />
 				</li>
