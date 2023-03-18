@@ -211,7 +211,7 @@
 
 <style>
 	article {
-		padding: 12px 16px;
+		margin: 12px 16px;
 		display: flex;
 		flex-direction: row;
 	}
