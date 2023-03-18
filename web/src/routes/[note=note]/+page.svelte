@@ -10,7 +10,7 @@
 	import type { Event as NostrEvent } from '../types';
 
 	let events: NostrEvent[] = [];
-	let eventId: string = '';
+	let eventId = '';
 
 	afterNavigate(async () => {
 		console.log('afterNavigate');
