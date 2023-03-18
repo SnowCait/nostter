@@ -102,7 +102,7 @@
 
 <article id={event.id}>
 	<div>
-		<a href="/p/{event.pubkey}">
+		<a href="/{nip19.npubEncode(event.pubkey)}">
 			<img class="picture" src={event.user?.picture} alt="" />
 		</a>
 	</div>
