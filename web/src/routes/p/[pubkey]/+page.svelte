@@ -161,7 +161,7 @@
 			let events: Event[] = [];
 			const subscribeNotes = $pool.sub(relays, [
 				{
-					kinds: [1],
+					kinds: [1, 6],
 					authors: [pubkey],
 					limit: 100
 				}

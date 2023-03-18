@@ -1,5 +1,6 @@
 <script lang="ts">
 	import NoteView from './NoteView.svelte';
+	import RepostedNoteView from './RepostedNoteView.svelte';
 	import type { Event } from './types';
 	export let events: Event[] = [];
 	export let readonly: boolean = false;
@@ -8,7 +9,11 @@
 <ul>
 	{#each events as event}
 		<li>
-			<NoteView {event} {readonly} />
+			{#if event.kind === 6}
+				<RepostedNoteView {event} {readonly} />
+			{:else}
+				<NoteView {event} {readonly} />
+			{/if}
 		</li>
 	{/each}
 </ul>
