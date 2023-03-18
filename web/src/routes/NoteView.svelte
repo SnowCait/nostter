@@ -26,6 +26,7 @@
 	import { Content } from '$lib/Content';
 	import Text from './content/Text.svelte';
 	import Reference from './content/Reference.svelte';
+	import Hashtag from './content/Hashtag.svelte';
 	export let event: Event;
 	export let readonly: boolean;
 
@@ -127,9 +128,11 @@
 			</div>
 		{/if}
 		<p class="content">
-			{#each Content.parse(event.content) as token}
+			{#each Content.parse(event.content, event.tags) as token}
 				{#if token.name === 'reference' && token.index !== undefined && event.tags.at(token.index) !== undefined}
 					<Reference text={token.text} tag={event.tags[token.index]} />
+				{:else if token.name === 'hashtag'}
+					<Hashtag text={token.text} />
 				{:else}
 					<Text text={token.text} />
 				{/if}

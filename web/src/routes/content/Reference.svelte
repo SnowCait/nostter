@@ -2,6 +2,7 @@
 	import { IconExternalLink } from '@tabler/icons-svelte';
 	import { nip19 } from 'nostr-tools';
 	import { userEvents } from '../../stores/UserEvents';
+	import Hashtag from './Hashtag.svelte';
 	import Text from './Text.svelte';
 
 	export let text: string;
@@ -26,6 +27,8 @@
 	<a href={tag[1]}>
 		{tag[1]}<IconExternalLink size={15} />
 	</a>
+{:else if tag.at(0) === 't' && tag.at(1) !== undefined}
+	<Hashtag text={`#${tag[1]}`} />
 {:else}
 	<Text {text} />
 {/if}

@@ -7,16 +7,23 @@ export class Token {
 }
 
 export class Content {
-	static parse(content: string): Token[] {
-		const matches = [...content.matchAll(/#\S+/g), ...content.matchAll(/https?:\/\/\S+/g)].sort(
-			(x, y) => {
-				if (x.index === undefined || y.index === undefined) {
-					throw new Error('Index is undefined');
-				}
-
-				return x.index - y.index;
+	static parse(content: string, tags: string[][] = []): Token[] {
+		const hashtags = tags
+			.filter(([tagName, tagContent]) => tagName === 't' && tagContent !== undefined)
+			.map(([, tagContent]) => tagContent);
+		const matches = [
+			...(hashtags.length > 0
+				? content.matchAll(new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'g'))
+				: []),
+			...content.matchAll(/#\[\d+\]/g),
+			...content.matchAll(/https?:\/\/\S+/g)
+		].sort((x, y) => {
+			if (x.index === undefined || y.index === undefined) {
+				throw new Error('Index is undefined');
 			}
-		);
+
+			return x.index - y.index;
+		});
 		console.debug([...matches]);
 
 		let tokens: Token[] = [];
@@ -25,8 +32,6 @@ export class Content {
 			const text = match[0];
 			const matchIndex = match.index;
 
-			// URL.hash is not #hashtag
-			// URL mathes earlier than URL.hash and skip URL.hash
 			if (matchIndex === undefined || matchIndex < index) {
 				continue;
 			}
