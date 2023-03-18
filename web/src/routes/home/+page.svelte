@@ -102,7 +102,7 @@
 				Array.from($relays).map((x) => x.href),
 				[
 					{
-						kinds: [1, 42],
+						kinds: [1, 6, 42],
 						authors: Array.from(followees),
 						limit,
 						since
@@ -163,7 +163,7 @@
 						Array.from($relays).map((x) => x.href),
 						[
 							{
-								kinds: [1, 42],
+								kinds: [1, 6, 42],
 								authors: Array.from(followees),
 								limit,
 								since: $events[0].created_at + 1
@@ -259,7 +259,7 @@
 	<span>{$events.length} notes</span>
 </div>
 {#if debugMessage}
-<pre>{debugMessage}</pre>
+	<pre>[debug] {debugMessage}</pre>
 {/if}
 
 <TimelineView events={$events} />
