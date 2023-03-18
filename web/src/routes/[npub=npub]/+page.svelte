@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
 	import { nip19 } from 'nostr-tools';
@@ -9,6 +8,7 @@
 	import { defaultRelays } from '../../stores/DefaultRelays';
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, relays as authorRelays } from '../../stores/Author';
+	import { afterNavigate } from '$app/navigation';
 
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
@@ -17,8 +17,11 @@
 	const relays =
 		$authorRelays.size > 0 ? Array.from($authorRelays).map((x) => x.href) : $defaultRelays;
 
-	onMount(async () => {
-		console.log('onMount');
+	afterNavigate(async () => {
+		console.log('afterNavigate');
+
+		badges = [];
+		notes = [];
 
 		const npub = $page.params.npub;
 		console.log(npub);
