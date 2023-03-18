@@ -7,7 +7,7 @@
 </script>
 
 <ul>
-	{#each events as event}
+	{#each events as event (event.id)}
 		<li>
 			{#if event.kind === 6}
 				<RepostedNoteView {event} {readonly} />
