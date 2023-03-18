@@ -47,7 +47,7 @@
 			const data = JSON.parse(event.data);
 			console.log(data);
 			switch (data[0]) {
-				case 'EOSE':
+				case 'EOSE': {
 					console.log('[result]', $searchEvents);
 
 					if ($searchEvents.length > 0 && $userEvents.size === 0) {
@@ -78,10 +78,11 @@
 						ws.close();
 					}
 					break;
-				case 'EVENT':
+				}
+				case 'EVENT': {
 					const e = data[2] as Event;
 					switch (e.kind) {
-						case 0:
+						case 0: {
 							const user = JSON.parse(e.content) as User;
 							console.log(user);
 							const userEvent: UserEvent = {
@@ -90,11 +91,14 @@
 							};
 							saveUserEvent(userEvent);
 							break;
-						case 1:
+						}
+						case 1: {
 							$searchEvents.push(e);
 							break;
+						}
 					}
 					break;
+				}
 			}
 		};
 	}
