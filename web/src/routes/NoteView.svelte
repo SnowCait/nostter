@@ -113,7 +113,9 @@
 			</div>
 			<div class="name">@{event.user?.name}</div>
 			<div class="created_at">
-				<CreatedAt createdAt={event.created_at} />
+				<a href="/{nip19.noteEncode(event.id)}">
+					<CreatedAt createdAt={event.created_at} />
+				</a>
 			</div>
 		</div>
 		{#if event.tags.some(([tagName]) => tagName === 'p')}

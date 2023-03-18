@@ -4,11 +4,12 @@
 	import type { Event } from './types';
 	export let events: Event[] = [];
 	export let readonly = false;
+	export let focusEventId: string | undefined = undefined;
 </script>
 
 <ul>
 	{#each events as event (event.id)}
-		<li>
+		<li class={event.id === focusEventId ? 'focus' : ''}>
 			{#if event.kind === 6}
 				<RepostedNoteView {event} {readonly} />
 			{:else}
@@ -28,5 +29,9 @@
 
 	li {
 		border-bottom: 1px solid rgb(239, 243, 244);
+	}
+
+	li.focus {
+		border: 1px solid lightgray;
 	}
 </style>
