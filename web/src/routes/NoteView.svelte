@@ -27,6 +27,7 @@
 	import Text from './content/Text.svelte';
 	import Reference from './content/Reference.svelte';
 	import Hashtag from './content/Hashtag.svelte';
+	import Url from './content/Url.svelte';
 	export let event: Event;
 	export let readonly: boolean;
 
@@ -133,6 +134,8 @@
 					<Reference text={token.text} tag={event.tags[token.index]} />
 				{:else if token.name === 'hashtag'}
 					<Hashtag text={token.text} />
+				{:else if token.name === 'url'}
+					<Url text={token.text} />
 				{:else}
 					<Text text={token.text} />
 				{/if}
