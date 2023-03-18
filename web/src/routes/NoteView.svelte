@@ -36,6 +36,13 @@
 	const regexAudio = new RegExp('https?://.+\\.(mp3|m4a|wav)', 'g');
 	const regexVideo = new RegExp('https?://.+\\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)', 'g');
 	let jsonDisplay = false;
+
+	let contentWarning = event.tags.find(([tagName]) => tagName === 'content-warning')?.at(1);
+	let showContent = contentWarning === undefined;
+	const showWarningContent = () => {
+		showContent = true;
+	};
+
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
 	};
@@ -128,6 +135,12 @@
 				</span>
 			</div>
 		{/if}
+		{#if !showContent}
+		<div class="content-warning">
+			<div>{contentWarning}</div>
+			<button on:click={showWarningContent}>Show</button>
+		</div>
+		{:else}
 		<p class="content">
 			{#each Content.parse(event.content, event.tags) as token}
 				{#if token.name === 'reference' && token.index !== undefined && event.tags.at(token.index) !== undefined}
@@ -165,6 +178,7 @@
 				</li>
 			{/each}
 		</ol>
+		{/if}
 		{#if event.kind === 42}
 			<div>
 				<a
@@ -305,5 +319,12 @@
 		padding: 0;
 		color: lightgray;
 		height: 20px;
+	}
+
+	.content-warning {
+		padding: 0.5em;
+		width: 100%;
+		height: 5em;
+		background-color: lightgray;
 	}
 </style>
