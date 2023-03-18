@@ -26,7 +26,7 @@ export class Content {
 		});
 		console.debug([...matches]);
 
-		let tokens: Token[] = [];
+		const tokens: Token[] = [];
 		let index = 0;
 		for (const match of matches) {
 			const text = match[0];

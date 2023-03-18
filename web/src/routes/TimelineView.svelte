@@ -3,7 +3,7 @@
 	import RepostedNoteView from './RepostedNoteView.svelte';
 	import type { Event } from './types';
 	export let events: Event[] = [];
-	export let readonly: boolean = false;
+	export let readonly = false;
 </script>
 
 <ul>
