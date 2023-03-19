@@ -8,11 +8,7 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-
-	import { redirect } from '@sveltejs/kit';
-
 	import { Kind } from 'nostr-tools';
-
 	import { onMount } from 'svelte';
 	import {
 		pubkey,
