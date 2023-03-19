@@ -10,7 +10,7 @@ export class Api {
 	async fetchEvent(id: string): Promise<NostrEvent | undefined> {
 		// If exsits in store
 		const $events = get(events);
-		const storedEvent = $events.find(x => x.id === id);
+		const storedEvent = $events.find((x) => x.id === id);
 		if (storedEvent !== undefined) {
 			return storedEvent;
 		}
