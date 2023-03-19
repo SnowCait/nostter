@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	import { pool } from '../stores/Pool';
-	import { pubkey, relayUrls } from '../stores/Author';
+	import { pubkey, rom, relayUrls } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes } from '../stores/NoteDialog';
 	import NoteView from './NoteView.svelte';
 
@@ -65,6 +65,11 @@
 	async function postNote() {
 		if (content === '') {
 			console.log('Content is empty');
+			return;
+		}
+
+		if ($rom) {
+			console.error('Readonly');
 			return;
 		}
 

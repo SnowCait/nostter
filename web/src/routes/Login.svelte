@@ -8,20 +8,22 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Kind } from 'nostr-tools';
+	import { Kind, nip19 } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import {
 		pubkey,
 		authorProfile,
 		recommendedRelay,
 		followees,
-		relayUrls
+		relayUrls,
+		rom
 	} from '../stores/Author';
 	import { defaultRelays } from '../stores/DefaultRelays';
 	import { pool } from '../stores/Pool';
 	import type { RelayPermission } from './types';
 
 	let login: string | null = null;
+	let npub = '';
 
 	onMount(async () => {
 		console.log('onMount');
@@ -35,6 +37,12 @@
 
 		if (login === 'NIP-07') {
 			await loginWithNip07();
+			return;
+		}
+
+		if (login.startsWith('npub')) {
+			npub = login;
+			await loginWithNpub();
 			return;
 		}
 
@@ -68,6 +76,26 @@
 		console.log('[pubkey]', $pubkey);
 
 		await fetchAuthor(Array.from(profileRelays));
+
+		console.log('Redirect to /home');
+		await goto('/home');
+	}
+
+	async function loginWithNpub() {
+		console.log('npub', npub);
+		const { type, data } = nip19.decode(npub);
+		console.log(type, data);
+		if (type !== 'npub' || typeof data !== 'string') {
+			console.error(`Invalid npub: ${npub}`);
+			return;
+		}
+
+		login = npub;
+		localStorage.setItem('nostter:login', login);
+
+		$pubkey = data;
+		$rom = true;
+		await fetchAuthor($defaultRelays);
 
 		console.log('Redirect to /home');
 		await goto('/home');
@@ -134,3 +162,15 @@
 
 <h3>Browser Extension</h3>
 <button on:click={loginWithNip07} disabled={login !== null}>Login with NIP-07</button>
+
+<h3>Public Key</h3>
+<form on:submit|preventDefault={loginWithNpub}>
+	<input
+		type="text"
+		bind:value={npub}
+		placeholder="npub"
+		pattern="^npub1[a-z0-9]+$"
+		on:keyup|stopPropagation={undefined}
+	/>
+	<input type="submit" value="Login with npub" disabled={login !== null} />
+</form>

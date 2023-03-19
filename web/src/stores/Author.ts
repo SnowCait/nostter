@@ -6,3 +6,4 @@ export const authorProfile: Writable<User> = writable();
 export const recommendedRelay = writable('');
 export const followees: Writable<string[]> = writable([]);
 export const relayUrls: Writable<string[]> = writable([]);
+export const rom = writable(false);
