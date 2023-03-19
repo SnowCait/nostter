@@ -6,7 +6,8 @@
 	import NoteView from './NoteView.svelte';
 	import type { Event as NostrEvent } from './types';
 	import { relayUrls } from '../stores/Author';
-	import { nip19, type Event } from 'nostr-tools';
+	import { nip19 } from 'nostr-tools';
+	import { onMount } from 'svelte';
 
 	export let event: NostrEvent;
 	export let readonly: boolean;
@@ -18,30 +19,34 @@
 		(tag) =>
 			tag.at(0) === 'e' && (tag.at(3) === 'mention' || tag.at(3) === 'root' || tag.length < 4)
 	);
-	if (originalTag !== undefined) {
+
+	onMount(async () => {
+		if (originalTag === undefined) {
+			console.warn('[repost not found]', event);
+			return;
+		}
+
 		const eventId = originalTag[1];
 		originalEvent = $events.find((x) => x.id === eventId);
-		if (originalEvent === undefined) {
-			$pool
-				.get($relayUrls, {
-					kinds: [1],
-					ids: [eventId]
-				})
-				.then((event: Event | null) => {
-					if (event !== null) {
-						originalEvent = event as NostrEvent;
-						let userEvent = $userEvents.get(originalEvent.pubkey);
-						if (userEvent !== undefined) {
-							originalEvent.user = userEvent.user;
-						}
-					} else {
-						console.warn(`${eventId} not found`);
-					}
-				});
+		if (originalEvent !== undefined) {
+			return;
 		}
-	} else {
-		console.error(event);
-	}
+
+		const e = await $pool.get($relayUrls, {
+			kinds: [1],
+			ids: [eventId]
+		});
+
+		if (e === null) {
+			console.warn(`${eventId} not found`);
+		}
+
+		originalEvent = e as NostrEvent;
+		let userEvent = $userEvents.get(originalEvent.pubkey);
+		if (userEvent !== undefined) {
+			originalEvent.user = userEvent.user;
+		}
+	});
 </script>
 
 <article>
