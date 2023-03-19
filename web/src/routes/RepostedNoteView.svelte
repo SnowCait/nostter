@@ -25,7 +25,7 @@
 			$pool
 				.get($relayUrls, {
 					kinds: [1],
-					'#e': [eventId]
+					ids: [eventId]
 				})
 				.then((event: Event | null) => {
 					if (event !== null) {
