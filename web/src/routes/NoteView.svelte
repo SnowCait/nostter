@@ -22,6 +22,7 @@
 	import { userEvents } from '../stores/UserEvents';
 	import { recommendedRelay, relayUrls } from '../stores/Author';
 	import { pool } from '../stores/Pool';
+	import { rom } from '../stores/Author';
 	import CreatedAt from './CreatedAt.svelte';
 	import { Content } from '$lib/Content';
 	import Text from './content/Text.svelte';
@@ -30,6 +31,10 @@
 	import Url from './content/Url.svelte';
 	export let event: Event;
 	export let readonly: boolean;
+
+	if ($rom) {
+		readonly = true;
+	}
 
 	const iconSize = 20;
 	const regexImage = new RegExp('https?://.+\\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
@@ -56,6 +61,11 @@
 	}
 
 	async function repost(note: Event) {
+		if ($rom) {
+			console.error('Readonly');
+			return;
+		}
+
 		reposted = true;
 
 		const event = await window.nostr.signEvent({
@@ -81,6 +91,11 @@
 
 	async function reaction(note: Event, content = '+') {
 		console.log('[reaction]', note);
+
+		if ($rom) {
+			console.error('Readonly');
+			return;
+		}
 
 		reactioned = true;
 

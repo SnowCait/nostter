@@ -3,6 +3,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { pubkey } from '../stores/Author';
 	import { openNoteDialog } from '../stores/NoteDialog';
+	import { rom } from '../stores/Author';
 
 	function toggleNoteDialog() {
 		$openNoteDialog = !$openNoteDialog;
@@ -35,11 +36,13 @@
 					<IconUser size={30} />
 				</li>
 			</a>
-			<li>
-				<button on:click={toggleNoteDialog}>
-					<IconCirclePlus size={30} />
-				</button>
-			</li>
+			{#if !$rom}
+				<li>
+					<button on:click={toggleNoteDialog}>
+						<IconCirclePlus size={30} />
+					</button>
+				</li>
+			{/if}
 		{/if}
 	</ul>
 </nav>
