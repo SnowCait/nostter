@@ -5,7 +5,7 @@
 	import { userEvents } from '../stores/UserEvents';
 	import NoteView from './NoteView.svelte';
 	import type { Event as NostrEvent } from './types';
-	import { relays } from '../stores/Author';
+	import { relayUrls } from '../stores/Author';
 	import { nip19, type Event } from 'nostr-tools';
 
 	export let event: NostrEvent;
@@ -23,13 +23,10 @@
 		originalEvent = $events.find((x) => x.id === eventId);
 		if (originalEvent === undefined) {
 			$pool
-				.get(
-					Array.from($relays).map((x) => x.href),
-					{
-						kinds: [1],
-						'#e': [eventId]
-					}
-				)
+				.get($relayUrls, {
+					kinds: [1],
+					'#e': [eventId]
+				})
 				.then((event: Event | null) => {
 					if (event !== null) {
 						originalEvent = event as NostrEvent;

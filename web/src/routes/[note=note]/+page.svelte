@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { error } from '@sveltejs/kit';
 	import { nip19, Kind, type Event } from 'nostr-tools';
-	import { relays as authorRelays } from '../../stores/Author';
+	import { relayUrls } from '../../stores/Author';
 	import { defaultRelays } from '../../stores/DefaultRelays';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
@@ -28,8 +28,7 @@
 
 		eventId = data;
 
-		const relays =
-			$authorRelays.size > 0 ? Array.from($authorRelays).map((x) => x.href) : $defaultRelays;
+		const relays = $relayUrls.length > 0 ? $relayUrls : $defaultRelays;
 		console.log(relays);
 
 		const relatedEvents = await $pool.list(relays, [

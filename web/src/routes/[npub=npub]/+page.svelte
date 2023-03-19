@@ -7,15 +7,14 @@
 	import { pool } from '../../stores/Pool';
 	import { defaultRelays } from '../../stores/DefaultRelays';
 	import TimelineView from '../TimelineView.svelte';
-	import { pubkey as authorPubkey, relays as authorRelays } from '../../stores/Author';
+	import { pubkey as authorPubkey, relayUrls } from '../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
 
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
 	let notes: Event[] = [];
 
-	const relays =
-		$authorRelays.size > 0 ? Array.from($authorRelays).map((x) => x.href) : $defaultRelays;
+	const relays = $relayUrls.length > 0 ? $relayUrls : $defaultRelays;
 
 	afterNavigate(async () => {
 		console.log('afterNavigate');
