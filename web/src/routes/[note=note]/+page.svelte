@@ -119,12 +119,12 @@
 
 		// Deprecated NIP-10
 		if (rootEventId === undefined && replyToEventId === undefined) {
-			const eTags = originalEvent.tags.filter(([tagName]) => tagName === 'e');
+			const eTags = originalEvent.tags.filter((tag) => tag.at(0) === 'e' && tag.length < 4);
 			if (eTags.length === 1) {
 				replyToEventId = eTags[0].at(1);
-			} else if (eTags.length === 2) {
+			} else if (eTags.length > 1) {
 				rootEventId = eTags[0].at(1);
-				replyToEventId = eTags[1].at(1);
+				replyToEventId = eTags[eTags.length - 1].at(1);
 			}
 		}
 
