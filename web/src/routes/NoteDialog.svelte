@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	import { pool } from '../stores/Pool';
-	import { pubkey, relays } from '../stores/Author';
+	import { pubkey, relayUrls } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes } from '../stores/NoteDialog';
 	import NoteView from './NoteView.svelte';
 
@@ -107,7 +107,7 @@
 		console.log(event);
 
 		$pool.publish(
-			Array.from($relays).map((x) => x.href),
+			$relayUrls,
 			event
 		);
 
