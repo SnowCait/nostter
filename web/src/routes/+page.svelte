@@ -1,11 +1,13 @@
+<script lang="ts">
+	import Login from './Login.svelte';
+</script>
+
 <svelte:head>
 	<title>nostter</title>
 </svelte:head>
 
 <main>
 	<h1>nostter</h1>
-	<nav>
-		<a href="/home">Home</a>
-		<a href="/search">Search</a>
-	</nav>
+	<h2>Login</h2>
+	<Login />
 </main>
