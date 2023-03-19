@@ -35,6 +35,9 @@
 	const regexImage = new RegExp('https?://.+\\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
 	const regexAudio = new RegExp('https?://.+\\.(mp3|m4a|wav)', 'g');
 	const regexVideo = new RegExp('https?://.+\\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)', 'g');
+
+	let reposted = false;
+	let reactioned = false;
 	let jsonDisplay = false;
 
 	let contentWarning = event.tags.find(([tagName]) => tagName === 'content-warning')?.at(1);
@@ -53,6 +56,8 @@
 	}
 
 	async function repost(note: Event) {
+		reposted = true;
+
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 6,
@@ -67,7 +72,9 @@
 		$pool.publish(
 			Array.from($relays).map((x) => x.href),
 			event
-		);
+		).on('failed', () => {
+			reposted = false;
+		});
 	}
 
 	function quote(event: Event) {
@@ -76,7 +83,9 @@
 	}
 
 	async function reaction(note: Event, content = '+') {
-		console.log('[like]', note);
+		console.log('[reaction]', note);
+
+		reactioned = true;
 
 		if ($pawPad) {
 			content = '🐾';
@@ -96,7 +105,9 @@
 		$pool.publish(
 			Array.from($relays).map((x) => x.href),
 			event
-		);
+		).on('failed', () => {
+			reactioned= false;
+		});
 	}
 </script>
 
@@ -196,13 +207,13 @@
 				<button on:click={() => reply(event)}>
 					<IconMessageCircle2 size={iconSize} />
 				</button>
-				<button on:click={() => repost(event)}>
+				<button class="repost" disabled={reposted} on:click={() => repost(event)}>
 					<IconRepeat size={iconSize} />
 				</button>
 				<button on:click={() => quote(event)}>
 					<IconQuote size={iconSize} />
 				</button>
-				<button on:click={() => reaction(event)}>
+				<button class="reaction" disabled={reactioned} on:click={() => reaction(event)}>
 					{#if $pawPad}
 						<IconPaw size={iconSize} />
 					{:else}
@@ -321,6 +332,14 @@
 		padding: 0;
 		color: lightgray;
 		height: 20px;
+	}
+
+	.repost:disabled {
+		color: lightgreen;
+	}
+
+	.reaction:disabled {
+		color: lightpink;
 	}
 
 	.content-warning {
