@@ -106,10 +106,7 @@
 		});
 		console.log(event);
 
-		$pool.publish(
-			$relayUrls,
-			event
-		);
+		$pool.publish($relayUrls, event);
 
 		posting = false;
 

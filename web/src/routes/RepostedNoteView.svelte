@@ -23,13 +23,10 @@
 		originalEvent = $events.find((x) => x.id === eventId);
 		if (originalEvent === undefined) {
 			$pool
-				.get(
-					$relayUrls,
-					{
-						kinds: [1],
-						'#e': [eventId]
-					}
-				)
+				.get($relayUrls, {
+					kinds: [1],
+					'#e': [eventId]
+				})
 				.then((event: Event | null) => {
 					if (event !== null) {
 						originalEvent = event as NostrEvent;

@@ -69,14 +69,9 @@
 		});
 		console.log(event);
 
-		$pool
-			.publish(
-				$relayUrls,
-				event
-			)
-			.on('failed', () => {
-				reposted = false;
-			});
+		$pool.publish($relayUrls, event).on('failed', () => {
+			reposted = false;
+		});
 	}
 
 	function quote(event: Event) {
@@ -104,14 +99,9 @@
 		});
 		console.log(event);
 
-		$pool
-			.publish(
-				$relayUrls,
-				event
-			)
-			.on('failed', () => {
-				reactioned = false;
-			});
+		$pool.publish($relayUrls, event).on('failed', () => {
+			reactioned = false;
+		});
 	}
 </script>
 
