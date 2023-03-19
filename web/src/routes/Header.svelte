@@ -11,11 +11,19 @@
 
 <nav>
 	<ul>
-		<a href="/home">
-			<li>
-				<IconHome size={30} />
-			</li>
-		</a>
+		{#if $pubkey}
+			<a href="/home">
+				<li>
+					<IconHome size={30} />
+				</li>
+			</a>
+		{:else}
+			<a href="/">
+				<li>
+					<IconHome size={30} />
+				</li>
+			</a>
+		{/if}
 		<a href="/search">
 			<li>
 				<IconSearch size={30} />
