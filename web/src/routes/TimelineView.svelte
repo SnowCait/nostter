@@ -29,9 +29,21 @@
 
 	li {
 		border-bottom: 1px solid rgb(239, 243, 244);
+		animation-name: add;
+		animation-duration: 0.8s;
 	}
 
 	li.focus {
 		border: 1px solid lightgray;
+	}
+
+	@keyframes add {
+		0% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 1;
+		}
 	}
 </style>
