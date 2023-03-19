@@ -74,6 +74,15 @@
 			}
 		}
 
+		if (rootEventId !== undefined && !events.some((x) => x.id === rootEventId) && i <= 20) {
+			const rootEvent = await $pool.get(relays, {
+				ids: [rootEventId]
+			});
+			if (rootEvent !== null) {
+				events.unshift(rootEvent as NostrEvent);
+			}
+		}
+
 		events.push(originalEvent);
 		events.push(...repliedEvents);
 
