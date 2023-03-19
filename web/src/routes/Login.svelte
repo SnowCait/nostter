@@ -79,15 +79,13 @@
 
 	async function nip07Enabled(): Promise<boolean> {
 		const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-		return new Promise(async (resolve) => {
-			for (let i = 0; i < 10; i++) {
-				if (window.nostr !== undefined) {
-					resolve(true);
-				}
-				await sleep(500);
+		for (let i = 0; i < 10; i++) {
+			if (window.nostr !== undefined) {
+				return true;
 			}
-			resolve(false);
-		});
+			await sleep(500);
+		}
+		return false;
 	}
 
 	async function fetchAuthor(relays: string[]) {
