@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { IconExternalLink, IconRepeat } from '@tabler/icons-svelte';
-	import { events } from '../stores/Events';
 	import { pool } from '../stores/Pool';
 	import { userEvents } from '../stores/UserEvents';
 	import NoteView from './NoteView.svelte';
@@ -8,6 +7,7 @@
 	import { relayUrls } from '../stores/Author';
 	import { nip19 } from 'nostr-tools';
 	import { onMount } from 'svelte';
+	import { Api } from '$lib/Api';
 
 	export let event: NostrEvent;
 	export let readonly: boolean;
@@ -27,25 +27,8 @@
 		}
 
 		const eventId = originalTag[1];
-		originalEvent = $events.find((x) => x.id === eventId);
-		if (originalEvent !== undefined) {
-			return;
-		}
-
-		const e = await $pool.get($relayUrls, {
-			kinds: [1],
-			ids: [eventId]
-		});
-
-		if (e === null) {
-			console.warn(`${eventId} not found`);
-		}
-
-		originalEvent = e as NostrEvent;
-		let userEvent = $userEvents.get(originalEvent.pubkey);
-		if (userEvent !== undefined) {
-			originalEvent.user = userEvent.user;
-		}
+		const api = new Api($pool, $relayUrls);
+		originalEvent = await api.fetchEvent(eventId);
 	});
 </script>
 
