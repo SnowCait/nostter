@@ -69,12 +69,14 @@
 		});
 		console.log(event);
 
-		$pool.publish(
-			Array.from($relays).map((x) => x.href),
-			event
-		).on('failed', () => {
-			reposted = false;
-		});
+		$pool
+			.publish(
+				Array.from($relays).map((x) => x.href),
+				event
+			)
+			.on('failed', () => {
+				reposted = false;
+			});
 	}
 
 	function quote(event: Event) {
@@ -102,12 +104,14 @@
 		});
 		console.log(event);
 
-		$pool.publish(
-			Array.from($relays).map((x) => x.href),
-			event
-		).on('failed', () => {
-			reactioned= false;
-		});
+		$pool
+			.publish(
+				Array.from($relays).map((x) => x.href),
+				event
+			)
+			.on('failed', () => {
+				reactioned = false;
+			});
 	}
 </script>
 
