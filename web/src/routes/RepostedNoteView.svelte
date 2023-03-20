@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconExternalLink, IconRepeat } from '@tabler/icons-svelte';
+	import { IconRepeat } from '@tabler/icons-svelte';
 	import { pool } from '../stores/Pool';
 	import NoteView from './NoteView.svelte';
 	import type { Event as NostrEvent, User } from './types';
