@@ -33,9 +33,11 @@
 </script>
 
 <article>
-	<IconRepeat size={18} color={'lightgreen'} /> by @{user !== undefined
-		? user.name
-		: event.pubkey.substring('npub1'.length + 7)}
+	<IconRepeat size={18} color={'lightgreen'} />
+	<span>by</span>
+	<a href="/{nip19.npubEncode(event.pubkey)}">
+		@{user?.name ?? event.pubkey.substring('npub1'.length + 7)}
+	</a>
 </article>
 {#if originalEvent !== undefined}
 	<NoteView event={originalEvent} {readonly} />
