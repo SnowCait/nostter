@@ -46,14 +46,8 @@
 	<NoteView event={originalEvent} {readonly} />
 {:else if originalTag !== undefined}
 	<article>
-		<a
-			href="https://nostx.shino3.net/{nip19.noteEncode(originalTag[1])}"
-			target="_blank"
-			rel="noopener noreferrer"
-		>
-			{nip19.noteEncode(originalTag[1]).substring(0, 'note1'.length + 7)}<IconExternalLink
-				size={15}
-			/>
+		<a href="/{nip19.noteEncode(originalTag[1])}">
+			{nip19.noteEncode(originalTag[1]).substring(0, 'note1'.length + 7)}
 		</a>
 	</article>
 {/if}
