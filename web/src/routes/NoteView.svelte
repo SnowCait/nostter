@@ -19,7 +19,6 @@
 	import type { Event } from './types';
 	import { pawPad } from '../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../stores/NoteDialog';
-	import { userEvents } from '../stores/UserEvents';
 	import { recommendedRelay, relayUrls } from '../stores/Author';
 	import { pool } from '../stores/Pool';
 	import { rom } from '../stores/Author';
@@ -29,6 +28,8 @@
 	import Reference from './content/Reference.svelte';
 	import Hashtag from './content/Hashtag.svelte';
 	import Url from './content/Url.svelte';
+	import { Api } from '$lib/Api';
+	import { onMount } from 'svelte';
 	export let event: Event;
 	export let readonly: boolean;
 
@@ -44,6 +45,7 @@
 	let reposted = false;
 	let reactioned = false;
 	let jsonDisplay = false;
+	let replyToNames: string[] = [];
 
 	let contentWarning = event.tags.find(([tagName]) => tagName === 'content-warning')?.at(1);
 	let showContent = contentWarning === undefined;
@@ -118,6 +120,20 @@
 			reactioned = false;
 		});
 	}
+
+	onMount(async () => {
+		const pubkeys = Array.from(
+			new Set(event.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey))
+		);
+		const api = new Api($pool, $relayUrls);
+		const promises = pubkeys.map(async (pubkey) => {
+			const userEvent = await api.fetchUserEvent(pubkey);
+			return (
+				userEvent?.user.name ?? nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)
+			);
+		});
+		replyToNames = await Promise.all(promises);
+	});
 </script>
 
 <article id={event.id}>
@@ -141,20 +157,7 @@
 		{#if event.tags.some(([tagName]) => tagName === 'p')}
 			<div class="reply">
 				<span>To</span>
-				<span>
-					@{Array.from(
-						new Set(
-							event.tags
-								.filter(([tagName]) => tagName === 'p')
-								.map(([, pubkey]) => pubkey)
-								.map(
-									(pubkey) =>
-										$userEvents.get(pubkey)?.user.name ??
-										nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)
-								)
-						)
-					).join(' @')}
-				</span>
+				<span>@{replyToNames.join(' @')}</span>
 			</div>
 		{/if}
 		{#if !showContent}
