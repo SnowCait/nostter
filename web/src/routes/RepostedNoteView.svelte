@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { IconExternalLink, IconRepeat } from '@tabler/icons-svelte';
 	import { pool } from '../stores/Pool';
-	import { userEvents } from '../stores/UserEvents';
 	import NoteView from './NoteView.svelte';
-	import type { Event as NostrEvent } from './types';
+	import type { Event as NostrEvent, User } from './types';
 	import { relayUrls } from '../stores/Author';
 	import { nip19 } from 'nostr-tools';
 	import { onMount } from 'svelte';
@@ -12,7 +11,7 @@
 	export let event: NostrEvent;
 	export let readonly: boolean;
 
-	let user = $userEvents.get(event.pubkey)?.user;
+	let user: User | undefined;
 	let originalEvent: NostrEvent | undefined;
 
 	const originalTag = event.tags.find(
@@ -21,13 +20,17 @@
 	);
 
 	onMount(async () => {
+		const api = new Api($pool, $relayUrls);
+		api.fetchUserEvent(event.pubkey).then((userEvent) => {
+			user = userEvent?.user;
+		});
+
 		if (originalTag === undefined) {
 			console.warn('[repost not found]', event);
 			return;
 		}
 
 		const eventId = originalTag[1];
-		const api = new Api($pool, $relayUrls);
 		originalEvent = await api.fetchEvent(eventId);
 	});
 </script>
