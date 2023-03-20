@@ -30,14 +30,8 @@
 			<NoteView {event} readonly={true} />
 		</div>
 	{:else}
-		<a
-			href="https://nostx.shino3.net/{nip19.noteEncode(tag[1])}"
-			target="_blank"
-			rel="noopener noreferrer"
-		>
-			{nip19.noteEncode(tag[1]).substring(0, 'note1'.length + 7)}<IconExternalLink
-				size={15}
-			/>
+		<a href="/{nip19.noteEncode(tag[1])}">
+			{nip19.noteEncode(tag[1]).substring(0, 'note1'.length + 7)}
 		</a>
 	{/if}
 {:else if tag.at(0) === 'r' && tag.at(1) !== undefined}
