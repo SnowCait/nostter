@@ -7,6 +7,34 @@ import { saveUserEvent, userEvents } from '../stores/UserEvents';
 export class Api {
 	constructor(private pool: SimplePool, private relays: string[]) {}
 
+	async fetchUserEvent(pubkey: string): Promise<UserEvent | undefined> {
+		// From cache
+		const cachedUserEvents = get(userEvents);
+		let userEvent = cachedUserEvents.get(pubkey);
+		if (userEvent !== undefined) {
+			return userEvent;
+		}
+
+		// Fetch metadata
+		const metadata = await this.pool.get(this.relays, {
+			kinds: [0],
+			authors: [pubkey]
+		});
+		if (metadata === null) {
+			console.log(`pubkey: ${pubkey} not found in ${this.relays.join(', ')}`);
+			return undefined;
+		}
+
+		const user = JSON.parse(metadata.content) as User;
+		userEvent = metadata as UserEvent;
+		userEvent.user = user;
+
+		// Save cache
+		saveUserEvent(userEvent);
+
+		return userEvent;
+	}
+
 	async fetchEvent(id: string): Promise<NostrEvent | undefined> {
 		// If exsits in store
 		const $events = get(events);
@@ -21,29 +49,13 @@ export class Api {
 			ids: [id]
 		});
 		if (event === null) {
+			console.log(`id: ${id} not found in ${this.relays.join(', ')}`);
 			return undefined;
 		}
 
-		const cachedUserEvents = get(userEvents);
-		let userEvent = cachedUserEvents.get(event.pubkey);
-
-		// Fetch metadata
+		const userEvent = await this.fetchUserEvent(event.pubkey);
 		if (userEvent === undefined) {
-			const metadata = await this.pool.get(this.relays, {
-				kinds: [0],
-				authors: [event.pubkey]
-			});
-			if (metadata === null) {
-				console.log(`${event.pubkey} not found on ${event.id}`);
-				return event as NostrEvent;
-			}
-
-			const user = JSON.parse(metadata.content) as User;
-			userEvent = metadata as UserEvent;
-			userEvent.user = user;
-
-			// Save cache
-			saveUserEvent(userEvent);
+			return event as NostrEvent;
 		}
 
 		// Return
