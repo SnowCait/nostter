@@ -137,4 +137,4 @@
 
 <h1>note</h1>
 
-<TimelineView {events} readonly={false} focusEventId={eventId} />
+<TimelineView {events} readonly={false} focusEventId={eventId} load={async () => console.debug()} />

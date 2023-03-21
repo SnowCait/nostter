@@ -25,6 +25,8 @@
 	let login: string | null = null;
 	let npub = '';
 
+	const now = Math.floor(Date.now() / 1000);
+
 	onMount(async () => {
 		console.log('onMount');
 
@@ -57,6 +59,8 @@
 			return;
 		}
 
+		console.log(`NIP-07 enabled in ${Date.now() / 1000 - now} seconds`);
+
 		login = 'NIP-07';
 		localStorage.setItem('nostter:login', login);
 
@@ -69,13 +73,19 @@
 			}
 		}
 
+		console.log(`NIP-07 getRelays in ${Date.now() / 1000 - now} seconds`);
+
 		const profileRelays = new Set([...Object.keys(nip07Relays), ...$defaultRelays]);
 		console.log('[relays for profile]', profileRelays);
 
 		$pubkey = await window.nostr.getPublicKey();
 		console.log('[pubkey]', $pubkey);
 
+		console.log(`NIP-07 getPublicKey in ${Date.now() / 1000 - now} seconds`);
+
 		await fetchAuthor(Array.from(profileRelays));
+
+		console.log(`Fetch author in ${Date.now() / 1000 - now} seconds`);
 
 		console.log('Redirect to /home');
 		await goto('/home');

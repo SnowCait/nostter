@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Event, UserEvent, User } from '../types';
+	import type { Event, UserEvent } from '../types';
 	import TimelineView from '../TimelineView.svelte';
 	import { events } from '../../stores/Events';
-	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
+	import { userEvents } from '../../stores/UserEvents';
 	import { pawPad } from '../../stores/Preference';
 	import { pool } from '../../stores/Pool';
-	import { relayUrls, followees, authorProfile } from '../../stores/Author';
+	import { pubkey, relayUrls, followees, authorProfile } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
+	import { Kind } from 'nostr-tools';
 
 	const now = Math.floor(Date.now() / 1000);
 
@@ -21,15 +22,25 @@
 			return;
 		}
 
+		console.log(`Fetch in ${Date.now() / 1000 - now} seconds`);
+
 		const since = (until ?? now) - span;
 		const pastEvents = await $pool.list($relayUrls, [
 			{
-				kinds: [1, 6, 42],
+				kinds: [Kind.Text, 6, Kind.ChannelMessage],
 				authors: $followees,
+				until,
+				since
+			},
+			{
+				kinds: [Kind.Reaction],
+				'#p': [$pubkey],
 				until,
 				since
 			}
 		]);
+
+		console.log(`Text events loaded in ${Date.now() / 1000 - now} seconds`);
 
 		const pubkeys = new Set(pastEvents.map((x) => x.pubkey));
 		const metadataEvents = await $pool.list($relayUrls, [
@@ -49,7 +60,11 @@
 			})
 		);
 
+		console.log(`Metadata events loaded in ${Date.now() / 1000 - now} seconds`);
+
 		pastEvents.sort((x, y) => y.created_at - x.created_at);
+
+		console.log(`Sorted in ${Date.now() / 1000 - now} seconds`);
 
 		const list = pastEvents.map((event) => {
 			const userEvent = $userEvents.get(event.pubkey);
@@ -82,11 +97,17 @@
 
 		let eose = false;
 		let newEvents: Event[] = [];
+		const since = $events.length > 0 ? $events[$events.length - 1].created_at + 1 : now;
 		const subscribe = $pool.sub($relayUrls, [
 			{
-				kinds: [1, 6, 42],
+				kinds: [Kind.Text, 6, Kind.ChannelMessage],
 				authors: Array.from($followees),
-				since: $events.length > 0 ? $events[$events.length - 1].created_at + 1 : now
+				since
+			},
+			{
+				kinds: [Kind.Reaction],
+				'#p': [$pubkey],
+				since
 			}
 		]);
 		subscribe.on('event', async (event: Event) => {

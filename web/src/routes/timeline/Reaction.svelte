@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { IconCodeDots, IconRepeat } from '@tabler/icons-svelte';
-	import { pool } from '../stores/Pool';
-	import NoteView from './NoteView.svelte';
-	import type { Event as NostrEvent, User } from './types';
-	import { relayUrls } from '../stores/Author';
+	import { IconCodeDots, IconHeart, IconHeartBroken } from '@tabler/icons-svelte';
+	import { pool } from '../../stores/Pool';
+	import NoteView from '../NoteView.svelte';
+	import type { Event as NostrEvent, User } from '../types';
+	import { relayUrls } from '../../stores/Author';
 	import { nip19 } from 'nostr-tools';
-	import CreatedAt from './CreatedAt.svelte';
+	import CreatedAt from '../CreatedAt.svelte';
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
 
@@ -16,10 +16,10 @@
 	let originalEvent: NostrEvent | undefined;
 	let jsonDisplay = false;
 
-	const originalTag = event.tags.find(
-		(tag) =>
-			tag.at(0) === 'e' && (tag.at(3) === 'mention' || tag.at(3) === 'root' || tag.length < 4)
+	const eTags = event.tags.filter(
+		([tagName, tagContent]) => tagName === 'e' && tagContent !== undefined
 	);
+	const originalTag = eTags.at(eTags.length - 1);
 
 	onMount(async () => {
 		const api = new Api($pool, $relayUrls);
@@ -28,11 +28,11 @@
 		});
 
 		if (originalTag === undefined) {
-			console.warn('[repost not found]', event);
+			console.warn('[reacted event not found]', event);
 			return;
 		}
 
-		const eventId = originalTag[1];
+		const [, eventId] = originalTag;
 		originalEvent = await api.fetchEvent(eventId);
 	});
 
@@ -43,7 +43,13 @@
 
 <article>
 	<div>
-		<IconRepeat size={18} color={'lightgreen'} />
+		{#if event.content === '+'}
+			<IconHeart size={18} color={'lightpink'} />
+		{:else if event.content === '-'}
+			<IconHeartBroken size={18} color={'lightpink'} />
+		{:else}
+			<span>{event.content}</span>
+		{/if}
 	</div>
 	<div>by</div>
 	<div>
@@ -53,7 +59,7 @@
 	</div>
 	<div class="json-button">
 		<button on:click={toggleJsonDisplay}>
-			<IconCodeDots size={15} />
+			<IconCodeDots size={18} />
 		</button>
 	</div>
 	<div class="created-at">
