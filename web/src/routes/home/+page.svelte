@@ -9,100 +9,88 @@
 	import { relayUrls, followees, authorProfile } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 
-	function subscribeHomeTimeline() {
-		// past notes
-		let initialized = false;
+	// past notes
+	async function fetchHomeTimeline() {
 		const limit = 500;
 		const since = Math.floor(Date.now() / 1000 - 24 * 60 * 60);
-		const subscribeNotes = $pool.sub($relayUrls, [
+		const pastEvents = await $pool.list($relayUrls, [
 			{
 				kinds: [1, 6, 42],
-				authors: Array.from($followees),
+				authors: $followees,
 				limit,
 				since
 			}
 		]);
-		subscribeNotes.on('event', (event: Event) => {
+
+		const pubkeys = new Set(pastEvents.map((x) => x.pubkey));
+		const metadataEvents = await $pool.list($relayUrls, [
+			{
+				kinds: [0],
+				authors: Array.from(pubkeys)
+			}
+		]);
+		$userEvents = new Map(
+			metadataEvents.map((event) => {
+				const user = JSON.parse(event.content);
+				const e = {
+					...event,
+					user
+				} as UserEvent;
+				return [e.pubkey, e];
+			})
+		);
+
+		pastEvents.sort((x, y) => y.created_at - x.created_at);
+
+		$events = pastEvents.slice(0, limit / 2).map((event) => {
+			const userEvent = $userEvents.get(event.pubkey);
+			if (userEvent !== undefined) {
+				return {
+					...event,
+					user: userEvent.user
+				} as Event;
+			} else {
+				console.error(`${event.pubkey} is not found in $userEvents`);
+				return event as Event;
+			}
+		});
+	}
+
+	// new notes
+	function subscribeHomeTimeline() {
+		let lastPastEvent: Event | undefined;
+		let newEvents: Event[] = [];
+		const subscribe = $pool.sub($relayUrls, [
+			{
+				kinds: [1, 6, 42],
+				authors: Array.from($followees),
+				since: $events[0].created_at + 1
+			}
+		]);
+		subscribe.on('event', async (event: Event) => {
 			console.log(event);
-			if (initialized) {
+
+			const userEvent = $userEvents.get(event.pubkey);
+			if (userEvent !== undefined) {
+				event.user = userEvent.user;
+			} else {
+				event.user = await fetchUser(event.pubkey); // not chronological
+			}
+
+			if (lastPastEvent !== undefined) {
+				if (event.created_at < lastPastEvent.created_at) {
+					return;
+				}
 				$events.unshift(event);
 				$events = $events;
 			} else {
-				$events.push(event);
+				newEvents.push(event);
 			}
 		});
-		subscribeNotes.on('eose', () => {
-			subscribeNotes.unsub();
-
-			const pubkeys = new Set($events.map((x) => x.pubkey));
-
-			const subscribeUsers = $pool.sub($relayUrls, [
-				{
-					kinds: [0],
-					authors: Array.from(pubkeys)
-				}
-			]);
-			subscribeUsers.on('event', (event: Event) => {
-				const user = JSON.parse(event.content) as User;
-				const userEvent: UserEvent = {
-					...event,
-					user
-				};
-				saveUserEvent(userEvent);
-			});
-			subscribeUsers.on('eose', () => {
-				subscribeUsers.unsub();
-
-				$events.sort((x, y) => y.created_at - x.created_at);
-				$events = $events.slice(0, limit / 2);
-				initialized = true;
-
-				for (const event of $events) {
-					const userEvent = $userEvents.get(event.pubkey);
-					if (userEvent === undefined) {
-						console.error(`${event.pubkey} is not found in $userEvents`);
-						continue;
-					}
-					event.user = userEvent.user;
-				}
-
-				// new notes
-				let lastPastEvent: Event | undefined;
-				let newEvents: Event[] = [];
-				const subscribe = $pool.sub($relayUrls, [
-					{
-						kinds: [1, 6, 42],
-						authors: Array.from($followees),
-						limit,
-						since: $events[0].created_at + 1
-					}
-				]);
-				subscribe.on('event', async (event: Event) => {
-					console.log(event);
-
-					const userEvent = $userEvents.get(event.pubkey);
-					if (userEvent !== undefined) {
-						event.user = userEvent.user;
-					} else {
-						event.user = await fetchUser(event.pubkey); // not chronological
-					}
-
-					if (lastPastEvent !== undefined) {
-						if (event.created_at < lastPastEvent.created_at) {
-							return;
-						}
-						$events.unshift(event);
-						$events = $events;
-					} else {
-						newEvents.push(event);
-					}
-				});
-				subscribe.on('eose', () => {
-					$events.unshift(...newEvents);
-					$events = $events;
-					lastPastEvent = $events.at(0);
-				});
-			});
+		subscribe.on('eose', () => {
+			$events.unshift(...newEvents);
+			$events = $events;
+			lastPastEvent = $events.at(0);
 		});
 	}
 
@@ -151,6 +139,7 @@
 			return;
 		}
 
+		await fetchHomeTimeline();
 		subscribeHomeTimeline();
 	});
 </script>
