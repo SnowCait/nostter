@@ -8,6 +8,7 @@
 	import { pool } from '../../stores/Pool';
 	import { relayUrls, followees, authorProfile } from '../../stores/Author';
 	import { goto } from '$app/navigation';
+	import { Api } from '$lib/Api';
 
 	const now = Math.floor(Date.now() / 1000);
 
@@ -91,11 +92,10 @@
 		subscribe.on('event', async (event: Event) => {
 			console.debug(event);
 
-			const userEvent = $userEvents.get(event.pubkey);
+			const api = new Api($pool, $relayUrls);
+			const userEvent = await api.fetchUserEvent(event.pubkey); // not chronological
 			if (userEvent !== undefined) {
 				event.user = userEvent.user;
-			} else {
-				event.user = await fetchUser(event.pubkey); // not chronological
 			}
 
 			if (lastPastEvent !== undefined) {
@@ -112,36 +112,6 @@
 			$events.unshift(...newEvents);
 			$events = $events;
 			lastPastEvent = $events.at(0);
-		});
-	}
-
-	async function fetchUser(pubkey: string): Promise<User> {
-		return new Promise((resolve, reject) => {
-			const subscribeUser = $pool.sub($relayUrls, [
-				{
-					kinds: [0],
-					authors: [pubkey]
-				}
-			]);
-			subscribeUser.on('event', (event: Event) => {
-				const user = JSON.parse(event.content) as User;
-				const userEvent: UserEvent = {
-					...event,
-					user
-				};
-				console.debug('[user found]', userEvent);
-				saveUserEvent(userEvent);
-			});
-			subscribeUser.on('eose', () => {
-				subscribeUser.unsub();
-
-				const userEvent = $userEvents.get(pubkey);
-				if (userEvent !== undefined) {
-					resolve(userEvent.user);
-				} else {
-					reject();
-				}
-			});
 		});
 	}
 
