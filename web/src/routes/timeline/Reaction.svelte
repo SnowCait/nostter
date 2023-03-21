@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { IconCodeDots, IconHeart, IconHeartBroken } from '@tabler/icons-svelte';
 	import { pool } from '../../stores/Pool';
-	import NoteView from '../NoteView.svelte';
+	import Note from './Note.svelte';
 	import type { Event as NostrEvent, User } from '../types';
 	import { relayUrls } from '../../stores/Author';
 	import { nip19 } from 'nostr-tools';
@@ -75,7 +75,7 @@
 	</div>
 {/if}
 {#if originalEvent !== undefined}
-	<NoteView event={originalEvent} {readonly} />
+	<Note event={originalEvent} {readonly} />
 {:else if originalTag !== undefined}
 	<article>
 		<a href="/{nip19.noteEncode(originalTag[1])}">
@@ -86,7 +86,6 @@
 
 <style>
 	article {
-		margin: 12px 16px;
 		display: flex;
 		flex-direction: row;
 	}

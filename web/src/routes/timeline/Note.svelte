@@ -16,18 +16,18 @@
 		IconPaw,
 		IconCodeDots
 	} from '@tabler/icons-svelte';
-	import type { Event } from './types';
-	import { pawPad } from '../stores/Preference';
-	import { openNoteDialog, quotes, replyTo } from '../stores/NoteDialog';
-	import { recommendedRelay, relayUrls } from '../stores/Author';
-	import { pool } from '../stores/Pool';
-	import { rom } from '../stores/Author';
-	import CreatedAt from './CreatedAt.svelte';
+	import type { Event } from '../types';
+	import { pawPad } from '../../stores/Preference';
+	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
+	import { recommendedRelay, relayUrls } from '../../stores/Author';
+	import { pool } from '../../stores/Pool';
+	import { rom } from '../../stores/Author';
+	import CreatedAt from '../CreatedAt.svelte';
 	import { Content } from '$lib/Content';
-	import Text from './content/Text.svelte';
-	import Reference from './content/Reference.svelte';
-	import Hashtag from './content/Hashtag.svelte';
-	import Url from './content/Url.svelte';
+	import Text from '../content/Text.svelte';
+	import Reference from '../content/Reference.svelte';
+	import Hashtag from '../content/Hashtag.svelte';
+	import Url from '../content/Url.svelte';
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
 	export let event: Event;
@@ -257,7 +257,6 @@
 
 <style>
 	article {
-		margin: 12px 16px;
 		display: flex;
 		flex-direction: row;
 	}

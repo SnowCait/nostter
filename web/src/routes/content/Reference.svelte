@@ -3,7 +3,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { events } from '../../stores/Events';
 	import { userEvents } from '../../stores/UserEvents';
-	import NoteView from '../NoteView.svelte';
+	import Note from '../timeline/Note.svelte';
 	import type { Event } from '../types';
 	import Hashtag from './Hashtag.svelte';
 	import Text from './Text.svelte';
@@ -27,7 +27,7 @@
 {:else if tag.at(0) === 'e' && tag.at(1) !== undefined}
 	{#if event !== undefined}
 		<div class="quote">
-			<NoteView {event} readonly={true} />
+			<Note {event} readonly={true} />
 		</div>
 	{:else}
 		<a href="/{nip19.noteEncode(tag[1])}">

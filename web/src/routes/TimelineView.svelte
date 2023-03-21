@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
 	import { onMount } from 'svelte';
-	import NoteView from './NoteView.svelte';
-	import RepostedNoteView from './RepostedNoteView.svelte';
+	import Note from './timeline/Note.svelte';
+	import RepostedNote from './timeline/RepostedNote.svelte';
 	import type { Event } from './types';
 	import { Kind } from 'nostr-tools';
 	import Reaction from './timeline/Reaction.svelte';
+	import { pubkey } from '../stores/Author';
 
 	export let events: Event[] = [];
 	export let readonly = false;
@@ -15,6 +16,7 @@
 	let loading = false;
 	let innerHeight: number;
 	let scrollY = writable(0);
+
 	onMount(() => {
 		console.log('Timeline.onMount');
 		scrollY.subscribe(async (y) => {
@@ -31,19 +33,36 @@
 			}
 		});
 	});
+
+	function isRelated(event: Event) {
+		if (event.pubkey === $pubkey) {
+			return false;
+		}
+
+		switch (event.kind) {
+			case Kind.Text:
+			case 6:
+			case Kind.Reaction:
+				return event.tags.some(
+					([tagName, tagContent]) => tagName === 'p' && tagContent === $pubkey
+				);
+			default:
+				return false;
+		}
+	}
 </script>
 
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
 <ul>
 	{#each events as event (event.id)}
-		<li class={event.id === focusEventId ? 'focus' : ''}>
+		<li class:focus={event.id === focusEventId} class:related={isRelated(event)}>
 			{#if event.kind === 6}
-				<RepostedNoteView {event} {readonly} />
+				<RepostedNote {event} {readonly} />
 			{:else if event.kind === Kind.Reaction}
 				<Reaction {event} {readonly} />
 			{:else}
-				<NoteView {event} {readonly} />
+				<Note {event} {readonly} />
 			{/if}
 		</li>
 	{/each}
@@ -61,10 +80,15 @@
 		border-bottom: 1px solid rgb(239, 243, 244);
 		animation-name: add;
 		animation-duration: 0.8s;
+		padding: 12px 16px;
 	}
 
 	li.focus {
 		border: 1px solid lightgray;
+	}
+
+	li.related {
+		border-left: 2px solid lightcoral;
 	}
 
 	@keyframes add {
