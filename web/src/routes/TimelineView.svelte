@@ -4,6 +4,8 @@
 	import NoteView from './NoteView.svelte';
 	import RepostedNoteView from './RepostedNoteView.svelte';
 	import type { Event } from './types';
+	import { Kind } from 'nostr-tools';
+	import Reaction from './timeline/Reaction.svelte';
 
 	export let events: Event[] = [];
 	export let readonly = false;
@@ -38,6 +40,8 @@
 		<li class={event.id === focusEventId ? 'focus' : ''}>
 			{#if event.kind === 6}
 				<RepostedNoteView {event} {readonly} />
+			{:else if event.kind === Kind.Reaction}
+				<Reaction {event} {readonly} />
 			{:else}
 				<NoteView {event} {readonly} />
 			{/if}
