@@ -33,7 +33,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Reaction],
+				kinds: [Kind.Text, Kind.Reaction],
 				'#p': [$pubkey],
 				until,
 				since
@@ -111,7 +111,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Reaction],
+				kinds: [Kind.Text, Kind.Reaction],
 				'#p': [$pubkey],
 				since
 			},
