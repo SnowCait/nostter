@@ -8,8 +8,9 @@
 	import { pool } from '../../stores/Pool';
 	import { relayUrls, followees, authorProfile } from '../../stores/Author';
 	import { goto } from '$app/navigation';
+	import { Api } from '$lib/Api';
 
-	const now = Date.now() / 1000;
+	const now = Math.floor(Date.now() / 1000);
 
 	// past notes
 	async function fetchHomeTimeline(until?: number, span = 1 * 60 * 60) {
@@ -20,7 +21,7 @@
 			return;
 		}
 
-		const since = Math.floor((until ?? now) - span);
+		const since = (until ?? now) - span;
 		const pastEvents = await $pool.list($relayUrls, [
 			{
 				kinds: [1, 6, 42],
@@ -79,29 +80,25 @@
 	function subscribeHomeTimeline() {
 		console.log('Subscribe home timeline');
 
-		let lastPastEvent: Event | undefined;
+		let eose = false;
 		let newEvents: Event[] = [];
 		const subscribe = $pool.sub($relayUrls, [
 			{
 				kinds: [1, 6, 42],
 				authors: Array.from($followees),
-				since: now
+				since: $events.length > 0 ? $events[$events.length - 1].created_at + 1 : now
 			}
 		]);
 		subscribe.on('event', async (event: Event) => {
 			console.debug(event);
 
-			const userEvent = $userEvents.get(event.pubkey);
+			const api = new Api($pool, $relayUrls);
+			const userEvent = await api.fetchUserEvent(event.pubkey); // not chronological
 			if (userEvent !== undefined) {
 				event.user = userEvent.user;
-			} else {
-				event.user = await fetchUser(event.pubkey); // not chronological
 			}
 
-			if (lastPastEvent !== undefined) {
-				if (event.created_at < lastPastEvent.created_at) {
-					return;
-				}
+			if (eose) {
 				$events.unshift(event);
 				$events = $events;
 			} else {
@@ -111,37 +108,7 @@
 		subscribe.on('eose', () => {
 			$events.unshift(...newEvents);
 			$events = $events;
-			lastPastEvent = $events.at(0);
-		});
-	}
-
-	async function fetchUser(pubkey: string): Promise<User> {
-		return new Promise((resolve, reject) => {
-			const subscribeUser = $pool.sub($relayUrls, [
-				{
-					kinds: [0],
-					authors: [pubkey]
-				}
-			]);
-			subscribeUser.on('event', (event: Event) => {
-				const user = JSON.parse(event.content) as User;
-				const userEvent: UserEvent = {
-					...event,
-					user
-				};
-				console.debug('[user found]', userEvent);
-				saveUserEvent(userEvent);
-			});
-			subscribeUser.on('eose', () => {
-				subscribeUser.unsub();
-
-				const userEvent = $userEvents.get(pubkey);
-				if (userEvent !== undefined) {
-					resolve(userEvent.user);
-				} else {
-					reject();
-				}
-			});
+			eose = true;
 		});
 	}
 
