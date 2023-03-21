@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Event, UserEvent, User } from '../types';
+	import type { Event, UserEvent } from '../types';
 	import TimelineView from '../TimelineView.svelte';
 	import { events } from '../../stores/Events';
-	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
+	import { userEvents } from '../../stores/UserEvents';
 	import { pawPad } from '../../stores/Preference';
 	import { pool } from '../../stores/Pool';
 	import { pubkey, relayUrls, followees, authorProfile } from '../../stores/Author';
