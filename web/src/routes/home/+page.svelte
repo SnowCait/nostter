@@ -37,6 +37,12 @@
 				'#p': [$pubkey],
 				until,
 				since
+			},
+			{
+				kinds: [Kind.Reaction],
+				authors: [$pubkey],
+				until,
+				since
 			}
 		]);
 
@@ -107,6 +113,11 @@
 			{
 				kinds: [Kind.Reaction],
 				'#p': [$pubkey],
+				since
+			},
+			{
+				kinds: [Kind.Reaction],
+				authors: [$pubkey],
 				since
 			}
 		]);
