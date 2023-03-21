@@ -10,7 +10,7 @@
 	import { pool } from '../stores/Pool';
 	import { pubkey, rom, relayUrls } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes } from '../stores/NoteDialog';
-	import NoteView from './NoteView.svelte';
+	import Note from './timeline/Note.svelte';
 
 	let content = '';
 	let posting = false;
@@ -122,7 +122,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog bind:this={dialog} on:click={closeDialog} on:close={closed}>
 	{#if $replyTo}
-		<NoteView event={$replyTo} readonly={true} />
+		<Note event={$replyTo} readonly={true} />
 	{/if}
 	<form on:submit|preventDefault={postNote}>
 		<textarea
@@ -135,7 +135,7 @@
 	</form>
 	{#if $quotes.length > 0}
 		{#each $quotes as quote}
-			<NoteView event={quote} readonly={true} />
+			<Note event={quote} readonly={true} />
 		{/each}
 	{/if}
 </dialog>

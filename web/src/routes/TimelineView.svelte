@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
 	import { onMount } from 'svelte';
-	import NoteView from './NoteView.svelte';
-	import RepostedNoteView from './RepostedNoteView.svelte';
+	import Note from './timeline/Note.svelte';
+	import RepostedNote from './timeline/RepostedNote.svelte';
 	import type { Event } from './types';
 	import { Kind } from 'nostr-tools';
 	import Reaction from './timeline/Reaction.svelte';
@@ -39,11 +39,11 @@
 	{#each events as event (event.id)}
 		<li class={event.id === focusEventId ? 'focus' : ''}>
 			{#if event.kind === 6}
-				<RepostedNoteView {event} {readonly} />
+				<RepostedNote {event} {readonly} />
 			{:else if event.kind === Kind.Reaction}
 				<Reaction {event} {readonly} />
 			{:else}
-				<NoteView {event} {readonly} />
+				<Note {event} {readonly} />
 			{/if}
 		</li>
 	{/each}
