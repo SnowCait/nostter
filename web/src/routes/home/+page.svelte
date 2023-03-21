@@ -9,7 +9,7 @@
 	import { relayUrls, followees, authorProfile } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 
-	const now = Date.now() / 1000;
+	const now = Math.floor(Date.now() / 1000);
 
 	// past notes
 	async function fetchHomeTimeline(until?: number, span = 1 * 60 * 60) {
@@ -20,7 +20,7 @@
 			return;
 		}
 
-		const since = Math.floor((until ?? now) - span);
+		const since = (until ?? now) - span;
 		const pastEvents = await $pool.list($relayUrls, [
 			{
 				kinds: [1, 6, 42],
