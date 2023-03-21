@@ -111,13 +111,13 @@
 <h1><a href="/search">Search</a></h1>
 
 <form action="/search">
-	<input type="text" name="q" value={query} on:keyup|stopPropagation={undefined} />
+	<input type="text" name="q" value={query} on:keyup|stopPropagation={() => console.debug()} />
 	<input type="submit" value="Search" />
 </form>
 
 <NoteIdsView />
 
-<TimelineView events={$searchEvents} readonly={true} />
+<TimelineView events={$searchEvents} readonly={true} load={async () => console.debug()} />
 
 <style>
 	h1 a {

@@ -9,15 +9,23 @@
 	import { relayUrls, followees, authorProfile } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 
+	const now = Date.now() / 1000;
+
 	// past notes
-	async function fetchHomeTimeline() {
-		const limit = 500;
-		const since = Math.floor(Date.now() / 1000 - 24 * 60 * 60);
+	async function fetchHomeTimeline(until?: number, span = 1 * 60 * 60) {
+		console.log('Fetch home timeline: followees', $followees.length);
+
+		if ($followees.length === 0) {
+			console.log('Please login');
+			return;
+		}
+
+		const since = Math.floor((until ?? now) - span);
 		const pastEvents = await $pool.list($relayUrls, [
 			{
 				kinds: [1, 6, 42],
 				authors: $followees,
-				limit,
+				until,
 				since
 			}
 		]);
@@ -42,7 +50,7 @@
 
 		pastEvents.sort((x, y) => y.created_at - x.created_at);
 
-		$events = pastEvents.slice(0, limit / 2).map((event) => {
+		const list = pastEvents.map((event) => {
 			const userEvent = $userEvents.get(event.pubkey);
 			if (userEvent !== undefined) {
 				return {
@@ -54,21 +62,34 @@
 				return event as Event;
 			}
 		});
+		$events.push(...list);
+		$events = $events;
+		console.log(
+			`Fetch home timeline completed: ${$events.length} events in ${
+				Date.now() / 1000 - now
+			} seconds`
+		);
+
+		if ($events.length < 50 && since > 1640962800 /* 2022/01/01 00:00:00 */) {
+			await fetchHomeTimeline(since - 1, span * 2);
+		}
 	}
 
 	// new notes
 	function subscribeHomeTimeline() {
+		console.log('Subscribe home timeline');
+
 		let lastPastEvent: Event | undefined;
 		let newEvents: Event[] = [];
 		const subscribe = $pool.sub($relayUrls, [
 			{
 				kinds: [1, 6, 42],
 				authors: Array.from($followees),
-				since: $events[0].created_at + 1
+				since: now
 			}
 		]);
 		subscribe.on('event', async (event: Event) => {
-			console.log(event);
+			console.debug(event);
 
 			const userEvent = $userEvents.get(event.pubkey);
 			if (userEvent !== undefined) {
@@ -108,7 +129,7 @@
 					...event,
 					user
 				};
-				console.log('[user found]', userEvent);
+				console.debug('[user found]', userEvent);
 				saveUserEvent(userEvent);
 			});
 			subscribeUser.on('eose', () => {
@@ -139,7 +160,6 @@
 			return;
 		}
 
-		await fetchHomeTimeline();
 		subscribeHomeTimeline();
 	});
 </script>
@@ -155,7 +175,11 @@
 	<span>{$events.length} notes</span>
 </div>
 
-<TimelineView events={$events} />
+<TimelineView
+	events={$events}
+	load={async () =>
+		await fetchHomeTimeline($events.at($events.length - 1)?.created_at ?? now - 1)}
+/>
 
 <style>
 	@media screen and (max-width: 600px) {

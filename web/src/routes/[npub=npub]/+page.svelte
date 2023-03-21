@@ -259,7 +259,7 @@
 </section>
 
 <section>
-	<TimelineView events={notes} readonly={!$authorPubkey} />
+	<TimelineView events={notes} readonly={!$authorPubkey} load={async () => console.debug()} />
 </section>
 
 <style>
