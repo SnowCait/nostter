@@ -80,7 +80,6 @@
 
 <style>
 	article {
-		margin: 12px 16px;
 		display: flex;
 		flex-direction: row;
 	}
