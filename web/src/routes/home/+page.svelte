@@ -80,13 +80,13 @@
 	function subscribeHomeTimeline() {
 		console.log('Subscribe home timeline');
 
-		let lastPastEvent: Event | undefined;
+		let eose = false;
 		let newEvents: Event[] = [];
 		const subscribe = $pool.sub($relayUrls, [
 			{
 				kinds: [1, 6, 42],
 				authors: Array.from($followees),
-				since: now
+				since: $events.length > 0 ? $events[$events.length - 1].created_at + 1 : now
 			}
 		]);
 		subscribe.on('event', async (event: Event) => {
@@ -98,10 +98,7 @@
 				event.user = userEvent.user;
 			}
 
-			if (lastPastEvent !== undefined) {
-				if (event.created_at < lastPastEvent.created_at) {
-					return;
-				}
+			if (eose) {
 				$events.unshift(event);
 				$events = $events;
 			} else {
@@ -111,7 +108,7 @@
 		subscribe.on('eose', () => {
 			$events.unshift(...newEvents);
 			$events = $events;
-			lastPastEvent = $events.at(0);
+			eose = true;
 		});
 	}
 
