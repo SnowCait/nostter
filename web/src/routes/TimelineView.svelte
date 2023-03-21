@@ -6,6 +6,7 @@
 	import type { Event } from './types';
 	import { Kind } from 'nostr-tools';
 	import Reaction from './timeline/Reaction.svelte';
+	import { pubkey } from '../stores/Author';
 
 	export let events: Event[] = [];
 	export let readonly = false;
@@ -15,6 +16,7 @@
 	let loading = false;
 	let innerHeight: number;
 	let scrollY = writable(0);
+
 	onMount(() => {
 		console.log('Timeline.onMount');
 		scrollY.subscribe(async (y) => {
@@ -31,13 +33,30 @@
 			}
 		});
 	});
+
+	function isRelated(event: Event) {
+		if (event.pubkey === $pubkey) {
+			return false;
+		}
+
+		switch (event.kind) {
+			case Kind.Text:
+			case 6:
+			case Kind.Reaction:
+				return event.tags.some(
+					([tagName, tagContent]) => tagName === 'p' && tagContent === $pubkey
+				);
+			default:
+				return false;
+		}
+	}
 </script>
 
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
 <ul>
 	{#each events as event (event.id)}
-		<li class:focus={event.id === focusEventId}>
+		<li class:focus={event.id === focusEventId} class:related={isRelated(event)}>
 			{#if event.kind === 6}
 				<RepostedNote {event} {readonly} />
 			{:else if event.kind === Kind.Reaction}
@@ -66,6 +85,10 @@
 
 	li.focus {
 		border: 1px solid lightgray;
+	}
+
+	li.related {
+		border-left: 2px solid lightcoral;
 	}
 
 	@keyframes add {
