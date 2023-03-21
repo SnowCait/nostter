@@ -22,6 +22,8 @@
 			return;
 		}
 
+		console.log(`Fetch in ${Date.now() / 1000 - now} seconds`);
+
 		const since = (until ?? now) - span;
 		const pastEvents = await $pool.list($relayUrls, [
 			{
@@ -37,6 +39,8 @@
 				since
 			}
 		]);
+
+		console.log(`Text events loaded in ${Date.now() / 1000 - now} seconds`);
 
 		const pubkeys = new Set(pastEvents.map((x) => x.pubkey));
 		const metadataEvents = await $pool.list($relayUrls, [
@@ -56,7 +60,11 @@
 			})
 		);
 
+		console.log(`Metadata events loaded in ${Date.now() / 1000 - now} seconds`);
+
 		pastEvents.sort((x, y) => y.created_at - x.created_at);
+
+		console.log(`Sorted in ${Date.now() / 1000 - now} seconds`);
 
 		const list = pastEvents.map((event) => {
 			const userEvent = $userEvents.get(event.pubkey);
