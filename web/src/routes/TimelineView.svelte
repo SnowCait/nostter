@@ -37,7 +37,7 @@
 
 <ul>
 	{#each events as event (event.id)}
-		<li class={event.id === focusEventId ? 'focus' : ''}>
+		<li class:focus={event.id === focusEventId}>
 			{#if event.kind === 6}
 				<RepostedNote {event} {readonly} />
 			{:else if event.kind === Kind.Reaction}
