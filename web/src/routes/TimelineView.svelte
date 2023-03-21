@@ -8,7 +8,7 @@
 	export let events: Event[] = [];
 	export let readonly = false;
 	export let focusEventId: string | undefined = undefined;
-	export let load = async () => {};
+	export let load: () => Promise<void>;
 
 	let loading = false;
 	let innerHeight: number;
