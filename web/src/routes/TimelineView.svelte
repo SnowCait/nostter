@@ -1,11 +1,37 @@
 <script lang="ts">
+	import { writable } from 'svelte/store';
+	import { onMount } from 'svelte';
 	import NoteView from './NoteView.svelte';
 	import RepostedNoteView from './RepostedNoteView.svelte';
 	import type { Event } from './types';
+
 	export let events: Event[] = [];
 	export let readonly = false;
 	export let focusEventId: string | undefined = undefined;
+	export let load = async () => {};
+
+	let loading = false;
+	let innerHeight: number;
+	let scrollY = writable(0);
+	onMount(() => {
+		console.log('Timeline.onMount');
+		scrollY.subscribe(async (y) => {
+			const maxHeight = document.documentElement.scrollHeight;
+			const scrollRate = Math.floor((100 * (y + innerHeight)) / maxHeight);
+			console.debug('[y]', y, innerHeight, maxHeight, scrollRate);
+
+			if (scrollRate > 90 && !loading) {
+				console.log('Load more timeline');
+				loading = true;
+				await load();
+				console.log('Timeline loaded');
+				loading = false;
+			}
+		});
+	});
 </script>
+
+<svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
 <ul>
 	{#each events as event (event.id)}
