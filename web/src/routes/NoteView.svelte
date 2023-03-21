@@ -174,6 +174,13 @@
 						<Hashtag text={token.text} />
 					{:else if token.name === 'url'}
 						<Url text={token.text} />
+					{:else if token.name === 'nip'}
+						<Url
+							text={token.text}
+							url="https://github.com/nostr-protocol/nips/blob/master/{token.text.substring(
+								'NIP-'.length
+							)}.md"
+						/>
 					{:else}
 						<Text text={token.text} />
 					{/if}
