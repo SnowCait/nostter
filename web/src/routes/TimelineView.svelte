@@ -7,6 +7,7 @@
 	import { Kind } from 'nostr-tools';
 	import Reaction from './timeline/Reaction.svelte';
 	import { pubkey } from '../stores/Author';
+	import { Author } from '$lib/Author';
 
 	export let events: Event[] = [];
 	export let readonly = false;
@@ -33,30 +34,16 @@
 			}
 		});
 	});
-
-	function isRelated(event: Event) {
-		if (event.pubkey === $pubkey) {
-			return false;
-		}
-
-		switch (event.kind) {
-			case Kind.Text:
-			case 6:
-			case Kind.Reaction:
-				return event.tags.some(
-					([tagName, tagContent]) => tagName === 'p' && tagContent === $pubkey
-				);
-			default:
-				return false;
-		}
-	}
 </script>
 
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
 <ul>
 	{#each events as event (event.id)}
-		<li class:focus={event.id === focusEventId} class:related={isRelated(event)}>
+		<li
+			class:focus={event.id === focusEventId}
+			class:related={new Author($pubkey).isRelated(event)}
+		>
 			{#if event.kind === 6}
 				<RepostedNote {event} {readonly} />
 			{:else if event.kind === Kind.Reaction}
