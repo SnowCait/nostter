@@ -171,6 +171,7 @@
 			}
 			case 6: {
 				body = 'Repost';
+				break;
 			}
 			case Kind.Reaction: {
 				body = event.content.replace('+', 'Like').replace('-', 'Dislike');
