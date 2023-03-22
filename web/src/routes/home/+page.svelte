@@ -12,7 +12,7 @@
 	import { Kind } from 'nostr-tools';
 	import { Author } from '$lib/Author';
 
-	let permission: NotificationPermission = 'denied';
+	let showNotificationSettings = false;
 
 	const now = Math.floor(Date.now() / 1000);
 
@@ -190,14 +190,14 @@
 
 	async function requestNotificationPermission() {
 		await Notification.requestPermission();
-		permission = Notification.permission;
+		showNotificationSettings = Notification.permission === 'default';
 	}
 
 	onMount(async () => {
 		console.log('onMount');
 
 		if (window.Notification !== undefined) {
-			permission = Notification.permission;
+			showNotificationSettings = Notification.permission === 'default';
 		}
 
 		// Check login
@@ -225,7 +225,7 @@
 <div>
 	<input type="checkbox" bind:checked={$pawPad} />🐾
 	<span>{$events.length} notes</span>
-	{#if permission === 'default'}
+	{#if showNotificationSettings}
 		<button on:click={requestNotificationPermission}>通知設定</button>
 	{/if}
 </div>
