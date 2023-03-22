@@ -10,6 +10,9 @@
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
 	import { Kind } from 'nostr-tools';
+	import { Author } from '$lib/Author';
+
+	let permission: NotificationPermission = 'denied';
 
 	const now = Math.floor(Date.now() / 1000);
 
@@ -130,6 +133,11 @@
 				event.user = userEvent.user;
 			}
 
+			// Notification
+			if (new Author($pubkey).isRelated(event)) {
+				notify(event);
+			}
+
 			if (eose) {
 				$events.unshift(event);
 				$events = $events;
@@ -144,8 +152,46 @@
 		});
 	}
 
+	function notify(event: Event): void {
+		console.log('[notify]', Notification.permission, JSON.stringify(event.user));
+
+		if (Notification.permission !== 'granted') {
+			return;
+		}
+
+		let body = '';
+		switch (event.kind) {
+			case Kind.Text: {
+				body = event.content;
+				break;
+			}
+			case 6: {
+				body = 'Repost';
+			}
+			case Kind.Reaction: {
+				body = event.content.replace('+', 'Like').replace('-', 'Dislike');
+				break;
+			}
+			default:
+				break;
+		}
+
+		new Notification(`@${event.user.name}`, {
+			icon: event.user.picture,
+			body,
+			tag: 'nostter'
+		});
+	}
+
+	async function requestNotificationPermission() {
+		await Notification.requestPermission();
+		permission = Notification.permission;
+	}
+
 	onMount(async () => {
 		console.log('onMount');
+
+		permission = Notification.permission;
 
 		// Check login
 		console.log('[author]', $authorProfile);
@@ -172,6 +218,9 @@
 <div>
 	<input type="checkbox" bind:checked={$pawPad} />🐾
 	<span>{$events.length} notes</span>
+	{#if permission === 'default'}
+		<button on:click={requestNotificationPermission}>通知設定</button>
+	{/if}
 </div>
 
 <TimelineView
