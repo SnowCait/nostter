@@ -153,6 +153,10 @@
 	}
 
 	function notify(event: Event): void {
+		if (window.Notification === undefined) {
+			return;
+		}
+
 		console.log('[notify]', Notification.permission, JSON.stringify(event.user));
 
 		if (Notification.permission !== 'granted') {
@@ -191,7 +195,9 @@
 	onMount(async () => {
 		console.log('onMount');
 
-		permission = Notification.permission;
+		if (window.Notification !== undefined) {
+			permission = Notification.permission;
+		}
 
 		// Check login
 		console.log('[author]', $authorProfile);
