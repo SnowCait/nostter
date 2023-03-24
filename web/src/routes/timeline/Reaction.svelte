@@ -11,6 +11,7 @@
 
 	export let event: NostrEvent;
 	export let readonly: boolean;
+	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
 	let user: User | undefined;
 	let originalEvent: NostrEvent | undefined;
@@ -63,7 +64,7 @@
 		</button>
 	</div>
 	<div class="created-at">
-		<CreatedAt createdAt={event.created_at} />
+		<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 	</div>
 </article>
 {#if jsonDisplay}
@@ -75,7 +76,7 @@
 	</div>
 {/if}
 {#if originalEvent !== undefined}
-	<Note event={originalEvent} {readonly} />
+	<Note event={originalEvent} {readonly} {createdAtFormat} />
 {:else if originalTag !== undefined}
 	<article>
 		<a href="/{nip19.noteEncode(originalTag[1])}">

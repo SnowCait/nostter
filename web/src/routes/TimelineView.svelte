@@ -13,6 +13,7 @@
 	export let readonly = false;
 	export let focusEventId: string | undefined = undefined;
 	export let load: () => Promise<void>;
+	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
 	let loading = false;
 	let innerHeight: number;
@@ -45,11 +46,11 @@
 			class:related={new Author($pubkey).isRelated(event)}
 		>
 			{#if event.kind === 6}
-				<RepostedNote {event} {readonly} />
+				<RepostedNote {event} {readonly} {createdAtFormat} />
 			{:else if event.kind === Kind.Reaction}
-				<Reaction {event} {readonly} />
+				<Reaction {event} {readonly} {createdAtFormat} />
 			{:else}
-				<Note {event} {readonly} />
+				<Note {event} {readonly} {createdAtFormat} />
 			{/if}
 		</li>
 	{/each}

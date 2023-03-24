@@ -32,6 +32,7 @@
 	import { onMount } from 'svelte';
 	export let event: Event;
 	export let readonly: boolean;
+	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
 	if ($rom) {
 		readonly = true;
@@ -150,7 +151,7 @@
 			<div class="name">@{event.user?.name}</div>
 			<div class="created_at">
 				<a href="/{nip19.noteEncode(event.id)}">
-					<CreatedAt createdAt={event.created_at} />
+					<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 				</a>
 			</div>
 		</div>
