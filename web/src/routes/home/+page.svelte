@@ -11,6 +11,7 @@
 	import { Api } from '$lib/Api';
 	import { Kind } from 'nostr-tools';
 	import { Author } from '$lib/Author';
+	import Calendar from './Calendar.svelte';
 
 	let showNotificationSettings = false;
 
@@ -228,6 +229,7 @@
 	{#if showNotificationSettings}
 		<button on:click={requestNotificationPermission}>通知設定</button>
 	{/if}
+	<Calendar />
 </div>
 
 <TimelineView
