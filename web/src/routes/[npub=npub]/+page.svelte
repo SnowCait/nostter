@@ -274,6 +274,7 @@
 		height: 128px;
 		border-radius: 50%;
 		margin-right: 12px;
+		object-fit: cover;
 	}
 
 	.profile h1 {

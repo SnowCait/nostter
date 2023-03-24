@@ -268,6 +268,7 @@
 		height: 48px;
 		border-radius: 50%;
 		margin-right: 12px;
+		object-fit: cover;
 	}
 
 	.note {
