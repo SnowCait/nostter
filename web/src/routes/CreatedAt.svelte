@@ -11,7 +11,7 @@
 			hour: 'numeric',
 			minute: '2-digit'
 		});
-	} else if (elapsedTime < 30 * oneDay) {
+	} else if (elapsedTime < 365 * oneDay) {
 		createdAtDisplay = date.toLocaleDateString('ja-JP', {
 			month: 'numeric',
 			day: 'numeric'
