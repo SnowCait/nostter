@@ -136,7 +136,7 @@
 	});
 </script>
 
-<article id={event.id}>
+<article>
 	<div>
 		<a href="/{nip19.npubEncode(event.pubkey)}">
 			<img class="picture" src={event.user?.picture} alt="" />
