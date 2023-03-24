@@ -181,7 +181,7 @@
 
 				const userEvent = $userEvents.get(event.pubkey);
 				if (userEvent === undefined) {
-					console.error(`${pubkey} not found in $userEvents`);
+					console.error(`${nip19.npubEncode(pubkey)} not found in $userEvents`);
 					return;
 				}
 				event.user = userEvent.user;
