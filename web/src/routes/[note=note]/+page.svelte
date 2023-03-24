@@ -98,7 +98,7 @@
 		for (const event of events) {
 			const userEvent = userEventsMap.get(event.pubkey);
 			if (userEvent === undefined) {
-				console.error(`${event.pubkey} not found`);
+				console.error(`${nip19.npubEncode(event.pubkey)} not found`);
 				continue;
 			}
 			event.user = JSON.parse(userEvent.content);

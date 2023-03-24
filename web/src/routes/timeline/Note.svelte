@@ -136,7 +136,7 @@
 	});
 </script>
 
-<article id={event.id}>
+<article>
 	<div>
 		<a href="/{nip19.npubEncode(event.pubkey)}">
 			<img class="picture" src={event.user?.picture} alt="" />
@@ -268,6 +268,7 @@
 		height: 48px;
 		border-radius: 50%;
 		margin-right: 12px;
+		object-fit: cover;
 	}
 
 	.note {

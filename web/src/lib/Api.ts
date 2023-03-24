@@ -1,4 +1,4 @@
-import type { SimplePool } from 'nostr-tools';
+import { nip19, type SimplePool } from 'nostr-tools';
 import { get } from 'svelte/store';
 import type { Event as NostrEvent, User, UserEvent } from '../routes/types';
 import { events } from '../stores/Events';
@@ -21,7 +21,9 @@ export class Api {
 			authors: [pubkey]
 		});
 		if (metadata === null) {
-			console.log(`pubkey: ${pubkey} not found in ${this.relays.join(', ')}`);
+			console.log(
+				`pubkey: ${nip19.npubEncode(pubkey)} not found in ${this.relays.join(', ')}`
+			);
 			return undefined;
 		}
 
