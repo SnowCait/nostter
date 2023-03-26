@@ -79,6 +79,27 @@ export class Api {
 		return events.length > 0 ? events[0] : undefined;
 	}
 
+	async fetchFollowees(pubkey: string): Promise<string[]> {
+		const event = await this.fetchContactListEvent(pubkey);
+		return Array.from(
+			new Set(
+				event?.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey) ?? []
+			)
+		);
+	}
+
+	async fetchFollowers(pubkey: string): Promise<string[]> {
+		const events = await this.pool.list(this.relays, [
+			{
+				kinds: [3],
+				'#p': [pubkey],
+				limit: 1000
+			}
+		]);
+		console.log('[followed contact list events]', events);
+		return Array.from(new Set(events.map((x) => x.pubkey)));
+	}
+
 	async updateEvent(event: Event): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const pub = this.pool.publish(this.relays, event);
