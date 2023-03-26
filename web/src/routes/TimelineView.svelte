@@ -8,11 +8,13 @@
 	import Reaction from './timeline/Reaction.svelte';
 	import { pubkey } from '../stores/Author';
 	import { Author } from '$lib/Author';
+	import Loading from './Loading.svelte';
 
 	export let events: Event[] = [];
 	export let readonly = false;
 	export let focusEventId: string | undefined = undefined;
 	export let load: () => Promise<void>;
+	export let showLoading = true;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
 	let loading = false;
@@ -55,6 +57,9 @@
 		</li>
 	{/each}
 </ul>
+{#if showLoading}
+	<div class="loading"><Loading /></div>
+{/if}
 
 <style>
 	ul {
@@ -77,6 +82,11 @@
 
 	li.related {
 		border-left: 2px solid lightcoral;
+	}
+
+	.loading {
+		width: 24px;
+		margin: 0 auto;
 	}
 
 	@keyframes add {
