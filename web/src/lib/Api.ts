@@ -80,8 +80,8 @@ export class Api {
 	}
 
 	async updateEvent(event: Event): Promise<void> {
-		return new Promise(async (resolve, reject) => {
-			const pub = await this.pool.publish(this.relays, event);
+		return new Promise((resolve, reject) => {
+			const pub = this.pool.publish(this.relays, event);
 			pub.on('ok', () => {
 				resolve();
 			});
