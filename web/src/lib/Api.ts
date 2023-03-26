@@ -1,4 +1,4 @@
-import { nip19, type SimplePool } from 'nostr-tools';
+import { nip19, type Event, type SimplePool } from 'nostr-tools';
 import { get } from 'svelte/store';
 import type { Event as NostrEvent, User, UserEvent } from '../routes/types';
 import { events } from '../stores/Events';
@@ -64,5 +64,31 @@ export class Api {
 		const nostrEvent = event as NostrEvent;
 		nostrEvent.user = userEvent.user;
 		return nostrEvent;
+	}
+
+	async fetchContactListEvent(pubkey: string): Promise<Event | undefined> {
+		const events = await this.pool.list(this.relays, [
+			{
+				kinds: [3],
+				authors: [pubkey],
+				limit: 1 // Some relays have multi kind 3
+			}
+		]);
+		events.sort((x, y) => y.created_at - x.created_at);
+		console.log('[contact list events]', events);
+		return events.length > 0 ? events[0] : undefined;
+	}
+
+	async updateEvent(event: Event): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const pub = this.pool.publish(this.relays, event);
+			pub.on('ok', () => {
+				resolve();
+			});
+			pub.on('failed', () => {
+				console.error('[failed]', event);
+				reject();
+			});
+		});
 	}
 }

@@ -9,10 +9,12 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, relayUrls } from '../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
+	import Follow from '../Follow.svelte';
 
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
 	let notes: Event[] = [];
+	let pubkey = '';
 
 	const relays = $relayUrls.length > 0 ? $relayUrls : $defaultRelays;
 
@@ -31,7 +33,7 @@
 			throw error(500);
 		}
 
-		const pubkey = data;
+		pubkey = data;
 
 		user = $userEvents.get(pubkey)?.user;
 		console.log('[cached user]', user);
@@ -233,6 +235,7 @@
 			{#if user.name}
 				<h2>@{user.name}</h2>
 			{/if}
+			<Follow {pubkey} />
 			{#if user.website}
 				<div>
 					<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
