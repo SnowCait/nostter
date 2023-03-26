@@ -180,7 +180,7 @@
 		});
 	}
 
-	async function fetchPastNotes(pubkey: string): Promise<Event[]> {
+	async function fetchPastNotes(pubkey: string, until?: number | undefined): Promise<Event[]> {
 		return new Promise((resolve) => {
 			setTimeout(() => {
 				resolve([]);
@@ -191,7 +191,8 @@
 				{
 					kinds: [1, 6],
 					authors: [pubkey],
-					limit: 100
+					limit: 100,
+					until
 				}
 			]);
 			subscribeNotes.on('event', (event: Event) => {
@@ -287,7 +288,20 @@
 	<div>
 		Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}
 	</div>
-	<TimelineView events={notes} readonly={!$authorPubkey} load={async () => console.debug()} />
+	<TimelineView
+		events={notes}
+		readonly={!$authorPubkey}
+		load={async () => {
+			console.warn('load', pubkey);
+			const oldestCreatedAt = notes.at(notes.length - 1)?.created_at;
+			const events = await fetchPastNotes(
+				pubkey,
+				oldestCreatedAt !== undefined ? oldestCreatedAt - 1 : undefined
+			);
+			notes.push(...events);
+			notes = notes;
+		}}
+	/>
 </section>
 
 <style>
