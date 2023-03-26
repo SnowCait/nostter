@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
-	import { nip19 } from 'nostr-tools';
+	import { nip19, SimplePool } from 'nostr-tools';
 	import type { Event, User, UserEvent } from '../types';
 	import { userEvents } from '../../stores/UserEvents';
 	import { pool } from '../../stores/Pool';
@@ -10,13 +10,20 @@
 	import { pubkey as authorPubkey, relayUrls } from '../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
 	import Follow from '../Follow.svelte';
+	import { Api } from '$lib/Api';
+	import Loading from '../Loading.svelte';
 
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
 	let notes: Event[] = [];
 	let pubkey = '';
+	let followees: string[] = [];
+	let followers: string[] = [];
+	let followeesLoading = true;
+	let followersLoading = true;
 
 	const relays = $relayUrls.length > 0 ? $relayUrls : $defaultRelays;
+	const api = new Api($pool, relays);
 
 	afterNavigate(async () => {
 		console.log('afterNavigate');
@@ -45,6 +52,15 @@
 			throw error(404);
 		}
 
+		api.fetchFollowees(pubkey).then((pubkeys) => {
+			followees = pubkeys;
+			followeesLoading = false;
+		});
+		const longWaitApi = new Api(new SimplePool({ eoseSubTimeout: 10000 }), relays);
+		longWaitApi.fetchFollowers(pubkey).then((pubkeys) => {
+			followers = pubkeys;
+			followersLoading = false;
+		});
 		fetchBadges(relays, pubkey).then((data) => {
 			badges = data;
 		});
@@ -235,6 +251,9 @@
 			{#if user.name}
 				<h2>@{user.name}</h2>
 			{/if}
+			{#if followees.some((pubkey) => pubkey === $authorPubkey)}
+				<div>Follows you</div>
+			{/if}
 			<Follow {pubkey} />
 			{#if user.website}
 				<div>
@@ -262,6 +281,12 @@
 </section>
 
 <section>
+	<div>
+		Followees: {#if followeesLoading}<Loading />{:else}{followees.length}{/if}
+	</div>
+	<div>
+		Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}
+	</div>
 	<TimelineView events={notes} readonly={!$authorPubkey} load={async () => console.debug()} />
 </section>
 
