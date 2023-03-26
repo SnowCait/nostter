@@ -292,7 +292,6 @@
 		events={notes}
 		readonly={!$authorPubkey}
 		load={async () => {
-			console.warn('load', pubkey);
 			const oldestCreatedAt = notes.at(notes.length - 1)?.created_at;
 			const events = await fetchPastNotes(
 				pubkey,
