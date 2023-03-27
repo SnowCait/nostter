@@ -4,15 +4,12 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { events } from '../../stores/Events';
 	import { userEvents } from '../../stores/UserEvents';
-	import { pawPad } from '../../stores/Preference';
 	import { pool } from '../../stores/Pool';
 	import { pubkey, relayUrls, followees, authorProfile } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
 	import { Kind } from 'nostr-tools';
 	import { Author } from '$lib/Author';
-
-	let showNotificationSettings = false;
 
 	const now = Math.floor(Date.now() / 1000);
 
@@ -135,6 +132,7 @@
 
 			// Notification
 			if (new Author($pubkey).isRelated(event)) {
+				console.log('[related]', event);
 				notify(event);
 			}
 
@@ -157,7 +155,7 @@
 			return;
 		}
 
-		console.log('[notify]', Notification.permission, JSON.stringify(event.user));
+		console.log('[notify]', Notification.permission);
 
 		if (Notification.permission !== 'granted') {
 			return;
@@ -181,24 +179,15 @@
 				break;
 		}
 
-		new Notification(`@${event.user.name}`, {
+		new Notification(`@${event?.user.name}`, {
 			icon: event.user.picture,
 			body,
 			tag: 'nostter'
 		});
 	}
 
-	async function requestNotificationPermission() {
-		await Notification.requestPermission();
-		showNotificationSettings = Notification.permission === 'default';
-	}
-
 	onMount(async () => {
 		console.log('onMount');
-
-		if (window.Notification !== undefined) {
-			showNotificationSettings = Notification.permission === 'default';
-		}
 
 		// Check login
 		console.log('[author]', $authorProfile);
@@ -222,14 +211,6 @@
 
 <h1>home</h1>
 
-<div>
-	<input type="checkbox" bind:checked={$pawPad} />🐾
-	<span>{$events.length} notes</span>
-	{#if showNotificationSettings}
-		<button on:click={requestNotificationPermission}>通知設定</button>
-	{/if}
-</div>
-
 <TimelineView
 	events={$events}
 	load={async () =>
@@ -238,8 +219,7 @@
 
 <style>
 	@media screen and (max-width: 600px) {
-		h1,
-		div {
+		h1 {
 			margin: 0.67em;
 		}
 	}
