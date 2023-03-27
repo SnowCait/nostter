@@ -14,7 +14,6 @@
 	afterNavigate(async () => {
 		query = $page.url.searchParams.get('q') ?? '';
 		$searchEvents = [];
-		$userEvents.clear();
 		if (query !== '') {
 			console.log('[q]', query);
 			await search(searchRelay, query);
@@ -117,12 +116,7 @@
 
 <NoteIdsView />
 
-<TimelineView
-	events={$searchEvents}
-	readonly={true}
-	load={async () => console.debug()}
-	showLoading={false}
-/>
+<TimelineView events={$searchEvents} load={async () => console.debug()} showLoading={false} />
 
 <style>
 	h1 a {
