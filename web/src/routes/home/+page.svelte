@@ -4,7 +4,6 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { events } from '../../stores/Events';
 	import { userEvents } from '../../stores/UserEvents';
-	import { pawPad } from '../../stores/Preference';
 	import { pool } from '../../stores/Pool';
 	import { pubkey, relayUrls, followees, authorProfile } from '../../stores/Author';
 	import { goto } from '$app/navigation';
@@ -223,7 +222,6 @@
 <h1>home</h1>
 
 <div>
-	<input type="checkbox" bind:checked={$pawPad} />🐾
 	<span>{$events.length} notes</span>
 	{#if showNotificationSettings}
 		<button on:click={requestNotificationPermission}>通知設定</button>

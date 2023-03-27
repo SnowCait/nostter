@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { IconHome, IconSearch, IconUser, IconCirclePlus } from '@tabler/icons-svelte';
+	import {
+		IconHome,
+		IconSearch,
+		IconUser,
+		IconCirclePlus,
+		IconSettings
+	} from '@tabler/icons-svelte';
 	import { nip19 } from 'nostr-tools';
 	import { pubkey } from '../stores/Author';
 	import { openNoteDialog } from '../stores/NoteDialog';
@@ -37,6 +43,11 @@
 				</li>
 			</a>
 			{#if !$rom}
+				<a href="/preference">
+					<li>
+						<IconSettings size={30} />
+					</li>
+				</a>
 				<li>
 					<button on:click={toggleNoteDialog}>
 						<IconCirclePlus size={30} />
