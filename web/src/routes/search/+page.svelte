@@ -14,7 +14,6 @@
 	afterNavigate(async () => {
 		query = $page.url.searchParams.get('q') ?? '';
 		$searchEvents = [];
-		$userEvents.clear();
 		if (query !== '') {
 			console.log('[q]', query);
 			await search(searchRelay, query);
