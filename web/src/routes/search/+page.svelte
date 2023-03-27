@@ -119,7 +119,6 @@
 
 <TimelineView
 	events={$searchEvents}
-	readonly={true}
 	load={async () => console.debug()}
 	showLoading={false}
 />
