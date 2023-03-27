@@ -116,11 +116,7 @@
 
 <NoteIdsView />
 
-<TimelineView
-	events={$searchEvents}
-	load={async () => console.debug()}
-	showLoading={false}
-/>
+<TimelineView events={$searchEvents} load={async () => console.debug()} showLoading={false} />
 
 <style>
 	h1 a {
