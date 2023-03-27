@@ -22,6 +22,16 @@
 			} else {
 				$reactionEmoji = '+';
 			}
+
+			// Save
+			const event = await window.nostr.signEvent({
+				created_at: Math.round(Date.now() / 1000),
+				kind: 30078,
+				tags: [['d', 'nostter-reaction-emoji']],
+				content: $reactionEmoji
+			});
+			console.log('[reaction emoji]', event);
+			await $pool.publish($relayUrls, event);
 		});
 	});
 </script>

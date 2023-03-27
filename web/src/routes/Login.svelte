@@ -20,6 +20,7 @@
 	} from '../stores/Author';
 	import { defaultRelays } from '../stores/DefaultRelays';
 	import { pool } from '../stores/Pool';
+	import { reactionEmoji } from '../stores/Preference';
 	import type { RelayPermission } from './types';
 
 	let login: string | null = null;
@@ -125,7 +126,7 @@
 	async function fetchAuthor(relays: string[]) {
 		const events = await $pool.list(relays, [
 			{
-				kinds: [Kind.Metadata, Kind.RecommendRelay, Kind.Contacts, Kind.RelayList],
+				kinds: [Kind.Metadata, Kind.RecommendRelay, Kind.Contacts, Kind.RelayList, 30078],
 				authors: [$pubkey]
 			}
 		]);
@@ -163,6 +164,17 @@
 						(x) => x.href
 					);
 					console.log('[relay list]', $relayUrls);
+					break;
+				}
+				case 30078 as Kind: {
+					if (
+						event.tags.some(
+							([tagName, id]) => tagName === 'd' && id === 'nostter-reaction-emoji'
+						)
+					) {
+						$reactionEmoji = event.content;
+						console.log('[reaction emoji]', $reactionEmoji);
+					}
 					break;
 				}
 			}
