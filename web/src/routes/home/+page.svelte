@@ -132,6 +132,7 @@
 
 			// Notification
 			if (new Author($pubkey).isRelated(event)) {
+				console.log('[related]', event);
 				notify(event);
 			}
 
@@ -154,7 +155,7 @@
 			return;
 		}
 
-		console.log('[notify]', Notification.permission, JSON.stringify(event.user));
+		console.log('[notify]', Notification.permission);
 
 		if (Notification.permission !== 'granted') {
 			return;
@@ -178,7 +179,7 @@
 				break;
 		}
 
-		new Notification(`@${event.user.name}`, {
+		new Notification(`@${event?.user.name}`, {
 			icon: event.user.picture,
 			body,
 			tag: 'nostter'
