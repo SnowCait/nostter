@@ -11,8 +11,6 @@
 	import { Kind } from 'nostr-tools';
 	import { Author } from '$lib/Author';
 
-	let showNotificationSettings = false;
-
 	const now = Math.floor(Date.now() / 1000);
 
 	// past notes
@@ -187,17 +185,8 @@
 		});
 	}
 
-	async function requestNotificationPermission() {
-		await Notification.requestPermission();
-		showNotificationSettings = Notification.permission === 'default';
-	}
-
 	onMount(async () => {
 		console.log('onMount');
-
-		if (window.Notification !== undefined) {
-			showNotificationSettings = Notification.permission === 'default';
-		}
 
 		// Check login
 		console.log('[author]', $authorProfile);
@@ -221,13 +210,6 @@
 
 <h1>home</h1>
 
-<div>
-	<span>{$events.length} notes</span>
-	{#if showNotificationSettings}
-		<button on:click={requestNotificationPermission}>通知設定</button>
-	{/if}
-</div>
-
 <TimelineView
 	events={$events}
 	load={async () =>
@@ -236,8 +218,7 @@
 
 <style>
 	@media screen and (max-width: 600px) {
-		h1,
-		div {
+		h1 {
 			margin: 0.67em;
 		}
 	}
