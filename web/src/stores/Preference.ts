@@ -1,3 +1,3 @@
 import { writable } from 'svelte/store';
 
-export const pawPad = writable(false);
+export const reactionEmoji = writable('+');

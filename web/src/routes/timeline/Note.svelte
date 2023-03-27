@@ -17,7 +17,7 @@
 		IconCodeDots
 	} from '@tabler/icons-svelte';
 	import type { Event } from '../types';
-	import { pawPad } from '../../stores/Preference';
+	import { reactionEmoji } from '../../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
 	import { recommendedRelay, relayUrls } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
@@ -92,7 +92,7 @@
 		$openNoteDialog = true;
 	}
 
-	async function reaction(note: Event, content = '+') {
+	async function reaction(note: Event) {
 		console.log('[reaction]', note);
 
 		if ($rom) {
@@ -102,9 +102,7 @@
 
 		reactioned = true;
 
-		if ($pawPad) {
-			content = '🐾';
-		}
+		const content = $reactionEmoji;
 
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
@@ -234,7 +232,7 @@
 					<IconQuote size={iconSize} />
 				</button>
 				<button class="reaction" disabled={reactioned} on:click={() => reaction(event)}>
-					{#if $pawPad}
+					{#if $reactionEmoji === '🐾'}
 						<IconPaw size={iconSize} />
 					{:else}
 						<IconHeart size={iconSize} />
