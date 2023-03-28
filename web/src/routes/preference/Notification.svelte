@@ -9,7 +9,6 @@
 	}
 
 	onMount(async () => {
-		console.log('[Preference.onMount]');
 		if (window.Notification !== undefined) {
 			show = Notification.permission === 'default';
 		}
