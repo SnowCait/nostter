@@ -17,10 +17,16 @@
 
 	onMount(async () => {
 		pawPad.subscribe(async (value) => {
+			const previousEmoji = $reactionEmoji;
+
 			if (value) {
 				$reactionEmoji = '🐾';
 			} else {
 				$reactionEmoji = '+';
+			}
+
+			if (previousEmoji === $reactionEmoji) {
+				return;
 			}
 
 			// Save
