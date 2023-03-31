@@ -78,7 +78,6 @@
 			if ($replyTo.tags.filter((x) => x[0] === 'e').length === 0) {
 				// root
 				tags.push(['e', $replyTo.id, '', 'root']);
-				tags.push(['p', $replyTo.pubkey]);
 			} else {
 				// reply
 				tags.push(['e', $replyTo.id, '', 'reply']);
@@ -88,12 +87,12 @@
 				if (root !== undefined) {
 					tags.push(['e', root[1], '', 'root']);
 				}
-				const pubkeys = new Set([
-					$replyTo.pubkey,
-					...$replyTo.tags.filter((x) => x[0] === 'p').map((x) => x[1])
-				]);
-				tags.push(...Array.from(pubkeys).map((pubkey) => ['p', pubkey]));
 			}
+			const pubkeys = new Set([
+				$replyTo.pubkey,
+				...$replyTo.tags.filter((x) => x[0] === 'p').map((x) => x[1])
+			]);
+			tags.push(...Array.from(pubkeys).map((pubkey) => ['p', pubkey]));
 		}
 
 		if ($quotes.length > 0) {
