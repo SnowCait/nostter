@@ -65,6 +65,11 @@
 		login = 'NIP-07';
 		localStorage.setItem('nostter:login', login);
 
+		$pubkey = await window.nostr.getPublicKey();
+		console.log('[pubkey]', $pubkey);
+
+		console.log(`NIP-07 getPublicKey in ${Date.now() / 1000 - now} seconds`);
+
 		let nip07Relays: Map<string, RelayPermission> = new Map();
 		if (typeof window.nostr.getRelays === 'function') {
 			nip07Relays = await window.nostr.getRelays();
@@ -78,11 +83,6 @@
 
 		const profileRelays = new Set([...Object.keys(nip07Relays), ...$defaultRelays]);
 		console.log('[relays for profile]', profileRelays);
-
-		$pubkey = await window.nostr.getPublicKey();
-		console.log('[pubkey]', $pubkey);
-
-		console.log(`NIP-07 getPublicKey in ${Date.now() / 1000 - now} seconds`);
 
 		await fetchAuthor(Array.from(profileRelays));
 
