@@ -9,7 +9,7 @@
 <script lang="ts">
 	import { pool } from '../stores/Pool';
 	import { pubkey, rom, relayUrls } from '../stores/Author';
-	import { openNoteDialog, replyTo, quotes } from '../stores/NoteDialog';
+	import { openNoteDialog, replyTo, quotes, intentContent } from '../stores/NoteDialog';
 	import Note from './timeline/Note.svelte';
 
 	let content = '';
@@ -31,6 +31,13 @@
 				textarea.focus();
 			}, 10);
 		}
+	});
+
+	intentContent.subscribe((value) => {
+		console.log('[content override]');
+
+		content = value;
+		value = '';
 	});
 
 	function closeDialog(event: MouseEvent) {
