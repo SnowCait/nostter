@@ -16,5 +16,6 @@
 </script>
 
 {#if show}
-	<button on:click={requestPermission}>通知設定</button>
+	<span>Notification:</span>
+	<button on:click={requestPermission}>Notification Setting</button>
 {/if}

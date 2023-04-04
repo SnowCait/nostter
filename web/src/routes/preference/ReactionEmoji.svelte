@@ -42,5 +42,6 @@
 	});
 </script>
 
+<span>Reaction:</span>
 <input id="paw-pad" type="checkbox" bind:checked={$pawPad} />
 <label for="paw-pad">🐾</label>
