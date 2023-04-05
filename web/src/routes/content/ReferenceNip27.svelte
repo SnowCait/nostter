@@ -3,11 +3,11 @@
 	import { nip19 } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import { events } from '../../stores/Events';
-	import { userEvents } from '../../stores/UserEvents';
-	import Note from '../timeline/Note.svelte';
 	import type { Event, UserEvent } from '../types';
 	import { pool } from '../../stores/Pool';
 	import { relayUrls } from '../../stores/Author';
+	import Note from '../timeline/Note.svelte';
+	import Text from './Text.svelte';
 
 	export let text: string;
 
@@ -35,6 +35,10 @@
 			const e = data as nip19.EventPointer;
 			eventId = e.id;
 			event = $events.find((x) => x.id === eventId);
+			break;
+		}
+		case 'naddr': {
+			// TODO: Implement
 			break;
 		}
 	}
@@ -68,6 +72,8 @@
 			{nip19.noteEncode(eventId).substring(0, 'note1'.length + 7)}
 		</a>
 	{/if}
+{:else}
+	<Text {text} />
 {/if}
 
 <style>
