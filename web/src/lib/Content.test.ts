@@ -12,6 +12,19 @@ describe('parse test', () => {
 	it('reference', () => {
 		expect(Content.parse('#[0]', [[]])).toStrictEqual([new Token('reference', '#[0]', 0)]);
 	});
+	it('reference nostr:', () => {
+		expect(
+			Content.parse('nostr:npub19rfhux6gjsmu0rtyendlrazvyr3lqy7m506vy4emy4vehf3s3s3qhhje7x', [
+				[]
+			])
+		).toStrictEqual([
+			new Token(
+				'reference',
+				'nostr:npub19rfhux6gjsmu0rtyendlrazvyr3lqy7m506vy4emy4vehf3s3s3qhhje7x',
+				undefined
+			)
+		]);
+	});
 	it('hashtag', () => {
 		expect(Content.parse('#nostter', [['t', 'nostter']])).toStrictEqual([
 			new Token('hashtag', '#nostter')
