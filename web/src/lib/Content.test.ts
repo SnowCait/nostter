@@ -9,7 +9,7 @@ describe('parse test', () => {
 	it('text', () => {
 		expect(Content.parse('text')).toStrictEqual([new Token('text', 'text')]);
 	});
-	it('reference', () => {
+	it('reference #[index]', () => {
 		expect(Content.parse('#[0]', [[]])).toStrictEqual([new Token('reference', '#[0]', 0)]);
 	});
 	it('reference nostr:', () => {
@@ -48,6 +48,18 @@ describe('parse test', () => {
 			new Token('text', ' #nostr')
 		]);
 	});
+	// it('long hashtags', () => {
+	// 	expect(
+	// 		Content.parse('#nostr #nostrrich', [
+	// 			['t', 'nostr'],
+	// 			['t', 'nostrich']
+	// 		])
+	// 	).toStrictEqual([
+	// 		new Token('hashtag', '#nostr'),
+	// 		new Token('text', ' '),
+	// 		new Token('hashtag', '#nostrrich')
+	// 	]);
+	// });
 	it('invalid hashtags', () => {
 		expect(Content.parse('#nostr', [['t', 'nostter']])).toStrictEqual([
 			new Token('text', '#nostr')
@@ -58,6 +70,13 @@ describe('parse test', () => {
 			new Token('url', 'https://example.com/')
 		]);
 	});
+	// it('url', () => {
+	// 	expect(Content.parse('(https://example.com/path)')).toStrictEqual([
+	// 		new Token('text', '('),
+	// 		new Token('url', 'https://example.com/path'),
+	// 		new Token('text', ')')
+	// 	]);
+	// });
 	it('nip', () => {
 		expect(Content.parse('NIP-01')).toStrictEqual([new Token('nip', 'NIP-01')]);
 	});
