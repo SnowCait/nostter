@@ -15,7 +15,7 @@ export class Content {
 			...(hashtags.length > 0
 				? content.matchAll(new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'g'))
 				: []),
-			...content.matchAll(/#\[\d+\]/g),
+			...content.matchAll(/\bnostr:((note|npub|naddr|nevent|nprofile)1\w+)\b|#\[\d+\]/g),
 			...content.matchAll(/https?:\/\/\S+/g),
 			...content.matchAll(/NIP-[0-9]+/g)
 		].sort((x, y) => {
@@ -49,6 +49,8 @@ export class Content {
 				} else {
 					tokens.push(new Token('hashtag', text));
 				}
+			} else if (text.startsWith('nostr:')) {
+				tokens.push(new Token('reference', text));
 			} else if (text.startsWith('NIP-')) {
 				tokens.push(new Token('nip', text));
 			} else {

@@ -26,6 +26,7 @@
 	import { Content } from '$lib/Content';
 	import Text from '../content/Text.svelte';
 	import Reference from '../content/Reference.svelte';
+	import ReferenceNip27 from '../content/ReferenceNip27.svelte';
 	import Hashtag from '../content/Hashtag.svelte';
 	import Url from '../content/Url.svelte';
 	import { Api } from '$lib/Api';
@@ -167,7 +168,9 @@
 		{:else}
 			<p class="content">
 				{#each Content.parse(event.content, event.tags) as token}
-					{#if token.name === 'reference' && token.index !== undefined && event.tags.at(token.index) !== undefined}
+					{#if token.name === 'reference' && token.index === undefined}
+						<ReferenceNip27 text={token.text} />
+					{:else if token.name === 'reference' && token.index !== undefined && event.tags.at(token.index) !== undefined}
 						<Reference text={token.text} tag={event.tags[token.index]} />
 					{:else if token.name === 'hashtag'}
 						<Hashtag text={token.text} />
