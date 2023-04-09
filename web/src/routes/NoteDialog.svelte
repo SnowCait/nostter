@@ -11,6 +11,7 @@
 	import { pubkey, rom, relayUrls } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../stores/NoteDialog';
 	import Note from './timeline/Note.svelte';
+	import { Api } from '$lib/Api';
 
 	let content = '';
 	let posting = false;
@@ -115,13 +116,17 @@
 			tags,
 			content
 		});
-		console.log(event);
+		console.log('[publish]', event);
 
-		$pool.publish($relayUrls, event);
-
+		const api = new Api($pool, $relayUrls);
+		const success = await api.publish(event);
 		posting = false;
-
-		dialog.close();
+		if (success) {
+			console.log('[success]');
+			dialog.close();
+		} else {
+			console.error('[failure]');
+		}
 	}
 </script>
 

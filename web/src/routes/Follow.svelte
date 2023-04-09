@@ -15,8 +15,12 @@
 
 	export let pubkey: string;
 
+	let following = false;
+
 	async function follow() {
 		console.log('[on.follow]');
+
+		following = true;
 
 		const api = new Api($pool, $relayUrls);
 		const contactList = await api.fetchContactListEvent($authorPubkey);
@@ -32,6 +36,8 @@
 		pubkeys.add(pubkey);
 
 		await updateContactList(api, Array.from(pubkeys), contactList);
+
+		following = false;
 	}
 
 	async function unfollow() {
@@ -75,15 +81,17 @@
 			content: oldEvent.content
 		});
 		console.log(event);
-		try {
-			await api.updateEvent(event);
 
-			// Update cache
-			$followees = pubkeys;
-		} catch (error) {
-			console.error(error);
+		const success = await api.publish(event);
+		if (!success) {
+			console.error('[failed]');
 			alert('Failed to update contact list');
+			return;
 		}
+
+		// Update cache
+		console.log($followees, pubkeys);
+		$followees = pubkeys;
 	}
 </script>
 
@@ -93,7 +101,7 @@
 		<button on:click={unfollow}><IconTrash /></button>
 	</div>
 {:else if $authorPubkey !== ''}
-	<button on:click={follow}>Follow</button>
+	<button on:click={follow} disabled={following}>Follow</button>
 {/if}
 
 <style>
