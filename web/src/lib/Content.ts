@@ -25,7 +25,6 @@ export class Content {
 
 			return x.index - y.index;
 		});
-		console.debug([...matches]);
 
 		const tokens: Token[] = [];
 		let index = 0;
@@ -65,5 +64,12 @@ export class Content {
 		}
 
 		return tokens;
+	}
+
+	static findNpubs(content: string): string[] {
+		const matches = content.matchAll(/\b(nostr:)?(?<npub>npub1\w+)\b/g);
+		return [...matches]
+			.map((match) => match.groups?.npub)
+			.filter((x): x is string => x !== undefined);
 	}
 }

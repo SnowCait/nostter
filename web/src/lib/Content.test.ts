@@ -118,3 +118,16 @@ describe('parse test', () => {
 		]);
 	});
 });
+
+describe('findNpubs test', () => {
+	it('empty', () => {
+		expect(Content.findNpubs('')).toStrictEqual([]);
+	});
+	it('npubs', () => {
+		expect(Content.findNpubs('npub1a npub1b nostr:npub1c')).toStrictEqual([
+			'npub1a',
+			'npub1b',
+			'npub1c'
+		]);
+	});
+});
