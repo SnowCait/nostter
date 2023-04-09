@@ -72,4 +72,12 @@ export class Content {
 			.map((match) => match.groups?.npub)
 			.filter((x): x is string => x !== undefined);
 	}
+
+	static findHashtags(content: string): string[] {
+		const matches = content.matchAll(/(^|\s)#(?<hashtag>\w+)\b/g);
+		const hashtags = [...matches]
+			.map((match) => match.groups?.hashtag)
+			.filter((x): x is string => x !== undefined);
+		return Array.from(new Set(hashtags));
+	}
 }

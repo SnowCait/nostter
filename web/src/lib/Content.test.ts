@@ -131,3 +131,17 @@ describe('findNpubs test', () => {
 		]);
 	});
 });
+
+describe('findHashtags test', () => {
+	it('empty', () => {
+		expect(Content.findHashtags('')).toStrictEqual([]);
+	});
+	it('hashtag', () => {
+		expect(Content.findHashtags('#tag')).toStrictEqual(['tag']);
+	});
+	it('hashtags', () => {
+		expect(
+			Content.findHashtags('#tag1 #tag2#tag3 https://example.com/#tag4 #tag5')
+		).toStrictEqual(['tag1', 'tag2', 'tag5']);
+	});
+});
