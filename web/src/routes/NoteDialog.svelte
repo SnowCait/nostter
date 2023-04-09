@@ -11,6 +11,7 @@
 	import { pubkey, rom, relayUrls } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../stores/NoteDialog';
 	import Note from './timeline/Note.svelte';
+	import { IconSend } from '@tabler/icons-svelte';
 	import { Api } from '$lib/Api';
 
 	let content = '';
@@ -142,7 +143,8 @@
 			bind:this={textarea}
 			on:keydown={submitFromKeyboard}
 		/>
-		<input type="submit" value="投稿する" disabled={!pubkey || posting} />
+		<input id="send" type="submit" disabled={!pubkey || posting} />
+		<label for="send"><IconSend size={30} /></label>
 	</form>
 	{#if $quotes.length > 0}
 		{#each $quotes as quote}
@@ -168,8 +170,17 @@
 		height: 4em;
 	}
 
-	input {
+	label {
 		display: block;
 		margin-left: auto;
+		width: 30px;
+	}
+
+	input[type='submit'] {
+		display: none;
+	}
+
+	input[type='submit']:disabled + label {
+		color: lightgray;
 	}
 </style>
