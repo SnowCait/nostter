@@ -108,7 +108,12 @@ export class Api {
 			const done = () => Array.from(publishedRelays).some(([, ok]) => ok);
 
 			setTimeout(() => {
-				console.warn('[publish timeout]', this.relays, publishedRelays, `${Date.now() - now}ms`);
+				console.warn(
+					'[publish timeout]',
+					this.relays,
+					publishedRelays,
+					`${Date.now() - now}ms`
+				);
 				resolve(done());
 			}, 3000);
 
