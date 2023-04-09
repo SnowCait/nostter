@@ -75,15 +75,16 @@
 			content: oldEvent.content
 		});
 		console.log(event);
-		try {
-			await api.updateEvent(event);
 
-			// Update cache
-			$followees = pubkeys;
-		} catch (error) {
-			console.error(error);
+		const success = await api.publish(event);
+		if (!success) {
+			console.error('[failed]');
 			alert('Failed to update contact list');
 		}
+
+		// Update cache
+		console.log($followees, pubkeys);
+		$followees = pubkeys;
 	}
 </script>
 

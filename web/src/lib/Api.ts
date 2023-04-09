@@ -100,15 +100,32 @@ export class Api {
 		return Array.from(new Set(events.map((x) => x.pubkey)));
 	}
 
-	async updateEvent(event: Event): Promise<void> {
-		return new Promise((resolve, reject) => {
+	async publish(event: Event): Promise<boolean> {
+		return new Promise((resolve) => {
+			const publishedRelays = new Map<string, boolean>();
+			const now = Date.now();
+
+			const done = () => Array.from(publishedRelays).some(([, ok]) => ok);
+
+			setTimeout(() => {
+				console.warn('[publish timeout]', this.relays, publishedRelays, `${Date.now() - now}ms`);
+				resolve(done());
+			}, 3000);
+
 			const pub = this.pool.publish(this.relays, event);
-			pub.on('ok', () => {
-				resolve();
+			pub.on('ok', (relay: string) => {
+				console.log('[ok]', relay, `${Date.now() - now}ms`);
+				publishedRelays.set(relay, true);
+				if (this.relays.length === publishedRelays.size) {
+					resolve(done());
+				}
 			});
-			pub.on('failed', () => {
-				console.error('[failed]', event);
-				reject();
+			pub.on('failed', (relay: string) => {
+				console.warn('[failed]', relay, `${Date.now() - now}ms`);
+				publishedRelays.set(relay, false);
+				if (this.relays.length === publishedRelays.size) {
+					resolve(done());
+				}
 			});
 		});
 	}
