@@ -25,7 +25,6 @@ export class Content {
 
 			return x.index - y.index;
 		});
-		console.debug([...matches]);
 
 		const tokens: Token[] = [];
 		let index = 0;
