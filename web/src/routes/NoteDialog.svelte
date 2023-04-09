@@ -13,11 +13,14 @@
 	import Note from './timeline/Note.svelte';
 	import { IconSend } from '@tabler/icons-svelte';
 	import { Api } from '$lib/Api';
+	import { Content } from '$lib/Content';
+	import { nip19 } from 'nostr-tools';
 
 	let content = '';
 	let posting = false;
 	let dialog: HTMLDialogElement;
 	let textarea: HTMLTextAreaElement;
+	let pubkeys = new Set<string>();
 
 	openNoteDialog.subscribe((open) => {
 		console.log('[open]', open);
@@ -97,11 +100,10 @@
 					tags.push(['e', root[1], '', 'root']);
 				}
 			}
-			const pubkeys = new Set([
+			pubkeys = new Set([
 				$replyTo.pubkey,
 				...$replyTo.tags.filter((x) => x[0] === 'p').map((x) => x[1])
 			]);
-			tags.push(...Array.from(pubkeys).map((pubkey) => ['p', pubkey]));
 		}
 
 		if ($quotes.length > 0) {
@@ -110,12 +112,19 @@
 			}
 		}
 
+		for (const { data: pubkey } of Content.findNpubs(content).map((npub) =>
+			nip19.decode(npub)
+		)) {
+			pubkeys.add(pubkey as string);
+		}
+		tags.push(...Array.from(pubkeys).map((pubkey) => ['p', pubkey]));
+
 		posting = true;
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 1,
 			tags,
-			content
+			content: content.replaceAll(/\b(nostr:)?(npub1\w+)\b/g, 'nostr:$2')
 		});
 		console.log('[publish]', event);
 
