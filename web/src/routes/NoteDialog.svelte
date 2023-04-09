@@ -119,6 +119,9 @@
 		}
 		tags.push(...Array.from(pubkeys).map((pubkey) => ['p', pubkey]));
 
+		const hashtags = Content.findHashtags(content);
+		tags.push(...Array.from(hashtags).map((hashtag) => ['t', hashtag]));
+
 		posting = true;
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
