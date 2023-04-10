@@ -28,3 +28,9 @@ You can refer to a piece of code, but you cannot provide this software as a serv
 ## Contribution
 
 Welcome issues, pull requests and discussions after understanding above.
+
+## Special Thanks
+
+Illustration by [@stok33](https://nostter.vercel.app/npub1e09suzmq9mp6nt0ud9ttl03790qjx70wzwlc2pwwghcusvwju54qs0c800)
+
+<img src="web/static/nostter-chan.jpg" width="25%" style="border: 1px solid lightgray; border-radius: 10px;">
