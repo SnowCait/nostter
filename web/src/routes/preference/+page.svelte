@@ -25,7 +25,11 @@
 	<span>Illustration:</span>
 	<a href="/npub1e09suzmq9mp6nt0ud9ttl03790qjx70wzwlc2pwwghcusvwju54qs0c800">@stok33</a>
 </div>
-<img src="/nostter-chan.jpg" alt="" title="前から知っていたような雰囲気ですぐ馴染めるタイプの娘。パーカーの中には json が格納されていて聞くと教えてくれるよ。あとかなり物覚えが良いので昔のことも覚えててくれるよ。">
+<img
+	src="/nostter-chan.jpg"
+	alt=""
+	title="前から知っていたような雰囲気ですぐ馴染めるタイプの娘。パーカーの中には json が格納されていて聞くと教えてくれるよ。あとかなり物覚えが良いので昔のことも覚えててくれるよ。"
+/>
 
 <style>
 	div {
