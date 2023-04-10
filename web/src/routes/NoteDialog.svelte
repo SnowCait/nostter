@@ -63,6 +63,7 @@
 		console.log(`[${event.type}]`);
 		$openNoteDialog = false;
 		content = '';
+		pubkeys.clear();
 		$replyTo = undefined;
 		$quotes = [];
 	}
