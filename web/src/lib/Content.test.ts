@@ -48,18 +48,18 @@ describe('parse test', () => {
 			new Token('text', ' #nostr')
 		]);
 	});
-	// it('long hashtags', () => {
-	// 	expect(
-	// 		Content.parse('#nostr #nostrrich', [
-	// 			['t', 'nostr'],
-	// 			['t', 'nostrich']
-	// 		])
-	// 	).toStrictEqual([
-	// 		new Token('hashtag', '#nostr'),
-	// 		new Token('text', ' '),
-	// 		new Token('hashtag', '#nostrrich')
-	// 	]);
-	// });
+	it('overlap hashtags', () => {
+		expect(
+			Content.parse('#nostr #nostrich', [
+				['t', 'nostr'],
+				['t', 'nostrich']
+			])
+		).toStrictEqual([
+			new Token('hashtag', '#nostr'),
+			new Token('text', ' '),
+			new Token('hashtag', '#nostrich')
+		]);
+	});
 	it('invalid hashtags', () => {
 		expect(Content.parse('#nostr', [['t', 'nostter']])).toStrictEqual([
 			new Token('text', '#nostr')
