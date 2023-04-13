@@ -42,12 +42,7 @@
 
 		pubkey = data;
 
-		user = $userEvents.get(pubkey)?.user;
-		console.log('[cached user]', user);
-		if (user === undefined) {
-			user = await fetchUser(relays, pubkey);
-			console.log('[fetched user]', user);
-		}
+		user = (await api.fetchUserEvent(pubkey))?.user;
 		if (user === undefined) {
 			throw error(404);
 		}
@@ -66,23 +61,6 @@
 		});
 		notes = await fetchPastNotes(pubkey);
 	});
-
-	async function fetchUser(relays: string[], pubkey: string): Promise<User | undefined> {
-		const userEvent = (await $pool.get(relays, {
-			kinds: [0],
-			authors: [pubkey]
-		})) as UserEvent | null;
-
-		if (userEvent !== null) {
-			const user = JSON.parse(userEvent.content) as User;
-
-			userEvent.user = user;
-			$userEvents.set(userEvent.pubkey, userEvent);
-			return user;
-		} else {
-			return undefined;
-		}
-	}
 
 	async function fetchBadges(relays: string[], pubkey: string): Promise<Badge[]> {
 		return new Promise((resolve) => {
