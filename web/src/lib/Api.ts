@@ -1,7 +1,7 @@
 import { nip19, type Event, type SimplePool } from 'nostr-tools';
 import { get } from 'svelte/store';
 import type { Event as NostrEvent, User, UserEvent } from '../routes/types';
-import { events } from '../stores/Events';
+import { events as timelineEvents } from '../stores/Events';
 import { saveUserEvent, userEvents } from '../stores/UserEvents';
 
 export class Api {
@@ -16,16 +16,21 @@ export class Api {
 		}
 
 		// Fetch metadata
-		const metadata = await this.pool.get(this.relays, {
-			kinds: [0],
-			authors: [pubkey]
-		});
-		if (metadata === null) {
+		const events = await this.pool.list(this.relays, [
+			{
+				kinds: [0],
+				authors: [pubkey]
+			}
+		]);
+		if (events.length === 0) {
 			console.log(
 				`pubkey: ${nip19.npubEncode(pubkey)} not found in ${this.relays.join(', ')}`
 			);
 			return undefined;
 		}
+
+		events.sort((x, y) => x.created_at - y.created_at);
+		const metadata = events[0];
 
 		const user = JSON.parse(metadata.content) as User;
 		userEvent = metadata as UserEvent;
@@ -39,21 +44,26 @@ export class Api {
 
 	async fetchEvent(id: string): Promise<NostrEvent | undefined> {
 		// If exsits in store
-		const $events = get(events);
+		const $events = get(timelineEvents);
 		const storedEvent = $events.find((x) => x.id === id);
 		if (storedEvent !== undefined) {
 			return storedEvent;
 		}
 
 		// Fetch event
-		const event = await this.pool.get(this.relays, {
-			kinds: [1],
-			ids: [id]
-		});
-		if (event === null) {
+		const events = await this.pool.list(this.relays, [
+			{
+				kinds: [1],
+				ids: [id]
+			}
+		]);
+		if (events.length === 0) {
 			console.log(`id: ${id} not found in ${this.relays.join(', ')}`);
 			return undefined;
 		}
+
+		events.sort((x, y) => x.created_at - y.created_at);
+		const event = events[0];
 
 		const userEvent = await this.fetchUserEvent(event.pubkey);
 		if (userEvent === undefined) {
