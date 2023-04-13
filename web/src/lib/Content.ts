@@ -11,6 +11,7 @@ export class Content {
 		const hashtags = tags
 			.filter(([tagName, tagContent]) => tagName === 't' && tagContent !== undefined)
 			.map(([, tagContent]) => tagContent);
+		hashtags.sort((x, y) => y.length - x.length);
 		const matches = [
 			...(hashtags.length > 0
 				? content.matchAll(new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'g'))
