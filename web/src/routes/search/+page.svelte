@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { Api } from '$lib/Api';
+	import { relayUrls } from '../../stores/Author';
 	import { searchEvents } from '../../stores/Events';
-	import { userEvents, saveUserEvent } from '../../stores/UserEvents';
+	import { pool } from '../../stores/Pool';
+	import { saveUserEvent } from '../../stores/UserEvents';
 	import TimelineView from '../TimelineView.svelte';
 	import type { Event, UserEvent, User } from '../types';
 	import NoteIdsView from './NoteIdsView.svelte';
@@ -41,7 +44,7 @@
 		ws.onclose = () => {
 			console.log('Closed');
 		};
-		ws.onmessage = (event) => {
+		ws.onmessage = async (event) => {
 			console.log('Message');
 			const data = JSON.parse(event.data);
 			console.log(data);
@@ -49,33 +52,15 @@
 				case 'EOSE': {
 					console.log('[result]', $searchEvents);
 
-					if ($searchEvents.length > 0 && $userEvents.size === 0) {
-						const pubkeys = new Set($searchEvents.map((x) => x.pubkey));
-						console.log(Array.from(pubkeys));
-						ws.send(
-							JSON.stringify([
-								'REQ',
-								Math.floor(Math.random() * 99999).toString(),
-								{
-									kinds: [0],
-									authors: Array.from(pubkeys)
-								}
-							])
-						);
-					} else {
-						for (const event of $searchEvents) {
-							const userEvent = $userEvents.get(event.pubkey);
-							if (userEvent === undefined) {
-								console.error(`${event.pubkey} is not found in $userEvents`);
-								continue;
-							}
+					const api = new Api($pool, $relayUrls);
+					for (const event of $searchEvents) {
+						const userEvent = await api.fetchUserEvent(event.pubkey);
+						if (userEvent !== undefined) {
 							event.user = userEvent.user;
 						}
-
-						$searchEvents = $searchEvents;
-
-						ws.close();
 					}
+
+					$searchEvents = $searchEvents;
 					break;
 				}
 				case 'EVENT': {
