@@ -194,16 +194,20 @@
 	}
 </script>
 
-<h3>Browser Extension</h3>
-<button on:click={loginWithNip07} disabled={login !== null}>Login with NIP-07</button>
+<button on:click={loginWithNip07} disabled={login !== null}
+	>Login with NIP-07 Browser Extension</button
+>
+<span>(Recommended)</span>
 
-<h3>Public Key</h3>
+<div>or</div>
+
 <form on:submit|preventDefault={loginWithNpub}>
 	<input
 		type="text"
 		bind:value={npub}
 		placeholder="npub"
 		pattern="^npub1[a-z0-9]+$"
+		required
 		on:keyup|stopPropagation={undefined}
 	/>
 	<input type="submit" value="Login with npub" disabled={login !== null} />
