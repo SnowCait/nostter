@@ -10,6 +10,10 @@ https://nostter.vercel.app/
   - PC, iOS and Android are supported
 - `npub` for readonly
 
+## Demo
+
+https://user-images.githubusercontent.com/1297512/232258971-bc387be1-6260-43e0-93d1-e0ed0b74b045.mp4
+
 ## Dependencies
 
 - [Nostr](https://github.com/nostr-protocol/nostr), [nostr-tools](https://github.com/nbd-wtf/nostr-tools)
