@@ -146,17 +146,23 @@
 					break;
 				}
 				case Kind.Contacts: {
+					const pubkeys = new Set(event.tags.map((x) => x[1]));
+					pubkeys.add($pubkey); // Add myself
+					$followees = Array.from(pubkeys);
+					console.log('[contacts]', event.created_at, $followees);
+
+					if (event.content === '') {
+						console.log('[relays in kind 3] empty');
+						break;
+					}
 					const relays = new Map<string, RelayPermission>(
 						Object.entries(JSON.parse(event.content))
 					);
-					const pubkeys = new Set(event.tags.map((x) => x[1]));
-					pubkeys.add($pubkey); // Add myself
 					console.log(relays, pubkeys);
-					$followees = Array.from(pubkeys);
 					$relayUrls = Array.from(
 						new Set(Array.from(relays.keys()).map((x) => new URL(x)))
 					).map((x) => x.href);
-					console.log('[contacts]', $relayUrls);
+					console.log('[relays in kind 3]', $relayUrls);
 					break;
 				}
 				case Kind.RelayList: {
@@ -178,6 +184,12 @@
 					break;
 				}
 			}
+		}
+
+		console.log('[relays]', $relayUrls);
+		if ($relayUrls.length === 0) {
+			$relayUrls = $defaultRelays;
+			console.log('[relays]', $relayUrls);
 		}
 	}
 </script>
