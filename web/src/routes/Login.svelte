@@ -185,6 +185,12 @@
 				}
 			}
 		}
+
+		console.log('[relays]', $relayUrls);
+		if ($relayUrls.length === 0) {
+			$relayUrls = $defaultRelays;
+			console.log('[relays]', $relayUrls);
+		}
 	}
 </script>
 
