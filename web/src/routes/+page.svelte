@@ -8,6 +8,5 @@
 
 <main>
 	<h1>nostter</h1>
-	<h2>Login</h2>
 	<Login />
 </main>
