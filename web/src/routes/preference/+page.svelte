@@ -2,11 +2,14 @@
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
+	import { rom } from '../../stores/Author';
 </script>
 
 <h1>Preference</h1>
 
-<div><ReactionEmoji /></div>
+{#if !$rom}
+	<div><ReactionEmoji /></div>
+{/if}
 <div><Notification /></div>
 <div><Logout /></div>
 
