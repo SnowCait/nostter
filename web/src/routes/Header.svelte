@@ -42,12 +42,12 @@
 					<IconUser size={30} />
 				</li>
 			</a>
+			<a href="/preference">
+				<li>
+					<IconSettings size={30} />
+				</li>
+			</a>
 			{#if !$rom}
-				<a href="/preference">
-					<li>
-						<IconSettings size={30} />
-					</li>
-				</a>
 				<li>
 					<button on:click={toggleNoteDialog}>
 						<IconCirclePlus size={30} />
