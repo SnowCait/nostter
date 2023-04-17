@@ -34,6 +34,6 @@
 	"type": "module",
 	"dependencies": {
 		"@tabler/icons-svelte": "^2.15.0",
-		"nostr-tools": "^1.8.3"
+		"nostr-tools": "^1.9.0"
 	}
 }
