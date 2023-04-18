@@ -2,6 +2,10 @@
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
 	import { openNoteDialog } from '../stores/NoteDialog';
+	import { onMount } from 'svelte';
+	import { debugMode } from '../stores/Preference';
+
+	let debugMessage = '';
 
 	function keyboardShortcut(event: KeyboardEvent) {
 		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
@@ -10,12 +14,37 @@
 			$openNoteDialog = true;
 		}
 	}
+
+	function onVisibilityChange(event: Event) {
+		console.warn('[visibilitychange]', document.visibilityState);
+		debugMessage += `${new Date().toLocaleTimeString()} [visibilitychange] ${
+			document.visibilityState
+		}\n`;
+		switch (document.visibilityState) {
+			case 'hidden': {
+				break;
+			}
+			case 'visible': {
+				break;
+			}
+		}
+	}
+
+	onMount(() => {
+		document.addEventListener('visibilitychange', onVisibilityChange);
+	});
 </script>
 
 <svelte:window on:keyup={keyboardShortcut} />
 
 <div class="app">
 	<NoteDialog />
+
+	{#if $debugMode}
+		<section class="debug">
+			<pre>{debugMessage}</pre>
+		</section>
+	{/if}
 
 	<header>
 		<Header />
@@ -44,6 +73,12 @@
 		margin-left: 60px;
 	}
 
+	.debug {
+		position: fixed;
+		bottom: 0;
+		background-color: white;
+	}
+
 	@media screen and (max-width: 600px) {
 		header {
 			top: auto;
@@ -55,6 +90,10 @@
 
 		main {
 			margin-left: auto;
+		}
+
+		.debug {
+			bottom: 50px;
 		}
 	}
 </style>

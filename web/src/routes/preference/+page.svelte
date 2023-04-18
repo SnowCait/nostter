@@ -3,6 +3,21 @@
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
 	import { rom } from '../../stores/Author';
+	import { debugMode } from '../../stores/Preference';
+
+	let debugCounter = 0;
+
+	function enableDebugMode() {
+		if ($debugMode) {
+			return;
+		}
+
+		debugCounter++;
+		if (debugCounter >= 5) {
+			$debugMode = true;
+			console.log('[debug mode] enabled');
+		}
+	}
 </script>
 
 <h1>Preference</h1>
@@ -13,7 +28,8 @@
 <div><Notification /></div>
 <div><Logout /></div>
 
-<h1>About nostter</h1>
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<h1 on:click={enableDebugMode}>About nostter</h1>
 <div>
 	<span>GitHub:</span>
 	<a href="https://github.com/SnowCait/nostter" target="_blank" rel="noopener noreferrer">
