@@ -277,7 +277,7 @@
 		color: rgb(15, 20, 25);
 		font-size: 15px;
 		font-weight: 400;
-		width: 100%;
+		width: calc(100% - 60px);
 	}
 
 	.user {
