@@ -109,22 +109,25 @@
 			]);
 		}
 
-		for (const { type, data } of Content.findNotesAndNevents(content).map((x) =>
-			nip19.decode(x)
-		)) {
-			let id = '';
+		const eventIds = Content.findNotesAndNevents(content).map((x) => {
+			const { type, data } = nip19.decode(x);
 			switch (type) {
-				case 'note': {
-					id = data as string;
-					break;
-				}
-				case 'nevent': {
-					id = (data as EventPointer).id;
-					break;
-				}
+				case 'note':
+					return data as string;
+				case 'nevent':
+					return (data as EventPointer).id;
+				default:
+					throw new Error(`Unsupported type: ${type}`);
 			}
-			tags.push(['e', data as string, $recommendedRelay, 'mention']);
-		}
+		});
+		tags.push(
+			...Array.from(new Set(eventIds)).map((eventId) => [
+				'e',
+				eventId,
+				$recommendedRelay,
+				'mention'
+			])
+		);
 
 		for (const { type, data } of Content.findNpubsAndNprofiles(content).map((x) =>
 			nip19.decode(x)
