@@ -154,8 +154,8 @@ describe('findHashtags test', () => {
 		]);
 	});
 	it('non-hashtag signs', () => {
-		expect(Content.findHashtags('#tag-test #tag! #tag~ (#tag) #tag！ #tag～ （#tag） #🐾')).toStrictEqual(
-			['tag']
-		);
+		expect(
+			Content.findHashtags('#tag-test #tag! #tag~ (#tag) #tag！ #tag～ （#tag） #🐾')
+		).toStrictEqual(['tag']);
 	});
 });
