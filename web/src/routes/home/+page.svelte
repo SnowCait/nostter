@@ -4,11 +4,11 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { events } from '../../stores/Events';
 	import { userEvents } from '../../stores/UserEvents';
-	import { pool } from '../../stores/Pool';
+	import { pool as fastPool } from '../../stores/Pool';
 	import { pubkey, relayUrls, followees, authorProfile } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
-	import { Kind } from 'nostr-tools';
+	import { Kind, SimplePool } from 'nostr-tools';
 	import { Author } from '$lib/Author';
 
 	const now = Math.floor(Date.now() / 1000);
@@ -24,8 +24,9 @@
 
 		console.log(`Fetch in ${Date.now() / 1000 - now} seconds`);
 
+		const pool = new SimplePool();
 		const since = (until ?? now) - span;
-		const pastEvents = await $pool.list($relayUrls, [
+		const pastEvents = await pool.list($relayUrls, [
 			{
 				kinds: [Kind.Text, 6, Kind.ChannelMessage],
 				authors: $followees,
@@ -45,16 +46,18 @@
 				since
 			}
 		]);
+		pool.close($relayUrls);
 
 		console.log(`Text events loaded in ${Date.now() / 1000 - now} seconds`);
 
 		const pubkeys = new Set(pastEvents.map((x) => x.pubkey));
-		const metadataEvents = await $pool.list($relayUrls, [
+		const metadataEvents = await $fastPool.list($relayUrls, [
 			{
 				kinds: [0],
 				authors: Array.from(pubkeys)
 			}
 		]);
+		metadataEvents.sort((x, y) => x.created_at - y.created_at);
 		$userEvents = new Map(
 			metadataEvents.map((event) => {
 				const user = JSON.parse(event.content);
@@ -104,7 +107,7 @@
 		let eose = false;
 		let newEvents: Event[] = [];
 		const since = $events.length > 0 ? $events[$events.length - 1].created_at + 1 : now;
-		const subscribe = $pool.sub($relayUrls, [
+		const subscribe = $fastPool.sub($relayUrls, [
 			{
 				kinds: [Kind.Text, 6, Kind.ChannelMessage],
 				authors: Array.from($followees),
@@ -124,7 +127,7 @@
 		subscribe.on('event', async (event: Event) => {
 			console.debug(event);
 
-			const api = new Api($pool, $relayUrls);
+			const api = new Api($fastPool, $relayUrls);
 			const userEvent = await api.fetchUserEvent(event.pubkey); // not chronological
 			if (userEvent !== undefined) {
 				event.user = userEvent.user;
