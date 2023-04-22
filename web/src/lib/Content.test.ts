@@ -172,3 +172,11 @@ describe('findHashtags test', () => {
 		).toStrictEqual(['tag']);
 	});
 });
+
+describe('replaceNip19 test', () => {
+	it('replace', () => {
+		expect(Content.replaceNip19('npub1a nprofile1b nostr:note1c')).toStrictEqual(
+			'nostr:npub1a nostr:nprofile1b nostr:note1c'
+		);
+	});
+});

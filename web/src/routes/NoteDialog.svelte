@@ -154,10 +154,7 @@
 			created_at: Math.round(Date.now() / 1000),
 			kind: 1,
 			tags,
-			content: content.replaceAll(
-				/\b(nostr:)?((note|npub|naddr|nevent|nprofile)1\w+)\b/g,
-				'nostr:$2'
-			)
+			content: Content.replaceNip19(content)
 		});
 		console.log('[publish]', event);
 

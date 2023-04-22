@@ -88,4 +88,11 @@ export class Content {
 			.filter((x): x is string => x !== undefined);
 		return Array.from(new Set(hashtags));
 	}
+
+	static replaceNip19(content: string): string {
+		return content.replaceAll(
+			/\b(nostr:)?((note|npub|naddr|nevent|nprofile)1\w+)\b/g,
+			'nostr:$2'
+		);
+	}
 }
