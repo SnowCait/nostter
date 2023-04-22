@@ -119,15 +119,28 @@ describe('parse test', () => {
 	});
 });
 
-describe('findNpubs test', () => {
+describe('findNpubsAndNprofiles test', () => {
 	it('empty', () => {
-		expect(Content.findNpubs('')).toStrictEqual([]);
+		expect(Content.findNpubsAndNprofiles('')).toStrictEqual([]);
 	});
 	it('npubs', () => {
-		expect(Content.findNpubs('npub1a npub1b nostr:npub1c')).toStrictEqual([
+		expect(Content.findNpubsAndNprofiles('npub1a nprofile1b nostr:npub1c')).toStrictEqual([
 			'npub1a',
-			'npub1b',
+			'nprofile1b',
 			'npub1c'
+		]);
+	});
+});
+
+describe('findNotesAndNevents test', () => {
+	it('empty', () => {
+		expect(Content.findNotesAndNevents('')).toStrictEqual([]);
+	});
+	it('notes', () => {
+		expect(Content.findNotesAndNevents('note1a nevent1b nostr:note1c')).toStrictEqual([
+			'note1a',
+			'nevent1b',
+			'note1c'
 		]);
 	});
 });
@@ -157,5 +170,13 @@ describe('findHashtags test', () => {
 		expect(
 			Content.findHashtags('#tag-test #tag! #tag~ (#tag) #tag！ #tag～ （#tag） #🐾')
 		).toStrictEqual(['tag']);
+	});
+});
+
+describe('replaceNip19 test', () => {
+	it('replace', () => {
+		expect(Content.replaceNip19('npub1a nprofile1b nostr:note1c')).toStrictEqual(
+			'nostr:npub1a nostr:nprofile1b nostr:note1c'
+		);
 	});
 });

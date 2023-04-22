@@ -67,10 +67,17 @@ export class Content {
 		return tokens;
 	}
 
-	static findNpubs(content: string): string[] {
-		const matches = content.matchAll(/\b(nostr:)?(?<npub>npub1\w+)\b/g);
+	static findNpubsAndNprofiles(content: string): string[] {
+		const matches = content.matchAll(/\b(nostr:)?(?<npub>(npub|nprofile)1\w+)\b/g);
 		return [...matches]
 			.map((match) => match.groups?.npub)
+			.filter((x): x is string => x !== undefined);
+	}
+
+	static findNotesAndNevents(content: string): string[] {
+		const matches = content.matchAll(/\b(nostr:)?(?<note>(note|nevent)1\w+)\b/g);
+		return [...matches]
+			.map((match) => match.groups?.note)
 			.filter((x): x is string => x !== undefined);
 	}
 
@@ -80,5 +87,12 @@ export class Content {
 			.map((match) => match.groups?.hashtag)
 			.filter((x): x is string => x !== undefined);
 		return Array.from(new Set(hashtags));
+	}
+
+	static replaceNip19(content: string): string {
+		return content.replaceAll(
+			/\b(nostr:)?((note|npub|naddr|nevent|nprofile)1\w+)\b/g,
+			'nostr:$2'
+		);
 	}
 }

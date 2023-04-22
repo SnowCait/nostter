@@ -8,13 +8,14 @@
 
 <script lang="ts">
 	import { pool } from '../stores/Pool';
-	import { pubkey, rom, relayUrls } from '../stores/Author';
+	import { pubkey, rom, relayUrls, recommendedRelay } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../stores/NoteDialog';
 	import Note from './timeline/Note.svelte';
 	import { IconSend } from '@tabler/icons-svelte';
 	import { Api } from '$lib/Api';
 	import { Content } from '$lib/Content';
 	import { nip19 } from 'nostr-tools';
+	import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
 
 	let content = '';
 	let posting = false;
@@ -26,7 +27,8 @@
 		console.log('[open]', open);
 		if (open) {
 			if ($quotes.length > 0) {
-				content = $quotes.map((x, i) => `\n#[${i}]`).join('');
+				content =
+					'\n' + $quotes.map((event) => `nostr:${nip19.noteEncode(event.id)}`).join('\n');
 			}
 			// Wait for content updated
 			setTimeout(() => {
@@ -107,16 +109,38 @@
 			]);
 		}
 
-		if ($quotes.length > 0) {
-			for (const quote of $quotes) {
-				tags.push(['e', quote.id, '', 'mention']);
+		const eventIds = Content.findNotesAndNevents(content).map((x) => {
+			const { type, data } = nip19.decode(x);
+			switch (type) {
+				case 'note':
+					return data as string;
+				case 'nevent':
+					return (data as EventPointer).id;
+				default:
+					throw new Error(`Unsupported type: ${type}`);
 			}
-		}
+		});
+		tags.push(
+			...Array.from(new Set(eventIds)).map((eventId) => [
+				'e',
+				eventId,
+				$recommendedRelay,
+				'mention'
+			])
+		);
 
-		for (const { data: pubkey } of Content.findNpubs(content).map((npub) =>
-			nip19.decode(npub)
+		for (const { type, data } of Content.findNpubsAndNprofiles(content).map((x) =>
+			nip19.decode(x)
 		)) {
-			pubkeys.add(pubkey as string);
+			switch (type) {
+				case 'npub': {
+					pubkeys.add(data as string);
+					break;
+				}
+				case 'nprofile': {
+					pubkeys.add((data as ProfilePointer).pubkey);
+				}
+			}
 		}
 		tags.push(...Array.from(pubkeys).map((pubkey) => ['p', pubkey]));
 
@@ -128,7 +152,7 @@
 			created_at: Math.round(Date.now() / 1000),
 			kind: 1,
 			tags,
-			content: content.replaceAll(/\b(nostr:)?(npub1\w+)\b/g, 'nostr:$2')
+			content: Content.replaceNip19(content)
 		});
 		console.log('[publish]', event);
 
