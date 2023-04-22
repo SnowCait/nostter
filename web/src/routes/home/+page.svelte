@@ -57,6 +57,7 @@
 				authors: Array.from(pubkeys)
 			}
 		]);
+		metadataEvents.sort((x, y) => x.created_at - y.created_at);
 		$userEvents = new Map(
 			metadataEvents.map((event) => {
 				const user = JSON.parse(event.content);
