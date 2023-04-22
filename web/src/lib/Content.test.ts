@@ -144,4 +144,18 @@ describe('findHashtags test', () => {
 			Content.findHashtags('#tag1 #tag2#tag3 https://example.com/#tag4 #tag5')
 		).toStrictEqual(['tag1', 'tag2', 'tag5']);
 	});
+	it('multi byte hashtags', () => {
+		expect(Content.findHashtags('#テスト #てすと #日本語 #テスト1 #テスト_2')).toStrictEqual([
+			'テスト',
+			'てすと',
+			'日本語',
+			'テスト1',
+			'テスト_2'
+		]);
+	});
+	it('non-hashtag signs', () => {
+		expect(Content.findHashtags('#tag-test #tag! #tag~ (#tag) #tag！ #tag～ （#tag） #🐾')).toStrictEqual(
+			['tag']
+		);
+	});
 });
