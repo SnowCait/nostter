@@ -27,7 +27,8 @@
 		console.log('[open]', open);
 		if (open) {
 			if ($quotes.length > 0) {
-				content = $quotes.map((x, i) => `\n#[${i}]`).join('');
+				content =
+					'\n' + $quotes.map((event) => `nostr:${nip19.noteEncode(event.id)}`).join('\n');
 			}
 			// Wait for content updated
 			setTimeout(() => {
@@ -106,12 +107,6 @@
 				$replyTo.pubkey,
 				...$replyTo.tags.filter((x) => x[0] === 'p').map((x) => x[1])
 			]);
-		}
-
-		if ($quotes.length > 0) {
-			for (const quote of $quotes) {
-				tags.push(['e', quote.id, '', 'mention']);
-			}
 		}
 
 		for (const { type, data } of Content.findNotesAndNevents(content).map((x) =>
