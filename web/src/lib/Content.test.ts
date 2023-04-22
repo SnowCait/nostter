@@ -132,6 +132,19 @@ describe('findNpubs test', () => {
 	});
 });
 
+describe('findNotesAndNevents test', () => {
+	it('empty', () => {
+		expect(Content.findNotesAndNevents('')).toStrictEqual([]);
+	});
+	it('notes', () => {
+		expect(Content.findNotesAndNevents('note1a nevent1b nostr:note1c')).toStrictEqual([
+			'note1a',
+			'nevent1b',
+			'note1c'
+		]);
+	});
+});
+
 describe('findHashtags test', () => {
 	it('empty', () => {
 		expect(Content.findHashtags('')).toStrictEqual([]);

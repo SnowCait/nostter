@@ -8,13 +8,14 @@
 
 <script lang="ts">
 	import { pool } from '../stores/Pool';
-	import { pubkey, rom, relayUrls } from '../stores/Author';
+	import { pubkey, rom, relayUrls, recommendedRelay } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../stores/NoteDialog';
 	import Note from './timeline/Note.svelte';
 	import { IconSend } from '@tabler/icons-svelte';
 	import { Api } from '$lib/Api';
 	import { Content } from '$lib/Content';
 	import { nip19 } from 'nostr-tools';
+	import type { EventPointer } from 'nostr-tools/lib/nip19';
 
 	let content = '';
 	let posting = false;
@@ -113,6 +114,23 @@
 			}
 		}
 
+		for (const { type, data } of Content.findNotesAndNevents(content).map((x) =>
+			nip19.decode(x)
+		)) {
+			let id = '';
+			switch (type) {
+				case 'note': {
+					id = data as string;
+					break;
+				}
+				case 'nevent': {
+					id = (data as EventPointer).id;
+					break;
+				}
+			}
+			tags.push(['e', data as string, $recommendedRelay, 'mention']);
+		}
+
 		for (const { data: pubkey } of Content.findNpubs(content).map((npub) =>
 			nip19.decode(npub)
 		)) {
@@ -128,7 +146,7 @@
 			created_at: Math.round(Date.now() / 1000),
 			kind: 1,
 			tags,
-			content: content.replaceAll(/\b(nostr:)?(npub1\w+)\b/g, 'nostr:$2')
+			content: content.replaceAll(/\b(nostr:)?((note|npub|nevent)1\w+)\b/g, 'nostr:$2')
 		});
 		console.log('[publish]', event);
 

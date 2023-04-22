@@ -74,6 +74,13 @@ export class Content {
 			.filter((x): x is string => x !== undefined);
 	}
 
+	static findNotesAndNevents(content: string): string[] {
+		const matches = content.matchAll(/\b(nostr:)?(?<note>(note|nevent)1\w+)\b/g);
+		return [...matches]
+			.map((match) => match.groups?.note)
+			.filter((x): x is string => x !== undefined);
+	}
+
 	static findHashtags(content: string): string[] {
 		const matches = content.matchAll(/(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu);
 		const hashtags = [...matches]
