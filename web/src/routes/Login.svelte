@@ -8,13 +8,14 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Kind, nip19 } from 'nostr-tools';
+	import { Kind, nip19, type Event } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import {
 		pubkey,
 		authorProfile,
 		recommendedRelay,
 		followees,
+		mutePubkeys,
 		relayUrls,
 		rom
 	} from '../stores/Author';
@@ -126,13 +127,23 @@
 	async function fetchAuthor(relays: string[]) {
 		const events = await $pool.list(relays, [
 			{
-				kinds: [Kind.Metadata, Kind.RecommendRelay, Kind.Contacts, Kind.RelayList, 30078],
+				kinds: [
+					Kind.Metadata,
+					Kind.RecommendRelay,
+					Kind.Contacts,
+					10000,
+					Kind.RelayList,
+					30000,
+					30078
+				],
 				authors: [$pubkey]
 			}
 		]);
 		events.sort((x, y) => x.created_at - y.created_at); // Latest event is effective
 		console.log(events);
 
+		let muteEvent: Event | undefined;
+		let regacyMuteEvent: Event | undefined;
 		for (const event of events) {
 			switch (event.kind) {
 				case Kind.Metadata: {
@@ -165,11 +176,27 @@
 					console.log('[relays in kind 3]', $relayUrls);
 					break;
 				}
+				case 10000 as Kind: {
+					muteEvent = event;
+					console.log('[mute event]', event);
+					break;
+				}
 				case Kind.RelayList: {
 					$relayUrls = Array.from(new Set(event.tags.map((x) => new URL(x[1])))).map(
 						(x) => x.href
 					);
 					console.log('[relay list]', $relayUrls);
+					break;
+				}
+				case 30000 as Kind: {
+					if (
+						event.tags.some(
+							([tagName, tagContent]) => tagName === 'd' && tagContent === 'mute'
+						)
+					) {
+						regacyMuteEvent = event;
+						console.log('[regacy mute event]', event);
+					}
 					break;
 				}
 				case 30078 as Kind: {
@@ -185,6 +212,32 @@
 				}
 			}
 		}
+
+		let publicMutePubkeys: string[] = [];
+		let privateMutePubkeys: string[] = [];
+		let regacyMutePubkeys: string[] = [];
+		if (muteEvent !== undefined) {
+			publicMutePubkeys = muteEvent.tags
+				.filter(([tagName, tagContent]) => tagName === 'p' && tagContent !== undefined)
+				.map(([, pubkey]) => pubkey);
+			if (login === 'NIP-07' && window.nostr.nip04 !== undefined) {
+				const tags = window.nostr.nip04.decrypt(muteEvent.content) as string[][];
+				privateMutePubkeys = tags
+					.filter(([tagName, tagContent]) => tagName === 'p' && tagContent !== undefined)
+					.map(([, pubkey]) => pubkey);
+			}
+			console.log('[mute list]', publicMutePubkeys, privateMutePubkeys);
+		}
+		if (regacyMuteEvent !== undefined) {
+			regacyMutePubkeys = regacyMuteEvent.tags
+				.filter(([tagName]) => tagName === 'p')
+				.map(([, pubkey]) => pubkey);
+			console.log('[regacy mute list]', regacyMutePubkeys);
+		}
+		$mutePubkeys = Array.from(
+			new Set([...publicMutePubkeys, ...privateMutePubkeys, ...regacyMutePubkeys])
+		);
+		console.log('[mute]', $mutePubkeys);
 
 		console.log('[relays]', $relayUrls);
 		if ($relayUrls.length === 0) {
