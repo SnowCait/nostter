@@ -119,14 +119,14 @@ describe('parse test', () => {
 	});
 });
 
-describe('findNpubs test', () => {
+describe('findNpubsAndNprofiles test', () => {
 	it('empty', () => {
-		expect(Content.findNpubs('')).toStrictEqual([]);
+		expect(Content.findNpubsAndNprofiles('')).toStrictEqual([]);
 	});
 	it('npubs', () => {
-		expect(Content.findNpubs('npub1a npub1b nostr:npub1c')).toStrictEqual([
+		expect(Content.findNpubsAndNprofiles('npub1a nprofile1b nostr:npub1c')).toStrictEqual([
 			'npub1a',
-			'npub1b',
+			'nprofile1b',
 			'npub1c'
 		]);
 	});
