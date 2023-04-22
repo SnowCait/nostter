@@ -75,7 +75,7 @@ export class Content {
 	}
 
 	static findHashtags(content: string): string[] {
-		const matches = content.matchAll(/(^|\s)#(?<hashtag>\w+)\b/g);
+		const matches = content.matchAll(/(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu);
 		const hashtags = [...matches]
 			.map((match) => match.groups?.hashtag)
 			.filter((x): x is string => x !== undefined);
