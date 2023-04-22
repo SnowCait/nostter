@@ -5,10 +5,10 @@
 	import { events } from '../../stores/Events';
 	import { userEvents } from '../../stores/UserEvents';
 	import { pool as fastPool } from '../../stores/Pool';
-	import { pubkey, relayUrls, followees, authorProfile } from '../../stores/Author';
+	import { pubkey, relayUrls, followees, authorProfile, isMutePubkey } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
-	import { Kind, SimplePool } from 'nostr-tools';
+	import { Kind, SimplePool, type Event as NostrEvent } from 'nostr-tools';
 	import { Author } from '$lib/Author';
 
 	const now = Math.floor(Date.now() / 1000);
@@ -87,7 +87,7 @@
 				return event as Event;
 			}
 		});
-		$events.push(...list);
+		$events.push(...list.filter((x) => !isMutePubkey(x.pubkey)));
 		$events = $events;
 		console.log(
 			`Fetch home timeline completed: ${$events.length} events in ${
@@ -124,8 +124,13 @@
 				since
 			}
 		]);
-		subscribe.on('event', async (event: Event) => {
+		subscribe.on('event', async (nostrEvent: NostrEvent) => {
+			const event = nostrEvent as Event;
 			console.debug(event);
+
+			if (isMutePubkey(event.pubkey)) {
+				return;
+			}
 
 			const api = new Api($fastPool, $relayUrls);
 			const userEvent = await api.fetchUserEvent(event.pubkey); // not chronological

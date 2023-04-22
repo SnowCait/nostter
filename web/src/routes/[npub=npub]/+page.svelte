@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
-	import { nip19, SimplePool } from 'nostr-tools';
-	import type { Event, User, UserEvent } from '../types';
+	import { nip19, SimplePool, type Event as NostrEvent } from 'nostr-tools';
+	import type { Event, User } from '../types';
 	import { userEvents } from '../../stores/UserEvents';
 	import { pool } from '../../stores/Pool';
 	import { defaultRelays } from '../../stores/DefaultRelays';
 	import TimelineView from '../TimelineView.svelte';
-	import { pubkey as authorPubkey, relayUrls } from '../../stores/Author';
+	import { pubkey as authorPubkey, isMutePubkey, relayUrls } from '../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
 	import Follow from '../Follow.svelte';
 	import { Api } from '$lib/Api';
@@ -75,7 +75,7 @@
 					authors: [pubkey]
 				}
 			]);
-			subscribeProfileBadges.on('event', (event: Event) => {
+			subscribeProfileBadges.on('event', (event: NostrEvent) => {
 				console.log('[profile badges event]', event);
 				if (
 					event.tags.some(([tagName, id]) => tagName === 'd' && id === 'profile_badges')
@@ -114,7 +114,7 @@
 						authors: Array.from(pubkeys)
 					}
 				]);
-				subscribeBadgeDefinitions.on('event', (event: Event) => {
+				subscribeBadgeDefinitions.on('event', (event: NostrEvent) => {
 					console.log('[badge definitions event]', event);
 					const badge = {} as Badge;
 					for (const [tagName, tagContent] of event.tags) {
@@ -173,8 +173,13 @@
 					until
 				}
 			]);
-			subscribeNotes.on('event', (event: Event) => {
+			subscribeNotes.on('event', (nostrEvent: NostrEvent) => {
+				const event = nostrEvent as Event;
 				console.log(event);
+
+				if (isMutePubkey(event.pubkey)) {
+					return;
+				}
 
 				const userEvent = $userEvents.get(event.pubkey);
 				if (userEvent === undefined) {
