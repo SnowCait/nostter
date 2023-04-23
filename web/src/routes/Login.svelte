@@ -16,6 +16,7 @@
 		recommendedRelay,
 		followees,
 		mutePubkeys,
+		muteEventIds,
 		relayUrls,
 		rom
 	} from '../stores/Author';
@@ -214,15 +215,27 @@
 		}
 
 		let modernMutePubkeys: string[] = [];
+		let modernMuteEventIds: string[] = [];
 		let regacyMutePubkeys: string[] = [];
+		let regacyMuteEventIds: string[] = [];
+
 		if (muteEvent !== undefined) {
-			[modernMutePubkeys] = getMuteLists(muteEvent);
+			const muteLists = getMuteLists(muteEvent);
+			modernMutePubkeys = muteLists.pubkeys;
+			modernMuteEventIds = muteLists.eventIds;
 		}
+
 		if (regacyMuteEvent !== undefined) {
-			[regacyMutePubkeys] = getMuteLists(regacyMuteEvent);
+			const muteLists = getMuteLists(regacyMuteEvent);
+			regacyMutePubkeys = muteLists.pubkeys;
+			regacyMuteEventIds = muteLists.eventIds;
 		}
+
 		$mutePubkeys = Array.from(new Set([...modernMutePubkeys, ...regacyMutePubkeys]));
-		console.log('[mute]', $mutePubkeys);
+		console.log('[mute pubkeys]', $mutePubkeys);
+
+		$muteEventIds = Array.from(new Set([...modernMuteEventIds, ...regacyMuteEventIds]));
+		console.log('[mute eventIds]', $muteEventIds);
 
 		console.log('[relays]', $relayUrls);
 		if ($relayUrls.length === 0) {
@@ -239,14 +252,26 @@
 
 	function getMuteLists(event: Event) {
 		let publicMutePubkeys: string[] = [];
+		let publicMuteEventIds: string[] = [];
 		let privateMutePubkeys: string[] = [];
+		let privateMuteEventIds: string[] = [];
+
 		publicMutePubkeys = filterTags('p', event.tags);
-		if (login === 'NIP-07' && window.nostr.nip04 !== undefined) {
+		publicMuteEventIds = filterTags('e', event.tags);
+
+		if (login === 'NIP-07' && window.nostr.nip04 !== undefined && event.content !== '') {
 			const tags = window.nostr.nip04.decrypt(event.content) as string[][];
 			privateMutePubkeys = filterTags('p', tags);
+			privateMuteEventIds = filterTags('e', tags);
 		}
-		console.log('[mute list]', publicMutePubkeys, privateMutePubkeys);
-		return [Array.from(new Set([...publicMutePubkeys, ...privateMutePubkeys]))];
+
+		console.log('[mute p list]', publicMutePubkeys, privateMutePubkeys);
+		console.log('[mute e list]', publicMuteEventIds, privateMuteEventIds);
+
+		return {
+			pubkeys: Array.from(new Set([...publicMutePubkeys, ...privateMutePubkeys])),
+			eventIds: Array.from(new Set([...publicMuteEventIds, ...privateMuteEventIds]))
+		};
 	}
 </script>
 
