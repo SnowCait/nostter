@@ -5,7 +5,7 @@
 	import { events } from '../../stores/Events';
 	import { userEvents } from '../../stores/UserEvents';
 	import { pool as fastPool } from '../../stores/Pool';
-	import { pubkey, relayUrls, followees, authorProfile, isMutePubkey } from '../../stores/Author';
+	import { pubkey, relayUrls, followees, authorProfile, isMuteEvent } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
 	import { Kind, SimplePool, type Event as NostrEvent } from 'nostr-tools';
@@ -87,7 +87,7 @@
 				return event as Event;
 			}
 		});
-		$events.push(...list.filter((x) => !isMutePubkey(x.pubkey)));
+		$events.push(...list.filter((x) => !isMuteEvent(x)));
 		$events = $events;
 		console.log(
 			`Fetch home timeline completed: ${$events.length} events in ${
@@ -128,7 +128,7 @@
 			const event = nostrEvent as Event;
 			console.debug(event);
 
-			if (isMutePubkey(event.pubkey)) {
+			if (isMuteEvent(event)) {
 				return;
 			}
 

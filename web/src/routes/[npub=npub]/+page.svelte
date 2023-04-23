@@ -7,7 +7,7 @@
 	import { pool } from '../../stores/Pool';
 	import { defaultRelays } from '../../stores/DefaultRelays';
 	import TimelineView from '../TimelineView.svelte';
-	import { pubkey as authorPubkey, isMutePubkey, relayUrls } from '../../stores/Author';
+	import { pubkey as authorPubkey, isMuteEvent, relayUrls } from '../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
 	import Follow from '../Follow.svelte';
 	import { Api } from '$lib/Api';
@@ -177,7 +177,7 @@
 				const event = nostrEvent as Event;
 				console.log(event);
 
-				if (isMutePubkey(event.pubkey)) {
+				if (isMuteEvent(event)) {
 					return;
 				}
 
