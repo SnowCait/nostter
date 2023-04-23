@@ -104,6 +104,7 @@
 
 		.debug {
 			bottom: 50px;
+			overflow: auto;
 		}
 	}
 </style>
