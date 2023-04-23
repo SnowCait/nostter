@@ -220,13 +220,13 @@
 		let regacyMuteEventIds: string[] = [];
 
 		if (muteEvent !== undefined) {
-			const muteLists = getMuteLists(muteEvent);
+			const muteLists = await getMuteLists(muteEvent);
 			modernMutePubkeys = muteLists.pubkeys;
 			modernMuteEventIds = muteLists.eventIds;
 		}
 
 		if (regacyMuteEvent !== undefined) {
-			const muteLists = getMuteLists(regacyMuteEvent);
+			const muteLists = await getMuteLists(regacyMuteEvent);
 			regacyMutePubkeys = muteLists.pubkeys;
 			regacyMuteEventIds = muteLists.eventIds;
 		}
@@ -250,7 +250,7 @@
 			.map(([, content]) => content);
 	}
 
-	function getMuteLists(event: Event) {
+	async function getMuteLists(event: Event) {
 		let publicMutePubkeys: string[] = [];
 		let publicMuteEventIds: string[] = [];
 		let privateMutePubkeys: string[] = [];
@@ -260,7 +260,8 @@
 		publicMuteEventIds = filterTags('e', event.tags);
 
 		if (login === 'NIP-07' && window.nostr.nip04 !== undefined && event.content !== '') {
-			const tags = window.nostr.nip04.decrypt(event.content) as string[][];
+			const json = await window.nostr.nip04.decrypt($pubkey, event.content);
+			const tags = JSON.parse(json) as string[][];
 			privateMutePubkeys = filterTags('p', tags);
 			privateMuteEventIds = filterTags('e', tags);
 		}
