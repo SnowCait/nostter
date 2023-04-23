@@ -30,8 +30,8 @@
 		}
 	}
 
-	function onUnhandledRejection(event: Event) {
-		console.log('[unhandled rejection]', event);
+	function onUnhandledRejection(event: PromiseRejectionEvent) {
+		console.log('[unhandled rejection]', event.reason, event.promise);
 		debugMessage += `${new Date().toLocaleTimeString()} [unhandled rejection] ${JSON.stringify(
 			event
 		)}\n`;
@@ -104,6 +104,7 @@
 
 		.debug {
 			bottom: 50px;
+			overflow: auto;
 		}
 	}
 </style>
