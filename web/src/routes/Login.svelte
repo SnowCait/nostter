@@ -213,30 +213,15 @@
 			}
 		}
 
-		let publicMutePubkeys: string[] = [];
-		let privateMutePubkeys: string[] = [];
+		let modernMutePubkeys: string[] = [];
 		let regacyMutePubkeys: string[] = [];
 		if (muteEvent !== undefined) {
-			publicMutePubkeys = muteEvent.tags
-				.filter(([tagName, tagContent]) => tagName === 'p' && tagContent !== undefined)
-				.map(([, pubkey]) => pubkey);
-			if (login === 'NIP-07' && window.nostr.nip04 !== undefined) {
-				const tags = window.nostr.nip04.decrypt(muteEvent.content) as string[][];
-				privateMutePubkeys = tags
-					.filter(([tagName, tagContent]) => tagName === 'p' && tagContent !== undefined)
-					.map(([, pubkey]) => pubkey);
-			}
-			console.log('[mute list]', publicMutePubkeys, privateMutePubkeys);
+			[modernMutePubkeys] = getMuteLists(muteEvent);
 		}
 		if (regacyMuteEvent !== undefined) {
-			regacyMutePubkeys = regacyMuteEvent.tags
-				.filter(([tagName]) => tagName === 'p')
-				.map(([, pubkey]) => pubkey);
-			console.log('[regacy mute list]', regacyMutePubkeys);
+			[regacyMutePubkeys] = getMuteLists(regacyMuteEvent);
 		}
-		$mutePubkeys = Array.from(
-			new Set([...publicMutePubkeys, ...privateMutePubkeys, ...regacyMutePubkeys])
-		);
+		$mutePubkeys = Array.from(new Set([...modernMutePubkeys, ...regacyMutePubkeys]));
 		console.log('[mute]', $mutePubkeys);
 
 		console.log('[relays]', $relayUrls);
@@ -244,6 +229,24 @@
 			$relayUrls = $defaultRelays;
 			console.log('[relays]', $relayUrls);
 		}
+	}
+
+	function filterTags(tagName: string, tags: string[][]) {
+		return tags
+			.filter(([name, content]) => name === tagName && content !== undefined)
+			.map(([, content]) => content);
+	}
+
+	function getMuteLists(event: Event) {
+		let publicMutePubkeys: string[] = [];
+		let privateMutePubkeys: string[] = [];
+		publicMutePubkeys = filterTags('p', event.tags);
+		if (login === 'NIP-07' && window.nostr.nip04 !== undefined) {
+			const tags = window.nostr.nip04.decrypt(event.content) as string[][];
+			privateMutePubkeys = filterTags('p', tags);
+		}
+		console.log('[mute list]', publicMutePubkeys, privateMutePubkeys);
+		return [Array.from(new Set([...publicMutePubkeys, ...privateMutePubkeys]))];
 	}
 </script>
 
