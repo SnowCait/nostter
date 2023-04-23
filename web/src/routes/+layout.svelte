@@ -30,12 +30,22 @@
 		}
 	}
 
+	function onUnhandledRejection(event: Event) {
+		console.log('[unhandled rejection]', event);
+		debugMessage += `${new Date().toLocaleTimeString()} [unhandled rejection] ${JSON.stringify(
+			event
+		)}\n`;
+	}
+
 	onMount(() => {
 		document.addEventListener('visibilitychange', onVisibilityChange);
 	});
 </script>
 
-<svelte:window on:keyup={keyboardShortcut} />
+<svelte:window
+	on:keyup={keyboardShortcut}
+	on:unhandledrejection|preventDefault={onUnhandledRejection}
+/>
 
 <div class="app">
 	<NoteDialog />
