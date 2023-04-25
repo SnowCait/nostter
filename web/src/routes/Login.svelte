@@ -183,9 +183,17 @@
 					break;
 				}
 				case Kind.RelayList: {
-					$relayUrls = Array.from(new Set(event.tags.map((x) => new URL(x[1])))).map(
-						(x) => x.href
-					);
+					$relayUrls = Array.from(
+						new Set(
+							event.tags
+								.filter(
+									([tagName, relay]) =>
+										tagName === 'r' &&
+										(relay.startsWith('wss://') || relay.startsWith('ws://'))
+								)
+								.map(([, relay]) => new URL(relay))
+						)
+					).map((x) => x.href);
 					console.log('[relay list]', $relayUrls);
 					break;
 				}
