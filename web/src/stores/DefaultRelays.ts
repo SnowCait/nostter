@@ -6,5 +6,5 @@ export const defaultRelays = readable([
 	'wss://nostr-relay.nokotaro.com',
 	'wss://nostr.h3z.jp',
 	'wss://nostr.holybea.com',
-	'wss://relay.nostr.or.jp'
+	'wss://nostr.fediverse.jp'
 ]);
