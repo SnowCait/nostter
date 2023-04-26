@@ -302,7 +302,7 @@
 		placeholder="npub"
 		pattern="^npub1[a-z0-9]+$"
 		required
-		on:keyup|stopPropagation={() => {}}
+		on:keyup|stopPropagation={() => console.debug()}
 	/>
 	<input type="submit" value="Login with npub" disabled={login !== null} />
 </form>
