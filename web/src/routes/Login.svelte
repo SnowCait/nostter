@@ -42,16 +42,12 @@
 
 		if (login === 'NIP-07') {
 			await loginWithNip07();
-			return;
-		}
-
-		if (login.startsWith('npub')) {
+		} else if (login.startsWith('npub')) {
 			npub = login;
 			await loginWithNpub();
-			return;
 		}
 
-		console.error('Login failed');
+		console.error('[logic error]', 'login');
 	});
 
 	async function loginWithNip07() {
@@ -90,8 +86,7 @@
 
 		console.log(`Fetch author in ${Date.now() / 1000 - now} seconds`);
 
-		console.log('Redirect to /home');
-		await goto('/home');
+		await gotoHome();
 	}
 
 	async function loginWithNpub() {
@@ -109,9 +104,18 @@
 		$pubkey = data;
 		$rom = true;
 		await fetchAuthor($defaultRelays);
+		await gotoHome();
+	}
 
-		console.log('Redirect to /home');
-		await goto('/home');
+	async function gotoHome() {
+		if ($authorProfile === undefined) {
+			console.error('[login failed]');
+			return;
+		}
+
+		const url = '/home';
+		console.log(`Redirect to ${url}`);
+		await goto(url);
 	}
 
 	async function nip07Enabled(): Promise<boolean> {
@@ -284,8 +288,8 @@
 	}
 </script>
 
-<button on:click={loginWithNip07} disabled={login !== null}
-	>Login with NIP-07 Browser Extension</button
+<button on:click={loginWithNip07} disabled={login !== null}>
+	Login with NIP-07 Browser Extension</button
 >
 <span>(Recommended)</span>
 
@@ -298,7 +302,7 @@
 		placeholder="npub"
 		pattern="^npub1[a-z0-9]+$"
 		required
-		on:keyup|stopPropagation={undefined}
+		on:keyup|stopPropagation={() => {}}
 	/>
 	<input type="submit" value="Login with npub" disabled={login !== null} />
 </form>
