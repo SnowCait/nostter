@@ -8,6 +8,7 @@
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import type { Event as NostrEvent } from '../types';
+	import type { EventPointer } from 'nostr-tools/lib/nip19';
 
 	let events: NostrEvent[] = [];
 	let eventId = '';
@@ -17,16 +18,25 @@
 
 		events = [];
 
-		const note = $page.params.note;
-		console.log(note);
-		const { type, data } = nip19.decode(note);
-		console.log(type, data);
+		const slug = $page.params.note;
+		console.log(slug);
+		const { type, data } = nip19.decode(slug);
+		console.log('[decode]', type, data);
 
-		if (type !== 'note' || typeof data !== 'string') {
-			throw error(500);
+		switch (type) {
+			case 'note': {
+				eventId = data as string;
+				break;
+			}
+			case 'nevent': {
+				const pointer = data as EventPointer;
+				eventId = pointer.id;
+				break;
+			}
+			default: {
+				throw error(500);
+			}
 		}
-
-		eventId = data;
 
 		const relays = $relayUrls.length > 0 ? $relayUrls : $defaultRelays;
 		console.log(relays);
