@@ -69,7 +69,7 @@
 </article>
 {#if jsonDisplay}
 	<div class="develop">
-		<h5>nevent</h5>
+		<h5>ID</h5>
 		<div>{nip19.neventEncode({ id: event.id })}</div>
 		<h5>Event JSON</h5>
 		<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
