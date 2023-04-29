@@ -12,6 +12,7 @@
 	import Follow from '../Follow.svelte';
 	import { Api } from '$lib/Api';
 	import Loading from '../Loading.svelte';
+	import type { ProfilePointer } from 'nostr-tools/lib/nip19';
 
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
@@ -22,7 +23,7 @@
 	let followeesLoading = true;
 	let followersLoading = true;
 
-	const relays = $relayUrls.length > 0 ? $relayUrls : $defaultRelays;
+	let relays = $relayUrls.length > 0 ? $relayUrls : $defaultRelays;
 	const api = new Api($pool, relays);
 
 	afterNavigate(async () => {
@@ -31,16 +32,28 @@
 		badges = [];
 		notes = [];
 
-		const npub = $page.params.npub;
-		console.log(npub);
-		const { type, data } = nip19.decode(npub);
-		console.log(type, data);
+		const slug = $page.params.npub;
+		console.log(slug);
+		const { type, data } = nip19.decode(slug);
+		console.log('[decode]', type, data);
 
-		if (type !== 'npub' || typeof data !== 'string') {
-			throw error(500);
+		switch (type) {
+			case 'npub': {
+				pubkey = data as string;
+				break;
+			}
+			case 'nprofile': {
+				const pointer = data as ProfilePointer;
+				pubkey = pointer.pubkey;
+				if (pointer.relays !== undefined && pointer.relays.length > 0) {
+					relays = Array.from(new Set([...relays, ...pointer.relays]));
+				}
+				break;
+			}
+			default: {
+				throw error(500);
+			}
 		}
-
-		pubkey = data;
 
 		user = (await api.fetchUserEvent(pubkey))?.user;
 		if (user === undefined) {
@@ -235,6 +248,8 @@
 			{#if user.name}
 				<h2>@{user.name}</h2>
 			{/if}
+			<div class="nip19">{nip19.npubEncode(pubkey)}</div>
+			<div class="nip19">{nip19.nprofileEncode({ pubkey })}</div>
 			{#if followees.some((pubkey) => pubkey === $authorPubkey)}
 				<div>Follows you</div>
 			{/if}
@@ -329,5 +344,9 @@
 		height: 50px;
 		border-radius: 50%;
 		object-fit: cover;
+	}
+
+	.nip19 {
+		overflow: auto;
 	}
 </style>
