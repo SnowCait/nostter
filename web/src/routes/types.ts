@@ -29,3 +29,9 @@ export interface RelayPermission {
 	read: boolean;
 	write: boolean;
 }
+
+export interface ChannelMetadata {
+	name: string;
+	about: string;
+	picture: string;
+}

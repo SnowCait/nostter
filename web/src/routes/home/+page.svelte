@@ -28,7 +28,7 @@
 		const since = (until ?? now) - span;
 		const pastEvents = await pool.list($relayUrls, [
 			{
-				kinds: [Kind.Text, 6, Kind.ChannelMessage],
+				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
 				authors: $followees,
 				until,
 				since
@@ -109,7 +109,7 @@
 		const since = $events.length > 0 ? $events[$events.length - 1].created_at + 1 : now;
 		const subscribe = $fastPool.sub($relayUrls, [
 			{
-				kinds: [Kind.Text, 6, Kind.ChannelMessage],
+				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
 				authors: Array.from($followees),
 				since
 			},
