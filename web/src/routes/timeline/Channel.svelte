@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
-	import type { Event } from 'nostr-tools';
+	import { nip19, type Event } from 'nostr-tools';
 	import { pool } from '../../stores/Pool';
 	import { relayUrls } from '../../stores/Author';
 	import type { ChannelMetadata } from '../types';
-	import { IconCodeDots } from '@tabler/icons-svelte';
+	import { IconCodeDots, IconQuote } from '@tabler/icons-svelte';
+	import { intentContent, openNoteDialog } from '../../stores/NoteDialog';
 
 	export let event: Event;
 
@@ -14,6 +15,11 @@
 
 	const iconSize = 20;
 	let jsonDisplay = false;
+
+	function quote(event: Event) {
+		$intentContent = '\n' + nip19.neventEncode({ id: event.id });
+		$openNoteDialog = true;
+	}
 
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
@@ -52,6 +58,9 @@
 					Open in GARNET
 				</a>
 			</div>
+			<button on:click={() => quote(event)}>
+				<IconQuote size={iconSize} />
+			</button>
 			<button on:click={toggleJsonDisplay}>
 				<IconCodeDots size={iconSize} />
 			</button>
@@ -60,6 +69,8 @@
 </article>
 {#if jsonDisplay}
 	<div class="develop">
+		<h5>ID</h5>
+		<div>{nip19.neventEncode({ id: event.id })}</div>
 		<h5>Event JSON</h5>
 		<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
 	</div>

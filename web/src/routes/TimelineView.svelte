@@ -9,6 +9,7 @@
 	import { pubkey } from '../stores/Author';
 	import { Author } from '$lib/Author';
 	import Loading from './Loading.svelte';
+	import Channel from './timeline/Channel.svelte';
 
 	export let events: Event[] = [];
 	export let readonly = false;
@@ -51,6 +52,8 @@
 				<RepostedNote {event} {readonly} {createdAtFormat} />
 			{:else if event.kind === Kind.Reaction}
 				<Reaction {event} {readonly} {createdAtFormat} />
+			{:else if event.kind === Kind.ChannelCreation}
+				<Channel {event} />
 			{:else}
 				<Note {event} {readonly} {createdAtFormat} />
 			{/if}
