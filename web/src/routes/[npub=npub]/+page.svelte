@@ -51,8 +51,8 @@
 				break;
 			}
 			default: {
-			throw error(500);
-		}
+				throw error(500);
+			}
 		}
 
 		user = (await api.fetchUserEvent(pubkey))?.user;
@@ -248,6 +248,8 @@
 			{#if user.name}
 				<h2>@{user.name}</h2>
 			{/if}
+			<div class="nip19">{nip19.npubEncode(pubkey)}</div>
+			<div class="nip19">{nip19.nprofileEncode({ pubkey })}</div>
 			{#if followees.some((pubkey) => pubkey === $authorPubkey)}
 				<div>Follows you</div>
 			{/if}
@@ -342,5 +344,9 @@
 		height: 50px;
 		border-radius: 50%;
 		object-fit: cover;
+	}
+
+	.nip19 {
+		overflow: auto;
 	}
 </style>
