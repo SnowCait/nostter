@@ -1,4 +1,4 @@
-import { nip19, type Event, type SimplePool } from 'nostr-tools';
+import { nip19, type Event, type SimplePool, Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import type { Event as NostrEvent, User, UserEvent } from '../routes/types';
 import { events as timelineEvents } from '../stores/Events';
@@ -108,6 +108,19 @@ export class Api {
 		]);
 		console.log('[followed contact list events]', events);
 		return Array.from(new Set(events.map((x) => x.pubkey)));
+	}
+
+	async fetchChannelMetadataEvent(id: string): Promise<Event | undefined> {
+		const events = await this.pool.list(this.relays, [
+			{
+				kinds: [Kind.ChannelMetadata],
+				'#e': [id],
+				limit: 1
+			}
+		]);
+		events.sort((x, y) => y.created_at - x.created_at);
+		console.debug('[channel metadata events]', events);
+		return events.at(0);
 	}
 
 	async publish(event: Event): Promise<boolean> {

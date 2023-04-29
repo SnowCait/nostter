@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Api } from '$lib/Api';
-	import { nip19 } from 'nostr-tools';
+	import { Kind, nip19 } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import { events } from '../../stores/Events';
 	import type { Event, UserEvent } from '../types';
@@ -8,6 +8,7 @@
 	import { relayUrls } from '../../stores/Author';
 	import Note from '../timeline/Note.svelte';
 	import Text from './Text.svelte';
+	import Channel from '../timeline/Channel.svelte';
 
 	export let text: string;
 
@@ -65,7 +66,11 @@
 {:else if type === 'note' || type === 'nevent'}
 	{#if event !== undefined}
 		<div class="quote">
-			<Note {event} readonly={true} />
+			{#if event.kind === Kind.ChannelCreation}
+				<Channel {event} />
+			{:else}
+				<Note {event} readonly={true} />
+			{/if}
 		</div>
 	{:else}
 		<a href="/{nip19.noteEncode(eventId)}">
