@@ -1,5 +1,5 @@
 import type { ParamMatcher } from '@sveltejs/kit';
 
 export const match = ((param) => {
-	return /^npub1[a-z0-9]+$/.test(param);
+	return /^(npub|nprofile)1[a-z0-9]+$/.test(param);
 }) satisfies ParamMatcher;
