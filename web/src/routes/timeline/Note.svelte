@@ -225,15 +225,20 @@
 				>
 			</div>
 		{/if}
-		{#if !readonly && event.kind !== 42}
+		{#if !readonly}
 			<div class="action-menu">
-				<button on:click={() => reply(event)}>
+				<button class:hidden={event.kind === 42} on:click={() => reply(event)}>
 					<IconMessageCircle2 size={iconSize} />
 				</button>
-				<button class="repost" disabled={reposted} on:click={() => repost(event)}>
+				<button
+					class="repost"
+					class:hidden={event.kind === 42}
+					disabled={reposted}
+					on:click={() => repost(event)}
+				>
 					<IconRepeat size={iconSize} />
 				</button>
-				<button on:click={() => quote(event)}>
+				<button class:hidden={event.kind === 42} on:click={() => quote(event)}>
 					<IconQuote size={iconSize} />
 				</button>
 				<button class="reaction" disabled={reactioned} on:click={() => reaction(event)}>
@@ -357,6 +362,10 @@
 		padding: 0;
 		color: lightgray;
 		height: 20px;
+	}
+
+	.action-menu button.hidden {
+		visibility: hidden;
 	}
 
 	.repost:disabled {
