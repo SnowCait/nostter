@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-	import { nip19 } from 'nostr-tools';
+	import { Kind, nip19 } from 'nostr-tools';
 	import {
 		IconMessageCircle2,
 		IconRepeat,
@@ -16,7 +16,7 @@
 		IconPaw,
 		IconCodeDots
 	} from '@tabler/icons-svelte';
-	import type { Event } from '../types';
+	import type { ChannelMetadata, Event } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
 	import { recommendedRelay, relayUrls } from '../../stores/Author';
@@ -48,6 +48,9 @@
 	let reactioned = false;
 	let jsonDisplay = false;
 	let replyToNames: string[] = [];
+	let channelId: string | undefined;
+	let channelName: string | undefined;
+	let channelMetadata: ChannelMetadata | undefined;
 	const originalEvent = Object.assign({}, event) as any;
 	delete originalEvent.user;
 
@@ -135,6 +138,21 @@
 			);
 		});
 		replyToNames = await Promise.all(promises);
+
+		if (event.kind === Kind.ChannelMessage) {
+			channelId = event.tags
+				.find(([tagName, , , marker]) => tagName === 'e' && marker === 'root')
+				?.at(1);
+			if (channelId === undefined) {
+				return;
+			}
+			const channelMetadataEvent = await api.fetchChannelMetadataEvent(channelId);
+			if (channelMetadataEvent === undefined) {
+				return;
+			}
+			channelMetadata = JSON.parse(channelMetadataEvent.content);
+			channelName = channelMetadata?.name;
+		}
 	});
 </script>
 
@@ -215,14 +233,18 @@
 				{/each}
 			</ol>
 		{/if}
-		{#if event.kind === 42}
+		{#if event.kind === Kind.ChannelMessage && channelId !== undefined}
 			<div>
-				<a
-					href="https://garnet.nostrian.net/channels/{event.tags
-						.find(([tagName, , , marker]) => tagName === 'e' && marker === 'root')
-						?.at(1)}"
-					target="_blank">Open in GARNET</a
-				>
+				<span>In</span>
+				<span>
+					<a
+						href="https://garnet.nostrian.net/channels/{channelId}"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						{channelName ?? 'GARNET'}
+					</a>
+				</span>
 			</div>
 		{/if}
 		{#if !readonly}
