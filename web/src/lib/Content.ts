@@ -16,7 +16,7 @@ export class Content {
 			...(hashtags.length > 0
 				? content.matchAll(new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'g'))
 				: []),
-			...content.matchAll(/\bnostr:((note|npub|naddr|nevent|nprofile)1\w+)\b|#\[\d+\]/g),
+			...content.matchAll(/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[\d+\]/g),
 			...content.matchAll(/https?:\/\/\S+/g),
 			...content.matchAll(/NIP-[0-9]+/g)
 		].sort((x, y) => {
