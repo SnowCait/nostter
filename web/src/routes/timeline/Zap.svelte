@@ -50,24 +50,29 @@
 </script>
 
 <article>
-	<div>
-		<IconBolt size={18} color={'#f59f00'} />
+	<div class="user">
+		<div>
+			<IconBolt size={18} color={'#f59f00'} />
+		</div>
+		<div>by</div>
+		<div>
+			<a href="/{nip19.npubEncode((zapUserEvent ?? event).pubkey)}">
+				@{(zapUserEvent ?? event).user?.name ??
+					(zapUserEvent ?? event).pubkey.substring('npub1'.length + 7)}
+			</a>
+		</div>
+		<div class="json-button">
+			<button on:click={toggleJsonDisplay}>
+				<IconCodeDots size={15} />
+			</button>
+		</div>
+		<div class="created-at">
+			<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
+		</div>
 	</div>
-	<div>by</div>
-	<div>
-		<a href="/{nip19.npubEncode((zapUserEvent ?? event).pubkey)}">
-			@{(zapUserEvent ?? event).user?.name ??
-				(zapUserEvent ?? event).pubkey.substring('npub1'.length + 7)}
-		</a>
-	</div>
-	<div class="json-button">
-		<button on:click={toggleJsonDisplay}>
-			<IconCodeDots size={15} />
-		</button>
-	</div>
-	<div class="created-at">
-		<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
-	</div>
+	{#if zapRequestEvent.content}
+		<div class="content">{zapRequestEvent.content}</div>
+	{/if}
 </article>
 {#if jsonDisplay}
 	<div class="develop">
@@ -90,13 +95,17 @@
 {/if}
 
 <style>
-	article {
+	.user {
 		display: flex;
 		flex-direction: row;
 	}
 
-	article div {
+	.user div {
 		margin-right: 0.2em;
+	}
+
+	.content {
+		margin: 0.5em;
 	}
 
 	.json-button {
