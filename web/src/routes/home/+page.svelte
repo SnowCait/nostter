@@ -133,7 +133,6 @@
 			}
 
 			if (event.kind === Kind.Metadata) {
-				console.log('[metadata]', event);
 				saveMetadataEvent(event);
 				return;
 			}
