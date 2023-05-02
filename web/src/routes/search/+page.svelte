@@ -2,12 +2,13 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Api } from '$lib/Api';
+	import { Kind } from 'nostr-tools';
 	import { relayUrls } from '../../stores/Author';
 	import { searchEvents } from '../../stores/Events';
 	import { pool } from '../../stores/Pool';
-	import { saveUserEvent } from '../../stores/UserEvents';
+	import { saveMetadataEvent } from '../../stores/UserEvents';
 	import TimelineView from '../TimelineView.svelte';
-	import type { Event, UserEvent, User } from '../types';
+	import type { Event } from '../types';
 	import NoteIdsView from './NoteIdsView.svelte';
 
 	let query = '';
@@ -66,17 +67,11 @@
 				case 'EVENT': {
 					const e = data[2] as Event;
 					switch (e.kind) {
-						case 0: {
-							const user = JSON.parse(e.content) as User;
-							console.log(user);
-							const userEvent: UserEvent = {
-								...e,
-								user
-							};
-							saveUserEvent(userEvent);
+						case Kind.Metadata: {
+							saveMetadataEvent(e);
 							break;
 						}
-						case 1: {
+						case Kind.Text: {
 							$searchEvents.push(e);
 							break;
 						}
