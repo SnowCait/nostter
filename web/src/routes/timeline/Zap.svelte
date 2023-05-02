@@ -2,9 +2,9 @@
 	import { IconBolt, IconCodeDots } from '@tabler/icons-svelte';
 	import { pool } from '../../stores/Pool';
 	import Note from './Note.svelte';
-	import type { Event as NostrEvent, User } from '../types';
+	import type { Event as NostrEvent, User, UserEvent } from '../types';
 	import { relayUrls } from '../../stores/Author';
-	import { nip19 } from 'nostr-tools';
+	import { nip19, type Event } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
@@ -15,6 +15,7 @@
 
 	let user: User | undefined;
 	let originalEvent: NostrEvent | undefined;
+	let zapUserEvent: UserEvent | undefined = undefined;
 	let jsonDisplay = false;
 
 	const originalTag = event.tags.find(
@@ -22,19 +23,25 @@
 			tag.at(0) === 'e' && (tag.at(3) === 'mention' || tag.at(3) === 'root' || tag.length < 4)
 	);
 
+	const descriptionTag = event.tags.find(([tagName]) => tagName === 'description')?.at(1);
+	console.debug('[zap request]', event.id, descriptionTag);
+	const zapRequestEvent = JSON.parse(descriptionTag ?? '{}') as Event;
+
 	onMount(async () => {
 		const api = new Api($pool, $relayUrls);
 		api.fetchUserEvent(event.pubkey).then((userEvent) => {
 			user = userEvent?.user;
 		});
 
-		if (originalTag === undefined) {
-			console.warn('[repost not found]', event);
-			return;
+		if (originalTag !== undefined) {
+			const eventId = originalTag[1];
+			originalEvent = await api.fetchEvent(eventId);
+		} else {
+			console.warn('[zapped event not found]', event);
 		}
 
-		const eventId = originalTag[1];
-		originalEvent = await api.fetchEvent(eventId);
+		// Zap user
+		zapUserEvent = await api.fetchUserEvent(zapRequestEvent.pubkey);
 	});
 
 	const toggleJsonDisplay = () => {
@@ -48,8 +55,9 @@
 	</div>
 	<div>by</div>
 	<div>
-		<a href="/{nip19.npubEncode(event.pubkey)}">
-			@{user?.name ?? event.pubkey.substring('npub1'.length + 7)}
+		<a href="/{nip19.npubEncode((zapUserEvent ?? event).pubkey)}">
+			@{(zapUserEvent ?? event).user?.name ??
+				(zapUserEvent ?? event).pubkey.substring('npub1'.length + 7)}
 		</a>
 	</div>
 	<div class="json-button">
@@ -65,6 +73,8 @@
 	<div class="develop">
 		<h5>Event JSON</h5>
 		<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
+		<h5>Zap Request Event JSON</h5>
+		<pre><code class="json">{JSON.stringify(zapRequestEvent, null, 2)}</code></pre>
 		<h5>User JSON</h5>
 		<pre><code class="json">{JSON.stringify(event.user, null, 2)}</code></pre>
 	</div>
