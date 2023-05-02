@@ -34,7 +34,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Text, 6, Kind.Reaction],
+				kinds: [Kind.Text, 6, Kind.Reaction, Kind.Zap],
 				'#p': [$pubkey],
 				until,
 				since
@@ -114,7 +114,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Text, 6, Kind.Reaction],
+				kinds: [Kind.Text, 6, Kind.Reaction, Kind.Zap],
 				'#p': [$pubkey],
 				since
 			},
@@ -181,6 +181,10 @@
 			}
 			case Kind.Reaction: {
 				body = event.content.replace('+', 'Like').replace('-', 'Dislike');
+				break;
+			}
+			case Kind.Zap: {
+				body = 'Zap';
 				break;
 			}
 			default:
