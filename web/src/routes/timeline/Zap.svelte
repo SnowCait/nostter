@@ -2,7 +2,7 @@
 	import { IconBolt, IconCodeDots } from '@tabler/icons-svelte';
 	import { pool } from '../../stores/Pool';
 	import Note from './Note.svelte';
-	import type { Event as NostrEvent, User, UserEvent } from '../types';
+	import type { Event as NostrEvent } from '../types';
 	import { relayUrls } from '../../stores/Author';
 	import { nip19, type Event } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
@@ -13,9 +13,7 @@
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
-	let user: User | undefined;
 	let originalEvent: NostrEvent | undefined;
-	let zapUserEvent: UserEvent | undefined = undefined;
 	let jsonDisplay = false;
 
 	const originalTag = event.tags.find(
@@ -27,21 +25,15 @@
 	console.debug('[zap request]', event.id, descriptionTag);
 	const zapRequestEvent = JSON.parse(descriptionTag ?? '{}') as Event;
 
-	onMount(async () => {
-		const api = new Api($pool, $relayUrls);
-		api.fetchUserEvent(event.pubkey).then((userEvent) => {
-			user = userEvent?.user;
-		});
+	const api = new Api($pool, $relayUrls);
 
+	onMount(async () => {
 		if (originalTag !== undefined) {
 			const eventId = originalTag[1];
 			originalEvent = await api.fetchEvent(eventId);
 		} else {
 			console.warn('[zapped event not found]', event);
 		}
-
-		// Zap user
-		zapUserEvent = await api.fetchUserEvent(zapRequestEvent.pubkey);
 	});
 
 	const toggleJsonDisplay = () => {
@@ -55,12 +47,16 @@
 			<IconBolt size={18} color={'#f59f00'} />
 		</div>
 		<div>by</div>
-		<div>
-			<a href="/{nip19.npubEncode((zapUserEvent ?? event).pubkey)}">
-				@{(zapUserEvent ?? event).user?.name ??
-					(zapUserEvent ?? event).pubkey.substring('npub1'.length + 7)}
-			</a>
-		</div>
+		{#await api.fetchUserEvent(zapRequestEvent.pubkey)}
+			<div>@...</div>
+		{:then zapUserEvent}
+			<div>
+				<a href="/{nip19.npubEncode((zapUserEvent ?? event).pubkey)}">
+					@{(zapUserEvent ?? event).user?.name ??
+						(zapUserEvent ?? event).pubkey.substring('npub1'.length + 7)}
+				</a>
+			</div>
+		{/await}
 		<div class="json-button">
 			<button on:click={toggleJsonDisplay}>
 				<IconCodeDots size={15} />
