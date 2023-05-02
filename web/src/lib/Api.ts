@@ -1,8 +1,8 @@
 import { nip19, type Event, type SimplePool, Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
-import type { Event as NostrEvent, User, UserEvent } from '../routes/types';
+import type { Event as NostrEvent, UserEvent } from '../routes/types';
 import { events as timelineEvents } from '../stores/Events';
-import { saveUserEvent, userEvents } from '../stores/UserEvents';
+import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 
 export class Api {
 	constructor(private pool: SimplePool, private relays: string[]) {}
@@ -32,12 +32,8 @@ export class Api {
 		events.sort((x, y) => x.created_at - y.created_at);
 		const metadata = events[0];
 
-		const user = JSON.parse(metadata.content) as User;
-		userEvent = metadata as UserEvent;
-		userEvent.user = user;
-
 		// Save cache
-		saveUserEvent(userEvent);
+		userEvent = saveMetadataEvent(metadata);
 
 		return userEvent;
 	}

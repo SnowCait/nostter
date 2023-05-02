@@ -3,7 +3,7 @@
 	import type { Event, UserEvent } from '../types';
 	import TimelineView from '../TimelineView.svelte';
 	import { events } from '../../stores/Events';
-	import { userEvents } from '../../stores/UserEvents';
+	import { saveMetadataEvent, userEvents } from '../../stores/UserEvents';
 	import { pool as fastPool } from '../../stores/Pool';
 	import { pubkey, relayUrls, followees, authorProfile, isMuteEvent } from '../../stores/Author';
 	import { goto } from '$app/navigation';
@@ -109,7 +109,7 @@
 		const since = $events.length > 0 ? $events[$events.length - 1].created_at + 1 : now;
 		const subscribe = $fastPool.sub($relayUrls, [
 			{
-				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
+				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
 				authors: Array.from($followees),
 				since
 			},
@@ -129,6 +129,12 @@
 			console.debug(event);
 
 			if (isMuteEvent(event)) {
+				return;
+			}
+
+			if (event.kind === Kind.Metadata) {
+				console.log('[metadata]', event);
+				saveMetadataEvent(event);
 				return;
 			}
 
