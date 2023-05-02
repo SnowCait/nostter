@@ -10,6 +10,7 @@
 	import { Author } from '$lib/Author';
 	import Loading from './Loading.svelte';
 	import Channel from './timeline/Channel.svelte';
+	import Zap from './timeline/Zap.svelte';
 
 	export let events: Event[] = [];
 	export let readonly = false;
@@ -54,6 +55,8 @@
 				<Reaction {event} {readonly} {createdAtFormat} />
 			{:else if event.kind === Kind.ChannelCreation}
 				<Channel {event} />
+			{:else if event.kind === Kind.Zap}
+				<Zap {event} {readonly} {createdAtFormat} />
 			{:else}
 				<Note {event} {readonly} {createdAtFormat} />
 			{/if}
