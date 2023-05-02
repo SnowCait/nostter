@@ -293,6 +293,7 @@
 	article {
 		display: flex;
 		flex-direction: row;
+		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 	}
 
 	.picture {
@@ -314,7 +315,6 @@
 		display: flex;
 		flex-direction: row;
 		flex-wrap: wrap;
-		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 	}
 
 	.display_name {
@@ -343,7 +343,6 @@
 		margin: 5px 0;
 		white-space: pre-wrap;
 		word-break: break-all;
-		font-family: monospace;
 	}
 
 	.media {
