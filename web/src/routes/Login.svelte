@@ -45,9 +45,9 @@
 		} else if (login.startsWith('npub')) {
 			npub = login;
 			await loginWithNpub();
+		} else {
+			console.error('[logic error]', 'login');
 		}
-
-		console.error('[logic error]', 'login');
 	});
 
 	async function loginWithNip07() {
