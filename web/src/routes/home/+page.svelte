@@ -203,8 +203,7 @@
 
 		new Notification(`@${event?.user.name}`, {
 			icon: event.user.picture,
-			body,
-			tag: 'nostter'
+			body
 		});
 	}
 
@@ -240,9 +239,7 @@
 			createdAt > streamingSpeedNotifiedAt + last5minutes.length * 60
 		) {
 			streamingSpeedNotifiedAt = createdAt;
-			new Notification(`Hot timeline!`, {
-				tag: 'nostter'
-			});
+			new Notification('Hot timeline!');
 		}
 	}
 
