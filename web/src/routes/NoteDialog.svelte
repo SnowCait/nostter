@@ -16,12 +16,17 @@
 	import { Content } from '$lib/Content';
 	import { nip19 } from 'nostr-tools';
 	import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
+	import { userEvents } from '../stores/UserEvents';
+	import type { UserEvent } from './types';
 
 	let content = '';
 	let posting = false;
 	let dialog: HTMLDialogElement;
 	let textarea: HTMLTextAreaElement;
 	let pubkeys = new Set<string>();
+	let complementStart = -1;
+	let complementEnd = -1;
+	let complementUserEvents: UserEvent[] = [];
 
 	openNoteDialog.subscribe((open) => {
 		console.log('[open]', open);
@@ -75,6 +80,94 @@
 		if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
 			await postNote();
 		}
+	}
+
+	async function onInput(inputEvent: Event) {
+		const { selectionStart, selectionEnd } = textarea;
+		console.debug(
+			'[complement input]',
+			inputEvent,
+			content,
+			complementStart,
+			selectionStart,
+			selectionEnd
+		);
+		if (!(inputEvent instanceof InputEvent)) {
+			console.warn('[complement input type]', typeof inputEvent);
+			return;
+		}
+
+		if (
+			selectionStart === selectionEnd &&
+			selectionStart > 0 &&
+			content.lastIndexOf('@', selectionStart) >= 0
+		) {
+			complementStart = content.lastIndexOf('@', selectionStart);
+		} else if (content.lastIndexOf('@', selectionStart) < 0) {
+			exitComplement();
+		}
+
+		if (complementStart >= 0) {
+			complementEnd = selectionEnd;
+			const complementName = content.slice(complementStart + 1, selectionStart).toLowerCase();
+			const max = 5;
+			complementUserEvents = [...$userEvents]
+				.filter(
+					([, e]) =>
+						e.user?.name?.toLowerCase().startsWith(complementName) ||
+						e.user?.display_name?.toLowerCase().startsWith(complementName)
+				)
+				.map(([, e]) => e)
+				.slice(0, max);
+			if (complementUserEvents.length < max) {
+				complementUserEvents.push(
+					...[...$userEvents]
+						.filter(
+							([, e]) =>
+								e.user?.name?.toLowerCase().includes(complementName) ||
+								e.user?.display_name?.toLowerCase().includes(complementName)
+						)
+						.filter(([p]) => !complementUserEvents.some((x) => x.pubkey === p))
+						.map(([, e]) => e)
+						.slice(0, max - complementUserEvents.length)
+				);
+			}
+			if (complementUserEvents.length < max) {
+				// TODO: fetch
+			}
+			console.debug(
+				'[complement]',
+				complementName,
+				complementUserEvents.map((x) => `@${x.user.name}, ${x.pubkey}`)
+			);
+
+			// Exit if not found
+			if (complementUserEvents.length === 0) {
+				exitComplement();
+			}
+		}
+	}
+
+	function replaceComplement(event: UserEvent) {
+		console.debug('[replace complement]', content, complementStart, complementEnd);
+		const beforeCursor =
+			content.substring(0, complementStart) +
+			(complementStart === 0 || content.at(complementStart - 1) === ' ' ? '' : ' ') +
+			`nostr:${nip19.npubEncode(event.pubkey)} `;
+		const afterCursor = content.substring(
+			content.at(complementEnd) === ' ' ? complementEnd + 1 : complementEnd
+		);
+		content = beforeCursor + afterCursor;
+		const cursor = beforeCursor.length;
+		console.debug('[replaced complement]', content, cursor);
+		exitComplement();
+		textarea.setSelectionRange(cursor, cursor);
+		textarea.focus();
+	}
+
+	function exitComplement() {
+		complementStart = -1;
+		complementEnd = -1;
 	}
 
 	async function postNote() {
@@ -179,6 +272,7 @@
 			bind:value={content}
 			bind:this={textarea}
 			on:keydown={submitFromKeyboard}
+			on:input={onInput}
 		/>
 		<input id="send" type="submit" disabled={!pubkey || posting} />
 		<label for="send"><IconSend size={30} /></label>
@@ -187,6 +281,16 @@
 		{#each $quotes as quote}
 			<Note event={quote} readonly={true} />
 		{/each}
+	{/if}
+	{#if complementStart >= 0}
+		<ul>
+			{#each complementUserEvents as event}
+				<li on:click|stopPropagation={() => replaceComplement(event)}>
+					<span>{event.user.display_name ?? ''}</span>
+					<span>@{event.user.name ?? event.user.display_name}</span>
+				</li>
+			{/each}
+		</ul>
 	{/if}
 </dialog>
 
@@ -219,5 +323,10 @@
 
 	input[type='submit']:disabled + label {
 		color: lightgray;
+	}
+
+	ul {
+		list-style: none;
+		padding: 0;
 	}
 </style>
