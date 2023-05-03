@@ -13,6 +13,7 @@
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
+	let streamingSpeedNotifiedAt = 0;
 
 	// past notes
 	async function fetchHomeTimeline(until?: number, span = 1 * 60 * 60) {
@@ -233,7 +234,8 @@
 		const average = last5minutes.reduce((x, y) => x + y) / last5minutes.length;
 		console.warn('[speed]', time, count, average, streamingSpeed, last5minutes);
 
-		if (count > average * 2) {
+		if (count > average * 2 && createdAt > streamingSpeedNotifiedAt + 30 * 60) {
+			streamingSpeedNotifiedAt = createdAt;
 			new Notification(`Hot timeline!`, {
 				tag: 'nostter'
 			});
