@@ -12,7 +12,7 @@
 	import Follow from '../Follow.svelte';
 	import { Api } from '$lib/Api';
 	import Loading from '../Loading.svelte';
-	import type { ProfilePointer } from 'nostr-tools/lib/nip19';
+	import { User as UserDecoder } from '$lib/User';
 
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
@@ -27,37 +27,28 @@
 	const api = new Api($pool, relays);
 
 	afterNavigate(async () => {
-		console.log('afterNavigate');
+		const slug = $page.params.npub;
+		console.log('[afterNavigate]', slug);
 
 		badges = [];
 		notes = [];
 
-		const slug = $page.params.npub;
-		console.log(slug);
-		const { type, data } = nip19.decode(slug);
-		console.log('[decode]', type, data);
+		const data = await UserDecoder.decode(slug);
 
-		switch (type) {
-			case 'npub': {
-				pubkey = data as string;
-				break;
-			}
-			case 'nprofile': {
-				const pointer = data as ProfilePointer;
-				pubkey = pointer.pubkey;
-				if (pointer.relays !== undefined && pointer.relays.length > 0) {
-					relays = Array.from(new Set([...relays, ...pointer.relays]));
-				}
-				break;
-			}
-			default: {
-				throw error(500);
-			}
+		if (data.pubkey === undefined) {
+			throw error(404);
 		}
+
+		pubkey = data.pubkey;
+		relays = Array.from(new Set([...relays, ...data.relays]));
 
 		user = (await api.fetchUserEvent(pubkey))?.user;
 		if (user === undefined) {
 			throw error(404);
+		}
+
+		if (user.nip05 && slug !== user.nip05) {
+			history.replaceState(null, '', user.nip05);
 		}
 
 		api.fetchFollowees(pubkey).then((pubkeys) => {
