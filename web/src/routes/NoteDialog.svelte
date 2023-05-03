@@ -73,6 +73,7 @@
 		pubkeys.clear();
 		$replyTo = undefined;
 		$quotes = [];
+		exitComplement();
 	}
 
 	async function submitFromKeyboard(event: KeyboardEvent) {
@@ -168,6 +169,7 @@
 	function exitComplement() {
 		complementStart = -1;
 		complementEnd = -1;
+		complementUserEvents = [];
 	}
 
 	async function postNote() {
