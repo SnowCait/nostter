@@ -12,6 +12,8 @@
 	import { Author } from '$lib/Author';
 
 	const now = Math.floor(Date.now() / 1000);
+	const streamingSpeed = new Map<number, number>();
+	let streamingSpeedNotifiedAt = 0;
 
 	// past notes
 	async function fetchHomeTimeline(until?: number, span = 1 * 60 * 60) {
@@ -143,6 +145,9 @@
 				event.user = userEvent.user;
 			}
 
+			// Streaming speed (experimental)
+			notifyStreamingSpeed(event.created_at);
+
 			// Notification
 			if (new Author($pubkey).isRelated(event)) {
 				console.log('[related]', event);
@@ -201,6 +206,40 @@
 			body,
 			tag: 'nostter'
 		});
+	}
+
+	function notifyStreamingSpeed(createdAt: number): void {
+		if (window.Notification === undefined) {
+			return;
+		}
+
+		console.log('[notify]', Notification.permission);
+
+		if (Notification.permission !== 'granted') {
+			return;
+		}
+
+		const time = Math.floor(createdAt / 60);
+		let count = streamingSpeed.get(time);
+		count = (count ?? 0) + 1;
+		streamingSpeed.set(time, count);
+
+		const last5minutes = [
+			streamingSpeed.get(time - 1) ?? 0,
+			streamingSpeed.get(time - 2) ?? 0,
+			streamingSpeed.get(time - 3) ?? 0,
+			streamingSpeed.get(time - 4) ?? 0,
+			streamingSpeed.get(time - 5) ?? 0
+		];
+		const average = last5minutes.reduce((x, y) => x + y) / last5minutes.length;
+		console.warn('[speed]', time, count, average, streamingSpeed, last5minutes);
+
+		if (count > average * 2 && createdAt > streamingSpeedNotifiedAt + 30 * 60) {
+			streamingSpeedNotifiedAt = createdAt;
+			new Notification(`Hot timeline!`, {
+				tag: 'nostter'
+			});
+		}
 	}
 
 	onMount(async () => {
