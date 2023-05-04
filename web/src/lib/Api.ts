@@ -49,7 +49,6 @@ export class Api {
 		// Fetch event
 		const events = await this.pool.list(this.relays, [
 			{
-				kinds: [1],
 				ids: [id]
 			}
 		]);
