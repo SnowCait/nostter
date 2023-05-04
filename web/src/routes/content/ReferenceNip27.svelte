@@ -9,6 +9,7 @@
 	import Note from '../timeline/Note.svelte';
 	import Text from './Text.svelte';
 	import Channel from '../timeline/Channel.svelte';
+	import Nip94 from '../Nip94.svelte';
 
 	export let text: string;
 
@@ -75,13 +76,13 @@
 	</a>
 {:else if dataType === 'event'}
 	{#if event !== undefined}
-		<div class="quote">
-			{#if event.kind === Kind.ChannelCreation}
-				<Channel {event} />
-			{:else}
-				<Note {event} readonly={true} />
-			{/if}
-		</div>
+		{#if event.kind === Kind.ChannelCreation}
+			<div class="quote"><Channel {event} /></div>
+		{:else if event.kind === 1063}
+			<Nip94 {event} />
+		{:else}
+			<div class="quote"><Note {event} readonly={true} /></div>
+		{/if}
 	{:else}
 		<a href="/{nip19.noteEncode(eventId)}">
 			{nip19.noteEncode(eventId).substring(0, 'note1'.length + 7)}
