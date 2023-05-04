@@ -14,13 +14,13 @@ export const rom = writable(false);
 
 export const isMutePubkey = (pubkey: string) => get(mutePubkeys).includes(pubkey);
 export const isMuteEvent = (event: Event) => {
-	if (isMutePubkey(event.pubkey)) {
+	if (isMutePubkey(event.pubkey) || event.tags.some(([tagName, pubkey]) => tagName === 'p' && isMutePubkey(pubkey))) {
 		return true;
 	}
 
 	const ids = get(muteEventIds);
 	return (
 		ids.includes(event.id) ||
-		event.tags.some(([tagName, tagContent]) => tagName === 'e' && ids.includes(tagContent))
+		event.tags.some(([tagName, id]) => tagName === 'e' && ids.includes(id))
 	);
 };
