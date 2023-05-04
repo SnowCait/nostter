@@ -49,7 +49,6 @@ export class Api {
 		// Fetch event
 		const events = await this.pool.list(this.relays, [
 			{
-				kinds: [1],
 				ids: [id]
 			}
 		]);
@@ -60,6 +59,10 @@ export class Api {
 
 		events.sort((x, y) => x.created_at - y.created_at);
 		const event = events[0];
+
+		if (isMuteEvent(event)) {
+			return undefined;
+		}
 
 		const userEvent = await this.fetchUserEvent(event.pubkey);
 		if (userEvent === undefined) {
