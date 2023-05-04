@@ -3,6 +3,7 @@ import { get } from 'svelte/store';
 import type { Event as NostrEvent, UserEvent } from '../routes/types';
 import { events as timelineEvents } from '../stores/Events';
 import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
+import { isMuteEvent } from '../stores/Author';
 
 export class Api {
 	constructor(private pool: SimplePool, private relays: string[]) {}
