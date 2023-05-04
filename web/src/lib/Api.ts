@@ -61,6 +61,10 @@ export class Api {
 		events.sort((x, y) => x.created_at - y.created_at);
 		const event = events[0];
 
+		if (isMuteEvent(event)) {
+			return undefined;
+		}
+
 		const userEvent = await this.fetchUserEvent(event.pubkey);
 		if (userEvent === undefined) {
 			return event as NostrEvent;
