@@ -86,7 +86,7 @@
 		{:else}
 			<section class="lnbc">
 				<div>
-					{#await QRCode.toDataURL(invoice) then dataUrl}
+					{#await QRCode.toDataURL(`lightning:${invoice}`) then dataUrl}
 						<a href="lightning:{invoice}" target="_blank" rel="noopener noreferrer">
 							<img src={dataUrl} alt="" />
 						</a>
