@@ -61,28 +61,28 @@
 		]);
 		metadataEvents.sort((x, y) => x.created_at - y.created_at);
 		$userEvents = new Map(
-			metadataEvents.map((event) => {
-				try {
-					const user = JSON.parse(event.content);
-					const e = {
-						...event,
-						user
-					} as UserEvent;
-					return [e.pubkey, e];
-				} catch (err) {
-					console.error(err.message, event.content);
-					return [];
-				}
-			})
+			metadataEvents
+				.map((event) => {
+					try {
+						const user = JSON.parse(event.content);
+						const e = {
+							...event,
+							user
+						} as UserEvent;
+						return [e.pubkey, e];
+					} catch (error) {
+						console.error('[invalid metadata]', error, event);
+						return null;
+					}
+				})
+				.filter((x): x is [string, Event] => x !== null)
 		);
 
-		if ($userEvents) {
-			for (const [, e] of $userEvents) {
-				nip57.getZapEndpoint(e).then((url) => {
-					e.user.zapEndpoint = url;
-					console.debug('[metadata]', e.user);
-				});
-			}
+		for (const [, e] of $userEvents) {
+			nip57.getZapEndpoint(e).then((url) => {
+				e.user.zapEndpoint = url;
+				console.debug('[metadata]', e.user);
+			});
 		}
 
 		console.log(`Metadata events loaded in ${Date.now() / 1000 - now} seconds`);
