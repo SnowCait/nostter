@@ -87,7 +87,7 @@
 			<section class="lnbc">
 				<div>
 					{#await QRCode.toDataURL(invoice) then dataUrl}
-						<a href="lightning:" target="_blank" rel="noopener noreferrer">
+						<a href="lightning:{invoice}" target="_blank" rel="noopener noreferrer">
 							<img src={dataUrl} alt="" />
 						</a>
 					{/await}
