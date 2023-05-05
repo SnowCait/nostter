@@ -131,6 +131,8 @@
 	}
 
 	async function fetchAuthor(relays: string[]) {
+		console.time('fetch author');
+
 		const api = new Api($pool, relays);
 		const [replaceableEvents, parameterizedReplaceableEvents] = await api.fetchAuthorEvents(
 			$pubkey
@@ -230,6 +232,8 @@
 			$relayUrls = $defaultRelays;
 			console.log('[relays]', $relayUrls);
 		}
+
+		console.timeEnd('fetch author');
 	}
 
 	function filterTags(tagName: string, tags: string[][]) {
