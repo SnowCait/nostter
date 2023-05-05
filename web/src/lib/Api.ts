@@ -34,7 +34,7 @@ export class Api {
 		const metadata = events[0];
 
 		// Save cache
-		userEvent = saveMetadataEvent(metadata);
+		userEvent = await saveMetadataEvent(metadata);
 
 		return userEvent;
 	}

@@ -1,6 +1,6 @@
 import { writable, type Writable } from 'svelte/store';
 import type { User, UserEvent } from '../routes/types';
-import type { Event } from 'nostr-tools';
+import { nip57, type Event } from 'nostr-tools';
 
 export const userEvents: Writable<Map<string, UserEvent>> = writable(new Map());
 function saveUserEvent(userEvent: UserEvent) {
@@ -14,9 +14,10 @@ function saveUserEvent(userEvent: UserEvent) {
 		return userEvents;
 	});
 }
-export function saveMetadataEvent(event: Event): UserEvent {
+export async function saveMetadataEvent(event: Event): Promise<UserEvent> {
 	try {
 		const user = JSON.parse(event.content) as User;
+		user.zapEndpoint = await nip57.getZapEndpoint(event);
 		console.debug('[metadata]', user);
 		const userEvent: UserEvent = {
 			...event,

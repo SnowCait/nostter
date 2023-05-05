@@ -8,7 +8,7 @@
 	import { pubkey, relayUrls, followees, authorProfile, isMuteEvent } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
-	import { Kind, SimplePool, type Event as NostrEvent } from 'nostr-tools';
+	import { Kind, SimplePool, type Event as NostrEvent, nip57 } from 'nostr-tools';
 	import { Author } from '$lib/Author';
 
 	const now = Math.floor(Date.now() / 1000);
@@ -70,6 +70,13 @@
 				return [e.pubkey, e];
 			})
 		);
+
+		for (const [, e] of $userEvents) {
+			nip57.getZapEndpoint(e).then((url) => {
+				e.user.zapEndpoint = url;
+				console.debug('[metadata]', e.user);
+			});
+		}
 
 		console.log(`Metadata events loaded in ${Date.now() / 1000 - now} seconds`);
 
@@ -135,7 +142,7 @@
 			}
 
 			if (event.kind === Kind.Metadata) {
-				saveMetadataEvent(event);
+				await saveMetadataEvent(event);
 				return;
 			}
 
