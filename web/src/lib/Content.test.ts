@@ -124,11 +124,9 @@ describe('findNpubsAndNprofiles test', () => {
 		expect(Content.findNpubsAndNprofiles('')).toStrictEqual([]);
 	});
 	it('npubs', () => {
-		expect(Content.findNpubsAndNprofiles('npub1a nprofile1b nostr:npub1c')).toStrictEqual([
-			'npub1a',
-			'nprofile1b',
-			'npub1c'
-		]);
+		expect(
+			Content.findNpubsAndNprofiles('npub1aaaaaa nprofile1bbbbbb nostr:npub1cccccc')
+		).toStrictEqual(['npub1aaaaaa', 'nprofile1bbbbbb', 'npub1cccccc']);
 	});
 });
 
@@ -137,11 +135,9 @@ describe('findNotesAndNevents test', () => {
 		expect(Content.findNotesAndNevents('')).toStrictEqual([]);
 	});
 	it('notes', () => {
-		expect(Content.findNotesAndNevents('note1a nevent1b nostr:note1c')).toStrictEqual([
-			'note1a',
-			'nevent1b',
-			'note1c'
-		]);
+		expect(
+			Content.findNotesAndNevents('note1aaaaaa nevent1bbbbbb nostr:note1cccccc')
+		).toStrictEqual(['note1aaaaaa', 'nevent1bbbbbb', 'note1cccccc']);
 	});
 });
 
@@ -175,8 +171,8 @@ describe('findHashtags test', () => {
 
 describe('replaceNip19 test', () => {
 	it('replace', () => {
-		expect(Content.replaceNip19('npub1a nprofile1b nostr:note1c')).toStrictEqual(
-			'nostr:npub1a nostr:nprofile1b nostr:note1c'
+		expect(Content.replaceNip19('npub1aaaaaa nprofile1bbbbbb nostr:note1cccccc')).toStrictEqual(
+			'nostr:npub1aaaaaa nostr:nprofile1bbbbbb nostr:note1cccccc'
 		);
 	});
 });
