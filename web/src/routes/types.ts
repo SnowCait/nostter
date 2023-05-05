@@ -23,6 +23,7 @@ export interface User {
 	about: string;
 	lud06: string;
 	lud16: string;
+	zapEndpoint: string | null;
 }
 
 export interface RelayPermission {

@@ -14,7 +14,8 @@
 		IconQuote,
 		IconHeart,
 		IconPaw,
-		IconCodeDots
+		IconCodeDots,
+		IconBolt
 	} from '@tabler/icons-svelte';
 	import type { ChannelMetadata, Event } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
@@ -31,6 +32,7 @@
 	import Url from '../content/Url.svelte';
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
+	import ZapDialog from '../ZapDialog.svelte';
 	export let event: Event;
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
@@ -46,6 +48,7 @@
 
 	let reposted = false;
 	let reactioned = false;
+	let zapped = false;
 	let jsonDisplay = false;
 	let replyToNames: string[] = [];
 	let channelId: string | undefined;
@@ -53,6 +56,7 @@
 	let channelMetadata: ChannelMetadata | undefined;
 	const originalEvent = Object.assign({}, event) as any;
 	delete originalEvent.user;
+	let zapDialogComponent: ZapDialog;
 
 	let contentWarning = event.tags.find(([tagName]) => tagName === 'content-warning')?.at(1);
 	let showContent = contentWarning === undefined;
@@ -126,6 +130,10 @@
 		});
 	}
 
+	function onZapped() {
+		zapped = true;
+	}
+
 	onMount(async () => {
 		const pubkeys = Array.from(
 			new Set(event.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey))
@@ -155,6 +163,8 @@
 		}
 	});
 </script>
+
+<ZapDialog {event} bind:this={zapDialogComponent} on:zapped={onZapped} />
 
 <article>
 	<div>
@@ -269,6 +279,14 @@
 					{:else}
 						<IconHeart size={iconSize} />
 					{/if}
+				</button>
+				<button
+					class="zap"
+					class:hidden={event.user.zapEndpoint === null}
+					disabled={zapped}
+					on:click={() => zapDialogComponent.openZapDialog()}
+				>
+					<IconBolt size={iconSize} />
 				</button>
 				<button on:click={toggleJsonDisplay}>
 					<IconCodeDots size={iconSize} />
@@ -396,6 +414,10 @@
 
 	.reaction:disabled {
 		color: lightpink;
+	}
+
+	.zap:disabled {
+		color: #f59f00;
 	}
 
 	.content-warning {

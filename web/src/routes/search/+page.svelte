@@ -68,7 +68,7 @@
 					const e = data[2] as Event;
 					switch (e.kind) {
 						case Kind.Metadata: {
-							saveMetadataEvent(e);
+							await saveMetadataEvent(e);
 							break;
 						}
 						case Kind.Text: {
