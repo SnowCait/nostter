@@ -79,7 +79,7 @@
 						type="text"
 						placeholder="Comment"
 						bind:value={zapComment}
-						on:keyup|stopPropagation={() => {}}
+						on:keyup|stopPropagation={console.debug}
 					/>
 				</div>
 			</form>
