@@ -3,13 +3,14 @@ name: Test
 on:
   pull_request_target:
 
+defaults:
+  run:
+    working-directory: web
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v3
       - run: npm ci
@@ -18,9 +19,6 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v3
       - run: npm ci
@@ -29,9 +27,6 @@ jobs:
   e2e-test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v3
       - run: npm ci
