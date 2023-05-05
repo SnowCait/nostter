@@ -8,6 +8,47 @@ import { isMuteEvent } from '../stores/Author';
 export class Api {
 	constructor(private pool: SimplePool, private relays: string[]) {}
 
+	async fetchAuthorEvents(pubkey: string): Promise<[Map<Kind, Event>, Map<string, Event>]> {
+		const events = await this.pool.list(this.relays, [
+			{
+				kinds: [
+					Kind.Metadata,
+					Kind.RecommendRelay,
+					Kind.Contacts,
+					10000,
+					Kind.RelayList,
+					30000,
+					30078
+				],
+				authors: [pubkey]
+			}
+		]);
+		events.sort((x, y) => x.created_at - y.created_at); // Latest event is effective
+		console.debug('[author events all]', events);
+		const threshold = 30000;
+		const replaceableEvents = new Map<Kind, Event>(
+			events.filter((e) => e.kind < threshold).map((e) => [e.kind, e])
+		);
+		const parameterizedReplaceableEvents = new Map<string, Event>(
+			events
+				.filter((e) => e.kind >= threshold)
+				.map((e) => {
+					const id = e.tags
+						.find(
+							([tagName, tagContent]) => tagName === 'd' && tagContent !== undefined
+						)
+						?.at(1);
+					if (id === undefined) {
+						return null;
+					}
+					return [`${e.kind}:${id}`, e];
+				})
+				.filter((x): x is [string, Event] => x !== null)
+		);
+		console.log('[author events]', replaceableEvents, parameterizedReplaceableEvents);
+		return [replaceableEvents, parameterizedReplaceableEvents];
+	}
+
 	async fetchUserEvent(pubkey: string): Promise<UserEvent | undefined> {
 		// From cache
 		const cachedUserEvents = get(userEvents);

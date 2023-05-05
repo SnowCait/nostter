@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Kind, nip19, type Event } from 'nostr-tools';
+	import { Kind, nip19, type Event, SimplePool } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import {
 		pubkey,
@@ -24,6 +24,7 @@
 	import { pool } from '../stores/Pool';
 	import { reactionEmoji } from '../stores/Preference';
 	import type { RelayPermission } from './types';
+	import { Api } from '$lib/Api';
 
 	let login: string | null = null;
 	let npub = '';
@@ -130,101 +131,76 @@
 	}
 
 	async function fetchAuthor(relays: string[]) {
-		const events = await $pool.list(relays, [
-			{
-				kinds: [
-					Kind.Metadata,
-					Kind.RecommendRelay,
-					Kind.Contacts,
-					10000,
-					Kind.RelayList,
-					30000,
-					30078
-				],
-				authors: [$pubkey]
-			}
-		]);
-		events.sort((x, y) => x.created_at - y.created_at); // Latest event is effective
-		console.log(events);
+		console.time('fetch author');
 
-		let muteEvent: Event | undefined;
-		let regacyMuteEvent: Event | undefined;
-		for (const event of events) {
-			switch (event.kind) {
-				case Kind.Metadata: {
-					$authorProfile = JSON.parse(event.content);
-					console.log('[profile]', $authorProfile);
-					break;
-				}
-				case Kind.RecommendRelay: {
-					$recommendedRelay = event.content;
-					console.log('[recommended relay]', $recommendedRelay);
-					break;
-				}
-				case Kind.Contacts: {
-					const pubkeys = new Set(event.tags.map((x) => x[1]));
-					pubkeys.add($pubkey); // Add myself
-					$followees = Array.from(pubkeys);
-					console.log('[contacts]', event.created_at, $followees);
+		const api = new Api($pool, relays);
+		const [replaceableEvents, parameterizedReplaceableEvents] = await api.fetchAuthorEvents(
+			$pubkey
+		);
 
-					if (event.content === '') {
-						console.log('[relays in kind 3] empty');
-						break;
-					}
-					const relays = new Map<string, RelayPermission>(
-						Object.entries(JSON.parse(event.content))
-					);
-					console.log(relays, pubkeys);
-					$relayUrls = Array.from(
-						new Set(Array.from(relays.keys()).map((x) => new URL(x)))
-					).map((x) => x.href);
-					console.log('[relays in kind 3]', $relayUrls);
-					break;
-				}
-				case 10000 as Kind: {
-					muteEvent = event;
-					console.log('[mute event]', event);
-					break;
-				}
-				case Kind.RelayList: {
-					$relayUrls = Array.from(
-						new Set(
-							event.tags
-								.filter(
-									([tagName, relay]) =>
-										tagName === 'r' &&
-										(relay.startsWith('wss://') || relay.startsWith('ws://'))
-								)
-								.map(([, relay]) => new URL(relay))
-						)
-					).map((x) => x.href);
-					console.log('[relay list]', $relayUrls);
-					break;
-				}
-				case 30000 as Kind: {
-					if (
-						event.tags.some(
-							([tagName, tagContent]) => tagName === 'd' && tagContent === 'mute'
-						)
-					) {
-						regacyMuteEvent = event;
-						console.log('[regacy mute event]', event);
-					}
-					break;
-				}
-				case 30078 as Kind: {
-					if (
-						event.tags.some(
-							([tagName, id]) => tagName === 'd' && id === 'nostter-reaction-emoji'
-						)
-					) {
-						$reactionEmoji = event.content;
-						console.log('[reaction emoji]', $reactionEmoji);
-					}
-					break;
-				}
+		const metadataEvent = replaceableEvents.get(Kind.Metadata);
+		if (metadataEvent !== undefined) {
+			try {
+				$authorProfile = JSON.parse(metadataEvent.content);
+				console.log('[profile]', $authorProfile);
+			} catch (error) {
+				console.error('[invalid metadata]', error, metadataEvent);
 			}
 		}
+
+		const recommendedRelayEvent = replaceableEvents.get(Kind.RecommendRelay);
+		if (recommendedRelayEvent !== undefined) {
+			$recommendedRelay = recommendedRelayEvent.content;
+			console.log('[recommended relay]', $recommendedRelay);
+		}
+
+		const contactsEvent = replaceableEvents.get(Kind.Contacts);
+		if (contactsEvent !== undefined) {
+			const pubkeys = new Set(filterTags('p', contactsEvent.tags));
+			pubkeys.add($pubkey); // Add myself
+			$followees = Array.from(pubkeys);
+			console.log('[contacts]', pubkeys);
+
+			if (contactsEvent.content === '') {
+				console.log('[relays in kind 3] empty');
+			} else {
+				const relays = new Map<string, RelayPermission>(
+					Object.entries(JSON.parse(contactsEvent.content))
+				);
+				console.log(relays, pubkeys);
+				$relayUrls = Array.from(
+					new Set(Array.from(relays.keys()).map((x) => new URL(x)))
+				).map((x) => x.href);
+				console.log('[relays in kind 3]', $relayUrls);
+			}
+		}
+
+		const relayListEvent = replaceableEvents.get(Kind.RelayList);
+		if (relayListEvent !== undefined) {
+			$relayUrls = Array.from(
+				new Set(
+					relayListEvent.tags
+						.filter(
+							([tagName, relay]) =>
+								tagName === 'r' &&
+								(relay.startsWith('wss://') || relay.startsWith('ws://'))
+						)
+						.map(([, relay]) => new URL(relay))
+				)
+			).map((x) => x.href);
+			console.log('[relay list]', $relayUrls);
+		}
+
+		const reactionEmojiEvent = parameterizedReplaceableEvents.get(
+			`${30078 as Kind}:nostter-reaction-emoji`
+		);
+		if (reactionEmojiEvent !== undefined) {
+			$reactionEmoji = reactionEmojiEvent.content;
+			console.log('[reaction emoji]', $reactionEmoji);
+		}
+
+		const muteEvent = replaceableEvents.get(10000 as Kind);
+		const regacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);
 
 		let modernMutePubkeys: string[] = [];
 		let modernMuteEventIds: string[] = [];
@@ -254,6 +230,8 @@
 			$relayUrls = $defaultRelays;
 			console.log('[relays]', $relayUrls);
 		}
+
+		console.timeEnd('fetch author');
 	}
 
 	function filterTags(tagName: string, tags: string[][]) {
