@@ -156,9 +156,7 @@
 
 		const contactsEvent = replaceableEvents.get(Kind.Contacts);
 		if (contactsEvent !== undefined) {
-			const pubkeys = new Set(
-				contactsEvent.tags.filter(([t]) => t === 'p').map(([, pubkey]) => pubkey)
-			);
+			const pubkeys = new Set(filterTags('p', contactsEvent.tags));
 			pubkeys.add($pubkey); // Add myself
 			$followees = Array.from(pubkeys);
 			console.log('[contacts]', pubkeys);
