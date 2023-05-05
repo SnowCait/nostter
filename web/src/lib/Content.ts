@@ -68,14 +68,14 @@ export class Content {
 	}
 
 	static findNpubsAndNprofiles(content: string): string[] {
-		const matches = content.matchAll(/\b(nostr:)?(?<npub>(npub|nprofile)1\w+)\b/g);
+		const matches = content.matchAll(/\b(nostr:)?(?<npub>(npub|nprofile)1\w{6,})\b/g);
 		return [...matches]
 			.map((match) => match.groups?.npub)
 			.filter((x): x is string => x !== undefined);
 	}
 
 	static findNotesAndNevents(content: string): string[] {
-		const matches = content.matchAll(/\b(nostr:)?(?<note>(note|nevent)1\w+)\b/g);
+		const matches = content.matchAll(/\b(nostr:)?(?<note>(note|nevent)1\w{6,})\b/g);
 		return [...matches]
 			.map((match) => match.groups?.note)
 			.filter((x): x is string => x !== undefined);
