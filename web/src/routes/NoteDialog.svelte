@@ -204,17 +204,23 @@
 			]);
 		}
 
-		const eventIds = Content.findNotesAndNevents(content).map((x) => {
-			const { type, data } = nip19.decode(x);
-			switch (type) {
-				case 'note':
-					return data as string;
-				case 'nevent':
-					return (data as EventPointer).id;
-				default:
-					throw new Error(`Unsupported type: ${type}`);
-			}
-		});
+		const eventIds = Content.findNotesAndNevents(content)
+			.map((x) => {
+				try {
+					const { type, data } = nip19.decode(x);
+					switch (type) {
+						case 'note':
+							return data as string;
+						case 'nevent':
+							return (data as EventPointer).id;
+						default:
+							return undefined;
+					}
+				} catch {
+					return undefined;
+				}
+			})
+			.filter((x): x is string => x !== undefined);
 		tags.push(
 			...Array.from(new Set(eventIds)).map((eventId) => [
 				'e',
@@ -224,9 +230,13 @@
 			])
 		);
 
-		for (const { type, data } of Content.findNpubsAndNprofiles(content).map((x) =>
-			nip19.decode(x)
-		)) {
+		for (const { type, data } of Content.findNpubsAndNprofiles(content).map((x) => {
+			try {
+				return nip19.decode(x);
+			} catch {
+				return { type: undefined, data: undefined };
+			}
+		})) {
 			switch (type) {
 				case 'npub': {
 					pubkeys.add(data as string);
