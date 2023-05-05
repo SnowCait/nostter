@@ -61,14 +61,21 @@
 		]);
 		metadataEvents.sort((x, y) => x.created_at - y.created_at);
 		$userEvents = new Map(
-			metadataEvents.map((event) => {
-				const user = JSON.parse(event.content);
-				const e = {
-					...event,
-					user
-				} as UserEvent;
-				return [e.pubkey, e];
-			})
+			metadataEvents
+				.map((event) => {
+					try {
+						const user = JSON.parse(event.content);
+						const e = {
+							...event,
+							user
+						} as UserEvent;
+						return [e.pubkey, e];
+					} catch (error) {
+						console.error('[invalid metadata]', error, event);
+						return null;
+					}
+				})
+				.filter((x): x is [string, Event] => x !== null)
 		);
 
 		for (const [, e] of $userEvents) {
