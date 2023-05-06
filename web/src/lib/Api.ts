@@ -81,7 +81,6 @@ export class Api {
 	}
 
 	async fetchEvent(filters: Filter[]): Promise<Event | undefined> {
-		console.log('[relays]', this.relays);
 		const events = await this.pool.list(this.relays, filters);
 		if (events.length === 0) {
 			return undefined;
