@@ -48,7 +48,7 @@
 		}
 
 		if (user.nip05 && slug !== user.nip05) {
-			history.replaceState(null, '', user.nip05);
+			history.replaceState(history.state, '', user.nip05);
 		}
 
 		api.fetchFollowees(pubkey).then((pubkeys) => {
@@ -179,7 +179,7 @@
 			]);
 			subscribeNotes.on('event', (nostrEvent: NostrEvent) => {
 				const event = nostrEvent as Event;
-				console.log(event);
+				console.debug(event);
 
 				if (isMuteEvent(event)) {
 					return;

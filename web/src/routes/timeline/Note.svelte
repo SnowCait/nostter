@@ -137,7 +137,7 @@
 		const promises = pubkeys.map(async (pubkey) => {
 			const userEvent = await api.fetchUserEvent(pubkey);
 			return (
-				userEvent?.user.name ?? nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)
+				userEvent?.user?.name ?? nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)
 			);
 		});
 		replyToNames = await Promise.all(promises);
@@ -256,7 +256,7 @@
 				</button>
 				<button
 					class="zap"
-					class:hidden={event.user.zapEndpoint === null}
+					class:hidden={event.user === undefined || event.user.zapEndpoint === null}
 					disabled={zapped}
 					on:click={() => zapDialogComponent.openZapDialog()}
 				>
