@@ -79,6 +79,7 @@
 <style>
 	article {
 		display: flex;
+		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 	}
 
 	img {
