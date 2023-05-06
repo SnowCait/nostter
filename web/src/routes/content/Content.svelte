@@ -40,6 +40,6 @@
 		overflow: auto;
 		margin: 5px 0;
 		white-space: pre-wrap;
-		word-break: break-all;
+		word-break: break-word;
 	}
 </style>

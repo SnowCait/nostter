@@ -54,7 +54,7 @@
 	</div>
 	<div class="json-button">
 		<button on:click={toggleJsonDisplay}>
-			<IconCodeDots size={15} />
+			<IconCodeDots size={18} />
 		</button>
 	</div>
 	<div class="created-at">
