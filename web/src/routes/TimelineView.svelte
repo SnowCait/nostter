@@ -79,7 +79,7 @@
 		border-bottom: 1px solid rgb(239, 243, 244);
 		animation-name: add;
 		animation-duration: 0.8s;
-		padding: 12px 16px;
+		padding: 8px 14px 12px 14px;
 	}
 
 	li.focus {

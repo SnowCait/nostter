@@ -97,6 +97,7 @@
 
 <style>
 	.quote {
+		padding: 6px 6px 10px 6px;
 		border: 1px solid rgb(239, 243, 244);
 		border-radius: 5px;
 	}

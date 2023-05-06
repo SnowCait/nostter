@@ -89,6 +89,12 @@
 	article {
 		display: flex;
 		flex-direction: row;
+		align-items: center;
+		padding-bottom:4px;
+	}
+
+	.reaction-icon{
+		padding-top: 4px;
 	}
 
 	article div {
@@ -97,6 +103,11 @@
 
 	.json-button {
 		margin-left: auto;
+		align-self: center;
+	}
+	.created-at{
+		align-self: baseline;
+		margin-right:0;
 	}
 
 	button {
