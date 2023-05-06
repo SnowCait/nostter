@@ -104,6 +104,11 @@ export class Api {
 		if (storedEvent !== undefined) {
 			return storedEvent;
 		}
+		const $cachedEvents = get(cachedEvents);
+		const cachedEvent = $cachedEvents.get(id);
+		if (cachedEvent !== undefined) {
+			return cachedEvent;
+		}
 
 		// Fetch event
 		const event = await this.fetchEvent([
@@ -125,6 +130,10 @@ export class Api {
 		// Return
 		const nostrEvent = event as NostrEvent;
 		nostrEvent.user = userEvent.user;
+
+		// Cache
+		$cachedEvents.set(nostrEvent.id, nostrEvent);
+
 		return nostrEvent;
 	}
 
