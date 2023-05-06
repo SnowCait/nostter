@@ -24,15 +24,10 @@
 	import { pool } from '../../stores/Pool';
 	import { rom } from '../../stores/Author';
 	import CreatedAt from '../CreatedAt.svelte';
-	import { Content } from '$lib/Content';
-	import Text from '../content/Text.svelte';
-	import Reference from '../content/Reference.svelte';
-	import ReferenceNip27 from '../content/ReferenceNip27.svelte';
-	import Hashtag from '../content/Hashtag.svelte';
-	import Url from '../content/Url.svelte';
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
 	import ZapDialog from '../ZapDialog.svelte';
+	import Content from '../content/Content.svelte';
 	export let event: Event;
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
@@ -196,28 +191,7 @@
 				<button on:click={showWarningContent}>Show</button>
 			</div>
 		{:else}
-			<p class="content">
-				{#each Content.parse(event.content, event.tags) as token}
-					{#if token.name === 'reference' && token.index === undefined}
-						<ReferenceNip27 text={token.text} />
-					{:else if token.name === 'reference' && token.index !== undefined && event.tags.at(token.index) !== undefined}
-						<Reference text={token.text} tag={event.tags[token.index]} />
-					{:else if token.name === 'hashtag'}
-						<Hashtag text={token.text} />
-					{:else if token.name === 'url'}
-						<Url text={token.text} />
-					{:else if token.name === 'nip'}
-						<Url
-							text={token.text}
-							url="https://github.com/nostr-protocol/nips/blob/master/{token.text.substring(
-								'NIP-'.length
-							)}.md"
-						/>
-					{:else}
-						<Text text={token.text} />
-					{/if}
-				{/each}
-			</p>
+			<Content {event} />
 			<ol class="media">
 				{#each [...event.content.matchAll(regexImage)].map((x) => new URL(x[0])) as url}
 					<li>
@@ -352,15 +326,6 @@
 	.reply {
 		font-size: 0.8em;
 		color: gray;
-	}
-
-	.content {
-		line-height: 20px;
-		max-height: 30em;
-		overflow: auto;
-		margin: 5px 0;
-		white-space: pre-wrap;
-		word-break: break-all;
 	}
 
 	.media {
