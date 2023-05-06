@@ -1,7 +1,7 @@
 import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
 import type { Event as NostrEvent, UserEvent } from '../routes/types';
-import { events as timelineEvents } from '../stores/Events';
+import { cachedEvents, events as timelineEvents } from '../stores/Events';
 import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { isMuteEvent } from '../stores/Author';
 
