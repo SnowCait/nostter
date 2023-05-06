@@ -17,10 +17,14 @@
 	let originalEvent: NostrEvent | undefined;
 	let jsonDisplay = false;
 
-	const originalTag = event.tags.find(
-		(tag) =>
-			tag.at(0) === 'e' && (tag.at(3) === 'mention' || tag.at(3) === 'root' || tag.length < 4)
+	let originalTag = event.tags.find(
+		([tagName, , , marker]) => tagName === 'e' && (marker === 'mention' || marker === undefined)
 	);
+
+	// Workaround for some incorrect clients
+	if (originalTag === undefined) {
+		originalTag = event.tags.findLast(([t]) => t === 'e');
+	}
 
 	onMount(async () => {
 		const api = new Api($pool, $relayUrls);
