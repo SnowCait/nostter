@@ -90,10 +90,10 @@
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		padding-bottom:4px;
+		padding-bottom: 4px;
 	}
 
-	.reaction-icon{
+	.reaction-icon {
 		padding-top: 4px;
 	}
 
@@ -105,9 +105,9 @@
 		margin-left: auto;
 		align-self: center;
 	}
-	.created-at{
+	.created-at {
 		align-self: baseline;
-		margin-right:0;
+		margin-right: 0;
 	}
 
 	button {

@@ -307,7 +307,7 @@
 		display: flex;
 		flex-direction: row;
 		flex-wrap: wrap;
-		padding:2px 0 0 0;
+		padding: 2px 0 0 0;
 	}
 
 	.display_name {

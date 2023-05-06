@@ -84,14 +84,14 @@
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		padding-bottom:4px;
+		padding-bottom: 4px;
 	}
 
 	article div {
 		margin-right: 0.2em;
 	}
 
-	.reaction-icon{
+	.reaction-icon {
 		padding-top: 4px;
 	}
 
@@ -100,9 +100,9 @@
 		align-self: center;
 	}
 
-	.created-at{
+	.created-at {
 		align-self: baseline;
-		margin-right:0;
+		margin-right: 0;
 	}
 
 	button {
