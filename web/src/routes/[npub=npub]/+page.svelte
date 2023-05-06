@@ -179,7 +179,7 @@
 			]);
 			subscribeNotes.on('event', (nostrEvent: NostrEvent) => {
 				const event = nostrEvent as Event;
-				console.log(event);
+				console.debug(event);
 
 				if (isMuteEvent(event)) {
 					return;
