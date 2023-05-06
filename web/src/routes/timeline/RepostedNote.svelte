@@ -43,7 +43,7 @@
 </script>
 
 <article>
-	<div>
+	<div class="reaction-icon">
 		<IconRepeat size={18} color={'lightgreen'} />
 	</div>
 	<div>by</div>
@@ -83,14 +83,26 @@
 	article {
 		display: flex;
 		flex-direction: row;
+		align-items: center;
+		padding-bottom: 4px;
 	}
 
 	article div {
 		margin-right: 0.2em;
 	}
 
+	.reaction-icon {
+		padding-top: 4px;
+	}
+
 	.json-button {
 		margin-left: auto;
+		align-self: center;
+	}
+
+	.created-at {
+		align-self: baseline;
+		margin-right: 0;
 	}
 
 	button {

@@ -178,7 +178,7 @@
 		</div>
 		{#if event.tags.some(([tagName]) => tagName === 'p')}
 			<div class="reply">
-				<span>To</span>
+				<span>To </span>
 				<span>@{replyToNames.join(' @')}</span>
 			</div>
 		{/if}
@@ -280,6 +280,7 @@
 		display: flex;
 		flex-direction: row;
 		flex-wrap: wrap;
+		padding: 2px 0 0 0;
 	}
 
 	.display_name {
@@ -313,7 +314,7 @@
 	.action-menu {
 		display: flex;
 		justify-content: space-between;
-		margin-top: 12px;
+		margin-top: 6px;
 	}
 
 	.action-menu button {
