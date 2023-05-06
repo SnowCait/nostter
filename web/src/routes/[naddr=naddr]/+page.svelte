@@ -17,6 +17,8 @@
 
 	const naddr = $page.params.naddr;
 
+	$: title = event?.tags.find(([t]) => t === 'title')?.at(1);
+
 	try {
 		const { data } = nip19.decode(naddr);
 		pointer = data as AddressPointer;
@@ -51,10 +53,14 @@
 	});
 </script>
 
+<svelte:head>
+	<title>{title} - nostter</title>
+</svelte:head>
+
 {#if event === undefined}
 	<h1>Loading...</h1>
 {:else}
-	<h1>{event.tags.find(([t]) => t === 'title')?.at(1)}</h1>
+	<h1>{title}</h1>
 
 	<p>{event.tags.find(([t]) => t === 'summary')?.at(1)}</p>
 
