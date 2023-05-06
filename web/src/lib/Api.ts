@@ -1,4 +1,4 @@
-import { nip19, type Event, type SimplePool, Kind } from 'nostr-tools';
+import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
 import type { Event as NostrEvent, UserEvent } from '../routes/types';
 import { events as timelineEvents } from '../stores/Events';
@@ -80,7 +80,25 @@ export class Api {
 		return userEvent;
 	}
 
-	async fetchEvent(id: string): Promise<NostrEvent | undefined> {
+	async fetchEvent(filters: Filter[]): Promise<Event | undefined> {
+		console.log('[relays]', this.relays);
+		const events = await this.pool.list(this.relays, filters);
+		if (events.length === 0) {
+			return undefined;
+		}
+
+		// Latest
+		events.sort((x, y) => y.created_at - x.created_at);
+		const event = events[0];
+
+		if (isMuteEvent(event)) {
+			return undefined;
+		}
+
+		return event;
+	}
+
+	async fetchEventById(id: string): Promise<NostrEvent | undefined> {
 		// If exsits in store
 		const $events = get(timelineEvents);
 		const storedEvent = $events.find((x) => x.id === id);
@@ -89,20 +107,14 @@ export class Api {
 		}
 
 		// Fetch event
-		const events = await this.pool.list(this.relays, [
+		const event = await this.fetchEvent([
 			{
 				ids: [id]
 			}
 		]);
-		if (events.length === 0) {
-			console.log(`id: ${id} not found in ${this.relays.join(', ')}`);
-			return undefined;
-		}
 
-		events.sort((x, y) => x.created_at - y.created_at);
-		const event = events[0];
-
-		if (isMuteEvent(event)) {
+		if (event === undefined) {
+			console.log('[id not found]', id, nip19.noteEncode(id), nip19.neventEncode({ id }));
 			return undefined;
 		}
 

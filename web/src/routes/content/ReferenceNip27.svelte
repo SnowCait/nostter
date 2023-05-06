@@ -13,14 +13,15 @@
 
 	export let text: string;
 
-	let dataType: 'user' | 'event';
+	let dataType: 'user' | 'event' | 'addr';
 	let pubkey = '';
 	let userEvent: UserEvent | undefined = undefined;
 	let eventId = '';
 	let event: Event | undefined;
+	let slug = text.substring('nostr:'.length);
 
 	try {
-		const { type, data } = nip19.decode(text.substring('nostr:'.length));
+		const { type, data } = nip19.decode(slug);
 		switch (type) {
 			case 'npub': {
 				dataType = 'user';
@@ -47,7 +48,7 @@
 				break;
 			}
 			case 'naddr': {
-				// TODO: Implement
+				dataType = 'addr';
 				break;
 			}
 		}
@@ -63,7 +64,7 @@
 		}
 
 		if (dataType === 'event' && event === undefined) {
-			event = await api.fetchEvent(eventId);
+			event = await api.fetchEventById(eventId);
 		}
 	});
 </script>
@@ -88,6 +89,8 @@
 			{nip19.noteEncode(eventId).substring(0, 'note1'.length + 7)}
 		</a>
 	{/if}
+{:else if dataType === 'addr'}
+	<a href="/{slug}">{slug.substring(0, 'naddr1'.length + 7)}</a>
 {:else}
 	<Text {text} />
 {/if}

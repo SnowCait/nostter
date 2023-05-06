@@ -30,7 +30,7 @@
 	onMount(async () => {
 		if (originalTag !== undefined) {
 			const eventId = originalTag[1];
-			originalEvent = await api.fetchEvent(eventId);
+			originalEvent = await api.fetchEventById(eventId);
 		} else {
 			console.warn('[zapped event not found]', event);
 		}
