@@ -37,9 +37,6 @@
 	}
 
 	const iconSize = 20;
-	const regexImage = new RegExp('https?://\\S+\\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)', 'g');
-	const regexAudio = new RegExp('https?://\\S+\\.(mp3|m4a|wav)', 'g');
-	const regexVideo = new RegExp('https?://\\S+\\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)', 'g');
 
 	let reposted = false;
 	let reactioned = false;
@@ -192,30 +189,6 @@
 			</div>
 		{:else}
 			<Content {event} />
-			<ol class="media">
-				{#each [...event.content.matchAll(regexImage)].map((x) => new URL(x[0])) as url}
-					<li>
-						<a href={url.href} target="_blank" rel="noreferrer">
-							<img src={url.href} alt="" />
-						</a>
-					</li>
-				{/each}
-			</ol>
-			<ol class="media">
-				{#each [...event.content.matchAll(regexAudio)].map((x) => new URL(x[0])) as url}
-					<li>
-						<audio src={url.href} controls />
-					</li>
-				{/each}
-			</ol>
-			<ol class="media">
-				{#each [...event.content.matchAll(regexVideo)].map((x) => new URL(x[0])) as url}
-					<li>
-						<!-- svelte-ignore a11y-media-has-caption -->
-						<video src={url.href} controls />
-					</li>
-				{/each}
-			</ol>
 		{/if}
 		{#if event.kind === Kind.ChannelMessage && channelId !== undefined}
 			<div>
@@ -326,22 +299,6 @@
 	.reply {
 		font-size: 0.8em;
 		color: gray;
-	}
-
-	.media {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
-	}
-
-	.media img,
-	.media video {
-		max-width: 100%;
-		max-height: 20em;
-		margin: 0.5em;
 	}
 
 	.develop pre {
