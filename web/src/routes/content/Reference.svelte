@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { IconExternalLink } from '@tabler/icons-svelte';
 	import { nip19 } from 'nostr-tools';
 	import { events } from '../../stores/Events';
 	import { userEvents } from '../../stores/UserEvents';
