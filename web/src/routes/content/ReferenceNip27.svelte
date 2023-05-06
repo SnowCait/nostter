@@ -63,7 +63,7 @@
 		}
 
 		if (dataType === 'event' && event === undefined) {
-			event = await api.fetchEvent(eventId);
+			event = await api.fetchEventById(eventId);
 		}
 	});
 </script>

@@ -80,7 +80,7 @@ export class Api {
 		return userEvent;
 	}
 
-	async fetchEvent(id: string): Promise<NostrEvent | undefined> {
+	async fetchEventById(id: string): Promise<NostrEvent | undefined> {
 		// If exsits in store
 		const $events = get(timelineEvents);
 		const storedEvent = $events.find((x) => x.id === id);
