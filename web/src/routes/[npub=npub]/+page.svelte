@@ -48,7 +48,7 @@
 		}
 
 		if (user.nip05 && slug !== user.nip05) {
-			history.replaceState(null, '', user.nip05);
+			history.replaceState(history.state, '', user.nip05);
 		}
 
 		api.fetchFollowees(pubkey).then((pubkeys) => {
