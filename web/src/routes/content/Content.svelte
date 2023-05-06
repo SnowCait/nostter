@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { Content } from "$lib/Content";
-	import type { Event } from "nostr-tools";
-	import ReferenceNip27 from "./ReferenceNip27.svelte";
-	import Reference from "./Reference.svelte";
-	import Hashtag from "./Hashtag.svelte";
-	import Url from "./Url.svelte";
-	import Text from "./Text.svelte";
+	import { Content } from '$lib/Content';
+	import type { Event } from 'nostr-tools';
+	import ReferenceNip27 from './ReferenceNip27.svelte';
+	import Reference from './Reference.svelte';
+	import Hashtag from './Hashtag.svelte';
+	import Url from './Url.svelte';
+	import Text from './Text.svelte';
 
 	export let event: Event;
 </script>

@@ -7,15 +7,28 @@
 	import type { Event } from '../types';
 	import Hashtag from './Hashtag.svelte';
 	import Text from './Text.svelte';
+	import { onMount } from 'svelte';
+	import { Api } from '$lib/Api';
+	import { pool } from '../../stores/Pool';
+	import { relayUrls } from '../../stores/Author';
+	import { defaultRelays } from '../../stores/DefaultRelays';
 
 	export let text: string;
 	export let tag: string[];
 
+	$: eventId = tag.at(1);
+
 	let event: Event | undefined;
 	if (tag.at(0) === 'e' && tag.at(1) !== undefined) {
-		const eventId = tag[1];
 		event = $events.find((x) => x.id === eventId);
 	}
+
+	onMount(async () => {
+		if (event === undefined && eventId !== undefined) {
+			const api = new Api($pool, $relayUrls.length > 0 ? $relayUrls : $defaultRelays);
+			event = await api.fetchEventById(eventId);
+		}
+	});
 </script>
 
 {#if tag.at(0) === 'p' && tag.at(1) !== undefined}
