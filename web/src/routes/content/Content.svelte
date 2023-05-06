@@ -38,6 +38,7 @@
 		max-height: 30em;
 		overflow: auto;
 		margin: 5px 0;
+		white-space: pre-wrap;
 		word-break: break-word;
 	}
 </style>
