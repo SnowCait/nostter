@@ -12,6 +12,7 @@
 	import { pool } from '../../stores/Pool';
 	import { relayUrls } from '../../stores/Author';
 	import { defaultRelays } from '../../stores/DefaultRelays';
+	import Url from './Url.svelte';
 
 	export let text: string;
 	export let tag: string[];
@@ -48,9 +49,7 @@
 		</a>
 	{/if}
 {:else if tag.at(0) === 'r' && tag.at(1) !== undefined}
-	<a href={tag[1]}>
-		{tag[1]}<IconExternalLink size={15} />
-	</a>
+	<Url text={tag[1]} />
 {:else if tag.at(0) === 't' && tag.at(1) !== undefined}
 	<Hashtag text={`#${tag[1]}`} />
 {:else}
