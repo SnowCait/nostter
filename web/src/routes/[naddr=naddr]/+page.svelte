@@ -7,12 +7,8 @@
 	import { Api } from '$lib/Api';
 	import { defaultRelays } from '../../stores/DefaultRelays';
 	import { onMount } from 'svelte';
-	import { Content } from '$lib/Content';
-	import ReferenceNip27 from '../content/ReferenceNip27.svelte';
-	import Reference from '../content/Reference.svelte';
-	import Hashtag from '../content/Hashtag.svelte';
-	import Url from '../content/Url.svelte';
-	import Text from '../content/Text.svelte';
+	import { Content as ContentParser } from '$lib/Content';
+	import Content from '../content/Content.svelte';
 
 	console.time('naddr');
 
@@ -48,7 +44,7 @@
 			throw error(404);
 		}
 
-		const tokens = Content.parse(event.content);
+		const tokens = ContentParser.parse(event.content);
 		console.log('[tokens]', tokens);
 
 		console.timeEnd('naddr');
@@ -62,26 +58,5 @@
 
 	<p>{event.tags.find(([t]) => t === 'summary')?.at(1)}</p>
 
-	<p class="content">
-		{#each Content.parse(event.content, event.tags) as token}
-			{#if token.name === 'reference' && token.index === undefined}
-				<ReferenceNip27 text={token.text} />
-			{:else if token.name === 'reference' && token.index !== undefined && event.tags.at(token.index) !== undefined}
-				<Reference text={token.text} tag={event.tags[token.index]} />
-			{:else if token.name === 'hashtag'}
-				<Hashtag text={token.text} />
-			{:else if token.name === 'url'}
-				<Url text={token.text} />
-			{:else if token.name === 'nip'}
-				<Url
-					text={token.text}
-					url="https://github.com/nostr-protocol/nips/blob/master/{token.text.substring(
-						'NIP-'.length
-					)}.md"
-				/>
-			{:else}
-				<Text text={token.text} />
-			{/if}
-		{/each}
-	</p>
+	<Content {event} />
 {/if}
