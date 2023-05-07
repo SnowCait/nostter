@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Kind, nip19, type Event, SimplePool } from 'nostr-tools';
+	import { Kind, nip19, type Event } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import {
 		pubkey,
@@ -17,7 +17,6 @@
 		followees,
 		mutePubkeys,
 		muteEventIds,
-		relayUrls,
 		readRelays,
 		writeRelays,
 		rom
@@ -177,16 +176,13 @@
 					}
 				});
 				console.log(relays, pubkeys);
-				$relayUrls = Array.from(
-					new Set(Array.from(relays.keys()).map((x) => new URL(x)))
-				).map((x) => x.href);
 				$readRelays = Array.from(
 					new Set(validRelays.filter(([, { read }]) => read).map(([relay]) => relay))
 				);
 				$writeRelays = Array.from(
 					new Set(validRelays.filter(([, { write }]) => write).map(([relay]) => relay))
 				);
-				console.log('[relays in kind 3]', $relayUrls, $readRelays, $writeRelays);
+				console.log('[relays in kind 3]', $readRelays, $writeRelays);
 			}
 		}
 
@@ -195,17 +191,6 @@
 			relayListEvent !== undefined &&
 			(contactsEvent === undefined || contactsEvent.created_at < relayListEvent.created_at)
 		) {
-			$relayUrls = Array.from(
-				new Set(
-					relayListEvent.tags
-						.filter(
-							([tagName, relay]) =>
-								tagName === 'r' &&
-								(relay.startsWith('wss://') || relay.startsWith('ws://'))
-						)
-						.map(([, relay]) => new URL(relay))
-				)
-			).map((x) => x.href);
 			const validRelayTags = relayListEvent.tags.filter(([t, relay]) => {
 				if (t !== 'r') {
 					return false;
@@ -236,7 +221,7 @@
 						.map(([, relay]) => relay)
 				)
 			);
-			console.log('[relays in kind 10002]', $relayUrls, $readRelays, $writeRelays);
+			console.log('[relays in kind 10002]', $readRelays, $writeRelays);
 		}
 
 		const reactionEmojiEvent = parameterizedReplaceableEvents.get(
@@ -273,11 +258,7 @@
 		$muteEventIds = Array.from(new Set([...modernMuteEventIds, ...regacyMuteEventIds]));
 		console.log('[mute eventIds]', $muteEventIds);
 
-		console.log('[relays]', $relayUrls, $readRelays, $writeRelays);
-		if ($relayUrls.length === 0) {
-			$relayUrls = $defaultRelays;
-			console.log('[relays]', $relayUrls);
-		}
+		console.log('[relays]', $readRelays, $writeRelays);
 
 		console.timeEnd('fetch author');
 	}

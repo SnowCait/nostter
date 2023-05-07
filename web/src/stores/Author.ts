@@ -11,7 +11,6 @@ export const followees: Writable<string[]> = writable([]);
 export const mutePubkeys: Writable<string[]> = writable([]);
 export const muteEventIds: Writable<string[]> = writable([]);
 export const pinNotes: Writable<string[]> = writable([]);
-export const relayUrls: Writable<string[]> = writable([]);
 export const readRelays: Writable<string[]> = writable($defaultRelays);
 export const writeRelays: Writable<string[]> = writable($defaultRelays);
 export const rom = writable(false);
