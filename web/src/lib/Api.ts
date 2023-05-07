@@ -9,6 +9,25 @@ export class Api {
 	constructor(private pool: SimplePool, private relays: string[]) {}
 
 	async fetchAuthorEvents(pubkey: string): Promise<[Map<Kind, Event>, Map<string, Event>]> {
+		// Load cache
+		const cachedReplaceableEvents = sessionStorage.getItem('nostter:replaceable-events');
+		const cachedParameterizedReplaceableEvents = sessionStorage.getItem(
+			'nostter:parameterized-replaceable-events'
+		);
+		if (cachedReplaceableEvents !== null && cachedParameterizedReplaceableEvents !== null) {
+			return [
+				new Map<Kind, Event>(
+					[...Object.entries(JSON.parse(cachedReplaceableEvents))].map(([k, e]) => [
+						Number(k) as Kind,
+						e as Event
+					])
+				),
+				new Map<string, Event>(
+					Object.entries(JSON.parse(cachedParameterizedReplaceableEvents))
+				)
+			];
+		}
+
 		const events = await this.pool.list(this.relays, [
 			{
 				kinds: [
@@ -46,6 +65,17 @@ export class Api {
 				.filter((x): x is [string, Event] => x !== null)
 		);
 		console.log('[author events]', replaceableEvents, parameterizedReplaceableEvents);
+
+		// Save cache
+		sessionStorage.setItem(
+			'nostter:replaceable-events',
+			JSON.stringify(Object.fromEntries(replaceableEvents))
+		);
+		sessionStorage.setItem(
+			'nostter:parameterized-replaceable-events',
+			JSON.stringify(Object.fromEntries(parameterizedReplaceableEvents))
+		);
+
 		return [replaceableEvents, parameterizedReplaceableEvents];
 	}
 
