@@ -10,7 +10,7 @@
 	import { nip57 } from 'nostr-tools';
 	import QRCode from 'qrcode';
 	import type { Event } from './types';
-	import { relayUrls } from '../stores/Author';
+	import { writeRelays } from '../stores/Author';
 	import { createEventDispatcher } from 'svelte';
 
 	export let event: Event;
@@ -34,7 +34,7 @@
 			event: event.id,
 			amount,
 			comment: zapComment,
-			relays: $relayUrls
+			relays: $writeRelays
 		});
 		const zapRequestEvent = await window.nostr.signEvent(zapRequest);
 		console.log('[zap request]', zapRequestEvent, event.user);

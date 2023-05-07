@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	import { pool } from '../stores/Pool';
-	import { pubkey, rom, relayUrls, recommendedRelay } from '../stores/Author';
+	import { pubkey, rom, recommendedRelay, writeRelays } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../stores/NoteDialog';
 	import Note from './timeline/Note.svelte';
 	import { IconSend } from '@tabler/icons-svelte';
@@ -261,7 +261,7 @@
 		});
 		console.log('[publish]', event);
 
-		const api = new Api($pool, $relayUrls);
+		const api = new Api($pool, $writeRelays);
 		const success = await api.publish(event);
 		posting = false;
 		if (success) {

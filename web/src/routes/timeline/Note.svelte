@@ -20,7 +20,7 @@
 	import type { ChannelMetadata, Event } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
-	import { recommendedRelay, relayUrls } from '../../stores/Author';
+	import { recommendedRelay, relayUrls, writeRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import { rom } from '../../stores/Author';
 	import CreatedAt from '../CreatedAt.svelte';
@@ -84,7 +84,7 @@
 		});
 		console.log(event);
 
-		$pool.publish($relayUrls, event).on('failed', () => {
+		$pool.publish($writeRelays, event).on('failed', () => {
 			reposted = false;
 		});
 	}
@@ -117,7 +117,7 @@
 		});
 		console.log(event);
 
-		$pool.publish($relayUrls, event).on('failed', () => {
+		$pool.publish($writeRelays, event).on('failed', () => {
 			reactioned = false;
 		});
 	}
