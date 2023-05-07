@@ -5,7 +5,7 @@
 	import { events } from '../../stores/Events';
 	import { saveMetadataEvent, userEvents } from '../../stores/UserEvents';
 	import { pool as fastPool } from '../../stores/Pool';
-	import { pubkey, relayUrls, followees, authorProfile, isMuteEvent } from '../../stores/Author';
+	import { pubkey, followees, authorProfile, readRelays, isMuteEvent } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
 	import { Kind, SimplePool, type Event as NostrEvent, nip57 } from 'nostr-tools';
@@ -28,7 +28,7 @@
 
 		const pool = new SimplePool();
 		const since = (until ?? now) - span;
-		const pastEvents = await pool.list($relayUrls, [
+		const pastEvents = await pool.list($readRelays, [
 			{
 				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
 				authors: $followees,
@@ -48,12 +48,12 @@
 				since
 			}
 		]);
-		pool.close($relayUrls);
+		pool.close($readRelays);
 
 		console.log(`Text events loaded in ${Date.now() / 1000 - now} seconds`);
 
 		const pubkeys = new Set(pastEvents.map((x) => x.pubkey));
-		const metadataEvents = await $fastPool.list($relayUrls, [
+		const metadataEvents = await $fastPool.list($readRelays, [
 			{
 				kinds: [0],
 				authors: Array.from(pubkeys)
@@ -123,7 +123,7 @@
 		let eose = false;
 		let newEvents: Event[] = [];
 		const since = $events.length > 0 ? $events[$events.length - 1].created_at + 1 : now;
-		const subscribe = $fastPool.sub($relayUrls, [
+		const subscribe = $fastPool.sub($readRelays, [
 			{
 				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
 				authors: Array.from($followees),
@@ -153,7 +153,7 @@
 				return;
 			}
 
-			const api = new Api($fastPool, $relayUrls);
+			const api = new Api($fastPool, $readRelays);
 			const userEvent = await api.fetchUserEvent(event.pubkey); // not chronological
 			if (userEvent !== undefined) {
 				event.user = userEvent.user;

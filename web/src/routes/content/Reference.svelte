@@ -9,8 +9,7 @@
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
 	import { pool } from '../../stores/Pool';
-	import { relayUrls } from '../../stores/Author';
-	import { defaultRelays } from '../../stores/DefaultRelays';
+	import { readRelays } from '../../stores/Author';
 	import Url from './Url.svelte';
 
 	export let text: string;
@@ -25,7 +24,7 @@
 
 	onMount(async () => {
 		if (event === undefined && eventId !== undefined) {
-			const api = new Api($pool, $relayUrls.length > 0 ? $relayUrls : $defaultRelays);
+			const api = new Api($pool, $readRelays);
 			event = await api.fetchEventById(eventId);
 		}
 	});

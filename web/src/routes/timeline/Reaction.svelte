@@ -3,7 +3,7 @@
 	import { pool } from '../../stores/Pool';
 	import Note from './Note.svelte';
 	import type { Event as NostrEvent, User } from '../types';
-	import { relayUrls } from '../../stores/Author';
+	import { readRelays } from '../../stores/Author';
 	import { nip19 } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { onMount } from 'svelte';
@@ -23,7 +23,7 @@
 	const originalTag = eTags.at(eTags.length - 1);
 
 	onMount(async () => {
-		const api = new Api($pool, $relayUrls);
+		const api = new Api($pool, $readRelays);
 		api.fetchUserEvent(event.pubkey).then((userEvent) => {
 			user = userEvent?.user;
 		});

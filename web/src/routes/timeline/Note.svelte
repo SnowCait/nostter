@@ -20,7 +20,7 @@
 	import type { ChannelMetadata, Event } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
-	import { recommendedRelay, relayUrls, writeRelays } from '../../stores/Author';
+	import { recommendedRelay, readRelays, writeRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import { rom } from '../../stores/Author';
 	import CreatedAt from '../CreatedAt.svelte';
@@ -130,7 +130,7 @@
 		const pubkeys = Array.from(
 			new Set(event.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey))
 		);
-		const api = new Api($pool, $relayUrls);
+		const api = new Api($pool, $readRelays);
 		const promises = pubkeys.map(async (pubkey) => {
 			const userEvent = await api.fetchUserEvent(pubkey);
 			return (

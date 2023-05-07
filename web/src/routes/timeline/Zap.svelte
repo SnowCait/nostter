@@ -3,7 +3,7 @@
 	import { pool } from '../../stores/Pool';
 	import Note from './Note.svelte';
 	import type { Event as NostrEvent } from '../types';
-	import { relayUrls } from '../../stores/Author';
+	import { readRelays } from '../../stores/Author';
 	import { nip19, type Event } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { onMount } from 'svelte';
@@ -25,7 +25,7 @@
 	console.debug('[zap request]', event.id, descriptionTag);
 	const zapRequestEvent = JSON.parse(descriptionTag ?? '{}') as Event;
 
-	const api = new Api($pool, $relayUrls);
+	const api = new Api($pool, $readRelays);
 
 	onMount(async () => {
 		if (originalTag !== undefined) {

@@ -5,7 +5,7 @@
 	import { events } from '../../stores/Events';
 	import type { Event, UserEvent } from '../types';
 	import { pool } from '../../stores/Pool';
-	import { relayUrls } from '../../stores/Author';
+	import { readRelays } from '../../stores/Author';
 	import Note from '../timeline/Note.svelte';
 	import Text from './Text.svelte';
 	import Channel from '../timeline/Channel.svelte';
@@ -57,7 +57,7 @@
 	}
 
 	onMount(async () => {
-		const api = new Api($pool, $relayUrls);
+		const api = new Api($pool, $readRelays);
 
 		if (dataType === 'user') {
 			userEvent = await api.fetchUserEvent(pubkey);
