@@ -190,7 +190,9 @@
 		const relayListEvent = replaceableEvents.get(Kind.RelayList);
 		if (
 			relayListEvent !== undefined &&
-			(contactsEvent === undefined || contactsEvent.created_at < relayListEvent.created_at)
+			(contactsEvent === undefined ||
+				contactsEvent.content === '' ||
+				contactsEvent.created_at < relayListEvent.created_at)
 		) {
 			updateRelays(relayListEvent);
 			console.log('[relays in kind 10002]', $readRelays, $writeRelays);
