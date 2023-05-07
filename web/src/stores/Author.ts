@@ -30,3 +30,38 @@ export const isMuteEvent = (event: Event) => {
 		event.tags.some(([tagName, id]) => tagName === 'e' && ids.includes(id))
 	);
 };
+
+export const updateRelays = (event: Event) => {
+	const validRelayTags = event.tags.filter(([t, relay]) => {
+		if (t !== 'r') {
+			return false;
+		}
+
+		try {
+			const url = new URL(relay);
+			return url.protocol === 'wss:' || url.protocol === 'ws:';
+		} catch {
+			return false;
+		}
+	});
+	readRelays.set(
+		Array.from(
+			new Set(
+				validRelayTags
+					.filter(([, , permission]) => permission === undefined || permission === 'read')
+					.map(([, relay]) => relay)
+			)
+		)
+	);
+	writeRelays.set(
+		Array.from(
+			new Set(
+				validRelayTags
+					.filter(
+						([, , permission]) => permission === undefined || permission === 'write'
+					)
+					.map(([, relay]) => relay)
+			)
+		)
+	);
+};

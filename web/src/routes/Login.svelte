@@ -19,7 +19,8 @@
 		muteEventIds,
 		readRelays,
 		writeRelays,
-		rom
+		rom,
+		updateRelays
 	} from '../stores/Author';
 	import { defaultRelays } from '../stores/DefaultRelays';
 	import { pool } from '../stores/Pool';
@@ -191,36 +192,7 @@
 			relayListEvent !== undefined &&
 			(contactsEvent === undefined || contactsEvent.created_at < relayListEvent.created_at)
 		) {
-			const validRelayTags = relayListEvent.tags.filter(([t, relay]) => {
-				if (t !== 'r') {
-					return false;
-				}
-
-				try {
-					const url = new URL(relay);
-					return url.protocol === 'wss:' || url.protocol === 'ws:';
-				} catch {
-					return false;
-				}
-			});
-			$readRelays = Array.from(
-				new Set(
-					validRelayTags
-						.filter(
-							([, , permission]) => permission === undefined || permission === 'read'
-						)
-						.map(([, relay]) => relay)
-				)
-			);
-			$writeRelays = Array.from(
-				new Set(
-					validRelayTags
-						.filter(
-							([, , permission]) => permission === undefined || permission === 'write'
-						)
-						.map(([, relay]) => relay)
-				)
-			);
+			updateRelays(relayListEvent);
 			console.log('[relays in kind 10002]', $readRelays, $writeRelays);
 		}
 
