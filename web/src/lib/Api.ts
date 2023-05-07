@@ -215,4 +215,8 @@ export class Api {
 			});
 		});
 	}
+
+	close() {
+		this.pool.close(this.relays);
+	}
 }

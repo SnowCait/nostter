@@ -138,6 +138,7 @@
 		const [replaceableEvents, parameterizedReplaceableEvents] = await api.fetchAuthorEvents(
 			$pubkey
 		);
+		api.close();
 
 		const metadataEvent = replaceableEvents.get(Kind.Metadata);
 		if (metadataEvent !== undefined) {
