@@ -190,8 +190,7 @@ export class Api {
 			setTimeout(() => {
 				console.warn(
 					'[publish timeout]',
-					this.relays,
-					publishedRelays,
+					this.relays.filter((relay) => !publishedRelays.has(relay)),
 					`${Date.now() - now}ms`
 				);
 				resolve(done());
