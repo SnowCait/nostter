@@ -176,7 +176,10 @@
 		}
 
 		const relayListEvent = replaceableEvents.get(Kind.RelayList);
-		if (relayListEvent !== undefined) {
+		if (
+			relayListEvent !== undefined &&
+			(contactsEvent === undefined || contactsEvent.created_at < relayListEvent.created_at)
+		) {
 			$relayUrls = Array.from(
 				new Set(
 					relayListEvent.tags
