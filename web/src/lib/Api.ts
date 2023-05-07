@@ -50,7 +50,7 @@ export class Api {
 	}
 
 	async fetchUserEvent(pubkey: string): Promise<UserEvent | undefined> {
-		// From cache
+		// Load cache
 		const cachedUserEvents = get(userEvents);
 		let userEvent = cachedUserEvents.get(pubkey);
 		if (userEvent !== undefined) {
@@ -58,24 +58,20 @@ export class Api {
 		}
 
 		// Fetch metadata
-		const events = await this.pool.list(this.relays, [
+		const event = await this.fetchEvent([
 			{
 				kinds: [0],
 				authors: [pubkey]
 			}
 		]);
-		if (events.length === 0) {
-			console.log(
-				`pubkey: ${nip19.npubEncode(pubkey)} not found in ${this.relays.join(', ')}`
-			);
+
+		if (event === undefined) {
+			console.log('[pubkey not found]', pubkey, nip19.npubEncode(pubkey));
 			return undefined;
 		}
 
-		events.sort((x, y) => x.created_at - y.created_at);
-		const metadata = events[0];
-
 		// Save cache
-		userEvent = await saveMetadataEvent(metadata);
+		userEvent = await saveMetadataEvent(event);
 
 		return userEvent;
 	}
