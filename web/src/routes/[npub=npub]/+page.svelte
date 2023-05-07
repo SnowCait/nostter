@@ -5,9 +5,8 @@
 	import type { Event, User } from '../types';
 	import { userEvents } from '../../stores/UserEvents';
 	import { pool } from '../../stores/Pool';
-	import { defaultRelays } from '../../stores/DefaultRelays';
 	import TimelineView from '../TimelineView.svelte';
-	import { pubkey as authorPubkey, isMuteEvent, relayUrls } from '../../stores/Author';
+	import { pubkey as authorPubkey, isMuteEvent, readRelays } from '../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
 	import Follow from '../Follow.svelte';
 	import { Api } from '$lib/Api';
@@ -23,7 +22,7 @@
 	let followeesLoading = true;
 	let followersLoading = true;
 
-	let relays = $relayUrls.length > 0 ? $relayUrls : $defaultRelays;
+	let relays = $readRelays;
 	const api = new Api($pool, relays);
 
 	afterNavigate(async () => {

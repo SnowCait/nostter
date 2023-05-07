@@ -10,7 +10,7 @@
 	import { writable } from 'svelte/store';
 	import { reactionEmoji } from '../../stores/Preference';
 	import { pool } from '../../stores/Pool';
-	import { relayUrls } from '../../stores/Author';
+	import { writeRelays } from '../../stores/Author';
 	import { onMount } from 'svelte';
 
 	let pawPad = writable($reactionEmoji === '🐾');
@@ -37,7 +37,7 @@
 				content: $reactionEmoji
 			});
 			console.log('[reaction emoji]', event);
-			await $pool.publish($relayUrls, event);
+			await $pool.publish($writeRelays, event);
 		});
 	});
 </script>

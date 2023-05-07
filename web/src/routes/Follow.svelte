@@ -10,19 +10,20 @@
 	import { IconTrash } from '@tabler/icons-svelte';
 	import { Api } from '$lib/Api';
 	import { pool } from '../stores/Pool';
-	import { followees, relayUrls, pubkey as authorPubkey } from '../stores/Author';
+	import { followees, pubkey as authorPubkey, writeRelays } from '../stores/Author';
 	import { nip19, type Event } from 'nostr-tools';
 
 	export let pubkey: string;
 
 	let following = false;
 
+	const api = new Api($pool, $writeRelays);
+
 	async function follow() {
 		console.log('[on.follow]');
 
 		following = true;
 
-		const api = new Api($pool, $relayUrls);
 		const contactList = await api.fetchContactListEvent($authorPubkey);
 		console.log('[contact list]', contactList);
 		if (contactList === undefined) {
@@ -35,7 +36,7 @@
 		);
 		pubkeys.add(pubkey);
 
-		await updateContactList(api, Array.from(pubkeys), contactList);
+		await updateContactList(Array.from(pubkeys), contactList);
 
 		following = false;
 	}
@@ -43,7 +44,6 @@
 	async function unfollow() {
 		console.log('[on.unfollow]');
 
-		const api = new Api($pool, $relayUrls);
 		const userEvent = await api.fetchUserEvent(pubkey);
 
 		if (
@@ -70,10 +70,10 @@
 		);
 		pubkeys.delete(pubkey);
 
-		await updateContactList(api, Array.from(pubkeys), contactList);
+		await updateContactList(Array.from(pubkeys), contactList);
 	}
 
-	async function updateContactList(api: Api, pubkeys: string[], oldEvent: Event) {
+	async function updateContactList(pubkeys: string[], oldEvent: Event) {
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: oldEvent.kind,

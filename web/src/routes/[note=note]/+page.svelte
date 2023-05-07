@@ -3,8 +3,7 @@
 	import { page } from '$app/stores';
 	import { error } from '@sveltejs/kit';
 	import { nip19, Kind, type Event } from 'nostr-tools';
-	import { relayUrls } from '../../stores/Author';
-	import { defaultRelays } from '../../stores/DefaultRelays';
+	import { readRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import type { Event as NostrEvent } from '../types';
@@ -38,10 +37,7 @@
 			}
 		}
 
-		const relays = $relayUrls.length > 0 ? $relayUrls : $defaultRelays;
-		console.log(relays);
-
-		const relatedEvents = await $pool.list(relays, [
+		const relatedEvents = await $pool.list($readRelays, [
 			{
 				ids: [eventId]
 			},
@@ -70,7 +66,7 @@
 
 		let i = 0;
 		while (replyToEventId !== undefined) {
-			const replyToEvent = await $pool.get(relays, {
+			const replyToEvent = await $pool.get($readRelays, {
 				ids: [replyToEventId]
 			});
 			if (replyToEvent !== null) {
@@ -84,7 +80,7 @@
 		}
 
 		if (rootEventId !== undefined && !events.some((x) => x.id === rootEventId) && i <= 20) {
-			const rootEvent = await $pool.get(relays, {
+			const rootEvent = await $pool.get($readRelays, {
 				ids: [rootEventId]
 			});
 			if (rootEvent !== null) {
@@ -96,7 +92,7 @@
 		events.push(...repliedEvents);
 
 		const pubkeys = Array.from(new Set(events.map((x) => x.pubkey)));
-		const userEvents = await $pool.list(relays, [
+		const userEvents = await $pool.list($readRelays, [
 			{
 				kinds: [0],
 				authors: pubkeys

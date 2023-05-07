@@ -187,11 +187,10 @@ export class Api {
 
 			const done = () => Array.from(publishedRelays).some(([, ok]) => ok);
 
-			setTimeout(() => {
+			const timeoutId = setTimeout(() => {
 				console.warn(
 					'[publish timeout]',
-					this.relays,
-					publishedRelays,
+					this.relays.filter((relay) => !publishedRelays.has(relay)),
 					`${Date.now() - now}ms`
 				);
 				resolve(done());
@@ -202,6 +201,7 @@ export class Api {
 				console.log('[ok]', relay, `${Date.now() - now}ms`);
 				publishedRelays.set(relay, true);
 				if (this.relays.length === publishedRelays.size) {
+					clearTimeout(timeoutId);
 					resolve(done());
 				}
 			});
@@ -209,6 +209,7 @@ export class Api {
 				console.warn('[failed]', relay, `${Date.now() - now}ms`);
 				publishedRelays.set(relay, false);
 				if (this.relays.length === publishedRelays.size) {
+					clearTimeout(timeoutId);
 					resolve(done());
 				}
 			});

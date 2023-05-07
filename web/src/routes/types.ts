@@ -26,11 +26,6 @@ export interface User {
 	zapEndpoint: string | null;
 }
 
-export interface RelayPermission {
-	read: boolean;
-	write: boolean;
-}
-
 export interface ChannelMetadata {
 	name: string;
 	about: string;

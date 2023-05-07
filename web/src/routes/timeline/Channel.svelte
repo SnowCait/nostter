@@ -3,7 +3,7 @@
 	import { Api } from '$lib/Api';
 	import { nip19, type Event } from 'nostr-tools';
 	import { pool } from '../../stores/Pool';
-	import { relayUrls } from '../../stores/Author';
+	import { readRelays } from '../../stores/Author';
 	import type { ChannelMetadata } from '../types';
 	import { IconCodeDots, IconQuote } from '@tabler/icons-svelte';
 	import { intentContent, openNoteDialog } from '../../stores/NoteDialog';
@@ -26,7 +26,7 @@
 	};
 
 	onMount(async () => {
-		const api = new Api($pool, $relayUrls);
+		const api = new Api($pool, $readRelays);
 		const metadataEvent = await api.fetchChannelMetadataEvent(event.id);
 
 		if (metadataEvent === undefined) {

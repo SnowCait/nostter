@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { Api } from '$lib/Api';
 	import { Kind } from 'nostr-tools';
-	import { relayUrls } from '../../stores/Author';
+	import { readRelays } from '../../stores/Author';
 	import { searchEvents } from '../../stores/Events';
 	import { pool } from '../../stores/Pool';
 	import { saveMetadataEvent } from '../../stores/UserEvents';
@@ -53,7 +53,7 @@
 				case 'EOSE': {
 					console.log('[result]', $searchEvents);
 
-					const api = new Api($pool, $relayUrls);
+					const api = new Api($pool, $readRelays);
 					for (const event of $searchEvents) {
 						const userEvent = await api.fetchUserEvent(event.pubkey);
 						if (userEvent !== undefined) {

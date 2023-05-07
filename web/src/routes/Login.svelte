@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Kind, nip19, type Event, SimplePool } from 'nostr-tools';
+	import { Kind, nip19, type Event } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import {
 		pubkey,
@@ -17,13 +17,14 @@
 		followees,
 		mutePubkeys,
 		muteEventIds,
-		relayUrls,
-		rom
+		readRelays,
+		writeRelays,
+		rom,
+		updateRelays
 	} from '../stores/Author';
 	import { defaultRelays } from '../stores/DefaultRelays';
 	import { pool } from '../stores/Pool';
 	import { reactionEmoji } from '../stores/Preference';
-	import type { RelayPermission } from './types';
 	import { Api } from '$lib/Api';
 
 	let login: string | null = null;
@@ -69,7 +70,7 @@
 
 		console.log(`NIP-07 getPublicKey in ${Date.now() / 1000 - now} seconds`);
 
-		let nip07Relays: Map<string, RelayPermission> = new Map();
+		let nip07Relays: Map<string, { read: boolean; write: boolean }> = new Map();
 		if (typeof window.nostr.getRelays === 'function') {
 			nip07Relays = await window.nostr.getRelays();
 			console.log(nip07Relays);
@@ -164,34 +165,37 @@
 			if (contactsEvent.content === '') {
 				console.log('[relays in kind 3] empty');
 			} else {
-				const relays = new Map<string, RelayPermission>(
+				const relays = new Map<string, { read: boolean; write: boolean }>(
 					Object.entries(JSON.parse(contactsEvent.content))
 				);
+				const validRelays = [...relays].filter(([relay]) => {
+					try {
+						const url = new URL(relay);
+						return url.protocol === 'wss:' || url.protocol === 'ws:';
+					} catch {
+						return false;
+					}
+				});
 				console.log(relays, pubkeys);
-				$relayUrls = Array.from(
-					new Set(Array.from(relays.keys()).map((x) => new URL(x)))
-				).map((x) => x.href);
-				console.log('[relays in kind 3]', $relayUrls);
+				$readRelays = Array.from(
+					new Set(validRelays.filter(([, { read }]) => read).map(([relay]) => relay))
+				);
+				$writeRelays = Array.from(
+					new Set(validRelays.filter(([, { write }]) => write).map(([relay]) => relay))
+				);
+				console.log('[relays in kind 3]', $readRelays, $writeRelays);
 			}
 		}
 
 		const relayListEvent = replaceableEvents.get(Kind.RelayList);
 		if (
 			relayListEvent !== undefined &&
-			(contactsEvent === undefined || contactsEvent.created_at < relayListEvent.created_at)
+			(contactsEvent === undefined ||
+				contactsEvent.content === '' ||
+				contactsEvent.created_at < relayListEvent.created_at)
 		) {
-			$relayUrls = Array.from(
-				new Set(
-					relayListEvent.tags
-						.filter(
-							([tagName, relay]) =>
-								tagName === 'r' &&
-								(relay.startsWith('wss://') || relay.startsWith('ws://'))
-						)
-						.map(([, relay]) => new URL(relay))
-				)
-			).map((x) => x.href);
-			console.log('[relay list]', $relayUrls);
+			updateRelays(relayListEvent);
+			console.log('[relays in kind 10002]', $readRelays, $writeRelays);
 		}
 
 		const reactionEmojiEvent = parameterizedReplaceableEvents.get(
@@ -228,11 +232,7 @@
 		$muteEventIds = Array.from(new Set([...modernMuteEventIds, ...regacyMuteEventIds]));
 		console.log('[mute eventIds]', $muteEventIds);
 
-		console.log('[relays]', $relayUrls);
-		if ($relayUrls.length === 0) {
-			$relayUrls = $defaultRelays;
-			console.log('[relays]', $relayUrls);
-		}
+		console.log('[relays]', $readRelays, $writeRelays);
 
 		console.timeEnd('fetch author');
 	}
