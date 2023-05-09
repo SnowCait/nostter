@@ -2,19 +2,22 @@
 	import type { Relay } from 'nostr-tools';
 	import { pool } from '../stores/Pool';
 	import { readRelays } from '../stores/Author';
+	import { debugMode } from '../stores/Preference';
+
+	let relays: Relay[] = [];
 
 	export function tryOpen() {
 		console.debug('_conn', $pool['_conn']);
-		const relays = Object.entries($pool['_conn'] as { [url: string]: Relay }).filter(([url]) =>
-			$readRelays.includes(new URL(url).href)
-		);
+		relays = Object.entries($pool['_conn'] as { [url: string]: Relay })
+			.filter(([url]) => $readRelays.includes(new URL(url).href))
+			.map(([, relay]) => relay);
 		if (
-			relays.filter(([, relay]) => relay.status === WebSocket.OPEN).length <
-			relays.length / 2
+			relays.filter((relay) => relay.status === WebSocket.OPEN).length < relays.length / 2 ||
+			$debugMode
 		) {
 			console.error(
 				'[unstable connection]',
-				relays.map(([, relay]) => [relay.url, relay.status])
+				relays.map((relay) => [relay.url, relay.status])
 			);
 			dialog.showModal();
 		}
@@ -24,7 +27,7 @@
 
 	function close(e: MouseEvent) {
 		const element = (e.target as Element).closest('.dialog-content');
-		console.log('[zap close]', element, dialog);
+		console.log('[close reload dialog]', element, dialog);
 		if (element === null) {
 			dialog.close();
 		}
@@ -37,6 +40,11 @@
 		<h1>Unstable connection</h1>
 		<p>More than half relays are lost connection.</p>
 		<button on:click={() => (location.href = '/')}>Reload</button>
+		<ul>
+			{#each relays as relay}
+				<li>{relay.url} {relay.status}</li>
+			{/each}
+		</ul>
 	</div>
 </dialog>
 
@@ -51,5 +59,9 @@
 
 	.dialog-content {
 		padding: 1em;
+	}
+
+	li {
+		word-break: break-all;
 	}
 </style>
