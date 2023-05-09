@@ -2,6 +2,7 @@
 	import type { Relay } from 'nostr-tools';
 	import { pool } from '../stores/Pool';
 	import { readRelays } from '../stores/Author';
+	import { debugMode } from '../stores/Preference';
 
 	let relays: Relay[] = [];
 
@@ -10,7 +11,10 @@
 		relays = Object.entries($pool['_conn'] as { [url: string]: Relay })
 			.filter(([url]) => $readRelays.includes(new URL(url).href))
 			.map(([, relay]) => relay);
-		if (relays.filter((relay) => relay.status === WebSocket.OPEN).length < relays.length / 2) {
+		if (
+			relays.filter((relay) => relay.status === WebSocket.OPEN).length < relays.length / 2 ||
+			$debugMode
+		) {
 			console.error(
 				'[unstable connection]',
 				relays.map((relay) => [relay.url, relay.status])
