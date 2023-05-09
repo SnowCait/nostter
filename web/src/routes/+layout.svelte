@@ -4,8 +4,10 @@
 	import { openNoteDialog } from '../stores/NoteDialog';
 	import { onMount } from 'svelte';
 	import { debugMode } from '../stores/Preference';
+	import ReloadDialog from './ReloadDialog.svelte';
 
 	let debugMessage = '';
+	let reloadDialogComponent: ReloadDialog;
 
 	function keyboardShortcut(event: KeyboardEvent) {
 		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
@@ -25,6 +27,7 @@
 				break;
 			}
 			case 'visible': {
+				reloadDialogComponent.tryOpen();
 				break;
 			}
 		}
@@ -39,6 +42,7 @@
 
 <div class="app">
 	<NoteDialog />
+	<ReloadDialog bind:this={reloadDialogComponent} />
 
 	{#if $debugMode}
 		<section class="debug">
