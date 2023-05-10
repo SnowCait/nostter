@@ -57,6 +57,7 @@
 
 		if (!(await nip07Enabled())) {
 			console.error('Browser extension not found');
+			login = null;
 			return;
 		}
 
