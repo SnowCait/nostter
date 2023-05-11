@@ -103,6 +103,7 @@
 	}
 
 	:global(article.timeline-item) {
+		padding: 12px 16px;
 		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 	}
 </style>
