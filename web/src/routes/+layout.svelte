@@ -101,4 +101,8 @@
 			overflow: auto;
 		}
 	}
+
+	:global(article.timeline-item) {
+		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+	}
 </style>

@@ -41,7 +41,7 @@
 	};
 </script>
 
-<article>
+<article class="timeline-item">
 	<div class="user">
 		<div>
 			<IconBolt size={18} color={'#f59f00'} />
@@ -91,10 +91,6 @@
 {/if}
 
 <style>
-	article {
-		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-	}
-
 	.user {
 		display: flex;
 		flex-direction: row;
