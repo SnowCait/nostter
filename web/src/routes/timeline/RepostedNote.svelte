@@ -8,6 +8,7 @@
 	import CreatedAt from '../CreatedAt.svelte';
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
+	import NoteLink from './NoteLink.svelte';
 
 	export let event: NostrEvent;
 	export let readonly: boolean;
@@ -76,11 +77,7 @@
 {#if originalEvent !== undefined}
 	<Note event={originalEvent} {readonly} {createdAtFormat} />
 {:else if originalTag !== undefined}
-	<article>
-		<a href="/{nip19.noteEncode(originalTag[1])}">
-			{nip19.noteEncode(originalTag[1]).substring(0, 'note1'.length + 7)}
-		</a>
-	</article>
+	<NoteLink eventId={originalTag[1]} />
 {/if}
 
 <style>
