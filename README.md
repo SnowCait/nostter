@@ -10,6 +10,23 @@ https://nostter.vercel.app/
   - PC, iOS and Android are supported
 - `npub` for readonly
 
+## Share on nostter
+
+Link to
+
+```
+https://nostter.vercel.app/post?content={url-encoded-text-here}
+```
+
+<details>
+<summary>Bookmarklet</summary>
+
+```js
+javascript:window.open(`https://nostter.vercel.app/post?content=${document.title}%20${location.href}`);
+```
+
+</details>
+
 ## Demo
 
 https://user-images.githubusercontent.com/1297512/232258971-bc387be1-6260-43e0-93d1-e0ed0b74b045.mp4
