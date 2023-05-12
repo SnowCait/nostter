@@ -156,9 +156,8 @@
 	});
 </script>
 
-<ZapDialog {event} bind:this={zapDialogComponent} on:zapped={onZapped} />
-
 <article class="timeline-item">
+	<ZapDialog {event} bind:this={zapDialogComponent} on:zapped={onZapped} />
 	<div>
 		<a href="/{nip19.npubEncode(event.pubkey)}">
 			<img class="picture" src={event.user?.picture} alt="" />
