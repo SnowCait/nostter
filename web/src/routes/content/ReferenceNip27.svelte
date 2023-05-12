@@ -78,11 +78,11 @@
 {:else if dataType === 'event'}
 	{#if event !== undefined}
 		{#if event.kind === Kind.ChannelCreation}
-			<div class="quote"><Channel {event} /></div>
+			<blockquote><Channel {event} /></blockquote>
 		{:else if event.kind === 1063}
 			<Nip94 {event} />
 		{:else}
-			<div class="quote"><Note {event} readonly={true} /></div>
+			<blockquote><Note {event} readonly={true} /></blockquote>
 		{/if}
 	{:else}
 		<a href="/{nip19.noteEncode(eventId)}">
@@ -96,7 +96,8 @@
 {/if}
 
 <style>
-	.quote {
+	blockquote {
+		margin: 0.5em 0;
 		border: 1px solid rgb(239, 243, 244);
 		border-radius: 5px;
 	}
