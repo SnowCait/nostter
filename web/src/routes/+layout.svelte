@@ -101,4 +101,13 @@
 			overflow: auto;
 		}
 	}
+
+	:global(article.timeline-item) {
+		padding: 12px 16px;
+		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+	}
+
+	:global(article.timeline-item + article.timeline-item) {
+		padding-top: 0;
+	}
 </style>

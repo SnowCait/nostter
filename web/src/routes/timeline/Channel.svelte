@@ -41,7 +41,7 @@
 	});
 </script>
 
-<article>
+<article class="timeline-item">
 	{#if picture}
 		<img src={picture} alt="" />
 	{/if}
@@ -79,7 +79,6 @@
 <style>
 	article {
 		display: flex;
-		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 	}
 
 	img {

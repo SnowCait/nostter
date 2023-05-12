@@ -38,9 +38,9 @@
 	</a>
 {:else if tag.at(0) === 'e' && tag.at(1) !== undefined}
 	{#if event !== undefined}
-		<div class="quote">
+		<blockquote>
 			<Note {event} readonly={true} />
-		</div>
+		</blockquote>
 	{:else}
 		<a href="/{nip19.noteEncode(tag[1])}">
 			{nip19.noteEncode(tag[1]).substring(0, 'note1'.length + 7)}
@@ -55,7 +55,8 @@
 {/if}
 
 <style>
-	.quote {
+	blockquote {
+		margin: 0.5em 0;
 		border: 1px solid rgb(239, 243, 244);
 		border-radius: 5px;
 	}

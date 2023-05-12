@@ -156,9 +156,8 @@
 	});
 </script>
 
-<ZapDialog {event} bind:this={zapDialogComponent} on:zapped={onZapped} />
-
-<article>
+<article class="timeline-item">
+	<ZapDialog {event} bind:this={zapDialogComponent} on:zapped={onZapped} />
 	<div>
 		<a href="/{nip19.npubEncode(event.pubkey)}">
 			<img class="picture" src={event.user?.picture} alt="" />
@@ -258,7 +257,6 @@
 	article {
 		display: flex;
 		flex-direction: row;
-		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 	}
 
 	.picture {
