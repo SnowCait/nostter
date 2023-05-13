@@ -128,6 +128,9 @@ describe('findNpubsAndNprofiles test', () => {
 			Content.findNpubsAndNprofiles('npub1aaaaaa nprofile1bbbbbb nostr:npub1cccccc')
 		).toStrictEqual(['npub1aaaaaa', 'nprofile1bbbbbb', 'npub1cccccc']);
 	});
+	it('url', () => {
+		expect(Content.findNpubsAndNprofiles('https://example.com/npub1aaaaaa')).toStrictEqual([]);
+	});
 });
 
 describe('findNotesAndNevents test', () => {
@@ -138,6 +141,9 @@ describe('findNotesAndNevents test', () => {
 		expect(
 			Content.findNotesAndNevents('note1aaaaaa nevent1bbbbbb nostr:note1cccccc')
 		).toStrictEqual(['note1aaaaaa', 'nevent1bbbbbb', 'note1cccccc']);
+	});
+	it('url', () => {
+		expect(Content.findNpubsAndNprofiles('https://example.com/note1aaaaaa')).toStrictEqual([]);
 	});
 });
 
@@ -173,6 +179,11 @@ describe('replaceNip19 test', () => {
 	it('replace', () => {
 		expect(Content.replaceNip19('npub1aaaaaa nprofile1bbbbbb nostr:note1cccccc')).toStrictEqual(
 			'nostr:npub1aaaaaa nostr:nprofile1bbbbbb nostr:note1cccccc'
+		);
+	});
+	it('url', () => {
+		expect(Content.replaceNip19('https://example.com/npub1aaaaaa')).toStrictEqual(
+			'https://example.com/npub1aaaaaa'
 		);
 	});
 });
