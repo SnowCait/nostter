@@ -81,6 +81,8 @@
 <style>
 	article {
 		padding: 0;
+
+		/* Workaround for unnecessary space */
 		display: flex;
 	}
 
