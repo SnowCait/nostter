@@ -66,14 +66,27 @@
 		login = 'NIP-07';
 		localStorage.setItem('nostter:login', login);
 
-		$pubkey = await window.nostr.getPublicKey();
+		try {
+			$pubkey = await window.nostr.getPublicKey();
+			if (!$pubkey) {
+				throw new Error('undefined');
+			}
+		} catch (error) {
+			console.error('[NIP-07 getPublicKey()]', error);
+			login = null;
+			return;
+		}
 		console.log('[pubkey]', $pubkey);
 
 		console.log(`NIP-07 getPublicKey in ${Date.now() / 1000 - now} seconds`);
 
 		let nip07Relays: Map<string, { read: boolean; write: boolean }> = new Map();
 		if (typeof window.nostr.getRelays === 'function') {
-			nip07Relays = await window.nostr.getRelays();
+			try {
+				nip07Relays = await window.nostr.getRelays();
+			} catch (error) {
+				console.error('[NIP-07 getRelays()]', error);
+			}
 			console.log(nip07Relays);
 			if (nip07Relays.size === 0) {
 				console.warn('Please register relays on NIP-07');
@@ -257,10 +270,14 @@
 		publicMuteEventIds = filterTags('e', event.tags);
 
 		if (login === 'NIP-07' && window.nostr.nip04 !== undefined && event.content !== '') {
-			const json = await window.nostr.nip04.decrypt($pubkey, event.content);
-			const tags = JSON.parse(json) as string[][];
-			privateMutePubkeys = filterTags('p', tags);
-			privateMuteEventIds = filterTags('e', tags);
+			try {
+				const json = await window.nostr.nip04.decrypt($pubkey, event.content);
+				const tags = JSON.parse(json) as string[][];
+				privateMutePubkeys = filterTags('p', tags);
+				privateMuteEventIds = filterTags('e', tags);
+			} catch (error) {
+				console.error('[NIP-07 nip04.decrypt()]', error);
+			}
 		}
 
 		console.log('[mute p list]', publicMutePubkeys, privateMutePubkeys);
