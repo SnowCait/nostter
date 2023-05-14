@@ -42,49 +42,55 @@
 </script>
 
 <article class="timeline-item">
-	{#if picture}
-		<img src={picture} alt="" />
-	{/if}
-	<div class="channel">
-		<h1>{name}</h1>
-		<div class="about">{about}</div>
-		<div class="action-menu">
-			<div>
-				<a
-					href="https://garnet.nostrian.net/channels/{event.id}"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Open in GARNET
-				</a>
+	<main>
+		{#if picture}
+			<img src={picture} alt="" />
+		{/if}
+		<div class="channel">
+			<h1>{name}</h1>
+			<div class="about">{about}</div>
+			<div class="action-menu">
+				<div>
+					<a
+						href="https://garnet.nostrian.net/channels/{event.id}"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Open in GARNET
+					</a>
+				</div>
+				<button on:click={() => quote(event)}>
+					<IconQuote size={iconSize} />
+				</button>
+				<button on:click={toggleJsonDisplay}>
+					<IconCodeDots size={iconSize} />
+				</button>
 			</div>
-			<button on:click={() => quote(event)}>
-				<IconQuote size={iconSize} />
-			</button>
-			<button on:click={toggleJsonDisplay}>
-				<IconCodeDots size={iconSize} />
-			</button>
 		</div>
-	</div>
+	</main>
+	{#if jsonDisplay}
+		<div class="develop">
+			<h5>ID</h5>
+			<div>{nip19.neventEncode({ id: event.id })}</div>
+			<h5>Event JSON</h5>
+			<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
+		</div>
+	{/if}
 </article>
-{#if jsonDisplay}
-	<div class="develop">
-		<h5>ID</h5>
-		<div>{nip19.neventEncode({ id: event.id })}</div>
-		<h5>Event JSON</h5>
-		<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
-	</div>
-{/if}
 
 <style>
 	article {
+		padding: 0;
+		display: flex;
+	}
+
+	main {
 		display: flex;
 	}
 
 	img {
 		width: 30%;
 		object-fit: cover;
-		border-radius: 5px 0 0 5px;
 	}
 
 	.channel {
