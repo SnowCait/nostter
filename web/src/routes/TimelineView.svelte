@@ -1,16 +1,11 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
 	import { onMount } from 'svelte';
-	import Note from './timeline/Note.svelte';
-	import RepostedNote from './timeline/RepostedNote.svelte';
 	import type { Event } from './types';
-	import { Kind } from 'nostr-tools';
-	import Reaction from './timeline/Reaction.svelte';
 	import { pubkey } from '../stores/Author';
 	import { Author } from '$lib/Author';
 	import Loading from './Loading.svelte';
-	import Channel from './timeline/Channel.svelte';
-	import Zap from './timeline/Zap.svelte';
+	import EventComponent from './timeline/EventComponent.svelte';
 
 	export let events: Event[] = [];
 	export let readonly = false;
@@ -49,17 +44,7 @@
 			class:focus={event.id === focusEventId}
 			class:related={new Author($pubkey).isRelated(event)}
 		>
-			{#if event.kind === 6}
-				<RepostedNote {event} {readonly} {createdAtFormat} />
-			{:else if event.kind === Kind.Reaction}
-				<Reaction {event} {readonly} {createdAtFormat} />
-			{:else if event.kind === Kind.ChannelCreation}
-				<Channel {event} />
-			{:else if event.kind === Kind.Zap}
-				<Zap {event} {readonly} {createdAtFormat} />
-			{:else}
-				<Note {event} {readonly} {createdAtFormat} />
-			{/if}
+			<EventComponent {event} {readonly} {createdAtFormat} />
 		</li>
 	{/each}
 </ul>

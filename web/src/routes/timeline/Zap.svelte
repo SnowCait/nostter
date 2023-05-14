@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { IconBolt, IconCodeDots } from '@tabler/icons-svelte';
 	import { pool } from '../../stores/Pool';
-	import Note from './Note.svelte';
 	import type { Event as NostrEvent } from '../types';
 	import { readRelays } from '../../stores/Author';
 	import { nip19, type Event } from 'nostr-tools';
@@ -9,6 +8,7 @@
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
 	import NoteLink from './NoteLink.svelte';
+	import EventComponent from './EventComponent.svelte';
 
 	export let event: NostrEvent;
 	export let readonly: boolean;
@@ -82,7 +82,7 @@
 	</div>
 {/if}
 {#if originalEvent !== undefined}
-	<Note event={originalEvent} {readonly} {createdAtFormat} />
+	<EventComponent event={originalEvent} {readonly} {createdAtFormat} />
 {:else if originalTag !== undefined}
 	<NoteLink eventId={originalTag[1]} />
 {/if}
