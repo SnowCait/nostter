@@ -1,3 +1,12 @@
+<script lang="ts" context="module">
+	interface Window {
+		// NIP-07
+		nostr: any;
+		Notification: Notification;
+	}
+	declare var window: Window;
+</script>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Event, UserEvent } from '../types';
@@ -8,7 +17,7 @@
 	import { pubkey, followees, authorProfile, readRelays, isMuteEvent } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
-	import { Kind, SimplePool, type Event as NostrEvent, nip57 } from 'nostr-tools';
+	import { Kind, SimplePool, nip57, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { Author } from '$lib/Author';
 
 	const now = Math.floor(Date.now() / 1000);
@@ -179,6 +188,38 @@
 			$events.unshift(...newEvents);
 			$events = $events;
 			eose = true;
+		});
+
+		console.debug('_conn', $fastPool['_conn']);
+		Object.entries($fastPool['_conn'] as { [url: string]: Relay }).map(([, relay]) => {
+			relay.on('connect', () => {
+				console.log('[connect]', relay.url, relay.status);
+				console.time(relay.url);
+			});
+			relay.on('disconnect', () => {
+				console.warn('[disconnect]', relay.url, relay.status);
+				console.timeEnd(relay.url);
+			});
+			relay.on('auth', async (challenge: string) => {
+				console.log('[auth challenge]', challenge);
+				const event = await window.nostr.signEvent({
+					created_at: Math.round(Date.now() / 1000),
+					kind: Kind.ClientAuth,
+					tags: [
+						['relay', relay.url],
+						['challenge', challenge]
+					],
+					content: ''
+				});
+				console.log('[auth event]', event);
+				const pub = $fastPool.publish([relay.url], event);
+				pub.on('ok', (relay: string): void => {
+					console.log('[auth ok]', relay);
+				});
+				pub.on('failed', (relay: string): void => {
+					console.error('[auth failed]', relay);
+				});
+			});
 		});
 	}
 
