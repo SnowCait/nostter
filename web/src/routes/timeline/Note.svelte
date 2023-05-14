@@ -272,6 +272,10 @@
 		font-size: 15px;
 		font-weight: 400;
 		width: calc(100% - 60px);
+
+		/* Workaround for unnecessary space */
+		display: flex;
+		flex-direction: column;
 	}
 
 	.user {
