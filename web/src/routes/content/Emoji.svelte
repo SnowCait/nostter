@@ -1,0 +1,12 @@
+<script lang="ts">
+	export let text: string;
+	export let url: string;
+</script>
+
+<img src={url} alt={text} />
+
+<style>
+	img {
+		max-height: 1.5em;
+	}
+</style>
