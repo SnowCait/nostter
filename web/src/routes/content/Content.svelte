@@ -6,6 +6,7 @@
 	import Hashtag from './Hashtag.svelte';
 	import Url from './Url.svelte';
 	import Text from './Text.svelte';
+	import Emoji from './Emoji.svelte';
 
 	export let event: Event;
 </script>
@@ -18,6 +19,8 @@
 			<Reference text={token.text} tag={event.tags[token.index]} />
 		{:else if token.name === 'hashtag'}
 			<Hashtag text={token.text} />
+		{:else if token.name === 'emoji' && token.url !== undefined}
+			<Emoji text={token.text} url={token.url} />
 		{:else if token.name === 'url'}
 			<Url text={token.text} />
 		{:else if token.name === 'nip'}

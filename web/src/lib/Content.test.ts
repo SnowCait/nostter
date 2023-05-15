@@ -30,6 +30,24 @@ describe('parse test', () => {
 			new Token('hashtag', '#nostter')
 		]);
 	});
+	it('emoji', () => {
+		expect(
+			Content.parse(':pawprint:', [
+				[
+					'emoji',
+					'pawprint',
+					'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+				]
+			])
+		).toStrictEqual([
+			new Token(
+				'emoji',
+				':pawprint:',
+				undefined,
+				'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+			)
+		]);
+	});
 	it('multi hashtags', () => {
 		expect(
 			Content.parse('#nostter #nostr', [

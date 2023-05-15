@@ -1,8 +1,9 @@
 export class Token {
 	constructor(
-		readonly name: 'text' | 'reference' | 'hashtag' | 'url' | 'nip',
+		readonly name: 'text' | 'reference' | 'hashtag' | 'emoji' | 'url' | 'nip',
 		readonly text: string,
-		readonly index?: number
+		readonly index?: number,
+		readonly url?: string
 	) {}
 }
 
@@ -12,9 +13,20 @@ export class Content {
 			.filter(([tagName, tagContent]) => tagName === 't' && tagContent !== undefined)
 			.map(([, tagContent]) => tagContent);
 		hashtags.sort((x, y) => y.length - x.length);
+		const emojis = new Map(
+			tags
+				.filter(
+					([tagName, tagContent, url]) =>
+						tagName === 'emoji' && tagContent !== undefined && url !== undefined
+				)
+				.map(([, shortcode, url]) => [shortcode, url])
+		);
 		const matches = [
 			...(hashtags.length > 0
 				? content.matchAll(new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'g'))
+				: []),
+			...(emojis.size > 0
+				? content.matchAll(new RegExp(`:(${[...emojis.keys()].join('|')}):`, 'g'))
 				: []),
 			...content.matchAll(/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[\d+\]/g),
 			...content.matchAll(/https?:\/\/\S+/g),
@@ -49,6 +61,15 @@ export class Content {
 				} else {
 					tokens.push(new Token('hashtag', text));
 				}
+			} else if (text.startsWith(':')) {
+				tokens.push(
+					new Token(
+						'emoji',
+						text,
+						undefined,
+						emojis.get(text.substring(1, text.length - 1))
+					)
+				);
 			} else if (text.startsWith('nostr:')) {
 				tokens.push(new Token('reference', text));
 			} else if (text.startsWith('NIP-')) {
