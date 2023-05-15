@@ -24,7 +24,12 @@
 
 	const descriptionTag = event.tags.find(([tagName]) => tagName === 'description')?.at(1);
 	console.debug('[zap request]', event.id, descriptionTag);
-	const zapRequestEvent = JSON.parse(descriptionTag ?? '{}') as Event;
+	let zapRequestEvent: Event | undefined;
+	try {
+		zapRequestEvent = JSON.parse(descriptionTag ?? '{}') as Event;
+	} catch (error) {
+		console.error('[invalid description tag]', error, descriptionTag);
+	}
 
 	const api = new Api($pool, $readRelays);
 
@@ -48,16 +53,20 @@
 			<IconBolt size={18} color={'#f59f00'} />
 		</div>
 		<div>by</div>
-		{#await api.fetchUserEvent(zapRequestEvent.pubkey)}
-			<div>@...</div>
-		{:then zapUserEvent}
-			<div>
-				<a href="/{nip19.npubEncode((zapUserEvent ?? event).pubkey)}">
-					@{(zapUserEvent ?? event).user?.name ??
-						(zapUserEvent ?? event).pubkey.substring('npub1'.length + 7)}
-				</a>
-			</div>
-		{/await}
+		{#if zapRequestEvent === undefined}
+			<div>Unknown</div>
+		{:else}
+			{#await api.fetchUserEvent(zapRequestEvent.pubkey)}
+				<div>@...</div>
+			{:then zapUserEvent}
+				<div>
+					<a href="/{nip19.npubEncode((zapUserEvent ?? event).pubkey)}">
+						@{(zapUserEvent ?? event).user?.name ??
+							(zapUserEvent ?? event).pubkey.substring('npub1'.length + 7)}
+					</a>
+				</div>
+			{/await}
+		{/if}
 		<div class="json-button">
 			<button on:click={toggleJsonDisplay}>
 				<IconCodeDots size={15} />
@@ -67,7 +76,7 @@
 			<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 		</div>
 	</div>
-	{#if zapRequestEvent.content}
+	{#if zapRequestEvent !== undefined && zapRequestEvent.content}
 		<div class="content">{zapRequestEvent.content}</div>
 	{/if}
 </article>
