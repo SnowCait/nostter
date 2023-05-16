@@ -14,9 +14,14 @@ export class User {
 				const response = await fetch(
 					`https://${domain}/.well-known/nostr.json?name=${name}`
 				);
+				if (!response.ok) {
+					console.error('[invalid NIP-05]', await response.text());
+					throw new Error('fetch failed');
+				}
 				const data = await response.json();
+				console.log('[NIP-05]', data);
 				pubkey = data.names[name];
-				relays = data?.relays[name] ?? [];
+				relays = data.relays?.[name] ?? [];
 			} else {
 				const { type, data } = nip19.decode(slug);
 				switch (type) {
