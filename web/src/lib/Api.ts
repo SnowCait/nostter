@@ -82,7 +82,7 @@ export class Api {
 			return undefined;
 		}
 
-		// Latest
+		// Latest (return multi events except id filter)
 		events.sort((x, y) => y.created_at - x.created_at);
 		const event = events[0];
 
