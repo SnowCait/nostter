@@ -150,7 +150,7 @@
 		]);
 		subscribe.on('event', async (nostrEvent: NostrEvent) => {
 			const event = nostrEvent as Event;
-			console.debug(event);
+			console.debug(event, $pool.seenOn(event.id));
 
 			if (isMuteEvent(event)) {
 				return;
