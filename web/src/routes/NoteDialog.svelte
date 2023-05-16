@@ -27,6 +27,13 @@
 	let complementStart = -1;
 	let complementEnd = -1;
 	let complementUserEvents: UserEvent[] = [];
+	let customEmojis: string[][] = [
+		['', ''],
+		['', ''],
+		['', ''],
+		['', ''],
+		['', '']
+	];
 
 	openNoteDialog.subscribe((open) => {
 		console.log('[open]', open);
@@ -252,6 +259,44 @@
 		const hashtags = Content.findHashtags(content);
 		tags.push(...Array.from(hashtags).map((hashtag) => ['t', hashtag]));
 
+		tags.push(
+			...Array.from(
+				new Set(
+					customEmojis
+						.filter(([shortcode, url]) => {
+							if (shortcode === undefined || shortcode === '') {
+								return false;
+							}
+
+							if (url === undefined || url === '') {
+								return false;
+							}
+
+							if (!content.includes(shortcode)) {
+								return false;
+							}
+
+							try {
+								new URL(url.trim());
+								return true;
+							} catch (error) {
+								console.log('[invalid emoji url]', url);
+								return false;
+							}
+						})
+						.map(([shortcode, url]) => {
+							if (shortcode.at(0) === ':') {
+								shortcode = shortcode.substring(1);
+							}
+							if (shortcode.at(shortcode.length - 1) === ':') {
+								shortcode = shortcode.substring(0, shortcode.length - 1);
+							}
+							return ['emoji', shortcode, url.trim()];
+						})
+				)
+			)
+		);
+
 		posting = true;
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
@@ -304,6 +349,15 @@
 			{/each}
 		</ul>
 	{/if}
+	<details>
+		<summary>Define Custom Emoji (temporary)</summary>
+		{#each customEmojis as [shortcode, url]}
+			<div>
+				<input type="text" bind:value={shortcode} />
+				<input type="text" bind:value={url} />
+			</div>
+		{/each}
+	</details>
 </dialog>
 
 <style>
