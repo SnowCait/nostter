@@ -56,7 +56,6 @@
 				since
 			}
 		]);
-		$pool.close($readRelays);
 
 		console.log(`Text events loaded in ${Date.now() / 1000 - now} seconds`);
 
