@@ -107,13 +107,11 @@ export class Api {
 		}
 
 		// Fetch event
-		const event = await this.fetchEvent([
-			{
-				ids: [id]
-			}
-		]);
+		const event = await this.pool.get(this.relays, {
+			ids: [id]
+		});
 
-		if (event === undefined) {
+		if (event === null) {
 			console.log('[id not found]', id, nip19.noteEncode(id), nip19.neventEncode({ id }));
 			return undefined;
 		}
