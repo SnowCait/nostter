@@ -60,7 +60,7 @@ export class Api {
 		// Fetch metadata
 		const event = await this.fetchEvent([
 			{
-				kinds: [0],
+				kinds: [Kind.Metadata],
 				authors: [pubkey]
 			}
 		]);
