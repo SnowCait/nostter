@@ -19,7 +19,9 @@
 				'[unstable connection]',
 				relays.map((relay) => [relay.url, relay.status])
 			);
-			dialog.showModal();
+			if (!dialog.open) {
+				dialog.showModal();
+			}
 		}
 	}
 
