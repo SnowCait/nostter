@@ -224,13 +224,7 @@
 	}
 
 	function notify(event: Event): void {
-		if (window.Notification === undefined) {
-			return;
-		}
-
-		console.log('[notify]', Notification.permission);
-
-		if (Notification.permission !== 'granted') {
+		if (window.Notification === undefined || Notification.permission !== 'granted') {
 			return;
 		}
 
@@ -263,13 +257,7 @@
 	}
 
 	function notifyStreamingSpeed(createdAt: number): void {
-		if (window.Notification === undefined) {
-			return;
-		}
-
-		console.log('[notify]', Notification.permission);
-
-		if (Notification.permission !== 'granted') {
+		if (window.Notification === undefined || Notification.permission !== 'granted') {
 			return;
 		}
 
