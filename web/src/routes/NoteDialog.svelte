@@ -353,8 +353,8 @@
 		<summary>Define Custom Emoji (temporary)</summary>
 		{#each customEmojis as [shortcode, url]}
 			<div>
-				<input type="text" bind:value={shortcode} />
-				<input type="text" bind:value={url} />
+				<input type="text" placeholder=":shortcode:" bind:value={shortcode} />
+				<input type="text" placeholder="URL" bind:value={url} />
 			</div>
 		{/each}
 	</details>
