@@ -38,7 +38,7 @@
 
 <style>
 	.content {
-		line-height: 20px;
+		/* line-height: 20px; */
 		max-height: 30em;
 		overflow: auto;
 		margin: 5px 0;

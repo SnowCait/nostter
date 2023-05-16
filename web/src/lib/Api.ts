@@ -76,6 +76,26 @@ export class Api {
 		return userEvent;
 	}
 
+	async fetchMetadataEvents(pubkeys: string[]): Promise<Event[]> {
+		// TODO: From cache
+
+		const eventsMap = new Map<string, Event>();
+
+		const events = await this.pool.list(this.relays, [
+			{
+				kinds: [Kind.Metadata],
+				authors: pubkeys
+			}
+		]);
+		for (const event of events) {
+			const cache = eventsMap.get(event.pubkey);
+			if (cache === undefined || cache.created_at < event.created_at) {
+				eventsMap.set(event.pubkey, event);
+			}
+		}
+		return Array.from(eventsMap).map(([, event]) => event);
+	}
+
 	async fetchEvent(filters: Filter[]): Promise<Event | undefined> {
 		const events = await this.pool.list(this.relays, filters);
 		if (events.length === 0) {

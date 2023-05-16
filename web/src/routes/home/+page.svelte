@@ -14,7 +14,15 @@
 	import { events } from '../../stores/Events';
 	import { saveMetadataEvent, userEvents } from '../../stores/UserEvents';
 	import { pool } from '../../stores/Pool';
-	import { pubkey, followees, authorProfile, readRelays, isMuteEvent } from '../../stores/Author';
+	import {
+		pubkey,
+		followees,
+		authorProfile,
+		readRelays,
+		writeRelays,
+		isMuteEvent,
+		updateRelays
+	} from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
 	import { Kind, nip57, type Event as NostrEvent, type Relay } from 'nostr-tools';
@@ -38,7 +46,7 @@
 		const since = (until ?? now) - span;
 		const pastEvents = await $pool.list($readRelays, [
 			{
-				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
+				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage, Kind.Article],
 				authors: $followees,
 				until,
 				since
@@ -132,7 +140,14 @@
 		const since = now;
 		const subscribe = $pool.sub($readRelays, [
 			{
-				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
+				kinds: [
+					Kind.Metadata,
+					Kind.Text,
+					6,
+					Kind.ChannelCreation,
+					Kind.ChannelMessage,
+					Kind.Article
+				],
 				authors: Array.from($followees),
 				since
 			},
@@ -142,7 +157,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Reaction],
+				kinds: [Kind.Contacts, Kind.Reaction, Kind.RelayList],
 				authors: [$pubkey],
 				since
 			}
@@ -157,6 +172,35 @@
 
 			if (event.kind === Kind.Metadata) {
 				await saveMetadataEvent(event);
+				return;
+			}
+
+			if (
+				event.kind === Kind.Article &&
+				event.created_at.toString() !==
+					event.tags
+						.find(
+							([tagName, publishedAt]) =>
+								tagName === 'published_at' && publishedAt !== undefined
+						)
+						?.at(1)
+			) {
+				console.warn('[article updated]', event, $pool.seenOn(event.id));
+				return;
+			} else if (event.kind === Kind.Article) {
+				console.warn('[article created]', event, $pool.seenOn(event.id));
+			}
+
+			if (event.kind === Kind.Contacts) {
+				console.warn('[contacts]', event, $pool.seenOn(event.id));
+				return;
+			}
+
+			if (event.kind === Kind.RelayList) {
+				console.warn('[relay list]', event, $pool.seenOn(event.id));
+				console.debug('[relays before]', $readRelays, $writeRelays);
+				updateRelays(event);
+				console.debug('[relays after]', $readRelays, $writeRelays);
 				return;
 			}
 
@@ -217,6 +261,12 @@
 				pub.on('failed', (relay: string): void => {
 					console.error('[auth failed]', relay);
 				});
+			});
+			relay.on('notice', (message) => {
+				console.warn('[notice]', relay.url, message);
+			});
+			relay.on('error', () => {
+				console.error('[error]', relay.url);
 			});
 		});
 	}
