@@ -8,5 +8,6 @@
 <style>
 	img {
 		max-height: 1.5em;
+		vertical-align: middle;
 	}
 </style>
