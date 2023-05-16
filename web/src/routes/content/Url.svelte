@@ -41,5 +41,6 @@
 	img {
 		border: 1px solid lightgray;
 		border-radius: 5px;
+		vertical-align: middle;
 	}
 </style>

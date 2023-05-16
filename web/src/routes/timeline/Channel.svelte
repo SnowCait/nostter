@@ -88,6 +88,7 @@
 
 	main {
 		display: flex;
+		width: 100%;
 	}
 
 	img {
