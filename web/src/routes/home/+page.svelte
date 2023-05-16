@@ -13,11 +13,11 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { events } from '../../stores/Events';
 	import { saveMetadataEvent, userEvents } from '../../stores/UserEvents';
-	import { pool as fastPool } from '../../stores/Pool';
+	import { pool } from '../../stores/Pool';
 	import { pubkey, followees, authorProfile, readRelays, isMuteEvent } from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
-	import { Kind, SimplePool, nip57, type Event as NostrEvent, type Relay } from 'nostr-tools';
+	import { Kind, nip57, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { Author } from '$lib/Author';
 
 	const now = Math.floor(Date.now() / 1000);
@@ -35,9 +35,8 @@
 
 		console.log(`Fetch in ${Date.now() / 1000 - now} seconds`);
 
-		const pool = new SimplePool();
 		const since = (until ?? now) - span;
-		const pastEvents = await pool.list($readRelays, [
+		const pastEvents = await $pool.list($readRelays, [
 			{
 				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
 				authors: $followees,
@@ -57,12 +56,12 @@
 				since
 			}
 		]);
-		pool.close($readRelays);
+		$pool.close($readRelays);
 
 		console.log(`Text events loaded in ${Date.now() / 1000 - now} seconds`);
 
 		const pubkeys = new Set(pastEvents.map((x) => x.pubkey));
-		const metadataEvents = await $fastPool.list($readRelays, [
+		const metadataEvents = await $pool.list($readRelays, [
 			{
 				kinds: [0],
 				authors: Array.from(pubkeys)
@@ -132,7 +131,7 @@
 		let eose = false;
 		let newEvents: Event[] = [];
 		const since = $events.length > 0 ? $events[$events.length - 1].created_at + 1 : now;
-		const subscribe = $fastPool.sub($readRelays, [
+		const subscribe = $pool.sub($readRelays, [
 			{
 				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
 				authors: Array.from($followees),
@@ -162,7 +161,7 @@
 				return;
 			}
 
-			const api = new Api($fastPool, $readRelays);
+			const api = new Api($pool, $readRelays);
 			const userEvent = await api.fetchUserEvent(event.pubkey); // not chronological
 			if (userEvent !== undefined) {
 				event.user = userEvent.user;
@@ -190,8 +189,8 @@
 			eose = true;
 		});
 
-		console.debug('_conn', $fastPool['_conn']);
-		Object.entries($fastPool['_conn'] as { [url: string]: Relay }).map(([, relay]) => {
+		console.debug('_conn', $pool['_conn']);
+		Object.entries($pool['_conn'] as { [url: string]: Relay }).map(([, relay]) => {
 			relay.on('connect', () => {
 				console.log('[connect]', relay.url, relay.status);
 				console.time(relay.url);
@@ -212,7 +211,7 @@
 					content: ''
 				});
 				console.log('[auth event]', event);
-				const pub = $fastPool.publish([relay.url], event);
+				const pub = $pool.publish([relay.url], event);
 				pub.on('ok', (relay: string): void => {
 					console.log('[auth ok]', relay);
 				});
