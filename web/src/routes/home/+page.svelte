@@ -256,8 +256,8 @@
 				break;
 		}
 
-		new Notification(`@${event?.user.name}`, {
-			icon: event.user.picture,
+		new Notification(`@${event.user?.name}`, {
+			icon: event.user?.picture,
 			body
 		});
 	}
