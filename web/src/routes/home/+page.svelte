@@ -224,13 +224,7 @@
 	}
 
 	function notify(event: Event): void {
-		if (window.Notification === undefined) {
-			return;
-		}
-
-		console.log('[notify]', Notification.permission);
-
-		if (Notification.permission !== 'granted') {
+		if (window.Notification === undefined || Notification.permission !== 'granted') {
 			return;
 		}
 
@@ -256,20 +250,14 @@
 				break;
 		}
 
-		new Notification(`@${event?.user.name}`, {
-			icon: event.user.picture,
+		new Notification(`@${event.user?.name}`, {
+			icon: event.user?.picture,
 			body
 		});
 	}
 
 	function notifyStreamingSpeed(createdAt: number): void {
-		if (window.Notification === undefined) {
-			return;
-		}
-
-		console.log('[notify]', Notification.permission);
-
-		if (Notification.permission !== 'granted') {
+		if (window.Notification === undefined || Notification.permission !== 'granted') {
 			return;
 		}
 
