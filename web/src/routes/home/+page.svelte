@@ -130,7 +130,7 @@
 
 		let eose = false;
 		let newEvents: Event[] = [];
-		const since = $events.length > 0 ? $events[$events.length - 1].created_at + 1 : now;
+		const since = now;
 		const subscribe = $pool.sub($readRelays, [
 			{
 				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
@@ -150,7 +150,7 @@
 		]);
 		subscribe.on('event', async (nostrEvent: NostrEvent) => {
 			const event = nostrEvent as Event;
-			console.debug(event);
+			console.debug(event, $pool.seenOn(event.id));
 
 			if (isMuteEvent(event)) {
 				return;
