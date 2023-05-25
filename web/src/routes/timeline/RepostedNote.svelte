@@ -3,12 +3,13 @@
 	import { pool } from '../../stores/Pool';
 	import type { Event as NostrEvent, User } from '../types';
 	import { readRelays } from '../../stores/Author';
-	import { nip19 } from 'nostr-tools';
+	import { Kind, nip19 } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
+	import NaddrLink from './NaddrLink.svelte';
 
 	export let event: NostrEvent;
 	export let readonly: boolean;
@@ -27,19 +28,66 @@
 		originalTag = event.tags.findLast(([t]) => t === 'e');
 	}
 
+	let originalAddressTag: string[] | undefined;
+	let kindString: string | undefined;
+	let pubkey: string | undefined;
+	let identifier: string | undefined;
+
+	if (originalTag === undefined) {
+		originalAddressTag = event.tags.find(
+			([tagName, tagContent, , marker]) =>
+				tagName === 'a' &&
+				tagContent !== undefined &&
+				(marker === 'mention' || marker === undefined)
+		);
+	}
+
 	onMount(async () => {
 		const api = new Api($pool, $readRelays);
 		api.fetchUserEvent(event.pubkey).then((userEvent) => {
 			user = userEvent?.user;
 		});
 
-		if (originalTag === undefined) {
-			console.warn('[repost not found]', event);
-			return;
+		if (originalTag !== undefined) {
+			const eventId = originalTag[1];
+			originalEvent = await api.fetchEventById(eventId);
+		} else if (originalAddressTag !== undefined) {
+			const relay = originalAddressTag.at(2);
+			const addressApi = new Api(
+				$pool,
+				relay === undefined ? $readRelays : [...$readRelays, relay]
+			);
+			[kindString, pubkey, identifier] = originalAddressTag[1].split(':');
+			const original = await addressApi.fetchEventByAddress(
+				Number(kindString),
+				pubkey,
+				identifier
+			);
+			if (original !== undefined) {
+				const userEvent = await api.fetchUserEvent(original.pubkey);
+				if (userEvent === undefined) {
+					originalEvent = original as NostrEvent;
+				} else {
+					let u: User;
+					try {
+						u = JSON.parse(userEvent.content);
+						originalEvent = {
+							...original,
+							user: u
+						};
+					} catch (error) {
+						console.warn('[invalid metadata]', error, userEvent.content);
+						originalEvent = original as NostrEvent;
+					}
+				}
+			}
+		} else {
+			console.warn('[original tag not found]', event);
 		}
 
-		const eventId = originalTag[1];
-		originalEvent = await api.fetchEventById(eventId);
+		if (originalEvent === undefined) {
+			console.warn('[original event not found]', event);
+		}
 	});
 
 	const toggleJsonDisplay = () => {
@@ -78,6 +126,8 @@
 	<EventComponent event={originalEvent} {readonly} {createdAtFormat} />
 {:else if originalTag !== undefined}
 	<NoteLink eventId={originalTag[1]} />
+{:else if originalAddressTag !== undefined && kindString !== undefined && pubkey !== undefined && identifier !== undefined}
+	<NaddrLink kind={Number(kindString)} {pubkey} {identifier} />
 {/if}
 
 <style>

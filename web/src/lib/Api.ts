@@ -1,7 +1,7 @@
 import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
 import type { Event as NostrEvent, UserEvent } from '../routes/types';
-import { cachedEvents, events as timelineEvents } from '../stores/Events';
+import { cachedEvents, cachedReplaceableEvents, events as timelineEvents } from '../stores/Events';
 import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { isMuteEvent } from '../stores/Author';
 
@@ -129,6 +129,36 @@ export class Api {
 		$cachedEvents.set(nostrEvent.id, nostrEvent);
 
 		return nostrEvent;
+	}
+
+	async fetchEventByAddress(
+		kind: Kind,
+		pubkey: string,
+		identifier: string
+	): Promise<Event | undefined> {
+		const address = [kind, pubkey, identifier].join(':');
+
+		// Load cache
+		const $cachedEvents = get(cachedReplaceableEvents);
+		let cachedEvent = $cachedEvents.get(address);
+		if (cachedEvent !== undefined) {
+			return cachedEvent;
+		}
+
+		const event = await this.fetchEvent([
+			{
+				kinds: [kind],
+				authors: [pubkey],
+				'#d': [identifier]
+			}
+		]);
+
+		// Save cache
+		if (event !== undefined) {
+			$cachedEvents.set(address, event);
+		}
+
+		return event;
 	}
 
 	async fetchContactListEvent(pubkey: string): Promise<Event | undefined> {
