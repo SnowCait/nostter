@@ -140,7 +140,7 @@ export class Api {
 
 		// Load cache
 		const $cachedEvents = get(cachedReplaceableEvents);
-		let cachedEvent = $cachedEvents.get(address);
+		const cachedEvent = $cachedEvents.get(address);
 		if (cachedEvent !== undefined) {
 			return cachedEvent;
 		}
