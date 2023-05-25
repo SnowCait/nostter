@@ -10,6 +10,7 @@
 	import Text from './Text.svelte';
 	import Channel from '../timeline/Channel.svelte';
 	import Nip94 from '../Nip94.svelte';
+	import Naddr from './Naddr.svelte';
 
 	export let text: string;
 
@@ -90,7 +91,7 @@
 		</a>
 	{/if}
 {:else if dataType === 'addr'}
-	<a href="/{slug}">{slug.substring(0, 'naddr1'.length + 7)}</a>
+	<Naddr naddr={slug} />
 {:else}
 	<Text {text} />
 {/if}
