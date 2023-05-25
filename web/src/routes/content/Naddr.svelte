@@ -31,13 +31,7 @@
 			$pool,
 			relays !== undefined && relays.length > 0 ? relays : $defaultRelays
 		);
-		event = await api.fetchEvent([
-			{
-				kinds: [kind],
-				authors: [pubkey],
-				'#d': [identifier]
-			}
-		]);
+		event = await api.fetchEventByAddress(kind, pubkey, identifier);
 		console.log('[event]', event);
 	});
 </script>
