@@ -80,10 +80,12 @@
 
 <style>
 	article {
-		padding: 0;
-
 		/* Workaround for unnecessary space */
 		display: flex;
+	}
+
+	article.timeline-item {
+		padding: 0;
 	}
 
 	main {
