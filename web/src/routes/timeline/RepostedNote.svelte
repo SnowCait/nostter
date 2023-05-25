@@ -3,7 +3,7 @@
 	import { pool } from '../../stores/Pool';
 	import type { Event as NostrEvent, User } from '../types';
 	import { readRelays } from '../../stores/Author';
-	import { Kind, nip19 } from 'nostr-tools';
+	import { nip19 } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
