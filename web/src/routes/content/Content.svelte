@@ -6,7 +6,7 @@
 	import Hashtag from './Hashtag.svelte';
 	import Url from './Url.svelte';
 	import Text from './Text.svelte';
-	import CostomEmoji from './CostomEmoji.svelte';
+	import CustomEmoji from './CustomEmoji.svelte';
 
 	export let event: Event;
 </script>
@@ -20,7 +20,7 @@
 		{:else if token.name === 'hashtag'}
 			<Hashtag text={token.text} />
 		{:else if token.name === 'emoji' && token.url !== undefined}
-			<CostomEmoji text={token.text} url={token.url} />
+			<CustomEmoji text={token.text} url={token.url} />
 		{:else if token.name === 'url'}
 			<Url text={token.text} />
 		{:else if token.name === 'nip'}
