@@ -110,4 +110,11 @@
 	:global(article.timeline-item + article.timeline-item) {
 		padding-top: 0;
 	}
+
+	:global(blockquote) {
+		margin: 0.5em 0;
+		border: 1px solid rgb(239, 243, 244);
+		border-radius: 5px;
+		overflow: hidden;
+	}
 </style>

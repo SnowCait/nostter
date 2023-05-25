@@ -53,12 +53,3 @@
 {:else}
 	<Text {text} />
 {/if}
-
-<style>
-	blockquote {
-		margin: 0.5em 0;
-		border: 1px solid rgb(239, 243, 244);
-		border-radius: 5px;
-		overflow: hidden;
-	}
-</style>
