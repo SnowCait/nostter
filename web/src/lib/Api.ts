@@ -76,6 +76,28 @@ export class Api {
 		return userEvent;
 	}
 
+	async fetchMetadataEventsMap(pubkeys: string[]): Promise<Map<string, Event>> {
+		// TODO: From cache
+
+		const eventsMap = new Map<string, Event>();
+
+		const events = await this.pool.list(this.relays, [
+			{
+				kinds: [Kind.Metadata],
+				authors: pubkeys
+			}
+		]);
+
+		for (const event of events) {
+			const cache = eventsMap.get(event.pubkey);
+			if (cache === undefined || cache.created_at < event.created_at) {
+				eventsMap.set(event.pubkey, event);
+			}
+		}
+
+		return eventsMap;
+	}
+
 	async fetchEvent(filters: Filter[]): Promise<Event | undefined> {
 		const events = await this.pool.list(this.relays, filters);
 		if (events.length === 0) {
@@ -142,6 +164,28 @@ export class Api {
 		events.sort((x, y) => y.created_at - x.created_at);
 		console.log('[contact list events]', events);
 		return events.length > 0 ? events[0] : undefined;
+	}
+
+	async fetchBookmarkEvent(pubkey: string): Promise<Event | undefined> {
+		return await this.fetchEvent([
+			{
+				authors: [pubkey],
+				kinds: [30001],
+				'#d': ['bookmark']
+			}
+		]);
+	}
+
+	async fetchEvents(filters: Filter[]): Promise<Event[]> {
+		return this.pool.list(this.relays, filters);
+	}
+
+	async fetchEventsByIds(ids: string[]): Promise<Event[]> {
+		return this.fetchEvents([
+			{
+				ids
+			}
+		]);
 	}
 
 	async fetchFollowees(pubkey: string): Promise<string[]> {
