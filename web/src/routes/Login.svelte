@@ -20,7 +20,8 @@
 		readRelays,
 		writeRelays,
 		rom,
-		updateRelays
+		updateRelays,
+		bookmarkEvent
 	} from '../stores/Author';
 	import { defaultRelays } from '../stores/DefaultRelays';
 	import { pool } from '../stores/Pool';
@@ -212,6 +213,8 @@
 			updateRelays(relayListEvent);
 			console.log('[relays in kind 10002]', $readRelays, $writeRelays);
 		}
+
+		$bookmarkEvent = parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`);
 
 		const reactionEmojiEvent = parameterizedReplaceableEvents.get(
 			`${30078 as Kind}:nostter-reaction-emoji`

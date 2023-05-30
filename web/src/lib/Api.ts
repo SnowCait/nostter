@@ -18,6 +18,7 @@ export class Api {
 					10000,
 					Kind.RelayList,
 					30000,
+					30001,
 					30078
 				],
 				authors: [pubkey]
