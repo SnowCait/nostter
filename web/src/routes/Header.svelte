@@ -4,7 +4,8 @@
 		IconSearch,
 		IconUser,
 		IconCirclePlus,
-		IconSettings
+		IconSettings,
+		IconBookmark
 	} from '@tabler/icons-svelte';
 	import { nip19 } from 'nostr-tools';
 	import { pubkey } from '../stores/Author';
@@ -37,6 +38,11 @@
 			</li>
 		</a>
 		{#if $pubkey}
+			<a href="/{nip19.npubEncode($pubkey)}/bookmark">
+				<li>
+					<IconBookmark size={30} />
+				</li>
+			</a>
 			<a href="/{nip19.npubEncode($pubkey)}">
 				<li>
 					<IconUser size={30} />

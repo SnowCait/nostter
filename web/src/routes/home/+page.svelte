@@ -14,7 +14,14 @@
 	import { events } from '../../stores/Events';
 	import { saveMetadataEvent, userEvents } from '../../stores/UserEvents';
 	import { pool } from '../../stores/Pool';
-	import { pubkey, followees, authorProfile, readRelays, isMuteEvent } from '../../stores/Author';
+	import {
+		pubkey,
+		followees,
+		authorProfile,
+		readRelays,
+		isMuteEvent,
+		bookmarkEvent
+	} from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
 	import { Kind, nip57, type Event as NostrEvent, type Relay } from 'nostr-tools';
@@ -145,6 +152,12 @@
 				kinds: [Kind.Reaction],
 				authors: [$pubkey],
 				since
+			},
+			{
+				kinds: [30001],
+				authors: [$pubkey],
+				'#d': ['bookmark'],
+				since: $bookmarkEvent === undefined ? now : $bookmarkEvent.created_at + 1
 			}
 		]);
 		subscribe.on('event', async (nostrEvent: NostrEvent) => {
@@ -157,6 +170,17 @@
 
 			if (event.kind === Kind.Metadata) {
 				await saveMetadataEvent(event);
+				return;
+			}
+
+			if (
+				event.kind === 30001 &&
+				event.tags.some(
+					([tagName, identifier]) => tagName === 'd' && identifier === 'bookmark'
+				)
+			) {
+				console.log('[bookmark]', event, $pool.seenOn(event.id));
+				$bookmarkEvent = event;
 				return;
 			}
 
