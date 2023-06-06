@@ -161,7 +161,7 @@
 				$authorProfile = JSON.parse(metadataEvent.content);
 				console.log('[profile]', $authorProfile);
 			} catch (error) {
-				console.error('[invalid metadata]', error, metadataEvent);
+				console.warn('[invalid metadata]', error, metadataEvent);
 			}
 		}
 
