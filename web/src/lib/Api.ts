@@ -194,11 +194,25 @@ export class Api {
 	}
 
 	async fetchEventsByIds(ids: string[]): Promise<Event[]> {
-		return this.fetchEvents([
+		const $cachedEvents = get(cachedEvents);
+		const $userEvents = get(userEvents);
+
+		const events = await this.fetchEvents([
 			{
 				ids
 			}
 		]);
+
+		// Save cache
+		for (const event of events) {
+			const userEvent = $userEvents.get(event.pubkey);
+			if (userEvent === undefined) {
+				continue;
+			}
+			$cachedEvents.set(event.id, { ...event, user: userEvent.user });
+		}
+
+		return events;
 	}
 
 	async fetchFollowees(pubkey: string): Promise<string[]> {
