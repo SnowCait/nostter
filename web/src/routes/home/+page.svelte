@@ -66,7 +66,14 @@
 
 		console.log(`Text events loaded in ${Date.now() / 1000 - now} seconds`);
 
-		const pubkeys = new Set(pastEvents.map((x) => x.pubkey));
+		const pubkeys = new Set(
+			pastEvents
+				.map((x) => [
+					x.pubkey,
+					...x.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey)
+				])
+				.flat()
+		);
 		const metadataEvents = await $pool.list($readRelays, [
 			{
 				kinds: [0],
