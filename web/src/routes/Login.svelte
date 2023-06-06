@@ -27,6 +27,7 @@
 	import { pool } from '../stores/Pool';
 	import { reactionEmoji } from '../stores/Preference';
 	import { Api } from '$lib/Api';
+	import { filterTags } from '$lib/EventHelper';
 
 	let login: string | null = null;
 	let npub = '';
@@ -253,14 +254,6 @@
 		console.log('[relays]', $readRelays, $writeRelays);
 
 		console.timeEnd('fetch author');
-	}
-
-	function filterTags(tagName: string, tags: string[][]) {
-		return tags
-			.filter(
-				([name, content]) => name === tagName && content !== undefined && content !== ''
-			)
-			.map(([, content]) => content);
 	}
 
 	async function getMuteLists(event: Event) {
