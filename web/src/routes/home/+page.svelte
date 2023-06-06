@@ -66,13 +66,31 @@
 
 		console.log(`Text events loaded in ${Date.now() / 1000 - now} seconds`);
 
-		const pubkeys = new Set(pastEvents.map((x) => x.pubkey));
-		const metadataEvents = await $pool.list($readRelays, [
+		// Cache note events
+		const eventIds = new Set(
+			pastEvents
+				.map((x) => x.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id))
+				.flat()
+		);
+		const api = new Api($pool, $readRelays);
+		const noteEventsPromise = api.fetchEventsByIds([...eventIds]);
+
+		const pubkeys = new Set(
+			pastEvents
+				.map((x) => [
+					x.pubkey,
+					...x.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey)
+				])
+				.flat()
+		);
+		const metadataEventsPromise = $pool.list($readRelays, [
 			{
 				kinds: [0],
 				authors: Array.from(pubkeys)
 			}
 		]);
+
+		const [, metadataEvents] = await Promise.all([noteEventsPromise, metadataEventsPromise]);
 		metadataEvents.sort((x, y) => x.created_at - y.created_at);
 		$userEvents = new Map(
 			metadataEvents
