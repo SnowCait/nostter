@@ -85,7 +85,7 @@
 						} as UserEvent;
 						return [e.pubkey, e];
 					} catch (error) {
-						console.error('[invalid metadata]', error, event);
+						console.warn('[invalid metadata]', error, event);
 						return null;
 					}
 				})

@@ -26,7 +26,7 @@ export async function saveMetadataEvent(event: Event): Promise<UserEvent> {
 		saveUserEvent(userEvent);
 		return userEvent;
 	} catch (error) {
-		console.error('[invalid metadata]', error, event);
+		console.warn('[invalid metadata]', error, event);
 		return event as UserEvent;
 	}
 }
