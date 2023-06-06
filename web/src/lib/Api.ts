@@ -8,6 +8,18 @@ import { isMuteEvent } from '../stores/Author';
 export class Api {
 	constructor(private pool: SimplePool, private relays: string[]) {}
 
+	public async fetchRelayEvents(pubkey: string): Promise<Map<Kind, Event>> {
+		const events = await this.pool.list(this.relays, [
+			{
+				kinds: [Kind.RecommendRelay, Kind.Contacts, Kind.RelayList],
+				authors: [pubkey]
+			}
+		]);
+		events.sort((x, y) => x.created_at - y.created_at); // Latest event is effective
+		console.debug('[relay events all]', events);
+		return new Map<Kind, Event>(events.map((e) => [e.kind, e]));
+	}
+
 	async fetchAuthorEvents(pubkey: string): Promise<[Map<Kind, Event>, Map<string, Event>]> {
 		const events = await this.pool.list(this.relays, [
 			{
@@ -260,6 +272,7 @@ export class Api {
 	}
 
 	close() {
+		console.debug('[close connections]', this.relays);
 		this.pool.close(this.relays);
 	}
 }

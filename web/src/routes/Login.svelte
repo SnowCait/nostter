@@ -27,6 +27,8 @@
 	import { pool } from '../stores/Pool';
 	import { reactionEmoji } from '../stores/Preference';
 	import { Api } from '$lib/Api';
+	import { filterTags } from '$lib/EventHelper';
+	import { RelaysFetcher } from '$lib/RelaysFetcher';
 
 	let login: string | null = null;
 	let npub = '';
@@ -149,11 +151,13 @@
 	async function fetchAuthor(relays: string[]) {
 		console.time('fetch author');
 
-		const api = new Api($pool, relays);
+		await fetchRelays(relays);
+		console.timeLog('fetch author');
+
+		const api = new Api($pool, $writeRelays);
 		const [replaceableEvents, parameterizedReplaceableEvents] = await api.fetchAuthorEvents(
 			$pubkey
 		);
-		api.close();
 
 		const metadataEvent = replaceableEvents.get(Kind.Metadata);
 		if (metadataEvent !== undefined) {
@@ -165,6 +169,58 @@
 			}
 		}
 
+		saveRelays(replaceableEvents);
+
+		$bookmarkEvent = parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`);
+
+		const reactionEmojiEvent = parameterizedReplaceableEvents.get(
+			`${30078 as Kind}:nostter-reaction-emoji`
+		);
+		if (reactionEmojiEvent !== undefined) {
+			$reactionEmoji = reactionEmojiEvent.content;
+			console.log('[reaction emoji]', $reactionEmoji);
+		}
+
+		const muteEvent = replaceableEvents.get(10000 as Kind);
+		const regacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);
+
+		let modernMutePubkeys: string[] = [];
+		let modernMuteEventIds: string[] = [];
+		let regacyMutePubkeys: string[] = [];
+		let regacyMuteEventIds: string[] = [];
+
+		if (muteEvent !== undefined) {
+			const muteLists = await getMuteLists(muteEvent);
+			modernMutePubkeys = muteLists.pubkeys;
+			modernMuteEventIds = muteLists.eventIds;
+		}
+
+		if (regacyMuteEvent !== undefined) {
+			const muteLists = await getMuteLists(regacyMuteEvent);
+			regacyMutePubkeys = muteLists.pubkeys;
+			regacyMuteEventIds = muteLists.eventIds;
+		}
+
+		$mutePubkeys = Array.from(new Set([...modernMutePubkeys, ...regacyMutePubkeys]));
+		console.log('[mute pubkeys]', $mutePubkeys);
+
+		$muteEventIds = Array.from(new Set([...modernMuteEventIds, ...regacyMuteEventIds]));
+		console.log('[mute eventIds]', $muteEventIds);
+
+		console.log('[relays]', $readRelays, $writeRelays);
+
+		console.timeEnd('fetch author');
+	}
+
+	async function fetchRelays(relays: string[]) {
+		const relayEvents = await RelaysFetcher.fetchEvents($pubkey, relays);
+		console.log('[relay events]', relayEvents);
+
+		saveRelays(relayEvents);
+	}
+
+	// TODO: Ensure created_at
+	function saveRelays(replaceableEvents: Map<Kind, Event>) {
 		const recommendedRelayEvent = replaceableEvents.get(Kind.RecommendRelay);
 		if (recommendedRelayEvent !== undefined) {
 			$recommendedRelay = recommendedRelayEvent.content;
@@ -213,54 +269,6 @@
 			updateRelays(relayListEvent);
 			console.log('[relays in kind 10002]', $readRelays, $writeRelays);
 		}
-
-		$bookmarkEvent = parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`);
-
-		const reactionEmojiEvent = parameterizedReplaceableEvents.get(
-			`${30078 as Kind}:nostter-reaction-emoji`
-		);
-		if (reactionEmojiEvent !== undefined) {
-			$reactionEmoji = reactionEmojiEvent.content;
-			console.log('[reaction emoji]', $reactionEmoji);
-		}
-
-		const muteEvent = replaceableEvents.get(10000 as Kind);
-		const regacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);
-
-		let modernMutePubkeys: string[] = [];
-		let modernMuteEventIds: string[] = [];
-		let regacyMutePubkeys: string[] = [];
-		let regacyMuteEventIds: string[] = [];
-
-		if (muteEvent !== undefined) {
-			const muteLists = await getMuteLists(muteEvent);
-			modernMutePubkeys = muteLists.pubkeys;
-			modernMuteEventIds = muteLists.eventIds;
-		}
-
-		if (regacyMuteEvent !== undefined) {
-			const muteLists = await getMuteLists(regacyMuteEvent);
-			regacyMutePubkeys = muteLists.pubkeys;
-			regacyMuteEventIds = muteLists.eventIds;
-		}
-
-		$mutePubkeys = Array.from(new Set([...modernMutePubkeys, ...regacyMutePubkeys]));
-		console.log('[mute pubkeys]', $mutePubkeys);
-
-		$muteEventIds = Array.from(new Set([...modernMuteEventIds, ...regacyMuteEventIds]));
-		console.log('[mute eventIds]', $muteEventIds);
-
-		console.log('[relays]', $readRelays, $writeRelays);
-
-		console.timeEnd('fetch author');
-	}
-
-	function filterTags(tagName: string, tags: string[][]) {
-		return tags
-			.filter(
-				([name, content]) => name === tagName && content !== undefined && content !== ''
-			)
-			.map(([, content]) => content);
 	}
 
 	async function getMuteLists(event: Event) {
