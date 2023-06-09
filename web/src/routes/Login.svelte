@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Kind, nip19, type Event } from 'nostr-tools';
+	import { Kind, nip19, type Event, type Filter } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import {
 		pubkey,
@@ -29,6 +29,7 @@
 	import { Api } from '$lib/Api';
 	import { filterTags } from '$lib/EventHelper';
 	import { RelaysFetcher } from '$lib/RelaysFetcher';
+	import { customEmojisEvent, customEmojiTags } from '../stores/CustomEmojis';
 
 	let login: string | null = null;
 	let npub = '';
@@ -170,6 +171,52 @@
 		}
 
 		saveRelays(replaceableEvents);
+
+		$customEmojisEvent = replaceableEvents.get(10030 as Kind);
+		if ($customEmojisEvent !== undefined) {
+			const emojiTagsFilter = (tags: string[][]) => {
+				return tags.filter(([tagName, shortcode, imageUrl]) => {
+					if (tagName !== 'emoji') {
+						return false;
+					}
+					if (shortcode === undefined || imageUrl === undefined) {
+						return false;
+					}
+					try {
+						new URL(imageUrl);
+						return true;
+					} catch {
+						return false;
+					}
+				});
+			};
+			// emoji tags
+			$customEmojiTags = emojiTagsFilter($customEmojisEvent.tags);
+
+			// a tags
+			const referenceTags = $customEmojisEvent.tags.filter(([tagName]) => tagName === 'a');
+			if (referenceTags.length > 0) {
+				const filters: Filter[] = referenceTags
+					.map(([, reference]) => reference.split(':'))
+					.filter(([kind]) => kind === `${30030 as Kind}`)
+					.map(([kind, pubkey, identifier]) => {
+						return {
+							kinds: [Number(kind)],
+							authors: [pubkey],
+							'#d': [identifier]
+						};
+					});
+				console.debug('[custom emoji #a]', referenceTags, filters);
+				api.fetchEvents(filters).then((events) => {
+					console.debug('[custom emoji 30030]', events);
+					for (const event of events) {
+						$customEmojiTags.push(...emojiTagsFilter(event.tags));
+					}
+					$customEmojiTags = $customEmojiTags;
+					console.log('[custom emoji tags]', $customEmojiTags);
+				});
+			}
+		}
 
 		$bookmarkEvent = parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`);
 
