@@ -63,6 +63,21 @@
 			}
 		});
 		tribute.attach(textarea);
+		console.debug('[tribute]', tribute);
+
+		customEmojiTags.subscribe((tags) => {
+			console.debug('[custom emojis updated]', tags);
+			tribute.append(
+				0,
+				tags.map(([, shortcode, imageUrl]) => {
+					return {
+						shortcode,
+						imageUrl
+					};
+				})
+			);
+		});
+
 		textarea.addEventListener('tribute-replaced', (e: any) => {
 			selectedCustomEmojis.set(
 				e.detail.item.original.shortcode,
