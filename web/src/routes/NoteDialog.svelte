@@ -30,13 +30,6 @@
 	let complementEnd = -1;
 	let complementUserEvents: UserEvent[] = [];
 	let selectedCustomEmojis = new Map<string, string>();
-	let customEmojis: string[][] = [
-		['', ''],
-		['', ''],
-		['', ''],
-		['', ''],
-		['', '']
-	];
 
 	onMount(async () => {
 		const { default: Tribute } = await import('tributejs');
@@ -381,15 +374,6 @@
 			{/each}
 		</ul>
 	{/if}
-	<details>
-		<summary>Define Custom Emoji (temporary)</summary>
-		{#each customEmojis as [shortcode, url]}
-			<div>
-				<input type="text" placeholder=":shortcode:" bind:value={shortcode} />
-				<input type="text" placeholder="URL" bind:value={url} />
-			</div>
-		{/each}
-	</details>
 </dialog>
 
 <style>
