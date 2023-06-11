@@ -18,6 +18,8 @@
 	import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
 	import { userEvents } from '../stores/UserEvents';
 	import type { UserEvent } from './types';
+	import { customEmojiTags } from '../stores/CustomEmojis';
+	import { onMount } from 'svelte';
 
 	let content = '';
 	let posting = false;
@@ -34,6 +36,33 @@
 		['', ''],
 		['', '']
 	];
+
+	onMount(async () => {
+		const { default: Tribute } = await import('tributejs');
+
+		const tribute = new Tribute({
+			trigger: ':',
+			requireLeadingSpace: false,
+			// replaceTextSuffix: '', // not work correctly
+			positionMenu: false,
+			values: $customEmojiTags.map(([, shortcode, imageUrl]) => {
+				return {
+					shortcode,
+					imageUrl
+				};
+			}),
+			lookup: 'shortcode',
+			fillAttr: 'shortcode',
+			menuContainer: dialog,
+			menuItemTemplate: (item) => {
+				return `<img src="${item.original.imageUrl}" alt=":${item.original.shortcode}:"><span>:${item.original.shortcode}:</span>`;
+			},
+			selectTemplate: (item) => {
+				return `:${item.original.shortcode}:`;
+			}
+		});
+		tribute.attach(textarea);
+	});
 
 	openNoteDialog.subscribe((open) => {
 		console.log('[open]', open);
@@ -394,5 +423,23 @@
 	ul {
 		list-style: none;
 		padding: 0;
+	}
+
+	:global(.tribute-container ul) {
+		list-style: none;
+		padding: 0;
+
+		background-color: white;
+		max-height: 10rem;
+		overflow: auto;
+	}
+
+	:global(.tribute-container li.highlight) {
+		background-color: lightgray;
+	}
+
+	:global(.tribute-container img) {
+		height: 1.5rem;
+		margin: 0 0.5rem;
 	}
 </style>
