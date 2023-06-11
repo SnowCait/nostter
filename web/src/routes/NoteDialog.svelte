@@ -29,6 +29,7 @@
 	let complementStart = -1;
 	let complementEnd = -1;
 	let complementUserEvents: UserEvent[] = [];
+	let selectedCustomEmojis = new Map<string, string>();
 	let customEmojis: string[][] = [
 		['', ''],
 		['', ''],
@@ -62,6 +63,12 @@
 			}
 		});
 		tribute.attach(textarea);
+		textarea.addEventListener('tribute-replaced', (e: any) => {
+			selectedCustomEmojis.set(
+				e.detail.item.original.shortcode,
+				e.detail.item.original.imageUrl
+			);
+		});
 	});
 
 	openNoteDialog.subscribe((open) => {
@@ -288,42 +295,23 @@
 		const hashtags = Content.findHashtags(content);
 		tags.push(...Array.from(hashtags).map((hashtag) => ['t', hashtag]));
 
+		// Custom emojis
 		tags.push(
 			...Array.from(
 				new Set(
-					customEmojis
-						.filter(([shortcode, url]) => {
-							if (shortcode === undefined || shortcode === '') {
-								return false;
-							}
-
-							if (url === undefined || url === '') {
-								return false;
-							}
-
-							if (!content.includes(shortcode)) {
-								return false;
-							}
-
-							try {
-								new URL(url.trim());
-								return true;
-							} catch (error) {
-								console.log('[invalid emoji url]', url);
-								return false;
-							}
-						})
-						.map(([shortcode, url]) => {
-							if (shortcode.at(0) === ':') {
-								shortcode = shortcode.substring(1);
-							}
-							if (shortcode.at(shortcode.length - 1) === ':') {
-								shortcode = shortcode.substring(0, shortcode.length - 1);
-							}
-							return ['emoji', shortcode, url.trim()];
-						})
+					[...content.matchAll(/:(?<shortcode>\w+):/g)]
+						.map((match) => match.groups?.shortcode)
+						.filter((x): x is string => x !== undefined)
 				)
 			)
+				.map((shortcode) => {
+					const imageUrl = selectedCustomEmojis.get(shortcode);
+					if (imageUrl === undefined) {
+						return null;
+					}
+					return ['e', shortcode, imageUrl];
+				})
+				.filter((x): x is string[] => x !== null)
 		);
 
 		posting = true;
