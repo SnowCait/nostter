@@ -37,8 +37,6 @@
 
 		const tribute = new Tribute({
 			trigger: ':',
-			requireLeadingSpace: false,
-			// replaceTextSuffix: '', // not work correctly
 			positionMenu: false,
 			values: $customEmojiTags.map(([, shortcode, imageUrl]) => {
 				return {
@@ -92,7 +90,7 @@
 				console.log('[tribute closeable]');
 				autocompleting = false;
 				console.timeEnd('tribute');
-			}, 1000);
+			}, 200);
 		});
 	});
 
