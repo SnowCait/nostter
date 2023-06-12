@@ -90,7 +90,7 @@
 				console.log('[tribute closeable]');
 				autocompleting = false;
 				console.timeEnd('tribute');
-			}, 1000);
+			}, 200);
 		});
 	});
 
