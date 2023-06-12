@@ -95,6 +95,10 @@ export class Api {
 
 		const eventsMap = new Map<string, Event>();
 
+		if (pubkeys.length === 0) {
+			return eventsMap;
+		}
+
 		const events = await this.pool.list(this.relays, [
 			{
 				kinds: [Kind.Metadata],

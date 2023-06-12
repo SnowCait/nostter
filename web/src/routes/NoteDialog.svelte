@@ -20,7 +20,6 @@
 	import type { UserEvent, User } from './types';
 	import { customEmojiTags } from '../stores/CustomEmojis';
 	import { onMount } from 'svelte';
-	import CustomEmoji from './content/CustomEmoji.svelte';
 
 	let content = '';
 	let posting = false;
