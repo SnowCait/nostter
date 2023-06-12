@@ -72,20 +72,27 @@
 		});
 
 		textarea.addEventListener('tribute-replaced', (e: any) => {
+			console.debug('[tribute replaced]', e);
 			selectedCustomEmojis.set(
 				e.detail.item.original.shortcode,
 				e.detail.item.original.imageUrl
 			);
+			console.timeLog('tribute');
 		});
 
 		textarea.addEventListener('tribute-active-true', (e) => {
+			console.debug('[tribute active true]', e);
 			autocompleting = true;
+			console.time('tribute');
 		});
 
 		textarea.addEventListener('tribute-active-false', (e) => {
+			console.debug('[tribute active false]', e);
 			setTimeout(() => {
+				console.log('[tribute closeable]');
 				autocompleting = false;
-			}, 500);
+				console.timeEnd('tribute');
+			}, 1000);
 		});
 	});
 
