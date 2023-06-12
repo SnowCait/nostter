@@ -30,6 +30,7 @@
 	let complementEnd = -1;
 	let complementUserEvents: UserEvent[] = [];
 	let selectedCustomEmojis = new Map<string, string>();
+	let autocompleting = false;
 
 	onMount(async () => {
 		const { default: Tribute } = await import('tributejs');
@@ -77,6 +78,16 @@
 				e.detail.item.original.imageUrl
 			);
 		});
+
+		textarea.addEventListener('tribute-active-true', (e) => {
+			autocompleting = true;
+		});
+
+		textarea.addEventListener('tribute-active-false', (e) => {
+			setTimeout(() => {
+				autocompleting = false;
+			}, 500);
+		});
 	});
 
 	openNoteDialog.subscribe((open) => {
@@ -105,6 +116,10 @@
 
 	function closeDialog(event: MouseEvent) {
 		console.debug('[click]', `(${event.x}, ${event.y})`);
+
+		if (autocompleting) {
+			return;
+		}
 
 		const insideDialog =
 			event.x >= dialog.offsetLeft &&
