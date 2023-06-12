@@ -331,7 +331,7 @@
 					if (imageUrl === undefined) {
 						return null;
 					}
-					return ['e', shortcode, imageUrl];
+					return ['emoji', shortcode, imageUrl];
 				})
 				.filter((x): x is string[] => x !== null)
 		);
