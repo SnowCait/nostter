@@ -49,12 +49,11 @@
 			lookup: 'shortcode',
 			fillAttr: 'shortcode',
 			menuContainer: dialog,
-			menuItemTemplate: (item) => {
-				return `<img src="${item.original.imageUrl}" alt=":${item.original.shortcode}:"><span>:${item.original.shortcode}:</span>`;
-			},
-			selectTemplate: (item) => {
-				return `:${item.original.shortcode}:`;
-			}
+			menuItemTemplate: (item) =>
+				`<img src="${item.original.imageUrl}" alt=":${item.original.shortcode}:"><span>:${item.original.shortcode}:</span>`,
+			selectTemplate: (item) => `:${item.original.shortcode}:`,
+			noMatchTemplate: () =>
+				'<a href="https://emojis-iota.vercel.app/" target="_blank" rel="noopener noreferrer">Add custom emojis</a>'
 		});
 		tribute.attach(textarea);
 		console.debug('[tribute]', tribute);
