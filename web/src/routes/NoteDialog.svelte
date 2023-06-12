@@ -37,8 +37,6 @@
 
 		const tribute = new Tribute({
 			trigger: ':',
-			requireLeadingSpace: false,
-			// replaceTextSuffix: '', // not work correctly
 			positionMenu: false,
 			values: $customEmojiTags.map(([, shortcode, imageUrl]) => {
 				return {
