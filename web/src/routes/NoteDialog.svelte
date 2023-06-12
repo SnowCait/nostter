@@ -18,6 +18,8 @@
 	import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
 	import { userEvents } from '../stores/UserEvents';
 	import type { UserEvent } from './types';
+	import { customEmojiTags } from '../stores/CustomEmojis';
+	import { onMount } from 'svelte';
 
 	let content = '';
 	let posting = false;
@@ -27,13 +29,65 @@
 	let complementStart = -1;
 	let complementEnd = -1;
 	let complementUserEvents: UserEvent[] = [];
-	let customEmojis: string[][] = [
-		['', ''],
-		['', ''],
-		['', ''],
-		['', ''],
-		['', '']
-	];
+	let selectedCustomEmojis = new Map<string, string>();
+	let autocompleting = false;
+
+	onMount(async () => {
+		const { default: Tribute } = await import('tributejs');
+
+		const tribute = new Tribute({
+			trigger: ':',
+			requireLeadingSpace: false,
+			// replaceTextSuffix: '', // not work correctly
+			positionMenu: false,
+			values: $customEmojiTags.map(([, shortcode, imageUrl]) => {
+				return {
+					shortcode,
+					imageUrl
+				};
+			}),
+			lookup: 'shortcode',
+			fillAttr: 'shortcode',
+			menuContainer: dialog,
+			menuItemTemplate: (item) =>
+				`<img src="${item.original.imageUrl}" alt=":${item.original.shortcode}:"><span>:${item.original.shortcode}:</span>`,
+			selectTemplate: (item) => `:${item.original.shortcode}:`,
+			noMatchTemplate: () =>
+				'<a href="https://emojis-iota.vercel.app/" target="_blank" rel="noopener noreferrer">Add custom emojis</a>'
+		});
+		tribute.attach(textarea);
+		console.debug('[tribute]', tribute);
+
+		customEmojiTags.subscribe((tags) => {
+			console.debug('[custom emojis updated]', tags);
+			tribute.append(
+				0,
+				tags.map(([, shortcode, imageUrl]) => {
+					return {
+						shortcode,
+						imageUrl
+					};
+				})
+			);
+		});
+
+		textarea.addEventListener('tribute-replaced', (e: any) => {
+			selectedCustomEmojis.set(
+				e.detail.item.original.shortcode,
+				e.detail.item.original.imageUrl
+			);
+		});
+
+		textarea.addEventListener('tribute-active-true', (e) => {
+			autocompleting = true;
+		});
+
+		textarea.addEventListener('tribute-active-false', (e) => {
+			setTimeout(() => {
+				autocompleting = false;
+			}, 500);
+		});
+	});
 
 	openNoteDialog.subscribe((open) => {
 		console.log('[open]', open);
@@ -61,6 +115,10 @@
 
 	function closeDialog(event: MouseEvent) {
 		console.debug('[click]', `(${event.x}, ${event.y})`);
+
+		if (autocompleting) {
+			return;
+		}
 
 		const insideDialog =
 			event.x >= dialog.offsetLeft &&
@@ -259,42 +317,23 @@
 		const hashtags = Content.findHashtags(content);
 		tags.push(...Array.from(hashtags).map((hashtag) => ['t', hashtag]));
 
+		// Custom emojis
 		tags.push(
 			...Array.from(
 				new Set(
-					customEmojis
-						.filter(([shortcode, url]) => {
-							if (shortcode === undefined || shortcode === '') {
-								return false;
-							}
-
-							if (url === undefined || url === '') {
-								return false;
-							}
-
-							if (!content.includes(shortcode)) {
-								return false;
-							}
-
-							try {
-								new URL(url.trim());
-								return true;
-							} catch (error) {
-								console.log('[invalid emoji url]', url);
-								return false;
-							}
-						})
-						.map(([shortcode, url]) => {
-							if (shortcode.at(0) === ':') {
-								shortcode = shortcode.substring(1);
-							}
-							if (shortcode.at(shortcode.length - 1) === ':') {
-								shortcode = shortcode.substring(0, shortcode.length - 1);
-							}
-							return ['emoji', shortcode, url.trim()];
-						})
+					[...content.matchAll(/:(?<shortcode>\w+):/g)]
+						.map((match) => match.groups?.shortcode)
+						.filter((x): x is string => x !== undefined)
 				)
 			)
+				.map((shortcode) => {
+					const imageUrl = selectedCustomEmojis.get(shortcode);
+					if (imageUrl === undefined) {
+						return null;
+					}
+					return ['e', shortcode, imageUrl];
+				})
+				.filter((x): x is string[] => x !== null)
 		);
 
 		posting = true;
@@ -349,15 +388,6 @@
 			{/each}
 		</ul>
 	{/if}
-	<details>
-		<summary>Define Custom Emoji (temporary)</summary>
-		{#each customEmojis as [shortcode, url]}
-			<div>
-				<input type="text" placeholder=":shortcode:" bind:value={shortcode} />
-				<input type="text" placeholder="URL" bind:value={url} />
-			</div>
-		{/each}
-	</details>
 </dialog>
 
 <style>
@@ -394,5 +424,23 @@
 	ul {
 		list-style: none;
 		padding: 0;
+	}
+
+	:global(.tribute-container ul) {
+		list-style: none;
+		padding: 0;
+
+		background-color: white;
+		max-height: 10rem;
+		overflow: auto;
+	}
+
+	:global(.tribute-container li.highlight) {
+		background-color: lightgray;
+	}
+
+	:global(.tribute-container img) {
+		height: 1.5rem;
+		margin: 0 0.5rem;
 	}
 </style>

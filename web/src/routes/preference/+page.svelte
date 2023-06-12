@@ -25,6 +25,11 @@
 {#if !$rom}
 	<div><ReactionEmoji /></div>
 {/if}
+<div>
+	<a href="https://emojis-iota.vercel.app/" target="_blank" rel="noopener noreferrer">
+		Edit custom emojis
+	</a>
+</div>
 <div><Notification /></div>
 <div><Logout /></div>
 

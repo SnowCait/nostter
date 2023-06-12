@@ -36,6 +36,7 @@
 	"dependencies": {
 		"@tabler/icons-svelte": "^2.20.0",
 		"nostr-tools": "^1.10.1",
-		"qrcode": "^1.5.3"
+		"qrcode": "^1.5.3",
+		"tributejs": "^5.1.3"
 	}
 }

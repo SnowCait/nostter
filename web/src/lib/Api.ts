@@ -29,6 +29,7 @@ export class Api {
 					Kind.Contacts,
 					10000,
 					Kind.RelayList,
+					10030,
 					30000,
 					30001,
 					30078
