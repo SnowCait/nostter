@@ -64,5 +64,5 @@
 
 	<p>{event.tags.find(([t]) => t === 'summary')?.at(1)}</p>
 
-	<Content {event} />
+	<Content content={event.content} tags={event.tags} />
 {/if}

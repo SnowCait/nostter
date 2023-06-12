@@ -90,6 +90,40 @@ export class Api {
 		return userEvent;
 	}
 
+	async fetchUserEventsMap(pubkeys: string[]): Promise<Map<string, UserEvent>> {
+		const eventsMap = new Map<string, UserEvent>();
+
+		if (pubkeys.length === 0) {
+			return eventsMap;
+		}
+
+		const $userEvents = get(userEvents);
+		for (const pubkey of pubkeys) {
+			const userEvent = $userEvents.get(pubkey);
+			if (userEvent !== undefined) {
+				eventsMap.set(pubkey, userEvent);
+			}
+		}
+
+		if (pubkeys.length === eventsMap.size) {
+			return eventsMap;
+		}
+
+		const events = await this.fetchMetadataEventsMap(
+			pubkeys.filter((pubkey) => !eventsMap.has(pubkey))
+		);
+
+		for (const [, event] of events) {
+			const cache = eventsMap.get(event.pubkey);
+			if (cache === undefined || cache.created_at < event.created_at) {
+				const userEvent = await saveMetadataEvent(event);
+				eventsMap.set(event.pubkey, userEvent);
+			}
+		}
+
+		return eventsMap;
+	}
+
 	async fetchMetadataEventsMap(pubkeys: string[]): Promise<Map<string, Event>> {
 		const eventsMap = new Map<string, Event>();
 

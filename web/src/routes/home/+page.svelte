@@ -26,6 +26,7 @@
 	import { Api } from '$lib/Api';
 	import { Kind, nip57, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { Author } from '$lib/Author';
+	import { saveLastNote } from '../../stores/LastNotes';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -143,6 +144,13 @@
 			} seconds`
 		);
 
+		// Cache
+		for (const event of list) {
+			if (event.kind === Kind.Text) {
+				saveLastNote(event);
+			}
+		}
+
 		if ($events.length < 50 && since > 1640962800 /* 2022/01/01 00:00:00 */) {
 			await fetchHomeTimeline(since - 1, span * 2);
 		}
@@ -222,6 +230,11 @@
 				$events = $events;
 			} else {
 				newEvents.push(event);
+			}
+
+			// Cache
+			if (event.kind === Kind.Text) {
+				saveLastNote(event);
 			}
 		});
 		subscribe.on('eose', () => {

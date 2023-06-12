@@ -23,10 +23,10 @@
 	let followersLoading = true;
 
 	let relays = $readRelays;
+	const slug = $page.params.npub;
 	const api = new Api($pool, relays);
 
 	afterNavigate(async () => {
-		const slug = $page.params.npub;
 		console.log('[afterNavigate]', slug);
 
 		badges = [];
@@ -271,7 +271,11 @@
 
 <section>
 	<div>
-		Followees: {#if followeesLoading}<Loading />{:else}{followees.length}{/if}
+		Followees: {#if followeesLoading}
+			<Loading />
+		{:else}
+			<a href={`/${slug}/followees`}>{followees.length}</a>
+		{/if}
 	</div>
 	<div>
 		Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}

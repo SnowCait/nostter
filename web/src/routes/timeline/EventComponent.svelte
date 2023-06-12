@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Kind } from 'nostr-tools';
 	import type { Event } from '../types';
+	import Profile from './Profile.svelte';
 	import RepostedNote from './RepostedNote.svelte';
 	import Reaction from './Reaction.svelte';
 	import Channel from './Channel.svelte';
@@ -12,7 +13,9 @@
 	export let createdAtFormat: 'auto' | 'time';
 </script>
 
-{#if event.kind === 6}
+{#if event.kind === Kind.Metadata}
+	<Profile {event} />
+{:else if event.kind === 6}
 	<RepostedNote {event} {readonly} {createdAtFormat} />
 {:else if event.kind === Kind.Reaction}
 	<Reaction {event} {readonly} {createdAtFormat} />
