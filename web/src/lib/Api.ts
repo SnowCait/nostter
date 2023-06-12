@@ -91,18 +91,28 @@ export class Api {
 	}
 
 	async fetchMetadataEventsMap(pubkeys: string[]): Promise<Map<string, Event>> {
-		// TODO: From cache
-
 		const eventsMap = new Map<string, Event>();
 
 		if (pubkeys.length === 0) {
 			return eventsMap;
 		}
 
+		const $userEvents = get(userEvents);
+		for (const pubkey of pubkeys) {
+			const userEvent = $userEvents.get(pubkey);
+			if (userEvent !== undefined) {
+				eventsMap.set(pubkey, userEvent as Event);
+			}
+		}
+
+		if (pubkeys.length === eventsMap.size) {
+			return eventsMap;
+		}
+
 		const events = await this.pool.list(this.relays, [
 			{
 				kinds: [Kind.Metadata],
-				authors: pubkeys
+				authors: pubkeys.filter((pubkey) => !eventsMap.has(pubkey))
 			}
 		]);
 
@@ -110,6 +120,7 @@ export class Api {
 			const cache = eventsMap.get(event.pubkey);
 			if (cache === undefined || cache.created_at < event.created_at) {
 				eventsMap.set(event.pubkey, event);
+				saveMetadataEvent(event);
 			}
 		}
 
