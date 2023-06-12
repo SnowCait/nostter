@@ -254,6 +254,8 @@
 			return;
 		}
 
+		posting = true;
+
 		let tags: string[][] = [];
 		if ($replyTo !== undefined) {
 			if ($replyTo.tags.filter((x) => x[0] === 'e').length === 0) {
@@ -389,7 +391,6 @@
 				.filter((x): x is string[] => x !== null)
 		);
 
-		posting = true;
 		const event = await window.nostr.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 1,
