@@ -299,7 +299,7 @@
 				<button on:click={showWarningContent}>Show</button>
 			</div>
 		{:else}
-			<Content {event} />
+			<Content content={event.content} tags={event.tags} />
 		{/if}
 		{#if event.kind === Kind.ChannelMessage && channelId !== undefined}
 			<div>

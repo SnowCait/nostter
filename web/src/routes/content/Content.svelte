@@ -8,15 +8,16 @@
 	import Text from './Text.svelte';
 	import CustomEmoji from './CustomEmoji.svelte';
 
-	export let event: Event;
+	export let content: string;
+	export let tags: string[][];
 </script>
 
 <p class="content">
-	{#each Content.parse(event.content, event.tags) as token}
+	{#each Content.parse(content, tags) as token}
 		{#if token.name === 'reference' && token.index === undefined}
 			<ReferenceNip27 text={token.text} />
-		{:else if token.name === 'reference' && token.index !== undefined && event.tags.at(token.index) !== undefined}
-			<Reference text={token.text} tag={event.tags[token.index]} />
+		{:else if token.name === 'reference' && token.index !== undefined && tags.at(token.index) !== undefined}
+			<Reference text={token.text} tag={tags[token.index]} />
 		{:else if token.name === 'hashtag'}
 			<Hashtag text={token.text} />
 		{:else if token.name === 'emoji' && token.url !== undefined}
