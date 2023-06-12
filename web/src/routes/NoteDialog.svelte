@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	import { pool } from '../stores/Pool';
-	import { pubkey, rom, recommendedRelay, writeRelays } from '../stores/Author';
+	import { pubkey, rom, recommendedRelay, writeRelays, readRelays } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../stores/NoteDialog';
 	import Note from './timeline/Note.svelte';
 	import { IconSend } from '@tabler/icons-svelte';
@@ -17,9 +17,10 @@
 	import { nip19 } from 'nostr-tools';
 	import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
 	import { userEvents } from '../stores/UserEvents';
-	import type { UserEvent } from './types';
+	import type { UserEvent, User } from './types';
 	import { customEmojiTags } from '../stores/CustomEmojis';
 	import { onMount } from 'svelte';
+	import CustomEmoji from './content/CustomEmoji.svelte';
 
 	let content = '';
 	let posting = false;
@@ -323,18 +324,65 @@
 		tags.push(...Array.from(hashtags).map((hashtag) => ['t', hashtag]));
 
 		// Custom emojis
-		tags.push(
-			...Array.from(
-				new Set(
-					[...content.matchAll(/:(?<shortcode>\w+):/g)]
-						.map((match) => match.groups?.shortcode)
-						.filter((x): x is string => x !== undefined)
-				)
+		const readApi = new Api($pool, $readRelays);
+		const shortcodes = Array.from(
+			new Set(
+				[...content.matchAll(/:(?<shortcode>\w+):/g)]
+					.map((match) => match.groups?.shortcode)
+					.filter((x): x is string => x !== undefined)
 			)
+		);
+		new Map(
+			['npub']
+				.filter((x) => x.startsWith('npub'))
+				.map((x) => {
+					try {
+						// throw new Error();
+						return [x, (x + 1) as string];
+					} catch (e) {
+						return [x, ''];
+					}
+				})
+		);
+		const customEmojiPubkeysMap = new Map(
+			shortcodes
+				.filter((shortcode) => shortcode.startsWith('npub1'))
+				.map((npub) => {
+					try {
+						const { data: pubkey } = nip19.decode(npub);
+						return [npub, pubkey as string];
+					} catch (error) {
+						console.warn('[invalid npub]', npub, error);
+						return [npub, undefined];
+					}
+				})
+		);
+		const customEmojiMetadataEventsMap = await readApi.fetchMetadataEventsMap(
+			[...customEmojiPubkeysMap]
+				.map(([, pubkey]) => pubkey)
+				.filter((pubkey): pubkey is string => pubkey !== undefined)
+		);
+		tags.push(
+			...shortcodes
 				.map((shortcode) => {
 					const imageUrl = selectedCustomEmojis.get(shortcode);
 					if (imageUrl === undefined) {
-						return null;
+						const pubkey = customEmojiPubkeysMap.get(shortcode);
+						if (pubkey === undefined) {
+							return null;
+						}
+						const metadataEvent = customEmojiMetadataEventsMap.get(pubkey);
+						if (metadataEvent === undefined) {
+							return null;
+						}
+						try {
+							const metadata = JSON.parse(metadataEvent.content) as User;
+							const picture = new URL(metadata.picture);
+							return ['emoji', shortcode, picture.href];
+						} catch (error) {
+							console.warn('[invalid metadata]', metadataEvent, error);
+							return null;
+						}
 					}
 					return ['emoji', shortcode, imageUrl];
 				})
