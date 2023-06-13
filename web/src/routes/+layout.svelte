@@ -17,7 +17,7 @@
 		}
 	}
 
-	function onVisibilityChange(event: Event) {
+	function onVisibilityChange() {
 		console.log('[visibilitychange]', document.visibilityState);
 		debugMessage += `${new Date().toLocaleTimeString()} [visibilitychange] ${
 			document.visibilityState
