@@ -20,6 +20,7 @@
 	import type { UserEvent, User } from './types';
 	import { customEmojiTags } from '../stores/CustomEmojis';
 	import { onMount } from 'svelte';
+	import { Signer } from '$lib/Signer';
 
 	let content = '';
 	let posting = false;
@@ -390,7 +391,7 @@
 				.filter((x): x is string[] => x !== null)
 		);
 
-		const event = await window.nostr.signEvent({
+		const event = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 1,
 			tags,

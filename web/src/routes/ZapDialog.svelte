@@ -12,6 +12,7 @@
 	import type { Event } from './types';
 	import { writeRelays } from '../stores/Author';
 	import { createEventDispatcher } from 'svelte';
+	import { Signer } from '$lib/Signer';
 
 	export let event: Event;
 
@@ -36,7 +37,7 @@
 			comment: zapComment,
 			relays: $writeRelays
 		});
-		const zapRequestEvent = await window.nostr.signEvent(zapRequest);
+		const zapRequestEvent = await Signer.signEvent(zapRequest);
 		console.log('[zap request]', zapRequestEvent, event.user);
 		const encoded = encodeURI(JSON.stringify(zapRequestEvent));
 

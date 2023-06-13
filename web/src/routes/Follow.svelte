@@ -12,6 +12,7 @@
 	import { pool } from '../stores/Pool';
 	import { followees, pubkey as authorPubkey, writeRelays } from '../stores/Author';
 	import { nip19, type Event } from 'nostr-tools';
+	import { Signer } from '$lib/Signer';
 
 	export let pubkey: string;
 
@@ -74,7 +75,7 @@
 	}
 
 	async function updateContactList(pubkeys: string[], oldEvent: Event) {
-		const event = await window.nostr.signEvent({
+		const event = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: oldEvent.kind,
 			tags: pubkeys.map((pubkey) => ['p', pubkey]),
