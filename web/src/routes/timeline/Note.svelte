@@ -282,7 +282,7 @@
 				</a>
 			</div>
 		</div>
-		{#if event.tags.some(([tagName]) => tagName === 'p')}
+		{#if event.tags.some(([tagName]) => tagName === 'e') && event.tags.some(([tagName]) => tagName === 'p')}
 			<div class="reply">
 				<span>To</span>
 				<span>@{replyToNames.join(' @')}</span>
