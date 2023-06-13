@@ -1,11 +1,3 @@
-<script lang="ts" context="module">
-	interface Window {
-		// NIP-07
-		nostr: any;
-	}
-	declare var window: Window;
-</script>
-
 <script lang="ts">
 	import { pool } from '../stores/Pool';
 	import { pubkey, rom, recommendedRelay, writeRelays, readRelays } from '../stores/Author';

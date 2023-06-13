@@ -1,11 +1,3 @@
-<script lang="ts" context="module">
-	interface Window {
-		// NIP-07
-		nostr: any;
-	}
-	declare var window: Window;
-</script>
-
 <script lang="ts">
 	import { IconTrash } from '@tabler/icons-svelte';
 	import { Api } from '$lib/Api';

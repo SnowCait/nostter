@@ -1,12 +1,3 @@
-<script lang="ts" context="module">
-	interface Window {
-		// NIP-07
-		nostr: any;
-		Notification: Notification;
-	}
-	declare var window: Window;
-</script>
-
 <script lang="ts">
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';

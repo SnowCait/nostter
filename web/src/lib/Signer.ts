@@ -12,7 +12,7 @@ interface Window {
 	// NIP-07
 	nostr: any;
 }
-declare var window: Window;
+declare const window: Window;
 
 export class Signer {
 	public static getPublicKey(): string {
