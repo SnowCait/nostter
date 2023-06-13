@@ -45,7 +45,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Text, 6, Kind.Reaction, Kind.Zap],
+				kinds: [Kind.Text, Kind.EncryptedDirectMessage, 6, Kind.Reaction, Kind.Zap],
 				'#p': [$pubkey],
 				until,
 				since
@@ -163,7 +163,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Text, 6, Kind.Reaction, Kind.Zap],
+				kinds: [Kind.Text, Kind.EncryptedDirectMessage, 6, Kind.Reaction, Kind.Zap],
 				'#p': [$pubkey],
 				since
 			},
