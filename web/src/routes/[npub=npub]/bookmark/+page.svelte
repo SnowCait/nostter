@@ -50,10 +50,7 @@
 		let originalPrivateBookmarkEvents: NostrEvent[] = [];
 		if (pubkey === $authorPubkey && !$rom && event.content !== '') {
 			try {
-				const json = await Signer.decrypt(
-					$authorPubkey,
-					event.content
-				);
+				const json = await Signer.decrypt($authorPubkey, event.content);
 				const privateBookmark: string[][] = JSON.parse(json);
 				originalPrivateBookmarkEvents = await api.fetchEventsByIds(
 					privateBookmark
