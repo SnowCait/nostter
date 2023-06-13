@@ -5,6 +5,10 @@
 	import { onMount } from 'svelte';
 	import { debugMode } from '../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
+	import { dev } from '$app/environment';
+	import { inject } from '@vercel/analytics';
+
+	inject({ mode: dev ? 'development' : 'production' });
 
 	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
