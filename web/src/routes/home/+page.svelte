@@ -11,6 +11,7 @@
 		authorProfile,
 		readRelays,
 		isMuteEvent,
+		rom,
 		bookmarkEvent
 	} from '../../stores/Author';
 	import { goto } from '$app/navigation';
@@ -247,6 +248,10 @@
 			});
 			relay.on('auth', async (challenge: string) => {
 				console.log('[auth challenge]', challenge);
+
+				if ($rom) {
+					return;
+				}
 
 				const event = await Signer.signEvent({
 					created_at: Math.round(Date.now() / 1000),
