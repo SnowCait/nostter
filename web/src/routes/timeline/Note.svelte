@@ -273,7 +273,9 @@
 			<div class="display_name">
 				{event.user?.display_name ? event.user.display_name : event.user?.name}
 			</div>
-			<div class="name">@{event.user?.name}</div>
+			<div class="name">
+				@{event.user?.name ? event.user.name : event.user?.display_name}
+			</div>
 			<div class="created_at">
 				<a href="/{nip19.noteEncode(event.id)}">
 					<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
@@ -291,6 +293,11 @@
 				<div>{contentWarning}</div>
 				<button on:click={showWarningContent}>Show</button>
 			</div>
+		{:else if event.kind === Kind.EncryptedDirectMessage}
+			<p class="direct-message">
+				<span>Direct Message.</span>
+				<span>Please open in other client.</span>
+			</p>
 		{:else}
 			<Content content={event.content} tags={event.tags} />
 		{/if}
@@ -308,7 +315,7 @@
 				</span>
 			</div>
 		{/if}
-		{#if !readonly}
+		{#if !readonly && event.kind !== Kind.EncryptedDirectMessage}
 			<div class="action-menu">
 				<button class:hidden={event.kind === 42} on:click={() => reply(event)}>
 					<IconMessageCircle2 size={iconSize} />
@@ -418,6 +425,10 @@
 	.reply {
 		font-size: 0.8em;
 		color: gray;
+	}
+
+	.direct-message {
+		margin: 0.1rem 0;
 	}
 
 	.develop pre {
