@@ -11,6 +11,7 @@
 		authorProfile,
 		readRelays,
 		isMuteEvent,
+		rom,
 		bookmarkEvent
 	} from '../../stores/Author';
 	import { goto } from '$app/navigation';
@@ -248,6 +249,10 @@
 			relay.on('auth', async (challenge: string) => {
 				console.log('[auth challenge]', challenge);
 
+				if ($rom) {
+					return;
+				}
+
 				const event = await Signer.signEvent({
 					created_at: Math.round(Date.now() / 1000),
 					kind: Kind.ClientAuth,
@@ -355,18 +360,8 @@
 	<title>nostter - home</title>
 </svelte:head>
 
-<h1>home</h1>
-
 <TimelineView
 	events={$events}
 	load={async () =>
 		await fetchHomeTimeline($events.at($events.length - 1)?.created_at ?? now - 1)}
 />
-
-<style>
-	@media screen and (max-width: 600px) {
-		h1 {
-			margin: 0.67em;
-		}
-	}
-</style>
