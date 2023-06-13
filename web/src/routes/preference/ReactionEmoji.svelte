@@ -1,17 +1,11 @@
-<script lang="ts" context="module">
-	interface Window {
-		// NIP-07
-		nostr: any;
-	}
-	declare var window: Window;
-</script>
-
 <script lang="ts">
 	import { writable } from 'svelte/store';
 	import { reactionEmoji } from '../../stores/Preference';
 	import { pool } from '../../stores/Pool';
 	import { writeRelays } from '../../stores/Author';
 	import { onMount } from 'svelte';
+	import { Signer } from '$lib/Signer';
+	import type { Kind } from 'nostr-tools';
 
 	let pawPad = writable($reactionEmoji === '🐾');
 
@@ -30,9 +24,9 @@
 			}
 
 			// Save
-			const event = await window.nostr.signEvent({
+			const event = await Signer.signEvent({
 				created_at: Math.round(Date.now() / 1000),
-				kind: 30078,
+				kind: 30078 as Kind,
 				tags: [['d', 'nostter-reaction-emoji']],
 				content: $reactionEmoji
 			});

@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Kind, nip19, type Event, type Filter } from 'nostr-tools';
+	import { Kind, nip19, type Event, type Filter, getPublicKey } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import {
 		pubkey,
@@ -30,9 +30,10 @@
 	import { filterTags } from '$lib/EventHelper';
 	import { RelaysFetcher } from '$lib/RelaysFetcher';
 	import { customEmojisEvent, customEmojiTags } from '../stores/CustomEmojis';
+	import { Signer } from '$lib/Signer';
 
 	let login: string | null = null;
-	let npub = '';
+	let key = '';
 
 	const now = Math.floor(Date.now() / 1000);
 
@@ -48,8 +49,11 @@
 
 		if (login === 'NIP-07') {
 			await loginWithNip07();
+		} else if (login.startsWith('nsec')) {
+			key = login;
+			await loginWithNsec();
 		} else if (login.startsWith('npub')) {
-			npub = login;
+			key = login;
 			await loginWithNpub();
 		} else {
 			console.error('[logic error]', 'login');
@@ -71,7 +75,7 @@
 		localStorage.setItem('nostter:login', login);
 
 		try {
-			$pubkey = await window.nostr.getPublicKey();
+			$pubkey = await Signer.getPublicKey();
 			if (!$pubkey) {
 				throw new Error('undefined');
 			}
@@ -84,18 +88,7 @@
 
 		console.log(`NIP-07 getPublicKey in ${Date.now() / 1000 - now} seconds`);
 
-		let nip07Relays: Map<string, { read: boolean; write: boolean }> = new Map();
-		if (typeof window.nostr.getRelays === 'function') {
-			try {
-				nip07Relays = await window.nostr.getRelays();
-			} catch (error) {
-				console.error('[NIP-07 getRelays()]', error);
-			}
-			console.log(nip07Relays);
-			if (nip07Relays.size === 0) {
-				console.warn('Please register relays on NIP-07');
-			}
-		}
+		const nip07Relays = Signer.getRelays();
 
 		console.log(`NIP-07 getRelays in ${Date.now() / 1000 - now} seconds`);
 
@@ -109,16 +102,31 @@
 		await gotoHome();
 	}
 
-	async function loginWithNpub() {
-		console.log('npub', npub);
-		const { type, data } = nip19.decode(npub);
-		console.log(type, data);
-		if (type !== 'npub' || typeof data !== 'string') {
-			console.error(`Invalid npub: ${npub}`);
+	async function loginWithNsec() {
+		const { type, data: seckey } = nip19.decode(key);
+		if (type !== 'nsec' || typeof seckey !== 'string') {
+			console.error('Invalid nsec');
 			return;
 		}
 
-		login = npub;
+		login = key;
+		localStorage.setItem('nostter:login', login);
+
+		$pubkey = getPublicKey(seckey);
+		await fetchAuthor($defaultRelays);
+		await gotoHome();
+	}
+
+	async function loginWithNpub() {
+		console.log('npub', key);
+		const { type, data } = nip19.decode(key);
+		console.log(type, data);
+		if (type !== 'npub' || typeof data !== 'string') {
+			console.error(`Invalid npub: ${key}`);
+			return;
+		}
+
+		login = key;
 		localStorage.setItem('nostter:login', login);
 
 		$pubkey = data;
@@ -327,9 +335,9 @@
 		publicMutePubkeys = filterTags('p', event.tags);
 		publicMuteEventIds = filterTags('e', event.tags);
 
-		if (login === 'NIP-07' && window.nostr.nip04 !== undefined && event.content !== '') {
+		if ((login === 'NIP-07' || login?.startsWith('nsec')) && event.content !== '') {
 			try {
-				const json = await window.nostr.nip04.decrypt($pubkey, event.content);
+				const json = await Signer.decrypt($pubkey, event.content);
 				const tags = JSON.parse(json) as string[][];
 				privateMutePubkeys = filterTags('p', tags);
 				privateMuteEventIds = filterTags('e', tags);
@@ -355,14 +363,14 @@
 
 <div>or</div>
 
-<form on:submit|preventDefault={loginWithNpub}>
+<form on:submit|preventDefault={() => (key.startsWith('nsec') ? loginWithNsec() : loginWithNpub())}>
 	<input
 		type="text"
-		bind:value={npub}
-		placeholder="npub"
-		pattern="^npub1[a-z0-9]+$"
+		bind:value={key}
+		placeholder="npub or nsec"
+		pattern="^(npub|nsec)1[a-z0-9]+$"
 		required
 		on:keyup|stopPropagation={() => console.debug()}
 	/>
-	<input type="submit" value="Login with npub" disabled={login !== null} />
+	<input type="submit" value="Login with key" disabled={login !== null} />
 </form>

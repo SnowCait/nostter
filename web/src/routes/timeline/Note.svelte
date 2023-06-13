@@ -1,11 +1,3 @@
-<script lang="ts" context="module">
-	interface Window {
-		// NIP-07
-		nostr: any;
-	}
-	declare var window: Window;
-</script>
-
 <script lang="ts">
 	import { Kind, nip19 } from 'nostr-tools';
 	import {
@@ -35,6 +27,7 @@
 	import { onMount } from 'svelte';
 	import ZapDialog from '../ZapDialog.svelte';
 	import Content from '../content/Content.svelte';
+	import { Signer } from '$lib/Signer';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -82,9 +75,9 @@
 
 		reposted = true;
 
-		const event = await window.nostr.signEvent({
+		const event = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
-			kind: 6,
+			kind: 6 as Kind,
 			tags: [
 				['e', note.id, $recommendedRelay, 'mention'],
 				['p', note.pubkey]
@@ -115,7 +108,7 @@
 
 		const content = $reactionEmoji;
 
-		const event = await window.nostr.signEvent({
+		const event = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 7,
 			tags: [
@@ -176,7 +169,7 @@
 						tags: [...latestEvent.tags, ['e', note.id]],
 						content: latestEvent.content
 				  };
-		const event = await window.nostr.signEvent(unsignedEvent);
+		const event = await Signer.signEvent(unsignedEvent);
 		console.log('[bookmark new]', event);
 
 		api.publish(event).catch((error) => {
@@ -224,7 +217,7 @@
 			tags: latestEvent.tags.filter(([tagName, id]) => !(tagName === 'e' && id === note.id)),
 			content: latestEvent.content
 		};
-		const event = await window.nostr.signEvent(unsignedEvent);
+		const event = await Signer.signEvent(unsignedEvent);
 		console.log('[bookmark new]', event);
 
 		api.publish(event).catch((error) => {

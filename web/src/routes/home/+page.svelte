@@ -1,12 +1,3 @@
-<script lang="ts" context="module">
-	interface Window {
-		// NIP-07
-		nostr: any;
-		Notification: Notification;
-	}
-	declare var window: Window;
-</script>
-
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Event, UserEvent } from '../types';
@@ -27,6 +18,7 @@
 	import { Kind, nip57, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { Author } from '$lib/Author';
 	import { saveLastNote } from '../../stores/LastNotes';
+	import { Signer } from '$lib/Signer';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -255,7 +247,8 @@
 			});
 			relay.on('auth', async (challenge: string) => {
 				console.log('[auth challenge]', challenge);
-				const event = await window.nostr.signEvent({
+
+				const event = await Signer.signEvent({
 					created_at: Math.round(Date.now() / 1000),
 					kind: Kind.ClientAuth,
 					tags: [

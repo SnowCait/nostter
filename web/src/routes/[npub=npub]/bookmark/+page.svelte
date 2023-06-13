@@ -1,12 +1,3 @@
-<script lang="ts" context="module">
-	interface Window {
-		// NIP-07
-		nostr: any;
-		Notification: Notification;
-	}
-	declare var window: Window;
-</script>
-
 <script lang="ts">
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
@@ -18,6 +9,7 @@
 	import { error } from '@sveltejs/kit';
 	import TimelineView from '../../TimelineView.svelte';
 	import type { Event } from '../../types';
+	import { Signer } from '$lib/Signer';
 
 	let publicBookmarkEvents: Event[] = [];
 	let privateBookmarkEvents: Event[] = [];
@@ -49,10 +41,8 @@
 		let originalPrivateBookmarkEvents: NostrEvent[] = [];
 		if (pubkey === $authorPubkey && !$rom && event.content !== '') {
 			try {
-				const privateBookmark: string[][] = await window.nostr.nip04.decrypt(
-					$authorPubkey,
-					event.content
-				);
+				const json = await Signer.decrypt($authorPubkey, event.content);
+				const privateBookmark: string[][] = JSON.parse(json);
 				originalPrivateBookmarkEvents = await api.fetchEventsByIds(
 					privateBookmark
 						.filter(([tagName, id]) => tagName === 'e' && id !== undefined)

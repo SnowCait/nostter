@@ -1,11 +1,3 @@
-<script lang="ts" context="module">
-	interface Window {
-		// NIP-07
-		nostr: any;
-	}
-	declare var window: Window;
-</script>
-
 <script lang="ts">
 	import { pool } from '../stores/Pool';
 	import { pubkey, rom, recommendedRelay, writeRelays, readRelays } from '../stores/Author';
@@ -20,6 +12,7 @@
 	import type { UserEvent, User } from './types';
 	import { customEmojiTags } from '../stores/CustomEmojis';
 	import { onMount } from 'svelte';
+	import { Signer } from '$lib/Signer';
 
 	let content = '';
 	let posting = false;
@@ -390,7 +383,7 @@
 				.filter((x): x is string[] => x !== null)
 		);
 
-		const event = await window.nostr.signEvent({
+		const event = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 1,
 			tags,
