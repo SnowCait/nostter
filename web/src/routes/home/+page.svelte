@@ -360,18 +360,8 @@
 	<title>nostter - home</title>
 </svelte:head>
 
-<h1>home</h1>
-
 <TimelineView
 	events={$events}
 	load={async () =>
 		await fetchHomeTimeline($events.at($events.length - 1)?.created_at ?? now - 1)}
 />
-
-<style>
-	@media screen and (max-width: 600px) {
-		h1 {
-			margin: 0.67em;
-		}
-	}
-</style>
