@@ -30,8 +30,9 @@
 		const event = await api.fetchContactListEvent(pubkey);
 		console.log('[contacts]', event);
 
-		if (event === undefined) {
-			throw error(404);
+		if (event === undefined || event.tags.length === 0) {
+			showLoading = false;
+			return;
 		}
 
 		const pubkeys = filterTags('p', event.tags);
