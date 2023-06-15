@@ -6,6 +6,17 @@ import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { isMuteEvent } from '../stores/Author';
 
 export class Api {
+	public static readonly replaceableKinds = [
+		Kind.Metadata,
+		Kind.RecommendRelay,
+		Kind.Contacts,
+		10000,
+		Kind.RelayList,
+		10030
+	];
+
+	public static readonly parameterizedReplaceableKinds = [30000, 30001, 30078];
+
 	constructor(private pool: SimplePool, private relays: string[]) {}
 
 	public async fetchRelayEvents(pubkey: string): Promise<Map<Kind, Event>> {
@@ -20,32 +31,24 @@ export class Api {
 		return new Map<Kind, Event>(events.map((e) => [e.kind, e]));
 	}
 
-	async fetchAuthorEvents(pubkey: string): Promise<[Map<Kind, Event>, Map<string, Event>]> {
+	async fetchAuthorEvents(pubkey: string): Promise<{
+		replaceableEvents: Map<Kind, Event>;
+		parameterizedReplaceableEvents: Map<string, Event>;
+	}> {
 		const events = await this.pool.list(this.relays, [
 			{
-				kinds: [
-					Kind.Metadata,
-					Kind.RecommendRelay,
-					Kind.Contacts,
-					10000,
-					Kind.RelayList,
-					10030,
-					30000,
-					30001,
-					30078
-				],
+				kinds: [...Api.replaceableKinds, ...Api.parameterizedReplaceableKinds],
 				authors: [pubkey]
 			}
 		]);
 		events.sort((x, y) => x.created_at - y.created_at); // Latest event is effective
 		console.debug('[author events all]', events);
-		const threshold = 30000;
 		const replaceableEvents = new Map<Kind, Event>(
-			events.filter((e) => e.kind < threshold).map((e) => [e.kind, e])
+			events.filter((e) => Api.replaceableKinds.includes(e.kind)).map((e) => [e.kind, e])
 		);
 		const parameterizedReplaceableEvents = new Map<string, Event>(
 			events
-				.filter((e) => e.kind >= threshold)
+				.filter((e) => Api.parameterizedReplaceableKinds.includes(e.kind))
 				.map((e) => {
 					const id = e.tags
 						.find(
@@ -60,7 +63,7 @@ export class Api {
 				.filter((x): x is [string, Event] => x !== null)
 		);
 		console.log('[author events]', replaceableEvents, parameterizedReplaceableEvents);
-		return [replaceableEvents, parameterizedReplaceableEvents];
+		return { replaceableEvents, parameterizedReplaceableEvents };
 	}
 
 	async fetchUserEvent(pubkey: string): Promise<UserEvent | undefined> {

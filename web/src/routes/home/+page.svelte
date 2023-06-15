@@ -7,6 +7,7 @@
 	import { pool } from '../../stores/Pool';
 	import {
 		pubkey,
+		author,
 		followees,
 		authorProfile,
 		readRelays,
@@ -213,7 +214,7 @@
 			notifyStreamingSpeed(event.created_at);
 
 			// Notification
-			if (new Author($pubkey).isRelated(event)) {
+			if ($author.isRelated(event)) {
 				console.log('[related]', event);
 				notify(event);
 			}

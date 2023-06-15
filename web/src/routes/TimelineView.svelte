@@ -2,8 +2,7 @@
 	import { writable } from 'svelte/store';
 	import { onMount } from 'svelte';
 	import type { Event } from './types';
-	import { pubkey } from '../stores/Author';
-	import { Author } from '$lib/Author';
+	import { author } from '../stores/Author';
 	import Loading from './Loading.svelte';
 	import EventComponent from './timeline/EventComponent.svelte';
 
@@ -40,10 +39,7 @@
 
 <ul>
 	{#each events as event (event.id)}
-		<li
-			class:focus={event.id === focusEventId}
-			class:related={new Author($pubkey).isRelated(event)}
-		>
+		<li class:focus={event.id === focusEventId} class:related={$author.isRelated(event)}>
 			<EventComponent {event} {readonly} {createdAtFormat} />
 		</li>
 	{/each}
