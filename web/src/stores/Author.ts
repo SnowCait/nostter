@@ -2,9 +2,11 @@ import { get, writable, type Writable } from 'svelte/store';
 import type { User } from '../routes/types';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from './DefaultRelays';
+import type { Author } from '$lib/Author';
 
 const $defaultRelays = get(defaultRelays);
 export const pubkey = writable('');
+export const author: Writable<Author> = writable();
 export const authorProfile: Writable<User> = writable();
 export const recommendedRelay = writable('');
 export const followees: Writable<string[]> = writable([]);

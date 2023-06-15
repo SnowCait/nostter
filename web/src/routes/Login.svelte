@@ -12,15 +12,13 @@
 	import { onMount } from 'svelte';
 	import {
 		pubkey,
+		author,
 		authorProfile,
-		recommendedRelay,
-		followees,
 		mutePubkeys,
 		muteEventIds,
 		readRelays,
 		writeRelays,
 		rom,
-		updateRelays,
 		bookmarkEvent
 	} from '../stores/Author';
 	import { defaultRelays } from '../stores/DefaultRelays';
@@ -28,9 +26,9 @@
 	import { reactionEmoji } from '../stores/Preference';
 	import { Api } from '$lib/Api';
 	import { filterTags } from '$lib/EventHelper';
-	import { RelaysFetcher } from '$lib/RelaysFetcher';
 	import { customEmojisEvent, customEmojiTags } from '../stores/CustomEmojis';
 	import { Signer } from '$lib/Signer';
+	import { Author } from '$lib/Author';
 
 	let login: string | null = null;
 	let key = '';
@@ -160,13 +158,12 @@
 	async function fetchAuthor(relays: string[]) {
 		console.time('fetch author');
 
-		await fetchRelays(relays);
+		$author = new Author($pubkey);
+
+		await $author.fetchRelays(relays);
 		console.timeLog('fetch author');
 
-		const api = new Api($pool, $writeRelays);
-		const [replaceableEvents, parameterizedReplaceableEvents] = await api.fetchAuthorEvents(
-			$pubkey
-		);
+		const { replaceableEvents, parameterizedReplaceableEvents } = await $author.fetchEvents();
 
 		const metadataEvent = replaceableEvents.get(Kind.Metadata);
 		if (metadataEvent !== undefined) {
@@ -178,7 +175,7 @@
 			}
 		}
 
-		saveRelays(replaceableEvents);
+		$author.saveRelays(replaceableEvents);
 
 		$customEmojisEvent = replaceableEvents.get(10030 as Kind);
 		if ($customEmojisEvent !== undefined) {
@@ -215,6 +212,7 @@
 						};
 					});
 				console.debug('[custom emoji #a]', referenceTags, filters);
+				const api = new Api($pool, $writeRelays);
 				api.fetchEvents(filters).then((events) => {
 					console.debug('[custom emoji 30030]', events);
 					for (const event of events) {
@@ -267,65 +265,6 @@
 		console.timeEnd('fetch author');
 	}
 
-	async function fetchRelays(relays: string[]) {
-		const relayEvents = await RelaysFetcher.fetchEvents($pubkey, relays);
-		console.log('[relay events]', relayEvents);
-
-		saveRelays(relayEvents);
-	}
-
-	// TODO: Ensure created_at
-	function saveRelays(replaceableEvents: Map<Kind, Event>) {
-		const recommendedRelayEvent = replaceableEvents.get(Kind.RecommendRelay);
-		if (recommendedRelayEvent !== undefined) {
-			$recommendedRelay = recommendedRelayEvent.content;
-			console.log('[recommended relay]', $recommendedRelay);
-		}
-
-		const contactsEvent = replaceableEvents.get(Kind.Contacts);
-		if (contactsEvent !== undefined) {
-			const pubkeys = new Set(filterTags('p', contactsEvent.tags));
-			pubkeys.add($pubkey); // Add myself
-			$followees = Array.from(pubkeys);
-			console.log('[contacts]', pubkeys);
-
-			if (contactsEvent.content === '') {
-				console.log('[relays in kind 3] empty');
-			} else {
-				const relays = new Map<string, { read: boolean; write: boolean }>(
-					Object.entries(JSON.parse(contactsEvent.content))
-				);
-				const validRelays = [...relays].filter(([relay]) => {
-					try {
-						const url = new URL(relay);
-						return url.protocol === 'wss:' || url.protocol === 'ws:';
-					} catch {
-						return false;
-					}
-				});
-				console.log(relays, pubkeys);
-				$readRelays = Array.from(
-					new Set(validRelays.filter(([, { read }]) => read).map(([relay]) => relay))
-				);
-				$writeRelays = Array.from(
-					new Set(validRelays.filter(([, { write }]) => write).map(([relay]) => relay))
-				);
-				console.log('[relays in kind 3]', $readRelays, $writeRelays);
-			}
-		}
-
-		const relayListEvent = replaceableEvents.get(Kind.RelayList);
-		if (
-			relayListEvent !== undefined &&
-			(contactsEvent === undefined ||
-				contactsEvent.content === '' ||
-				contactsEvent.created_at < relayListEvent.created_at)
-		) {
-			updateRelays(relayListEvent);
-			console.log('[relays in kind 10002]', $readRelays, $writeRelays);
-		}
-	}
-
 	async function getMuteLists(event: Event) {
 		let publicMutePubkeys: string[] = [];
 		let publicMuteEventIds: string[] = [];
@@ -357,8 +296,8 @@
 </script>
 
 <button on:click={loginWithNip07} disabled={login !== null}>
-	Login with NIP-07 Browser Extension</button
->
+	Login with NIP-07 Browser Extension
+</button>
 <span>(Recommended)</span>
 
 <div>or</div>
