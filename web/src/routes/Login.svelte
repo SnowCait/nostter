@@ -296,8 +296,8 @@
 </script>
 
 <button on:click={loginWithNip07} disabled={login !== null}>
-	Login with NIP-07 Browser Extension</button
->
+	Login with NIP-07 Browser Extension
+</button>
 <span>(Recommended)</span>
 
 <div>or</div>
