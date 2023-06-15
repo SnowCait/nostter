@@ -5,6 +5,7 @@ import { defaultRelays } from './DefaultRelays';
 import type { Author } from '$lib/Author';
 
 const $defaultRelays = get(defaultRelays);
+export const loginType: Writable<'NIP-07' | 'nsec' | 'npub'> = writable();
 export const pubkey = writable('');
 export const author: Writable<Author> = writable();
 export const authorProfile: Writable<User> = writable();
