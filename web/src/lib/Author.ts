@@ -1,4 +1,4 @@
-import { Kind, type Event } from 'nostr-tools';
+import { Kind, type Event, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { Api } from './Api';
 import { pool } from '../stores/Pool';
@@ -7,15 +7,23 @@ import {
 	recommendedRelay,
 	readRelays,
 	writeRelays,
-	updateRelays
+	updateRelays,
+	authorProfile,
+	bookmarkEvent,
+	mutePubkeys,
+	muteEventIds,
+	loginType
 } from '../stores/Author';
 import { RelaysFetcher } from './RelaysFetcher';
 import { filterTags } from './EventHelper';
+import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
+import { reactionEmoji } from '../stores/Preference';
+import { Signer } from './Signer';
 
 export class Author {
 	constructor(private pubkey: string) {}
 
-	isRelated(event: Event): boolean {
+	public isRelated(event: Event): boolean {
 		return (
 			event.pubkey !== this.pubkey &&
 			event.tags.some(
@@ -24,7 +32,7 @@ export class Author {
 		);
 	}
 
-	async fetchRelays(relays: string[]) {
+	public async fetchRelays(relays: string[]) {
 		const relayEvents = await RelaysFetcher.fetchEvents(this.pubkey, relays);
 		console.log('[relay events]', relayEvents);
 
@@ -89,11 +97,140 @@ export class Author {
 		}
 	}
 
-	async fetchEvents(): Promise<{
-		replaceableEvents: Map<Kind, Event>;
-		parameterizedReplaceableEvents: Map<string, Event>;
-	}> {
+	public async fetchEvents(): Promise<void> {
 		const api = new Api(get(pool), get(writeRelays));
-		return await api.fetchAuthorEvents(this.pubkey);
+		const { replaceableEvents, parameterizedReplaceableEvents } = await api.fetchAuthorEvents(
+			this.pubkey
+		);
+
+		const metadataEvent = replaceableEvents.get(Kind.Metadata);
+		if (metadataEvent !== undefined) {
+			try {
+				authorProfile.set(JSON.parse(metadataEvent.content));
+				console.log('[profile]', get(authorProfile));
+			} catch (error) {
+				console.warn('[invalid metadata]', error, metadataEvent);
+			}
+		}
+
+		this.saveRelays(replaceableEvents);
+
+		customEmojisEvent.set(replaceableEvents.get(10030 as Kind));
+		const $customEmojisEvent = get(customEmojisEvent);
+		if ($customEmojisEvent !== undefined) {
+			const emojiTagsFilter = (tags: string[][]) => {
+				return tags.filter(([tagName, shortcode, imageUrl]) => {
+					if (tagName !== 'emoji') {
+						return false;
+					}
+					if (shortcode === undefined || imageUrl === undefined) {
+						return false;
+					}
+					try {
+						new URL(imageUrl);
+						return true;
+					} catch {
+						return false;
+					}
+				});
+			};
+			// emoji tags
+			customEmojiTags.set(emojiTagsFilter($customEmojisEvent.tags));
+			const $customEmojiTags = get(customEmojiTags);
+
+			// a tags
+			const referenceTags = $customEmojisEvent.tags.filter(([tagName]) => tagName === 'a');
+			if (referenceTags.length > 0) {
+				const filters: Filter[] = referenceTags
+					.map(([, reference]) => reference.split(':'))
+					.filter(([kind]) => kind === `${30030 as Kind}`)
+					.map(([kind, pubkey, identifier]) => {
+						return {
+							kinds: [Number(kind)],
+							authors: [pubkey],
+							'#d': [identifier]
+						};
+					});
+				console.debug('[custom emoji #a]', referenceTags, filters);
+				api.fetchEvents(filters).then((events) => {
+					console.debug('[custom emoji 30030]', events);
+					for (const event of events) {
+						$customEmojiTags.push(...emojiTagsFilter(event.tags));
+					}
+					customEmojiTags.set($customEmojiTags);
+					console.log('[custom emoji tags]', $customEmojiTags);
+				});
+			}
+		}
+
+		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`));
+
+		const reactionEmojiEvent = parameterizedReplaceableEvents.get(
+			`${30078 as Kind}:nostter-reaction-emoji`
+		);
+		if (reactionEmojiEvent !== undefined) {
+			reactionEmoji.set(reactionEmojiEvent.content);
+			console.log('[reaction emoji]', get(reactionEmoji));
+		}
+
+		const muteEvent = replaceableEvents.get(10000 as Kind);
+		const regacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);
+
+		let modernMutePubkeys: string[] = [];
+		let modernMuteEventIds: string[] = [];
+		let regacyMutePubkeys: string[] = [];
+		let regacyMuteEventIds: string[] = [];
+
+		if (muteEvent !== undefined) {
+			const muteLists = await this.getMuteLists(muteEvent);
+			modernMutePubkeys = muteLists.pubkeys;
+			modernMuteEventIds = muteLists.eventIds;
+		}
+
+		if (regacyMuteEvent !== undefined) {
+			const muteLists = await this.getMuteLists(regacyMuteEvent);
+			regacyMutePubkeys = muteLists.pubkeys;
+			regacyMuteEventIds = muteLists.eventIds;
+		}
+
+		mutePubkeys.set(Array.from(new Set([...modernMutePubkeys, ...regacyMutePubkeys])));
+		console.log('[mute pubkeys]', get(mutePubkeys));
+
+		muteEventIds.set(Array.from(new Set([...modernMuteEventIds, ...regacyMuteEventIds])));
+		console.log('[mute eventIds]', get(muteEventIds));
+
+		console.log('[relays]', get(readRelays), get(writeRelays));
+
+		console.timeEnd('fetch author');
+	}
+
+	private async getMuteLists(event: Event) {
+		let publicMutePubkeys: string[] = [];
+		let publicMuteEventIds: string[] = [];
+		let privateMutePubkeys: string[] = [];
+		let privateMuteEventIds: string[] = [];
+
+		publicMutePubkeys = filterTags('p', event.tags);
+		publicMuteEventIds = filterTags('e', event.tags);
+
+		const $loginType = get(loginType);
+		if (($loginType === 'NIP-07' || $loginType === 'nsec') && event.content !== '') {
+			try {
+				const json = await Signer.decrypt(this.pubkey, event.content);
+				const tags = JSON.parse(json) as string[][];
+				privateMutePubkeys = filterTags('p', tags);
+				privateMuteEventIds = filterTags('e', tags);
+			} catch (error) {
+				console.error('[NIP-07 nip04.decrypt()]', error);
+			}
+		}
+
+		console.log('[mute p list]', publicMutePubkeys, privateMutePubkeys);
+		console.log('[mute e list]', publicMuteEventIds, privateMuteEventIds);
+
+		return {
+			pubkeys: Array.from(new Set([...publicMutePubkeys, ...privateMutePubkeys])),
+			eventIds: Array.from(new Set([...publicMuteEventIds, ...privateMuteEventIds]))
+		};
 	}
 }
