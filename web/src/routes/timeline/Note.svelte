@@ -50,6 +50,8 @@
 	let channelMetadata: ChannelMetadata | undefined;
 	const originalEvent = Object.assign({}, event) as any;
 	delete originalEvent.user;
+	const originalUser = Object.assign({}, event.user) as any;
+	delete originalUser.zapEndpoint;
 	let zapDialogComponent: ZapDialog;
 
 	let contentWarning = event.tags.find(([tagName]) => tagName === 'content-warning')?.at(1);
@@ -371,7 +373,7 @@
 				<h5>User ID</h5>
 				<div>{nip19.npubEncode(event.pubkey)}</div>
 				<h5>User JSON</h5>
-				<pre><code class="json">{JSON.stringify(event.user, null, 2)}</code></pre>
+				<pre><code class="json">{JSON.stringify(originalUser, null, 2)}</code></pre>
 			</div>
 		{/if}
 	</div>
