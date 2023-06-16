@@ -3,7 +3,7 @@
 	import { pubkey, rom, recommendedRelay, writeRelays, readRelays } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../stores/NoteDialog';
 	import Note from './timeline/Note.svelte';
-	import { IconSend } from '@tabler/icons-svelte';
+	import IconSend from '@tabler/icons-svelte/dist/svelte/icons/IconSend.svelte';
 	import { Api } from '$lib/Api';
 	import { Content } from '$lib/Content';
 	import { nip19 } from 'nostr-tools';

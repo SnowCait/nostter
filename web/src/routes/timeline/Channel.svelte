@@ -5,7 +5,8 @@
 	import { pool } from '../../stores/Pool';
 	import { readRelays } from '../../stores/Author';
 	import type { ChannelMetadata } from '../types';
-	import { IconCodeDots, IconQuote } from '@tabler/icons-svelte';
+	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
+	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
 	import { intentContent, openNoteDialog } from '../../stores/NoteDialog';
 
 	export let event: Event;

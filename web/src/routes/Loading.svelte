@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconLoader } from '@tabler/icons-svelte';
+	import IconLoader from '@tabler/icons-svelte/dist/svelte/icons/IconLoader.svelte';
 </script>
 
 <span class="loading"><IconLoader /></span>

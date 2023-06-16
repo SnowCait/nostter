@@ -1,12 +1,10 @@
 <script lang="ts">
-	import {
-		IconHome,
-		IconSearch,
-		IconUser,
-		IconCirclePlus,
-		IconSettings,
-		IconBookmark
-	} from '@tabler/icons-svelte';
+	import IconHome from '@tabler/icons-svelte/dist/svelte/icons/IconHome.svelte';
+	import IconSearch from '@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte';
+	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
+	import IconCirclePlus from '@tabler/icons-svelte/dist/svelte/icons/IconCirclePlus.svelte';
+	import IconSettings from '@tabler/icons-svelte/dist/svelte/icons/IconSettings.svelte';
+	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { pubkey } from '../stores/Author';
 	import { openNoteDialog } from '../stores/NoteDialog';

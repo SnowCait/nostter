@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { IconCodeDots, IconHeart, IconHeartBroken } from '@tabler/icons-svelte';
+	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
+	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
+	import IconHeartBroken from '@tabler/icons-svelte/dist/svelte/icons/IconHeartBroken.svelte';
 	import { pool } from '../../stores/Pool';
 	import type { Event as NostrEvent, User } from '../types';
 	import { readRelays } from '../../stores/Author';

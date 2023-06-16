@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Event } from 'nostr-tools';
 	import { intentContent, openNoteDialog } from '../../stores/NoteDialog';
-	import { IconCodeDots, IconQuote } from '@tabler/icons-svelte';
+	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
+	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
 
 	export let naddr: string;
 	export let event: Event;

@@ -1,15 +1,13 @@
 <script lang="ts">
 	import { Kind, nip19 } from 'nostr-tools';
-	import {
-		IconMessageCircle2,
-		IconRepeat,
-		IconQuote,
-		IconHeart,
-		IconPaw,
-		IconCodeDots,
-		IconBolt,
-		IconBookmark
-	} from '@tabler/icons-svelte';
+	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
+	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
+	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
+	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
+	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
+	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
+	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
+	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import type { ChannelMetadata, Event } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
