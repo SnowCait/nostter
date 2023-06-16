@@ -410,7 +410,7 @@
 	{/if}
 	<form on:submit|preventDefault={postNote}>
 		<textarea
-			placeholder="いまどうしてる？"
+			placeholder="What's happening?"
 			bind:value={content}
 			bind:this={textarea}
 			on:keydown={submitFromKeyboard}
