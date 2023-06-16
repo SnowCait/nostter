@@ -1,5 +1,5 @@
 <script lang="ts">
-	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrack.svelte';
+	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
 	import { Api } from '$lib/Api';
 	import { pool } from '../stores/Pool';
 	import { followees, pubkey as authorPubkey, writeRelays } from '../stores/Author';
