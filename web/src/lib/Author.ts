@@ -39,6 +39,55 @@ export class Author {
 		this.saveRelays(relayEvents);
 	}
 
+	public saveCustomEmojis(event: Event) {
+		console.log('[custom emoji 10030]', event);
+		const emojiTagsFilter = (tags: string[][]) => {
+			return tags.filter(([tagName, shortcode, imageUrl]) => {
+				if (tagName !== 'emoji') {
+					return false;
+				}
+				if (shortcode === undefined || imageUrl === undefined) {
+					return false;
+				}
+				try {
+					new URL(imageUrl);
+					return true;
+				} catch {
+					return false;
+				}
+			});
+		};
+
+		// emoji tags
+		customEmojiTags.set(emojiTagsFilter(event.tags));
+		const $customEmojiTags = get(customEmojiTags);
+
+		// a tags
+		const referenceTags = event.tags.filter(([tagName]) => tagName === 'a');
+		if (referenceTags.length > 0) {
+			const filters: Filter[] = referenceTags
+				.map(([, reference]) => reference.split(':'))
+				.filter(([kind]) => kind === `${30030 as Kind}`)
+				.map(([kind, pubkey, identifier]) => {
+					return {
+						kinds: [Number(kind)],
+						authors: [pubkey],
+						'#d': [identifier]
+					};
+				});
+			console.debug('[custom emoji #a]', referenceTags, filters);
+			const api = new Api(get(pool), get(writeRelays));
+			api.fetchEvents(filters).then((events) => {
+				console.debug('[custom emoji 30030]', events);
+				for (const event of events) {
+					$customEmojiTags.push(...emojiTagsFilter(event.tags));
+				}
+				customEmojiTags.set($customEmojiTags);
+				console.log('[custom emoji tags]', $customEmojiTags);
+			});
+		}
+	}
+
 	// TODO: Ensure created_at
 	public saveRelays(replaceableEvents: Map<Kind, Event>) {
 		const recommendedRelayEvent = replaceableEvents.get(Kind.RecommendRelay);
@@ -118,49 +167,7 @@ export class Author {
 		customEmojisEvent.set(replaceableEvents.get(10030 as Kind));
 		const $customEmojisEvent = get(customEmojisEvent);
 		if ($customEmojisEvent !== undefined) {
-			const emojiTagsFilter = (tags: string[][]) => {
-				return tags.filter(([tagName, shortcode, imageUrl]) => {
-					if (tagName !== 'emoji') {
-						return false;
-					}
-					if (shortcode === undefined || imageUrl === undefined) {
-						return false;
-					}
-					try {
-						new URL(imageUrl);
-						return true;
-					} catch {
-						return false;
-					}
-				});
-			};
-			// emoji tags
-			customEmojiTags.set(emojiTagsFilter($customEmojisEvent.tags));
-			const $customEmojiTags = get(customEmojiTags);
-
-			// a tags
-			const referenceTags = $customEmojisEvent.tags.filter(([tagName]) => tagName === 'a');
-			if (referenceTags.length > 0) {
-				const filters: Filter[] = referenceTags
-					.map(([, reference]) => reference.split(':'))
-					.filter(([kind]) => kind === `${30030 as Kind}`)
-					.map(([kind, pubkey, identifier]) => {
-						return {
-							kinds: [Number(kind)],
-							authors: [pubkey],
-							'#d': [identifier]
-						};
-					});
-				console.debug('[custom emoji #a]', referenceTags, filters);
-				api.fetchEvents(filters).then((events) => {
-					console.debug('[custom emoji 30030]', events);
-					for (const event of events) {
-						$customEmojiTags.push(...emojiTagsFilter(event.tags));
-					}
-					customEmojiTags.set($customEmojiTags);
-					console.log('[custom emoji tags]', $customEmojiTags);
-				});
-			}
+			this.saveCustomEmojis($customEmojisEvent);
 		}
 
 		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`));

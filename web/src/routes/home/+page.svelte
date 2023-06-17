@@ -20,7 +20,6 @@
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
 	import { Kind, nip57, type Event as NostrEvent, type Relay } from 'nostr-tools';
-	import { Author } from '$lib/Author';
 	import { saveLastNote } from '../../stores/LastNotes';
 	import { Signer } from '$lib/Signer';
 
@@ -171,7 +170,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Reaction, Kind.RelayList],
+				kinds: [Kind.Reaction, Kind.RelayList, 10030],
 				authors: [$pubkey],
 				since
 			},
@@ -200,6 +199,11 @@
 				console.debug('[relays before]', $readRelays, $writeRelays);
 				updateRelays(event);
 				console.debug('[relays after]', $readRelays, $writeRelays);
+				return;
+			}
+
+			if (event.kind === 10030) {
+				$author.saveCustomEmojis(event);
 				return;
 			}
 
