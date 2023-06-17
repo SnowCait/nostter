@@ -11,7 +11,9 @@
 		followees,
 		authorProfile,
 		readRelays,
+		writeRelays,
 		isMuteEvent,
+		updateRelays,
 		rom,
 		bookmarkEvent
 	} from '../../stores/Author';
@@ -169,7 +171,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Reaction],
+				kinds: [Kind.Reaction, Kind.RelayList],
 				authors: [$pubkey],
 				since
 			},
@@ -190,6 +192,14 @@
 
 			if (event.kind === Kind.Metadata) {
 				await saveMetadataEvent(event);
+				return;
+			}
+
+			if (event.kind === Kind.RelayList) {
+				console.warn('[relay list]', event, $pool.seenOn(event.id));
+				console.debug('[relays before]', $readRelays, $writeRelays);
+				updateRelays(event);
+				console.debug('[relays after]', $readRelays, $writeRelays);
 				return;
 			}
 
