@@ -19,6 +19,18 @@ export function filterRelayTags(tags: string[][]): string[][] {
 	});
 }
 
+export function relayTagsToMap(tags: string[][]): Map<string, { read: boolean; write: boolean }> {
+	return new Map(
+		filterRelayTags(tags).map((tag) => [
+			tag[1],
+			{
+				read: tag[2] === undefined || tag[2] === 'read',
+				write: tag[2] === undefined || tag[2] === 'write'
+			}
+		])
+	);
+}
+
 export function parseRelayJson(content: string): Map<string, { read: boolean; write: boolean }> {
 	const relays = new Map<string, { read: boolean; write: boolean }>(
 		Object.entries(JSON.parse(content))
