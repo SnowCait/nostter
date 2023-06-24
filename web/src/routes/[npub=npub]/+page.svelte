@@ -280,6 +280,9 @@
 	<div>
 		Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}
 	</div>
+	<div>
+		<a href="/{slug}/relays">Relays</a>
+	</div>
 	<TimelineView
 		events={notes}
 		readonly={!$authorPubkey}

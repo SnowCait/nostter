@@ -15,7 +15,7 @@ import {
 	loginType
 } from '../stores/Author';
 import { RelaysFetcher } from './RelaysFetcher';
-import { filterTags } from './EventHelper';
+import { filterTags, parseRelayJson } from './EventHelper';
 import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
 import { reactionEmoji } from '../stores/Preference';
 import { Signer } from './Signer';
@@ -106,18 +106,8 @@ export class Author {
 			if (contactsEvent.content === '') {
 				console.log('[relays in kind 3] empty');
 			} else {
-				const relays = new Map<string, { read: boolean; write: boolean }>(
-					Object.entries(JSON.parse(contactsEvent.content))
-				);
-				const validRelays = [...relays].filter(([relay]) => {
-					try {
-						const url = new URL(relay);
-						return url.protocol === 'wss:' || url.protocol === 'ws:';
-					} catch {
-						return false;
-					}
-				});
-				console.log(relays, pubkeys);
+				const validRelays = [...parseRelayJson(contactsEvent.content)];
+				console.log(validRelays, pubkeys);
 				readRelays.set(
 					Array.from(
 						new Set(validRelays.filter(([, { read }]) => read).map(([relay]) => relay))
