@@ -376,21 +376,21 @@
 				<h5>Code Points</h5>
 				<h6>display name</h6>
 				<p>
-					{#each getCodePoints(event.user?.display_name) as codePoint}
-						{`0x${codePoint.toString(16)} `}
-					{/each}
+					{getCodePoints(event.user?.display_name)
+						.map((codePoint) => `0x${codePoint.toString(16)}`)
+						.join(' ')}
 				</p>
 				<h6>@name</h6>
 				<p>
-					{#each getCodePoints(event.user?.name) as codePoint}
-						{`0x${codePoint.toString(16)} `}
-					{/each}
+					{getCodePoints(event.user?.name)
+						.map((codePoint) => `0x${codePoint.toString(16)}`)
+						.join(' ')}
 				</p>
 				<h6>content</h6>
 				<p>
-					{#each getCodePoints(event.content) as codePoint}
-						{`0x${codePoint.toString(16)} `}
-					{/each}
+					{getCodePoints(event.content)
+						.map((codePoint) => `0x${codePoint.toString(16)}`)
+						.join(' ')}
 				</p>
 			</div>
 		{/if}
