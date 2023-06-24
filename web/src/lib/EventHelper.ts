@@ -21,11 +21,11 @@ export function filterRelayTags(tags: string[][]): string[][] {
 
 export function relayTagsToMap(tags: string[][]): Map<string, { read: boolean; write: boolean }> {
 	return new Map(
-		filterRelayTags(tags).map((tag) => [
-			tag[1],
+		filterRelayTags(tags).map(([, relay, permission]) => [
+			relay,
 			{
-				read: tag[2] === undefined || tag[2] === 'read',
-				write: tag[2] === undefined || tag[2] === 'write'
+				read: permission === undefined || permission === 'read',
+				write: permission === undefined || permission === 'write'
 			}
 		])
 	);
