@@ -39,7 +39,7 @@
 
 <ul>
 	{#each events as event (event.id)}
-		<li class:focus={event.id === focusEventId} class:related={$author.isRelated(event)}>
+		<li class:focus={event.id === focusEventId} class:related={$author?.isRelated(event)}>
 			<EventComponent {event} {readonly} {createdAtFormat} />
 		</li>
 	{/each}
