@@ -203,7 +203,7 @@
 			}
 
 			if (event.kind === 10030) {
-				$author.saveCustomEmojis(event);
+				$author?.saveCustomEmojis(event);
 				return;
 			}
 
@@ -228,7 +228,7 @@
 			notifyStreamingSpeed(event.created_at);
 
 			// Notification
-			if ($author.isRelated(event)) {
+			if ($author?.isRelated(event)) {
 				console.log('[related]', event);
 				notify(event);
 			}
