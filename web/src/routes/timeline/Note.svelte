@@ -26,6 +26,7 @@
 	import ZapDialog from '../ZapDialog.svelte';
 	import Content from '../content/Content.svelte';
 	import { Signer } from '$lib/Signer';
+	import { getCodePoints } from '$lib/String';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -372,6 +373,25 @@
 				<div>{nip19.npubEncode(event.pubkey)}</div>
 				<h5>User JSON</h5>
 				<pre><code class="json">{JSON.stringify(originalUser, null, 2)}</code></pre>
+				<h5>Code Points</h5>
+				<h6>display name</h6>
+				<p>
+					{#each getCodePoints(event.user?.display_name) as codePoint}
+						{`0x${codePoint.toString(16)} `}
+					{/each}
+				</p>
+				<h6>@name</h6>
+				<p>
+					{#each getCodePoints(event.user?.name) as codePoint}
+						{`0x${codePoint.toString(16)} `}
+					{/each}
+				</p>
+				<h6>content</h6>
+				<p>
+					{#each getCodePoints(event.content) as codePoint}
+						{`0x${codePoint.toString(16)} `}
+					{/each}
+				</p>
 			</div>
 		{/if}
 	</div>
