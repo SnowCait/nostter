@@ -195,7 +195,7 @@
 			}
 
 			if (event.kind === Kind.RelayList) {
-				console.warn('[relay list]', event, $pool.seenOn(event.id));
+				console.log('[relay list]', event, $pool.seenOn(event.id));
 				console.debug('[relays before]', $readRelays, $writeRelays);
 				updateRelays(event);
 				console.debug('[relays after]', $readRelays, $writeRelays);
