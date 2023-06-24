@@ -3,6 +3,7 @@ import type { User } from '../routes/types';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from './DefaultRelays';
 import type { Author } from '$lib/Author';
+import { filterRelayTags } from '$lib/EventHelper';
 
 const $defaultRelays = get(defaultRelays);
 export const loginType: Writable<'NIP-07' | 'nsec' | 'npub'> = writable();
@@ -36,18 +37,7 @@ export const isMuteEvent = (event: Event) => {
 };
 
 export const updateRelays = (event: Event) => {
-	const validRelayTags = event.tags.filter(([t, relay]) => {
-		if (t !== 'r') {
-			return false;
-		}
-
-		try {
-			const url = new URL(relay);
-			return url.protocol === 'wss:' || url.protocol === 'ws:';
-		} catch {
-			return false;
-		}
-	});
+	const validRelayTags = filterRelayTags(event.tags);
 	readRelays.set(
 		Array.from(
 			new Set(
