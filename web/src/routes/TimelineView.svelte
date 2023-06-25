@@ -37,7 +37,7 @@
 
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
-<ul>
+<ul class="timeline">
 	{#each events as event (event.id)}
 		<li class:focus={event.id === focusEventId} class:related={$author?.isRelated(event)}>
 			<EventComponent {event} {readonly} {createdAtFormat} />
@@ -51,6 +51,7 @@
 <style>
 	ul {
 		list-style: none;
+		margin: 0;
 		padding: 0;
 		border: 1px solid rgb(239, 243, 244);
 		border-bottom-style: none;
@@ -72,7 +73,7 @@
 
 	.loading {
 		width: 24px;
-		margin: 0 auto;
+		margin: 1rem auto;
 	}
 
 	@keyframes add {
