@@ -3,9 +3,18 @@
 	import { Login } from '$lib/Login';
 	import { loginType } from '../stores/Author';
 
+	const demoNpub = 'npub1pp79ruvjd7xned8lgh6n4rhz4pg3els3x5n6kr58l8zcyysp5c0qrkan2p';
+
 	let key = '';
 
 	const login = new Login();
+
+	function loginWithDemo() {
+		if (key !== '' && !confirm('Key is not empty. Override?')) {
+			return;
+		}
+		key = demoNpub;
+	}
 
 	onMount(async () => {
 		console.log('onMount');
@@ -49,4 +58,8 @@
 		on:keyup|stopPropagation={() => console.debug()}
 	/>
 	<input type="submit" value="Login with key" disabled={$loginType !== undefined} />
+
+	<button on:click={loginWithDemo}>
+		Try demo
+	</button>
 </form>
