@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { Login } from '$lib/Login';
 	import { loginType } from '../stores/Author';
+	import { page } from '$app/stores';
+	import { afterNavigate } from '$app/navigation';
 
 	const demoNpub = 'npub1pp79ruvjd7xned8lgh6n4rhz4pg3els3x5n6kr58l8zcyysp5c0qrkan2p';
 
@@ -35,6 +37,18 @@
 		} else {
 			console.error('[logic error]', 'login');
 		}
+	});
+
+	afterNavigate(async () => {
+		console.log('afterNavigate');
+		const queryNpub = $page.url.searchParams.get('login');
+
+		if (queryNpub === null || !queryNpub.startsWith('npub') || $loginType !== undefined) {
+			return;
+		}
+
+		key = queryNpub;
+		await login.withNpub(queryNpub);
 	});
 </script>
 
