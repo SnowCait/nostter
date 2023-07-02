@@ -114,12 +114,14 @@ export class Login {
 	private async fetchAuthor(relays: string[]) {
 		console.time('fetch author');
 
-		author.set(new Author(get(pubkey)));
-		const $author = get(author);
+		const $author = new Author(get(pubkey));
 
 		await $author.fetchRelays(relays);
 		console.timeLog('fetch author');
 
 		await $author.fetchEvents();
+		console.timeEnd('fetch author');
+
+		author.set($author);
 	}
 }

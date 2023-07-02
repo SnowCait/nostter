@@ -197,8 +197,6 @@ export class Author {
 		console.log('[mute eventIds]', get(muteEventIds));
 
 		console.log('[relays]', get(readRelays), get(writeRelays));
-
-		console.timeEnd('fetch author');
 	}
 
 	private async getMuteLists(event: Event) {
