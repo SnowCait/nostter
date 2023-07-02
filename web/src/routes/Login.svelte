@@ -59,5 +59,5 @@
 	/>
 	<input type="submit" value="Login with key" disabled={$loginType !== undefined} />
 
-	<button on:click={loginWithDemo}>Try demo</button>
+	<button on:click={loginWithDemo} disabled={$loginType !== undefined}>Try demo</button>
 </form>
