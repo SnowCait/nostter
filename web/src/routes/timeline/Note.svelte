@@ -16,7 +16,8 @@
 		readRelays,
 		writeRelays,
 		pubkey,
-		isBookmarked
+		isBookmarked,
+		author
 	} from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import { rom } from '../../stores/Author';
@@ -297,7 +298,11 @@
 		{:else if event.kind === Kind.EncryptedDirectMessage}
 			<p class="direct-message">
 				<span>Direct Message.</span>
-				<span>Please open in other client.</span>
+				{#if $author?.isRelated(event) || event.pubkey === $pubkey}
+					<span>Please open in other client.</span>
+				{:else}
+					<span>This message is not for you.</span>
+				{/if}
 			</p>
 		{:else}
 			<Content content={event.content} tags={event.tags} />
@@ -316,23 +321,34 @@
 				</span>
 			</div>
 		{/if}
-		{#if !readonly && event.kind !== Kind.EncryptedDirectMessage}
+		{#if !readonly}
 			<div class="action-menu">
-				<button class:hidden={event.kind === 42} on:click={() => reply(event)}>
+				<button
+					class:hidden={event.kind === 42 || event.kind === Kind.EncryptedDirectMessage}
+					on:click={() => reply(event)}
+				>
 					<IconMessageCircle2 size={iconSize} />
 				</button>
 				<button
 					class="repost"
-					class:hidden={event.kind === 42}
+					class:hidden={event.kind === 42 || event.kind === Kind.EncryptedDirectMessage}
 					disabled={reposted}
 					on:click={() => repost(event)}
 				>
 					<IconRepeat size={iconSize} />
 				</button>
-				<button class:hidden={event.kind === 42} on:click={() => quote(event)}>
+				<button
+					class:hidden={event.kind === 42 || event.kind === Kind.EncryptedDirectMessage}
+					on:click={() => quote(event)}
+				>
 					<IconQuote size={iconSize} />
 				</button>
-				<button class="reaction" disabled={reactioned} on:click={() => reaction(event)}>
+				<button
+					class="reaction"
+					class:hidden={event.kind === 42 || event.kind === Kind.EncryptedDirectMessage}
+					disabled={reactioned}
+					on:click={() => reaction(event)}
+				>
 					{#if $reactionEmoji === '🐾'}
 						<IconPaw size={iconSize} />
 					{:else}
@@ -350,7 +366,9 @@
 				</button>
 				<button
 					class="zap"
-					class:hidden={event.user === undefined || event.user.zapEndpoint === null}
+					class:hidden={event.user === undefined ||
+						event.user.zapEndpoint === null ||
+						event.kind === Kind.EncryptedDirectMessage}
 					disabled={zapped}
 					on:click={() => zapDialogComponent.openZapDialog()}
 				>

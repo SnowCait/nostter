@@ -228,7 +228,7 @@
 			notifyStreamingSpeed(event.created_at);
 
 			// Notification
-			if ($author?.isRelated(event)) {
+			if ($author?.isNotified(event)) {
 				console.log('[related]', event);
 				notify(event);
 			}

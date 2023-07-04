@@ -24,12 +24,13 @@ export class Author {
 	constructor(private pubkey: string) {}
 
 	public isRelated(event: Event): boolean {
-		return (
-			event.pubkey !== this.pubkey &&
-			event.tags.some(
-				([tagName, tagContent]) => tagName === 'p' && tagContent === this.pubkey
-			)
+		return event.tags.some(
+			([tagName, tagContent]) => tagName === 'p' && tagContent === this.pubkey
 		);
+	}
+
+	public isNotified(event: Event): boolean {
+		return event.pubkey !== this.pubkey && this.isRelated(event);
 	}
 
 	public async fetchRelays(relays: string[]) {
