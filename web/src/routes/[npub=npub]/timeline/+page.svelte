@@ -7,9 +7,11 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import type { Event } from '../../types';
 	import { pubkey as authorPubkey } from '../../../stores/Author';
+	import { userTimelineEvents as events } from '../../../stores/Events';
 
 	let pubkey: string;
-	let events: Event[] = [];
+	let timeline: Timeline;
+	let unsubscribe: () => void;
 
 	afterNavigate(async () => {
 		const slug = $page.params.npub;
@@ -27,8 +29,12 @@
 		}
 
 		pubkey = data.pubkey;
-		events = [];
-
+		$events = [];
+		if (unsubscribe !== undefined) {
+			unsubscribe();
+		}
+		timeline = new Timeline(pubkey);
+		unsubscribe = await timeline.subscribe();
 		await load();
 	});
 
@@ -37,12 +43,11 @@
 			return;
 		}
 
-		const timeline = new Timeline(pubkey);
-		const oldestCreatedAt = events.at(events.length - 1)?.created_at;
+		const oldestCreatedAt = $events.at($events.length - 1)?.created_at;
 		const pastEventItems = await timeline.fetch(
 			oldestCreatedAt !== undefined ? oldestCreatedAt - 1 : undefined
 		);
-		events.push(
+		$events.push(
 			...pastEventItems.map((x) => {
 				return {
 					...x.event,
@@ -50,8 +55,8 @@
 				} as Event;
 			})
 		);
-		events = events;
+		$events = $events;
 	}
 </script>
 
-<TimelineView {events} readonly={!$authorPubkey} {load} />
+<TimelineView events={$events} readonly={!$authorPubkey} {load} />

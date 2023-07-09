@@ -11,7 +11,6 @@
 		followees,
 		authorProfile,
 		readRelays,
-		writeRelays,
 		isMuteEvent,
 		updateRelays,
 		rom,
@@ -196,9 +195,7 @@
 
 			if (event.kind === Kind.RelayList) {
 				console.log('[relay list]', event, $pool.seenOn(event.id));
-				console.debug('[relays before]', $readRelays, $writeRelays);
 				updateRelays(event);
-				console.debug('[relays after]', $readRelays, $writeRelays);
 				return;
 			}
 

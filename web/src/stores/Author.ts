@@ -37,6 +37,7 @@ export const isMuteEvent = (event: Event) => {
 };
 
 export const updateRelays = (event: Event) => {
+	console.debug('[relays before]', get(readRelays), get(writeRelays));
 	const validRelayTags = filterRelayTags(event.tags);
 	readRelays.set(
 		Array.from(
@@ -58,6 +59,7 @@ export const updateRelays = (event: Event) => {
 			)
 		)
 	);
+	console.debug('[relays after]', get(readRelays), get(writeRelays));
 };
 
 export const isBookmarked = (event: Event): boolean => {
