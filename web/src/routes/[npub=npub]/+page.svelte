@@ -283,6 +283,9 @@
 	<div>
 		<a href="/{slug}/relays">Relays</a>
 	</div>
+	<div>
+		<a href="/{slug}/timeline">Timeline</a>
+	</div>
 	<TimelineView
 		events={notes}
 		readonly={!$authorPubkey}
