@@ -39,19 +39,19 @@ export class Timeline {
 		const filters: Filter[] = [
 			{
 				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-				authors: Array.from(followees),
+				authors: followees,
 				since
 			},
 			{
-				kinds: [Kind.Text /*, Kind.EncryptedDirectMessage*/, 6, Kind.Reaction, Kind.Zap],
+				kinds: [Kind.Text /*, Kind.EncryptedDirectMessage*/, 6 /*Kind.Reaction, Kind.Zap*/],
 				'#p': [this.pubkey],
 				since
-			},
-			{
-				kinds: [Kind.Reaction /*, Kind.RelayList, 10030*/],
-				authors: [this.pubkey],
-				since
 			}
+			// {
+			// 	kinds: [Kind.Reaction /*, Kind.RelayList, 10030*/],
+			// 	authors: [this.pubkey],
+			// 	since
+			// }
 			// {
 			// 	kinds: [30001],
 			// 	authors: [this.pubkey],
@@ -62,7 +62,7 @@ export class Timeline {
 		const subscribe = this.$pool.sub(this.$readRelays, filters);
 		subscribe.on('event', async (nostrEvent: NostrEvent) => {
 			const event = nostrEvent as Event;
-			console.debug(event, this.$pool.seenOn(event.id));
+			console.debug('[user timeline]', event, this.$pool.seenOn(event.id));
 
 			if (isMuteEvent(event)) {
 				return;
@@ -119,6 +119,7 @@ export class Timeline {
 			// }
 		});
 		return () => {
+			console.log('[user timeline unsub]', subscribe);
 			subscribe.unsub();
 		};
 	}
