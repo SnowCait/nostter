@@ -140,17 +140,20 @@ export class Timeline {
 				since
 			},
 			{
-				kinds: [Kind.Text /*, Kind.EncryptedDirectMessage*/, 6, Kind.Reaction, Kind.Zap],
+				kinds: [
+					Kind.Text /*, Kind.EncryptedDirectMessage*/,
+					6 /*, Kind.Reaction, Kind.Zap*/
+				],
 				'#p': [this.pubkey],
 				until,
 				since
-			},
-			{
-				kinds: [Kind.Reaction],
-				authors: [this.pubkey],
-				until,
-				since
 			}
+			// {
+			// 	kinds: [Kind.Reaction],
+			// 	authors: [this.pubkey],
+			// 	until,
+			// 	since
+			// }
 		]);
 		events.sort((x, y) => y.created_at - x.created_at);
 
