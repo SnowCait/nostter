@@ -42,7 +42,7 @@
 		if (
 			!confirm(
 				`Unfollow @${
-					userEvent?.user.name ??
+					userEvent?.user?.name ??
 					nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)
 				}?`
 			)

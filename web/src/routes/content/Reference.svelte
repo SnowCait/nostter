@@ -32,7 +32,7 @@
 
 {#if tag.at(0) === 'p' && tag.at(1) !== undefined}
 	<a href="/{nip19.npubEncode(tag[1])}">
-		@{$userEvents.has(tag[1]) && $userEvents.get(tag[1])?.user.name
+		@{$userEvents.has(tag[1]) && $userEvents.get(tag[1])?.user?.name
 			? $userEvents.get(tag[1])?.user.name
 			: nip19.npubEncode(tag[1]).substring(0, 'npub1'.length + 7)}
 	</a>
