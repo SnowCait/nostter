@@ -73,7 +73,7 @@
 {#if dataType === 'user'}
 	<a href="/{nip19.npubEncode(pubkey)}">
 		@{userEvent !== undefined
-			? userEvent.user.name
+			? userEvent.user?.name
 			: nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)}
 	</a>
 {:else if dataType === 'event'}
