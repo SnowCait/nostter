@@ -3,24 +3,25 @@
 	import { page } from '$app/stores';
 	import { nip19, SimplePool, type Event as NostrEvent } from 'nostr-tools';
 	import type { Event, User } from '../types';
-	import { userEvents } from '../../stores/UserEvents';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
-	import { pubkey as authorPubkey, isMuteEvent, readRelays, rom } from '../../stores/Author';
+	import { pubkey as authorPubkey, readRelays, rom } from '../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
 	import Follow from '../Follow.svelte';
 	import { Api } from '$lib/Api';
 	import Loading from '../Loading.svelte';
 	import { User as UserDecoder } from '$lib/User';
+	import { Timeline } from '$lib/Timeline';
 
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
-	let notes: Event[] = [];
+	let events: Event[] = [];
 	let pubkey = '';
 	let followees: string[] = [];
 	let followers: string[] = [];
 	let followeesLoading = true;
 	let followersLoading = true;
+	let timeline: Timeline;
 
 	let relays = $readRelays;
 	let slug = $page.params.npub;
@@ -30,17 +31,21 @@
 		slug = $page.params.npub;
 		console.log('[profile page]', slug);
 
-		badges = [];
-		notes = [];
-
 		const data = await UserDecoder.decode(slug);
 
 		if (data.pubkey === undefined) {
 			throw error(404);
 		}
 
+		if (pubkey === data.pubkey) {
+			return;
+		}
+
+		badges = [];
+		events = [];
 		pubkey = data.pubkey;
 		relays = Array.from(new Set([...relays, ...data.relays]));
+		timeline = new Timeline(pubkey, [pubkey]);
 
 		user = (await api.fetchUserEvent(pubkey))?.user;
 		if (user === undefined) {
@@ -64,7 +69,7 @@
 		fetchBadges(relays, pubkey).then((data) => {
 			badges = data;
 		});
-		notes = await fetchPastNotes(pubkey);
+		await load();
 	});
 
 	async function fetchBadges(relays: string[], pubkey: string): Promise<Badge[]> {
@@ -163,44 +168,33 @@
 		});
 	}
 
-	async function fetchPastNotes(pubkey: string, until?: number | undefined): Promise<Event[]> {
-		return new Promise((resolve) => {
-			setTimeout(() => {
-				resolve([]);
-			}, 10000);
+	async function load() {
+		if (timeline === undefined) {
+			return;
+		}
 
-			let events: Event[] = [];
-			const subscribeNotes = $pool.sub(relays, [
-				{
-					kinds: [1, 6],
-					authors: [pubkey],
-					limit: 100,
-					until
-				}
-			]);
-			subscribeNotes.on('event', (nostrEvent: NostrEvent) => {
-				const event = nostrEvent as Event;
-				console.debug(event);
+		let firstLength = events.length;
+		let count = 0;
+		let until = events.at(events.length - 1)?.created_at ?? Math.floor(Date.now() / 1000);
+		let seconds = 1 * 60 * 60;
 
-				if (isMuteEvent(event)) {
-					return;
-				}
+		while (events.length - firstLength < 50 && count < 10) {
+			const pastEventItems = await timeline.fetch(until, seconds);
+			events.push(
+				...pastEventItems.map((x) => {
+					return {
+						...x.event,
+						user: x.metadata?.content
+					} as Event;
+				})
+			);
+			events = events;
 
-				const userEvent = $userEvents.get(event.pubkey);
-				if (userEvent === undefined) {
-					console.error(`${nip19.npubEncode(pubkey)} not found in $userEvents`);
-					return;
-				}
-				event.user = userEvent.user;
-
-				events.push(event);
-			});
-			subscribeNotes.on('eose', () => {
-				subscribeNotes.unsub();
-				events.sort((x, y) => y.created_at - x.created_at);
-				resolve(events);
-			});
-		});
+			until -= seconds;
+			seconds *= 2;
+			count++;
+			console.log('[load]', count, until, seconds / 3600, events.length);
+		}
 	}
 
 	interface Badge {
@@ -296,19 +290,7 @@
 	<div>
 		<a href="/{slug}/timeline">Timeline</a>
 	</div>
-	<TimelineView
-		events={notes}
-		readonly={!$authorPubkey}
-		load={async () => {
-			const oldestCreatedAt = notes.at(notes.length - 1)?.created_at;
-			const events = await fetchPastNotes(
-				pubkey,
-				oldestCreatedAt !== undefined ? oldestCreatedAt - 1 : undefined
-			);
-			notes.push(...events);
-			notes = notes;
-		}}
-	/>
+	<TimelineView {events} readonly={!$authorPubkey} {load} />
 </section>
 
 <style>

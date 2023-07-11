@@ -1,13 +1,5 @@
 import { Kind, SimplePool } from 'nostr-tools';
-import {
-	isMuteEvent,
-	readRelays,
-	pubkey as authorPubkey,
-	followees as authorFollowees,
-	bookmarkEvent,
-	updateRelays,
-	author
-} from '../stores/Author';
+import { isMuteEvent, readRelays, bookmarkEvent, updateRelays, author } from '../stores/Author';
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
 import { get } from 'svelte/store';
@@ -22,7 +14,7 @@ export class Timeline {
 	private readonly $readRelays: string[];
 	private readonly api: Api;
 
-	constructor(private readonly pubkey: string) {
+	constructor(private readonly pubkey: string, private readonly authors: string[]) {
 		this.$pool = get(pool);
 		this.$readRelays = get(readRelays);
 		this.api = new Api(this.$pool, this.$readRelays);
@@ -32,14 +24,13 @@ export class Timeline {
 		const now = Math.floor(Date.now() / 1000);
 		const since = now;
 
-		const followees = await this.getFollowees();
 		// const $bookmarkEvent = get(bookmarkEvent);
 		const $author = get(author);
 
 		const filters: Filter[] = [
 			{
 				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-				authors: followees,
+				authors: this.authors,
 				since
 			},
 			{
@@ -124,18 +115,13 @@ export class Timeline {
 		};
 	}
 
-	public async fetch(until: number | undefined = undefined): Promise<EventItem[]> {
-		const now = Math.floor(Date.now() / 1000);
-		const span = 1 * 60 * 60;
-		const since = (until ?? now) - span;
-		console.log('[date]', new Date(since * 1000));
-
-		const followees = await this.getFollowees();
+	public async fetch(until: number, seconds: number = 1 * 60 * 60): Promise<EventItem[]> {
+		const since = until - seconds;
 
 		const events = await this.api.fetchEvents([
 			{
 				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-				authors: followees,
+				authors: this.authors,
 				until,
 				since
 			},
@@ -170,16 +156,11 @@ export class Timeline {
 		await this.api.fetchEventsByIds([...eventIds]);
 
 		return events
+			.filter((event) => event.created_at !== until)
 			.filter((event) => !isMuteEvent(event))
 			.map((event) => {
 				const metadataEvent = metadataEventsMap.get(event.pubkey);
 				return new EventItem(event, metadataEvent);
 			});
-	}
-
-	private async getFollowees(): Promise<string[]> {
-		return this.pubkey === get(authorPubkey)
-			? get(authorFollowees)
-			: await this.api.fetchFollowees(this.pubkey);
 	}
 }

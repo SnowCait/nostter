@@ -3,11 +3,17 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Timeline } from '$lib/Timeline';
+	import { Api } from '$lib/Api';
 	import { User as UserDecoder } from '$lib/User';
 	import TimelineView from '../../TimelineView.svelte';
 	import type { Event } from '../../types';
-	import { pubkey as authorPubkey } from '../../../stores/Author';
+	import {
+		pubkey as authorPubkey,
+		followees as authorFollowees,
+		readRelays
+	} from '../../../stores/Author';
 	import { userTimelineEvents as events } from '../../../stores/Events';
+	import { pool } from '../../../stores/Pool';
 
 	let pubkey: string;
 	let timeline: Timeline;
@@ -33,29 +39,42 @@
 		if (unsubscribe !== undefined) {
 			unsubscribe();
 		}
-		timeline = new Timeline(pubkey);
+		const followees =
+			pubkey === $authorPubkey
+				? $authorFollowees
+				: await new Api($pool, $readRelays).fetchFollowees(pubkey);
+		timeline = new Timeline(pubkey, followees);
 		unsubscribe = await timeline.subscribe();
 		await load();
 	});
 
 	async function load() {
-		if (pubkey === undefined) {
+		if (timeline === undefined) {
 			return;
 		}
 
-		const oldestCreatedAt = $events.at($events.length - 1)?.created_at;
-		const pastEventItems = await timeline.fetch(
-			oldestCreatedAt !== undefined ? oldestCreatedAt - 1 : undefined
-		);
-		$events.push(
-			...pastEventItems.map((x) => {
-				return {
-					...x.event,
-					user: x.metadata?.content
-				} as Event;
-			})
-		);
-		$events = $events;
+		let firstLength = $events.length;
+		let count = 0;
+		let until = $events.at($events.length - 1)?.created_at ?? Math.floor(Date.now() / 1000);
+		let seconds = 1 * 60 * 60;
+
+		while ($events.length - firstLength < 50 && count < 10) {
+			const pastEventItems = await timeline.fetch(until, seconds);
+			$events.push(
+				...pastEventItems.map((x) => {
+					return {
+						...x.event,
+						user: x.metadata?.content
+					} as Event;
+				})
+			);
+			$events = $events;
+
+			until -= seconds;
+			seconds *= 2;
+			count++;
+			console.log('[load]', count, until, seconds / 3600, $events.length);
+		}
 	}
 </script>
 
