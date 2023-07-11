@@ -11,7 +11,7 @@ export class BadgeApi {
 			}, 10000);
 
 			const badges: Badge[] = [];
-			let profileBadges: ProfileBadge[] = [];
+			const profileBadges: ProfileBadge[] = [];
 			const subscribeProfileBadges = $pool.sub(relays, [
 				{
 					kinds: [30008],
