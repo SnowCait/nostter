@@ -23,11 +23,12 @@
 	let followersLoading = true;
 
 	let relays = $readRelays;
-	const slug = $page.params.npub;
+	let slug = $page.params.npub;
 	const api = new Api($pool, relays);
 
 	afterNavigate(async () => {
-		console.log('[afterNavigate]', slug);
+		slug = $page.params.npub;
+		console.log('[profile page]', slug);
 
 		badges = [];
 		notes = [];
