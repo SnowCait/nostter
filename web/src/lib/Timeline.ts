@@ -1,13 +1,5 @@
 import { Kind, SimplePool } from 'nostr-tools';
-import {
-	isMuteEvent,
-	readRelays,
-	pubkey as authorPubkey,
-	followees as authorFollowees,
-	bookmarkEvent,
-	updateRelays,
-	author
-} from '../stores/Author';
+import { isMuteEvent, readRelays, bookmarkEvent, updateRelays, author } from '../stores/Author';
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
 import { get } from 'svelte/store';
@@ -22,7 +14,7 @@ export class Timeline {
 	private readonly $readRelays: string[];
 	private readonly api: Api;
 
-	constructor(private readonly pubkey: string) {
+	constructor(private readonly pubkey: string, private readonly authors: string[]) {
 		this.$pool = get(pool);
 		this.$readRelays = get(readRelays);
 		this.api = new Api(this.$pool, this.$readRelays);
@@ -32,14 +24,13 @@ export class Timeline {
 		const now = Math.floor(Date.now() / 1000);
 		const since = now;
 
-		const followees = await this.getFollowees();
 		// const $bookmarkEvent = get(bookmarkEvent);
 		const $author = get(author);
 
 		const filters: Filter[] = [
 			{
 				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-				authors: followees,
+				authors: this.authors,
 				since
 			},
 			{
@@ -130,12 +121,10 @@ export class Timeline {
 		const since = (until ?? now) - span;
 		console.log('[date]', new Date(since * 1000));
 
-		const followees = await this.getFollowees();
-
 		const events = await this.api.fetchEvents([
 			{
 				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-				authors: followees,
+				authors: this.authors,
 				until,
 				since
 			},
@@ -175,11 +164,5 @@ export class Timeline {
 				const metadataEvent = metadataEventsMap.get(event.pubkey);
 				return new EventItem(event, metadataEvent);
 			});
-	}
-
-	private async getFollowees(): Promise<string[]> {
-		return this.pubkey === get(authorPubkey)
-			? get(authorFollowees)
-			: await this.api.fetchFollowees(this.pubkey);
 	}
 }
