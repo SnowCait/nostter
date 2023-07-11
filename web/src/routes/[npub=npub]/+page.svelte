@@ -13,6 +13,7 @@
 	import Loading from '../Loading.svelte';
 	import { User as UserDecoder } from '$lib/User';
 	import { Timeline } from '$lib/Timeline';
+	import Badges from '../Badges.svelte';
 
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
@@ -147,19 +148,7 @@
 			{/if}
 		</div>
 	{/if}
-	<ul class="badges">
-		{#each badges as badge}
-			<li>
-				<a href="https://badges.page/b/{badge.naddr}" target="_blank" rel="noreferrer">
-					<img
-						src={badge.thumb ? badge.thumb : badge.image}
-						alt={badge.name}
-						title={badge.name}
-					/>
-				</a>
-			</li>
-		{/each}
-	</ul>
+	<Badges {badges} />
 </section>
 
 <section>
@@ -221,20 +210,6 @@
 		line-height: 1.5em;
 		white-space: pre-wrap;
 		word-break: break-all;
-	}
-
-	.badges {
-		list-style: none;
-		padding: 0;
-		display: flex;
-		flex-wrap: wrap;
-	}
-
-	.badges img {
-		width: 50px;
-		height: 50px;
-		border-radius: 50%;
-		object-fit: cover;
 	}
 
 	.nip19 {
