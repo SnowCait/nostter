@@ -6,7 +6,7 @@
 	import { userEvents } from '../../stores/UserEvents';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
-	import { pubkey as authorPubkey, isMuteEvent, readRelays } from '../../stores/Author';
+	import { pubkey as authorPubkey, isMuteEvent, readRelays, rom } from '../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
 	import Follow from '../Follow.svelte';
 	import { Api } from '$lib/Api';
@@ -23,11 +23,12 @@
 	let followersLoading = true;
 
 	let relays = $readRelays;
-	const slug = $page.params.npub;
+	let slug = $page.params.npub;
 	const api = new Api($pool, relays);
 
 	afterNavigate(async () => {
-		console.log('[afterNavigate]', slug);
+		slug = $page.params.npub;
+		console.log('[profile page]', slug);
 
 		badges = [];
 		notes = [];
@@ -48,6 +49,7 @@
 
 		if (user.nip05 && slug !== user.nip05) {
 			history.replaceState(history.state, '', user.nip05);
+			slug = user.nip05;
 		}
 
 		api.fetchFollowees(pubkey).then((pubkeys) => {
@@ -233,7 +235,16 @@
 			<img src={user.banner} alt="" />
 		</div>
 		<div class="profile">
-			<img src={user.picture} alt="" />
+			<div class="actions">
+				<div>
+					<img src={user.picture} alt="" />
+				</div>
+				{#if !$rom}
+					<div class="follow">
+						<Follow {pubkey} />
+					</div>
+				{/if}
+			</div>
 			<h1>{user.display_name ?? user.name ?? ''}</h1>
 			{#if user.name}
 				<h2>@{user.name}</h2>
@@ -243,7 +254,6 @@
 			{#if followees.some((pubkey) => pubkey === $authorPubkey)}
 				<div>Follows you</div>
 			{/if}
-			<Follow {pubkey} />
 			{#if user.website}
 				<div>
 					<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
@@ -314,6 +324,16 @@
 		border-radius: 50%;
 		margin-right: 12px;
 		object-fit: cover;
+	}
+
+	.profile .actions {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+	}
+
+	.profile .actions div {
+		align-self: flex-end;
 	}
 
 	.profile h1 {
