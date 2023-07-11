@@ -49,23 +49,32 @@
 	});
 
 	async function load() {
-		if (pubkey === undefined) {
+		if (timeline === undefined) {
 			return;
 		}
 
-		const oldestCreatedAt = $events.at($events.length - 1)?.created_at;
-		const pastEventItems = await timeline.fetch(
-			oldestCreatedAt !== undefined ? oldestCreatedAt - 1 : undefined
-		);
-		$events.push(
-			...pastEventItems.map((x) => {
-				return {
-					...x.event,
-					user: x.metadata?.content
-				} as Event;
-			})
-		);
-		$events = $events;
+		let firstLength = $events.length;
+		let count = 0;
+		let until = $events.at($events.length - 1)?.created_at ?? Math.floor(Date.now() / 1000);
+		let seconds = 1 * 60 * 60;
+
+		while ($events.length - firstLength < 50 && count < 10) {
+			const pastEventItems = await timeline.fetch(until, seconds);
+			$events.push(
+				...pastEventItems.map((x) => {
+					return {
+						...x.event,
+						user: x.metadata?.content
+					} as Event;
+				})
+			);
+			$events = $events;
+
+			until -= seconds;
+			seconds *= 2;
+			count++;
+			console.log('[load]', count, until, seconds / 3600, $events.length);
+		}
 	}
 </script>
 

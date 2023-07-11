@@ -115,11 +115,8 @@ export class Timeline {
 		};
 	}
 
-	public async fetch(until: number | undefined = undefined): Promise<EventItem[]> {
-		const now = Math.floor(Date.now() / 1000);
-		const span = 1 * 60 * 60;
-		const since = (until ?? now) - span;
-		console.log('[date]', new Date(since * 1000));
+	public async fetch(until: number, seconds: number = 1 * 60 * 60): Promise<EventItem[]> {
+		const since = until - seconds;
 
 		const events = await this.api.fetchEvents([
 			{
@@ -159,6 +156,7 @@ export class Timeline {
 		await this.api.fetchEventsByIds([...eventIds]);
 
 		return events
+			.filter((event) => event.created_at !== until)
 			.filter((event) => !isMuteEvent(event))
 			.map((event) => {
 				const metadataEvent = metadataEventsMap.get(event.pubkey);
