@@ -7,6 +7,8 @@
 	import ReloadDialog from './ReloadDialog.svelte';
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
+	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
+	import { pubkey, rom } from '../stores/Author';
 
 	inject({ mode: dev ? 'development' : 'production' });
 
@@ -56,6 +58,11 @@
 
 	<header>
 		<Header />
+		{#if $pubkey && !$rom}
+			<button on:click={() => ($openNoteDialog = !$openNoteDialog)}>
+				<IconPencilPlus size={30} />
+			</button>
+		{/if}
 	</header>
 
 	<main>
@@ -77,6 +84,16 @@
 		width: 50px;
 	}
 
+	header button {
+		background-color: transparent;
+		border: none;
+		cursor: pointer;
+		outline: none;
+		padding: 0;
+		width: inherit;
+		height: inherit;
+	}
+
 	main {
 		margin-left: 60px;
 	}
@@ -94,6 +111,17 @@
 			width: 100%;
 			height: 50px;
 			background-color: white;
+		}
+
+		header button {
+			position: absolute;
+			bottom: 55px;
+			right: 10px;
+			width: 50px;
+			height: 50px;
+			background-color: white;
+			border-radius: 50%;
+			box-shadow: 0 0 5px 1px lightgray;
 		}
 
 		main {
