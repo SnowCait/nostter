@@ -8,6 +8,7 @@ import type { Filter, Event as NostrEvent } from 'nostr-tools';
 import type { Event } from '../routes/types';
 import { saveMetadataEvent } from '../stores/UserEvents';
 import { userTimelineEvents } from '../stores/Events';
+import { chunk } from './Array';
 
 export class Timeline {
 	private readonly $pool: SimplePool;
@@ -27,12 +28,16 @@ export class Timeline {
 		// const $bookmarkEvent = get(bookmarkEvent);
 		const $author = get(author);
 
-		const filters: Filter[] = [
-			{
+		const authorsFilter = chunk(this.authors, 1000).map((chunkedAuthors) => {
+			return {
 				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-				authors: this.authors,
+				authors: chunkedAuthors,
 				since
-			},
+			};
+		});
+
+		const filters: Filter[] = [
+			...authorsFilter,
 			{
 				kinds: [Kind.Text /*, Kind.EncryptedDirectMessage*/, 6 /*Kind.Reaction, Kind.Zap*/],
 				'#p': [this.pubkey],
@@ -50,6 +55,8 @@ export class Timeline {
 			// 	since: $bookmarkEvent === undefined ? now : $bookmarkEvent.created_at + 1
 			// }
 		];
+		console.log('[new timeline filters]', filters);
+
 		const subscribe = this.$pool.sub(this.$readRelays, filters);
 		subscribe.on('event', async (nostrEvent: NostrEvent) => {
 			const event = nostrEvent as Event;
@@ -118,13 +125,16 @@ export class Timeline {
 	public async fetch(until: number, seconds: number = 1 * 60 * 60): Promise<EventItem[]> {
 		const since = until - seconds;
 
-		const events = await this.api.fetchEvents([
-			{
+		const authorsFilter = chunk(this.authors, 1000).map((chunkedAuthors) => {
+			return {
 				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-				authors: this.authors,
-				until,
+				authors: chunkedAuthors,
 				since
-			},
+			};
+		});
+
+		const filters = [
+			...authorsFilter,
 			{
 				kinds: [
 					Kind.Text /*, Kind.EncryptedDirectMessage*/,
@@ -140,8 +150,10 @@ export class Timeline {
 			// 	until,
 			// 	since
 			// }
-		]);
-		events.sort((x, y) => y.created_at - x.created_at);
+		];
+		console.log('[past timeline filters]', filters);
+
+		const events = await this.api.fetchEvents(filters);
 
 		const metadataEventsMap = await this.api.fetchMetadataEventsMap(
 			Array.from(new Set(events.map((x) => x.pubkey)))
@@ -155,12 +167,16 @@ export class Timeline {
 		);
 		await this.api.fetchEventsByIds([...eventIds]);
 
-		return events
+		const eventItems = [...eventIds]
+			.map((id) => events.find((y) => y.id === id))
+			.filter((event): event is Event => event !== undefined)
 			.filter((event) => event.created_at !== until)
 			.filter((event) => !isMuteEvent(event))
 			.map((event) => {
 				const metadataEvent = metadataEventsMap.get(event.pubkey);
 				return new EventItem(event, metadataEvent);
 			});
+		eventItems.sort((x, y) => y.event.created_at - x.event.created_at);
+		return eventItems;
 	}
 }
