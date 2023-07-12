@@ -66,16 +66,6 @@
 		color: inherit;
 	}
 
-	button {
-		background-color: transparent;
-		border: none;
-		cursor: pointer;
-		outline: none;
-		padding: 0;
-		width: inherit;
-		height: inherit;
-	}
-
 	@media screen and (max-width: 600px) {
 		ul {
 			display: flex;
