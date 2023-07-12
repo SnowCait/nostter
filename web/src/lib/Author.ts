@@ -101,7 +101,7 @@ export class Author {
 		if (contactsEvent !== undefined) {
 			const pubkeys = new Set(filterTags('p', contactsEvent.tags));
 			pubkeys.add(this.pubkey); // Add myself
-			followees.set(Array.from(pubkeys).slice(-2000)); // Limit to 2,000 for strfry relays
+			followees.set(Array.from(pubkeys));
 			console.log('[contacts]', pubkeys);
 
 			if (contactsEvent.content === '') {
