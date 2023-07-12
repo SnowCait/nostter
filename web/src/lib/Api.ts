@@ -247,6 +247,10 @@ export class Api {
 	}
 
 	async fetchEventsByIds(ids: string[]): Promise<Event[]> {
+		if (ids.length === 0) {
+			return [];
+		}
+
 		const $cachedEvents = get(cachedEvents);
 		const $userEvents = get(userEvents);
 
