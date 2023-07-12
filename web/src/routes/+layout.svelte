@@ -1,25 +1,37 @@
 <script lang="ts">
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
-	import { openNoteDialog } from '../stores/NoteDialog';
 	import { onMount } from 'svelte';
 	import { debugMode } from '../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
+	import NoteEditor from './NoteEditor.svelte';
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import { pubkey, rom } from '../stores/Author';
 
 	inject({ mode: dev ? 'development' : 'production' });
 
+	let enableNoteEditor = false;
 	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
 
 	function keyboardShortcut(event: KeyboardEvent) {
-		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
+		console.debug(
+			`[${event.type}]`,
+			event.code,
+			event.key,
+			event.ctrlKey,
+			event.metaKey,
+			event
+		);
 
-		if (event.key === 'n') {
-			$openNoteDialog = true;
+		if (event.key === 'n' && !enableNoteEditor) {
+			enableNoteEditor = true;
+		}
+
+		if (event.key === 'Escape') {
+			enableNoteEditor = false;
 		}
 
 		if (event.key === '1') {
@@ -66,13 +78,16 @@
 	<header>
 		<Header />
 		{#if $pubkey && !$rom}
-			<button on:click={() => ($openNoteDialog = !$openNoteDialog)}>
+			<button on:click={() => (enableNoteEditor = !enableNoteEditor)}>
 				<IconPencilPlus size={30} />
 			</button>
 		{/if}
 	</header>
 
 	<main>
+		{#if enableNoteEditor}
+			<NoteEditor on:close={() => (enableNoteEditor = false)} />
+		{/if}
 		<slot />
 	</main>
 </div>
@@ -155,5 +170,13 @@
 		border: 1px solid rgb(239, 243, 244);
 		border-radius: 5px;
 		overflow: hidden;
+	}
+
+	:global(.note-editor + .timeline) {
+		border-top: none;
+	}
+
+	:global(:root) {
+		--border: 1px solid rgb(239, 243, 244);
 	}
 </style>
