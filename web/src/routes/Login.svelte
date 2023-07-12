@@ -4,8 +4,7 @@
 	import { loginType } from '../stores/Author';
 	import { page } from '$app/stores';
 	import { afterNavigate } from '$app/navigation';
-
-	const demoNpub = 'npub1pp79ruvjd7xned8lgh6n4rhz4pg3els3x5n6kr58l8zcyysp5c0qrkan2p';
+	import { japaneseBotNpub } from '$lib/Constants';
 
 	let key = '';
 
@@ -15,7 +14,7 @@
 		if (key !== '' && !confirm('Key is not empty. Override?')) {
 			return;
 		}
-		key = demoNpub;
+		key = japaneseBotNpub;
 	}
 
 	onMount(async () => {
