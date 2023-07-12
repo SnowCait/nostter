@@ -129,6 +129,7 @@ export class Timeline {
 			return {
 				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
 				authors: chunkedAuthors,
+				until,
 				since
 			};
 		});
