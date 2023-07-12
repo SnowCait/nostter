@@ -1,11 +1,13 @@
 <script lang="ts">
 	import IconHome from '@tabler/icons-svelte/dist/svelte/icons/IconHome.svelte';
 	import IconSearch from '@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte';
+	import IconWorld from '@tabler/icons-svelte/dist/svelte/icons/IconWorld.svelte';
 	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
 	import IconSettings from '@tabler/icons-svelte/dist/svelte/icons/IconSettings.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { pubkey } from '../stores/Author';
+	import { japaneseBotNpub } from '$lib/Constants';
 </script>
 
 <nav>
@@ -26,6 +28,11 @@
 		<a href="/search">
 			<li>
 				<IconSearch size={30} />
+			</li>
+		</a>
+		<a href="/{japaneseBotNpub}/timeline">
+			<li>
+				<IconWorld size={30} />
 			</li>
 		</a>
 		{#if $pubkey}
@@ -64,16 +71,6 @@
 
 	a:visited {
 		color: inherit;
-	}
-
-	button {
-		background-color: transparent;
-		border: none;
-		cursor: pointer;
-		outline: none;
-		padding: 0;
-		width: inherit;
-		height: inherit;
 	}
 
 	@media screen and (max-width: 600px) {
