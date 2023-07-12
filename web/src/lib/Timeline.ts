@@ -167,9 +167,7 @@ export class Timeline {
 		);
 		await this.api.fetchEventsByIds([...eventIds]);
 
-		const eventItems = [...eventIds]
-			.map((id) => events.find((y) => y.id === id))
-			.filter((event): event is Event => event !== undefined)
+		const eventItems = events
 			.filter((event) => event.created_at !== until)
 			.filter((event) => !isMuteEvent(event))
 			.map((event) => {
