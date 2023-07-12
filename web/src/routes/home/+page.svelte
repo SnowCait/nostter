@@ -283,6 +283,12 @@
 					console.error('[auth failed]', relay);
 				});
 			});
+			relay.on('notice', (message) => {
+				console.warn('[notice]', relay.url, message);
+			});
+			relay.on('error', () => {
+				console.error('[error]', relay.url);
+			});
 		});
 	}
 
