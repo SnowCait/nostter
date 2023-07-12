@@ -13,7 +13,7 @@
 		readRelays
 	} from '../../../stores/Author';
 	import { userTimelineEvents as events } from '../../../stores/Events';
-	import { pool } from '../../../stores/Pool';
+	import { SimplePool } from 'nostr-tools';
 
 	let pubkey: string;
 	let timeline: Timeline;
@@ -42,7 +42,7 @@
 		const followees =
 			pubkey === $authorPubkey
 				? $authorFollowees
-				: await new Api($pool, $readRelays).fetchFollowees(pubkey);
+				: await new Api(new SimplePool(), $readRelays).fetchFollowees(pubkey);
 		timeline = new Timeline(pubkey, followees);
 		unsubscribe = await timeline.subscribe();
 		await load();
