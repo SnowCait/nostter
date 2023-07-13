@@ -414,6 +414,7 @@
 			bind:value={content}
 			bind:this={textarea}
 			on:keydown={submitFromKeyboard}
+			on:keyup|stopPropagation={undefined}
 			on:input={onInput}
 		/>
 		<input id="send" type="submit" disabled={!pubkey || posting} />
