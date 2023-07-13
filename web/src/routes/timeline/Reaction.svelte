@@ -11,6 +11,7 @@
 	import { Api } from '$lib/Api';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
+	import Content from '../content/Content.svelte';
 
 	export let event: NostrEvent;
 	export let readonly: boolean;
@@ -52,7 +53,7 @@
 		{:else if event.content === '-'}
 			<IconHeartBroken size={18} color={'lightpink'} />
 		{:else}
-			<span>{event.content}</span>
+			<Content content={event.content} tags={event.tags} />
 		{/if}
 	</div>
 	<div>by</div>
