@@ -305,7 +305,9 @@
 				{/if}
 			</p>
 		{:else}
-			<Content content={event.content} tags={event.tags} />
+			<div class="content">
+				<Content content={event.content} tags={event.tags} />
+			</div>
 		{/if}
 		{#if event.kind === Kind.ChannelMessage && channelId !== undefined}
 			<div>
@@ -469,6 +471,10 @@
 		margin: 0.1rem 0;
 	}
 
+	.content {
+		margin: 0.4rem 0;
+	}
+
 	.develop pre {
 		background-color: #f6f8fa;
 		padding: 0.5em;
@@ -481,7 +487,6 @@
 	.action-menu {
 		display: flex;
 		justify-content: space-between;
-		margin-top: 12px;
 	}
 
 	.action-menu button {
