@@ -21,6 +21,13 @@
 		if (event.key === 'n') {
 			$openNoteDialog = true;
 		}
+
+		if (event.key === '1') {
+			scrollTo({
+				top: 0,
+				behavior: 'smooth'
+			});
+		}
 	}
 
 	function onVisibilityChange() {
