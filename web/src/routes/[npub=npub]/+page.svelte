@@ -14,7 +14,10 @@
 	import { User as UserDecoder } from '$lib/User';
 	import { Timeline } from '$lib/Timeline';
 	import Badges from '../Badges.svelte';
+	import Content from '../content/Content.svelte';
+	import { Metadata } from '$lib/Items';
 
+	let metadata: Metadata;
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
 	let events: Event[] = [];
@@ -49,7 +52,15 @@
 		relays = Array.from(new Set([...relays, ...data.relays]));
 		timeline = new Timeline(pubkey, [pubkey]);
 
-		user = (await api.fetchUserEvent(pubkey))?.user;
+		const event = await api.fetchUserEvent(pubkey);
+		console.log('[metadata]', event);
+		if (event !== undefined) {
+			metadata = new Metadata(event);
+			user = {
+				...metadata.content,
+				zapEndpoint: metadata.zapUrl?.href ?? null
+			} as User;
+		}
 		if (user === undefined) {
 			throw error(404);
 		}
@@ -144,7 +155,9 @@
 				</div>
 			{/if}
 			{#if user.about}
-				<pre>{user.about}</pre>
+				<div class="about">
+					<Content content={user.about} tags={metadata.event.tags} />
+				</div>
 			{/if}
 		</div>
 	{/if}
@@ -206,10 +219,8 @@
 		font-size: 1em;
 	}
 
-	.profile pre {
-		line-height: 1.5em;
-		white-space: pre-wrap;
-		word-break: break-all;
+	.about {
+		margin: 1rem 0;
 	}
 
 	.nip19 {
