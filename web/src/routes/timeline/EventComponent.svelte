@@ -20,7 +20,7 @@
 	<RepostedNote {event} {readonly} {createdAtFormat} />
 {:else if event.kind === Kind.Reaction}
 	<Reaction {event} {readonly} {createdAtFormat} />
-{:else if event.kind === Kind.ChannelCreation}
+{:else if event.kind === Kind.ChannelCreation || event.kind === Kind.ChannelMetadata}
 	<Channel {event} />
 {:else if event.kind === Kind.Zap}
 	<Zap {event} {readonly} {createdAtFormat} />
