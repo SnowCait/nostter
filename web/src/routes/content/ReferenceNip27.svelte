@@ -54,7 +54,7 @@
 			}
 		}
 	} catch (e) {
-		console.error('[decode failed]', text, e);
+		console.warn('[decode failed]', text, e);
 	}
 
 	onMount(async () => {
