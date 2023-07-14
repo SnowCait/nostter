@@ -9,6 +9,7 @@ import type { Event } from '../routes/types';
 import { saveMetadataEvent } from '../stores/UserEvents';
 import { userTimelineEvents } from '../stores/Events';
 import { chunk } from './Array';
+import { filterLimitItems } from './Constants';
 
 export class Timeline {
 	private readonly $pool: SimplePool;
@@ -28,7 +29,7 @@ export class Timeline {
 		// const $bookmarkEvent = get(bookmarkEvent);
 		const $author = get(author);
 
-		const authorsFilter = chunk(this.authors, 1000).map((chunkedAuthors) => {
+		const authorsFilter = chunk(this.authors, filterLimitItems).map((chunkedAuthors) => {
 			return {
 				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
 				authors: chunkedAuthors,
@@ -125,7 +126,7 @@ export class Timeline {
 	public async fetch(until: number, seconds: number = 1 * 60 * 60): Promise<EventItem[]> {
 		const since = until - seconds;
 
-		const authorsFilter = chunk(this.authors, 1000).map((chunkedAuthors) => {
+		const authorsFilter = chunk(this.authors, filterLimitItems).map((chunkedAuthors) => {
 			return {
 				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
 				authors: chunkedAuthors,
