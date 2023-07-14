@@ -1,35 +1,36 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
-	import type { Event } from '../types';
 	import Follow from '../Follow.svelte';
 	import { rom } from '../../stores/Author';
 	import { lastNotesMap } from '../../stores/LastNotes';
 	import Content from '../content/Content.svelte';
+	import type { Metadata } from '$lib/Items';
 
-	export let event: Event;
+	export let metadata: Metadata;
 
-	$: user = event.user;
-	$: createdAt = $lastNotesMap.get(event.pubkey)?.created_at;
+	$: createdAt = $lastNotesMap.get(metadata.event.pubkey)?.created_at;
 </script>
 
 <article class="timeline-item">
 	<div>
-		<a href="/{nip19.npubEncode(event.pubkey)}">
-			<img class="picture" src={user.picture} alt="" />
+		<a href="/{nip19.npubEncode(metadata.event.pubkey)}">
+			<img class="picture" src={metadata.content?.picture} alt="" />
 		</a>
 	</div>
 	<div class="text">
 		<div class="row">
-			<div class="display_name">{user.display_name ?? user.name}</div>
-			<div class="name">@{user.name ?? user.display_name}</div>
+			<div class="display_name">
+				{metadata.content?.display_name ?? metadata.content?.name}
+			</div>
+			<div class="name">@{metadata.content?.name ?? metadata.content?.display_name}</div>
 			{#if !$rom}
 				<div class="follow">
-					<Follow pubkey={event.pubkey} />
+					<Follow pubkey={metadata.event.pubkey} />
 				</div>
 			{/if}
 		</div>
-		{#if user.about !== undefined}
-			<Content content={user.about} tags={event.tags} />
+		{#if metadata.content?.about !== undefined}
+			<Content content={metadata.content.about} tags={metadata.event.tags} />
 		{/if}
 		{#if !$rom}
 			<div>Last note: {createdAt ? new Date(createdAt * 1000).toLocaleString() : '-'}</div>

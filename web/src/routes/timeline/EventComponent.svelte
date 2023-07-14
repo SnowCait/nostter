@@ -7,6 +7,7 @@
 	import Channel from './Channel.svelte';
 	import Zap from './Zap.svelte';
 	import Note from './Note.svelte';
+	import { Metadata } from '$lib/Items';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -14,7 +15,7 @@
 </script>
 
 {#if event.kind === Kind.Metadata}
-	<Profile {event} />
+	<Profile metadata={new Metadata(event)} />
 {:else if event.kind === 6}
 	<RepostedNote {event} {readonly} {createdAtFormat} />
 {:else if event.kind === Kind.Reaction}
