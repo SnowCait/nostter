@@ -3,13 +3,14 @@ import { isMuteEvent, readRelays, bookmarkEvent, updateRelays, author } from '..
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
 import { get } from 'svelte/store';
-import { EventItem } from './Items';
+import { EventItem, Metadata } from './Items';
 import type { Filter, Event as NostrEvent } from 'nostr-tools';
-import type { Event } from '../routes/types';
+import type { Event, User } from '../routes/types';
 import { saveMetadataEvent } from '../stores/UserEvents';
-import { userTimelineEvents } from '../stores/Events';
+import { userTimelineEvents, cachedEvents } from '../stores/Events';
 import { chunk } from './Array';
 import { filterLimitItems } from './Constants';
+import { Content } from './Content';
 
 export class Timeline {
 	private readonly $pool: SimplePool;
@@ -99,6 +100,13 @@ export class Timeline {
 				event.user = userEvent.user;
 			}
 
+			// Cache note events
+			const eventIds = new Set([
+				...event.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
+				...Content.findNotesAndNeventsToIds(event.content)
+			]);
+			await this.api.fetchEventsByIds([...eventIds]);
+
 			// // Streaming speed (experimental)
 			// notifyStreamingSpeed(event.created_at);
 
@@ -161,10 +169,27 @@ export class Timeline {
 			Array.from(new Set(events.map((x) => x.pubkey)))
 		);
 
+		// Save cache
+		const $cachedEvents = get(cachedEvents);
+		for (const event of events) {
+			const metadataEvent = metadataEventsMap.get(event.pubkey);
+			if (metadataEvent === undefined) {
+				continue;
+			}
+			const metadata = new Metadata(metadataEvent);
+			$cachedEvents.set(event.id, {
+				...event,
+				user: { ...metadata.content, zapEndpoint: metadata.zapUrl?.href ?? null } as User
+			});
+		}
+
 		// Cache note events
 		const eventIds = new Set(
 			events
-				.map((x) => x.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id))
+				.map((x) => [
+					...x.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
+					...Content.findNotesAndNeventsToIds(x.content)
+				])
 				.flat()
 		);
 		await this.api.fetchEventsByIds([...eventIds]);
