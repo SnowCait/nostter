@@ -254,11 +254,16 @@ export class Api {
 		const $cachedEvents = get(cachedEvents);
 		const $userEvents = get(userEvents);
 
-		const events = await this.fetchEvents([
-			{
-				ids
-			}
-		]);
+		const uncachedIds = ids.filter((id) => !$cachedEvents.has(id));
+		console.debug('[cache]', uncachedIds.length, '/', ids.length);
+		const events =
+			uncachedIds.length > 0
+				? await this.fetchEvents([
+						{
+							ids: uncachedIds
+						}
+				  ])
+				: [];
 
 		// Save cache
 		for (const event of events) {
@@ -269,7 +274,9 @@ export class Api {
 			$cachedEvents.set(event.id, { ...event, user: userEvent.user });
 		}
 
-		return events;
+		return ids
+			.map((id) => $cachedEvents.get(id) as Event | undefined)
+			.filter((event): event is Event => event !== undefined);
 	}
 
 	async fetchFollowees(pubkey: string): Promise<string[]> {
