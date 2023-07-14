@@ -15,7 +15,7 @@ declare const window: Window;
 export class Login {
 	private async nip07Enabled(): Promise<boolean> {
 		const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-		for (let i = 0; i < 10; i++) {
+		for (let i = 0; i < 20; i++) {
 			if (window.nostr !== undefined) {
 				return true;
 			}
