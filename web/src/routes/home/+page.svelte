@@ -21,6 +21,7 @@
 	import { Kind, nip57, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { saveLastNote } from '../../stores/LastNotes';
 	import { Signer } from '$lib/Signer';
+	import { minTimelineLength } from '$lib/Constants';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -145,7 +146,7 @@
 			}
 		}
 
-		if ($events.length < 50 && since > 1640962800 /* 2022/01/01 00:00:00 */) {
+		if ($events.length < minTimelineLength && since > 1640962800 /* 2022/01/01 00:00:00 */) {
 			await fetchHomeTimeline(since - 1, span * 2);
 		}
 	}

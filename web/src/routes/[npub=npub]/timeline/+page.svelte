@@ -14,6 +14,7 @@
 	} from '../../../stores/Author';
 	import { userTimelineEvents as events } from '../../../stores/Events';
 	import { SimplePool } from 'nostr-tools';
+	import { minTimelineLength } from '$lib/Constants';
 
 	let pubkey: string;
 	let timeline: Timeline;
@@ -58,7 +59,7 @@
 		let until = $events.at($events.length - 1)?.created_at ?? Math.floor(Date.now() / 1000);
 		let seconds = 1 * 60 * 60;
 
-		while ($events.length - firstLength < 50 && count < 10) {
+		while ($events.length - firstLength < minTimelineLength && count < 10) {
 			const pastEventItems = await timeline.fetch(until, seconds);
 			$events.push(
 				...pastEventItems.map((x) => {
