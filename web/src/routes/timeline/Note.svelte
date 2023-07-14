@@ -28,6 +28,7 @@
 	import Content from '../content/Content.svelte';
 	import { Signer } from '$lib/Signer';
 	import { getCodePoints } from '$lib/String';
+	import { openNoteEditor } from '../NoteEditor.svelte';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -66,7 +67,7 @@
 
 	function reply(event: Event) {
 		$replyTo = event;
-		$openNoteDialog = true;
+		// $openNoteDialog = true;
 	}
 
 	async function repost(note: Event) {
@@ -93,9 +94,10 @@
 		});
 	}
 
-	function quote(event: Event) {
+	async function quote(event: Event) {
 		$quotes.push(event);
-		$openNoteDialog = true;
+		// $openNoteDialog = true;
+		await openNoteEditor();
 	}
 
 	async function reaction(note: Event) {

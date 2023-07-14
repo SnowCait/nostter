@@ -6,15 +6,21 @@
 	import ReloadDialog from './ReloadDialog.svelte';
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
-	import NoteEditor from './NoteEditor.svelte';
+	import NoteEditor, { openNoteEditor } from './NoteEditor.svelte';
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import { pubkey, rom } from '../stores/Author';
+	import { writable } from 'svelte/store';
+	import { onDestroy } from 'svelte';
 
 	inject({ mode: dev ? 'development' : 'production' });
 
-	let enableNoteEditor = false;
 	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
+
+	let enableNoteEditor = writable(false);
+	const unsubscribe = enableNoteEditor.subscribe(async () => {
+		await openNoteEditor();
+	});
 
 	function keyboardShortcut(event: KeyboardEvent) {
 		console.debug(
@@ -26,12 +32,12 @@
 			event
 		);
 
-		if (event.key === 'n' && !enableNoteEditor) {
-			enableNoteEditor = true;
+		if (event.key === 'n' && !$enableNoteEditor) {
+			$enableNoteEditor = true;
 		}
 
 		if (event.key === 'Escape') {
-			enableNoteEditor = false;
+			$enableNoteEditor = false;
 		}
 
 		if (event.key === '1') {
@@ -61,6 +67,8 @@
 	onMount(() => {
 		document.addEventListener('visibilitychange', onVisibilityChange);
 	});
+
+	onDestroy(unsubscribe);
 </script>
 
 <svelte:window on:keyup={keyboardShortcut} />
@@ -78,15 +86,15 @@
 	<header>
 		<Header />
 		{#if $pubkey && !$rom}
-			<button on:click={() => (enableNoteEditor = !enableNoteEditor)}>
+			<button on:click={() => ($enableNoteEditor = !$enableNoteEditor)}>
 				<IconPencilPlus size={30} />
 			</button>
 		{/if}
 	</header>
 
 	<main>
-		{#if enableNoteEditor}
-			<NoteEditor on:close={() => (enableNoteEditor = false)} />
+		{#if $enableNoteEditor}
+			<NoteEditor on:close={() => ($enableNoteEditor = false)} />
 		{/if}
 		<slot />
 	</main>
