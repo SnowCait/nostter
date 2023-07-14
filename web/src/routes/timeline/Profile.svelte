@@ -32,8 +32,8 @@
 		{#if metadata.content?.about !== undefined}
 			<Content content={metadata.content.about} tags={metadata.event.tags} />
 		{/if}
-		{#if !$rom}
-			<div>Last note: {createdAt ? new Date(createdAt * 1000).toLocaleString() : '-'}</div>
+		{#if !$rom && createdAt !== undefined}
+			<div>Last note: {new Date(createdAt * 1000).toLocaleString()}</div>
 		{/if}
 	</div>
 </article>
