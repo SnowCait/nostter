@@ -21,7 +21,8 @@
 	import { Kind, nip57, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { saveLastNote } from '../../stores/LastNotes';
 	import { Signer } from '$lib/Signer';
-	import { minTimelineLength } from '$lib/Constants';
+	import { filterLimitItems, minTimelineLength } from '$lib/Constants';
+	import { chunk } from '$lib/Array';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -39,13 +40,18 @@
 		console.log(`Fetch in ${Date.now() / 1000 - now} seconds`);
 
 		const since = (until ?? now) - span;
-		const pastEvents = await $pool.list($readRelays, [
-			{
+
+		const authorsFilter = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
+			return {
 				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-				authors: $followees,
+				authors: chunkedAuthors,
 				until,
 				since
-			},
+			};
+		});
+
+		const pastEvents = await $pool.list($readRelays, [
+			...authorsFilter,
 			{
 				kinds: [Kind.Text, Kind.EncryptedDirectMessage, 6, Kind.Reaction, Kind.Zap],
 				'#p': [$pubkey],
@@ -158,12 +164,17 @@
 		let eose = false;
 		let newEvents: Event[] = [];
 		const since = now;
-		const subscribe = $pool.sub($readRelays, [
-			{
+
+		const authorsFilter = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
+			return {
 				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-				authors: Array.from($followees),
+				authors: chunkedAuthors,
 				since
-			},
+			};
+		});
+
+		const subscribe = $pool.sub($readRelays, [
+			...authorsFilter,
 			{
 				kinds: [Kind.Text, Kind.EncryptedDirectMessage, 6, Kind.Reaction, Kind.Zap],
 				'#p': [$pubkey],
