@@ -23,6 +23,7 @@
 	import { Signer } from '$lib/Signer';
 	import { filterLimitItems, minTimelineLength } from '$lib/Constants';
 	import { chunk } from '$lib/Array';
+	import { Content } from '$lib/Content';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -71,7 +72,10 @@
 		// Cache note events
 		const eventIds = new Set(
 			pastEvents
-				.map((x) => x.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id))
+				.map((x) => [
+					...x.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
+					...Content.findNotesAndNeventsToIds(x.content)
+				])
 				.flat()
 		);
 		const api = new Api($pool, $readRelays);
@@ -232,6 +236,13 @@
 			if (userEvent !== undefined) {
 				event.user = userEvent.user;
 			}
+
+			// Cache note events
+			const eventIds = new Set([
+				...event.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
+				...Content.findNotesAndNeventsToIds(event.content)
+			]);
+			await api.fetchEventsByIds([...eventIds]);
 
 			// Streaming speed (experimental)
 			notifyStreamingSpeed(event.created_at);

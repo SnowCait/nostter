@@ -10,6 +10,7 @@ import { saveMetadataEvent } from '../stores/UserEvents';
 import { userTimelineEvents, cachedEvents } from '../stores/Events';
 import { chunk } from './Array';
 import { filterLimitItems } from './Constants';
+import { Content } from './Content';
 
 export class Timeline {
 	private readonly $pool: SimplePool;
@@ -99,6 +100,13 @@ export class Timeline {
 				event.user = userEvent.user;
 			}
 
+			// Cache note events
+			const eventIds = new Set([
+				...event.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
+				...Content.findNotesAndNeventsToIds(event.content)
+			]);
+			await this.api.fetchEventsByIds([...eventIds]);
+
 			// // Streaming speed (experimental)
 			// notifyStreamingSpeed(event.created_at);
 
@@ -178,7 +186,10 @@ export class Timeline {
 		// Cache note events
 		const eventIds = new Set(
 			events
-				.map((x) => x.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id))
+				.map((x) => [
+					...x.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
+					...Content.findNotesAndNeventsToIds(x.content)
+				])
 				.flat()
 		);
 		await this.api.fetchEventsByIds([...eventIds]);

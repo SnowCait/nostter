@@ -1,3 +1,6 @@
+import { nip19 } from 'nostr-tools';
+import type { EventPointer } from 'nostr-tools/lib/nip19';
+
 export class Token {
 	constructor(
 		readonly name: 'text' | 'reference' | 'hashtag' | 'emoji' | 'url' | 'nip',
@@ -99,6 +102,26 @@ export class Content {
 		const matches = content.matchAll(/(?<=^|\s)(nostr:)?(?<note>(note|nevent)1\w{6,})\b/g);
 		return [...matches]
 			.map((match) => match.groups?.note)
+			.filter((x): x is string => x !== undefined);
+	}
+
+	static findNotesAndNeventsToIds(content: string): string[] {
+		return this.findNotesAndNevents(content)
+			.map((x) => {
+				try {
+					const { type, data } = nip19.decode(x);
+					switch (type) {
+						case 'note':
+							return data as string;
+						case 'nevent':
+							return (data as EventPointer).id;
+						default:
+							return undefined;
+					}
+				} catch {
+					return undefined;
+				}
+			})
 			.filter((x): x is string => x !== undefined);
 	}
 

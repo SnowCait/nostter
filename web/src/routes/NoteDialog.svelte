@@ -269,23 +269,7 @@
 			]);
 		}
 
-		const eventIds = Content.findNotesAndNevents(content)
-			.map((x) => {
-				try {
-					const { type, data } = nip19.decode(x);
-					switch (type) {
-						case 'note':
-							return data as string;
-						case 'nevent':
-							return (data as EventPointer).id;
-						default:
-							return undefined;
-					}
-				} catch {
-					return undefined;
-				}
-			})
-			.filter((x): x is string => x !== undefined);
+		const eventIds = Content.findNotesAndNeventsToIds(content);
 		tags.push(
 			...Array.from(new Set(eventIds)).map((eventId) => [
 				'e',
