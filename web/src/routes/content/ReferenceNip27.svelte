@@ -11,6 +11,7 @@
 	import Channel from '../timeline/Channel.svelte';
 	import Nip94 from '../Nip94.svelte';
 	import Naddr from './Naddr.svelte';
+	import EventComponent from '../timeline/EventComponent.svelte';
 
 	export let text: string;
 
@@ -83,7 +84,7 @@
 		{:else if event.kind === 1063}
 			<Nip94 {event} />
 		{:else}
-			<blockquote><Note {event} readonly={true} /></blockquote>
+			<blockquote><EventComponent {event} readonly={true} /></blockquote>
 		{/if}
 	{:else}
 		<a href="/{nip19.noteEncode(eventId)}">

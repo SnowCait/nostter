@@ -11,7 +11,7 @@
 
 	export let event: Event;
 	export let readonly: boolean;
-	export let createdAtFormat: 'auto' | 'time';
+	export let createdAtFormat: 'auto' | 'time' = 'auto';
 </script>
 
 {#if event.kind === Kind.Metadata}
