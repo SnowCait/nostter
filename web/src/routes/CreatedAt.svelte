@@ -24,7 +24,7 @@
 	}
 </script>
 
-<span title="{date.toLocaleString()}">{createdAtDisplay}</span>
+<span title={date.toLocaleString()}>{createdAtDisplay}</span>
 
 <style>
 	span {
