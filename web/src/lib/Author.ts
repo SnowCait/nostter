@@ -50,6 +50,9 @@ export class Author {
 				if (shortcode === undefined || imageUrl === undefined) {
 					return false;
 				}
+				if (!/^\w+$/.test(shortcode)) {
+					return false;
+				}
 				try {
 					new URL(imageUrl);
 					return true;
