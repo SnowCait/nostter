@@ -64,7 +64,11 @@
 			<div>@{event.user?.name ?? event.user?.display_name}</div>
 			<form on:submit|preventDefault={zap}>
 				<div>
-					<input type="number" bind:value={sats} on:keyup|stopPropagation={undefined} />
+					<input
+						type="number"
+						bind:value={sats}
+						on:keyup|stopPropagation={() => console.debug}
+					/>
 					<input type="submit" value="Zap" />
 				</div>
 				<div>
@@ -72,7 +76,7 @@
 						type="text"
 						placeholder="Comment"
 						bind:value={zapComment}
-						on:keyup|stopPropagation={undefined}
+						on:keyup|stopPropagation={() => console.debug}
 					/>
 				</div>
 			</form>
