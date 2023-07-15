@@ -9,7 +9,6 @@
 	import { saveMetadataEvent } from '../../stores/UserEvents';
 	import TimelineView from '../TimelineView.svelte';
 	import type { Event } from '../types';
-	import NoteIdsView from './NoteIdsView.svelte';
 
 	let query = '';
 
@@ -93,8 +92,6 @@
 	<input type="text" name="q" value={query} on:keyup|stopPropagation={() => console.debug()} />
 	<input type="submit" value="Search" />
 </form>
-
-<NoteIdsView />
 
 <TimelineView events={$searchEvents} load={async () => console.debug()} showLoading={false} />
 
