@@ -1,10 +1,12 @@
 <script lang="ts">
+	import CustomEmoji from '../content/CustomEmoji.svelte';
+
 	export let tags: string[][];
 </script>
 
 <ul>
 	{#each tags.filter(([tagName, shortcode, imageUrl]) => tagName === 'emoji' && shortcode !== undefined && imageUrl !== undefined) as tag}
-		<img src={tag[2]} alt={tag[1]} title={tag[1]} />
+		<CustomEmoji text={tag[1]} url={tag[2]} />
 	{/each}
 </ul>
 
@@ -13,8 +15,5 @@
 		list-style: none;
 		padding: 0;
 		display: flex;
-	}
-	img {
-		max-height: 1.5rem;
 	}
 </style>
