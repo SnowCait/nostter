@@ -1,9 +1,10 @@
-import { nip19, type Filter, Kind, SimplePool } from 'nostr-tools';
-import { hashtagsRegexp, searchRelays } from './Constants';
-import { EventItem, Metadata } from './Items';
+import { nip19, type Filter, Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
+import { hashtagsRegexp, searchRelays } from './Constants';
+import { EventItem } from './Items';
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
+import { readRelays } from '../stores/Author';
 
 export class Search {
 	parseQuery(query: string): Filter {
@@ -62,8 +63,8 @@ export class Search {
 			new Date((filter.until ?? 0) * 1000),
 			new Date((filter.since ?? 0) * 1000)
 		);
-		const $pool = new SimplePool();
-		const api = new Api($pool, searchRelays);
+		const $pool = get(pool);
+		const api = new Api($pool, filter.search !== undefined ? searchRelays : get(readRelays));
 		const events = await api.fetchEvents([filter]);
 		const metadataEventsMap = await api.fetchMetadataEventsMap([
 			...new Set(events.map((x) => x.pubkey))
