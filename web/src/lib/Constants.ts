@@ -4,4 +4,8 @@ export const filterLimitItems = 1000;
 
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
 
-export const searchRelays = ['wss://relay.nostr.band', 'wss://search.nos.today'];
+export const searchRelays = [
+	'wss://relay.nostr.band',
+	'wss://search.nos.today',
+	'wss://nostrja-kari-nip50.heguro.com'
+];
