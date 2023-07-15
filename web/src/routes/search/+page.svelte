@@ -1,85 +1,64 @@
 <script lang="ts">
+	import type { Filter } from 'nostr-tools';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { Api } from '$lib/Api';
-	import { Kind } from 'nostr-tools';
-	import { readRelays } from '../../stores/Author';
-	import { searchEvents } from '../../stores/Events';
-	import { pool } from '../../stores/Pool';
-	import { saveMetadataEvent } from '../../stores/UserEvents';
-	import TimelineView from '../TimelineView.svelte';
+	import { Search } from '$lib/Search';
+	import { minTimelineLength } from '$lib/Constants';
 	import type { Event } from '../types';
-	import NoteIdsView from './NoteIdsView.svelte';
+	import TimelineView from '../TimelineView.svelte';
+	import SearchForm from './SearchForm.svelte';
 
 	let query = '';
+	let filter: Filter;
+	let events: Event[] = [];
+	let showLoading = false;
 
-	const searchRelay = 'wss://relay.nostr.band';
+	const search = new Search();
 
 	afterNavigate(async () => {
-		query = $page.url.searchParams.get('q') ?? '';
-		$searchEvents = [];
-		if (query !== '') {
-			console.log('[q]', query);
-			await search(searchRelay, query);
+		if (query === $page.url.searchParams.get('q')) {
+			return;
 		}
+		query = $page.url.searchParams.get('q') ?? '';
+		events = [];
+		console.log('[q]', query);
+		filter = search.parseQuery(query);
+		await load();
 	});
 
-	async function search(relay: string, query: string) {
-		const ws = new WebSocket(relay);
-		ws.onerror = (event) => {
-			console.error(event);
-		};
-		ws.onopen = () => {
-			console.log('Opened');
-			ws.send(
-				JSON.stringify([
-					'REQ',
-					Math.floor(Math.random() * 99999).toString(),
-					{
-						search: query,
-						limit: 1000
-					}
-				])
+	async function load() {
+		if (query === '' || filter === undefined) {
+			return;
+		}
+
+		showLoading = true;
+
+		let firstLength = events.length;
+		let count = 0;
+		let until = events.at(events.length - 1)?.created_at ?? Math.floor(Date.now() / 1000);
+		let seconds = 24 * 60 * 60;
+
+		while (events.length - firstLength < minTimelineLength && count < 10) {
+			filter.until = until;
+			filter.since = until - seconds;
+			const eventItems = await search.fetch(filter);
+			events.push(
+				...eventItems.map((x) => {
+					return {
+						...x.event,
+						user: x.metadata?.content
+					} as Event;
+				})
 			);
-		};
-		ws.onclose = () => {
-			console.log('Closed');
-		};
-		ws.onmessage = async (event) => {
-			console.log('Message');
-			const data = JSON.parse(event.data);
-			console.log(data);
-			switch (data[0]) {
-				case 'EOSE': {
-					console.log('[result]', $searchEvents);
+			events = events;
 
-					const api = new Api($pool, $readRelays);
-					for (const event of $searchEvents) {
-						const userEvent = await api.fetchUserEvent(event.pubkey);
-						if (userEvent !== undefined) {
-							event.user = userEvent.user;
-						}
-					}
+			until -= seconds;
+			seconds *= 2;
+			count++;
+			console.log('[load]', count, until, seconds / 3600, events.length);
+		}
 
-					$searchEvents = $searchEvents;
-					break;
-				}
-				case 'EVENT': {
-					const e = data[2] as Event;
-					switch (e.kind) {
-						case Kind.Metadata: {
-							await saveMetadataEvent(e);
-							break;
-						}
-						case Kind.Text: {
-							$searchEvents.push(e);
-							break;
-						}
-					}
-					break;
-				}
-			}
-		};
+		showLoading = false;
 	}
 </script>
 
@@ -89,14 +68,9 @@
 
 <h1><a href="/search">Search</a></h1>
 
-<form action="/search">
-	<input type="text" name="q" value={query} on:keyup|stopPropagation={() => console.debug()} />
-	<input type="submit" value="Search" />
-</form>
+<SearchForm {query} />
 
-<NoteIdsView />
-
-<TimelineView events={$searchEvents} load={async () => console.debug()} showLoading={false} />
+<TimelineView {events} {load} {showLoading} />
 
 <style>
 	h1 a {
@@ -105,8 +79,7 @@
 	}
 
 	@media screen and (max-width: 600px) {
-		h1,
-		form {
+		h1 {
 			margin: 0.67em;
 		}
 	}
