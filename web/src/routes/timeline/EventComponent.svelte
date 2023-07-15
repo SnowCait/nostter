@@ -8,6 +8,7 @@
 	import Zap from './Zap.svelte';
 	import Note from './Note.svelte';
 	import { Metadata } from '$lib/Items';
+	import CustomEmojiList from './CustomEmojiList.svelte';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -24,6 +25,8 @@
 	<Channel {event} />
 {:else if event.kind === Kind.Zap}
 	<Zap {event} {readonly} {createdAtFormat} />
+{:else if event.kind === 30030}
+	<CustomEmojiList tags={event.tags} />
 {:else}
 	<Note {event} {readonly} {createdAtFormat} />
 {/if}

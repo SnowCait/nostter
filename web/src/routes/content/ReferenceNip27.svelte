@@ -12,6 +12,8 @@
 	import Nip94 from '../Nip94.svelte';
 	import Naddr from './Naddr.svelte';
 	import EventComponent from '../timeline/EventComponent.svelte';
+	import type { AddressPointer } from 'nostr-tools/lib/nip19';
+	import { readonly } from 'svelte/store';
 
 	export let text: string;
 
@@ -20,6 +22,7 @@
 	let userEvent: UserEvent | undefined = undefined;
 	let eventId = '';
 	let event: Event | undefined;
+	let addressPointer: AddressPointer;
 	let slug = text.substring('nostr:'.length);
 
 	try {
@@ -51,6 +54,7 @@
 			}
 			case 'naddr': {
 				dataType = 'addr';
+				addressPointer = data;
 				break;
 			}
 		}
@@ -68,6 +72,16 @@
 		if (dataType === 'event' && event === undefined) {
 			event = await api.fetchEventById(eventId);
 		}
+
+		if (dataType === 'addr') {
+			event = (await api.fetchEvent([
+				{
+					kinds: [addressPointer.kind],
+					authors: [addressPointer.pubkey],
+					'#d': [addressPointer.identifier]
+				}
+			])) as Event;
+		}
 	});
 </script>
 
@@ -79,9 +93,7 @@
 	</a>
 {:else if dataType === 'event'}
 	{#if event !== undefined}
-		{#if event.kind === Kind.ChannelCreation}
-			<blockquote><Channel {event} /></blockquote>
-		{:else if event.kind === 1063}
+		{#if event.kind === 1063}
 			<Nip94 {event} />
 		{:else}
 			<blockquote><EventComponent {event} readonly={true} /></blockquote>
@@ -92,7 +104,11 @@
 		</a>
 	{/if}
 {:else if dataType === 'addr'}
-	<Naddr naddr={slug} />
+	{#if event !== undefined && event.kind === 30030}
+		<EventComponent {event} readonly={true} />
+	{:else}
+		<Naddr naddr={slug} />
+	{/if}
 {:else}
 	<Text {text} />
 {/if}
