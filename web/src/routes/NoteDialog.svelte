@@ -11,7 +11,7 @@
 	import { userEvents } from '../stores/UserEvents';
 	import type { UserEvent, User } from './types';
 	import { customEmojiTags } from '../stores/CustomEmojis';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { Signer } from '$lib/Signer';
 
 	let content = '';
@@ -212,19 +212,16 @@
 		}
 	}
 
-	function replaceComplement(event: UserEvent) {
+	async function replaceComplement(event: UserEvent) {
 		console.debug('[replace complement]', content, complementStart, complementEnd);
 		const beforeCursor =
-			content.substring(0, complementStart) +
-			(complementStart === 0 || content.at(complementStart - 1) === ' ' ? '' : ' ') +
-			`nostr:${nip19.npubEncode(event.pubkey)} `;
-		const afterCursor = content.substring(
-			content.at(complementEnd) === ' ' ? complementEnd + 1 : complementEnd
-		);
+			content.substring(0, complementStart) + `nostr:${nip19.npubEncode(event.pubkey)} `;
+		const afterCursor = content.substring(complementEnd);
 		content = beforeCursor + afterCursor;
 		const cursor = beforeCursor.length;
 		console.debug('[replaced complement]', content, cursor);
 		exitComplement();
+		await tick();
 		textarea.setSelectionRange(cursor, cursor);
 		textarea.focus();
 	}
@@ -412,7 +409,7 @@
 	{#if complementStart >= 0}
 		<ul>
 			{#each complementUserEvents as event}
-				<li on:click|stopPropagation={() => replaceComplement(event)}>
+				<li on:click|stopPropagation={async () => await replaceComplement(event)}>
 					<span>{event.user.display_name ?? ''}</span>
 					<span>@{event.user.name ?? event.user.display_name}</span>
 				</li>
