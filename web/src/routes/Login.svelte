@@ -3,18 +3,38 @@
 	import { Login } from '$lib/Login';
 	import { loginType } from '../stores/Author';
 	import { page } from '$app/stores';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { japaneseBotNpub } from '$lib/Constants';
+	import { authorProfile } from '../stores/Author';
 
 	let key = '';
 
 	const login = new Login();
+
+	async function loginWithNip07() {
+		await login.withNip07();
+		await gotoHome();
+	}
+
+	async function loginWithKey() {
+		if (key.startsWith('nsec')) {
+			await login.withNsec(key);
+		} else {
+			await login.withNpub(key);
+		}
+		await gotoHome();
+	}
 
 	function loginWithDemo() {
 		if (key !== '' && !confirm('Key is not empty. Override?')) {
 			return;
 		}
 		key = japaneseBotNpub;
+	}
+
+	async function createAccount() {
+		await login.generateNsec();
+		await gotoProfile();
 	}
 
 	onMount(async () => {
@@ -36,7 +56,26 @@
 		} else {
 			console.error('[logic error]', 'login');
 		}
+		await gotoHome();
 	});
+
+	async function gotoHome() {
+		console.log('[goto home]', $authorProfile);
+		if ($authorProfile === undefined) {
+			console.error('[login failed]');
+			return;
+		}
+
+		const url = '/home';
+		console.log(`Redirect to ${url}`);
+		await goto(url);
+	}
+
+	async function gotoProfile() {
+		const url = '/profile';
+		console.log(`Redirect to ${url}`);
+		await goto(url);
+	}
 
 	afterNavigate(async () => {
 		console.log('afterNavigate');
@@ -51,17 +90,14 @@
 	});
 </script>
 
-<button on:click|once={() => login.withNip07()} disabled={$loginType !== undefined}>
+<button on:click|once={loginWithNip07} disabled={$loginType !== undefined}>
 	Login with NIP-07 Browser Extension
 </button>
 <span>(Recommended)</span>
 
 <div>or</div>
 
-<form
-	on:submit|preventDefault|once={() =>
-		key.startsWith('nsec') ? login.withNsec(key) : login.withNpub(key)}
->
+<form on:submit|preventDefault|once={loginWithKey}>
 	<input
 		type="text"
 		bind:value={key}
@@ -73,4 +109,10 @@
 	<input type="submit" value="Login with key" disabled={$loginType !== undefined} />
 
 	<button on:click={loginWithDemo} disabled={$loginType !== undefined}>Try demo</button>
+</form>
+
+<div>or</div>
+
+<form on:submit|preventDefault|once={createAccount}>
+	<input type="submit" value="Create account" disabled={$loginType !== undefined} />
 </form>

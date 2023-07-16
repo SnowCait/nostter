@@ -34,7 +34,7 @@
 		console.log('Fetch home timeline: followees', $followees.length);
 
 		if ($followees.length === 0) {
-			console.log('Please login');
+			console.warn('Please login');
 			return;
 		}
 
