@@ -133,6 +133,7 @@
 
 		main {
 			margin-left: auto;
+			margin-bottom: 50px;
 		}
 
 		.debug {
