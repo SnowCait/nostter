@@ -20,6 +20,7 @@ import { filterTags, parseRelayJson } from './EventHelper';
 import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
 import { reactionEmoji } from '../stores/Preference';
 import { Signer } from './Signer';
+import type { User } from '../routes/types';
 
 export class Author {
 	constructor(private pubkey: string) {}
@@ -127,6 +128,8 @@ export class Author {
 				);
 				console.log('[relays in kind 3]', get(readRelays), get(writeRelays));
 			}
+		} else {
+			followees.set([this.pubkey]);
 		}
 
 		const relayListEvent = replaceableEvents.get(Kind.RelayList);
@@ -152,11 +155,13 @@ export class Author {
 			metadataEvent.set($metadataEvent);
 			try {
 				authorProfile.set(JSON.parse($metadataEvent.content));
-				console.log('[profile]', get(authorProfile));
 			} catch (error) {
 				console.warn('[invalid metadata]', error, $metadataEvent);
 			}
+		} else {
+			authorProfile.set({} as User);
 		}
+		console.log('[profile]', get(authorProfile));
 
 		this.saveRelays(replaceableEvents);
 

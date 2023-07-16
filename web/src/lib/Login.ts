@@ -1,10 +1,9 @@
 import { get } from 'svelte/store';
-import { author, authorProfile, loginType, pubkey, rom } from '../stores/Author';
+import { author, loginType, pubkey, rom } from '../stores/Author';
 import { Signer } from './Signer';
 import { defaultRelays } from '../stores/DefaultRelays';
 import { Author } from './Author';
-import { goto } from '$app/navigation';
-import { getPublicKey, nip19 } from 'nostr-tools';
+import { generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
 
 interface Window {
 	// NIP-07
@@ -22,6 +21,11 @@ export class Login {
 			await sleep(500);
 		}
 		return false;
+	}
+
+	public async generateNsec() {
+		const seckey = generatePrivateKey();
+		await this.withNsec(nip19.nsecEncode(seckey));
 	}
 
 	public async withNip07() {
@@ -63,11 +67,9 @@ export class Login {
 		await this.fetchAuthor(Array.from(profileRelays));
 
 		console.timeEnd('NIP-07');
-
-		await this.gotoHome();
 	}
 
-	async withNsec(key: string) {
+	public async withNsec(key: string) {
 		const { type, data: seckey } = nip19.decode(key);
 		if (type !== 'nsec' || typeof seckey !== 'string') {
 			console.error('Invalid nsec');
@@ -79,10 +81,9 @@ export class Login {
 		loginType.set('nsec');
 		pubkey.set(getPublicKey(seckey));
 		await this.fetchAuthor(get(defaultRelays));
-		await this.gotoHome();
 	}
 
-	async withNpub(key: string) {
+	public async withNpub(key: string) {
 		console.log('npub', key);
 		const { type, data } = nip19.decode(key);
 		console.log(type, data);
@@ -97,18 +98,6 @@ export class Login {
 		pubkey.set(data);
 		rom.set(true);
 		await this.fetchAuthor(get(defaultRelays));
-		await this.gotoHome();
-	}
-
-	async gotoHome() {
-		if (get(authorProfile) === undefined) {
-			console.error('[login failed]');
-			return;
-		}
-
-		const url = '/home';
-		console.log(`Redirect to ${url}`);
-		await goto(url);
 	}
 
 	private async fetchAuthor(relays: string[]) {

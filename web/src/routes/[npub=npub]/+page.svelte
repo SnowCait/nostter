@@ -63,11 +63,8 @@
 				zapEndpoint: metadata.zapUrl?.href ?? null
 			} as User;
 		}
-		if (user === undefined) {
-			throw error(404);
-		}
 
-		if (user.nip05 && slug !== user.nip05) {
+		if (user !== undefined && user.nip05 && slug !== user.nip05) {
 			history.replaceState(history.state, '', user.nip05);
 			slug = user.nip05;
 		}
@@ -127,49 +124,47 @@
 </svelte:head>
 
 <section>
-	{#if user}
-		<div class="banner">
-			<img src={user.banner} alt="" />
-		</div>
-		<div class="profile">
-			<div class="actions">
-				<div>
-					<img src={user.picture} alt="" />
-				</div>
-				{#if !$rom}
-					{#if pubkey === $authorPubkey}
-						<div class="profile">
-							<a href="/profile">
-								<IconTool />
-							</a>
-						</div>
-					{/if}
-					<div class="follow">
-						<Follow {pubkey} />
+	<div class="banner">
+		<img src={user?.banner} alt="" />
+	</div>
+	<div class="profile">
+		<div class="actions">
+			<div>
+				<img src={user?.picture} alt="" />
+			</div>
+			{#if !$rom}
+				{#if pubkey === $authorPubkey}
+					<div class="profile">
+						<a href="/profile">
+							<IconTool />
+						</a>
 					</div>
 				{/if}
-			</div>
-			<h1>{user.display_name ?? user.name ?? ''}</h1>
-			{#if user.name}
-				<h2>@{user.name}</h2>
-			{/if}
-			<div class="nip19">{nip19.npubEncode(pubkey)}</div>
-			<div class="nip19">{nip19.nprofileEncode({ pubkey })}</div>
-			{#if followees.some((pubkey) => pubkey === $authorPubkey)}
-				<div>Follows you</div>
-			{/if}
-			{#if user.website}
-				<div>
-					<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
-				</div>
-			{/if}
-			{#if user.about}
-				<div class="about">
-					<Content content={user.about} tags={metadata.event.tags} />
+				<div class="follow">
+					<Follow {pubkey} />
 				</div>
 			{/if}
 		</div>
-	{/if}
+		<h1>{user?.display_name ?? user?.name ?? ''}</h1>
+		{#if user?.name}
+			<h2>@{user.name}</h2>
+		{/if}
+		<div class="nip19">{nip19.npubEncode(pubkey)}</div>
+		<div class="nip19">{nip19.nprofileEncode({ pubkey })}</div>
+		{#if followees.some((pubkey) => pubkey === $authorPubkey)}
+			<div>Follows you</div>
+		{/if}
+		{#if user?.website}
+			<div>
+				<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
+			</div>
+		{/if}
+		{#if user?.about}
+			<div class="about">
+				<Content content={user.about} tags={metadata.event.tags} />
+			</div>
+		{/if}
+	</div>
 	<Badges {badges} />
 </section>
 
