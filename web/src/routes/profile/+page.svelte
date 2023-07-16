@@ -116,7 +116,12 @@
 	}
 
 	textarea {
-		height: 5rem;
+		height: 10rem;
+	}
+
+	input[type='submit'] {
+		height: 2rem;
+		margin-bottom: 2rem;
 	}
 
 	img {
