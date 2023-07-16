@@ -8,8 +8,8 @@ import { readRelays } from '../stores/Author';
 
 export class Search {
 	parseQuery(query: string): Filter {
-		const fromRegexp = /from:nostr:(npub1[a-z0-9]{6,})/g;
-		const toRegexp = /to:nostr:(npub1[a-z0-9]{6,})/g;
+		const fromRegexp = /from:(nostr:)?(npub1[a-z0-9]{6,})/g;
+		const toRegexp = /to:(nostr:)?(npub1[a-z0-9]{6,})/g;
 		const kindRegexp = /kind:(\d+)/g;
 		const fromMatches = query.matchAll(fromRegexp);
 		const toMatches = query.matchAll(toRegexp);
@@ -17,10 +17,10 @@ export class Search {
 		const kindMatches = query.matchAll(kindRegexp);
 
 		const fromPubkeys = [...fromMatches]
-			.map((match) => match[1])
+			.map((match) => match[2])
 			.map((npub) => nip19.decode(npub).data as string);
 		const toPubkeys = [...toMatches]
-			.map((match) => match[1])
+			.map((match) => match[2])
 			.map((npub) => nip19.decode(npub).data as string);
 		const hashtags = [...hashtagsMatches]
 			.map((match) => match.groups?.hashtag)
