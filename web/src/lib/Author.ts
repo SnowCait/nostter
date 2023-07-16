@@ -9,6 +9,7 @@ import {
 	writeRelays,
 	updateRelays,
 	authorProfile,
+	metadataEvent,
 	bookmarkEvent,
 	mutePubkeys,
 	muteEventIds,
@@ -146,13 +147,14 @@ export class Author {
 			this.pubkey
 		);
 
-		const metadataEvent = replaceableEvents.get(Kind.Metadata);
-		if (metadataEvent !== undefined) {
+		const $metadataEvent = replaceableEvents.get(Kind.Metadata);
+		if ($metadataEvent !== undefined) {
+			metadataEvent.set($metadataEvent);
 			try {
-				authorProfile.set(JSON.parse(metadataEvent.content));
+				authorProfile.set(JSON.parse($metadataEvent.content));
 				console.log('[profile]', get(authorProfile));
 			} catch (error) {
-				console.warn('[invalid metadata]', error, metadataEvent);
+				console.warn('[invalid metadata]', error, $metadataEvent);
 			}
 		}
 

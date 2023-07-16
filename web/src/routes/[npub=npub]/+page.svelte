@@ -17,6 +17,7 @@
 	import Content from '../content/Content.svelte';
 	import { Metadata } from '$lib/Items';
 	import { minTimelineLength } from '$lib/Constants';
+	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 
 	let metadata: Metadata;
 	let user: User | undefined;
@@ -136,6 +137,13 @@
 					<img src={user.picture} alt="" />
 				</div>
 				{#if !$rom}
+					{#if pubkey === $authorPubkey}
+						<div class="profile">
+							<a href="/profile">
+								<IconTool />
+							</a>
+						</div>
+					{/if}
 					<div class="follow">
 						<Follow {pubkey} />
 					</div>
@@ -213,6 +221,11 @@
 
 	.profile .actions div {
 		align-self: flex-end;
+	}
+
+	.profile .actions .profile {
+		margin-left: auto;
+		margin-right: 1em;
 	}
 
 	.profile h1 {

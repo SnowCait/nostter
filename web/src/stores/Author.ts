@@ -10,6 +10,7 @@ export const loginType: Writable<'NIP-07' | 'nsec' | 'npub'> = writable();
 export const pubkey = writable('');
 export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
+export const metadataEvent: Writable<Event> = writable();
 export const recommendedRelay = writable('');
 export const followees: Writable<string[]> = writable([]);
 export const mutePubkeys: Writable<string[]> = writable([]);
