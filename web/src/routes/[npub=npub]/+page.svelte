@@ -13,6 +13,7 @@
 	import Loading from '../Loading.svelte';
 	import { User as UserDecoder } from '$lib/User';
 	import { Timeline } from '$lib/Timeline';
+	import Mute from '../action/Mute.svelte';
 	import Badges from '../Badges.svelte';
 	import Content from '../content/Content.svelte';
 	import { Metadata } from '$lib/Items';
@@ -134,12 +135,15 @@
 			</div>
 			{#if !$rom}
 				{#if pubkey === $authorPubkey}
-					<div class="profile">
+					<div class="profile-editor">
 						<a href="/profile">
 							<IconTool />
 						</a>
 					</div>
 				{/if}
+				<div class="mute">
+					<Mute {pubkey} />
+				</div>
 				<div class="follow">
 					<Follow {pubkey} />
 				</div>
@@ -225,9 +229,13 @@
 		align-self: flex-end;
 	}
 
-	.profile .actions .profile {
+	.profile .actions .profile-editor,
+	.profile .actions .mute {
+		margin-right: 1rem;
+	}
+
+	.profile .actions div:nth-child(2) {
 		margin-left: auto;
-		margin-right: 1em;
 	}
 
 	.profile h1 {
