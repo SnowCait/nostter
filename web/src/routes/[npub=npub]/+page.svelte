@@ -182,6 +182,11 @@
 	<div>
 		<a href="/{slug}/timeline">Timeline</a>
 	</div>
+	{#if pubkey === $authorPubkey}
+		<div>
+			<a href="/{slug}/reactions">Reactions</a>
+		</div>
+	{/if}
 	<TimelineView {events} readonly={!$authorPubkey} {load} />
 </section>
 

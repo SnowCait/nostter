@@ -1,9 +1,11 @@
 import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
-import type { Event as NostrEvent, UserEvent } from '../routes/types';
+import type { Event as NostrEvent, User, UserEvent } from '../routes/types';
 import { cachedEvents, events as timelineEvents } from '../stores/Events';
 import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { isMuteEvent } from '../stores/Author';
+import { EventItem } from './Items';
+import { Content } from './Content';
 
 export class Api {
 	public static readonly replaceableKinds = [
@@ -244,6 +246,44 @@ export class Api {
 
 	async fetchEvents(filters: Filter[]): Promise<Event[]> {
 		return this.pool.list(this.relays, filters);
+	}
+
+	// With metadata
+	async fetchEventItems(filters: Filter[]): Promise<EventItem[]> {
+		const events = await this.fetchEvents(filters);
+		const metadataEventsMap = await this.fetchMetadataEventsMap([
+			...new Set(events.map((x) => x.pubkey))
+		]);
+		events.sort((x, y) => y.created_at - x.created_at);
+		const eventItems = events.map(
+			(event) => new EventItem(event, metadataEventsMap.get(event.pubkey))
+		);
+
+		// Cache events
+		const $cachedEvents = get(cachedEvents);
+		for (const eventItem of eventItems) {
+			$cachedEvents.set(eventItem.event.pubkey, {
+				...eventItem.event,
+				user: {
+					...eventItem.metadata?.content,
+					zapEndpoint: eventItem.metadata?.zapUrl?.href ?? null
+				} as User
+			});
+		}
+
+		// Cache referenced events
+		const eventIds = new Set(
+			events
+				.map((x) => [
+					...x.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
+					...Content.findNotesAndNeventsToIds(x.content)
+				])
+				.flat()
+		);
+		await this.fetchEventsByIds([...eventIds]);
+		console.log('[cache]', eventIds);
+
+		return eventItems;
 	}
 
 	async fetchEventsByIds(ids: string[]): Promise<Event[]> {
