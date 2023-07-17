@@ -183,6 +183,16 @@ export class Api {
 		return event;
 	}
 
+	// With metadata
+	async fetchEventItem(filters: Filter[]): Promise<EventItem | undefined> {
+		const event = await this.fetchEvent(filters);
+		if (event === undefined) {
+			return undefined;
+		}
+		const metadataEventsMap = await this.fetchMetadataEventsMap([event.pubkey]);
+		return new EventItem(event, metadataEventsMap.get(event.pubkey));
+	}
+
 	async fetchEventById(id: string): Promise<NostrEvent | undefined> {
 		// If exsits in store
 		const $events = get(timelineEvents);
@@ -262,13 +272,7 @@ export class Api {
 		// Cache events
 		const $cachedEvents = get(cachedEvents);
 		for (const eventItem of eventItems) {
-			$cachedEvents.set(eventItem.event.pubkey, {
-				...eventItem.event,
-				user: {
-					...eventItem.metadata?.content,
-					zapEndpoint: eventItem.metadata?.zapUrl?.href ?? null
-				} as User
-			});
+			$cachedEvents.set(eventItem.event.pubkey, eventItem.toEvent());
 		}
 
 		// Cache referenced events
