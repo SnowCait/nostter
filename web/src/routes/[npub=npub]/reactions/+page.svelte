@@ -59,14 +59,7 @@
 			filter.since = until - seconds;
 
 			const eventItems = await api.fetchEventItems([filter]);
-			events.push(
-				...eventItems.map((x) => {
-					return {
-						...x.event,
-						user: { ...x.metadata?.content, zapEndpoint: x.metadata?.zapUrl?.href }
-					} as Event;
-				})
-			);
+			events.push(...eventItems.map((x) => x.toEvent()));
 			events = events;
 
 			until -= seconds;
