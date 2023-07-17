@@ -70,18 +70,20 @@
 		console.log(repliedEvents, repostedEvents, reactionEvents);
 
 		const { root, reply } = referTags(event);
-		let rootEventId = root?.at(1);
-		let replyToEventId = reply?.at(1);
-		console.log(rootEventId, replyToEventId);
+		let rootId = root?.at(1);
+		let replyId = reply?.at(1);
+		console.log(rootId, replyId);
 
 		let i = 0;
-		while (replyToEventId !== undefined) {
-			const replyToEvent = await $pool.get($readRelays, {
-				ids: [replyToEventId]
-			});
-			if (replyToEvent !== null) {
-				events.unshift(replyToEvent as NostrEvent);
-				replyToEventId = referTags(replyToEvent).reply?.at(1);
+		while (replyId !== undefined) {
+			const replyToEvent = await api.fetchEventItem([
+				{
+					ids: [replyId]
+				}
+			]);
+			if (replyToEvent !== undefined) {
+				events.unshift(replyToEvent.toEvent());
+				replyId = referTags(replyToEvent.event).reply?.at(1);
 			}
 			i++;
 			if (i > 20) {
@@ -89,9 +91,9 @@
 			}
 		}
 
-		if (rootEventId !== undefined && !events.some((x) => x.id === rootEventId) && i <= 20) {
+		if (rootId !== undefined && !events.some((x) => x.id === rootId) && i <= 20) {
 			const rootEvent = await $pool.get($readRelays, {
-				ids: [rootEventId]
+				ids: [rootId]
 			});
 			if (rootEvent !== null) {
 				events.unshift(rootEvent as NostrEvent);
@@ -99,26 +101,6 @@
 		}
 
 		events.push(...repliedEvents.map((x) => x.toEvent()));
-
-		const pubkeys = Array.from(new Set(events.map((x) => x.pubkey)));
-		const userEvents = await $pool.list($readRelays, [
-			{
-				kinds: [0],
-				authors: pubkeys
-			}
-		]);
-
-		const userEventsMap = new Map(userEvents.map((x) => [x.pubkey, x]));
-
-		for (const event of events) {
-			const userEvent = userEventsMap.get(event.pubkey);
-			if (userEvent === undefined) {
-				console.error(`${nip19.npubEncode(event.pubkey)} not found`);
-				continue;
-			}
-			event.user = JSON.parse(userEvent.content);
-		}
-
 		events = events;
 	});
 </script>
