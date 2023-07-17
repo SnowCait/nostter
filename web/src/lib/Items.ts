@@ -1,4 +1,5 @@
 import { nip57, type Event } from 'nostr-tools';
+import type { Event as NostrEvent, User } from '../routes/types'; // for compatibility
 
 interface Item {
 	readonly event: Event;
@@ -10,6 +11,16 @@ export class EventItem implements Item {
 		if (metadataEvent !== undefined) {
 			this.metadata = new Metadata(metadataEvent);
 		}
+	}
+
+	public toEvent(): NostrEvent {
+		return {
+			...this.event,
+			user: {
+				...this.metadata?.content,
+				zapEndpoint: this.metadata?.zapUrl?.href ?? null
+			} as User
+		};
 	}
 }
 

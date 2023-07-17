@@ -283,7 +283,7 @@ export class Api {
 		await this.fetchEventsByIds([...eventIds]);
 		console.log('[cache]', eventIds);
 
-		return eventItems;
+		return eventItems.filter((x) => !isMuteEvent(x.event));
 	}
 
 	async fetchEventsByIds(ids: string[]): Promise<Event[]> {
