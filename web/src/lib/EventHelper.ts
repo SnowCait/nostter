@@ -1,3 +1,5 @@
+import type { Event } from 'nostr-tools';
+
 export function filterTags(tagName: string, tags: string[][]) {
 	return tags
 		.filter(([name, content]) => name === tagName && content !== undefined && content !== '')
@@ -45,4 +47,28 @@ export function parseRelayJson(content: string): Map<string, { read: boolean; wr
 			}
 		})
 	);
+}
+
+export function referTags(event: Event): {
+	root: string[] | undefined;
+	reply: string[] | undefined;
+} {
+	let root = event.tags.findLast(([tagName, , , marker]) => tagName === 'e' && marker === 'root');
+	let reply = event.tags.findLast(
+		([tagName, , , marker]) => tagName === 'e' && marker === 'reply'
+	);
+	console.log(root, reply);
+
+	// Deprecated NIP-10
+	if (root === undefined && reply === undefined) {
+		const eTags = event.tags.filter((tag) => tag.at(0) === 'e' && tag.length < 4);
+		if (eTags.length === 1) {
+			reply = eTags[0];
+		} else if (eTags.length > 1) {
+			root = eTags[0];
+			reply = eTags[eTags.length - 1];
+		}
+	}
+
+	return { root, reply };
 }

@@ -2,66 +2,76 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { error } from '@sveltejs/kit';
-	import { nip19, Kind, type Event } from 'nostr-tools';
+	import { nip19, Kind } from 'nostr-tools';
 	import { readRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import type { Event as NostrEvent } from '../types';
 	import type { EventPointer } from 'nostr-tools/lib/nip19';
+	import { Api } from '$lib/Api';
+	import { referTags } from '$lib/EventHelper';
 
 	let events: NostrEvent[] = [];
 	let eventId = '';
+	let relays: string[] = [];
 
 	afterNavigate(async () => {
-		console.log('afterNavigate');
+		console.log('[note page]');
 
 		events = [];
 
 		const slug = $page.params.note;
 		console.log(slug);
-		const { type, data } = nip19.decode(slug);
-		console.log('[decode]', type, data);
+		try {
+			const { type, data } = nip19.decode(slug);
+			console.log('[decode]', type, data);
 
-		switch (type) {
-			case 'note': {
-				eventId = data as string;
-				break;
+			switch (type) {
+				case 'note': {
+					eventId = data as string;
+					break;
+				}
+				case 'nevent': {
+					const pointer = data as EventPointer;
+					eventId = pointer.id;
+					relays = pointer.relays ?? [];
+					break;
+				}
+				default: {
+					throw error(500);
+				}
 			}
-			case 'nevent': {
-				const pointer = data as EventPointer;
-				eventId = pointer.id;
-				break;
-			}
-			default: {
-				throw error(500);
-			}
+		} catch (e) {
+			console.error('[decode error]', e);
+			throw error(404);
 		}
 
-		const relatedEvents = await $pool.list($readRelays, [
-			{
-				ids: [eventId]
-			},
+		const api = new Api($pool, [...new Set([...$readRelays, ...relays])]);
+		const event = await api.fetchEventById(eventId);
+		if (event === undefined) {
+			throw error(404);
+		}
+		events.push(event);
+		events = events;
+
+		const relatedEvents = await api.fetchEventItems([
 			{
 				'#e': [eventId]
 			}
 		]);
+		relatedEvents.sort((x, y) => x.event.created_at - y.event.created_at);
+		console.log('[#e events]', relatedEvents);
 
-		console.log(relatedEvents);
-		const originalEvent = relatedEvents.find((x) => x.id === eventId) as NostrEvent;
-		console.log('[original]', originalEvent);
-		if (originalEvent === undefined) {
-			throw error(404);
-		}
 		const repliedEvents = relatedEvents.filter(
-			(x) => x.kind === Kind.Text && x.id !== eventId
-		) as NostrEvent[];
-		const repostedEvents = relatedEvents.filter((x) => Number(x.kind) === 6) as NostrEvent[];
-		const reactionEvents = relatedEvents.filter(
-			(x) => x.kind === Kind.Reaction
-		) as NostrEvent[];
+			(x) => x.event.kind === Kind.Text && x.event.id !== eventId
+		);
+		const repostedEvents = relatedEvents.filter((x) => Number(x.event.kind) === 6);
+		const reactionEvents = relatedEvents.filter((x) => x.event.kind === Kind.Reaction);
 		console.log(repliedEvents, repostedEvents, reactionEvents);
 
-		let [rootEventId, replyToEventId] = referToEvents(originalEvent);
+		const { root, reply } = referTags(event);
+		let rootEventId = root?.at(1);
+		let replyToEventId = reply?.at(1);
 		console.log(rootEventId, replyToEventId);
 
 		let i = 0;
@@ -71,7 +81,7 @@
 			});
 			if (replyToEvent !== null) {
 				events.unshift(replyToEvent as NostrEvent);
-				[, replyToEventId] = referToEvents(replyToEvent);
+				replyToEventId = referTags(replyToEvent).reply?.at(1);
 			}
 			i++;
 			if (i > 20) {
@@ -88,8 +98,7 @@
 			}
 		}
 
-		events.push(originalEvent);
-		events.push(...repliedEvents);
+		events.push(...repliedEvents.map((x) => x.toEvent()));
 
 		const pubkeys = Array.from(new Set(events.map((x) => x.pubkey)));
 		const userEvents = await $pool.list($readRelays, [
@@ -112,29 +121,6 @@
 
 		events = events;
 	});
-
-	function referToEvents(originalEvent: Event) {
-		let rootEventId = originalEvent.tags
-			.find(([tagName, , , marker]) => tagName === 'e' && marker === 'root')
-			?.at(1);
-		let replyToEventId = originalEvent.tags
-			.find(([tagName, , , marker]) => tagName === 'e' && marker === 'reply')
-			?.at(1);
-		console.log(rootEventId, replyToEventId);
-
-		// Deprecated NIP-10
-		if (rootEventId === undefined && replyToEventId === undefined) {
-			const eTags = originalEvent.tags.filter((tag) => tag.at(0) === 'e' && tag.length < 4);
-			if (eTags.length === 1) {
-				replyToEventId = eTags[0].at(1);
-			} else if (eTags.length > 1) {
-				rootEventId = eTags[0].at(1);
-				replyToEventId = eTags[eTags.length - 1].at(1);
-			}
-		}
-
-		return [rootEventId, replyToEventId];
-	}
 </script>
 
 <svelte:head>
