@@ -8,7 +8,6 @@
 	const dispatch = createEventDispatcher();
 
 	function remove() {
-		console.log('[remove button]');
 		dispatch('remove');
 		return false;
 	}
