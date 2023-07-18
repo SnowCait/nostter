@@ -13,7 +13,7 @@
 	import IconPencil from '@tabler/icons-svelte/dist/svelte/icons/IconPencil.svelte';
 	import IconDeviceFloppy from '@tabler/icons-svelte/dist/svelte/icons/IconDeviceFloppy.svelte';
 	import Loading from '../../Loading.svelte';
-	import { Signer } from '$lib/Signer';
+	import { Contacts } from '$lib/Contacts';
 
 	let pubkey: string;
 	let relays: { url: string; read: boolean; write: boolean }[] = [];
@@ -90,30 +90,36 @@
 	async function save() {
 		console.log('[save relays]', relays);
 
-		const event = await Signer.signEvent({
-			created_at: Math.floor(Date.now() / 1000),
-			kind: Kind.RelayList,
-			tags: relays
-				.map(({ url, read, write }) => {
-					if (read && write) {
-						return ['r', url];
-					} else if (read) {
-						return ['r', url, 'read'];
-					} else if (write) {
-						return ['r', url, 'write'];
-					} else {
-						return [];
-					}
-				})
-				.filter((x) => x.length > 0),
-			content: ''
-		});
-		console.log('[save relays event]', event);
-		const api = new Api($pool, $writeRelays);
-		const success = await api.publish(event);
-		if (success) {
+		try {
+			// kind 10002
+			const api = new Api($pool, $writeRelays);
+			await api.signAndPublish(
+				Kind.RelayList,
+				'',
+				relays
+					.map(({ url, read, write }) => {
+						if (read && write) {
+							return ['r', url];
+						} else if (read) {
+							return ['r', url, 'read'];
+						} else if (write) {
+							return ['r', url, 'write'];
+						} else {
+							return [];
+						}
+					})
+					.filter((x) => x.length > 0)
+			);
+
+			// kind 3
+			const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
+			await contacts.updateRelays(
+				new Map(relays.map(({ url, read, write }) => [url, { read, write }]))
+			);
+
+			// Completed
 			editable = false;
-		} else {
+		} catch (error) {
 			console.error('[save relays failed]');
 			alert('Failed to save relays.');
 		}

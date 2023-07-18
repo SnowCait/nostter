@@ -24,7 +24,7 @@
 	{#if !readonly}
 		<div class="remove">
 			<button on:click|preventDefault={remove}>
-				<IconTrash />
+				<IconTrash size={17} />
 			</button>
 		</div>
 	{/if}
