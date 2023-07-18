@@ -8,7 +8,7 @@
 	import { pool } from '../../../stores/Pool';
 	import { Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
-	import { filterRelayTags, parseRelayJson, relayTagsToMap } from '$lib/EventHelper';
+	import { filterRelayTags, parseRelayJson } from '$lib/EventHelper';
 	import type { User } from '../../types';
 	import IconPencil from '@tabler/icons-svelte/dist/svelte/icons/IconPencil.svelte';
 	import IconDeviceFloppy from '@tabler/icons-svelte/dist/svelte/icons/IconDeviceFloppy.svelte';
@@ -31,7 +31,15 @@
 
 		pubkey = data.pubkey;
 
-		const api = new Api($pool, Array.from(new Set([...data.relays, ...$readRelays])));
+		const api = new Api(
+			$pool,
+			Array.from(
+				new Set([
+					...data.relays,
+					...(pubkey === $authorPubkey ? $writeRelays : $readRelays)
+				])
+			)
+		);
 
 		api.fetchUserEvent(pubkey).then((userEvent) => {
 			user = userEvent?.user;
