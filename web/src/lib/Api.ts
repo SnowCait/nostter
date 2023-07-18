@@ -1,6 +1,6 @@
 import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
-import type { Event as NostrEvent, User, UserEvent } from '../routes/types';
+import type { Event as NostrEvent, UserEvent } from '../routes/types';
 import { cachedEvents, events as timelineEvents } from '../stores/Events';
 import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { isMuteEvent } from '../stores/Author';
@@ -356,42 +356,6 @@ export class Api {
 		events.sort((x, y) => y.created_at - x.created_at);
 		console.debug('[channel metadata events]', events);
 		return events.at(0);
-	}
-
-	async publish(event: Event): Promise<boolean> {
-		return new Promise((resolve) => {
-			const publishedRelays = new Map<string, boolean>();
-			const now = Date.now();
-
-			const done = () => Array.from(publishedRelays).some(([, ok]) => ok);
-
-			const timeoutId = setTimeout(() => {
-				console.warn(
-					'[publish timeout]',
-					this.relays.filter((relay) => !publishedRelays.has(relay)),
-					`${Date.now() - now}ms`
-				);
-				resolve(done());
-			}, 3000);
-
-			const pub = this.pool.publish(this.relays, event);
-			pub.on('ok', (relay: string) => {
-				console.log('[ok]', relay, `${Date.now() - now}ms`);
-				publishedRelays.set(relay, true);
-				if (this.relays.length === publishedRelays.size) {
-					clearTimeout(timeoutId);
-					resolve(done());
-				}
-			});
-			pub.on('failed', (relay: string) => {
-				console.warn('[failed]', relay, `${Date.now() - now}ms`);
-				publishedRelays.set(relay, false);
-				if (this.relays.length === publishedRelays.size) {
-					clearTimeout(timeoutId);
-					resolve(done());
-				}
-			});
-		});
 	}
 
 	public async signAndPublish(kind: Kind, content: string, tags: string[][]): Promise<void> {

@@ -3,8 +3,7 @@
 	import { Api } from '$lib/Api';
 	import { pool } from '../stores/Pool';
 	import { followees, pubkey as authorPubkey, writeRelays } from '../stores/Author';
-	import { nip19, type Event } from 'nostr-tools';
-	import { Signer } from '$lib/Signer';
+	import { nip19, type Event, Kind } from 'nostr-tools';
 
 	export let pubkey: string;
 
@@ -67,17 +66,14 @@
 	}
 
 	async function updateContactList(pubkeys: string[], oldEvent: Event) {
-		const event = await Signer.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: oldEvent.kind,
-			tags: pubkeys.map((pubkey) => ['p', pubkey]),
-			content: oldEvent.content
-		});
-		console.log(event);
-
-		const success = await api.publish(event);
-		if (!success) {
-			console.error('[failed]');
+		try {
+			await api.signAndPublish(
+				Kind.Contacts,
+				oldEvent.content,
+				pubkeys.map((pubkey) => ['p', pubkey])
+			);
+		} catch (error) {
+			console.error('[failed]', error);
 			alert('Failed to update contact list');
 			return;
 		}

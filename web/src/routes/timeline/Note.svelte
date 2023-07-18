@@ -152,29 +152,10 @@
 			return;
 		}
 
-		const kind = 30001;
-		const created_at = Math.round(Date.now() / 1000);
-		const unsignedEvent =
-			latestEvent === undefined
-				? {
-						created_at,
-						kind,
-						tags: [
-							['d', 'bookmark'],
-							['e', note.id]
-						],
-						content: ''
-				  }
-				: {
-						created_at,
-						kind,
-						tags: [...latestEvent.tags, ['e', note.id]],
-						content: latestEvent.content
-				  };
-		const event = await Signer.signEvent(unsignedEvent);
-		console.log('[bookmark new]', event);
-
-		api.publish(event).catch((error) => {
+		api.signAndPublish(30001 as Kind, latestEvent?.content ?? '', [
+			...(latestEvent?.tags ?? [['d', 'bookmark']]),
+			['e', note.id]
+		]).catch((error) => {
 			console.error('[bookmark failed]', error);
 			bookmarked = false;
 			alert('Failed to bookmark');
@@ -211,18 +192,11 @@
 			return;
 		}
 
-		const kind = 30001;
-		const created_at = Math.round(Date.now() / 1000);
-		const unsignedEvent = {
-			created_at,
-			kind,
-			tags: latestEvent.tags.filter(([tagName, id]) => !(tagName === 'e' && id === note.id)),
-			content: latestEvent.content
-		};
-		const event = await Signer.signEvent(unsignedEvent);
-		console.log('[bookmark new]', event);
-
-		api.publish(event).catch((error) => {
+		api.signAndPublish(
+			30001 as Kind,
+			latestEvent.content,
+			latestEvent.tags.filter(([tagName, id]) => !(tagName === 'e' && id === note.id))
+		).catch((error) => {
 			console.error('[remove bookmark failed]', error);
 			bookmarked = true;
 			alert('Failed to remove bookmark');

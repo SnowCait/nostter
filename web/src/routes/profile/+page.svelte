@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Kind, nip19 } from 'nostr-tools';
-	import { Signer } from '$lib/Signer';
 	import { Api } from '$lib/Api';
 	import { pubkey, author, authorProfile, metadataEvent, writeRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
@@ -14,18 +13,16 @@
 			return;
 		}
 
-		const event = await Signer.signEvent({
-			created_at: Math.floor(Date.now() / 1000),
-			kind: Kind.Metadata,
-			tags: $metadataEvent?.tags ?? [],
-			content: JSON.stringify($authorProfile)
-		});
-		console.log('[metadata event]', event);
 		const api = new Api($pool, $writeRelays);
-		const success = await api.publish(event);
-		if (success) {
+		try {
+			await api.signAndPublish(
+				Kind.Metadata,
+				JSON.stringify($authorProfile),
+				$metadataEvent?.tags ?? []
+			);
 			await goto(`/${nip19.npubEncode($pubkey)}`);
-		} else {
+		} catch (error) {
+			console.error('[save metadata failed]', error);
 			alert('Failed to update profile.');
 		}
 	}
