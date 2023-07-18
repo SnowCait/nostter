@@ -6,13 +6,12 @@
 	import IconSend from '@tabler/icons-svelte/dist/svelte/icons/IconSend.svelte';
 	import { Api } from '$lib/Api';
 	import { Content } from '$lib/Content';
-	import { nip19 } from 'nostr-tools';
-	import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
+	import { Kind, nip19 } from 'nostr-tools';
+	import type { ProfilePointer } from 'nostr-tools/lib/nip19';
 	import { userEvents } from '../stores/UserEvents';
 	import type { UserEvent, User } from './types';
 	import { customEmojiTags } from '../stores/CustomEmojis';
 	import { onMount, tick } from 'svelte';
-	import { Signer } from '$lib/Signer';
 
 	let content = '';
 	let posting = false;
@@ -364,22 +363,13 @@
 				.filter((x): x is string[] => x !== null)
 		);
 
-		const event = await Signer.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: 1,
-			tags,
-			content: Content.replaceNip19(content)
-		});
-		console.log('[publish]', event);
-
 		const api = new Api($pool, $writeRelays);
-		const success = await api.publish(event);
-		posting = false;
-		if (success) {
+		try {
+			await api.signAndPublish(Kind.Text, Content.replaceNip19(content), tags);
 			console.log('[success]');
 			dialog.close();
-		} else {
-			console.error('[failure]');
+		} catch (error) {
+			console.error('[failure]', error);
 		}
 	}
 </script>
