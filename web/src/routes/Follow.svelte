@@ -3,7 +3,8 @@
 	import { Api } from '$lib/Api';
 	import { pool } from '../stores/Pool';
 	import { followees, pubkey as authorPubkey, writeRelays } from '../stores/Author';
-	import { nip19, type Event, Kind } from 'nostr-tools';
+	import { nip19 } from 'nostr-tools';
+	import { Contacts } from '$lib/Contacts';
 
 	export let pubkey: string;
 
@@ -12,29 +13,25 @@
 	const api = new Api($pool, $writeRelays);
 
 	async function follow() {
-		console.log('[on.follow]');
+		console.log('[follow]');
 
 		following = true;
 
-		const contactList = await api.fetchContactListEvent($authorPubkey);
-		console.log('[contact list]', contactList);
-		if (contactList === undefined) {
-			console.error('Contact list not found');
-			return;
+		try {
+			const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
+			await contacts.follow(pubkey);
+			$followees.push(pubkey);
+			$followees = $followees;
+		} catch (error) {
+			console.error('[follow failed]', error);
+			alert('Failed to follow.');
 		}
-
-		const pubkeys = new Set(
-			contactList.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey)
-		);
-		pubkeys.add(pubkey);
-
-		await updateContactList(Array.from(pubkeys), contactList);
 
 		following = false;
 	}
 
 	async function unfollow() {
-		console.log('[on.unfollow]');
+		console.log('[unfollow]');
 
 		const userEvent = await api.fetchUserEvent(pubkey);
 
@@ -50,37 +47,14 @@
 			return;
 		}
 
-		const contactList = await api.fetchContactListEvent($authorPubkey);
-		console.log('[contact list]', contactList);
-		if (contactList === undefined) {
-			console.error('Contact list not found');
-			return;
-		}
-
-		const pubkeys = new Set(
-			contactList.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey)
-		);
-		pubkeys.delete(pubkey);
-
-		await updateContactList(Array.from(pubkeys), contactList);
-	}
-
-	async function updateContactList(pubkeys: string[], oldEvent: Event) {
 		try {
-			await api.signAndPublish(
-				Kind.Contacts,
-				oldEvent.content,
-				pubkeys.map((pubkey) => ['p', pubkey])
-			);
+			const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
+			await contacts.unfollow(pubkey);
+			$followees = $followees.filter((x) => x !== pubkey);
 		} catch (error) {
-			console.error('[failed]', error);
-			alert('Failed to update contact list');
-			return;
+			console.error('[unfollow failed]', error);
+			alert('Failed to unfollow.');
 		}
-
-		// Update cache
-		console.log($followees, pubkeys);
-		$followees = pubkeys;
 	}
 </script>
 
