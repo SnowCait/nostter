@@ -1,18 +1,34 @@
 <script lang="ts">
-	export let relay: string;
-	export let read: boolean;
-	export let write: boolean;
+	import { createEventDispatcher } from 'svelte';
+	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
+
+	export let relay: { url: string; read: boolean; write: boolean };
 	export let readonly: boolean;
+
+	const dispatch = createEventDispatcher();
+
+	function remove() {
+		console.log('[remove button]');
+		dispatch('remove');
+		return false;
+	}
 </script>
 
 <article>
-	<div class="relay">{relay}</div>
+	<div class="relay">{relay.url}</div>
 	<div class="checkbox read">
-		<input type="checkbox" checked={read} class:readonly />
+		<input type="checkbox" bind:checked={relay.read} class:readonly />
 	</div>
 	<div class="checkbox write">
-		<input type="checkbox" checked={write} class:readonly />
+		<input type="checkbox" bind:checked={relay.write} class:readonly />
 	</div>
+	{#if !readonly}
+		<div class="remove">
+			<button on:click|preventDefault={remove}>
+				<IconTrash />
+			</button>
+		</div>
+	{/if}
 </article>
 
 <style>
@@ -27,10 +43,10 @@
 		word-break: break-all;
 	}
 
-	.checkbox {
+	.checkbox,
+	.remove {
 		width: 4rem;
 		text-align: center;
-		accent-color: gray;
 	}
 
 	.checkbox.read {
@@ -39,5 +55,16 @@
 
 	input[type='checkbox'].readonly {
 		pointer-events: none;
+		accent-color: gray;
+	}
+
+	button {
+		background-color: transparent;
+		border: none;
+		cursor: pointer;
+		outline: none;
+		padding: 0;
+		width: inherit;
+		height: inherit;
 	}
 </style>
