@@ -18,16 +18,15 @@ export class Contacts {
 			return;
 		}
 
-		const pubkeys = new Set(
-			contacts.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey)
-		);
-		pubkeys.add(pubkey);
+		if (contacts.tags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
+			console.log('[already follow]', pubkey, contacts);
+			return;
+		}
 
-		await this.api.signAndPublish(
-			Kind.Contacts,
-			contacts.content,
-			Array.from(pubkeys).map((pubkey) => ['p', pubkey])
-		);
+		await this.api.signAndPublish(Kind.Contacts, contacts.content, [
+			...contacts.tags,
+			['p', pubkey]
+		]);
 	}
 
 	public async unfollow(pubkey: string): Promise<void> {
@@ -38,15 +37,10 @@ export class Contacts {
 			return;
 		}
 
-		const pubkeys = new Set(
-			contacts.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey)
-		);
-		pubkeys.delete(pubkey);
-
 		await this.api.signAndPublish(
 			Kind.Contacts,
 			contacts.content,
-			Array.from(pubkeys).map((pubkey) => ['p', pubkey])
+			contacts.tags.filter(([tagName, p]) => tagName === 'p' && p !== pubkey)
 		);
 	}
 
