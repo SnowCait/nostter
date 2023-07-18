@@ -8,11 +8,47 @@ export class Contacts {
 		this.api = new Api(pool, writeRelays);
 	}
 
+	public async follow(pubkey: string): Promise<void> {
+		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
+		console.log('[contacts]', contacts);
+
+		// TODO: Support undefined case
+		if (contacts === undefined) {
+			console.error('Contacts not found');
+			return;
+		}
+
+		if (contacts.tags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
+			console.log('[already follow]', pubkey, contacts);
+			return;
+		}
+
+		await this.api.signAndPublish(Kind.Contacts, contacts.content, [
+			...contacts.tags,
+			['p', pubkey]
+		]);
+	}
+
+	public async unfollow(pubkey: string): Promise<void> {
+		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
+		console.log('[contacts]', contacts);
+		if (contacts === undefined) {
+			console.error('Contacts not found');
+			return;
+		}
+
+		await this.api.signAndPublish(
+			Kind.Contacts,
+			contacts.content,
+			contacts.tags.filter(([tagName, p]) => tagName === 'p' && p !== pubkey)
+		);
+	}
+
 	// For regacy clients
 	public async updateRelays(
 		relays: Map<string, { read: boolean; write: boolean }>
 	): Promise<void> {
-		const contacts = await this.api.fetchContactListEvent(this.authorPubkey);
+		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
 		console.log('[contacts]', contacts);
 
 		if (contacts === undefined) {

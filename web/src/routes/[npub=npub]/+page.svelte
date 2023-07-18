@@ -7,7 +7,7 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays, rom } from '../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
-	import Follow from '../Follow.svelte';
+	import Follow from '../action/Follow.svelte';
 	import { Api } from '$lib/Api';
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
 	import Loading from '../Loading.svelte';

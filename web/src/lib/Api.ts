@@ -232,7 +232,7 @@ export class Api {
 		return nostrEvent;
 	}
 
-	async fetchContactListEvent(pubkey: string): Promise<Event | undefined> {
+	async fetchContactsEvent(pubkey: string): Promise<Event | undefined> {
 		const events = await this.pool.list(this.relays, [
 			{
 				kinds: [3],
@@ -325,7 +325,7 @@ export class Api {
 	}
 
 	async fetchFollowees(pubkey: string): Promise<string[]> {
-		const event = await this.fetchContactListEvent(pubkey);
+		const event = await this.fetchContactsEvent(pubkey);
 		return Array.from(
 			new Set(
 				event?.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey) ?? []
