@@ -9,7 +9,7 @@ export class Contacts {
 	}
 
 	public async follow(pubkey: string): Promise<void> {
-		const contacts = await this.api.fetchContactListEvent(this.authorPubkey);
+		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
 		console.log('[contacts]', contacts);
 
 		// TODO: Support undefined case
@@ -30,7 +30,7 @@ export class Contacts {
 	}
 
 	public async unfollow(pubkey: string): Promise<void> {
-		const contacts = await this.api.fetchContactListEvent(this.authorPubkey);
+		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
 		console.log('[contacts]', contacts);
 		if (contacts === undefined) {
 			console.error('Contacts not found');
@@ -48,7 +48,7 @@ export class Contacts {
 	public async updateRelays(
 		relays: Map<string, { read: boolean; write: boolean }>
 	): Promise<void> {
-		const contacts = await this.api.fetchContactListEvent(this.authorPubkey);
+		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
 		console.log('[contacts]', contacts);
 
 		if (contacts === undefined) {

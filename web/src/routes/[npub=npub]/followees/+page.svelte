@@ -27,7 +27,7 @@
 		}
 
 		const api = new Api($pool, Array.from(new Set([...relays, ...$readRelays])));
-		const event = await api.fetchContactListEvent(pubkey);
+		const event = await api.fetchContactsEvent(pubkey);
 		console.log('[contacts]', event);
 
 		if (event === undefined || event.tags.length === 0) {
