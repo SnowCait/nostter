@@ -6,6 +6,7 @@ import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { isMuteEvent } from '../stores/Author';
 import { EventItem } from './Items';
 import { Content } from './Content';
+import { Signer } from './Signer';
 
 export class Api {
 	public static readonly replaceableKinds = [
@@ -236,12 +237,12 @@ export class Api {
 			{
 				kinds: [3],
 				authors: [pubkey],
-				limit: 1 // Some relays have multi kind 3
+				limit: 1 // Some relays have duplicate kind 3
 			}
 		]);
 		events.sort((x, y) => y.created_at - x.created_at);
 		console.log('[contact list events]', events);
-		return events.length > 0 ? events[0] : undefined;
+		return events.at(0);
 	}
 
 	async fetchBookmarkEvent(pubkey: string): Promise<Event | undefined> {
@@ -388,6 +389,45 @@ export class Api {
 				if (this.relays.length === publishedRelays.size) {
 					clearTimeout(timeoutId);
 					resolve(done());
+				}
+			});
+		});
+	}
+
+	public async signAndPublish(kind: Kind, content: string, tags: string[][]): Promise<void> {
+		const now = Date.now();
+		const event = await Signer.signEvent({
+			created_at: Math.round(now / 1000),
+			kind,
+			tags,
+			content
+		});
+		console.log('[publish]', event);
+
+		return new Promise((resolve, reject) => {
+			const publishedRelays = new Map<string, boolean>();
+
+			const timeoutId = setTimeout(() => {
+				console.warn(
+					'[publish timeout]',
+					this.relays.filter((relay) => !publishedRelays.has(relay)),
+					`${Date.now() - now}ms`
+				);
+				reject();
+			}, this.pool['eoseSubTimeout']);
+
+			const pub = this.pool.publish(this.relays, event);
+			pub.on('ok', (relay: string) => {
+				console.log('[ok]', relay, `${Date.now() - now}ms`);
+				publishedRelays.set(relay, true);
+				clearTimeout(timeoutId);
+				resolve();
+			});
+			pub.on('failed', (relay: string) => {
+				console.warn('[failed]', relay, `${Date.now() - now}ms`);
+				publishedRelays.set(relay, false);
+				if (this.relays.length === publishedRelays.size) {
+					reject();
 				}
 			});
 		});
