@@ -242,6 +242,11 @@
 			return;
 		}
 
+		if (posting) {
+			console.error('Posting');
+			return;
+		}
+
 		posting = true;
 
 		let tags: string[][] = [];
@@ -370,6 +375,8 @@
 			dialog.close();
 		} catch (error) {
 			console.error('[failure]', error);
+		} finally {
+			posting = false;
 		}
 	}
 </script>
