@@ -24,6 +24,14 @@
 	import { filterLimitItems, minTimelineLength } from '$lib/Constants';
 	import { chunk } from '$lib/Array';
 	import { Content } from '$lib/Content';
+	import {
+		lastReadAt,
+		loadingNotifications,
+		notifiedEvents,
+		unreadEvents
+	} from '../../stores/Notifications';
+	import { EventItem } from '$lib/Items';
+	import { NotificationTimeline } from '$lib/NotificationTimeline';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -184,6 +192,11 @@
 			// Notification
 			if ($author?.isNotified(event)) {
 				console.log('[related]', event);
+				$unreadEvents.unshift(new EventItem(event, userEvent));
+				$notifiedEvents.unshift(event);
+				$unreadEvents = $unreadEvents;
+				$notifiedEvents = $notifiedEvents;
+
 				notify(event);
 			}
 
@@ -328,6 +341,14 @@
 		}
 
 		subscribeHomeTimeline();
+
+		// Past notification
+		const notificationTimeline = new NotificationTimeline($pubkey);
+		const notifiedEventItems = await notificationTimeline.fetch(now, $lastReadAt);
+		$unreadEvents.push(...notifiedEventItems);
+		$unreadEvents = $unreadEvents;
+		$notifiedEvents = await Promise.all(notifiedEventItems.map((x) => x.toEvent()));
+		$loadingNotifications = false;
 	});
 </script>
 
