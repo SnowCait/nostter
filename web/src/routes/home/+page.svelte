@@ -51,7 +51,8 @@
 			};
 		});
 
-		const pastEvents = await $pool.list($readRelays, [
+		const api = new Api($pool, $readRelays);
+		const pastEvents = await api.fetchEventItems([
 			...authorsFilter,
 			{
 				kinds: [Kind.Text, Kind.EncryptedDirectMessage, 6, Kind.Reaction, Kind.Zap],
@@ -69,78 +70,11 @@
 
 		console.log(`Text events loaded in ${Date.now() / 1000 - now} seconds`);
 
-		// Cache note events
-		const eventIds = new Set(
-			pastEvents
-				.map((x) => [
-					...x.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
-					...Content.findNotesAndNeventsToIds(x.content)
-				])
-				.flat()
-		);
-		const api = new Api($pool, $readRelays);
-		const noteEventsPromise = api.fetchEventsByIds([...eventIds]);
-
-		const pubkeys = new Set(
-			pastEvents
-				.map((x) => [
-					x.pubkey,
-					...x.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey)
-				])
-				.flat()
-		);
-		const metadataEventsPromise = $pool.list($readRelays, [
-			{
-				kinds: [0],
-				authors: Array.from(pubkeys)
-			}
-		]);
-
-		const [, metadataEvents] = await Promise.all([noteEventsPromise, metadataEventsPromise]);
-		metadataEvents.sort((x, y) => x.created_at - y.created_at);
-		$userEvents = new Map(
-			metadataEvents
-				.map((event) => {
-					try {
-						const user = JSON.parse(event.content);
-						const e = {
-							...event,
-							user
-						} as UserEvent;
-						return [e.pubkey, e];
-					} catch (error) {
-						console.warn('[invalid metadata]', error, event);
-						return null;
-					}
-				})
-				.filter((x): x is [string, Event] => x !== null)
-		);
-
-		for (const [, e] of $userEvents) {
-			nip57.getZapEndpoint(e).then((url) => {
-				e.user.zapEndpoint = url;
-				console.debug('[metadata]', e.user);
-			});
-		}
-
-		console.log(`Metadata events loaded in ${Date.now() / 1000 - now} seconds`);
-
-		pastEvents.sort((x, y) => y.created_at - x.created_at);
+		pastEvents.sort((x, y) => y.event.created_at - x.event.created_at);
 
 		console.log(`Sorted in ${Date.now() / 1000 - now} seconds`);
 
-		const list = pastEvents.map((event) => {
-			const userEvent = $userEvents.get(event.pubkey);
-			if (userEvent !== undefined) {
-				return {
-					...event,
-					user: userEvent.user
-				} as Event;
-			} else {
-				console.error(`${event.pubkey} is not found in $userEvents`);
-				return event as Event;
-			}
-		});
+		const list = pastEvents.map((event) => event.toEvent());
 		$events.push(...list.filter((x) => !isMuteEvent(x)));
 		$events = $events;
 		console.log(
