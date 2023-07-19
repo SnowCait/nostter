@@ -262,22 +262,8 @@ export class Api {
 	// With metadata
 	async fetchEventItems(filters: Filter[]): Promise<EventItem[]> {
 		const events = await this.fetchEvents(filters);
-		const metadataEventsMap = await this.fetchMetadataEventsMap([
-			...new Set(events.map((x) => x.pubkey))
-		]);
-		events.sort((x, y) => y.created_at - x.created_at);
-		const eventItems = events.map(
-			(event) => new EventItem(event, metadataEventsMap.get(event.pubkey))
-		);
 
-		// Cache events
-		const $cachedEvents = get(cachedEvents);
-		for (const eventItem of eventItems) {
-			$cachedEvents.set(eventItem.event.pubkey, eventItem.toEvent());
-		}
-
-		// Cache referenced events
-		const eventIds = new Set(
+		const referencedEventIds = new Set(
 			events
 				.map((x) => [
 					...x.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
@@ -285,8 +271,26 @@ export class Api {
 				])
 				.flat()
 		);
-		await this.fetchEventsByIds([...eventIds]);
-		console.log('[cache]', eventIds);
+		const referencedEvents = await this.fetchEventsByIds([...referencedEventIds]);
+
+		const metadataEventsMap = await this.fetchMetadataEventsMap([
+			...new Set([...events, ...referencedEvents].map((x) => x.pubkey))
+		]);
+
+		events.sort((x, y) => y.created_at - x.created_at);
+		const eventItems = events.map(
+			(event) => new EventItem(event, metadataEventsMap.get(event.pubkey))
+		);
+		const referencedEventItems = referencedEvents.map(
+			(event) => new EventItem(event, metadataEventsMap.get(event.pubkey))
+		);
+
+		// Cache events
+		const $cachedEvents = get(cachedEvents);
+		for (const eventItem of [...eventItems, ...referencedEventItems]) {
+			$cachedEvents.set(eventItem.event.id, eventItem.toEvent());
+		}
+		console.debug('[cache]', events.length, referencedEventIds, $cachedEvents);
 
 		return eventItems.filter((x) => !isMuteEvent(x.event));
 	}
@@ -296,32 +300,7 @@ export class Api {
 			return [];
 		}
 
-		const $cachedEvents = get(cachedEvents);
-		const $userEvents = get(userEvents);
-
-		const uncachedIds = ids.filter((id) => !$cachedEvents.has(id));
-		console.debug('[cache]', uncachedIds.length, '/', ids.length);
-		const events =
-			uncachedIds.length > 0
-				? await this.fetchEvents([
-						{
-							ids: uncachedIds
-						}
-				  ])
-				: [];
-
-		// Save cache
-		for (const event of events) {
-			const userEvent = $userEvents.get(event.pubkey);
-			if (userEvent === undefined) {
-				continue;
-			}
-			$cachedEvents.set(event.id, { ...event, user: userEvent.user });
-		}
-
-		return ids
-			.map((id) => $cachedEvents.get(id) as Event | undefined)
-			.filter((event): event is Event => event !== undefined);
+		return await this.fetchEvents([{ ids }]);
 	}
 
 	async fetchFollowees(pubkey: string): Promise<string[]> {
