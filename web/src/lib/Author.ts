@@ -21,6 +21,7 @@ import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
 import { reactionEmoji } from '../stores/Preference';
 import { Signer } from './Signer';
 import type { User } from '../routes/types';
+import { lastReadAt } from '../stores/Notifications';
 
 export class Author {
 	constructor(private pubkey: string) {}
@@ -180,6 +181,16 @@ export class Author {
 			reactionEmoji.set(reactionEmojiEvent.content);
 			console.log('[reaction emoji]', get(reactionEmoji));
 		}
+
+		const lastReadEvent = parameterizedReplaceableEvents.get(
+			`${30000 as Kind}:notifications/lastOpened`
+		);
+		if (lastReadEvent !== undefined) {
+			lastReadAt.set(lastReadEvent.created_at);
+		} else {
+			lastReadAt.set(Math.floor(Date.now() / 1000 - 12 * 60 * 60));
+		}
+		console.log('[last read at]', new Date(get(lastReadAt) * 1000));
 
 		const muteEvent = replaceableEvents.get(10000 as Kind);
 		const regacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);

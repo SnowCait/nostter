@@ -2,12 +2,15 @@
 	import IconHome from '@tabler/icons-svelte/dist/svelte/icons/IconHome.svelte';
 	import IconSearch from '@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte';
 	import IconWorld from '@tabler/icons-svelte/dist/svelte/icons/IconWorld.svelte';
+	import IconBell from '@tabler/icons-svelte/dist/svelte/icons/IconBell.svelte';
+	import IconBellRingingFilled from '@tabler/icons-svelte/dist/svelte/icons/IconBellRingingFilled.svelte';
 	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
 	import IconSettings from '@tabler/icons-svelte/dist/svelte/icons/IconSettings.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { pubkey } from '../stores/Author';
 	import { japaneseBotNpub } from '$lib/Constants';
+	import { unreadEvents } from '../stores/Notifications';
 </script>
 
 <nav>
@@ -36,6 +39,15 @@
 			</li>
 		</a>
 		{#if $pubkey}
+			<a href="/notifications">
+				<li>
+					{#if $unreadEvents.length > 0}
+						<IconBellRingingFilled size={30} />
+					{:else}
+						<IconBell size={30} />
+					{/if}
+				</li>
+			</a>
 			<a href="/{nip19.npubEncode($pubkey)}/bookmark">
 				<li>
 					<IconBookmark size={30} />
