@@ -277,11 +277,15 @@ export class Api {
 		const referencedPubkeys = events
 			.map((x) => x.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey))
 			.flat();
+		const referencedPubkeysOfReferencedEvents = referencedEvents
+			.map((x) => x.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey))
+			.flat();
 
 		const metadataEventsMap = await this.fetchMetadataEventsMap([
 			...new Set([
 				...[...events, ...referencedEvents].map((x) => x.pubkey),
-				...referencedPubkeys
+				...referencedPubkeys,
+				...referencedPubkeysOfReferencedEvents
 			])
 		]);
 

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Event, UserEvent } from '../types';
+	import type { Event } from '../types';
 	import TimelineView from '../TimelineView.svelte';
 	import { events } from '../../stores/Events';
-	import { saveMetadataEvent, userEvents } from '../../stores/UserEvents';
+	import { saveMetadataEvent } from '../../stores/UserEvents';
 	import { pool } from '../../stores/Pool';
 	import {
 		pubkey,
@@ -18,7 +18,7 @@
 	} from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
-	import { Kind, nip57, type Event as NostrEvent, type Relay } from 'nostr-tools';
+	import { Kind, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { saveLastNote } from '../../stores/LastNotes';
 	import { Signer } from '$lib/Signer';
 	import { filterLimitItems, minTimelineLength } from '$lib/Constants';
