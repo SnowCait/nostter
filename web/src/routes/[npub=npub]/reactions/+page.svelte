@@ -59,7 +59,7 @@
 			filter.since = until - seconds;
 
 			const eventItems = await api.fetchEventItems([filter]);
-			events.push(...eventItems.map((x) => x.toEvent()));
+			events.push(...(await Promise.all(eventItems.map(async (x) => await x.toEvent()))));
 			events = events;
 
 			until -= seconds;
