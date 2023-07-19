@@ -82,7 +82,7 @@
 				}
 			]);
 			if (replyToEvent !== undefined) {
-				events.unshift(replyToEvent.toEvent());
+				events.unshift(await replyToEvent.toEvent());
 				replyId = referTags(replyToEvent.event).reply?.at(1);
 			}
 			i++;
@@ -100,7 +100,7 @@
 			}
 		}
 
-		events.push(...repliedEvents.map((x) => x.toEvent()));
+		events.push(...(await Promise.all(repliedEvents.map(async (x) => await x.toEvent()))));
 		events = events;
 	});
 </script>

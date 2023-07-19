@@ -13,12 +13,12 @@ export class EventItem implements Item {
 		}
 	}
 
-	public toEvent(): NostrEvent {
+	public async toEvent(): Promise<NostrEvent> {
 		return {
 			...this.event,
 			user: {
 				...this.metadata?.content,
-				zapEndpoint: this.metadata?.zapUrl?.href ?? null
+				zapEndpoint: (await this.metadata?.zapUrl())?.href ?? null
 			} as User
 		};
 	}
@@ -26,21 +26,31 @@ export class EventItem implements Item {
 
 export class Metadata implements Item {
 	public readonly content: MetadataContent | undefined;
-	private _zapUrl: URL | undefined;
+	private _zapUrl: URL | null | undefined;
 	constructor(public readonly event: Event) {
 		try {
 			this.content = JSON.parse(event.content);
-			nip57.getZapEndpoint(event).then((url) => {
-				if (url !== null) {
-					this._zapUrl = new URL(url);
-				}
-			});
 		} catch (error) {
 			console.warn('[invalid metadata]', error, event);
 		}
 	}
 
-	get zapUrl(): URL | undefined {
+	public async zapUrl(): Promise<URL | null> {
+		if (this._zapUrl !== undefined) {
+			return this._zapUrl;
+		}
+
+		const url = await nip57.getZapEndpoint(this.event);
+		if (url !== null) {
+			try {
+				this._zapUrl = new URL(url);
+			} catch (error) {
+				console.warn('[invalid zap url]', url);
+				this._zapUrl = null;
+			}
+		} else {
+			this._zapUrl = null;
+		}
 		return this._zapUrl;
 	}
 }

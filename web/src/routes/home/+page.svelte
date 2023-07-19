@@ -74,7 +74,7 @@
 
 		console.log(`Sorted in ${Date.now() / 1000 - now} seconds`);
 
-		const list = pastEvents.map((event) => event.toEvent());
+		const list = await Promise.all(pastEvents.map(async (event) => await event.toEvent()));
 		$events.push(...list.filter((x) => !isMuteEvent(x)));
 		$events = $events;
 		console.log(
