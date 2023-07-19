@@ -160,9 +160,10 @@ export class Api {
 			const cache = eventsMap.get(event.pubkey);
 			if (cache === undefined || cache.created_at < event.created_at) {
 				eventsMap.set(event.pubkey, event);
-				saveMetadataEvent(event);
 			}
 		}
+
+		await Promise.all([...eventsMap].map(async ([, event]) => await saveMetadataEvent(event)));
 
 		return eventsMap;
 	}
@@ -273,8 +274,15 @@ export class Api {
 		);
 		const referencedEvents = await this.fetchEventsByIds([...referencedEventIds]);
 
+		const referencedPubkeys = events
+			.map((x) => x.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey))
+			.flat();
+
 		const metadataEventsMap = await this.fetchMetadataEventsMap([
-			...new Set([...events, ...referencedEvents].map((x) => x.pubkey))
+			...new Set([
+				...[...events, ...referencedEvents].map((x) => x.pubkey),
+				...referencedPubkeys
+			])
 		]);
 
 		events.sort((x, y) => y.created_at - x.created_at);
