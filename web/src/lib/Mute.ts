@@ -23,14 +23,15 @@ export class Mute {
 		]);
 		console.log('[mute list]', muteList);
 
-		let privateTags: string[][];
+		let privateTags: string[][] = [];
 		if (muteList !== undefined) {
-			const json = await Signer.decrypt(this.authorPubkey, muteList.content);
-			try {
-				privateTags = JSON.parse(json);
-			} catch (error) {
-				console.error('[mute list parse error]', error);
-				throw error;
+			if (muteList.content !== '') {
+				const json = await Signer.decrypt(this.authorPubkey, muteList.content);
+				try {
+					privateTags = JSON.parse(json);
+				} catch (error) {
+					console.error('[mute list parse error]', error);
+				}
 			}
 
 			if (
@@ -47,8 +48,8 @@ export class Mute {
 			privateTags = [['word', word]];
 		}
 
-		const encryptedJson = await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags));
-		await this.api.signAndPublish(this.kind, encryptedJson, muteList?.tags ?? []);
+		const content = await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags));
+		await this.api.signAndPublish(this.kind, content, muteList?.tags ?? []);
 	}
 
 	public async unmuteWord(word: string): Promise<void> {
@@ -66,39 +67,35 @@ export class Mute {
 			return;
 		}
 
-		let privateTags: string[][];
-		try {
-			const json = await Signer.decrypt(this.authorPubkey, muteList.content);
-			privateTags = JSON.parse(json);
-		} catch (error) {
-			console.error('[mute list parse error]', error);
-			throw error;
+		let privateTags: string[][] = [];
+		if (muteList.content !== '') {
+			try {
+				const json = await Signer.decrypt(this.authorPubkey, muteList.content);
+				privateTags = JSON.parse(json);
+			} catch (error) {
+				console.error('[mute list parse error]', error);
+			}
 		}
 
-		if (
-			![...muteList.tags, ...privateTags].some(
-				([tagName, w]) => tagName === 'word' && w === word
-			)
-		) {
-			console.log('[already unmute]', word, muteList);
-			return;
-		}
-
-		const publicTags = muteList.tags.filter(([tagName, w]) => tagName !== 'word' || w !== word);
+		const tags = muteList.tags.filter(([tagName, w]) => tagName !== 'word' || w !== word);
 		privateTags = privateTags.filter(([tagName, w]) => tagName !== 'word' || w !== word);
 
-		const encryptedJson = await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags));
-		await this.api.signAndPublish(this.kind, encryptedJson, publicTags);
+		const content =
+			privateTags.length > 0
+				? await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags))
+				: '';
+		await this.api.signAndPublish(this.kind, content, tags);
 	}
 
 	public async update(event: Event) {
-		let privateTags: string[][];
-		try {
-			const json = await Signer.decrypt(this.authorPubkey, event.content);
-			privateTags = JSON.parse(json);
-		} catch (error) {
-			console.error('[mute list parse error]', error);
-			throw error;
+		let privateTags: string[][] = [];
+		if (event.content !== '') {
+			try {
+				const json = await Signer.decrypt(this.authorPubkey, event.content);
+				privateTags = JSON.parse(json);
+			} catch (error) {
+				console.error('[mute list parse error]', error);
+			}
 		}
 
 		// mutePubkeys.set([...filterTags('p', event.tags), ...filterTags('p', privateTags)]);
