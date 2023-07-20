@@ -10,10 +10,15 @@
 	import type { EventPointer } from 'nostr-tools/lib/nip19';
 	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';
+	import type { EventItem } from '$lib/Items';
+	import Counter from './Counter.svelte';
 
 	let events: NostrEvent[] = [];
 	let eventId = '';
 	let relays: string[] = [];
+
+	let repostEvents: EventItem[] | undefined;
+	let reactionEvents: EventItem[] | undefined;
 
 	afterNavigate(async () => {
 		console.log('[note page]');
@@ -65,9 +70,9 @@
 		const repliedEvents = relatedEvents.filter(
 			(x) => x.event.kind === Kind.Text && x.event.id !== eventId
 		);
-		const repostedEvents = relatedEvents.filter((x) => Number(x.event.kind) === 6);
-		const reactionEvents = relatedEvents.filter((x) => x.event.kind === Kind.Reaction);
-		console.log(repliedEvents, repostedEvents, reactionEvents);
+		repostEvents = relatedEvents.filter((x) => Number(x.event.kind) === 6);
+		reactionEvents = relatedEvents.filter((x) => x.event.kind === Kind.Reaction);
+		console.log(repliedEvents, repostEvents, reactionEvents);
 
 		const { root, reply } = referTags(event);
 		let rootId = root?.at(1);
@@ -118,3 +123,10 @@
 	load={async () => console.debug()}
 	showLoading={false}
 />
+
+{#if repostEvents !== undefined}
+	<Counter label={'Reposts'} count={repostEvents.length} />
+{/if}
+{#if reactionEvents !== undefined}
+	<Counter label={'Reactions'} count={reactionEvents.length} />
+{/if}
