@@ -25,14 +25,7 @@ export class Mute {
 
 		let privateTags: string[][] = [];
 		if (muteList !== undefined) {
-			if (muteList.content !== '') {
-				const json = await Signer.decrypt(this.authorPubkey, muteList.content);
-				try {
-					privateTags = JSON.parse(json);
-				} catch (error) {
-					console.error('[mute list parse error]', error);
-				}
-			}
+			privateTags = await this.parseContent(muteList.content);
 
 			if (
 				[...muteList.tags, ...privateTags].some(
@@ -67,15 +60,7 @@ export class Mute {
 			return;
 		}
 
-		let privateTags: string[][] = [];
-		if (muteList.content !== '') {
-			try {
-				const json = await Signer.decrypt(this.authorPubkey, muteList.content);
-				privateTags = JSON.parse(json);
-			} catch (error) {
-				console.error('[mute list parse error]', error);
-			}
-		}
+		let privateTags: string[][] = await this.parseContent(muteList.content);
 
 		const tags = muteList.tags.filter(([tagName, w]) => tagName !== 'word' || w !== word);
 		privateTags = privateTags.filter(([tagName, w]) => tagName !== 'word' || w !== word);
@@ -88,19 +73,25 @@ export class Mute {
 	}
 
 	public async update(event: Event) {
-		let privateTags: string[][] = [];
-		if (event.content !== '') {
-			try {
-				const json = await Signer.decrypt(this.authorPubkey, event.content);
-				privateTags = JSON.parse(json);
-			} catch (error) {
-				console.error('[mute list parse error]', error);
-			}
-		}
+		const privateTags: string[][] = await this.parseContent(event.content);
 
 		// mutePubkeys.set([...filterTags('p', event.tags), ...filterTags('p', privateTags)]);
 		// muteEventIds.set([...filterTags('e', event.tags), ...filterTags('e', privateTags)]);
 		muteWords.set([...filterTags('word', event.tags), ...filterTags('word', privateTags)]);
 		console.log('[mute lists]', get(mutePubkeys), get(muteEventIds), get(muteWords));
+	}
+
+	private async parseContent(content: string): Promise<string[][]> {
+		if (content === '') {
+			return [];
+		}
+
+		try {
+			const json = await Signer.decrypt(this.authorPubkey, content);
+			return JSON.parse(json);
+		} catch (error) {
+			console.error('[mute list parse error]', error);
+			return [];
+		}
 	}
 }
