@@ -14,7 +14,8 @@
 		isMuteEvent,
 		updateRelays,
 		rom,
-		bookmarkEvent
+		bookmarkEvent,
+		writeRelays
 	} from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
