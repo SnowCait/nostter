@@ -25,14 +25,7 @@ export class Mute {
 
 		let privateTags: string[][] = [];
 		if (muteList !== undefined) {
-			if (muteList.content !== '') {
-				const json = await Signer.decrypt(this.authorPubkey, muteList.content);
-				try {
-					privateTags = JSON.parse(json);
-				} catch (error) {
-					console.error('[mute list parse error]', error);
-				}
-			}
+			privateTags = await this.parseContent(muteList.content);
 
 			if (
 				[...muteList.tags, ...privateTags].some(
@@ -67,15 +60,7 @@ export class Mute {
 			return;
 		}
 
-		let privateTags: string[][] = [];
-		if (muteList.content !== '') {
-			try {
-				const json = await Signer.decrypt(this.authorPubkey, muteList.content);
-				privateTags = JSON.parse(json);
-			} catch (error) {
-				console.error('[mute list parse error]', error);
-			}
-		}
+		let privateTags: string[][] = await this.parseContent(muteList.content);
 
 		const tags = muteList.tags.filter(([tagName, w]) => tagName !== 'word' || w !== word);
 		privateTags = privateTags.filter(([tagName, w]) => tagName !== 'word' || w !== word);
@@ -87,20 +72,67 @@ export class Mute {
 		await this.api.signAndPublish(this.kind, content, tags);
 	}
 
-	public async update(event: Event) {
-		let privateTags: string[][] = [];
-		if (event.content !== '') {
-			try {
-				const json = await Signer.decrypt(this.authorPubkey, event.content);
-				privateTags = JSON.parse(json);
-			} catch (error) {
-				console.error('[mute list parse error]', error);
-			}
-		}
+	public async update(event: Event): Promise<void> {
+		const privateTags: string[][] = await this.parseContent(event.content);
 
-		// mutePubkeys.set([...filterTags('p', event.tags), ...filterTags('p', privateTags)]);
-		// muteEventIds.set([...filterTags('e', event.tags), ...filterTags('e', privateTags)]);
+		mutePubkeys.set([...filterTags('p', event.tags), ...filterTags('p', privateTags)]);
+		muteEventIds.set([...filterTags('e', event.tags), ...filterTags('e', privateTags)]);
 		muteWords.set([...filterTags('word', event.tags), ...filterTags('word', privateTags)]);
 		console.log('[mute lists]', get(mutePubkeys), get(muteEventIds), get(muteWords));
+	}
+
+	// For regacy clients
+	public async migrate(regacyEvent: Event, event: Event | undefined): Promise<void> {
+		console.log('[migrate mute]', regacyEvent, event);
+
+		const regacyPublicTags = regacyEvent.tags.filter(([name]) => name !== 'd');
+		const publicTags = event?.tags ?? [];
+
+		const regacyPrivateTags = await this.parseContent(regacyEvent.content);
+		const privateTags = await this.parseContent(event?.content ?? '');
+
+		const regacyTags = [...regacyPublicTags, ...regacyPrivateTags];
+		const tags = [...publicTags, ...privateTags];
+
+		if (
+			regacyTags.every(([name, content]) =>
+				tags.some(([n, c]) => n === name && c === content)
+			)
+		) {
+			console.log('[no need to migrate]');
+			return;
+		}
+
+		privateTags.push(
+			...regacyPrivateTags.filter(
+				([name, content]) => !privateTags.some(([n, c]) => n === name && c === content)
+			)
+		);
+		publicTags.push(
+			...regacyPublicTags.filter(
+				([name, content]) => !publicTags.some(([n, c]) => n === name && c === content)
+			)
+		);
+
+		const content =
+			privateTags.length > 0
+				? await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags))
+				: '';
+		const migratedEvent = await this.api.signAndPublish(10000 as Kind, content, publicTags);
+		await this.update(migratedEvent);
+	}
+
+	private async parseContent(content: string): Promise<string[][]> {
+		if (content === '') {
+			return [];
+		}
+
+		try {
+			const json = await Signer.decrypt(this.authorPubkey, content);
+			return JSON.parse(json);
+		} catch (error) {
+			console.error('[mute list parse error]', error);
+			return [];
+		}
 	}
 }

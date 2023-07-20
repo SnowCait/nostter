@@ -10,19 +10,15 @@ import {
 	updateRelays,
 	authorProfile,
 	metadataEvent,
-	bookmarkEvent,
-	mutePubkeys,
-	muteEventIds,
-	loginType,
-	muteWords
+	bookmarkEvent
 } from '../stores/Author';
 import { RelaysFetcher } from './RelaysFetcher';
 import { filterTags, parseRelayJson } from './EventHelper';
 import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
 import { reactionEmoji } from '../stores/Preference';
-import { Signer } from './Signer';
 import type { User } from '../routes/types';
 import { lastReadAt } from '../stores/Notifications';
+import { Mute } from './Mute';
 
 export class Author {
 	constructor(private pubkey: string) {}
@@ -196,66 +192,17 @@ export class Author {
 		const muteEvent = replaceableEvents.get(10000 as Kind);
 		const regacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);
 
-		let modernMutePubkeys: string[] = [];
-		let modernMuteEventIds: string[] = [];
-		let regacyMutePubkeys: string[] = [];
-		let regacyMuteEventIds: string[] = [];
-
 		if (muteEvent !== undefined) {
-			const muteLists = await this.getMuteLists(muteEvent);
-			modernMutePubkeys = muteLists.pubkeys;
-			modernMuteEventIds = muteLists.eventIds;
-			muteWords.set(muteLists.words);
-			console.log('[mute words]', get(muteWords));
+			await new Mute(this.pubkey, get(pool), get(writeRelays)).update(muteEvent);
 		}
 
 		if (regacyMuteEvent !== undefined) {
-			const muteLists = await this.getMuteLists(regacyMuteEvent);
-			regacyMutePubkeys = muteLists.pubkeys;
-			regacyMuteEventIds = muteLists.eventIds;
+			await new Mute(this.pubkey, get(pool), get(writeRelays)).migrate(
+				regacyMuteEvent,
+				muteEvent
+			);
 		}
-
-		mutePubkeys.set(Array.from(new Set([...modernMutePubkeys, ...regacyMutePubkeys])));
-		console.log('[mute pubkeys]', get(mutePubkeys));
-
-		muteEventIds.set(Array.from(new Set([...modernMuteEventIds, ...regacyMuteEventIds])));
-		console.log('[mute eventIds]', get(muteEventIds));
 
 		console.log('[relays]', get(readRelays), get(writeRelays));
-	}
-
-	private async getMuteLists(event: Event) {
-		let publicMutePubkeys: string[] = [];
-		let publicMuteEventIds: string[] = [];
-		let publicMuteWords: string[] = [];
-		let privateMutePubkeys: string[] = [];
-		let privateMuteEventIds: string[] = [];
-		let privateMuteWords: string[] = [];
-
-		publicMutePubkeys = filterTags('p', event.tags);
-		publicMuteEventIds = filterTags('e', event.tags);
-		publicMuteWords = filterTags('word', event.tags);
-
-		const $loginType = get(loginType);
-		if (($loginType === 'NIP-07' || $loginType === 'nsec') && event.content !== '') {
-			try {
-				const json = await Signer.decrypt(this.pubkey, event.content);
-				const tags = JSON.parse(json) as string[][];
-				privateMutePubkeys = filterTags('p', tags);
-				privateMuteEventIds = filterTags('e', tags);
-				privateMuteWords = filterTags('word', tags);
-			} catch (error) {
-				console.error('[NIP-07 nip04.decrypt()]', error);
-			}
-		}
-
-		console.log('[mute p list]', publicMutePubkeys, privateMutePubkeys);
-		console.log('[mute e list]', publicMuteEventIds, privateMuteEventIds);
-
-		return {
-			pubkeys: Array.from(new Set([...publicMutePubkeys, ...privateMutePubkeys])),
-			eventIds: Array.from(new Set([...publicMuteEventIds, ...privateMuteEventIds])),
-			words: Array.from(new Set([...publicMuteWords, ...privateMuteWords]))
-		};
 	}
 }
