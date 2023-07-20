@@ -72,11 +72,11 @@ export class Mute {
 		await this.api.signAndPublish(this.kind, content, tags);
 	}
 
-	public async update(event: Event) {
+	public async update(event: Event): Promise<void> {
 		const privateTags: string[][] = await this.parseContent(event.content);
 
-		// mutePubkeys.set([...filterTags('p', event.tags), ...filterTags('p', privateTags)]);
-		// muteEventIds.set([...filterTags('e', event.tags), ...filterTags('e', privateTags)]);
+		mutePubkeys.set([...filterTags('p', event.tags), ...filterTags('p', privateTags)]);
+		muteEventIds.set([...filterTags('e', event.tags), ...filterTags('e', privateTags)]);
 		muteWords.set([...filterTags('word', event.tags), ...filterTags('word', privateTags)]);
 		console.log('[mute lists]', get(mutePubkeys), get(muteEventIds), get(muteWords));
 	}
@@ -118,7 +118,8 @@ export class Mute {
 			privateTags.length > 0
 				? await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags))
 				: '';
-		await this.api.signAndPublish(10000 as Kind, content, publicTags);
+		const migratedEvent = await this.api.signAndPublish(10000 as Kind, content, publicTags);
+		await this.update(migratedEvent);
 	}
 
 	private async parseContent(content: string): Promise<string[][]> {
