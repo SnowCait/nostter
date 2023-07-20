@@ -23,6 +23,7 @@ import { reactionEmoji } from '../stores/Preference';
 import { Signer } from './Signer';
 import type { User } from '../routes/types';
 import { lastReadAt } from '../stores/Notifications';
+import { Mute } from './Mute';
 
 export class Author {
 	constructor(private pubkey: string) {}
@@ -213,6 +214,11 @@ export class Author {
 			const muteLists = await this.getMuteLists(regacyMuteEvent);
 			regacyMutePubkeys = muteLists.pubkeys;
 			regacyMuteEventIds = muteLists.eventIds;
+
+			await new Mute(this.pubkey, get(pool), get(writeRelays)).migrate(
+				regacyMuteEvent,
+				muteEvent
+			);
 		}
 
 		mutePubkeys.set(Array.from(new Set([...modernMutePubkeys, ...regacyMutePubkeys])));
