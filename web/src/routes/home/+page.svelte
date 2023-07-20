@@ -32,6 +32,7 @@
 	} from '../../stores/Notifications';
 	import { EventItem } from '$lib/Items';
 	import { NotificationTimeline } from '$lib/NotificationTimeline';
+	import { Mute } from '$lib/Mute';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -127,7 +128,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Reaction, Kind.RelayList, 10030],
+				kinds: [Kind.Reaction, 10000, Kind.RelayList, 10030],
 				authors: [$pubkey],
 				since
 			},
@@ -148,6 +149,12 @@
 
 			if (event.kind === Kind.Metadata) {
 				await saveMetadataEvent(event);
+				return;
+			}
+
+			if (event.kind === 10000) {
+				console.log('[mute list]', event, $pool.seenOn(event.id));
+				await new Mute($pubkey, $pool, $writeRelays).update(event);
 				return;
 			}
 
