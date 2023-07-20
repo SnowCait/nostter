@@ -351,7 +351,7 @@ export class Api {
 		return events.at(0);
 	}
 
-	public async signAndPublish(kind: Kind, content: string, tags: string[][]): Promise<void> {
+	public async signAndPublish(kind: Kind, content: string, tags: string[][]): Promise<Event> {
 		const now = Date.now();
 		const event = await Signer.signEvent({
 			created_at: Math.round(now / 1000),
@@ -378,7 +378,7 @@ export class Api {
 				console.log('[ok]', relay, `${Date.now() - now}ms`);
 				publishedRelays.set(relay, true);
 				clearTimeout(timeoutId);
-				resolve();
+				resolve(event);
 			});
 			pub.on('failed', (relay: string) => {
 				console.warn('[failed]', relay, `${Date.now() - now}ms`);
