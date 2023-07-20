@@ -157,4 +157,14 @@
 		border-radius: 5px;
 		overflow: hidden;
 	}
+
+	:global(button.clear) {
+		background-color: transparent;
+		border: none;
+		cursor: pointer;
+		outline: none;
+		padding: 0;
+		width: inherit;
+		height: inherit;
+	}
 </style>

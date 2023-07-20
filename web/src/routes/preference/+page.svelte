@@ -4,6 +4,7 @@
 	import Logout from '../Logout.svelte';
 	import { rom } from '../../stores/Author';
 	import { debugMode } from '../../stores/Preference';
+	import WordMute from './WordMute.svelte';
 
 	let debugCounter = 0;
 
@@ -30,6 +31,7 @@
 		Edit custom emojis
 	</a>
 </div>
+<div><WordMute /></div>
 <div><Notification /></div>
 <div><Logout /></div>
 

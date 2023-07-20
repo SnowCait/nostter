@@ -67,6 +67,22 @@ export class Signer {
 		}
 	}
 
+	public static async encrypt(pubkey: string, plaintext: string): Promise<string> {
+		const login = localStorage.getItem('nostter:login');
+		if (login === null || login.startsWith('npub')) {
+			throw new Error('[logic error]');
+		}
+
+		if (login === 'NIP-07' && window.nostr.nip04 !== undefined) {
+			return await window.nostr.nip04.encrypt(pubkey, plaintext);
+		} else if (login.startsWith('nsec')) {
+			const { data: seckey } = nip19.decode(login);
+			return await nip04.encrypt(seckey as string, pubkey, plaintext);
+		} else {
+			throw new Error('[logic error]');
+		}
+	}
+
 	public static async decrypt(pubkey: string, ciphertext: string): Promise<string> {
 		const login = localStorage.getItem('nostter:login');
 		if (login === null || login.startsWith('npub')) {

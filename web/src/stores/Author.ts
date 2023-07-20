@@ -15,6 +15,7 @@ export const recommendedRelay = writable('');
 export const followees: Writable<string[]> = writable([]);
 export const mutePubkeys: Writable<string[]> = writable([]);
 export const muteEventIds: Writable<string[]> = writable([]);
+export const muteWords: Writable<string[]> = writable([]);
 export const pinNotes: Writable<string[]> = writable([]);
 export const readRelays: Writable<string[]> = writable($defaultRelays);
 export const writeRelays: Writable<string[]> = writable($defaultRelays);
@@ -23,10 +24,14 @@ export const bookmarkEvent: Writable<Event | undefined> = writable();
 
 export const isMutePubkey = (pubkey: string) => get(mutePubkeys).includes(pubkey);
 export const isMuteEvent = (event: Event) => {
+	const $muteWords = get(muteWords);
 	if (
 		isMutePubkey(event.pubkey) ||
 		event.tags.some(([tagName, pubkey]) => tagName === 'p' && isMutePubkey(pubkey))
 	) {
+		return true;
+	}
+	if ($muteWords.length > 0 && new RegExp(`(${$muteWords.join('|')})`, 'i').test(event.content)) {
 		return true;
 	}
 

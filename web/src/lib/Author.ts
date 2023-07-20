@@ -13,7 +13,8 @@ import {
 	bookmarkEvent,
 	mutePubkeys,
 	muteEventIds,
-	loginType
+	loginType,
+	muteWords
 } from '../stores/Author';
 import { RelaysFetcher } from './RelaysFetcher';
 import { filterTags, parseRelayJson } from './EventHelper';
@@ -204,6 +205,8 @@ export class Author {
 			const muteLists = await this.getMuteLists(muteEvent);
 			modernMutePubkeys = muteLists.pubkeys;
 			modernMuteEventIds = muteLists.eventIds;
+			muteWords.set(muteLists.words);
+			console.log('[mute words]', get(muteWords));
 		}
 
 		if (regacyMuteEvent !== undefined) {
@@ -224,11 +227,14 @@ export class Author {
 	private async getMuteLists(event: Event) {
 		let publicMutePubkeys: string[] = [];
 		let publicMuteEventIds: string[] = [];
+		let publicMuteWords: string[] = [];
 		let privateMutePubkeys: string[] = [];
 		let privateMuteEventIds: string[] = [];
+		let privateMuteWords: string[] = [];
 
 		publicMutePubkeys = filterTags('p', event.tags);
 		publicMuteEventIds = filterTags('e', event.tags);
+		publicMuteWords = filterTags('word', event.tags);
 
 		const $loginType = get(loginType);
 		if (($loginType === 'NIP-07' || $loginType === 'nsec') && event.content !== '') {
@@ -237,6 +243,7 @@ export class Author {
 				const tags = JSON.parse(json) as string[][];
 				privateMutePubkeys = filterTags('p', tags);
 				privateMuteEventIds = filterTags('e', tags);
+				privateMuteWords = filterTags('word', tags);
 			} catch (error) {
 				console.error('[NIP-07 nip04.decrypt()]', error);
 			}
@@ -247,7 +254,8 @@ export class Author {
 
 		return {
 			pubkeys: Array.from(new Set([...publicMutePubkeys, ...privateMutePubkeys])),
-			eventIds: Array.from(new Set([...publicMuteEventIds, ...privateMuteEventIds]))
+			eventIds: Array.from(new Set([...publicMuteEventIds, ...privateMuteEventIds])),
+			words: Array.from(new Set([...publicMuteWords, ...privateMuteWords]))
 		};
 	}
 }
