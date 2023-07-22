@@ -23,7 +23,7 @@
 	afterNavigate(async () => {
 		console.log('[note page]');
 
-		events = [];
+		clear();
 
 		const slug = $page.params.note;
 		console.log(slug);
@@ -108,6 +108,12 @@
 		events.push(...(await Promise.all(repliedEvents.map(async (x) => await x.toEvent()))));
 		events = events;
 	});
+
+	function clear() {
+		events = [];
+		repostEvents = undefined;
+		reactionEvents = undefined;
+	}
 </script>
 
 <svelte:head>
