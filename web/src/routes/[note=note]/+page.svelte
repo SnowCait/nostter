@@ -23,7 +23,7 @@
 	afterNavigate(async () => {
 		console.log('[note page]');
 
-		events = [];
+		clear();
 
 		const slug = $page.params.note;
 		console.log(slug);
@@ -81,11 +81,7 @@
 
 		let i = 0;
 		while (replyId !== undefined) {
-			const replyToEvent = await api.fetchEventItem([
-				{
-					ids: [replyId]
-				}
-			]);
+			const replyToEvent = await api.fetchEventItemById(replyId);
 			if (replyToEvent !== undefined) {
 				events.unshift(await replyToEvent.toEvent());
 				replyId = referTags(replyToEvent.event).reply?.at(1);
@@ -97,17 +93,21 @@
 		}
 
 		if (rootId !== undefined && !events.some((x) => x.id === rootId) && i <= 20) {
-			const rootEvent = await $pool.get($readRelays, {
-				ids: [rootId]
-			});
-			if (rootEvent !== null) {
-				events.unshift(rootEvent as NostrEvent);
+			const rootEvent = await api.fetchEventItemById(rootId);
+			if (rootEvent !== undefined) {
+				events.unshift(await rootEvent.toEvent());
 			}
 		}
 
 		events.push(...(await Promise.all(repliedEvents.map(async (x) => await x.toEvent()))));
 		events = events;
 	});
+
+	function clear() {
+		events = [];
+		repostEvents = undefined;
+		reactionEvents = undefined;
+	}
 </script>
 
 <svelte:head>
