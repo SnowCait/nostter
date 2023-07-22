@@ -186,8 +186,8 @@ export class Api {
 	}
 
 	// With metadata
-	async fetchEventItem(filters: Filter[]): Promise<EventItem | undefined> {
-		const event = await this.fetchEvent(filters);
+	async fetchEventItem(filter: Filter): Promise<EventItem | undefined> {
+		const event = await this.fetchEvent([filter]);
 		if (event === undefined) {
 			return undefined;
 		}
@@ -231,6 +231,16 @@ export class Api {
 		$cachedEvents.set(nostrEvent.id, nostrEvent);
 
 		return nostrEvent;
+	}
+
+	// With metadata
+	async fetchEventItemById(id: string): Promise<EventItem | undefined> {
+		const event = await this.fetchEventById(id);
+		if (event === undefined) {
+			return undefined;
+		}
+		const metadataEventsMap = await this.fetchMetadataEventsMap([event.pubkey]);
+		return new EventItem(event, metadataEventsMap.get(event.pubkey));
 	}
 
 	async fetchContactsEvent(pubkey: string): Promise<Event | undefined> {
