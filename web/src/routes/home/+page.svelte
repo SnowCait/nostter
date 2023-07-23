@@ -129,7 +129,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Reaction, 10000, Kind.RelayList, 10030],
+				kinds: [Kind.Reaction, 10000, Kind.RelayList, 10030, 30000],
 				authors: [$pubkey],
 				since
 			},
@@ -167,6 +167,21 @@
 
 			if (event.kind === 10030) {
 				$author?.saveCustomEmojis(event);
+				return;
+			}
+
+			if (event.kind === 30000) {
+				if (
+					event.tags.some(
+						([tagName, identifier]) =>
+							tagName === 'd' && identifier === 'notifications/lastOpened'
+					)
+				) {
+					console.log('[last read]', event);
+					$unreadEvents = [];
+				} else {
+					console.log('[people list]', event);
+				}
 				return;
 			}
 
