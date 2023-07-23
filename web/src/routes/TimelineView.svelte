@@ -57,8 +57,6 @@
 	}
 
 	li {
-		max-height: 30em;
-		overflow: auto;
 		border-bottom: 1px solid rgb(239, 243, 244);
 		animation-name: add;
 		animation-duration: 0.8s;

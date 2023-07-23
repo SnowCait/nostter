@@ -447,6 +447,8 @@
 
 	.content {
 		margin: 0.4rem 0;
+		max-height: 30em;
+		overflow: auto;
 	}
 
 	.develop pre {
