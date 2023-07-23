@@ -83,10 +83,16 @@
 </article>
 {#if jsonDisplay}
 	<div class="develop">
+		<h5>Event ID</h5>
+		<div>{nip19.noteEncode(event.id)}</div>
+		<br />
+		<div>{nip19.neventEncode({ id: event.id })}</div>
 		<h5>Event JSON</h5>
 		<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
 		<h5>Zap Request Event JSON</h5>
 		<pre><code class="json">{JSON.stringify(zapRequestEvent, null, 2)}</code></pre>
+		<h5>User ID</h5>
+		<div>{nip19.npubEncode(event.pubkey)}</div>
 		<h5>User JSON</h5>
 		<pre><code class="json">{JSON.stringify(event.user, null, 2)}</code></pre>
 	</div>
