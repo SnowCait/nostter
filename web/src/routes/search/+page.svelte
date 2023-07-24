@@ -68,14 +68,22 @@
 
 <h1><a href="/search">Search</a></h1>
 
-<SearchForm {query} />
+<section>
+	<SearchForm {query} />
+</section>
 
-<TimelineView {events} {load} {showLoading} />
+<section>
+	<TimelineView {events} {load} {showLoading} />
+</section>
 
 <style>
 	h1 a {
 		color: inherit;
 		text-decoration: none;
+	}
+
+	section + section {
+		margin-top: 1rem;
 	}
 
 	@media screen and (max-width: 600px) {
