@@ -53,12 +53,12 @@
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		border: 1px solid rgb(239, 243, 244);
+		border: var(--default-border);
 		border-bottom-style: none;
 	}
 
 	li {
-		border-bottom: 1px solid rgb(239, 243, 244);
+		border-bottom: var(--default-border);
 		animation-name: add;
 		animation-duration: 0.8s;
 	}
