@@ -5,6 +5,7 @@
 	import { rom } from '../../stores/Author';
 	import { debugMode } from '../../stores/Preference';
 	import WordMute from './WordMute.svelte';
+	import AutoRefresh from './AutoRefresh.svelte';
 
 	let debugCounter = 0;
 
@@ -33,6 +34,7 @@
 </div>
 <div><WordMute /></div>
 <div><Notification /></div>
+<div><AutoRefresh /></div>
 <div><Logout /></div>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
