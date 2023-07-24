@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import type { Event } from '../types';
 	import TimelineView from '../TimelineView.svelte';
-	import { events } from '../../stores/Events';
+	import { events, eventsPool } from '../../stores/Events';
 	import { saveMetadataEvent } from '../../stores/UserEvents';
 	import { pool } from '../../stores/Pool';
 	import {
@@ -34,6 +34,7 @@
 	import { EventItem } from '$lib/Items';
 	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { Mute } from '$lib/Mute';
+	import { autoRefresh } from '../../stores/Preference';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -110,7 +111,7 @@
 		console.log('Subscribe home timeline');
 
 		let eose = false;
-		let newEvents: Event[] = [];
+		let newEvents: EventItem[] = [];
 		const since = now;
 
 		const authorsFilter = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
@@ -223,11 +224,17 @@
 				notify(event);
 			}
 
+			const eventItem = new EventItem(event, userEvent);
 			if (eose) {
-				$events.unshift(event);
-				$events = $events;
+				if ($autoRefresh) {
+					$events.unshift(event);
+					$events = $events;
+				} else {
+					$eventsPool.unshift(eventItem);
+					$eventsPool = $eventsPool;
+				}
 			} else {
-				newEvents.push(event);
+				newEvents.push(eventItem);
 			}
 
 			// Cache
@@ -235,10 +242,15 @@
 				saveLastNote(event);
 			}
 		});
-		subscribe.on('eose', () => {
-			$events.unshift(...newEvents);
-			$events = $events;
+		subscribe.on('eose', async () => {
 			eose = true;
+			if ($autoRefresh) {
+				$events.unshift(...(await Promise.all(newEvents.map((x) => x.toEvent()))));
+				$events = $events;
+			} else {
+				$eventsPool.unshift(...newEvents);
+				$eventsPool = $eventsPool;
+			}
 		});
 
 		console.debug('_conn', $pool['_conn']);
@@ -348,6 +360,13 @@
 		}
 	}
 
+	async function showPooledEvents() {
+		$eventsPool.sort((x, y) => y.event.created_at - x.event.created_at);
+		$events.unshift(...(await Promise.all($eventsPool.map((x) => x.toEvent()))));
+		$events = $events;
+		$eventsPool = [];
+	}
+
 	onMount(async () => {
 		console.log('onMount');
 
@@ -379,8 +398,29 @@
 	<title>nostter - home</title>
 </svelte:head>
 
+{#if $eventsPool.length > 0}
+	<article>
+		<button class="clear" on:click={showPooledEvents}>
+			Show new events ({$eventsPool.length})
+		</button>
+	</article>
+{/if}
+
 <TimelineView
 	events={$events}
 	load={async () =>
 		await fetchHomeTimeline($events.at($events.length - 1)?.created_at ?? now - 1)}
 />
+
+<style>
+	article {
+		border: var(--default-border);
+		border-bottom: none;
+	}
+
+	button {
+		width: 100%;
+		height: 2rem;
+		background-color: rgb(240, 240, 240);
+	}
+</style>
