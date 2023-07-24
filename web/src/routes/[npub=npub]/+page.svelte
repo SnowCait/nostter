@@ -166,9 +166,6 @@
 		{/if}
 	</div>
 	<Badges {badges} />
-</section>
-
-<section>
 	<div>
 		Followees: {#if followeesLoading}
 			<Loading />
@@ -190,10 +187,17 @@
 			<a href="/{slug}/reactions">Reactions</a>
 		</div>
 	{/if}
+</section>
+
+<section>
 	<TimelineView {events} readonly={!$authorPubkey} {load} />
 </section>
 
 <style>
+	section + section {
+		margin-top: 1rem;
+	}
+
 	.banner img {
 		object-fit: cover;
 		width: 100%;

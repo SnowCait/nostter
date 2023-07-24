@@ -142,6 +142,10 @@
 		}
 	}
 
+	:global(:root) {
+		--default-border: 1px solid rgb(239, 243, 244);
+	}
+
 	:global(article.timeline-item) {
 		padding: 12px 16px;
 		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -153,7 +157,7 @@
 
 	:global(blockquote) {
 		margin: 0.5em 0;
-		border: 1px solid rgb(239, 243, 244);
+		border: var(--default-border);
 		border-radius: 5px;
 		overflow: hidden;
 	}
