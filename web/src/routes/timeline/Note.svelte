@@ -28,6 +28,7 @@
 	import Content from '../content/Content.svelte';
 	import { Signer } from '$lib/Signer';
 	import { getCodePoints } from '$lib/String';
+	import { isReply } from '$lib/EventHelper';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -258,7 +259,7 @@
 				</a>
 			</div>
 		</div>
-		{#if event.tags.some(([tagName]) => tagName === 'e') && event.tags.some(([tagName]) => tagName === 'p')}
+		{#if isReply(event.tags)}
 			<div class="reply">
 				<span>To</span>
 				<span>@{replyToNames.join(' @')}</span>
