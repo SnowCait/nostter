@@ -1,5 +1,16 @@
 import type { Event } from 'nostr-tools';
 
+export function isReply(tags: string[][]): boolean {
+	if (!tags.some(([tagName]) => tagName === 'p')) {
+		return false;
+	}
+
+	return tags.some(
+		([tagName, , , marker]) =>
+			tagName === 'e' && (marker === 'reply' || marker === 'root' || marker === undefined)
+	);
+}
+
 export function filterTags(tagName: string, tags: string[][]) {
 	return tags
 		.filter(([name, content]) => name === tagName && content !== undefined && content !== '')

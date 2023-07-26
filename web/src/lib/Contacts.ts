@@ -44,7 +44,7 @@ export class Contacts {
 		);
 	}
 
-	// For regacy clients
+	// For legacy clients
 	public async updateRelays(
 		relays: Map<string, { read: boolean; write: boolean }>
 	): Promise<void> {

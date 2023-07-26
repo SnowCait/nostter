@@ -190,15 +190,15 @@ export class Author {
 		console.log('[last read at]', new Date(get(lastReadAt) * 1000));
 
 		const muteEvent = replaceableEvents.get(10000 as Kind);
-		const regacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);
+		const legacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);
 
 		if (muteEvent !== undefined) {
 			await new Mute(this.pubkey, get(pool), get(writeRelays)).update(muteEvent);
 		}
 
-		if (regacyMuteEvent !== undefined) {
+		if (legacyMuteEvent !== undefined) {
 			await new Mute(this.pubkey, get(pool), get(writeRelays)).migrate(
-				regacyMuteEvent,
+				legacyMuteEvent,
 				muteEvent
 			);
 		}

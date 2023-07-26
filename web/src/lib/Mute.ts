@@ -81,21 +81,21 @@ export class Mute {
 		console.log('[mute lists]', get(mutePubkeys), get(muteEventIds), get(muteWords));
 	}
 
-	// For regacy clients
-	public async migrate(regacyEvent: Event, event: Event | undefined): Promise<void> {
-		console.log('[migrate mute]', regacyEvent, event);
+	// For legacy clients
+	public async migrate(legacyEvent: Event, event: Event | undefined): Promise<void> {
+		console.log('[migrate mute]', legacyEvent, event);
 
-		const regacyPublicTags = regacyEvent.tags.filter(([name]) => name !== 'd');
+		const legacyPublicTags = legacyEvent.tags.filter(([name]) => name !== 'd');
 		const publicTags = event?.tags ?? [];
 
-		const regacyPrivateTags = await this.parseContent(regacyEvent.content);
+		const legacyPrivateTags = await this.parseContent(legacyEvent.content);
 		const privateTags = await this.parseContent(event?.content ?? '');
 
-		const regacyTags = [...regacyPublicTags, ...regacyPrivateTags];
+		const legacyTags = [...legacyPublicTags, ...legacyPrivateTags];
 		const tags = [...publicTags, ...privateTags];
 
 		if (
-			regacyTags.every(([name, content]) =>
+			legacyTags.every(([name, content]) =>
 				tags.some(([n, c]) => n === name && c === content)
 			)
 		) {
@@ -104,12 +104,12 @@ export class Mute {
 		}
 
 		privateTags.push(
-			...regacyPrivateTags.filter(
+			...legacyPrivateTags.filter(
 				([name, content]) => !privateTags.some(([n, c]) => n === name && c === content)
 			)
 		);
 		publicTags.push(
-			...regacyPublicTags.filter(
+			...legacyPublicTags.filter(
 				([name, content]) => !publicTags.some(([n, c]) => n === name && c === content)
 			)
 		);
