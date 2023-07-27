@@ -2,7 +2,7 @@ import { Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { Api } from './Api';
 import { pool } from '../stores/Pool';
-import { isMuteEvent, readRelays } from '../stores/Author';
+import { readRelays } from '../stores/Author';
 
 export class NotificationTimeline {
 	private readonly api: Api;
@@ -28,8 +28,6 @@ export class NotificationTimeline {
 		);
 		const eventItems = await this.api.fetchEventItems([filter]);
 		console.debug('[notification events]', eventItems);
-		return eventItems
-			.filter((x) => x.event.created_at !== until)
-			.filter((x) => !isMuteEvent(x.event));
+		return eventItems.filter((x) => x.event.created_at !== until);
 	}
 }

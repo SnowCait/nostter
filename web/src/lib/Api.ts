@@ -3,7 +3,6 @@ import { get } from 'svelte/store';
 import type { Event as NostrEvent, UserEvent } from '../routes/types';
 import { cachedEvents, events as timelineEvents } from '../stores/Events';
 import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
-import { isMuteEvent } from '../stores/Author';
 import { EventItem } from './Items';
 import { Content } from './Content';
 import { Signer } from './Signer';
@@ -170,19 +169,10 @@ export class Api {
 
 	async fetchEvent(filters: Filter[]): Promise<Event | undefined> {
 		const events = await this.pool.list(this.relays, filters);
-		if (events.length === 0) {
-			return undefined;
-		}
 
 		// Latest (return multi events except id filter)
 		events.sort((x, y) => y.created_at - x.created_at);
-		const event = events[0];
-
-		if (isMuteEvent(event)) {
-			return undefined;
-		}
-
-		return event;
+		return events.at(0);
 	}
 
 	// With metadata
@@ -316,7 +306,7 @@ export class Api {
 		}
 		console.debug('[cache]', events.length, referencedEventIds, $cachedEvents);
 
-		return eventItems.filter((x) => !isMuteEvent(x.event));
+		return eventItems;
 	}
 
 	async fetchEventsByIds(ids: string[]): Promise<Event[]> {
