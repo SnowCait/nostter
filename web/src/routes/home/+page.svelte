@@ -11,7 +11,6 @@
 		followees,
 		authorProfile,
 		readRelays,
-		isMuteEvent,
 		updateRelays,
 		rom,
 		bookmarkEvent,
@@ -86,7 +85,7 @@
 		console.log(`Sorted in ${Date.now() / 1000 - now} seconds`);
 
 		const list = await Promise.all(pastEvents.map(async (event) => await event.toEvent()));
-		$events.push(...list.filter((x) => !isMuteEvent(x)));
+		$events.push(...list);
 		$events = $events;
 		console.log(
 			`Fetch home timeline completed: ${$events.length} events in ${
@@ -144,10 +143,6 @@
 		subscribe.on('event', async (nostrEvent: NostrEvent) => {
 			const event = nostrEvent as Event;
 			console.debug(event, $pool.seenOn(event.id));
-
-			if (isMuteEvent(event)) {
-				return;
-			}
 
 			if (event.kind === Kind.Metadata) {
 				await saveMetadataEvent(event);

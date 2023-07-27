@@ -1,5 +1,5 @@
 import { Kind, SimplePool } from 'nostr-tools';
-import { isMuteEvent, readRelays, bookmarkEvent, updateRelays, author } from '../stores/Author';
+import { readRelays, bookmarkEvent, updateRelays, author } from '../stores/Author';
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
 import { get } from 'svelte/store';
@@ -63,10 +63,6 @@ export class Timeline {
 		subscribe.on('event', async (nostrEvent: NostrEvent) => {
 			const event = nostrEvent as Event;
 			console.debug('[user timeline]', event, this.$pool.seenOn(event.id));
-
-			if (isMuteEvent(event)) {
-				return;
-			}
 
 			if (event.kind === Kind.Metadata) {
 				await saveMetadataEvent(event);
@@ -165,8 +161,6 @@ export class Timeline {
 
 		const eventItems = await this.api.fetchEventItems(filters);
 
-		return eventItems
-			.filter((x) => x.event.created_at !== until)
-			.filter((x) => !isMuteEvent(x.event));
+		return eventItems.filter((x) => x.event.created_at !== until);
 	}
 }
