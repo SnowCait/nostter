@@ -84,6 +84,7 @@
 			const replyToEvent = await api.fetchEventItemById(replyId);
 			if (replyToEvent !== undefined) {
 				events.unshift(await replyToEvent.toEvent());
+				events = events;
 				replyId = referTags(replyToEvent.event).reply?.at(1);
 			}
 			i++;
@@ -96,6 +97,7 @@
 			const rootEvent = await api.fetchEventItemById(rootId);
 			if (rootEvent !== undefined) {
 				events.unshift(await rootEvent.toEvent());
+				events = events;
 			}
 		}
 
