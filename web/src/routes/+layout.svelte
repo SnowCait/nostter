@@ -171,4 +171,9 @@
 		width: inherit;
 		height: inherit;
 	}
+
+	:global(ul.clear) {
+		list-style: none;
+		padding: 0;
+	}
 </style>
