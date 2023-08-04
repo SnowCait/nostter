@@ -10,8 +10,9 @@
 	import type { EventPointer } from 'nostr-tools/lib/nip19';
 	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';
-	import type { EventItem } from '$lib/Items';
+	import type { EventItem, Metadata } from '$lib/Items';
 	import Counter from './Counter.svelte';
+	import ProfileIconList from './ProfileIconList.svelte';
 
 	let events: NostrEvent[] = [];
 	let eventId = '';
@@ -19,6 +20,14 @@
 
 	let repostEvents: EventItem[] | undefined;
 	let reactionEvents: EventItem[] | undefined;
+	$: repostMetadataList =
+		repostEvents !== undefined
+			? repostEvents.map((x) => x.metadata).filter((x): x is Metadata => x !== undefined)
+			: [];
+	$: reactionMetadataList =
+		reactionEvents !== undefined
+			? reactionEvents.map((x) => x.metadata).filter((x): x is Metadata => x !== undefined)
+			: [];
 
 	afterNavigate(async () => {
 		console.log('[note page]');
@@ -128,7 +137,9 @@
 
 {#if repostEvents !== undefined}
 	<Counter label={'Reposts'} count={repostEvents.length} />
+	<ProfileIconList metadataList={repostMetadataList} />
 {/if}
 {#if reactionEvents !== undefined}
 	<Counter label={'Reactions'} count={reactionEvents.length} />
+	<ProfileIconList metadataList={reactionMetadataList} />
 {/if}
