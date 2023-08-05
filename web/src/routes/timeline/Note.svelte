@@ -322,7 +322,7 @@
 				</button>
 				<button
 					class="reaction"
-					class:hidden={event.kind === 42 || event.kind === Kind.EncryptedDirectMessage}
+					class:hidden={event.kind === Kind.EncryptedDirectMessage}
 					disabled={reactioned}
 					on:click={() => reaction(event)}
 				>
