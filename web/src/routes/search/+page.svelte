@@ -7,6 +7,7 @@
 	import type { Event } from '../types';
 	import TimelineView from '../TimelineView.svelte';
 	import SearchForm from './SearchForm.svelte';
+	import Trending from './Trending.svelte';
 
 	let query = '';
 	let filter: Filter;
@@ -71,6 +72,12 @@
 <section>
 	<SearchForm {query} />
 </section>
+
+{#if query === ''}
+	<section>
+		<Trending />
+	</section>
+{/if}
 
 <section>
 	<TimelineView {events} {load} {showLoading} />

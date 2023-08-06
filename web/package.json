@@ -38,6 +38,7 @@
 		"@vercel/analytics": "^1.0.1",
 		"nostr-tools": "^1.10.1",
 		"qrcode": "^1.5.3",
+		"rx-nostr": "^1.7.0",
 		"tributejs": "^5.1.3"
 	}
 }
