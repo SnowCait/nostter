@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createRxForwardReq, createRxNostr } from 'rx-nostr';
+	import { createRxNostr, createRxOneshotReq } from 'rx-nostr';
 	import { onMount } from 'svelte';
 
 	let phrases: Phrase[] = [];
@@ -10,18 +10,17 @@
 	onMount(async () => {
 		console.log('[trend page]');
 		await rxNostr.switchRelays(relays);
-		console.log('[trend]', 1);
-		const rxReq = createRxForwardReq();
-		console.log('[trend]', 2);
+		const rxReq = createRxOneshotReq({
+			filters: { kinds: [38225], '#d': ['buzz-phrases:ja'], limit: 1 }
+		});
 		const observable = rxNostr.use(rxReq);
-		console.log('[trend]', 3);
-		observable.subscribe(({ from, subId, event }) => {
+		const subscription = observable.subscribe(({ from, subId, event }) => {
 			console.log('[trend]', from, subId, event);
+			subscription.unsubscribe();
+			rxNostr.dispose();
 			const buzz: Buzz = JSON.parse(event.content);
 			phrases = buzz.phrases;
 		});
-
-		rxReq.emit({ limit: 1 });
 	});
 
 	interface Phrase {
