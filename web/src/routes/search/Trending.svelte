@@ -33,7 +33,15 @@
 	}
 </script>
 
-<h2>Trending</h2>
+<h2>
+	<span>Trending</span>
+	<nav>
+		<span>by</span>
+		<a href="https://nostrbuzzs.deno.dev/" target="_blank" rel="noreferrer noopener">
+			nostrbuzzs
+		</a>
+	</nav>
+</h2>
 
 <ul class="clear">
 	{#each phrases as { text }}
@@ -44,6 +52,11 @@
 </ul>
 
 <style>
+	nav {
+		display: inline;
+		font-size: 0.8rem;
+	}
+
 	li + li {
 		margin-top: 0.5rem;
 	}
