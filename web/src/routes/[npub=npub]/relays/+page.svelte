@@ -90,9 +90,11 @@
 	async function save() {
 		console.log('[save relays]', relays);
 
+		const newWriteRelays = relays.filter(({ write }) => write).map(({ url }) => url);
+
 		try {
 			// kind 10002
-			const api = new Api($pool, $writeRelays);
+			const api = new Api($pool, newWriteRelays);
 			await api.signAndPublish(
 				Kind.RelayList,
 				'',
@@ -112,7 +114,7 @@
 			);
 
 			// kind 3
-			const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
+			const contacts = new Contacts($authorPubkey, $pool, newWriteRelays);
 			await contacts.updateRelays(
 				new Map(relays.map(({ url, read, write }) => [url, { read, write }]))
 			);
