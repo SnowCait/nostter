@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { notFoundImageUrl, onImageError } from '$lib/Constants';
 	import type { Metadata } from '$lib/Items';
 	import { nip19 } from 'nostr-tools';
 
@@ -9,7 +10,12 @@
 
 <article>
 	<a href="/{nip19.npubEncode(metadata.event.pubkey)}">
-		<img src={metadata.content?.picture} alt={name} title={name} />
+		<img
+			src={metadata.content?.picture ?? notFoundImageUrl}
+			alt={name}
+			title={name}
+			on:error={onImageError}
+		/>
 	</a>
 </article>
 
