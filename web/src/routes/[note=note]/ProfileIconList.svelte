@@ -17,6 +17,7 @@
 	ul {
 		display: flex;
 		flex-direction: row;
+		flex-wrap: wrap;
 		margin: 0.2rem 0;
 	}
 </style>
