@@ -13,7 +13,6 @@
 	import IconPencil from '@tabler/icons-svelte/dist/svelte/icons/IconPencil.svelte';
 	import IconDeviceFloppy from '@tabler/icons-svelte/dist/svelte/icons/IconDeviceFloppy.svelte';
 	import Loading from '../../Loading.svelte';
-	import { Contacts } from '$lib/Contacts';
 
 	let pubkey: string;
 	let relays: { url: string; read: boolean; write: boolean }[] = [];
@@ -49,10 +48,7 @@
 		console.log('[relay events]', events);
 		const kind10002 = events.get(Kind.RelayList);
 		const kind3 = events.get(Kind.Contacts);
-		if (
-			kind10002 !== undefined &&
-			(kind3 === undefined || kind3.created_at <= kind10002.created_at)
-		) {
+		if (kind10002 !== undefined) {
 			relays = filterRelayTags(kind10002.tags).map(([, relay, permission]) => {
 				return {
 					url: relay,
@@ -60,7 +56,7 @@
 					write: permission === undefined || permission === 'write'
 				};
 			});
-		} else if (kind3 !== undefined) {
+		} else if (kind3 !== undefined && kind3.content !== '') {
 			relays = [...parseRelayJson(kind3.content)].map(([relay, permission]) => {
 				return { url: relay, ...permission };
 			});
@@ -111,12 +107,6 @@
 						}
 					})
 					.filter((x) => x.length > 0)
-			);
-
-			// kind 3
-			const contacts = new Contacts($authorPubkey, $pool, newWriteRelays);
-			await contacts.updateRelays(
-				new Map(relays.map(({ url, read, write }) => [url, { read, write }]))
 			);
 
 			// Completed
