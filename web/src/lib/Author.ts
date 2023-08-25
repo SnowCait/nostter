@@ -131,12 +131,7 @@ export class Author {
 		}
 
 		const relayListEvent = replaceableEvents.get(Kind.RelayList);
-		if (
-			relayListEvent !== undefined &&
-			(contactsEvent === undefined ||
-				contactsEvent.content === '' ||
-				contactsEvent.created_at < relayListEvent.created_at)
-		) {
+		if (relayListEvent !== undefined) {
 			updateRelays(relayListEvent);
 			console.log('[relays in kind 10002]', get(readRelays), get(writeRelays));
 		}
