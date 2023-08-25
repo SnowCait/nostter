@@ -99,11 +99,12 @@ describe('parse test', () => {
 		expect(Content.parse('NIP-01')).toStrictEqual([new Token('nip', 'NIP-01')]);
 	});
 	it('nips', () => {
-		expect(Content.parse(' NIP-01\nNIP-02')).toStrictEqual([
+		expect(Content.parse(' NIP-01\nNIP-02\nNIP-3')).toStrictEqual([
 			new Token('text', ' '),
 			new Token('nip', 'NIP-01'),
 			new Token('text', '\n'),
-			new Token('nip', 'NIP-02')
+			new Token('nip', 'NIP-02'),
+			new Token('text', '\nNIP-3')
 		]);
 	});
 
