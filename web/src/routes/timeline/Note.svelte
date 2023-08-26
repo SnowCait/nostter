@@ -8,6 +8,7 @@
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
+	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
 	import type { ChannelMetadata, Event } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
@@ -290,15 +291,28 @@
 		{/if}
 		{#if event.kind === Kind.ChannelMessage && channelId !== undefined}
 			<div>
-				<span>In</span>
+				<IconMessages size={16} color={'gray'} />
 				<span>
-					<a
+					<a href="/channels/{nip19.neventEncode({ id: channelId })}">
+						{channelName ?? 'Channel'}
+					</a>
+				</span>
+				<span>
+					(Open in <a
 						href="https://garnet.nostrian.net/channels/{channelId}"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						{channelName ?? 'GARNET'}
+						GARNET
 					</a>
+					or
+					<a
+						href="https://www.nostrchat.io/channel/{channelId}"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						NostrChat
+					</a>)
 				</span>
 			</div>
 		{/if}
