@@ -6,6 +6,7 @@ import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { EventItem } from './Items';
 import { Content } from './Content';
 import { Signer } from './Signer';
+import { channelMetadataEvents } from './cache/Events';
 
 export class Api {
 	public static readonly replaceableKinds = [
@@ -339,6 +340,11 @@ export class Api {
 	}
 
 	async fetchChannelMetadataEvent(id: string): Promise<Event | undefined> {
+		const cache = channelMetadataEvents.get(id);
+		if (cache !== undefined) {
+			return cache;
+		}
+
 		const events = await this.pool.list(this.relays, [
 			{
 				kinds: [Kind.ChannelMetadata],
@@ -348,7 +354,11 @@ export class Api {
 		]);
 		events.sort((x, y) => y.created_at - x.created_at);
 		console.debug('[channel metadata events]', events);
-		return events.at(0);
+		const event = events.at(0);
+		if (event !== undefined) {
+			channelMetadataEvents.set(id, event);
+		}
+		return event;
 	}
 
 	public async signAndPublish(kind: Kind, content: string, tags: string[][]): Promise<Event> {
