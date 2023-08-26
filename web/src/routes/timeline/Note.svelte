@@ -29,6 +29,7 @@
 	import { Signer } from '$lib/Signer';
 	import { getCodePoints } from '$lib/String';
 	import { isReply } from '$lib/EventHelper';
+	import UserStatus from '../parts/UserStatus.svelte';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -258,6 +259,9 @@
 					<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 				</a>
 			</div>
+		</div>
+		<div class="user-status">
+			<UserStatus pubkey={event.pubkey} />
 		</div>
 		{#if isReply(event.tags)}
 			<div class="reply">

@@ -34,10 +34,16 @@
 	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { Mute } from '$lib/Mute';
 	import { autoRefresh } from '../../stores/Preference';
+	import { batch, createRxForwardReq, createRxNostr, latestEach } from 'rx-nostr';
+	import { bufferTime } from 'rxjs';
+	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
 	let streamingSpeedNotifiedAt = now;
+
+	const rxNostr = createRxNostr();
+	const userStatusReq = createRxForwardReq();
 
 	// past notes
 	async function fetchHomeTimeline(until?: number, span = 1 * 60 * 60) {
@@ -99,6 +105,13 @@
 				saveLastNote(event);
 			}
 		}
+
+		// User Status
+		console.debug('[user status emit]');
+		userStatusReq.emit({
+			kinds: [30315],
+			authors: [...new Set(pastEvents.map((x) => x.event.pubkey))]
+		});
 
 		if ($events.length < minTimelineLength && since > 1640962800 /* 2022/01/01 00:00:00 */) {
 			await fetchHomeTimeline(since - 1, span * 2);
@@ -236,6 +249,13 @@
 			if (event.kind === Kind.Text) {
 				saveLastNote(event);
 			}
+
+			// User Status
+			console.debug('[user status emit]', event.pubkey);
+			userStatusReq.emit({
+				kinds: [30315],
+				authors: [event.pubkey]
+			});
 		});
 		subscribe.on('eose', async () => {
 			eose = true;
@@ -378,6 +398,29 @@
 		}
 
 		subscribeHomeTimeline();
+
+		await rxNostr.switchRelays($readRelays);
+
+		rxNostr
+			.use(userStatusReq.pipe(bufferTime(1000), batch()))
+			.pipe(latestEach((packet) => packet.event.pubkey))
+			.subscribe((packet) => {
+				console.log('[user status]', packet, packet.event.pubkey, packet.event.content);
+				const tags: string[][] = packet.event.tags;
+				const identifier = tags.find(([tagName]) => tagName === 'd')?.at(1) ?? '';
+				switch (identifier) {
+					case 'general': {
+						$userStatusesGeneral.push(packet.event);
+						$userStatusesGeneral = $userStatusesGeneral;
+						break;
+					}
+					case 'music': {
+						$userStatusesMusic.push(packet.event);
+						$userStatusesMusic = $userStatusesMusic;
+						break;
+					}
+				}
+			});
 
 		// Past notification
 		const notificationTimeline = new NotificationTimeline($pubkey);
