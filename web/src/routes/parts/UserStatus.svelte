@@ -15,10 +15,10 @@
 	}
 </script>
 
-{#if generalEvent !== undefined}
+{#if generalEvent !== undefined && generalEvent.content !== ''}
 	<div><IconUser size={14} />{generalEvent.content}</div>
 {/if}
-{#if musicEvent !== undefined}
+{#if musicEvent !== undefined && musicEvent.content !== ''}
 	<div><IconMusic size={14} />{musicEvent.content}</div>
 {/if}
 
