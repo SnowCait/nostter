@@ -112,8 +112,8 @@
 			.subscribe((packets) => {
 				console.debug('[channel message events]', packets.length);
 				packets.sort((x, y) => x.event.created_at - y.event.created_at);
-				events.push(
-					...packets.map(({ event }) => {
+				events.unshift(
+					...packets.reverse().map(({ event }) => {
 						const metadataEvent = metadataEvents.get(event.pubkey);
 						if (metadataEvent !== undefined) {
 							const metadata = new Metadata(metadataEvent);
@@ -154,11 +154,6 @@
 					metadataEvents.set(packet.event.pubkey, packet.event);
 				}
 			});
-
-		setTimeout(() => {
-			const element = document.documentElement;
-			scrollTo({ top: element.scrollHeight - element.clientHeight, behavior: 'smooth' });
-		}, 2500);
 	});
 
 	onDestroy(() => {
