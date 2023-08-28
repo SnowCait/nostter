@@ -48,16 +48,24 @@
 			<img src={picture} alt="" />
 		{/if}
 		<div class="channel">
-			<h1>{name}</h1>
+			<h1><a href="/channels/{event.id}">{name}</a></h1>
 			<div class="about">{about}</div>
 			<div class="action-menu">
 				<div>
-					<a
+					Open in <a
 						href="https://garnet.nostrian.net/channels/{event.id}"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						Open in GARNET
+						GARNET
+					</a>
+					or
+					<a
+						href="https://www.nostrchat.io/channel/{event.id}"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						NostrChat
 					</a>
 				</div>
 				<button on:click={() => quote(event)}>
