@@ -11,10 +11,9 @@
 		uniq
 	} from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
-	import { afterUpdate, onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
 	import { error } from '@sveltejs/kit';
-	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { cachedEvents, channelMetadataEvents, metadataEvents } from '$lib/cache/Events';
 	import { Channel } from '$lib/Channel';
@@ -23,7 +22,6 @@
 	import type { Event as ExtendedEvent, User } from '../../types';
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
-	import type { NostrURI } from 'nostr-tools/lib/nip21';
 	import { Metadata } from '$lib/Items';
 
 	const slug = $page.params.nevent;
@@ -111,9 +109,9 @@
 			)
 			.subscribe((packets) => {
 				console.debug('[channel message events]', packets.length);
-				packets.sort((x, y) => x.event.created_at - y.event.created_at);
+				packets.sort((x, y) => y.event.created_at - x.event.created_at);
 				events.unshift(
-					...packets.reverse().map(({ event }) => {
+					...packets.map(({ event }) => {
 						const metadataEvent = metadataEvents.get(event.pubkey);
 						if (metadataEvent !== undefined) {
 							const metadata = new Metadata(metadataEvent);
