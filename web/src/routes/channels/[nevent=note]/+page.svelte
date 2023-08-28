@@ -10,7 +10,7 @@
 		now,
 		uniq
 	} from 'rx-nostr';
-	import { tap, bufferTime, Subscription } from 'rxjs';
+	import { tap, bufferTime } from 'rxjs';
 	import { onDestroy, onMount } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
 	import { error } from '@sveltejs/kit';
@@ -31,9 +31,6 @@
 	let kind40Event: Event | undefined;
 	let kind41Event: Event | undefined;
 	let channelMetadata: ChannelMetadata | undefined;
-	let channelMetadataSubscription: Subscription;
-	let channelMessageSubscription: Subscription;
-	let metadataSubscription: Subscription;
 
 	$: console.log('[channel metadata]', channelMetadata);
 	$: {
@@ -81,7 +78,7 @@
 			filters: kind40Event === undefined ? [kind40Filter, kind41Filter] : [kind41Filter]
 		});
 
-		channelMetadataSubscription = rxNostr
+		rxNostr
 			.use(channelMetadataReq)
 			.pipe(uniq(), latest())
 			.subscribe((packet) => {
@@ -97,7 +94,7 @@
 		const channelMessageReq = createRxForwardReq();
 		const metadataReq = createRxBackwardReq();
 
-		channelMessageSubscription = rxNostr
+		rxNostr
 			.use(channelMessageReq)
 			.pipe(
 				uniq(),
@@ -132,7 +129,7 @@
 
 		channelMessageReq.emit({ kinds: [42], '#e': [channelId], since: now() - 24 * 60 * 60 });
 
-		metadataSubscription = rxNostr
+		rxNostr
 			.use(metadataReq.pipe(bufferTime(1000), batch()))
 			.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
 			.subscribe(async (packet) => {
@@ -159,9 +156,6 @@
 
 	onDestroy(() => {
 		console.log('[channel page on destroy]', slug);
-		channelMetadataSubscription.unsubscribe();
-		channelMessageSubscription.unsubscribe();
-		metadataSubscription.unsubscribe();
 		rxNostr.dispose();
 	});
 </script>
