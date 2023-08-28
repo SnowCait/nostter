@@ -4,15 +4,15 @@
 	import { nip19, type Event } from 'nostr-tools';
 	import { pool } from '../../stores/Pool';
 	import { readRelays } from '../../stores/Author';
-	import type { ChannelMetadata } from '../types';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
 	import { intentContent, openNoteDialog } from '../../stores/NoteDialog';
+	import { Channel } from '$lib/Channel';
 
 	export let event: Event;
 
-	let { name, about, picture } = JSON.parse(event.content) as ChannelMetadata;
-	console.log('[channel (kind 40)]', name, about, picture);
+	let channelMetadata = Channel.parseMetadata(event);
+	console.log('[channel (kind 40)]', channelMetadata);
 
 	const iconSize = 20;
 	let jsonDisplay = false;
@@ -34,30 +34,37 @@
 			return;
 		}
 
-		const metadata = JSON.parse(metadataEvent.content) as ChannelMetadata;
-		name = metadata.name;
-		about = metadata.about;
-		picture = metadata.picture;
-		console.log('[channel (kind 41)]', name, about, picture);
+		channelMetadata = Channel.parseMetadata(metadataEvent);
+		console.log('[channel (kind 41)]', channelMetadata);
 	});
 </script>
 
 <article class="timeline-item">
 	<main>
-		{#if picture}
-			<img src={picture} alt="" />
+		{#if channelMetadata?.picture !== undefined}
+			<img src={channelMetadata.picture} alt="" />
 		{/if}
 		<div class="channel">
-			<h1>{name}</h1>
-			<div class="about">{about}</div>
+			<h1><a href="/channels/{event.id}">{channelMetadata?.name ?? ''}</a></h1>
+			{#if channelMetadata?.about !== undefined}
+				<p class="about">{channelMetadata.about}</p>
+			{/if}
 			<div class="action-menu">
 				<div>
-					<a
+					Open in <a
 						href="https://garnet.nostrian.net/channels/{event.id}"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						Open in GARNET
+						GARNET
+					</a>
+					or
+					<a
+						href="https://www.nostrchat.io/channel/{event.id}"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						NostrChat
 					</a>
 				</div>
 				<button on:click={() => quote(event)}>
@@ -87,6 +94,7 @@
 	article {
 		/* Workaround for unnecessary space */
 		display: flex;
+		flex-direction: column;
 	}
 
 	article.timeline-item {
@@ -101,6 +109,10 @@
 	img {
 		width: 30%;
 		object-fit: cover;
+	}
+
+	h1 {
+		margin-top: 0;
 	}
 
 	.channel {
