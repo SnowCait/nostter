@@ -47,7 +47,7 @@
 		<div class="channel">
 			<h1><a href="/channels/{event.id}">{channelMetadata?.name ?? ''}</a></h1>
 			{#if channelMetadata?.about !== undefined}
-				<div class="about">{channelMetadata.about}</div>
+				<p class="about">{channelMetadata.about}</p>
 			{/if}
 			<div class="action-menu">
 				<div>
@@ -94,6 +94,7 @@
 	article {
 		/* Workaround for unnecessary space */
 		display: flex;
+		flex-direction: column;
 	}
 
 	article.timeline-item {
@@ -108,6 +109,10 @@
 	img {
 		width: 30%;
 		object-fit: cover;
+	}
+
+	h1 {
+		margin-top: 0;
 	}
 
 	.channel {
