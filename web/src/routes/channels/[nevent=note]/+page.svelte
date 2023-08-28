@@ -11,10 +11,9 @@
 		uniq
 	} from 'rx-nostr';
 	import { tap, bufferTime, Subscription } from 'rxjs';
-	import { afterUpdate, onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
 	import { error } from '@sveltejs/kit';
-	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { cachedEvents, channelMetadataEvents, metadataEvents } from '$lib/cache/Events';
 	import { Channel } from '$lib/Channel';
@@ -23,7 +22,6 @@
 	import type { Event as ExtendedEvent, User } from '../../types';
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
-	import type { NostrURI } from 'nostr-tools/lib/nip21';
 	import { Metadata } from '$lib/Items';
 
 	const slug = $page.params.nevent;
