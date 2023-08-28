@@ -112,9 +112,9 @@
 			)
 			.subscribe((packets) => {
 				console.debug('[channel message events]', packets.length);
-				packets.sort((x, y) => x.event.created_at - y.event.created_at);
+				packets.sort((x, y) => y.event.created_at - x.event.created_at);
 				events.unshift(
-					...packets.reverse().map(({ event }) => {
+					...packets.map(({ event }) => {
 						const metadataEvent = metadataEvents.get(event.pubkey);
 						if (metadataEvent !== undefined) {
 							const metadata = new Metadata(metadataEvent);
