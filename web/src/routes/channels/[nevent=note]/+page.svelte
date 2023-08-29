@@ -10,7 +10,8 @@
 		now,
 		uniq
 	} from 'rx-nostr';
-	import { tap, bufferTime, Subscription } from 'rxjs';
+	import { tap, bufferTime, Subscription, firstValueFrom } from 'rxjs';
+	import { toArray } from 'rxjs/operators';
 	import { onDestroy } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
 	import { error } from '@sveltejs/kit';
@@ -24,6 +25,7 @@
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
 	import { Metadata } from '$lib/Items';
+	import { minTimelineLength } from '$lib/Constants';
 
 	let slug = $page.params.nevent;
 	let channelId: string;
@@ -64,7 +66,7 @@
 		}
 	}
 
-	const rxNostr = createRxNostr();
+	const rxNostr = createRxNostr({ timeout: 2000 });
 	const metadataReq = createRxBackwardReq();
 
 	let events: ExtendedEvent[] = [];
@@ -113,59 +115,55 @@
 						authors: [event.pubkey],
 						limit: 1
 					});
-				}),
-				bufferTime(1500)
+				})
 			)
-			.subscribe((packets) => {
-				console.debug('[channel message events]', packets.length);
-				packets.sort((x, y) => y.event.created_at - x.event.created_at);
-				events.unshift(
-					...packets.map(({ event }) => {
-						const metadataEvent = metadataEvents.get(event.pubkey);
-						if (metadataEvent !== undefined) {
-							const metadata = new Metadata(metadataEvent);
-							return {
-								...event,
-								user: metadata.content
-							} as ExtendedEvent;
-						} else {
-							return event as ExtendedEvent;
-						}
-					})
-				);
+			.subscribe((packet) => {
+				console.debug('[channel message event]', packet);
+				const { event } = packet;
+				const metadataEvent = metadataEvents.get(event.pubkey);
+				if (metadataEvent !== undefined) {
+					const metadata = new Metadata(metadataEvent);
+					events.unshift({
+						...event,
+						user: metadata.content
+					} as ExtendedEvent);
+				} else {
+					events.unshift(event as ExtendedEvent);
+				}
 				events = events;
 			});
 
-		channelMessageReq.emit({ kinds: [42], '#e': [channelId], since: now() - 24 * 60 * 60 });
+		channelMessageReq.emit({ kinds: [42], '#e': [channelId], since: now() });
 
 		if (metadataSubscription !== undefined) {
 			console.debug('[channel page already subscribe metadata]');
-			return;
+		} else {
+			metadataSubscription = rxNostr
+				.use(metadataReq.pipe(bufferTime(1000), batch()))
+				.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
+				.subscribe(async (packet) => {
+					const metadata = new Metadata(packet.event);
+					console.log('[channel related metadata]', packet, metadata.content?.name);
+					const user = {
+						...metadata.content,
+						zapEndpoint: (await metadata.zapUrl())?.href ?? null
+					} as User;
+					for (const event of events) {
+						if (event.pubkey !== packet.event.pubkey) {
+							continue;
+						}
+						event.user = user;
+					}
+					events = events;
+
+					const cache = metadataEvents.get(packet.event.pubkey);
+					if (cache === undefined || cache.created_at < packet.event.created_at) {
+						metadataEvents.set(packet.event.pubkey, packet.event);
+					}
+				});
 		}
 
-		metadataSubscription = rxNostr
-			.use(metadataReq.pipe(bufferTime(1000), batch()))
-			.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
-			.subscribe(async (packet) => {
-				const metadata = new Metadata(packet.event);
-				console.log('[channel related metadata]', packet, metadata.content?.name);
-				const user = {
-					...metadata.content,
-					zapEndpoint: (await metadata.zapUrl())?.href ?? null
-				} as User;
-				for (const event of events) {
-					if (event.pubkey !== packet.event.pubkey) {
-						continue;
-					}
-					event.user = user;
-				}
-				events = events;
-
-				const cache = metadataEvents.get(packet.event.pubkey);
-				if (cache === undefined || cache.created_at < packet.event.created_at) {
-					metadataEvents.set(packet.event.pubkey, packet.event);
-				}
-			});
+		await load();
 	});
 
 	beforeNavigate(() => {
@@ -178,6 +176,65 @@
 		console.log('[channel page on destroy]', slug);
 		rxNostr.dispose();
 	});
+
+	async function load() {
+		console.log('[channel page load]', slug, channelId);
+		if (channelId === undefined) {
+			return;
+		}
+
+		const firstLength = events.length;
+		let count = 0;
+		let until =
+			events.length > 0
+				? Math.min(...events.map((event) => event.created_at))
+				: Math.floor(Date.now() / 1000);
+		let seconds = 24 * 60 * 60;
+
+		while (events.length - firstLength < minTimelineLength && count < 10) {
+			const since = until - seconds;
+			const filter = { kinds: [42], '#e': [channelId], until, since };
+			console.debug('[channel messages REQ]', filter);
+			const pastChannelMessageReq = createRxOneshotReq({ filters: filter });
+			const packets = await firstValueFrom(
+				rxNostr.use(pastChannelMessageReq).pipe(
+					uniq(),
+					tap(({ event }: { event: Event }) => {
+						metadataReq.emit({
+							kinds: [0],
+							authors: [event.pubkey],
+							limit: 1
+						});
+					}),
+					toArray()
+				)
+			);
+			console.debug('[channel messages]', packets);
+			packets.sort((x, y) => y.event.created_at - x.event.created_at);
+			events.push(
+				...packets
+					.filter(({ event }) => event.created_at < until)
+					.map(({ event }) => {
+						const metadataEvent = metadataEvents.get(event.pubkey);
+						if (metadataEvent !== undefined) {
+							const metadata = new Metadata(metadataEvent);
+							return {
+								...event,
+								user: metadata.content
+							} as ExtendedEvent;
+						} else {
+							return event as ExtendedEvent;
+						}
+					})
+			);
+			events = events;
+
+			until -= seconds;
+			seconds *= 2;
+			count++;
+			console.log('[channel load]', count, until, seconds / 3600, events.length);
+		}
+	}
 </script>
 
 <h1>{channelMetadata?.name ?? ''}</h1>
@@ -188,7 +245,7 @@
 	</div>
 {/if}
 
-<TimelineView {events} load={async () => console.debug()} showLoading={false} />
+<TimelineView {events} {load} />
 
 <style>
 	h1 {
