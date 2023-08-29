@@ -10,11 +10,12 @@
 		now,
 		uniq
 	} from 'rx-nostr';
-	import { tap, bufferTime } from 'rxjs';
-	import { onDestroy, onMount } from 'svelte';
+	import { tap, bufferTime, Subscription } from 'rxjs';
+	import { onDestroy } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
+	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { cachedEvents, channelMetadataEvents, metadataEvents } from '$lib/cache/Events';
 	import { Channel } from '$lib/Channel';
 	import type { ChannelMetadata } from '$lib/Types';
@@ -24,7 +25,7 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import { Metadata } from '$lib/Items';
 
-	const slug = $page.params.nevent;
+	let slug = $page.params.nevent;
 	let channelId: string;
 	// let author: string | undefined;
 	let relays: string[];
@@ -32,9 +33,14 @@
 	let kind41Event: Event | undefined;
 	let channelMetadata: ChannelMetadata | undefined;
 
+	let channelMessageSubscription: Subscription | undefined;
+	let metadataSubscription: Subscription | undefined;
+
 	$: console.log('[channel metadata]', channelMetadata);
-	$: {
-		const { data, type } = nip19.decode(slug);
+
+	function updateChannelMetadata(): void {
+		console.log('[channel metadata update]', slug);
+		const { type, data } = nip19.decode(slug);
 		if (type !== 'nevent') {
 			console.error('[channel page decode error]', slug);
 			throw error(404);
@@ -59,12 +65,16 @@
 	}
 
 	const rxNostr = createRxNostr();
+	const metadataReq = createRxBackwardReq();
 
 	let events: ExtendedEvent[] = [];
 
-	onMount(async () => {
-		console.log('[channel page on mount]', slug, channelId);
+	afterNavigate(async () => {
+		slug = $page.params.nevent;
+		console.log('[channel page after navigate]', slug, channelId);
+		updateChannelMetadata();
 		await rxNostr.switchRelays([...$readRelays, ...relays]);
+		console.log('[channel relays]', rxNostr.getRelays());
 
 		const kind40Filter = {
 			kinds: [40],
@@ -92,9 +102,8 @@
 			});
 
 		const channelMessageReq = createRxForwardReq();
-		const metadataReq = createRxBackwardReq();
 
-		rxNostr
+		channelMessageSubscription = rxNostr
 			.use(channelMessageReq)
 			.pipe(
 				uniq(),
@@ -129,7 +138,12 @@
 
 		channelMessageReq.emit({ kinds: [42], '#e': [channelId], since: now() - 24 * 60 * 60 });
 
-		rxNostr
+		if (metadataSubscription !== undefined) {
+			console.debug('[channel page already subscribe metadata]');
+			return;
+		}
+
+		metadataSubscription = rxNostr
 			.use(metadataReq.pipe(bufferTime(1000), batch()))
 			.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
 			.subscribe(async (packet) => {
@@ -152,6 +166,12 @@
 					metadataEvents.set(packet.event.pubkey, packet.event);
 				}
 			});
+	});
+
+	beforeNavigate(() => {
+		console.log('[channel page before navigate]', slug, channelId);
+		channelMessageSubscription?.unsubscribe();
+		events = [];
 	});
 
 	onDestroy(() => {
