@@ -45,7 +45,11 @@
 			<img src={channelMetadata.picture} alt="" />
 		{/if}
 		<div class="channel">
-			<h1><a href="/channels/{event.id}">{channelMetadata?.name ?? ''}</a></h1>
+			<h1>
+				<a href="/channels/{nip19.neventEncode({ id: event.id })}">
+					{channelMetadata?.name ?? ''}
+				</a>
+			</h1>
 			{#if channelMetadata?.about !== undefined}
 				<p class="about">{channelMetadata.about}</p>
 			{/if}
