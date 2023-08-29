@@ -7,6 +7,7 @@ import { EventItem } from './Items';
 import { Content } from './Content';
 import { Signer } from './Signer';
 import { channelMetadataEvents } from './cache/Events';
+import { cachedEvents as newCachedEvents } from './cache/Events';
 
 export class Api {
 	public static readonly replaceableKinds = [
@@ -339,13 +340,23 @@ export class Api {
 		return Array.from(new Set(events.map((x) => x.pubkey)));
 	}
 
+	/**
+	 * @param id kind 40 id
+	 * @returns kind 40 or 41 event
+	 */
 	async fetchChannelMetadataEvent(id: string): Promise<Event | undefined> {
-		const cache = channelMetadataEvents.get(id);
+		const cache = channelMetadataEvents.get(id) ?? newCachedEvents.get(id);
 		if (cache !== undefined) {
+			console.debug('[channel metadata events cache]', cache);
 			return cache;
 		}
 
 		const events = await this.pool.list(this.relays, [
+			{
+				kinds: [Kind.ChannelCreation],
+				ids: [id],
+				limit: 1
+			},
 			{
 				kinds: [Kind.ChannelMetadata],
 				'#e': [id],
@@ -356,7 +367,13 @@ export class Api {
 		console.debug('[channel metadata events]', events);
 		const event = events.at(0);
 		if (event !== undefined) {
-			channelMetadataEvents.set(id, event);
+			if (event.kind === Kind.ChannelCreation) {
+				newCachedEvents.set(id, event);
+			} else if (event.kind === Kind.ChannelMetadata) {
+				channelMetadataEvents.set(id, event);
+			} else {
+				console.error('[channel metadata logic error]', event);
+			}
 		}
 		return event;
 	}
