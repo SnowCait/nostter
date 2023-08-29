@@ -9,7 +9,7 @@
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
-	import type { ChannelMetadata, Event } from '../types';
+	import type { Event } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
 	import {
@@ -31,6 +31,7 @@
 	import { getCodePoints } from '$lib/String';
 	import { isReply } from '$lib/EventHelper';
 	import UserStatus from '../parts/UserStatus.svelte';
+	import { Channel } from '$lib/Channel';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -50,7 +51,6 @@
 	let replyToNames: string[] = [];
 	let channelId: string | undefined;
 	let channelName: string | undefined;
-	let channelMetadata: ChannelMetadata | undefined;
 	const originalEvent = Object.assign({}, event) as any;
 	delete originalEvent.user;
 	const originalUser = Object.assign({}, event.user) as any;
@@ -234,8 +234,7 @@
 			if (channelMetadataEvent === undefined) {
 				return;
 			}
-			channelMetadata = JSON.parse(channelMetadataEvent.content);
-			channelName = channelMetadata?.name;
+			channelName = Channel.parseMetadata(channelMetadataEvent)?.name;
 		}
 	});
 </script>

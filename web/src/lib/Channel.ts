@@ -6,7 +6,7 @@ export class Channel {
 		try {
 			return JSON.parse(event.content);
 		} catch (error) {
-			console.error('[channel metadata parse error]', error);
+			console.error('[channel metadata parse error]', error, event);
 		}
 	}
 }
