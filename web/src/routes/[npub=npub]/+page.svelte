@@ -182,6 +182,9 @@
 	<div>
 		<a href="/{slug}/timeline">Timeline</a>
 	</div>
+	<div>
+		<a href="/{slug}/pins">PINs</a>
+	</div>
 	{#if pubkey === $authorPubkey}
 		<div>
 			<a href="/{slug}/reactions">Reactions</a>
