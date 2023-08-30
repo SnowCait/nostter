@@ -72,6 +72,62 @@
 		});
 	}
 
+	async function unpin() {
+		console.log('[channel unpin]', channelId);
+
+		pinned = false;
+
+		await rxNostr.switchRelays($writeRelays);
+		const pinReq = createRxOneshotReq({
+			filters: { kinds: [10001], authors: [$pubkey], limit: 1 }
+		});
+		let event: EventTemplate;
+		try {
+			const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(latest()));
+			console.log('[channel pin latest]', packet);
+
+			if (
+				!packet.event.tags.some(
+					([tagName, id]: [string, string]) => tagName === 'e' && id === channelId
+				)
+			) {
+				console.log('[channel unpin already]', packet.event);
+				return;
+			}
+
+			// Save kind 10001 with new created_at even if empty tags because kind 5 may remain outdated kind 10001
+			event = {
+				kind: packet.event.kind,
+				content: packet.event.content,
+				tags: packet.event.tags.filter(
+					([tagName, id]: [string, string]) => !(tagName === 'e' && id === channelId)
+				),
+				created_at: now()
+			};
+		} catch (error) {
+			if (error instanceof EmptyError) {
+				console.log('[channel unpin already]', error);
+				return;
+			} else {
+				pinned = true;
+				throw error;
+			}
+		}
+
+		console.log('[channel unpin event]', event);
+		const observable = rxNostr.send(await Signer.signEvent(event));
+		observable.subscribe((packet) => {
+			console.log('[send]', packet);
+		});
+		observable.pipe(every((packet) => !packet.ok)).subscribe((failed) => {
+			console.log('[channel pinned]', !failed);
+			if (failed) {
+				console.error('[channel unpin failed]');
+				pinned = true;
+			}
+		});
+	}
+
 	onDestroy(async () => {
 		console.log('[channel pin on destroy]');
 		rxNostr.dispose();
@@ -79,7 +135,7 @@
 </script>
 
 {#if pinned}
-	<button class="clear" on:click={pin}><IconPinnedFilled /></button>
+	<button class="clear" on:click={unpin}><IconPinnedFilled /></button>
 {:else}
 	<button class="clear" on:click={pin}><IconPin /></button>
 {/if}
