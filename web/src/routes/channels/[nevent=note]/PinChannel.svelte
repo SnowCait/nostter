@@ -7,10 +7,14 @@
 	import { pubkey, writeRelays } from '../../../stores/Author';
 	import IconPin from '@tabler/icons-svelte/dist/svelte/icons/IconPin.svelte';
 	import IconPinnedFilled from '@tabler/icons-svelte/dist/svelte/icons/IconPinnedFilled.svelte';
+	import { authorReplaceableEvents } from '$lib/cache/Events';
 
 	export let channelId: string;
 
-	let pinned = false;
+	$: pinned =
+		authorReplaceableEvents
+			.get(10001)
+			?.tags.some(([tagName, id]) => tagName === 'e' && id === channelId) ?? false;
 
 	const rxNostr = createRxNostr();
 

@@ -37,6 +37,7 @@
 	import { batch, createRxForwardReq, createRxNostr, latestEach } from 'rx-nostr';
 	import { bufferTime } from 'rxjs';
 	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
+	import { authorReplaceableEvents } from '$lib/cache/Events';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -142,7 +143,7 @@
 				since
 			},
 			{
-				kinds: [Kind.Reaction, 10000, Kind.RelayList, 10030, 30000],
+				kinds: [Kind.Reaction, 10000, 10001, Kind.RelayList, 10030, 30000],
 				authors: [$pubkey],
 				since
 			},
@@ -165,6 +166,11 @@
 			if (event.kind === 10000) {
 				console.log('[mute list]', event, $pool.seenOn(event.id));
 				await new Mute($pubkey, $pool, $writeRelays).update(event);
+				return;
+			}
+
+			if (event.kind === 10001) {
+				authorReplaceableEvents.set(event.kind, event);
 				return;
 			}
 

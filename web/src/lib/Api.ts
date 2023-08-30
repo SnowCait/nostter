@@ -6,7 +6,7 @@ import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { EventItem } from './Items';
 import { Content } from './Content';
 import { Signer } from './Signer';
-import { channelMetadataEvents } from './cache/Events';
+import { authorReplaceableEvents, channelMetadataEvents } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 
 export class Api {
@@ -15,6 +15,7 @@ export class Api {
 		Kind.RecommendRelay,
 		Kind.Contacts,
 		10000,
+		10001,
 		Kind.RelayList,
 		10030
 	];
@@ -67,6 +68,9 @@ export class Api {
 				.filter((x): x is [string, Event] => x !== null)
 		);
 		console.log('[author events]', replaceableEvents, parameterizedReplaceableEvents);
+		for (const [kind, event] of [...replaceableEvents]) {
+			authorReplaceableEvents.set(kind, event);
+		}
 		return { replaceableEvents, parameterizedReplaceableEvents };
 	}
 
