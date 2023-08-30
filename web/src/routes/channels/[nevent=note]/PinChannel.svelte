@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createRxNostr, createRxOneshotReq, latest, now } from 'rx-nostr';
-	import { firstValueFrom, EmptyError } from 'rxjs';
+	import { every, firstValueFrom, EmptyError } from 'rxjs';
 	import { onDestroy } from 'svelte';
 	import type { Kind, EventTemplate } from 'nostr-tools';
 	import { Signer } from '$lib/Signer';
@@ -59,8 +59,16 @@
 		}
 
 		console.log('[channel pin event]', event);
-		rxNostr.send(await Signer.signEvent(event)).subscribe((packet) => {
+		const observable = rxNostr.send(await Signer.signEvent(event));
+		observable.subscribe((packet) => {
 			console.log('[send]', packet);
+		});
+		observable.pipe(every((packet) => !packet.ok)).subscribe((failed) => {
+			console.log('[channel pinned]', !failed);
+			if (failed) {
+				console.error('[channel pin failed]');
+				pinned = false;
+			}
 		});
 	}
 
