@@ -1,0 +1,77 @@
+<script lang="ts">
+	import { createRxNostr, createRxOneshotReq, latest, now } from 'rx-nostr';
+	import { firstValueFrom, EmptyError } from 'rxjs';
+	import { onDestroy } from 'svelte';
+	import type { Kind, EventTemplate } from 'nostr-tools';
+	import { Signer } from '$lib/Signer';
+	import { pubkey, writeRelays } from '../../../stores/Author';
+	import IconPin from '@tabler/icons-svelte/dist/svelte/icons/IconPin.svelte';
+	import IconPinnedFilled from '@tabler/icons-svelte/dist/svelte/icons/IconPinnedFilled.svelte';
+
+	export let channelId: string;
+
+	let pinned = false;
+
+	const rxNostr = createRxNostr();
+
+	async function pin() {
+		console.log('[channel pin]', channelId);
+
+		pinned = true;
+
+		await rxNostr.switchRelays($writeRelays);
+		const pinReq = createRxOneshotReq({
+			filters: { kinds: [10001], authors: [$pubkey], limit: 1 }
+		});
+		let event: EventTemplate;
+		try {
+			const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(latest()));
+			console.log('[channel pin latest]', packet);
+
+			if (
+				packet.event.tags.some(
+					([tagName, id]: [string, string]) => tagName === 'e' && id === channelId
+				)
+			) {
+				console.log('[channel pin already]', packet.event);
+				return;
+			}
+
+			event = {
+				kind: packet.event.kind,
+				content: packet.event.content,
+				tags: [...packet.event.tags, ['e', channelId]],
+				created_at: now()
+			};
+		} catch (error) {
+			if (error instanceof EmptyError) {
+				console.log('[channel pin not found]', error);
+				event = {
+					kind: 10001 as Kind,
+					content: '',
+					tags: [['e', channelId]],
+					created_at: now()
+				};
+			} else {
+				pinned = false;
+				throw error;
+			}
+		}
+
+		console.log('[channel pin event]', event);
+		rxNostr.send(await Signer.signEvent(event)).subscribe((packet) => {
+			console.log('[send]', packet);
+		});
+	}
+
+	onDestroy(async () => {
+		console.log('[channel pin on destroy]');
+		rxNostr.dispose();
+	});
+</script>
+
+{#if pinned}
+	<button class="clear" on:click={pin}><IconPinnedFilled /></button>
+{:else}
+	<button class="clear" on:click={pin}><IconPin /></button>
+{/if}

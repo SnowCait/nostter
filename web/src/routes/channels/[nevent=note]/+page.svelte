@@ -20,12 +20,13 @@
 	import { cachedEvents, channelMetadataEvents, metadataEvents } from '$lib/cache/Events';
 	import { Channel } from '$lib/Channel';
 	import type { ChannelMetadata } from '$lib/Types';
-	import { readRelays } from '../../../stores/Author';
+	import { author, readRelays } from '../../../stores/Author';
 	import type { Event as ExtendedEvent, User } from '../../types';
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
 	import { Metadata } from '$lib/Items';
 	import { minTimelineLength } from '$lib/Constants';
+	import PinChannel from './PinChannel.svelte';
 
 	let slug = $page.params.nevent;
 	let channelId: string;
@@ -237,7 +238,12 @@
 	}
 </script>
 
-<h1>{channelMetadata?.name ?? ''}</h1>
+<header>
+	<h1>{channelMetadata?.name ?? ''}</h1>
+	{#if $author !== undefined}
+		<div class="pin"><PinChannel {channelId} /></div>
+	{/if}
+</header>
 <div class="channel-id">ID: {channelId}</div>
 {#if channelMetadata?.about}
 	<div class="channel-about">
@@ -248,12 +254,16 @@
 <TimelineView {events} {load} />
 
 <style>
-	h1 {
+	header {
 		position: sticky;
 		top: 0;
 		background-color: white;
 		margin: 0;
 		padding: 0.5rem 1rem;
+
+		display: flex;
+		flex-direction: row;
+		align-items: center;
 	}
 
 	div {
