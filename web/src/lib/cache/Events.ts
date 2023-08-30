@@ -9,4 +9,4 @@ export const cachedEvents = new Map<id, Event>();
 export const metadataEvents = new Map<pubkey, Event>();
 // <root-id, event>
 export const channelMetadataEvents = new Map<id, Event>();
-export let authorReplaceableEvents = new Map<kind, Event>();
+export const authorReplaceableEvents = new Map<kind, Event>();
