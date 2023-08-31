@@ -40,7 +40,7 @@ export class Contacts {
 		await this.api.signAndPublish(
 			Kind.Contacts,
 			contacts.content,
-			contacts.tags.filter(([tagName, p]) => tagName === 'p' && p !== pubkey)
+			contacts.tags.filter(([tagName, p]) => !(tagName === 'p' && p === pubkey))
 		);
 	}
 
