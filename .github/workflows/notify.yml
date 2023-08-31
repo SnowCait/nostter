@@ -19,4 +19,14 @@ jobs:
             #nostter ${{ github.event.pull_request.title }} 
             ${{ github.event.pull_request.html_url }}
           tags: |
-            - ["t", "nostter"]          
+            - ["t", "nostter"]
+      - uses: snow-actions/nostr@v1.6.0
+        with:
+          relays: ${{ vars.NOSTR_RELAYS }}
+          private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
+          content: |
+            #nostter ${{ github.event.pull_request.title }}
+          tags: |
+            - ["d", "general"]
+            - ["t", "nostter"]
+            - ["r", "${{ github.event.pull_request.html_url }}"]
