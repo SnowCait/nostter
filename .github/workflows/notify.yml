@@ -20,10 +20,16 @@ jobs:
             ${{ github.event.pull_request.html_url }}
           tags: |
             - ["t", "nostter"]
+  user-status:
+    if: ${{ github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
       - uses: snow-actions/nostr@v1.6.0
         with:
           relays: ${{ vars.NOSTR_RELAYS }}
           private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
+          kind: 30315
           content: |
             #nostter ${{ github.event.pull_request.title }}
           tags: |
