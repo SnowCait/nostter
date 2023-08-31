@@ -5,7 +5,7 @@
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
 	import { pool } from '../../stores/Pool';
 	import { Api } from '$lib/Api';
-	import { defaultRelays } from '../../stores/DefaultRelays';
+	import { defaultRelays } from '$lib/Constants';
 	import { onMount } from 'svelte';
 	import { Content as ContentParser } from '$lib/Content';
 	import Content from '../content/Content.svelte';
@@ -31,7 +31,7 @@
 		const { identifier, kind, pubkey, relays } = pointer;
 		const api = new Api(
 			$pool,
-			relays !== undefined && relays.length > 0 ? relays : $defaultRelays
+			relays !== undefined && relays.length > 0 ? relays : defaultRelays
 		);
 		event = await api.fetchEvent([
 			{

@@ -1,7 +1,6 @@
-import { get } from 'svelte/store';
 import { Kind, type Event, SimplePool } from 'nostr-tools';
 import { Api } from './Api';
-import { defaultRelays } from '../stores/DefaultRelays';
+import { defaultRelays } from './Constants';
 
 export class RelayList {
 	public static async fetchEvents(
@@ -9,8 +8,7 @@ export class RelayList {
 		relays: string[] = []
 	): Promise<Map<Kind, Event>> {
 		const pool = new SimplePool();
-		const $defaultRelays = get(defaultRelays);
-		const api = new Api(pool, Array.from(new Set([...relays, ...$defaultRelays])));
+		const api = new Api(pool, Array.from(new Set([...relays, ...defaultRelays])));
 
 		const saveCache = (events: Map<Kind, Event>, cachedEvents: Map<Kind, Event>): void => {
 			// Save cache

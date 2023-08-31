@@ -1,7 +1,7 @@
 import { get } from 'svelte/store';
 import { author, loginType, pubkey, rom } from '../stores/Author';
 import { Signer } from './Signer';
-import { defaultRelays } from '../stores/DefaultRelays';
+import { defaultRelays } from './Constants';
 import { Author } from './Author';
 import { generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
 
@@ -61,7 +61,7 @@ export class Login {
 
 		console.timeLog('NIP-07');
 
-		const profileRelays = new Set([...Object.keys(nip07Relays), ...get(defaultRelays)]);
+		const profileRelays = new Set([...Object.keys(nip07Relays), ...defaultRelays]);
 		console.log('[relays for profile]', profileRelays);
 
 		await this.fetchAuthor(Array.from(profileRelays));
@@ -80,7 +80,7 @@ export class Login {
 
 		loginType.set('nsec');
 		pubkey.set(getPublicKey(seckey));
-		await this.fetchAuthor(get(defaultRelays));
+		await this.fetchAuthor(defaultRelays);
 	}
 
 	public async withNpub(key: string) {
@@ -97,7 +97,7 @@ export class Login {
 		loginType.set('npub');
 		pubkey.set(data);
 		rom.set(true);
-		await this.fetchAuthor(get(defaultRelays));
+		await this.fetchAuthor(defaultRelays);
 	}
 
 	private async fetchAuthor(relays: string[]) {

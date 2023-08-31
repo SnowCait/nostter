@@ -1,11 +1,10 @@
 import { get, writable, type Writable } from 'svelte/store';
 import type { User } from '../routes/types';
 import type { Event } from 'nostr-tools';
-import { defaultRelays } from './DefaultRelays';
+import { defaultRelays } from '$lib/Constants';
 import type { Author } from '$lib/Author';
 import { filterRelayTags } from '$lib/EventHelper';
 
-const $defaultRelays = get(defaultRelays);
 export const loginType: Writable<'NIP-07' | 'nsec' | 'npub'> = writable();
 export const pubkey = writable('');
 export const author: Writable<Author | undefined> = writable();
@@ -17,8 +16,8 @@ export const mutePubkeys: Writable<string[]> = writable([]);
 export const muteEventIds: Writable<string[]> = writable([]);
 export const muteWords: Writable<string[]> = writable([]);
 export const pinNotes: Writable<string[]> = writable([]);
-export const readRelays: Writable<string[]> = writable($defaultRelays);
-export const writeRelays: Writable<string[]> = writable($defaultRelays);
+export const readRelays: Writable<string[]> = writable(defaultRelays);
+export const writeRelays: Writable<string[]> = writable(defaultRelays);
 export const rom = writable(false);
 export const bookmarkEvent: Writable<Event | undefined> = writable();
 

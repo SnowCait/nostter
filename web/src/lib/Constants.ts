@@ -10,6 +10,16 @@ export const notFoundImageUrl =
 
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
 
+export const defaultRelays = [
+	'wss://nos.lol',
+	'wss://relay.damus.io',
+	'wss://relay-jp.nostr.wirednet.jp',
+	'wss://nostr-relay.nokotaro.com',
+	'wss://nostr.holybea.com',
+	'wss://nostr.fediverse.jp',
+	'wss://yabu.me'
+];
+
 export const searchRelays = [
 	'wss://relay.nostr.band',
 	'wss://search.nos.today',
