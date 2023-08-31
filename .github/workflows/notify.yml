@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - run: echo "expiration=$(date +%s --date '12 hours')" >> $GITHUB_ENV
       - uses: snow-actions/nostr@v1.6.0
         with:
           relays: ${{ vars.NOSTR_RELAYS }}
@@ -36,3 +37,4 @@ jobs:
             - ["d", "general"]
             - ["t", "nostter"]
             - ["r", "${{ github.event.pull_request.html_url }}"]
+            - ["expiration", "${{ env.expiration }}"]
