@@ -15,14 +15,22 @@
 	}
 </script>
 
-{#if generalEvent !== undefined && generalEvent.content !== ''}
-	<div><IconUser size={14} />{generalEvent.content}</div>
-{/if}
-{#if musicEvent !== undefined && musicEvent.content !== ''}
-	<div><IconMusic size={14} />{musicEvent.content}</div>
-{/if}
+<section>
+	{#if generalEvent !== undefined && generalEvent.content !== ''}
+		<div><IconUser size={14} />{generalEvent.content}</div>
+	{/if}
+	{#if musicEvent !== undefined && musicEvent.content !== ''}
+		<div><IconMusic size={14} />{musicEvent.content}</div>
+	{/if}
+</section>
 
 <style>
+	section {
+		/* Workaround for unnecessary space */
+		display: flex;
+		flex-direction: column;
+	}
+
 	div {
 		color: gray;
 		font-size: 0.7rem;
