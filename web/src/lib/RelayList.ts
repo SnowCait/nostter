@@ -3,7 +3,7 @@ import { Kind, type Event, SimplePool } from 'nostr-tools';
 import { Api } from './Api';
 import { defaultRelays } from '../stores/DefaultRelays';
 
-export class RelaysFetcher {
+export class RelayList {
 	public static async fetchEvents(
 		pubkey: string,
 		relays: string[] = []

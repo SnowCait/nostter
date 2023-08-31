@@ -12,7 +12,7 @@ import {
 	metadataEvent,
 	bookmarkEvent
 } from '../stores/Author';
-import { RelaysFetcher } from './RelaysFetcher';
+import { RelayList } from './RelayList';
 import { filterTags, parseRelayJson } from './EventHelper';
 import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
 import { reactionEmoji } from '../stores/Preference';
@@ -34,7 +34,7 @@ export class Author {
 	}
 
 	public async fetchRelays(relays: string[]) {
-		const relayEvents = await RelaysFetcher.fetchEvents(this.pubkey, relays);
+		const relayEvents = await RelayList.fetchEvents(this.pubkey, relays);
 		console.log('[relay events]', relayEvents);
 
 		this.saveRelays(relayEvents);
