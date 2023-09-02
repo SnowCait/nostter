@@ -18,7 +18,7 @@
 	import { page } from '$app/stores';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { cachedEvents, channelMetadataEvents, metadataEvents } from '$lib/cache/Events';
-	import { Channel } from '$lib/Channel';
+	import { Channel, channelIdForPublishing } from '$lib/Channel';
 	import type { ChannelMetadata } from '$lib/Types';
 	import { author, readRelays } from '../../../stores/Author';
 	import type { Event as ExtendedEvent, User } from '../../types';
@@ -53,6 +53,8 @@
 		channelId = pointer.id;
 		// author = pointer.author;
 		relays = pointer.relays ?? [];
+
+		$channelIdForPublishing = channelId;
 
 		kind40Event = cachedEvents.get(channelId);
 		console.log('[channel metadata cache 40]', kind40Event);
@@ -176,6 +178,7 @@
 	onDestroy(() => {
 		console.log('[channel page on destroy]', slug);
 		rxNostr.dispose();
+		$channelIdForPublishing = undefined;
 	});
 
 	async function load() {
