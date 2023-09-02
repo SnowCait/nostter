@@ -54,12 +54,11 @@
 		// author = pointer.author;
 		relays = pointer.relays ?? [];
 
-		$channelIdForPublishing = channelId;
-
 		kind40Event = cachedEvents.get(channelId);
 		console.log('[channel metadata cache 40]', kind40Event);
 		if (kind40Event !== undefined) {
 			channelMetadata = Channel.parseMetadata(kind40Event);
+			$channelIdForPublishing = channelId;
 		}
 
 		kind41Event = channelMetadataEvents.get(channelId);
@@ -103,6 +102,7 @@
 					channelMetadataEvents.set(channelId, packet.event);
 				} else {
 					cachedEvents.set(packet.event.id, packet.event);
+					$channelIdForPublishing = channelId;
 				}
 			});
 
