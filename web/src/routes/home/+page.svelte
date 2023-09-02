@@ -414,7 +414,10 @@
 				console.log('[user status]', packet, packet.event.pubkey, packet.event.content);
 				const tags: string[][] = packet.event.tags;
 				const expiration = tags.find(([tagName]) => tagName === 'expiration')?.at(1);
-				if (expiration !== undefined && Number(expiration) < Math.floor(Date.now() / 1000)) {
+				if (
+					expiration !== undefined &&
+					Number(expiration) < Math.floor(Date.now() / 1000)
+				) {
 					return;
 				}
 				const identifier = tags.find(([tagName]) => tagName === 'd')?.at(1) ?? '';
