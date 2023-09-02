@@ -6,12 +6,15 @@
 	import IconSend from '@tabler/icons-svelte/dist/svelte/icons/IconSend.svelte';
 	import { Api } from '$lib/Api';
 	import { Content } from '$lib/Content';
-	import { Kind, nip19 } from 'nostr-tools';
+	import { Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
 	import type { ProfilePointer } from 'nostr-tools/lib/nip19';
 	import { userEvents } from '../stores/UserEvents';
 	import type { UserEvent, User } from './types';
 	import { customEmojiTags } from '../stores/CustomEmojis';
 	import { onMount, tick } from 'svelte';
+	import { channelIdForPublishing } from '$lib/Channel';
+	import { cachedEvents } from '$lib/cache/Events';
+	import Channel from './timeline/Channel.svelte';
 
 	let content = '';
 	let posting = false;
@@ -23,6 +26,15 @@
 	let complementUserEvents: UserEvent[] = [];
 	let selectedCustomEmojis = new Map<string, string>();
 	let autocompleting = false;
+	let channelEvent: NostrEvent | undefined;
+
+	channelIdForPublishing.subscribe((channelId) => {
+		if (channelId !== undefined) {
+			channelEvent = cachedEvents.get(channelId);
+		} else {
+			channelEvent = undefined;
+		}
+	});
 
 	onMount(async () => {
 		const { default: Tribute } = await import('tributejs');
@@ -250,7 +262,9 @@
 		posting = true;
 
 		let tags: string[][] = [];
-		if ($replyTo !== undefined) {
+		if ($channelIdForPublishing) {
+			tags.push(['e', $channelIdForPublishing, '', 'root']);
+		} else if ($replyTo !== undefined) {
 			if ($replyTo.tags.filter((x) => x[0] === 'e').length === 0) {
 				// root
 				tags.push(['e', $replyTo.id, '', 'root']);
@@ -370,7 +384,11 @@
 
 		const api = new Api($pool, $writeRelays);
 		try {
-			await api.signAndPublish(Kind.Text, Content.replaceNip19(content), tags);
+			await api.signAndPublish(
+				$channelIdForPublishing === undefined ? Kind.Text : Kind.ChannelMessage,
+				Content.replaceNip19(content),
+				tags
+			);
 			console.log('[success]');
 			dialog.close();
 		} catch (error) {
@@ -383,6 +401,9 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog bind:this={dialog} on:click={closeDialog} on:close={closed}>
+	{#if channelEvent !== undefined}
+		<Channel event={channelEvent} />
+	{/if}
 	{#if $replyTo}
 		<Note event={$replyTo} readonly={true} />
 	{/if}
