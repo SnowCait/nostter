@@ -31,7 +31,7 @@
 	import { getCodePoints } from '$lib/String';
 	import { isReply } from '$lib/EventHelper';
 	import UserStatus from '../parts/UserStatus.svelte';
-	import { Channel } from '$lib/Channel';
+	import { Channel, channelIdStore } from '$lib/Channel';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -288,30 +288,13 @@
 				<Content content={event.content} tags={event.tags} />
 			</div>
 		{/if}
-		{#if event.kind === Kind.ChannelMessage && channelId !== undefined}
+		{#if event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdStore === undefined}
 			<div>
 				<IconMessages size={16} color={'gray'} />
 				<span>
 					<a href="/channels/{nip19.neventEncode({ id: channelId })}">
 						{channelName ?? 'Channel'}
 					</a>
-				</span>
-				<span>
-					(Open in <a
-						href="https://garnet.nostrian.net/channels/{channelId}"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						GARNET
-					</a>
-					or
-					<a
-						href="https://www.nostrchat.io/channel/{channelId}"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						NostrChat
-					</a>)
 				</span>
 			</div>
 		{/if}

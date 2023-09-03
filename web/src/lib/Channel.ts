@@ -2,7 +2,7 @@ import type { Event } from 'nostr-tools';
 import type { ChannelMetadata } from './Types';
 import { writable, type Writable } from 'svelte/store';
 
-export const channelIdForPublishing: Writable<string | undefined> = writable();
+export const channelIdStore: Writable<string | undefined> = writable();
 
 export class Channel {
 	static parseMetadata(event: Event): ChannelMetadata | undefined {
