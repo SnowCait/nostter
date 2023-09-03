@@ -12,9 +12,9 @@
 	import type { UserEvent, User } from './types';
 	import { customEmojiTags } from '../stores/CustomEmojis';
 	import { onMount, tick } from 'svelte';
-	import { channelIdForPublishing } from '$lib/Channel';
-	import { cachedEvents } from '$lib/cache/Events';
-	import Channel from './timeline/Channel.svelte';
+	import { Channel, channelIdForPublishing } from '$lib/Channel';
+	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
+	import ChannelTitle from './parts/ChannelTitle.svelte';
 
 	let content = '';
 	let posting = false;
@@ -30,7 +30,7 @@
 
 	channelIdForPublishing.subscribe((channelId) => {
 		if (channelId !== undefined) {
-			channelEvent = cachedEvents.get(channelId);
+			channelEvent = channelMetadataEvents.get(channelId) ?? cachedEvents.get(channelId);
 		} else {
 			channelEvent = undefined;
 		}
@@ -402,7 +402,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog bind:this={dialog} on:click={closeDialog} on:close={closed}>
 	{#if channelEvent !== undefined}
-		<Channel event={channelEvent} />
+		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
 	{/if}
 	{#if $replyTo}
 		<Note event={$replyTo} readonly={true} />
