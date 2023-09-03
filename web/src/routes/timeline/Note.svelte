@@ -301,7 +301,7 @@
 		{#if !readonly}
 			<div class="action-menu">
 				<button
-					class:hidden={event.kind === 42 || event.kind === Kind.EncryptedDirectMessage}
+					class:hidden={event.kind === Kind.EncryptedDirectMessage}
 					on:click={() => reply(event)}
 				>
 					<IconMessageCircle2 size={iconSize} />
