@@ -315,7 +315,7 @@
 					<IconRepeat size={iconSize} />
 				</button>
 				<button
-					class:hidden={event.kind === 42 || event.kind === Kind.EncryptedDirectMessage}
+					class:hidden={event.kind === Kind.EncryptedDirectMessage}
 					on:click={() => quote(event)}
 				>
 					<IconQuote size={iconSize} />
