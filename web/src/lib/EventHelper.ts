@@ -1,11 +1,18 @@
 import type { Event } from 'nostr-tools';
 
-export function isReply(tags: string[][]): boolean {
-	if (!tags.some(([tagName]) => tagName === 'p')) {
+export function isReply(event: Event): boolean {
+	if (!event.tags.some(([tagName]) => tagName === 'p')) {
 		return false;
 	}
 
-	return tags.some(
+	if (
+		event.kind === 42 &&
+		!event.tags.some(([tagName, , , marker]) => tagName === 'e' && marker !== 'root')
+	) {
+		return false;
+	}
+
+	return event.tags.some(
 		([tagName, , , marker]) =>
 			tagName === 'e' && (marker === 'reply' || marker === 'root' || marker === undefined)
 	);

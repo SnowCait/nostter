@@ -263,7 +263,7 @@
 		<div class="user-status">
 			<UserStatus pubkey={event.pubkey} />
 		</div>
-		{#if isReply(event.tags)}
+		{#if isReply(event)}
 			<div class="reply">
 				<span>To</span>
 				<span>@{replyToNames.join(' @')}</span>
