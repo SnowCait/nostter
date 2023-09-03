@@ -278,7 +278,9 @@
 				Coracle
 			</a>
 			<a
-				href="https://unyu-house.vercel.app/channels/{channelId}"
+				href="https://unyu-house.vercel.app/channels/{nip19.neventEncode({
+					id: channelId
+				})}"
 				target="_blank"
 				rel="noopener noreferrer"
 			>
