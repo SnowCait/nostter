@@ -15,6 +15,7 @@
 	import { onDestroy } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
 	import { error } from '@sveltejs/kit';
+	import IconInfoCircle from '@tabler/icons-svelte/dist/svelte/icons/IconInfoCircle.svelte';
 	import { page } from '$app/stores';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { cachedEvents, channelMetadataEvents, metadataEvents } from '$lib/cache/Events';
@@ -39,6 +40,8 @@
 
 	let channelMessageSubscription: Subscription | undefined;
 	let metadataSubscription: Subscription | undefined;
+
+	let showInformation = false;
 
 	$: console.log('[channel metadata]', channelMetadata);
 
@@ -244,35 +247,47 @@
 
 <header>
 	<h1><ChannelTitle {channelMetadata} /></h1>
+	<div>
+		<button
+			class="clear"
+			on:click={() => {
+				showInformation = !showInformation;
+			}}
+		>
+			<IconInfoCircle />
+		</button>
+	</div>
 	{#if $author !== undefined}
 		<div class="pin"><PinChannel {channelId} /></div>
 	{/if}
 </header>
-<section>
-	<div class="channel-id">ID: {channelId}</div>
-	{#if channelMetadata?.about}
-		<div class="channel-about">
-			<Content content={channelMetadata.about} tags={[]} />
+{#if showInformation}
+	<section>
+		<div class="channel-id">ID: {channelId}</div>
+		{#if channelMetadata?.about}
+			<div class="channel-about">
+				<Content content={channelMetadata.about} tags={[]} />
+			</div>
+		{/if}
+		<div class="external-link">
+			Open in <a
+				href="https://garnet.nostrian.net/channels/{channelId}"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				GARNET
+			</a>
+			or
+			<a
+				href="https://www.nostrchat.io/channel/{channelId}"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				NostrChat
+			</a>
 		</div>
-	{/if}
-	<div class="external-link">
-		Open in <a
-			href="https://garnet.nostrian.net/channels/{channelId}"
-			target="_blank"
-			rel="noopener noreferrer"
-		>
-			GARNET
-		</a>
-		or
-		<a
-			href="https://www.nostrchat.io/channel/{channelId}"
-			target="_blank"
-			rel="noopener noreferrer"
-		>
-			NostrChat
-		</a>
-	</div>
-</section>
+	</section>
+{/if}
 
 <TimelineView {events} {load} />
 
