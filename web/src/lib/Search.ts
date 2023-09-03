@@ -34,6 +34,7 @@ export class Search {
 		const keyword = query
 			.replaceAll(fromRegexp, '')
 			.replaceAll(toRegexp, '')
+			.replaceAll(kindRegexp, '')
 			.replaceAll(hashtagsRegexp, '')
 			.trim();
 
