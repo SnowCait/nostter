@@ -400,7 +400,9 @@
 		const api = new Api($pool, $writeRelays);
 		try {
 			await api.signAndPublish(
-				$channelIdStore === undefined ? Kind.Text : Kind.ChannelMessage,
+				$channelIdStore !== undefined || $replyTo?.kind === Kind.ChannelMessage
+					? Kind.ChannelMessage
+					: Kind.Text,
 				Content.replaceNip19(content),
 				tags
 			);
