@@ -271,13 +271,26 @@
 		{/if}
 		<div class="external-link">
 			Open in <a
+				href="https://coracle.social/chat/{nip19.noteEncode(channelId)}"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				Coracle
+			</a>
+			<a
+				href="https://unyu-house.vercel.app/channels/{channelId}"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				うにゅうハウス
+			</a>
+			<a
 				href="https://garnet.nostrian.net/channels/{channelId}"
 				target="_blank"
 				rel="noopener noreferrer"
 			>
 				GARNET
 			</a>
-			or
 			<a
 				href="https://www.nostrchat.io/channel/{channelId}"
 				target="_blank"
