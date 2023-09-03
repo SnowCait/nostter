@@ -12,7 +12,7 @@
 	import type { UserEvent, User } from './types';
 	import { customEmojiTags } from '../stores/CustomEmojis';
 	import { onMount, tick } from 'svelte';
-	import { Channel, channelIdForPublishing } from '$lib/Channel';
+	import { Channel, channelIdStore } from '$lib/Channel';
 	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
 	import ChannelTitle from './parts/ChannelTitle.svelte';
 
@@ -28,7 +28,7 @@
 	let autocompleting = false;
 	let channelEvent: NostrEvent | undefined;
 
-	channelIdForPublishing.subscribe((channelId) => {
+	channelIdStore.subscribe((channelId) => {
 		if (channelId !== undefined) {
 			channelEvent = channelMetadataEvents.get(channelId) ?? cachedEvents.get(channelId);
 		} else {
@@ -262,8 +262,8 @@
 		posting = true;
 
 		let tags: string[][] = [];
-		if ($channelIdForPublishing) {
-			tags.push(['e', $channelIdForPublishing, '', 'root']);
+		if ($channelIdStore) {
+			tags.push(['e', $channelIdStore, '', 'root']);
 		} else if ($replyTo !== undefined) {
 			if ($replyTo.tags.filter((x) => x[0] === 'e').length === 0) {
 				// root
@@ -385,7 +385,7 @@
 		const api = new Api($pool, $writeRelays);
 		try {
 			await api.signAndPublish(
-				$channelIdForPublishing === undefined ? Kind.Text : Kind.ChannelMessage,
+				$channelIdStore === undefined ? Kind.Text : Kind.ChannelMessage,
 				Content.replaceNip19(content),
 				tags
 			);

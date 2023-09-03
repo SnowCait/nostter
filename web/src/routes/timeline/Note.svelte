@@ -31,7 +31,7 @@
 	import { getCodePoints } from '$lib/String';
 	import { isReply } from '$lib/EventHelper';
 	import UserStatus from '../parts/UserStatus.svelte';
-	import { Channel, channelIdForPublishing } from '$lib/Channel';
+	import { Channel, channelIdStore } from '$lib/Channel';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -288,7 +288,7 @@
 				<Content content={event.content} tags={event.tags} />
 			</div>
 		{/if}
-		{#if event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdForPublishing === undefined}
+		{#if event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdStore === undefined}
 			<div>
 				<IconMessages size={16} color={'gray'} />
 				<span>
