@@ -334,7 +334,7 @@
 				</button>
 				<button
 					class="bookmark"
-					class:hidden={event.kind !== Kind.Text}
+					class:hidden={!(event.kind === Kind.Text || event.kind === Kind.ChannelMessage)}
 					class:bookmarked
 					on:click={() => bookmark(event)}
 					on:dblclick={() => removeBookmark(event)}
