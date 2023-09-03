@@ -27,6 +27,7 @@
 	import { Metadata } from '$lib/Items';
 	import { minTimelineLength } from '$lib/Constants';
 	import PinChannel from './PinChannel.svelte';
+	import ChannelTitle from '../../parts/ChannelTitle.svelte';
 
 	let slug = $page.params.nevent;
 	let channelId: string;
@@ -242,17 +243,36 @@
 </script>
 
 <header>
-	<h1>{channelMetadata?.name ?? ''}</h1>
+	<h1><ChannelTitle {channelMetadata} /></h1>
 	{#if $author !== undefined}
 		<div class="pin"><PinChannel {channelId} /></div>
 	{/if}
 </header>
-<div class="channel-id">ID: {channelId}</div>
-{#if channelMetadata?.about}
-	<div class="channel-about">
-		<Content content={channelMetadata.about} tags={[]} />
+<section>
+	<div class="channel-id">ID: {channelId}</div>
+	{#if channelMetadata?.about}
+		<div class="channel-about">
+			<Content content={channelMetadata.about} tags={[]} />
+		</div>
+	{/if}
+	<div class="external-link">
+		Open in <a
+			href="https://garnet.nostrian.net/channels/{channelId}"
+			target="_blank"
+			rel="noopener noreferrer"
+		>
+			GARNET
+		</a>
+		or
+		<a
+			href="https://www.nostrchat.io/channel/{channelId}"
+			target="_blank"
+			rel="noopener noreferrer"
+		>
+			NostrChat
+		</a>
 	</div>
-{/if}
+</section>
 
 <TimelineView {events} {load} />
 
@@ -269,6 +289,14 @@
 		align-items: center;
 	}
 
+	section {
+		margin-bottom: 0.5rem;
+	}
+
+	h1 {
+		margin: 0;
+	}
+
 	div {
 		margin-left: 1rem;
 	}
@@ -279,6 +307,6 @@
 	}
 
 	.channel-about {
-		margin: 1rem;
+		margin: 0.5rem 1rem;
 	}
 </style>

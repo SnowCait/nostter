@@ -296,23 +296,6 @@
 						{channelName ?? 'Channel'}
 					</a>
 				</span>
-				<span>
-					(Open in <a
-						href="https://garnet.nostrian.net/channels/{channelId}"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						GARNET
-					</a>
-					or
-					<a
-						href="https://www.nostrchat.io/channel/{channelId}"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						NostrChat
-					</a>)
-				</span>
 			</div>
 		{/if}
 		{#if !readonly}

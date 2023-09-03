@@ -54,23 +54,6 @@
 				<p class="about">{channelMetadata.about}</p>
 			{/if}
 			<div class="action-menu">
-				<div>
-					Open in <a
-						href="https://garnet.nostrian.net/channels/{event.id}"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						GARNET
-					</a>
-					or
-					<a
-						href="https://www.nostrchat.io/channel/{event.id}"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						NostrChat
-					</a>
-				</div>
 				<button on:click={() => quote(event)}>
 					<IconQuote size={iconSize} />
 				</button>
@@ -128,6 +111,7 @@
 		display: flex;
 		justify-content: space-between;
 		margin-top: 12px;
+		margin-left: 50%;
 	}
 
 	.action-menu button {
