@@ -264,6 +264,21 @@
 		let tags: string[][] = [];
 		if ($channelIdStore) {
 			tags.push(['e', $channelIdStore, '', 'root']);
+			if ($replyTo !== undefined) {
+				tags.push(['e', $replyTo.id, '', 'reply']);
+				if (
+					$replyTo.tags.some(
+						([tagName, pubkey]) => tagName === 'p' && pubkey === $replyTo?.pubkey
+					)
+				) {
+					tags.push(...$replyTo.tags.filter(([tagName]) => tagName === 'p'));
+				} else {
+					tags.push(...$replyTo.tags.filter(([tagName]) => tagName === 'p'), [
+						'p',
+						$replyTo.pubkey
+					]);
+				}
+			}
 		} else if ($replyTo !== undefined) {
 			if ($replyTo.tags.filter((x) => x[0] === 'e').length === 0) {
 				// root

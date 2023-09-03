@@ -263,7 +263,7 @@
 		<div class="user-status">
 			<UserStatus pubkey={event.pubkey} />
 		</div>
-		{#if isReply(event.tags)}
+		{#if isReply(event)}
 			<div class="reply">
 				<span>To</span>
 				<span>@{replyToNames.join(' @')}</span>
@@ -301,7 +301,7 @@
 		{#if !readonly}
 			<div class="action-menu">
 				<button
-					class:hidden={event.kind === 42 || event.kind === Kind.EncryptedDirectMessage}
+					class:hidden={event.kind === Kind.EncryptedDirectMessage}
 					on:click={() => reply(event)}
 				>
 					<IconMessageCircle2 size={iconSize} />
@@ -315,7 +315,7 @@
 					<IconRepeat size={iconSize} />
 				</button>
 				<button
-					class:hidden={event.kind === 42 || event.kind === Kind.EncryptedDirectMessage}
+					class:hidden={event.kind === Kind.EncryptedDirectMessage}
 					on:click={() => quote(event)}
 				>
 					<IconQuote size={iconSize} />
@@ -334,7 +334,7 @@
 				</button>
 				<button
 					class="bookmark"
-					class:hidden={event.kind !== Kind.Text}
+					class:hidden={!(event.kind === Kind.Text || event.kind === Kind.ChannelMessage)}
 					class:bookmarked
 					on:click={() => bookmark(event)}
 					on:dblclick={() => removeBookmark(event)}
