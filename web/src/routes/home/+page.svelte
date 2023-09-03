@@ -72,7 +72,14 @@
 		const pastEvents = await api.fetchEventItems([
 			...authorsFilter,
 			{
-				kinds: [Kind.Text, Kind.EncryptedDirectMessage, 6, Kind.Reaction, Kind.Zap],
+				kinds: [
+					Kind.Text,
+					Kind.EncryptedDirectMessage,
+					6,
+					Kind.Reaction,
+					Kind.ChannelMessage,
+					Kind.Zap
+				],
 				'#p': [$pubkey],
 				until,
 				since
@@ -138,7 +145,14 @@
 		const subscribe = $pool.sub($readRelays, [
 			...authorsFilter,
 			{
-				kinds: [Kind.Text, Kind.EncryptedDirectMessage, 6, Kind.Reaction, Kind.Zap],
+				kinds: [
+					Kind.Text,
+					Kind.EncryptedDirectMessage,
+					6,
+					Kind.Reaction,
+					Kind.ChannelMessage,
+					Kind.Zap
+				],
 				'#p': [$pubkey],
 				since
 			},

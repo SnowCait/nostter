@@ -41,7 +41,11 @@ export class Timeline {
 		const filters: Filter[] = [
 			...authorsFilter,
 			{
-				kinds: [Kind.Text /*, Kind.EncryptedDirectMessage*/, 6 /*Kind.Reaction, Kind.Zap*/],
+				kinds: [
+					Kind.Text /*, Kind.EncryptedDirectMessage*/,
+					6,
+					/*Kind.Reaction,*/ Kind.ChannelMessage /*, Kind.Zap*/
+				],
 				'#p': [this.pubkey],
 				since
 			}
@@ -144,7 +148,8 @@ export class Timeline {
 			{
 				kinds: [
 					Kind.Text /*, Kind.EncryptedDirectMessage*/,
-					6 /*, Kind.Reaction, Kind.Zap*/
+					6 /*Kind.Reaction, */,
+					Kind.ChannelMessage /*, Kind.Zap*/
 				],
 				'#p': [this.pubkey],
 				until,

@@ -15,7 +15,14 @@ export class NotificationTimeline {
 
 	public async fetch(until: number, since: number) {
 		const filter = {
-			kinds: [Kind.Text, Kind.EncryptedDirectMessage, 6, Kind.Reaction, Kind.Zap],
+			kinds: [
+				Kind.Text,
+				Kind.EncryptedDirectMessage,
+				6,
+				Kind.Reaction,
+				Kind.ChannelMessage,
+				Kind.Zap
+			],
 			'#p': [this.pubkey],
 			until,
 			since
