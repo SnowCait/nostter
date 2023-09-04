@@ -433,7 +433,8 @@
 		font-size: 15px;
 	}
 
-	.display_name, .name {
+	.display_name,
+	.name {
 		text-overflow: ellipsis;
 		overflow: hidden;
 		white-space: nowrap;
