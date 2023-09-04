@@ -433,6 +433,13 @@
 		font-size: 15px;
 	}
 
+	.display_name,
+	.name {
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
+	}
+
 	.created_at {
 		margin-left: auto;
 	}
