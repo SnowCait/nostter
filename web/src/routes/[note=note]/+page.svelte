@@ -14,6 +14,7 @@
 	import Counter from './Counter.svelte';
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { chronologicalItem } from '$lib/Constants';
+	import { setContext } from 'svelte';
 
 	let events: NostrEvent[] = [];
 	let eventId = '';
@@ -21,6 +22,7 @@
 
 	let repostEvents: EventItem[] | undefined;
 	let reactionEvents: EventItem[] | undefined;
+
 	$: repostMetadataList =
 		repostEvents !== undefined
 			? repostEvents.map((x) => x.metadata).filter((x): x is Metadata => x !== undefined)
@@ -29,6 +31,10 @@
 		reactionEvents !== undefined
 			? reactionEvents.map((x) => x.metadata).filter((x): x is Metadata => x !== undefined)
 			: [];
+
+	setContext('timeline-config', {
+		fullMenu: true
+	});
 
 	afterNavigate(async () => {
 		console.log('[note page]');
