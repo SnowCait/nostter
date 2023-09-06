@@ -34,7 +34,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@tabler/icons-svelte": "^2.32.0",
+		"@tabler/icons-svelte": "^2.33.0",
 		"@vercel/analytics": "^1.0.1",
 		"nostr-tools": "^1.10.1",
 		"qrcode": "^1.5.3",
