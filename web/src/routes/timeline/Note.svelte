@@ -9,6 +9,7 @@
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
+	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import type { Event } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
@@ -132,6 +133,10 @@
 		$pool.publish($writeRelays, event).on('failed', () => {
 			reactioned = false;
 		});
+	}
+
+	async function emojiReaction(note: Event) {
+		console.log('[emoji reaction]', note);
 	}
 
 	async function bookmark(note: Event) {
@@ -338,14 +343,10 @@
 					{/if}
 				</button>
 				<button
-					class="zap"
-					class:hidden={event.user === undefined ||
-						event.user.zapEndpoint === null ||
-						event.kind === Kind.EncryptedDirectMessage}
-					disabled={zapped}
-					on:click={() => zapDialogComponent.openZapDialog()}
+					class:hidden={event.kind === Kind.EncryptedDirectMessage}
+					on:click={() => emojiReaction(event)}
 				>
-					<IconBolt size={iconSize} />
+					<IconMoodSmile size={iconSize} />
 				</button>
 				<button class:hidden={fullMenu} on:click={() => (showMenu = !showMenu)}>
 					<IconDots size={iconSize} />
@@ -354,9 +355,6 @@
 			{#if fullMenu || showMenu}
 				<div class="action-menu">
 					<!-- instead of margin -->
-					<button class:hidden={true} on:click={console.debug}>
-						<IconDots size={iconSize} />
-					</button>
 					<button class:hidden={true} on:click={console.debug}>
 						<IconDots size={iconSize} />
 					</button>
@@ -377,6 +375,16 @@
 						on:dblclick={() => removeBookmark(event)}
 					>
 						<IconBookmark size={iconSize} />
+					</button>
+					<button
+						class="zap"
+						class:hidden={event.user === undefined ||
+							event.user.zapEndpoint === null ||
+							event.kind === Kind.EncryptedDirectMessage}
+						disabled={zapped}
+						on:click={() => zapDialogComponent.openZapDialog()}
+					>
+						<IconBolt size={iconSize} />
 					</button>
 					<button on:click={toggleJsonDisplay}>
 						<IconCodeDots size={iconSize} />
@@ -502,7 +510,7 @@
 	}
 
 	.action-menu + .action-menu {
-		margin-top: 12px;
+		margin-top: 16px;
 	}
 
 	.action-menu button {
