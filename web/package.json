@@ -34,8 +34,10 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@emoji-mart/data": "^1.1.2",
 		"@tabler/icons-svelte": "^2.33.0",
 		"@vercel/analytics": "^1.0.1",
+		"emoji-mart": "^5.5.2",
 		"nostr-tools": "^1.10.1",
 		"qrcode": "^1.5.3",
 		"rx-nostr": "^1.8.0",
