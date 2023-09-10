@@ -3,14 +3,16 @@
 	import { Picker } from 'emoji-mart';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
+	import { computePosition, flip, shift } from '@floating-ui/dom';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 
+	let button: HTMLButtonElement;
 	let emojiPicker: HTMLElement;
 	let hidden = true;
 
 	const dispatch = createEventDispatcher();
 
-	function onClick() {
+	async function onClick() {
 		hidden = !hidden;
 		if (emojiPicker.children.length > 0) {
 			return;
@@ -26,6 +28,14 @@
 			}
 		});
 		emojiPicker.appendChild(picker as any);
+
+		// Position
+		const { x, y } = await computePosition(button, emojiPicker, {
+			placement: 'bottom',
+			middleware: [flip(), shift()]
+		});
+		emojiPicker.style.left = `${x}px`;
+		emojiPicker.style.top = `${y}px`;
 	}
 
 	function onEmojiSelect(emoji: BaseEmoji) {
@@ -35,7 +45,7 @@
 	}
 </script>
 
-<button on:click={onClick} class="clear emoji-picker">
+<button on:click={onClick} bind:this={button} class="clear emoji-picker">
 	<IconMoodSmile size={20} />
 </button>
 <div bind:this={emojiPicker} class:hidden />
