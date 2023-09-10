@@ -25,7 +25,26 @@
 				if ((event.target as HTMLElement).closest('.emoji-picker') === null) {
 					hidden = true;
 				}
-			}
+			},
+			custom: [
+				{
+					id: 'default',
+					name: 'Default',
+					emojis: [
+						{
+							id: '+',
+							name: 'Heart',
+							keywords: ['+', 'heart', 'favorite', 'default'],
+							skins: [
+								{
+									native: '+',
+									src: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/72x72/2764.png'
+								}
+							]
+						}
+					]
+				}
+			]
 		});
 		emojiPicker.appendChild(picker as any);
 
@@ -39,20 +58,22 @@
 	}
 
 	function onEmojiSelect(emoji: BaseEmoji) {
-		console.log('[emoji reaction selected]', emoji);
+		console.debug('[emoji picker selected]', emoji);
 		dispatch('pick', emoji);
 		hidden = true;
 	}
 </script>
 
 <button on:click={onClick} bind:this={button} class="clear emoji-picker">
-	<IconMoodSmile size={20} />
+	<slot>
+		<IconMoodSmile size={20} />
+	</slot>
 </button>
-<div bind:this={emojiPicker} class:hidden />
+<div bind:this={emojiPicker} class:hidden on:keyup={console.debug} />
 
 <style>
 	button {
-		color: lightgray;
+		color: var(--color, lightgray);
 		height: 20px;
 	}
 
