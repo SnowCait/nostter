@@ -26,7 +26,7 @@
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
 	import { Metadata } from '$lib/Items';
-	import { minTimelineLength } from '$lib/Constants';
+	import { minTimelineLength, reverseChronological } from '$lib/Constants';
 	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '../../parts/ChannelTitle.svelte';
 
@@ -218,7 +218,7 @@
 				)
 			);
 			console.debug('[channel messages]', packets);
-			packets.sort((x, y) => y.event.created_at - x.event.created_at);
+			packets.map((x) => x.event).sort(reverseChronological);
 			events.push(
 				...packets
 					.filter(({ event }) => event.created_at < until)

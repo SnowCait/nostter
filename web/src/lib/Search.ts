@@ -1,6 +1,6 @@
 import { nip19, type Filter, Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { hashtagsRegexp, searchRelays } from './Constants';
+import { hashtagsRegexp, reverseChronological, searchRelays } from './Constants';
 import { EventItem } from './Items';
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
@@ -71,7 +71,7 @@ export class Search {
 			...new Set(events.map((x) => x.pubkey))
 		]);
 		console.log('[search events]', events, metadataEventsMap);
-		events.sort((x, y) => y.created_at - x.created_at);
+		events.sort(reverseChronological);
 		return events.map((event) => new EventItem(event, metadataEventsMap.get(event.pubkey)));
 	}
 }
