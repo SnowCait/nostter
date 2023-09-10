@@ -21,7 +21,7 @@
 	import { Kind, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { saveLastNote } from '../../stores/LastNotes';
 	import { Signer } from '$lib/Signer';
-	import { filterLimitItems, minTimelineLength, reverseChronological } from '$lib/Constants';
+	import { filterLimitItems, minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { chunk } from '$lib/Array';
 	import { Content } from '$lib/Content';
 	import {
@@ -94,7 +94,7 @@
 
 		console.log(`Text events loaded in ${Date.now() / 1000 - now} seconds`);
 
-		pastEvents.map((x) => x.event).sort(reverseChronological);
+		pastEvents.sort(reverseChronologicalItem);
 
 		console.log(`Sorted in ${Date.now() / 1000 - now} seconds`);
 
@@ -396,7 +396,7 @@
 	}
 
 	async function showPooledEvents() {
-		$eventsPool.map((x) => x.event).sort(reverseChronological);
+		$eventsPool.sort(reverseChronologicalItem);
 		$events.unshift(...(await Promise.all($eventsPool.map((x) => x.toEvent()))));
 		$events = $events;
 		$eventsPool = [];
