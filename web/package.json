@@ -36,6 +36,7 @@
 	"type": "module",
 	"dependencies": {
 		"@emoji-mart/data": "^1.1.2",
+		"@floating-ui/dom": "^1.5.1",
 		"@tabler/icons-svelte": "^2.33.0",
 		"@vercel/analytics": "^1.0.1",
 		"emoji-mart": "^5.5.2",
