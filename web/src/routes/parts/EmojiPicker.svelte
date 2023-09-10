@@ -17,7 +17,13 @@
 		}
 		const picker = new Picker({
 			data,
-			onEmojiSelect
+			onEmojiSelect,
+			onClickOutside: (event: PointerEvent) => {
+				console.debug('[emoji picker outside]', event.target);
+				if ((event.target as HTMLElement).closest('.emoji-picker') === null) {
+					hidden = true;
+				}
+			}
 		});
 		emojiPicker.appendChild(picker as any);
 	}
@@ -29,7 +35,7 @@
 	}
 </script>
 
-<button on:click={onClick} class="clear">
+<button on:click={onClick} class="clear emoji-picker">
 	<IconMoodSmile size={20} />
 </button>
 <div bind:this={emojiPicker} class:hidden />
