@@ -16,6 +16,10 @@ export const searchRelays = [
 
 export const chronological = (x: NostrEvent, y: NostrEvent) => x.created_at - y.created_at;
 export const reverseChronological = (x: NostrEvent, y: NostrEvent) => y.created_at - x.created_at;
+export const chronologicalItem = (x: { event: NostrEvent }, y: { event: NostrEvent }) =>
+	x.event.created_at - y.event.created_at;
+export const reverseChronologicalItem = (x: { event: NostrEvent }, y: { event: NostrEvent }) =>
+	y.event.created_at - x.event.created_at;
 
 export const onImageError = (event: Event) => {
 	const img = event.target as HTMLImageElement;

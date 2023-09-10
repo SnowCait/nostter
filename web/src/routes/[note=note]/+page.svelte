@@ -13,7 +13,7 @@
 	import type { EventItem, Metadata } from '$lib/Items';
 	import Counter from './Counter.svelte';
 	import ProfileIconList from './ProfileIconList.svelte';
-	import { chronological } from '$lib/Constants';
+	import { chronologicalItem } from '$lib/Constants';
 
 	let events: NostrEvent[] = [];
 	let eventId = '';
@@ -74,7 +74,7 @@
 				'#e': [eventId]
 			}
 		]);
-		relatedEvents.map((x) => x.event).sort(chronological);
+		relatedEvents.sort(chronologicalItem);
 		console.log('[#e events]', relatedEvents);
 
 		const repliedEvents = relatedEvents.filter(
