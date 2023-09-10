@@ -8,6 +8,7 @@ import { Content } from './Content';
 import { Signer } from './Signer';
 import { authorReplaceableEvents, channelMetadataEvents } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
+import { chronological, reverseChronological } from './Constants';
 
 export class Api {
 	public static readonly replaceableKinds = [
@@ -31,7 +32,7 @@ export class Api {
 				authors: [pubkey]
 			}
 		]);
-		events.sort((x, y) => x.created_at - y.created_at); // Latest event is effective
+		events.sort(chronological); // Latest event is effective
 		console.debug('[relay events all]', events);
 		return new Map<Kind, Event>(events.map((e) => [e.kind, e]));
 	}
@@ -46,7 +47,7 @@ export class Api {
 				authors: [pubkey]
 			}
 		]);
-		events.sort((x, y) => x.created_at - y.created_at); // Latest event is effective
+		events.sort(chronological); // Latest event is effective
 		console.debug('[author events all]', events);
 		const replaceableEvents = new Map<Kind, Event>(
 			events.filter((e) => Api.replaceableKinds.includes(e.kind)).map((e) => [e.kind, e])
@@ -177,7 +178,7 @@ export class Api {
 		const events = await this.pool.list(this.relays, filters);
 
 		// Latest (return multi events except id filter)
-		events.sort((x, y) => y.created_at - x.created_at);
+		events.sort(reverseChronological);
 		return events.at(0);
 	}
 
@@ -247,7 +248,7 @@ export class Api {
 				limit: 1 // Some relays have duplicate kind 3
 			}
 		]);
-		events.sort((x, y) => y.created_at - x.created_at);
+		events.sort(reverseChronological);
 		console.log('[contact list events]', events);
 		return events.at(0);
 	}
@@ -295,7 +296,7 @@ export class Api {
 			])
 		]);
 
-		events.sort((x, y) => y.created_at - x.created_at);
+		events.sort(reverseChronological);
 		const eventItems = events.map(
 			(event) => new EventItem(event, metadataEventsMap.get(event.pubkey))
 		);
@@ -367,7 +368,7 @@ export class Api {
 				limit: 1
 			}
 		]);
-		events.sort((x, y) => y.created_at - x.created_at);
+		events.sort(reverseChronological);
 		console.debug('[channel metadata events]', events);
 		const event = events.at(0);
 		if (event !== undefined) {

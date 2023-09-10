@@ -3,13 +3,14 @@
 	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
 	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
 	import IconMusic from '@tabler/icons-svelte/dist/svelte/icons/IconMusic.svelte';
+	import { chronological } from '$lib/Constants';
 
 	export let pubkey: string;
 	let generalEvent: Event | undefined;
 	let musicEvent: Event | undefined;
 	$: {
-		$userStatusesGeneral.sort((x, y) => x.created_at - y.created_at);
-		$userStatusesMusic.sort((x, y) => x.created_at - y.created_at);
+		$userStatusesGeneral.sort(chronological);
+		$userStatusesMusic.sort(chronological);
 		generalEvent = $userStatusesGeneral.findLast((event) => event.pubkey === pubkey);
 		musicEvent = $userStatusesMusic.findLast((event) => event.pubkey === pubkey);
 	}

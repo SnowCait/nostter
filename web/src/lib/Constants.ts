@@ -1,3 +1,5 @@
+import type { Event as NostrEvent } from 'nostr-tools';
+
 export const japaneseBotNpub = 'npub1pp79ruvjd7xned8lgh6n4rhz4pg3els3x5n6kr58l8zcyysp5c0qrkan2p';
 export const minTimelineLength = 25;
 export const filterLimitItems = 1000;
@@ -11,6 +13,9 @@ export const searchRelays = [
 	'wss://search.nos.today',
 	'wss://nostrja-kari-nip50.heguro.com'
 ];
+
+export const chronological = (x: NostrEvent, y: NostrEvent) => x.created_at - y.created_at;
+export const reverseChronological = (x: NostrEvent, y: NostrEvent) => y.created_at - x.created_at;
 
 export const onImageError = (event: Event) => {
 	const img = event.target as HTMLImageElement;
