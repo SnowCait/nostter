@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Kind, nip19 } from 'nostr-tools';
+	import type { BaseEmoji } from '@types/emoji-mart';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
@@ -9,6 +10,7 @@
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
+	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import type { Event } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
@@ -24,7 +26,7 @@
 	import { rom } from '../../stores/Author';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { Api } from '$lib/Api';
-	import { onMount } from 'svelte';
+	import { getContext, onMount } from 'svelte';
 	import ZapDialog from '../ZapDialog.svelte';
 	import Content from '../content/Content.svelte';
 	import { Signer } from '$lib/Signer';
@@ -32,6 +34,7 @@
 	import { isReply } from '$lib/EventHelper';
 	import UserStatus from '../parts/UserStatus.svelte';
 	import { Channel, channelIdStore } from '$lib/Channel';
+	import EmojiPicker from '../parts/EmojiPicker.svelte';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -66,6 +69,10 @@
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
 	};
+
+	const timelineConfig: { fullMenu: boolean } | undefined = getContext('timeline-config');
+	const fullMenu = timelineConfig?.fullMenu ?? false;
+	let showMenu = false;
 
 	function reply(event: Event) {
 		$replyTo = event;
@@ -127,6 +134,28 @@
 		$pool.publish($writeRelays, event).on('failed', () => {
 			reactioned = false;
 		});
+	}
+
+	async function emojiReaction(note: Event, emoji: BaseEmoji) {
+		console.log('[emoji reaction]', note, emoji);
+
+		if ($rom) {
+			console.error('Readonly');
+			return;
+		}
+
+		const event = await Signer.signEvent({
+			created_at: Math.round(Date.now() / 1000),
+			kind: 7,
+			tags: [
+				['e', note.id],
+				['p', note.pubkey]
+			],
+			content: emoji.native
+		});
+		console.log(event);
+
+		$pool.publish($writeRelays, event);
 	}
 
 	async function bookmark(note: Event) {
@@ -332,29 +361,52 @@
 						<IconHeart size={iconSize} />
 					{/if}
 				</button>
-				<button
-					class="bookmark"
-					class:hidden={!(event.kind === Kind.Text || event.kind === Kind.ChannelMessage)}
-					class:bookmarked
-					on:click={() => bookmark(event)}
-					on:dblclick={() => removeBookmark(event)}
-				>
-					<IconBookmark size={iconSize} />
-				</button>
-				<button
-					class="zap"
-					class:hidden={event.user === undefined ||
-						event.user.zapEndpoint === null ||
-						event.kind === Kind.EncryptedDirectMessage}
-					disabled={zapped}
-					on:click={() => zapDialogComponent.openZapDialog()}
-				>
-					<IconBolt size={iconSize} />
-				</button>
-				<button on:click={toggleJsonDisplay}>
-					<IconCodeDots size={iconSize} />
+				<span class:hidden={event.kind === Kind.EncryptedDirectMessage}>
+					<EmojiPicker on:pick={({ detail }) => emojiReaction(event, detail)} />
+				</span>
+				<button class:hidden={fullMenu} on:click={() => (showMenu = !showMenu)}>
+					<IconDots size={iconSize} />
 				</button>
 			</div>
+			{#if fullMenu || showMenu}
+				<div class="action-menu">
+					<!-- instead of margin -->
+					<button class:hidden={true} on:click={console.debug}>
+						<IconDots size={iconSize} />
+					</button>
+					<button class:hidden={true} on:click={console.debug}>
+						<IconDots size={iconSize} />
+					</button>
+					<button class:hidden={true} on:click={console.debug}>
+						<IconDots size={iconSize} />
+					</button>
+					<!-- /instead of margin -->
+					<button
+						class="bookmark"
+						class:hidden={!(
+							event.kind === Kind.Text || event.kind === Kind.ChannelMessage
+						)}
+						class:bookmarked
+						on:click={() => bookmark(event)}
+						on:dblclick={() => removeBookmark(event)}
+					>
+						<IconBookmark size={iconSize} />
+					</button>
+					<button
+						class="zap"
+						class:hidden={event.user === undefined ||
+							event.user.zapEndpoint === null ||
+							event.kind === Kind.EncryptedDirectMessage}
+						disabled={zapped}
+						on:click={() => zapDialogComponent.openZapDialog()}
+					>
+						<IconBolt size={iconSize} />
+					</button>
+					<button on:click={toggleJsonDisplay}>
+						<IconCodeDots size={iconSize} />
+					</button>
+				</div>
+			{/if}
 		{/if}
 		{#if jsonDisplay}
 			<div class="develop">
@@ -471,6 +523,10 @@
 	.action-menu {
 		display: flex;
 		justify-content: space-between;
+	}
+
+	.action-menu + .action-menu {
+		margin-top: 16px;
 	}
 
 	.action-menu button {
