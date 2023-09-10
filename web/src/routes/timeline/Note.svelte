@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Kind, nip19 } from 'nostr-tools';
+	import type { BaseEmoji } from '@types/emoji-mart';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
@@ -9,7 +10,6 @@
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
-	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import type { Event } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
@@ -34,6 +34,7 @@
 	import { isReply } from '$lib/EventHelper';
 	import UserStatus from '../parts/UserStatus.svelte';
 	import { Channel, channelIdStore } from '$lib/Channel';
+	import EmojiPicker from '../parts/EmojiPicker.svelte';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -135,8 +136,26 @@
 		});
 	}
 
-	async function emojiReaction(note: Event) {
-		console.log('[emoji reaction]', note);
+	async function emojiReaction(note: Event, emoji: BaseEmoji) {
+		console.log('[emoji reaction]', note, emoji);
+
+		if ($rom) {
+			console.error('Readonly');
+			return;
+		}
+
+		const event = await Signer.signEvent({
+			created_at: Math.round(Date.now() / 1000),
+			kind: 7,
+			tags: [
+				['e', note.id],
+				['p', note.pubkey]
+			],
+			content: emoji.native
+		});
+		console.log(event);
+
+		$pool.publish($writeRelays, event);
 	}
 
 	async function bookmark(note: Event) {
@@ -342,12 +361,9 @@
 						<IconHeart size={iconSize} />
 					{/if}
 				</button>
-				<button
-					class:hidden={event.kind === Kind.EncryptedDirectMessage}
-					on:click={() => emojiReaction(event)}
-				>
-					<IconMoodSmile size={iconSize} />
-				</button>
+				<span class:hidden={event.kind === Kind.EncryptedDirectMessage}>
+					<EmojiPicker on:pick={({ detail }) => emojiReaction(event, detail)} />
+				</span>
 				<button class:hidden={fullMenu} on:click={() => (showMenu = !showMenu)}>
 					<IconDots size={iconSize} />
 				</button>
