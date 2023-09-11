@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import IconHome from '@tabler/icons-svelte/dist/svelte/icons/IconHome.svelte';
 	import IconSearch from '@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte';
 	import IconWorld from '@tabler/icons-svelte/dist/svelte/icons/IconWorld.svelte';
@@ -9,8 +10,16 @@
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { pubkey } from '../stores/Author';
-	import { japaneseBotNpub } from '$lib/Constants';
+	import { japaneseBotNpub, trendingPeopleBotNpub } from '$lib/Constants';
 	import { unreadEvents } from '../stores/Notifications';
+
+	let npub = trendingPeopleBotNpub;
+
+	onMount(() => {
+		if (navigator.language === 'ja-JP') {
+			npub = japaneseBotNpub;
+		}
+	});
 </script>
 
 <nav>
@@ -33,7 +42,7 @@
 				<IconSearch size={30} />
 			</li>
 		</a>
-		<a href="/{japaneseBotNpub}/timeline">
+		<a href="/{npub}/timeline">
 			<li>
 				<IconWorld size={30} />
 			</li>
