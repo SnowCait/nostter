@@ -29,7 +29,7 @@
 	}
 </script>
 
-<span>Reaction:</span>
+<span>Like emoji:</span>
 <EmojiPicker on:pick={async ({ detail }) => save(detail.native)}>
 	{#if $reactionEmoji === '+'}
 		<IconHeart size={26} color={'lightpink'} />
