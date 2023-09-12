@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Kind, nip19 } from 'nostr-tools';
-	import type { BaseEmoji } from '@types/emoji-mart';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
@@ -136,7 +135,7 @@
 		});
 	}
 
-	async function emojiReaction(note: Event, emoji: BaseEmoji) {
+	async function emojiReaction(note: Event, emoji: any) {
 		console.log('[emoji reaction]', note, emoji);
 
 		if ($rom) {
@@ -144,13 +143,18 @@
 			return;
 		}
 
+		const tags = [
+			['e', note.id],
+			['p', note.pubkey]
+		];
+		if (emoji.src !== undefined) {
+			tags.push(['emoji', emoji.id, emoji.src]);
+		}
+
 		const event = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 7,
-			tags: [
-				['e', note.id],
-				['p', note.pubkey]
-			],
+			tags,
 			content: emoji.native
 		});
 		console.log(event);
