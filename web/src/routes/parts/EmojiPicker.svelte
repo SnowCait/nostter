@@ -5,6 +5,7 @@
 	import data from '@emoji-mart/data';
 	import { computePosition, flip, shift } from '@floating-ui/dom';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
+	import { customEmojiTags } from '../../stores/CustomEmojis';
 
 	let button: HTMLButtonElement;
 	let emojiPicker: HTMLElement;
@@ -17,6 +18,20 @@
 		if (emojiPicker.children.length > 0) {
 			return;
 		}
+		const customEmojis = $customEmojiTags.map(([, shortcode, url]) => {
+			return {
+				id: shortcode,
+				name: shortcode,
+				keywords: [shortcode],
+				skins: [
+					{
+						native: `:${shortcode}:`,
+						src: url
+					}
+				]
+			};
+		});
+		console.log('[custom emoji]', customEmojiTags, customEmojis);
 		const picker = new Picker({
 			data,
 			onEmojiSelect,
@@ -43,6 +58,11 @@
 							]
 						}
 					]
+				},
+				{
+					id: 'custom-emoji',
+					name: 'Custom Emojis',
+					emojis: customEmojis
 				}
 			]
 		});
