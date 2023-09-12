@@ -16,7 +16,7 @@
 	let npub = trendingPeopleBotNpub;
 
 	onMount(() => {
-		if (navigator.language === 'ja-JP') {
+		if (navigator.language.startsWith('ja')) {
 			npub = japaneseBotNpub;
 		}
 	});
