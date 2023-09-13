@@ -10,7 +10,7 @@
 		now,
 		uniq
 	} from 'rx-nostr';
-	import { tap, bufferTime, Subscription, firstValueFrom } from 'rxjs';
+	import { tap, bufferTime, type Subscription, firstValueFrom } from 'rxjs';
 	import { toArray } from 'rxjs/operators';
 	import { onDestroy } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';

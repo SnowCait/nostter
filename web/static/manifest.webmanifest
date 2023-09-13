@@ -8,8 +8,8 @@
 	"description": "Nostr web client.",
 	"icons": [
 		{
-			"src": "1f43e.png",
-			"sizes": "150x150",
+			"src": "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f43e.svg",
+			"sizes": "144x144",
 			"type": "image/png"
 		}
 	]
