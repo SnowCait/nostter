@@ -31,7 +31,6 @@
 				]
 			};
 		});
-		console.log('[custom emoji]', customEmojiTags, customEmojis);
 		const picker = new Picker({
 			data,
 			onEmojiSelect,
