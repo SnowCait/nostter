@@ -1,0 +1,16 @@
+{
+	"$schema": "https://json.schemastore.org/web-manifest-combined.json",
+	"name": "nostter",
+	"short_name": "nostter",
+	"start_url": ".",
+	"display": "standalone",
+	"background_color": "#fff",
+	"description": "Nostr web client.",
+	"icons": [
+		{
+			"src": "favicon.png",
+			"sizes": "72x72",
+			"type": "image/png"
+		}
+	]
+}
