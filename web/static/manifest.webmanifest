@@ -8,8 +8,8 @@
 	"description": "Nostr web client.",
 	"icons": [
 		{
-			"src": "favicon.png",
-			"sizes": "72x72",
+			"src": "1f43e.png",
+			"sizes": "150x150",
 			"type": "image/png"
 		}
 	]
