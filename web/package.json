@@ -21,7 +21,6 @@
 		"@types/qrcode": "^1.5.0",
 		"@typescript-eslint/eslint-plugin": "^5.61.0",
 		"@typescript-eslint/parser": "^5.62.0",
-		"@vite-pwa/sveltekit": "^0.2.7",
 		"eslint": "^8.48.0",
 		"eslint-config-prettier": "^9.0.0",
 		"eslint-plugin-svelte3": "^4.0.0",
