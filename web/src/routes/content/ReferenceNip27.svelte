@@ -1,19 +1,16 @@
 <script lang="ts">
 	import { Api } from '$lib/Api';
-	import { Kind, nip19 } from 'nostr-tools';
+	import { nip19 } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import { events } from '../../stores/Events';
 	import type { Event, UserEvent } from '../types';
 	import { pool } from '../../stores/Pool';
 	import { readRelays } from '../../stores/Author';
-	import Note from '../timeline/Note.svelte';
 	import Text from './Text.svelte';
-	import Channel from '../timeline/Channel.svelte';
 	import Nip94 from '../Nip94.svelte';
 	import Naddr from './Naddr.svelte';
 	import EventComponent from '../timeline/EventComponent.svelte';
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
-	import { readonly } from 'svelte/store';
 
 	export let text: string;
 
