@@ -246,63 +246,65 @@
 </script>
 
 <header>
-	<h1><ChannelTitle {channelMetadata} /></h1>
-	<div>
-		<button
-			class="clear"
-			on:click={() => {
-				showInformation = !showInformation;
-			}}
-		>
-			<IconInfoCircle />
-		</button>
-	</div>
-	{#if $author !== undefined}
-		<div class="pin"><PinChannel {channelId} /></div>
+	<section class="title">
+		<h1><ChannelTitle {channelMetadata} /></h1>
+		<div>
+			<button
+				class="clear"
+				on:click={() => {
+					showInformation = !showInformation;
+				}}
+			>
+				<IconInfoCircle />
+			</button>
+		</div>
+		{#if $author !== undefined}
+			<div class="pin"><PinChannel {channelId} /></div>
+		{/if}
+	</section>
+	{#if showInformation}
+		<section>
+			<div class="channel-id">ID: {channelId}</div>
+			{#if channelMetadata?.about}
+				<div class="channel-about">
+					<Content content={channelMetadata.about} tags={[]} />
+				</div>
+			{/if}
+			<div class="external-link">
+				Open in <a
+					href="https://coracle.social/chat/{nip19.noteEncode(channelId)}"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					Coracle
+				</a>
+				<a
+					href="https://unyu-house.vercel.app/channels/{nip19.neventEncode({
+						id: channelId
+					})}"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					うにゅうハウス
+				</a>
+				<a
+					href="https://garnet.nostrian.net/channels/{channelId}"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					GARNET
+				</a>
+				<a
+					href="https://www.nostrchat.io/channel/{channelId}"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					NostrChat
+				</a>
+			</div>
+		</section>
 	{/if}
 </header>
-{#if showInformation}
-	<section>
-		<div class="channel-id">ID: {channelId}</div>
-		{#if channelMetadata?.about}
-			<div class="channel-about">
-				<Content content={channelMetadata.about} tags={[]} />
-			</div>
-		{/if}
-		<div class="external-link">
-			Open in <a
-				href="https://coracle.social/chat/{nip19.noteEncode(channelId)}"
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				Coracle
-			</a>
-			<a
-				href="https://unyu-house.vercel.app/channels/{nip19.neventEncode({
-					id: channelId
-				})}"
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				うにゅうハウス
-			</a>
-			<a
-				href="https://garnet.nostrian.net/channels/{channelId}"
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				GARNET
-			</a>
-			<a
-				href="https://www.nostrchat.io/channel/{channelId}"
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				NostrChat
-			</a>
-		</div>
-	</section>
-{/if}
 
 <TimelineView {events} {load} />
 
@@ -313,7 +315,9 @@
 		background-color: white;
 		margin: 0;
 		padding: 0.5rem 1rem;
+	}
 
+	.title {
 		display: flex;
 		flex-direction: row;
 		align-items: center;
@@ -327,7 +331,7 @@
 		margin: 0;
 	}
 
-	div {
+	.title div {
 		margin-left: 1rem;
 	}
 
@@ -337,6 +341,6 @@
 	}
 
 	.channel-about {
-		margin: 0.5rem 1rem;
+		margin: 0.5rem 0;
 	}
 </style>
