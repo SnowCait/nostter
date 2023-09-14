@@ -10,7 +10,7 @@
 		console.log('[mute word]', word);
 
 		try {
-			await new Mute($pubkey, $pool, $writeRelays).muteWord(word);
+			await new Mute($pubkey, $pool, $writeRelays).mutePrivate('word', word);
 			word = '';
 		} catch (error) {
 			alert('Failed to mute.');
@@ -21,7 +21,7 @@
 		console.log('[unmute word]', word);
 
 		try {
-			await new Mute($pubkey, $pool, $writeRelays).unmuteWord(word);
+			await new Mute($pubkey, $pool, $writeRelays).unmutePrivate('word', word);
 		} catch (error) {
 			alert('Failed to unmute.');
 		}

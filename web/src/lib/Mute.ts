@@ -13,7 +13,7 @@ export class Mute {
 		this.api = new Api(pool, writeRelays);
 	}
 
-	public async muteWord(word: string): Promise<void> {
+	public async mutePrivate(tagName: string, tagContent: string): Promise<void> {
 		const muteList = await this.api.fetchEvent([
 			{
 				kinds: [this.kind],
@@ -29,23 +29,23 @@ export class Mute {
 
 			if (
 				[...muteList.tags, ...privateTags].some(
-					([tagName, w]) => tagName === 'word' && w === word
+					([t, w]) => t === tagName && w === tagContent
 				)
 			) {
-				console.log('[already mute]', word, muteList);
+				console.log('[already mute]', tagName, tagContent, privateTags);
 				return;
 			}
 
-			privateTags.push(['word', word]);
+			privateTags.push([tagName, tagContent]);
 		} else {
-			privateTags = [['word', word]];
+			privateTags = [[tagName, tagContent]];
 		}
 
 		const content = await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags));
 		await this.api.signAndPublish(this.kind, content, muteList?.tags ?? []);
 	}
 
-	public async unmuteWord(word: string): Promise<void> {
+	public async unmutePrivate(tagName: string, tagContent: string): Promise<void> {
 		const muteList = await this.api.fetchEvent([
 			{
 				kinds: [this.kind],
@@ -56,20 +56,20 @@ export class Mute {
 		console.log('[mute list]', muteList);
 
 		if (muteList === undefined) {
-			console.log('[no mute list]', word);
+			console.log('[no mute list]', tagName, tagContent);
 			return;
 		}
 
-		let privateTags: string[][] = await this.parseContent(muteList.content);
+		const beforePrivateTags: string[][] = await this.parseContent(muteList.content);
 
-		const tags = muteList.tags.filter(([tagName, w]) => tagName !== 'word' || w !== word);
-		privateTags = privateTags.filter(([tagName, w]) => tagName !== 'word' || w !== word);
+		const publicTags = muteList.tags.filter(([t, w]) => t !== tagName || w !== tagContent);
+		const privateTags = beforePrivateTags.filter(([t, w]) => t !== tagName || w !== tagContent);
 
 		const content =
 			privateTags.length > 0
 				? await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags))
 				: '';
-		await this.api.signAndPublish(this.kind, content, tags);
+		await this.api.signAndPublish(this.kind, content, publicTags);
 	}
 
 	public async update(event: Event): Promise<void> {
