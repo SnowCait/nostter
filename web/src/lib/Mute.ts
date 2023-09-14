@@ -14,14 +14,7 @@ export class Mute {
 	}
 
 	public async mutePrivate(tagName: string, tagContent: string): Promise<void> {
-		const muteList = await this.api.fetchEvent([
-			{
-				kinds: [this.kind],
-				authors: [this.authorPubkey],
-				limit: 1
-			}
-		]);
-		console.log('[mute list]', muteList);
+		const muteList = await this.fetchLatestEvent();
 
 		let privateTags: string[][] = [];
 		if (muteList !== undefined) {
@@ -46,14 +39,7 @@ export class Mute {
 	}
 
 	public async unmutePrivate(tagName: string, tagContent: string): Promise<void> {
-		const muteList = await this.api.fetchEvent([
-			{
-				kinds: [this.kind],
-				authors: [this.authorPubkey],
-				limit: 1
-			}
-		]);
-		console.log('[mute list]', muteList);
+		const muteList = await this.fetchLatestEvent();
 
 		if (muteList === undefined) {
 			console.log('[no mute list]', tagName, tagContent);
@@ -70,6 +56,18 @@ export class Mute {
 				? await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags))
 				: '';
 		await this.api.signAndPublish(this.kind, content, publicTags);
+	}
+
+	private async fetchLatestEvent() {
+		const muteList = await this.api.fetchEvent([
+			{
+				kinds: [this.kind],
+				authors: [this.authorPubkey],
+				limit: 1
+			}
+		]);
+		console.log('[mute list]', muteList);
+		return muteList;
 	}
 
 	public async update(event: Event): Promise<void> {
