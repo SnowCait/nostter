@@ -88,7 +88,15 @@ export class Mute {
 		mutePubkeys.set([...filterTags('p', event.tags), ...filterTags('p', privateTags)]);
 		muteEventIds.set([...filterTags('e', event.tags), ...filterTags('e', privateTags)]);
 		muteWords.set([...filterTags('word', event.tags), ...filterTags('word', privateTags)]);
-		console.log('[mute lists]', get(mutePubkeys), get(muteEventIds), get(muteWords));
+		console.log(
+			'[mute lists]',
+			'p',
+			get(mutePubkeys),
+			'e',
+			get(muteEventIds),
+			'word',
+			get(muteWords)
+		);
 	}
 
 	// For legacy clients
