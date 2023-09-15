@@ -142,7 +142,7 @@
 					</div>
 				{/if}
 				<div class="mute">
-					<Mute {pubkey} />
+					<Mute tagName="p" tagContent={pubkey} />
 				</div>
 				<div class="follow">
 					<Follow {pubkey} />

@@ -3,17 +3,36 @@
 	import IconVolumeOff from '@tabler/icons-svelte/dist/svelte/icons/IconVolumeOff.svelte';
 	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
 	import { pool } from '../../stores/Pool';
-	import { pubkey as authorPubkey, mutePubkeys, writeRelays } from '../../stores/Author';
+	import {
+		pubkey as authorPubkey,
+		mutePubkeys,
+		muteEventIds,
+		muteWords,
+		writeRelays
+	} from '../../stores/Author';
 	import { Mute } from '$lib/Mute';
 
-	export let pubkey: string;
+	export let tagName: 'p' | 'e' | 'word';
+	export let tagContent: string;
 
 	let executing = false;
 
-	async function mute() {
-		console.log('[mute]', nip19.npubEncode(pubkey));
+	const texts = {
+		p: 'user',
+		e: 'thread',
+		word: 'word'
+	};
 
-		if (!confirm('Mute this user?')) {
+	const logTexts = {
+		p: nip19.npubEncode(tagContent),
+		e: nip19.neventEncode({ id: tagContent }),
+		word: tagContent
+	};
+
+	async function mute() {
+		console.log('[mute]', logTexts[tagName]);
+
+		if (!confirm(`Mute this ${texts[tagName]}?`)) {
 			console.log('[mute cancelled]');
 			return;
 		}
@@ -21,7 +40,7 @@
 		executing = true;
 
 		try {
-			await new Mute($authorPubkey, $pool, $writeRelays).mutePrivate('p', pubkey);
+			await new Mute($authorPubkey, $pool, $writeRelays).mutePrivate(tagName, tagContent);
 		} catch (error) {
 			alert('Failed to mute.');
 		}
@@ -30,9 +49,9 @@
 	}
 
 	async function unmute() {
-		console.log('[unmute]');
+		console.log('[unmute]', logTexts[tagName]);
 
-		if (!confirm(`Unmute this user?`)) {
+		if (!confirm(`Unmute this ${texts[tagName]}?`)) {
 			console.log('Unmute is cancelled');
 			return;
 		}
@@ -40,7 +59,7 @@
 		executing = true;
 
 		try {
-			await new Mute($authorPubkey, $pool, $writeRelays).unmutePrivate('p', pubkey);
+			await new Mute($authorPubkey, $pool, $writeRelays).unmutePrivate(tagName, tagContent);
 		} catch (error) {
 			alert('Failed to unmute.');
 		}
@@ -49,7 +68,7 @@
 	}
 </script>
 
-{#if $mutePubkeys.some((p) => p === pubkey)}
+{#if (tagName === 'p' ? $mutePubkeys : tagName === 'e' ? $muteEventIds : $muteWords).some((c) => c === tagContent)}
 	<div class="muting">
 		<span>Muting</span>
 		<button on:click={unmute} disabled={executing}><IconTrash /></button>
