@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { error } from '@sveltejs/kit';
 	import { nip19, Kind } from 'nostr-tools';
-	import { readRelays } from '../../stores/Author';
+	import { author, readRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import type { Event as NostrEvent } from '../types';
@@ -15,9 +15,12 @@
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { chronologicalItem } from '$lib/Constants';
 	import { setContext } from 'svelte';
+	import MuteButton from '../action/MuteButton.svelte';
 
+	let event: NostrEvent | undefined;
 	let events: NostrEvent[] = [];
 	let eventId = '';
+	let rootId: string | undefined;
 	let relays: string[] = [];
 
 	let repostEvents: EventItem[] | undefined;
@@ -68,7 +71,7 @@
 		}
 
 		const api = new Api($pool, [...new Set([...$readRelays, ...relays])]);
-		const event = await api.fetchEventById(eventId);
+		event = await api.fetchEventById(eventId);
 		if (event === undefined) {
 			throw error(404);
 		}
@@ -91,7 +94,7 @@
 		console.log(repliedEvents, repostEvents, reactionEvents);
 
 		const { root, reply } = referTags(event);
-		let rootId = root?.at(1);
+		rootId = root?.at(1);
 		let replyId = reply?.at(1);
 		console.log(rootId, replyId);
 
@@ -150,3 +153,25 @@
 	<Counter label={'Reactions'} count={reactionEvents.length} />
 	<ProfileIconList metadataList={reactionMetadataList} />
 {/if}
+{#if $author !== undefined && event !== undefined}
+	<div class="mute">
+		<MuteButton tagName="e" tagContent={rootId === undefined ? eventId : rootId} />
+		<span>Mute this thread</span>
+	</div>
+	<div class="mute">
+		<MuteButton tagName="p" tagContent={event.pubkey} />
+		<span>Mute @{event.user.name}</span>
+	</div>
+{/if}
+
+<style>
+	.mute {
+		margin-top: 16px;
+		display: flex;
+		flex-direction: row;
+	}
+
+	.mute span {
+		margin-left: 0.5rem;
+	}
+</style>
