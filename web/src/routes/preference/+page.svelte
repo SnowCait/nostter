@@ -7,6 +7,7 @@
 	import WordMute from './WordMute.svelte';
 	import AutoRefresh from './AutoRefresh.svelte';
 	import MutedUsers from './MutedUsers.svelte';
+	import MutedEvents from './MutedEvents.svelte';
 
 	let debugCounter = 0;
 
@@ -34,6 +35,7 @@
 	</a>
 </div>
 <div><MutedUsers /></div>
+<div><MutedEvents /></div>
 <div><WordMute /></div>
 <div><Notification /></div>
 <div><AutoRefresh /></div>
