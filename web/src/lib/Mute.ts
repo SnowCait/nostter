@@ -4,6 +4,7 @@ import { Api } from './Api';
 import { Signer } from './Signer';
 import { muteEventIds, mutePubkeys, muteWords } from '../stores/Author';
 import { filterTags } from './EventHelper';
+import { authorReplaceableEvents } from './cache/Events';
 
 export class Mute {
 	private readonly api: Api;
@@ -13,15 +14,8 @@ export class Mute {
 		this.api = new Api(pool, writeRelays);
 	}
 
-	public async muteWord(word: string): Promise<void> {
-		const muteList = await this.api.fetchEvent([
-			{
-				kinds: [this.kind],
-				authors: [this.authorPubkey],
-				limit: 1
-			}
-		]);
-		console.log('[mute list]', muteList);
+	public async mutePrivate(tagName: string, tagContent: string): Promise<void> {
+		const muteList = await this.fetchLatestEvent();
 
 		let privateTags: string[][] = [];
 		if (muteList !== undefined) {
@@ -29,23 +23,43 @@ export class Mute {
 
 			if (
 				[...muteList.tags, ...privateTags].some(
-					([tagName, w]) => tagName === 'word' && w === word
+					([t, w]) => t === tagName && w === tagContent
 				)
 			) {
-				console.log('[already mute]', word, muteList);
+				console.log('[already mute]', tagName, tagContent, privateTags);
 				return;
 			}
 
-			privateTags.push(['word', word]);
+			privateTags.push([tagName, tagContent]);
 		} else {
-			privateTags = [['word', word]];
+			privateTags = [[tagName, tagContent]];
 		}
 
 		const content = await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags));
 		await this.api.signAndPublish(this.kind, content, muteList?.tags ?? []);
 	}
 
-	public async unmuteWord(word: string): Promise<void> {
+	public async unmutePrivate(tagName: string, tagContent: string): Promise<void> {
+		const muteList = await this.fetchLatestEvent();
+
+		if (muteList === undefined) {
+			console.log('[no mute list]', tagName, tagContent);
+			return;
+		}
+
+		const beforePrivateTags: string[][] = await this.parseContent(muteList.content);
+
+		const publicTags = muteList.tags.filter(([t, w]) => t !== tagName || w !== tagContent);
+		const privateTags = beforePrivateTags.filter(([t, w]) => t !== tagName || w !== tagContent);
+
+		const content =
+			privateTags.length > 0
+				? await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags))
+				: '';
+		await this.api.signAndPublish(this.kind, content, publicTags);
+	}
+
+	private async fetchLatestEvent() {
 		const muteList = await this.api.fetchEvent([
 			{
 				kinds: [this.kind],
@@ -55,21 +69,17 @@ export class Mute {
 		]);
 		console.log('[mute list]', muteList);
 
-		if (muteList === undefined) {
-			console.log('[no mute list]', word);
-			return;
+		// Validation
+		const cache = authorReplaceableEvents.get(10000);
+		if (
+			muteList !== undefined &&
+			cache !== undefined &&
+			muteList.created_at < cache.created_at
+		) {
+			throw new Error('Fetched event is older than cache.');
 		}
 
-		let privateTags: string[][] = await this.parseContent(muteList.content);
-
-		const tags = muteList.tags.filter(([tagName, w]) => tagName !== 'word' || w !== word);
-		privateTags = privateTags.filter(([tagName, w]) => tagName !== 'word' || w !== word);
-
-		const content =
-			privateTags.length > 0
-				? await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags))
-				: '';
-		await this.api.signAndPublish(this.kind, content, tags);
+		return muteList;
 	}
 
 	public async update(event: Event): Promise<void> {
@@ -78,7 +88,15 @@ export class Mute {
 		mutePubkeys.set([...filterTags('p', event.tags), ...filterTags('p', privateTags)]);
 		muteEventIds.set([...filterTags('e', event.tags), ...filterTags('e', privateTags)]);
 		muteWords.set([...filterTags('word', event.tags), ...filterTags('word', privateTags)]);
-		console.log('[mute lists]', get(mutePubkeys), get(muteEventIds), get(muteWords));
+		console.log(
+			'[mute lists]',
+			'p',
+			get(mutePubkeys),
+			'e',
+			get(muteEventIds),
+			'word',
+			get(muteWords)
+		);
 	}
 
 	// For legacy clients
