@@ -14,6 +14,7 @@
 
 	export let tagName: 'p' | 'e' | 'word';
 	export let tagContent: string;
+	export let text: string | undefined = undefined;
 
 	let executing = false;
 
@@ -32,7 +33,7 @@
 	async function mute() {
 		console.log('[mute]', logTexts[tagName]);
 
-		if (!confirm(`Mute this ${texts[tagName]}?`)) {
+		if (!confirm(`Mute this ${text ?? texts[tagName]}?`)) {
 			console.log('[mute cancelled]');
 			return;
 		}
@@ -51,7 +52,7 @@
 	async function unmute() {
 		console.log('[unmute]', logTexts[tagName]);
 
-		if (!confirm(`Unmute this ${texts[tagName]}?`)) {
+		if (!confirm(`Unmute this ${text ?? texts[tagName]}?`)) {
 			console.log('Unmute is cancelled');
 			return;
 		}
