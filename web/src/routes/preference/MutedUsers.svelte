@@ -11,6 +11,8 @@
 	let metadataEvents = new Map<string, Event>();
 	let unmuting = false;
 
+	const mute = new Mute($pubkey, $pool, $writeRelays);
+
 	onMount(async () => {
 		const api = new Api($pool, $writeRelays);
 		metadataEvents = await api.fetchMetadataEventsMap($mutePubkeys);
@@ -22,7 +24,7 @@
 		unmuting = true;
 
 		try {
-			await new Mute($pubkey, $pool, $writeRelays).unmutePrivate('p', pubkey);
+			await mute.unmutePrivate('p', pubkey);
 		} catch (error) {
 			alert('Failed to unmute.');
 		}
