@@ -7,13 +7,13 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays, rom } from '../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
-	import Follow from '../action/Follow.svelte';
+	import FollowButton from '../action/FollowButton.svelte';
 	import { Api } from '$lib/Api';
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
 	import Loading from '../Loading.svelte';
 	import { User as UserDecoder } from '$lib/User';
 	import { Timeline } from '$lib/Timeline';
-	import Mute from '../action/Mute.svelte';
+	import MuteButton from '../action/MuteButton.svelte';
 	import Badges from '../Badges.svelte';
 	import Content from '../content/Content.svelte';
 	import { Metadata } from '$lib/Items';
@@ -142,10 +142,10 @@
 					</div>
 				{/if}
 				<div class="mute">
-					<Mute {pubkey} />
+					<MuteButton tagName="p" tagContent={pubkey} />
 				</div>
 				<div class="follow">
-					<Follow {pubkey} />
+					<FollowButton {pubkey} />
 				</div>
 			{/if}
 		</div>

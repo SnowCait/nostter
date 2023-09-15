@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
-	import Follow from '../action/Follow.svelte';
+	import FollowButton from '../action/FollowButton.svelte';
 	import { rom } from '../../stores/Author';
 	import { lastNotesMap } from '../../stores/LastNotes';
 	import Content from '../content/Content.svelte';
@@ -25,7 +25,7 @@
 			<div class="name">@{metadata.content?.name ?? metadata.content?.display_name}</div>
 			{#if !$rom}
 				<div class="follow">
-					<Follow pubkey={metadata.event.pubkey} />
+					<FollowButton pubkey={metadata.event.pubkey} />
 				</div>
 			{/if}
 		</div>
