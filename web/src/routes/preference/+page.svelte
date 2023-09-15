@@ -6,6 +6,7 @@
 	import { debugMode } from '../../stores/Preference';
 	import WordMute from './WordMute.svelte';
 	import AutoRefresh from './AutoRefresh.svelte';
+	import MutedUsers from './MutedUsers.svelte';
 
 	let debugCounter = 0;
 
@@ -32,6 +33,7 @@
 		Edit custom emojis
 	</a>
 </div>
+<div><MutedUsers /></div>
 <div><WordMute /></div>
 <div><Notification /></div>
 <div><AutoRefresh /></div>
