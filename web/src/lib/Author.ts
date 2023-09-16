@@ -38,6 +38,8 @@ export class Author {
 		console.log('[relay events]', relayEvents);
 
 		this.saveRelays(relayEvents);
+
+		await RelayList.apply(relayEvents);
 	}
 
 	public saveCustomEmojis(event: Event) {

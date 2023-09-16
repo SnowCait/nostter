@@ -21,7 +21,12 @@
 	import { Kind, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { saveLastNote } from '../../stores/LastNotes';
 	import { Signer } from '$lib/Signer';
-	import { filterLimitItems, minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
+	import {
+		filterLimitItems,
+		minTimelineLength,
+		reverseChronologicalItem,
+		timelineBufferMs
+	} from '$lib/Constants';
 	import { chunk } from '$lib/Array';
 	import { Content } from '$lib/Content';
 	import {
@@ -30,101 +35,21 @@
 		notifiedEvents,
 		unreadEvents
 	} from '../../stores/Notifications';
-	import { EventItem } from '$lib/Items';
+	import { EventItem, Metadata } from '$lib/Items';
 	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { Mute } from '$lib/Mute';
 	import { autoRefresh } from '../../stores/Preference';
-	import { batch, createRxForwardReq, createRxNostr, latestEach } from 'rx-nostr';
-	import { bufferTime } from 'rxjs';
+	import { batch, createRxForwardReq, createRxOneshotReq, latestEach, uniq } from 'rx-nostr';
+	import { tap, bufferTime } from 'rxjs';
 	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
-	import { authorReplaceableEvents } from '$lib/cache/Events';
+	import { authorReplaceableEvents, metadataEvents } from '$lib/cache/Events';
+	import { metadataReq, rxNostr } from '$lib/Global';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
 	let streamingSpeedNotifiedAt = now;
 
-	const rxNostr = createRxNostr();
 	const userStatusReq = createRxForwardReq();
-
-	// past notes
-	async function fetchHomeTimeline(until?: number, span = 1 * 60 * 60) {
-		console.log('Fetch home timeline: followees', $followees.length);
-
-		if ($followees.length === 0) {
-			console.warn('Please login');
-			return;
-		}
-
-		console.log(`Fetch in ${Date.now() / 1000 - now} seconds`);
-
-		const since = (until ?? now) - span;
-
-		const authorsFilter = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
-			return {
-				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-				authors: chunkedAuthors,
-				until,
-				since
-			};
-		});
-
-		const api = new Api($pool, $readRelays);
-		const pastEvents = await api.fetchEventItems([
-			...authorsFilter,
-			{
-				kinds: [
-					Kind.Text,
-					Kind.EncryptedDirectMessage,
-					6,
-					Kind.Reaction,
-					Kind.ChannelMessage,
-					Kind.Zap
-				],
-				'#p': [$pubkey],
-				until,
-				since
-			},
-			{
-				kinds: [Kind.Reaction],
-				authors: [$pubkey],
-				until,
-				since
-			}
-		]);
-
-		console.log(`Text events loaded in ${Date.now() / 1000 - now} seconds`);
-
-		pastEvents.sort(reverseChronologicalItem);
-
-		console.log(`Sorted in ${Date.now() / 1000 - now} seconds`);
-
-		const list = await Promise.all(pastEvents.map(async (event) => await event.toEvent()));
-		$events.push(...list);
-		$events = $events;
-		console.log(
-			`Fetch home timeline completed: ${$events.length} events in ${
-				Date.now() / 1000 - now
-			} seconds`
-		);
-
-		// Cache
-		for (const event of list) {
-			if (event.kind === Kind.Text) {
-				saveLastNote(event);
-			}
-		}
-
-		// User Status
-		console.debug('[user status emit]');
-		userStatusReq.emit({
-			kinds: [30315],
-			authors: [...new Set(pastEvents.map((x) => x.event.pubkey))]
-		});
-
-		if ($events.length < minTimelineLength && since > 1640962800 /* 2022/01/01 00:00:00 */) {
-			await fetchHomeTimeline(since - 1, span * 2);
-		}
-	}
 
 	// new notes
 	function subscribeHomeTimeline() {
@@ -419,8 +344,6 @@
 
 		subscribeHomeTimeline();
 
-		await rxNostr.switchRelays($readRelays);
-
 		rxNostr
 			.use(userStatusReq.pipe(bufferTime(1000), batch()))
 			.pipe(latestEach((packet) => packet.event.pubkey))
@@ -457,6 +380,126 @@
 		$notifiedEvents = await Promise.all(notifiedEventItems.map((x) => x.toEvent()));
 		$loadingNotifications = false;
 	});
+
+	async function load() {
+		console.log('[home timeline load]');
+
+		if ($followees.length === 0) {
+			console.warn('Please login');
+			return;
+		}
+
+		const firstLength = $events.length;
+		let count = 0;
+		let until =
+			$events.length > 0
+				? Math.min(...$events.map((event) => event.created_at))
+				: Math.floor(Date.now() / 1000);
+		let seconds = 1 * 60 * 60;
+
+		while ($events.length - firstLength < minTimelineLength && count < 10) {
+			const since = until - seconds;
+			console.log('[channel period]', new Date(since * 1000), new Date(until * 1000));
+
+			const authorsFilter = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
+				return {
+					kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
+					authors: chunkedAuthors,
+					until,
+					since
+				};
+			});
+			const filters = [
+				...authorsFilter,
+				{
+					kinds: [
+						Kind.Text,
+						Kind.EncryptedDirectMessage,
+						6,
+						Kind.Reaction,
+						Kind.ChannelMessage,
+						Kind.Zap
+					],
+					'#p': [$pubkey],
+					until,
+					since
+				},
+				{
+					kinds: [Kind.Reaction],
+					authors: [$pubkey],
+					until,
+					since
+				}
+			];
+
+			console.debug('[channel messages REQ]', filters, rxNostr.getAllRelayState());
+			const pastChannelMessageReq = createRxOneshotReq({ filters });
+			await new Promise<void>((resolve, reject) => {
+				rxNostr
+					.use(pastChannelMessageReq)
+					.pipe(
+						uniq(),
+						tap(({ event }: { event: Event }) => {
+							metadataReq.emit({
+								kinds: [0],
+								authors: [event.pubkey],
+								limit: 1
+							});
+						}),
+						bufferTime(timelineBufferMs)
+					)
+					.subscribe({
+						next: (packets) => {
+							console.debug('[rx-nostr home timeline packets]', packets);
+							packets.sort(reverseChronologicalItem);
+							const newEvents = packets
+								.filter(({ event }) => event.created_at < until)
+								.map(({ event }) => {
+									const metadataEvent = metadataEvents.get(event.pubkey);
+									if (metadataEvent !== undefined) {
+										const metadata = new Metadata(metadataEvent);
+										return {
+											...event,
+											user: metadata.content
+										} as Event;
+									} else {
+										return event as Event;
+									}
+								});
+							$events.push(...newEvents);
+							$events = $events;
+
+							// Cache
+							for (const event of newEvents) {
+								if (event.kind === Kind.Text) {
+									saveLastNote(event);
+								}
+							}
+						},
+						complete: () => {
+							console.log('[channel messages complete]');
+
+							// User Status
+							console.debug('[user status emit]');
+							userStatusReq.emit({
+								kinds: [30315],
+								authors: [...new Set($events.map((x) => x.pubkey))]
+							});
+
+							resolve();
+						},
+						error: (error) => {
+							reject(error);
+						}
+					});
+			});
+
+			until -= seconds;
+			seconds *= 2;
+			count++;
+			console.log('[channel load]', count, until, seconds / 3600, $events.length);
+		}
+	}
 </script>
 
 <svelte:head>
@@ -471,11 +514,7 @@
 	</article>
 {/if}
 
-<TimelineView
-	events={$events}
-	load={async () =>
-		await fetchHomeTimeline($events.at($events.length - 1)?.created_at ?? now - 1)}
-/>
+<TimelineView events={$events} {load} />
 
 <style>
 	article {
