@@ -36,5 +36,5 @@ jobs:
           tags: |
             - ["d", "general"]
             - ["t", "nostter"]
-            - ["r", "${{ github.event.pull_request.html_url }}"]
+            - ["r", "https://nostter.vercel.app/"]
             - ["expiration", "${{ env.expiration }}"]
