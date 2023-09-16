@@ -9,8 +9,10 @@ export class User {
 		let relays: string[] = [];
 
 		try {
-			if (/^[\w-.]+@[\w-.]+$/.test(slug)) {
-				const [name, domain] = slug.split('@');
+			const match = slug.match(/^(?:([\w-.]+)@)?([\w-.]+)$/);
+			console.log('[NIP-05 match]', match);
+			if (match !== null) {
+				const [, name = '_', domain] = match;
 				const response = await fetch(
 					`https://${domain}/.well-known/nostr.json?name=${name}`
 				);

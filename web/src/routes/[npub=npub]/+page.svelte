@@ -67,9 +67,12 @@
 			} as User;
 		}
 
-		if (user !== undefined && user.nip05 && slug !== user.nip05) {
-			history.replaceState(history.state, '', user.nip05);
-			slug = user.nip05;
+		if (user !== undefined && user.nip05) {
+			const normalizedNip05 = user.nip05.replace(/^_@/, '');
+			if (slug !== normalizedNip05) {
+				history.replaceState(history.state, '', normalizedNip05);
+				slug = normalizedNip05;
+			}
 		}
 
 		api.fetchFollowees(pubkey).then((pubkeys) => {
