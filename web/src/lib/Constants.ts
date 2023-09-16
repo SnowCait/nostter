@@ -5,6 +5,7 @@ export const trendingPeopleBotNpub =
 	'npub1qsytpsj0pk8pfyk2msyx8ymmvkavn2lg2pxdxsdxufeu83ax5ymsgd4t3w';
 export const minTimelineLength = 25;
 export const filterLimitItems = 1000;
+export const timelineBufferMs = 1000;
 export const notFoundImageUrl =
 	'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png';
 
