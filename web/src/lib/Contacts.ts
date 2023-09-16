@@ -1,5 +1,6 @@
 import { Kind, type SimplePool } from 'nostr-tools';
 import { Api } from './Api';
+import { authorReplaceableEvents } from './cache/Events';
 
 export class Contacts {
 	private readonly api: Api;
@@ -12,21 +13,29 @@ export class Contacts {
 		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
 		console.log('[contacts]', contacts);
 
-		// TODO: Support undefined case
-		if (contacts === undefined) {
-			console.error('Contacts not found');
-			return;
+		// Validation
+		const cache = authorReplaceableEvents.get(3);
+		console.debug('[contacts cache]', cache);
+		if (
+			contacts !== undefined &&
+			cache !== undefined &&
+			contacts.created_at < cache.created_at
+		) {
+			throw new Error('Fetched event is older than cache.');
 		}
 
-		if (contacts.tags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
+		if (
+			contacts !== undefined &&
+			contacts.tags.some(([tagName, p]) => tagName === 'p' && p === pubkey)
+		) {
 			console.log('[already follow]', pubkey, contacts);
 			return;
 		}
 
-		await this.api.signAndPublish(Kind.Contacts, contacts.content, [
-			...contacts.tags,
-			['p', pubkey]
-		]);
+		const tags = contacts?.tags ?? [];
+		tags.push(['p', pubkey]);
+
+		await this.api.signAndPublish(Kind.Contacts, contacts?.content ?? '', tags);
 	}
 
 	public async unfollow(pubkey: string): Promise<void> {
