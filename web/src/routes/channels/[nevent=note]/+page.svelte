@@ -10,8 +10,7 @@
 		now,
 		uniq
 	} from 'rx-nostr';
-	import { tap, bufferTime, type Subscription, firstValueFrom } from 'rxjs';
-	import { toArray } from 'rxjs/operators';
+	import { tap, bufferTime, type Subscription } from 'rxjs';
 	import { onDestroy } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
 	import { error } from '@sveltejs/kit';
@@ -30,6 +29,7 @@
 	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '../../parts/ChannelTitle.svelte';
 	import MuteButton from '../../action/MuteButton.svelte';
+	import { timeout } from '$lib/Global';
 
 	let slug = $page.params.nevent;
 	let channelId: string;
@@ -73,7 +73,7 @@
 		}
 	}
 
-	const rxNostr = createRxNostr({ timeout: 2000 });
+	const rxNostr = createRxNostr({ timeout });
 	const metadataReq = createRxBackwardReq();
 
 	let events: ExtendedEvent[] = [];
