@@ -26,7 +26,7 @@
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
 	import { Metadata } from '$lib/Items';
-	import { minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
+	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '../../parts/ChannelTitle.svelte';
 	import MuteButton from '../../action/MuteButton.svelte';
@@ -205,38 +205,50 @@
 			const filter = { kinds: [42], '#e': [channelId], until, since };
 			console.debug('[channel messages REQ]', filter);
 			const pastChannelMessageReq = createRxOneshotReq({ filters: filter });
-			const packets = await firstValueFrom(
-				rxNostr.use(pastChannelMessageReq).pipe(
-					uniq(),
-					tap(({ event }: { event: Event }) => {
-						metadataReq.emit({
-							kinds: [0],
-							authors: [event.pubkey],
-							limit: 1
-						});
-					}),
-					toArray()
-				)
-			);
-			console.debug('[channel messages]', packets);
-			packets.sort(reverseChronologicalItem);
-			events.push(
-				...packets
-					.filter(({ event }) => event.created_at < until)
-					.map(({ event }) => {
-						const metadataEvent = metadataEvents.get(event.pubkey);
-						if (metadataEvent !== undefined) {
-							const metadata = new Metadata(metadataEvent);
-							return {
-								...event,
-								user: metadata.content
-							} as ExtendedEvent;
-						} else {
-							return event as ExtendedEvent;
+			await new Promise<void>((resolve, reject) => {
+				rxNostr
+					.use(pastChannelMessageReq)
+					.pipe(
+						uniq(),
+						tap(({ event }: { event: Event }) => {
+							metadataReq.emit({
+								kinds: [0],
+								authors: [event.pubkey],
+								limit: 1
+							});
+						}),
+						bufferTime(timelineBufferMs)
+					)
+					.subscribe({
+						next: (packets) => {
+							console.debug('[channel messages]', packets);
+							packets.sort(reverseChronologicalItem);
+							events.push(
+								...packets
+									.filter(({ event }) => event.created_at < until)
+									.map(({ event }) => {
+										const metadataEvent = metadataEvents.get(event.pubkey);
+										if (metadataEvent !== undefined) {
+											const metadata = new Metadata(metadataEvent);
+											return {
+												...event,
+												user: metadata.content
+											} as ExtendedEvent;
+										} else {
+											return event as ExtendedEvent;
+										}
+									})
+							);
+							events = events;
+						},
+						complete: () => {
+							resolve();
+						},
+						error: (error) => {
+							reject(error);
 						}
-					})
-			);
-			events = events;
+					});
+			});
 
 			until -= seconds;
 			seconds *= 2;
