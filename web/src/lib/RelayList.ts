@@ -1,6 +1,8 @@
 import { Kind, type Event, SimplePool } from 'nostr-tools';
 import { Api } from './Api';
 import { defaultRelays } from './Constants';
+import { rxNostr } from './Global';
+import { parseRelayJson } from './EventHelper';
 
 export class RelayList {
 	public static async fetchEvents(
@@ -51,5 +53,19 @@ export class RelayList {
 		saveCache(events, cachedEvents);
 
 		return events;
+	}
+
+	public static async apply(eventsMap: Map<Kind, Event>) {
+		const kind10002 = eventsMap.get(10002);
+		const kind3 = eventsMap.get(3);
+		if (kind10002 !== undefined) {
+			await rxNostr.switchRelays(kind10002.tags);
+		} else if (kind3 !== undefined && kind3.content !== '') {
+			await rxNostr.switchRelays(
+				[...parseRelayJson(kind3.content)].map(([url, { read, write }]) => {
+					return { url, read, write };
+				})
+			);
+		}
 	}
 }
