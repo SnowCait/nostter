@@ -5,12 +5,8 @@
 	import { onMount } from 'svelte';
 	import { debugMode } from '../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
-	import { dev } from '$app/environment';
-	import { inject } from '@vercel/analytics';
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import { pubkey, rom } from '../stores/Author';
-
-	inject({ mode: dev ? 'development' : 'production' });
 
 	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
