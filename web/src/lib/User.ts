@@ -9,22 +9,7 @@ export class User {
 		let relays: string[] = [];
 
 		try {
-			const match = slug.match(/^(?:([\w-.]+)@)?([\w-.]+)$/);
-			console.log('[NIP-05 match]', match);
-			if (match !== null) {
-				const [, name = '_', domain] = match;
-				const response = await fetch(
-					`https://${domain}/.well-known/nostr.json?name=${name}`
-				);
-				if (!response.ok) {
-					console.error('[invalid NIP-05]', await response.text());
-					throw new Error('fetch failed');
-				}
-				const data = await response.json();
-				console.log('[NIP-05]', data);
-				pubkey = data.names[name];
-				relays = data.relays?.[name] ?? [];
-			} else {
+			if (slug.startsWith('npub1') || slug.startsWith('nprofile1')) {
 				const { type, data } = nip19.decode(slug);
 				switch (type) {
 					case 'npub': {
@@ -41,6 +26,24 @@ export class User {
 						break;
 					}
 				}
+			} else {
+				const match = slug.match(/^(?:([\w-.]+)@)?([\w-.]+)$/);
+				console.log('[NIP-05 match]', match);
+				if (match === null) {
+					throw new Error(`${slug} doesn't match NIP-05`);
+				}
+				const [, name = '_', domain] = match;
+				const response = await fetch(
+					`https://${domain}/.well-known/nostr.json?name=${name}`
+				);
+				if (!response.ok) {
+					console.error('[invalid NIP-05]', await response.text());
+					throw new Error('fetch failed');
+				}
+				const data = await response.json();
+				console.log('[NIP-05]', data);
+				pubkey = data.names[name];
+				relays = data.relays?.[name] ?? [];
 			}
 		} catch (error) {
 			console.error('[decode failed]', slug, error);
