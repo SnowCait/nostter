@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
-	import { nip19, SimplePool } from 'nostr-tools';
+	import { nip05, nip19, SimplePool } from 'nostr-tools';
 	import type { Event, User } from '../types';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
@@ -19,6 +19,8 @@
 	import { Metadata } from '$lib/Items';
 	import { minTimelineLength } from '$lib/Constants';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
+	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
+	import IconAlertTriangle from '@tabler/icons-svelte/dist/svelte/icons/IconAlertTriangle.svelte';
 
 	let metadata: Metadata;
 	let user: User | undefined;
@@ -153,6 +155,18 @@
 		{#if user?.name}
 			<h2>@{user.name}</h2>
 		{/if}
+		{#if user?.nip05}
+			<div class="nip05">
+				<span>{user.nip05}</span>
+				{#await nip05.queryProfile(user.nip05) then pointer}
+					{#if pointer !== null}
+						<IconDiscountCheck color="skyblue" />
+					{:else}
+						<IconAlertTriangle color="red" />
+					{/if}
+				{/await}
+			</div>
+		{/if}
 		<div class="nip19">{nip19.npubEncode(pubkey)}</div>
 		<div class="nip19">{nip19.nprofileEncode({ pubkey })}</div>
 		{#if followees.some((pubkey) => pubkey === $authorPubkey)}
@@ -250,6 +264,15 @@
 
 	.about {
 		margin: 1rem 0;
+	}
+
+	.nip05 {
+		display: flex;
+		flex-direction: row;
+	}
+
+	.nip05 span {
+		margin-right: 0.2rem;
 	}
 
 	.nip19 {
