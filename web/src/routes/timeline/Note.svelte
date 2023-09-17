@@ -53,11 +53,16 @@
 	let replyToNames: string[] = [];
 	let channelId: string | undefined;
 	let channelName: string | undefined;
-	const originalEvent = Object.assign({}, event) as any;
-	delete originalEvent.user;
-	const originalUser = Object.assign({}, event.user) as any;
-	delete originalUser.zapEndpoint;
+	let originalEvent: any;
+	let originalUser: any;
 	let zapDialogComponent: ZapDialog;
+
+	$: {
+		originalEvent = Object.assign({}, event) as any;
+		delete originalEvent.user;
+		originalUser = Object.assign({}, event.user) as any;
+		delete originalUser.zapEndpoint;
+	}
 
 	let contentWarning = event.tags.find(([tagName]) => tagName === 'content-warning')?.at(1);
 	let showContent = contentWarning === undefined;
