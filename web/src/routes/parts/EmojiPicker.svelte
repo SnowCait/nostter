@@ -88,7 +88,7 @@
 		<IconMoodSmile size={20} />
 	</slot>
 </button>
-<div bind:this={emojiPicker} class:hidden on:keyup={console.debug} />
+<div bind:this={emojiPicker} class:hidden on:keyup|stopPropagation={console.debug} />
 
 <style>
 	button {

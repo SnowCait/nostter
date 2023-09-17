@@ -158,7 +158,11 @@
 	{#if pubkey === $authorPubkey}
 		{#if editable}
 			<div>
-				<input type="url" bind:value={addingRelay} />
+				<input
+					type="url"
+					bind:value={addingRelay}
+					on:keyup|stopPropagation={console.debug}
+				/>
 				<button on:click|preventDefault={add}>Add</button>
 			</div>
 		{/if}
