@@ -18,6 +18,14 @@ export function isReply(event: Event): boolean {
 	);
 }
 
+export function findIdentifier(tags: string[][]): string | undefined {
+	const tag = tags.find(([name]) => name === 'd');
+	if (tag === undefined) {
+		return undefined;
+	}
+	return tag.at(1) ?? '';
+}
+
 export function filterTags(tagName: string, tags: string[][]) {
 	return tags
 		.filter(([name, content]) => name === tagName && content !== undefined && content !== '')

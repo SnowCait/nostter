@@ -18,6 +18,21 @@ import { reactionEmoji } from '../stores/Preference';
 import type { User } from '../routes/types';
 import { lastReadAt } from '../stores/Notifications';
 import { Mute } from './Mute';
+import { WebStorage } from './WebStorage';
+
+type AuthorReplaceableKind = {
+	kind: number;
+	identifier?: string;
+};
+
+export const authorReplaceableKinds: AuthorReplaceableKind[] = [
+	...Api.replaceableKinds.map((kind) => {
+		return { kind };
+	}),
+	{ kind: 30000, identifier: 'notifications/lastOpened' },
+	{ kind: 30001, identifier: 'bookmark' },
+	{ kind: 30078, identifier: 'nostter-reaction-emoji' }
+];
 
 export class Author {
 	constructor(private pubkey: string) {}
@@ -133,10 +148,8 @@ export class Author {
 	}
 
 	public async fetchEvents(): Promise<void> {
-		const api = new Api(get(pool), get(writeRelays));
-		const { replaceableEvents, parameterizedReplaceableEvents } = await api.fetchAuthorEvents(
-			this.pubkey
-		);
+		const { replaceableEvents, parameterizedReplaceableEvents } =
+			await this.fetchAuthorEventsWithCache(this.pubkey);
 
 		const $metadataEvent = replaceableEvents.get(Kind.Metadata);
 		if ($metadataEvent !== undefined) {
@@ -194,5 +207,50 @@ export class Author {
 		}
 
 		console.log('[relays]', get(readRelays), get(writeRelays));
+	}
+
+	private async fetchAuthorEventsWithCache(pubkey: string): Promise<{
+		replaceableEvents: Map<Kind, Event>;
+		parameterizedReplaceableEvents: Map<string, Event>;
+	}> {
+		const storage = new WebStorage(localStorage);
+		const cachedAt = storage.getCachedAt();
+		if (cachedAt !== null) {
+			const replaceableEvents = new Map(
+				authorReplaceableKinds
+					.filter(({ identifier }) => identifier === undefined)
+					.map(({ kind }) => [kind, storage.getReplaceableEvent(kind)])
+					.filter((x): x is [number, Event] => x[1] !== null)
+			);
+			console.log('[author events cache re]', replaceableEvents);
+			const parameterizedReplaceableEvents = new Map(
+				authorReplaceableKinds
+					.filter(({ identifier }) => identifier !== undefined)
+					.map(({ kind, identifier }) => {
+						if (identifier === undefined) {
+							throw new Error('Logic error');
+						}
+						return [
+							`${kind}:${identifier}`,
+							storage.getParameterizedReplaceableEvent(kind, identifier)
+						];
+					})
+					.filter((x): x is [string, Event] => x[1] !== null)
+			);
+			console.log('[author events cache pre]', parameterizedReplaceableEvents);
+			return { replaceableEvents, parameterizedReplaceableEvents };
+		}
+
+		const api = new Api(get(pool), get(writeRelays));
+		const { replaceableEvents, parameterizedReplaceableEvents } = await api.fetchAuthorEvents(
+			pubkey
+		);
+		for (const [, event] of [...replaceableEvents]) {
+			storage.setReplaceableEvent(event);
+		}
+		for (const [key, event] of [...parameterizedReplaceableEvents]) {
+			storage.set(`kind:${key}`, JSON.stringify(event));
+		}
+		return { replaceableEvents, parameterizedReplaceableEvents };
 	}
 }

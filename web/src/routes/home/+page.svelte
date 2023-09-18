@@ -18,7 +18,7 @@
 	} from '../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
-	import { Kind, type Event as NostrEvent, type Relay } from 'nostr-tools';
+	import { Kind, type Filter, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { saveLastNote } from '../../stores/LastNotes';
 	import { Signer } from '$lib/Signer';
 	import {
@@ -44,6 +44,9 @@
 	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
 	import { authorReplaceableEvents, metadataEvents } from '$lib/cache/Events';
 	import { metadataReq, rxNostr } from '$lib/Global';
+	import { WebStorage } from '$lib/WebStorage';
+	import { findIdentifier } from '$lib/EventHelper';
+	import { authorReplaceableKinds } from '$lib/Author';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -59,7 +62,7 @@
 		let newEvents: EventItem[] = [];
 		const since = now;
 
-		const authorsFilter = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
+		const followeesFilter = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
 			return {
 				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
 				authors: chunkedAuthors,
@@ -67,8 +70,17 @@
 			};
 		});
 
+		const storage = new WebStorage(localStorage);
+		const cachedAt = storage.get('cached_at');
+		const authorFilter: Filter = {
+			kinds: authorReplaceableKinds.map(({ kind }) => kind),
+			authors: [$pubkey],
+			since: cachedAt === null ? now : Number(cachedAt)
+		};
+		console.log('[author filter]', authorFilter, new Date((authorFilter.since ?? 0) * 1000));
+
 		const subscribe = $pool.sub($readRelays, [
-			...authorsFilter,
+			...followeesFilter,
 			{
 				kinds: [
 					Kind.Text,
@@ -82,71 +94,79 @@
 				since
 			},
 			{
-				kinds: [Kind.Reaction, 10000, 10001, Kind.RelayList, 10030, 30000],
+				kinds: [Kind.Reaction],
 				authors: [$pubkey],
 				since
 			},
-			{
-				kinds: [30001],
-				authors: [$pubkey],
-				'#d': ['bookmark'],
-				since: $bookmarkEvent === undefined ? now : $bookmarkEvent.created_at + 1
-			}
+			authorFilter
 		]);
 		subscribe.on('event', async (nostrEvent: NostrEvent) => {
 			const event = nostrEvent as Event;
 			console.debug(event, $pool.seenOn(event.id));
 
 			if (event.kind === Kind.Metadata) {
+				storage.setReplaceableEvent(event);
 				await saveMetadataEvent(event);
+				return;
+			}
+
+			if (event.kind === Kind.Contacts) {
+				console.log('[contacts]', event, $pool.seenOn(event.id));
+				storage.setReplaceableEvent(event);
 				return;
 			}
 
 			if (event.kind === 10000) {
 				console.log('[mute list]', event, $pool.seenOn(event.id));
+				storage.setReplaceableEvent(event);
 				await new Mute($pubkey, $pool, $writeRelays).update(event);
 				return;
 			}
 
 			if (event.kind === 10001) {
+				storage.setReplaceableEvent(event);
 				authorReplaceableEvents.set(event.kind, event);
 				return;
 			}
 
 			if (event.kind === Kind.RelayList) {
 				console.log('[relay list]', event, $pool.seenOn(event.id));
+				storage.setReplaceableEvent(event);
 				updateRelays(event);
 				return;
 			}
 
 			if (event.kind === 10030) {
+				storage.setReplaceableEvent(event);
 				$author?.saveCustomEmojis(event);
 				return;
 			}
 
 			if (event.kind === 30000) {
-				if (
-					event.tags.some(
-						([tagName, identifier]) =>
-							tagName === 'd' && identifier === 'notifications/lastOpened'
-					)
-				) {
+				storage.setParameterizedReplaceableEvent(event);
+				const identifier = findIdentifier(event.tags);
+				if (identifier === 'notifications/lastOpened') {
 					console.log('[last read]', event);
 					$unreadEvents = [];
-				} else {
+				} else if (identifier !== undefined) {
 					console.log('[people list]', event);
 				}
 				return;
 			}
 
-			if (
-				event.kind === 30001 &&
-				event.tags.some(
-					([tagName, identifier]) => tagName === 'd' && identifier === 'bookmark'
-				)
-			) {
-				console.log('[bookmark]', event, $pool.seenOn(event.id));
-				$bookmarkEvent = event;
+			if (event.kind === 30001) {
+				console.debug('[list]', event, $pool.seenOn(event.id));
+				storage.setParameterizedReplaceableEvent(event);
+				if (findIdentifier(event.tags) === 'bookmark') {
+					console.log('[bookmark]', event, $pool.seenOn(event.id));
+					$bookmarkEvent = event;
+				}
+				return;
+			}
+
+			if (event.kind === 30078) {
+				console.log('[preferences]', event, $pool.seenOn(event.id));
+				storage.setParameterizedReplaceableEvent(event);
 				return;
 			}
 
