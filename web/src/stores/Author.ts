@@ -10,7 +10,6 @@ export const pubkey = writable('');
 export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
-export const recommendedRelay = writable('');
 export const followees: Writable<string[]> = writable([]);
 export const mutePubkeys: Writable<string[]> = writable([]);
 export const muteEventIds: Writable<string[]> = writable([]);

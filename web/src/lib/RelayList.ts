@@ -24,7 +24,7 @@ export class RelayList {
 
 		// Load cache
 		const cachedEvents = new Map(
-			[Kind.RecommendRelay, Kind.Contacts, Kind.RelayList]
+			[Kind.Contacts, Kind.RelayList]
 				.map((kind) => [kind, storage.getReplaceableEvent(kind)])
 				.filter((x): x is [Kind, Event] => x[1] !== null)
 		);

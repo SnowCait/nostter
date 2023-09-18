@@ -13,14 +13,7 @@
 	import type { Event } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
-	import {
-		recommendedRelay,
-		readRelays,
-		writeRelays,
-		pubkey,
-		isBookmarked,
-		author
-	} from '../../stores/Author';
+	import { readRelays, writeRelays, pubkey, isBookmarked, author } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import { rom } from '../../stores/Author';
 	import CreatedAt from '../CreatedAt.svelte';
@@ -96,7 +89,7 @@
 			created_at: Math.round(Date.now() / 1000),
 			kind: 6 as Kind,
 			tags: [
-				['e', note.id, $recommendedRelay, 'mention'],
+				['e', note.id, '', 'mention'],
 				['p', note.pubkey]
 			],
 			content: ''

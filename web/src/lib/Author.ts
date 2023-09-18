@@ -4,7 +4,6 @@ import { Api } from './Api';
 import { pool } from '../stores/Pool';
 import {
 	followees,
-	recommendedRelay,
 	readRelays,
 	writeRelays,
 	updateRelays,
@@ -96,12 +95,6 @@ export class Author {
 
 	// TODO: Ensure created_at
 	public saveRelays(replaceableEvents: Map<Kind, Event>) {
-		const recommendedRelayEvent = replaceableEvents.get(Kind.RecommendRelay);
-		if (recommendedRelayEvent !== undefined) {
-			recommendedRelay.set(recommendedRelayEvent.content);
-			console.log('[recommended relay]', get(recommendedRelay));
-		}
-
 		const contactsEvent = replaceableEvents.get(Kind.Contacts);
 		if (contactsEvent !== undefined) {
 			const pubkeys = new Set(filterTags('p', contactsEvent.tags));
