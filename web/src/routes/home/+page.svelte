@@ -105,7 +105,9 @@
 			console.debug(event, $pool.seenOn(event.id));
 
 			if (event.kind === Kind.Metadata) {
-				storage.setReplaceableEvent(event);
+				if (event.pubkey === $pubkey) {
+					storage.setReplaceableEvent(event);
+				}
 				await saveMetadataEvent(event);
 				return;
 			}
