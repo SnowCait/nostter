@@ -3,9 +3,9 @@
 	import { error } from '@sveltejs/kit';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { WebStorage } from '$lib/WebStorage';
 	import { User as UserDecoder } from '$lib/User';
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
-	import { authorReplaceableEvents } from '$lib/cache/Events';
 	import type { Event } from 'nostr-tools';
 	import { onDestroy } from 'svelte';
 	import { firstValueFrom, EmptyError } from 'rxjs';
@@ -30,7 +30,8 @@
 
 		let event: Event | undefined;
 		if (pubkey === $authorPubkey) {
-			event = authorReplaceableEvents.get(10001);
+			const storage = new WebStorage(localStorage);
+			event = storage.getReplaceableEvent(10001);
 			console.log('[pin event (author)]', event);
 		} else {
 			try {

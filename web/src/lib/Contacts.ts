@@ -1,6 +1,6 @@
 import { Kind, type SimplePool } from 'nostr-tools';
 import { Api } from './Api';
-import { authorReplaceableEvents } from './cache/Events';
+import { WebStorage } from './WebStorage';
 
 export class Contacts {
 	private readonly api: Api;
@@ -14,7 +14,8 @@ export class Contacts {
 		console.log('[contacts]', contacts);
 
 		// Validation
-		const cache = authorReplaceableEvents.get(3);
+		const storage = new WebStorage(localStorage);
+		const cache = storage.getReplaceableEvent(3);
 		console.debug('[contacts cache]', cache);
 		if (
 			contacts !== undefined &&
