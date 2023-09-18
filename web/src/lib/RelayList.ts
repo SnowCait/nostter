@@ -26,7 +26,7 @@ export class RelayList {
 		const cachedEvents = new Map(
 			[Kind.RecommendRelay, Kind.Contacts, Kind.RelayList]
 				.map((kind) => [kind, storage.getReplaceableEvent(kind)])
-				.filter((x): x is [Kind, Event] => x !== null)
+				.filter((x): x is [Kind, Event] => x[1] !== null)
 		);
 		if (cachedEvents.size > 0) {
 			api.fetchRelayEvents(pubkey).then((events) => {
