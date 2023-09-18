@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { pool } from '../stores/Pool';
-	import { pubkey, rom, recommendedRelay, writeRelays, readRelays } from '../stores/Author';
+	import { pubkey, rom, writeRelays, readRelays } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../stores/NoteDialog';
 	import Note from './timeline/Note.svelte';
 	import IconSend from '@tabler/icons-svelte/dist/svelte/icons/IconSend.svelte';
@@ -300,14 +300,7 @@
 		}
 
 		const eventIds = Content.findNotesAndNeventsToIds(content);
-		tags.push(
-			...Array.from(new Set(eventIds)).map((eventId) => [
-				'e',
-				eventId,
-				$recommendedRelay,
-				'mention'
-			])
-		);
+		tags.push(...Array.from(new Set(eventIds)).map((eventId) => ['e', eventId, '', 'mention']));
 
 		for (const { type, data } of Content.findNpubsAndNprofiles(content).map((x) => {
 			try {

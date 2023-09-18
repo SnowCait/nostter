@@ -13,7 +13,6 @@ import { chronological, reverseChronological } from './Constants';
 export class Api {
 	public static readonly replaceableKinds = [
 		Kind.Metadata,
-		Kind.RecommendRelay,
 		Kind.Contacts,
 		10000,
 		10001,
@@ -28,7 +27,7 @@ export class Api {
 	public async fetchRelayEvents(pubkey: string): Promise<Map<Kind, Event>> {
 		const events = await this.pool.list(this.relays, [
 			{
-				kinds: [Kind.RecommendRelay, Kind.Contacts, Kind.RelayList],
+				kinds: [Kind.Contacts, Kind.RelayList],
 				authors: [pubkey]
 			}
 		]);
