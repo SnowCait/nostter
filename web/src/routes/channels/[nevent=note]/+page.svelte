@@ -19,6 +19,7 @@
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { cachedEvents, channelMetadataEvents, metadataEvents } from '$lib/cache/Events';
 	import { Channel, channelIdStore } from '$lib/Channel';
+	import { timeout } from '$lib/Constants';
 	import type { ChannelMetadata } from '$lib/Types';
 	import { author, readRelays } from '../../../stores/Author';
 	import type { Event as ExtendedEvent, User } from '../../types';
@@ -29,7 +30,6 @@
 	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '../../parts/ChannelTitle.svelte';
 	import MuteButton from '../../action/MuteButton.svelte';
-	import { timeout } from '$lib/Global';
 
 	let slug = $page.params.nevent;
 	let channelId: string;

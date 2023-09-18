@@ -1,6 +1,7 @@
 import type { Event } from 'nostr-tools';
+import { get } from 'svelte/store';
 import { findIdentifier } from './EventHelper';
-
+import { pubkey } from '../stores/Author';
 export class WebStorage {
 	public constructor(private readonly storage: Storage) {}
 
@@ -30,6 +31,9 @@ export class WebStorage {
 	}
 
 	public setReplaceableEvent(event: Event): void {
+		if (event.pubkey !== get(pubkey)) {
+			throw new Error('Logic error');
+		}
 		const cache = this.getReplaceableEvent(event.kind);
 		if (cache === null || cache.created_at < event.created_at) {
 			this.set(`kind:${event.kind}`, JSON.stringify(event));
@@ -51,6 +55,9 @@ export class WebStorage {
 	}
 
 	public setParameterizedReplaceableEvent(event: Event): void {
+		if (event.pubkey !== get(pubkey)) {
+			throw new Error('Logic error');
+		}
 		const cache = this.getReplaceableEvent(event.kind);
 		if (cache === null || cache.created_at < event.created_at) {
 			const identifier = findIdentifier(event.tags);
