@@ -150,23 +150,23 @@
 				.use(metadataReq.pipe(bufferTime(1000), batch()))
 				.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
 				.subscribe(async (packet) => {
-					const metadata = new Metadata(packet.event);
-					console.log('[channel related metadata]', packet, metadata.content?.name);
-					const user = {
-						...metadata.content,
-						zapEndpoint: (await metadata.zapUrl())?.href ?? null
-					} as User;
-					for (const event of events) {
-						if (event.pubkey !== packet.event.pubkey) {
-							continue;
-						}
-						event.user = user;
-					}
-					events = events;
-
 					const cache = metadataEvents.get(packet.event.pubkey);
 					if (cache === undefined || cache.created_at < packet.event.created_at) {
 						metadataEvents.set(packet.event.pubkey, packet.event);
+
+						const metadata = new Metadata(packet.event);
+						console.log('[channel related metadata]', packet, metadata.content?.name);
+						const user = {
+							...metadata.content,
+							zapEndpoint: (await metadata.zapUrl())?.href ?? null
+						} as User;
+						for (const event of events) {
+							if (event.pubkey !== packet.event.pubkey) {
+								continue;
+							}
+							event.user = user;
+						}
+						events = events;
 					}
 				});
 		}
