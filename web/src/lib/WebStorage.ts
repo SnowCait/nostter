@@ -58,12 +58,12 @@ export class WebStorage {
 		if (event.pubkey !== get(pubkey)) {
 			throw new Error('Logic error');
 		}
-		const cache = this.getReplaceableEvent(event.kind);
-		if (cache === null || cache.created_at < event.created_at) {
 			const identifier = findIdentifier(event.tags);
 			if (identifier === undefined) {
 				return;
 			}
+		const cache = this.getParameterizedReplaceableEvent(event.kind, identifier);
+		if (cache === null || cache.created_at < event.created_at) {
 			this.set(`kind:${event.kind}:${identifier}`, JSON.stringify(event));
 			this.setCachedAt();
 		}
