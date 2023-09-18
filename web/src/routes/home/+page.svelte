@@ -88,9 +88,7 @@
 			},
 			{
 				kinds: [30001],
-				authors: [$pubkey],
-				'#d': ['bookmark'],
-				since: $bookmarkEvent === undefined ? now : $bookmarkEvent.created_at + 1
+				authors: [$pubkey]
 			}
 		]);
 		subscribe.on('event', async (nostrEvent: NostrEvent) => {
@@ -139,14 +137,21 @@
 				return;
 			}
 
-			if (
-				event.kind === 30001 &&
-				event.tags.some(
-					([tagName, identifier]) => tagName === 'd' && identifier === 'bookmark'
-				)
-			) {
-				console.log('[bookmark]', event, $pool.seenOn(event.id));
-				$bookmarkEvent = event;
+			if (event.kind === 30001) {
+				console.debug('[list]', event, $pool.seenOn(event.id));
+				if (
+					event.tags.some(
+						([tagName, identifier]) => tagName === 'd' && identifier === 'bookmark'
+					)
+				) {
+					console.log('[bookmark]', event, $pool.seenOn(event.id));
+					if (
+						$bookmarkEvent === undefined ||
+						$bookmarkEvent.created_at < event.created_at
+					) {
+						$bookmarkEvent = event;
+					}
+				}
 				return;
 			}
 
