@@ -7,6 +7,7 @@ import {
 	getPublicKey,
 	nip04
 } from 'nostr-tools';
+import { WebStorage } from './WebStorage';
 
 interface Window {
 	// NIP-07
@@ -16,7 +17,8 @@ declare const window: Window;
 
 export class Signer {
 	public static getPublicKey(): string {
-		const login = localStorage.getItem('nostter:login');
+		const storage = new WebStorage(localStorage);
+		const login = storage.get('login');
 		if (login === null || login.startsWith('npub')) {
 			throw new Error('[logic error]');
 		}
@@ -32,7 +34,8 @@ export class Signer {
 	}
 
 	public static async signEvent(unsignedEvent: EventTemplate): Promise<Event> {
-		const login = localStorage.getItem('nostter:login');
+		const storage = new WebStorage(localStorage);
+		const login = storage.get('login');
 		if (login === null || login.startsWith('npub')) {
 			throw new Error('[logic error]');
 		}
@@ -54,7 +57,8 @@ export class Signer {
 	}
 
 	public static getRelays(): Map<string, { read: boolean; write: boolean }> {
-		const login = localStorage.getItem('nostter:login');
+		const storage = new WebStorage(localStorage);
+		const login = storage.get('login');
 		if (login === 'NIP-07') {
 			try {
 				return window.nostr.getRelays();
@@ -68,7 +72,8 @@ export class Signer {
 	}
 
 	public static async encrypt(pubkey: string, plaintext: string): Promise<string> {
-		const login = localStorage.getItem('nostter:login');
+		const storage = new WebStorage(localStorage);
+		const login = storage.get('login');
 		if (login === null || login.startsWith('npub')) {
 			throw new Error('[logic error]');
 		}
@@ -84,7 +89,8 @@ export class Signer {
 	}
 
 	public static async decrypt(pubkey: string, ciphertext: string): Promise<string> {
-		const login = localStorage.getItem('nostter:login');
+		const storage = new WebStorage(localStorage);
+		const login = storage.get('login');
 		if (login === null || login.startsWith('npub')) {
 			throw new Error('[logic error]');
 		}

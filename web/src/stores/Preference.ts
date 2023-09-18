@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { WebStorage } from '$lib/WebStorage';
 import { writable, type Writable } from 'svelte/store';
 
 // Persistent in relay
@@ -7,7 +8,8 @@ export const reactionEmoji = writable('+');
 // Persistent in local
 export const autoRefresh: Writable<boolean> = writable(true);
 if (browser) {
-	const autoRefreshString = localStorage.getItem('nostter:preference:auto-refresh');
+	const storage = new WebStorage(localStorage);
+	const autoRefreshString = storage.get('preference:auto-refresh');
 	if (autoRefreshString !== null) {
 		try {
 			autoRefresh.set(JSON.parse(autoRefreshString));
@@ -17,7 +19,7 @@ if (browser) {
 	}
 	autoRefresh.subscribe((value) => {
 		console.log('[save auto-refresh]', value);
-		localStorage.setItem('nostter:preference:auto-refresh', JSON.stringify(value));
+		storage.set('preference:auto-refresh', JSON.stringify(value));
 	});
 }
 

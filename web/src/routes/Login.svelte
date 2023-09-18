@@ -6,6 +6,7 @@
 	import { afterNavigate, goto } from '$app/navigation';
 	import { japaneseBotNpub } from '$lib/Constants';
 	import { authorProfile } from '../stores/Author';
+	import { WebStorage } from '$lib/WebStorage';
 
 	let key = '';
 
@@ -40,7 +41,8 @@
 	onMount(async () => {
 		console.log('onMount');
 
-		const savedLogin = localStorage.getItem('nostter:login');
+		const storage = new WebStorage(localStorage);
+		const savedLogin = storage.get('login');
 		console.log('[login]', savedLogin);
 
 		if (savedLogin === null) {
