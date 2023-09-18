@@ -3,6 +3,7 @@ import { Api } from './Api';
 import { defaultRelays } from './Constants';
 import { rxNostr } from './Global';
 import { parseRelayJson } from './EventHelper';
+import { WebStorage } from './WebStorage';
 
 export class RelayList {
 	public static async fetchEvents(
@@ -12,37 +13,25 @@ export class RelayList {
 		const pool = new SimplePool();
 		const api = new Api(pool, Array.from(new Set([...relays, ...defaultRelays])));
 
-		const saveCache = (events: Map<Kind, Event>, cachedEvents: Map<Kind, Event>): void => {
+		const storage = new WebStorage(localStorage);
+
+		const saveCache = (events: Map<Kind, Event>): void => {
 			// Save cache
-			for (const [kind, event] of events) {
-				const cache = cachedEvents.get(kind);
-				if (cache !== undefined && cache.created_at >= event.created_at) {
-					continue;
-				}
-				localStorage.setItem(`nostter:kind:${kind}`, JSON.stringify(event));
+			for (const [, event] of events) {
+				storage.setReplaceableEvent(event);
 			}
 		};
 
 		// Load cache
 		const cachedEvents = new Map(
 			[Kind.RecommendRelay, Kind.Contacts, Kind.RelayList]
-				.map((kind) => {
-					const event = localStorage.getItem(`nostter:kind:${kind}`);
-					if (event === null) {
-						return null;
-					}
-					try {
-						return [kind, JSON.parse(event) as Event];
-					} catch (error) {
-						return null;
-					}
-				})
+				.map((kind) => [kind, storage.getReplaceableEvent(kind)])
 				.filter((x): x is [Kind, Event] => x !== null)
 		);
 		if (cachedEvents.size > 0) {
 			api.fetchRelayEvents(pubkey).then((events) => {
 				api.close();
-				saveCache(events, cachedEvents);
+				saveCache(events);
 			});
 			return cachedEvents;
 		}
@@ -50,7 +39,7 @@ export class RelayList {
 		const events = await api.fetchRelayEvents(pubkey);
 
 		api.close();
-		saveCache(events, cachedEvents);
+		saveCache(events);
 
 		return events;
 	}

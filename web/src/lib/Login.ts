@@ -4,6 +4,7 @@ import { Signer } from './Signer';
 import { defaultRelays } from './Constants';
 import { Author } from './Author';
 import { generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
+import { WebStorage } from './WebStorage';
 
 interface Window {
 	// NIP-07
@@ -39,7 +40,8 @@ export class Login {
 
 		console.timeLog('NIP-07');
 
-		localStorage.setItem('nostter:login', 'NIP-07');
+		const storage = new WebStorage(localStorage);
+		storage.set('login', 'NIP-07');
 
 		loginType.set('NIP-07');
 		try {
@@ -76,7 +78,8 @@ export class Login {
 			return;
 		}
 
-		localStorage.setItem('nostter:login', key);
+		const storage = new WebStorage(localStorage);
+		storage.set('login', key);
 
 		loginType.set('nsec');
 		pubkey.set(getPublicKey(seckey));
@@ -92,7 +95,8 @@ export class Login {
 			return;
 		}
 
-		localStorage.setItem('nostter:login', key);
+		const storage = new WebStorage(localStorage);
+		storage.set('login', key);
 
 		loginType.set('npub');
 		pubkey.set(data);

@@ -1,17 +1,19 @@
 <script lang="ts">
+	import { WebStorage } from '$lib/WebStorage';
 	import { loginType } from '../stores/Author';
 
 	let saved = false;
+	const storage = new WebStorage(localStorage);
 
 	async function logout() {
-		localStorage.clear();
+		storage.clear();
 		location.href = '/';
 	}
 </script>
 
 {#if $loginType === 'nsec'}
 	<h4>Ensure to save nsec before logout</h4>
-	<div>{localStorage.getItem('nostter:login')}</div>
+	<div>{storage.get('login')}</div>
 {/if}
 
 <button on:click={logout} disabled={$loginType === 'nsec' && !saved}>Logout</button>
