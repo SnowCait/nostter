@@ -6,7 +6,7 @@ import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { EventItem } from './Items';
 import { Content } from './Content';
 import { Signer } from './Signer';
-import { authorReplaceableEvents, channelMetadataEvents } from './cache/Events';
+import { channelMetadataEvents } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
 
@@ -68,9 +68,6 @@ export class Api {
 				.filter((x): x is [string, Event] => x !== null)
 		);
 		console.log('[author events]', replaceableEvents, parameterizedReplaceableEvents);
-		for (const [kind, event] of [...replaceableEvents]) {
-			authorReplaceableEvents.set(kind, event);
-		}
 		return { replaceableEvents, parameterizedReplaceableEvents };
 	}
 

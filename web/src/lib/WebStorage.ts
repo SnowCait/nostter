@@ -17,16 +17,16 @@ export class WebStorage {
 		this.storage.clear();
 	}
 
-	public getReplaceableEvent(kind: number): Event | null {
+	public getReplaceableEvent(kind: number): Event | undefined {
 		const json = this.get(`kind:${kind}`);
 		if (json === null) {
-			return null;
+			return undefined;
 		}
 		try {
 			return JSON.parse(json);
 		} catch (error) {
 			console.error('[invalid event]', error);
-			return null;
+			return undefined;
 		}
 	}
 
@@ -35,22 +35,22 @@ export class WebStorage {
 			throw new Error('Logic error');
 		}
 		const cache = this.getReplaceableEvent(event.kind);
-		if (cache === null || cache.created_at < event.created_at) {
+		if (cache === undefined || cache.created_at < event.created_at) {
 			this.set(`kind:${event.kind}`, JSON.stringify(event));
 			this.setCachedAt();
 		}
 	}
 
-	public getParameterizedReplaceableEvent(kind: number, identifier: string): Event | null {
+	public getParameterizedReplaceableEvent(kind: number, identifier: string): Event | undefined {
 		const json = this.get(`kind:${kind}:${identifier}`);
 		if (json === null) {
-			return null;
+			return undefined;
 		}
 		try {
 			return JSON.parse(json);
 		} catch (error) {
 			console.error('[invalid event]', error);
-			return null;
+			return undefined;
 		}
 	}
 
@@ -58,12 +58,12 @@ export class WebStorage {
 		if (event.pubkey !== get(pubkey)) {
 			throw new Error('Logic error');
 		}
-			const identifier = findIdentifier(event.tags);
-			if (identifier === undefined) {
-				return;
-			}
+		const identifier = findIdentifier(event.tags);
+		if (identifier === undefined) {
+			return;
+		}
 		const cache = this.getParameterizedReplaceableEvent(event.kind, identifier);
-		if (cache === null || cache.created_at < event.created_at) {
+		if (cache === undefined || cache.created_at < event.created_at) {
 			this.set(`kind:${event.kind}:${identifier}`, JSON.stringify(event));
 			this.setCachedAt();
 		}

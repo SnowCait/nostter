@@ -42,7 +42,7 @@
 	import { batch, createRxForwardReq, createRxOneshotReq, latestEach, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
 	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
-	import { authorReplaceableEvents, metadataEvents } from '$lib/cache/Events';
+	import { metadataEvents } from '$lib/cache/Events';
 	import { metadataReq, rxNostr } from '$lib/timelines/MainTimeline';
 	import { WebStorage } from '$lib/WebStorage';
 	import { findIdentifier } from '$lib/EventHelper';
@@ -127,7 +127,6 @@
 
 			if (event.kind === 10001) {
 				storage.setReplaceableEvent(event);
-				authorReplaceableEvents.set(event.kind, event);
 				return;
 			}
 

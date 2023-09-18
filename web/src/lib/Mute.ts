@@ -4,7 +4,7 @@ import { Api } from './Api';
 import { Signer } from './Signer';
 import { muteEventIds, mutePubkeys, muteWords } from '../stores/Author';
 import { filterTags } from './EventHelper';
-import { authorReplaceableEvents } from './cache/Events';
+import { WebStorage } from './WebStorage';
 
 export class Mute {
 	private readonly api: Api;
@@ -70,7 +70,8 @@ export class Mute {
 		console.log('[mute list]', muteList);
 
 		// Validation
-		const cache = authorReplaceableEvents.get(10000);
+		const storage = new WebStorage(localStorage);
+		const cache = storage.getReplaceableEvent(10000);
 		if (
 			muteList !== undefined &&
 			cache !== undefined &&
