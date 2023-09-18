@@ -402,7 +402,7 @@
 	});
 
 	async function load() {
-		console.log('[home timeline load]');
+		console.log('[rx-nostr home timeline load]');
 
 		if ($followees.length === 0) {
 			console.warn('Please login');
@@ -419,7 +419,11 @@
 
 		while ($events.length - firstLength < minTimelineLength && count < 10) {
 			const since = until - seconds;
-			console.log('[channel period]', new Date(since * 1000), new Date(until * 1000));
+			console.log(
+				'[rx-nostr home timeline period]',
+				new Date(since * 1000),
+				new Date(until * 1000)
+			);
 
 			const authorsFilter = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
 				return {
@@ -452,7 +456,7 @@
 				}
 			];
 
-			console.debug('[channel messages REQ]', filters, rxNostr.getAllRelayState());
+			console.debug('[rx-nostr home timeline REQ]', filters, rxNostr.getAllRelayState());
 			const pastChannelMessageReq = createRxOneshotReq({ filters });
 			await new Promise<void>((resolve, reject) => {
 				rxNostr
@@ -497,10 +501,10 @@
 							}
 						},
 						complete: () => {
-							console.log('[channel messages complete]');
+							console.log('[rx-nostr home timeline complete]');
 
 							// User Status
-							console.debug('[user status emit]');
+							console.debug('[rx-nostr user status emit]');
 							userStatusReq.emit({
 								kinds: [30315],
 								authors: [...new Set($events.map((x) => x.pubkey))]
@@ -517,7 +521,13 @@
 			until -= seconds;
 			seconds *= 2;
 			count++;
-			console.log('[channel load]', count, until, seconds / 3600, $events.length);
+			console.log(
+				'[rx-nostr home timeline loaded]',
+				count,
+				until,
+				seconds / 3600,
+				$events.length
+			);
 		}
 	}
 </script>
