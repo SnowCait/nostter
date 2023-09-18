@@ -34,6 +34,7 @@
 	import UserStatus from '../parts/UserStatus.svelte';
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import EmojiPicker from '../parts/EmojiPicker.svelte';
+	import ProxyLink from '../parts/ProxyLink.svelte';
 
 	export let event: Event;
 	export let readonly: boolean;
@@ -327,7 +328,7 @@
 			</div>
 		{/if}
 		{#if event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdStore === undefined}
-			<div>
+			<div class="channel">
 				<IconMessages size={16} color={'gray'} />
 				<span>
 					<a href="/channels/{nip19.neventEncode({ id: channelId })}">
@@ -336,6 +337,9 @@
 				</span>
 			</div>
 		{/if}
+		{#each event.tags.filter(([tagName]) => tagName === 'proxy') as tag}
+			<div class="proxy"><ProxyLink {tag} /></div>
+		{/each}
 		{#if !readonly}
 			<div class="action-menu">
 				<button
@@ -515,7 +519,7 @@
 	}
 
 	.content {
-		margin: 0.4rem 0;
+		margin: 0.2rem 0 0 0;
 		max-height: 30em;
 		overflow: auto;
 	}
@@ -529,9 +533,16 @@
 		font-size: 0.8em;
 	}
 
+	.channel,
+	.proxy {
+		margin-top: 0.4rem;
+	}
+
 	.action-menu {
 		display: flex;
 		justify-content: space-between;
+
+		margin-top: 8px;
 	}
 
 	.action-menu + .action-menu {
