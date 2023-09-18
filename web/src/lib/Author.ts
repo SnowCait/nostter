@@ -249,7 +249,7 @@ export class Author {
 			storage.setReplaceableEvent(event);
 		}
 		for (const [key, event] of [...parameterizedReplaceableEvents]) {
-			storage.set(`kind:${key}`, JSON.stringify(event));
+			storage.setParameterizedReplaceableEvent(event);
 		}
 		return { replaceableEvents, parameterizedReplaceableEvents };
 	}
