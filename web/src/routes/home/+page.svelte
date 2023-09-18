@@ -43,7 +43,7 @@
 	import { tap, bufferTime } from 'rxjs';
 	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
 	import { authorReplaceableEvents, metadataEvents } from '$lib/cache/Events';
-	import { metadataReq, rxNostr } from '$lib/Global';
+	import { metadataReq, rxNostr } from '$lib/timelines/MainTimeline';
 	import { WebStorage } from '$lib/WebStorage';
 	import { findIdentifier } from '$lib/EventHelper';
 	import { authorReplaceableKinds } from '$lib/Author';

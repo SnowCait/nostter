@@ -29,7 +29,7 @@
 	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '../../parts/ChannelTitle.svelte';
 	import MuteButton from '../../action/MuteButton.svelte';
-	import { timeout } from '$lib/Global';
+	import { timeout } from '$lib/timelines/MainTimeline';
 
 	let slug = $page.params.nevent;
 	let channelId: string;

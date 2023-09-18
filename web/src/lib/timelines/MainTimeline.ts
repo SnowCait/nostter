@@ -2,10 +2,10 @@ import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
 import { batch, createRxBackwardReq, createRxNostr, latestEach } from 'rx-nostr';
 import { bufferTime } from 'rxjs';
-import { Metadata } from './Items';
-import { metadataEvents } from './cache/Events';
-import { events } from '../stores/Events';
-import type { User } from '../routes/types';
+import { Metadata } from '../Items';
+import { metadataEvents } from '../cache/Events';
+import { events } from '../../stores/Events';
+import type { User } from '../../routes/types';
 
 export const timeout = 3400;
 export const rxNostr = createRxNostr({ timeout }); // for home & notification timeline

@@ -1,7 +1,7 @@
 import { Kind, type Event, SimplePool } from 'nostr-tools';
 import { Api } from './Api';
 import { defaultRelays } from './Constants';
-import { rxNostr } from './Global';
+import { rxNostr } from './timelines/MainTimeline';
 import { parseRelayJson } from './EventHelper';
 import { WebStorage } from './WebStorage';
 
