@@ -146,15 +146,17 @@
 			['e', note.id],
 			['p', note.pubkey]
 		];
-		if (emoji.src !== undefined) {
-			tags.push(['emoji', emoji.id, emoji.src]);
+		if (emoji.native === undefined && emoji.src !== undefined) {
+			tags.push(['emoji', emoji.id.replaceAll('+', '_'), emoji.src]);
 		}
 
 		const event = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 7,
 			tags,
-			content: emoji.native
+			content:
+				emoji.native ??
+				(emoji.shortcodes ? emoji.shortcodes : `:${emoji.id.replaceAll('+', '_')}:`)
 		});
 		console.log(event);
 

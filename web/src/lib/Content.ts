@@ -29,7 +29,12 @@ export class Content {
 				? content.matchAll(new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'g'))
 				: []),
 			...(emojis.size > 0
-				? content.matchAll(new RegExp(`:(${[...emojis.keys()].join('|')}):`, 'g'))
+				? content.matchAll(
+						new RegExp(
+							`:(${[...emojis.keys()].filter((x) => /^\w+$/.test(x)).join('|')}):`,
+							'g'
+						)
+				  )
 				: []),
 			...content.matchAll(/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[\d+\]/g),
 			...content.matchAll(/https?:\/\/\S+/g),
