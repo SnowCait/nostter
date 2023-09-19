@@ -15,6 +15,9 @@
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
 	import ChannelTitle from './parts/ChannelTitle.svelte';
+	import EmojiPickerSlide from './parts/EmojiPickerSlide.svelte';
+	import CustomEmojiList from './timeline/CustomEmojiList.svelte';
+	import CustomEmoji from './content/CustomEmoji.svelte';
 
 	let content = '';
 	let posting = false;
@@ -27,6 +30,7 @@
 	let selectedCustomEmojis = new Map<string, string>();
 	let autocompleting = false;
 	let channelEvent: NostrEvent | undefined;
+	let emojiTags: string[][] = [];
 
 	channelIdStore.subscribe((channelId) => {
 		if (channelId !== undefined) {
@@ -148,6 +152,7 @@
 		$replyTo = undefined;
 		$quotes = [];
 		exitComplement();
+		emojiTags = [];
 	}
 
 	async function submitFromKeyboard(event: KeyboardEvent) {
@@ -243,6 +248,20 @@
 		complementUserEvents = [];
 	}
 
+	function onEmojiPick({ detail: emoji }: { detail: any }) {
+		console.log('[emoji pick]', emoji);
+		const shortcode = emoji.id.replaceAll('+', '_');
+		content += emoji.native ?? `:${shortcode}:`;
+		if (
+			emoji.native === undefined &&
+			emoji.src !== undefined &&
+			!emojiTags.some(([, s]) => s === shortcode)
+		) {
+			emojiTags.push(['emoji', shortcode, emoji.src]);
+			emojiTags = emojiTags;
+		}
+	}
+
 	async function postNote() {
 		if (content === '') {
 			console.log('Content is empty');
@@ -325,6 +344,7 @@
 		tags.push(...Array.from(hashtags).map((hashtag) => ['t', hashtag]));
 
 		// Custom emojis
+		tags.push(...emojiTags);
 		const readApi = new Api($pool, $readRelays);
 		const shortcodes = Array.from(
 			new Set(
@@ -365,6 +385,7 @@
 		);
 		tags.push(
 			...shortcodes
+				.filter(([, shortcode]) => !emojiTags.some(([, s]) => s === shortcode))
 				.map((shortcode) => {
 					const imageUrl = selectedCustomEmojis.get(shortcode);
 					if (imageUrl === undefined) {
@@ -429,6 +450,9 @@
 		<input id="send" type="submit" disabled={!pubkey || posting} />
 		<label for="send"><IconSend size={30} /></label>
 	</form>
+	<div class="emoji-picker">
+		<EmojiPickerSlide on:pick={onEmojiPick} />
+	</div>
 	{#if $quotes.length > 0}
 		{#each $quotes as quote}
 			<Note event={quote} readonly={true} />
@@ -440,6 +464,16 @@
 				<li on:click|stopPropagation={async () => await replaceComplement(event)}>
 					<span>{event.user.display_name ?? ''}</span>
 					<span>@{event.user.name ?? event.user.display_name}</span>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+	{#if emojiTags.length > 0}
+		<ul>
+			{#each emojiTags as tag}
+				<li>
+					<span>:{tag[1]}:</span>
+					<CustomEmoji text={tag[1]} url={tag[2]} />
 				</li>
 			{/each}
 		</ul>
@@ -477,9 +511,17 @@
 		color: lightgray;
 	}
 
+	label {
+		height: 30px;
+	}
+
 	ul {
 		list-style: none;
 		padding: 0;
+	}
+
+	.emoji-picker {
+		margin-top: -30px;
 	}
 
 	:global(.tribute-container ul) {
