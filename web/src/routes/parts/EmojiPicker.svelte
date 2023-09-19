@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { Picker } from 'emoji-mart';
+	import { Picker } from 'emoji-kitchen-mart';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
 	import { computePosition, flip, shift } from '@floating-ui/dom';
@@ -25,7 +25,7 @@
 				keywords: [shortcode],
 				skins: [
 					{
-						native: `:${shortcode}:`,
+						shortcodes: `:${shortcode}:`,
 						src: url
 					}
 				]
