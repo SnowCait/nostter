@@ -492,6 +492,12 @@
 		width: 50%;
 	}
 
+	@media screen and (max-width: 600px) {
+		dialog {
+			width: 90%;
+		}
+	}
+
 	textarea {
 		width: 100%;
 		height: 4em;
