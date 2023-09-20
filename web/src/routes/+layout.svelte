@@ -179,7 +179,7 @@
 	}
 
 	:global(button, input[type='button'], input[type='submit']) {
-		padding: 0.75rem 1.5rem;
+		padding: 0.6rem 1.5rem;
 		border-radius: 9999px;
 		background-color: var(--accent);
 		color: var(--accent-foreground);
