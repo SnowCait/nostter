@@ -55,11 +55,12 @@
 		{#if $pubkey}
 			<a href="/notifications">
 				<li>
-					{#if $unreadEvents.length > 0}
-						<IconBellRingingFilled size={30} />
-					{:else}
+					<div class="notifications-icon">
 						<IconBell size={30} />
-					{/if}
+						{#if $unreadEvents.length > 0}
+							<span class="notifications-icon-badge" />
+						{/if}
+					</div>
 					<p>{$_('layout.header.notifications')}</p>
 				</li>
 			</a>
@@ -98,6 +99,7 @@
 	li {
 		display: flex;
 		align-items: center;
+		color: var(--accent);
 	}
 
 	li p {
@@ -105,12 +107,23 @@
 		font-size: 1.15rem;
 	}
 
-	li p .active {
-		font-weight: bold;
-	}
-
 	a:visited {
 		color: inherit;
+	}
+
+	.notifications-icon {
+		position: relative;
+	}
+
+	.notifications-icon .notifications-icon-badge {
+		position: absolute;
+		top: 0.05rem;
+		right: 0.2rem;
+		width: 0.72rem;
+		height: 0.72rem;
+		border-radius: 9999px;
+		background-color: var(--red);
+		border: 0.18rem solid var(--accent);
 	}
 
 	@media screen and (max-width: 600px) {
