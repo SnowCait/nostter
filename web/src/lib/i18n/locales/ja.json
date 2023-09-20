@@ -1,0 +1,9 @@
+{
+	"login": {
+		"browser_extension": "拡張機能でログイン",
+		"recommended": "（推奨）",
+		"key": "鍵でログイン",
+		"create_account": "アカウントを作成",
+		"try_demo": "デモを試す"
+	}
+}
