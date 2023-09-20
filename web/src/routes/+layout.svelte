@@ -209,11 +209,22 @@
 			input[type='url'],
 			textarea
 		) {
-		padding: 0.75rem;
-		border: 1px solid var(--default-border);
+		padding: 0.5rem 0.75rem;
 		border-radius: 0.5rem;
 		outline-style: none;
 		background-color: var(--surface);
+	}
+
+	:global(
+			input[type='text'],
+			input[type='email'],
+			input[type='number'],
+			input[type='password'],
+			input[type='search'],
+			input[type='tel'],
+			input[type='url']
+		) {
+		border: var(--default-border);
 	}
 
 	:global(button.clear) {
