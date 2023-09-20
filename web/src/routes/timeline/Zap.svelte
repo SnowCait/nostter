@@ -65,7 +65,7 @@
 						@{(zapUserEvent ?? event).user?.name ??
 							nip19
 								.npubEncode((zapUserEvent ?? event).pubkey)
-								.substring('npub1'.length + 7)}
+								.substring(0, 'npub1'.length + 7)}
 					</a>
 				</div>
 			{/await}
