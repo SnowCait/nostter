@@ -167,7 +167,9 @@
 	:global(button, input[type='button'], input[type='submit']) {
 		@apply px-6 py-2.5 rounded-full bg-accent text-accent-foreground font-semibold cursor-pointer;
 	}
-	:hover {
+
+	:global(button:hover, input[type='button']:hover, input[type='submit']:hover) {
+		@apply opacity-75;
 	}
 
 	:global(
