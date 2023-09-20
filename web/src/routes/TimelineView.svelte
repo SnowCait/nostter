@@ -37,7 +37,7 @@
 
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
-<ul>
+<ul class="card">
 	{#each events as event (event.id)}
 		{#if !isMuteEvent(event)}
 			<li class:focus={event.id === focusEventId} class:related={$author?.isNotified(event)}>
