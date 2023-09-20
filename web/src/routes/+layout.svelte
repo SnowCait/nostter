@@ -208,4 +208,12 @@
 		width: inherit;
 		height: inherit;
 	}
+
+	:global(.card) {
+		background-color: var(--surface);
+		color: var(--surface-foreground);
+		padding: 1rem;
+		border-radius: 0.5rem;
+		border: 2px solid var(--default-border);
+	}
 </style>
