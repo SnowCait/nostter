@@ -140,10 +140,6 @@
 		}
 	}
 
-	:global(:root) {
-		--default-border: 1px solid rgb(239, 243, 244);
-	}
-
 	:global(article.timeline-item) {
 		padding: 12px 16px;
 		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -197,7 +193,7 @@
 			textarea
 		) {
 		padding: 0.75rem;
-		border: 1px solid var(--border);
+		border: 1px solid var(--default-border);
 		border-radius: 0.5rem;
 		outline-style: none;
 		background-color: var(--surface);
