@@ -88,6 +88,11 @@ a:hover {
 	/* Remove the outline when hovering in all browsers */
 }
 
+a:-webkit-any-link {
+	color: initial;
+	text-decoration: none;
+}
+
 code,
 kbd,
 pre,
