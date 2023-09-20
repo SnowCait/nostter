@@ -7,6 +7,7 @@
 	import ReloadDialog from './ReloadDialog.svelte';
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import { pubkey, rom } from '../stores/Author';
+	import '../app.css';
 
 	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
@@ -76,14 +77,14 @@
 <style>
 	.app {
 		max-width: 800px;
-		margin: 0 auto;
+		margin: 2.25rem auto;
 	}
 
 	header {
 		position: fixed;
 
 		/* min-width: 600px */
-		top: 0;
+		top: 2.25rem;
 		width: 50px;
 	}
 
@@ -95,10 +96,11 @@
 		padding: 0;
 		width: inherit;
 		height: inherit;
+		color: var(--foreground);
 	}
 
 	main {
-		margin-left: 60px;
+		margin-left: calc(50px + 2.25rem);
 	}
 
 	.debug {
@@ -108,6 +110,10 @@
 	}
 
 	@media screen and (max-width: 600px) {
+		.app {
+			margin: 0 auto;
+		}
+
 		header {
 			top: auto;
 			bottom: 0;
@@ -138,10 +144,6 @@
 		}
 	}
 
-	:global(:root) {
-		--default-border: 1px solid rgb(239, 243, 244);
-	}
-
 	:global(article.timeline-item) {
 		padding: 12px 16px;
 		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -158,6 +160,49 @@
 		overflow: hidden;
 	}
 
+	:global(ul.clear) {
+		list-style: none;
+		padding: 0;
+	}
+
+	:global(button, input[type='button'], input[type='submit']) {
+		padding: 0.75rem 1.5rem;
+		border-radius: 9999px;
+		background-color: var(--accent);
+		color: var(--accent-foreground);
+		font-weight: bold;
+		cursor: pointer;
+	}
+
+	:global(button:hover, input[type='button']:hover, input[type='submit']:hover) {
+		opacity: 0.75;
+	}
+
+	:global(
+			button.button-small,
+			input[type='button'].button-small,
+			input[type='submit'].button-small
+		) {
+		padding: 0.2rem 0.85rem;
+	}
+
+	:global(
+			input[type='text'],
+			input[type='email'],
+			input[type='number'],
+			input[type='password'],
+			input[type='search'],
+			input[type='tel'],
+			input[type='url'],
+			textarea
+		) {
+		padding: 0.75rem;
+		border: 1px solid var(--default-border);
+		border-radius: 0.5rem;
+		outline-style: none;
+		background-color: var(--surface);
+	}
+
 	:global(button.clear) {
 		background-color: transparent;
 		border: none;
@@ -168,8 +213,11 @@
 		height: inherit;
 	}
 
-	:global(ul.clear) {
-		list-style: none;
-		padding: 0;
+	:global(.card) {
+		background-color: var(--surface);
+		color: var(--surface-foreground);
+		padding: 1rem;
+		border-radius: 0.5rem;
+		border: 2px solid var(--default-border);
 	}
 </style>
