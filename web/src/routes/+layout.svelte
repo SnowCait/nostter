@@ -62,7 +62,9 @@
 	{/if}
 
 	<header>
-		<img src="/nostter-logo.svg" alt="nostter logo" width={120} height={24} />
+		<a href={pubkey ? '/home' : '/'}>
+			<img src="/nostter-logo.svg" alt="nostter logo" width={120} height={24} />
+		</a>
 		<Header />
 		{#if $pubkey && !$rom}
 			<button on:click={() => ($openNoteDialog = !$openNoteDialog)}>
