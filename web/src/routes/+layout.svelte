@@ -7,6 +7,7 @@
 	import ReloadDialog from './ReloadDialog.svelte';
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import { pubkey, rom } from '../stores/Author';
+	import { _ } from 'svelte-i18n';
 	import '../app.css';
 
 	let debugMessage = '';
@@ -66,7 +67,7 @@
 		{#if $pubkey && !$rom}
 			<button on:click={() => ($openNoteDialog = !$openNoteDialog)}>
 				<IconPencilPlus size={30} />
-				<p>Post</p>
+				<p>{$_('post')}</p>
 			</button>
 		{/if}
 	</header>

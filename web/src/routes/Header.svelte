@@ -12,6 +12,7 @@
 	import { pubkey } from '../stores/Author';
 	import { japaneseBotNpub, trendingPeopleBotNpub } from '$lib/Constants';
 	import { unreadEvents } from '../stores/Notifications';
+	import { _ } from 'svelte-i18n';
 
 	let npub = trendingPeopleBotNpub;
 
@@ -28,23 +29,27 @@
 			<a href="/home">
 				<li>
 					<IconHome size={30} />
+					<p>{$_('layout.header.home')}</p>
 				</li>
 			</a>
 		{:else}
 			<a href="/">
 				<li>
 					<IconHome size={30} />
+					<p>{$_('layout.header.home')}</p>
 				</li>
 			</a>
 		{/if}
 		<a href="/search">
 			<li>
 				<IconSearch size={30} />
+				<p>{$_('layout.header.search')}</p>
 			</li>
 		</a>
 		<a href="/{npub}/timeline">
 			<li>
 				<IconWorld size={30} />
+				<p>{$_('layout.header.global')}</p>
 			</li>
 		</a>
 		{#if $pubkey}
@@ -55,21 +60,25 @@
 					{:else}
 						<IconBell size={30} />
 					{/if}
+					<p>{$_('layout.header.notifications')}</p>
 				</li>
 			</a>
 			<a href="/{nip19.npubEncode($pubkey)}/bookmark">
 				<li>
 					<IconBookmark size={30} />
+					<p>{$_('layout.header.bookmark')}</p>
 				</li>
 			</a>
 			<a href="/{nip19.npubEncode($pubkey)}">
 				<li>
 					<IconUser size={30} />
+					<p>{$_('layout.header.profile')}</p>
 				</li>
 			</a>
 			<a href="/preference">
 				<li>
 					<IconSettings size={30} />
+					<p>{$_('layout.header.preference')}</p>
 				</li>
 			</a>
 		{/if}
@@ -88,6 +97,16 @@
 
 	li {
 		display: flex;
+		align-items: center;
+	}
+
+	li p {
+		margin-left: 0.5rem;
+		font-size: 1.15rem;
+	}
+
+	li p .active {
+		font-weight: bold;
 	}
 
 	a:visited {
