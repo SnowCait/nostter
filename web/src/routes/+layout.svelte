@@ -165,7 +165,7 @@
 	}
 
 	:global(button, input[type='button'], input[type='submit']) {
-		padding: 10px 24px;
+		padding: 0.75rem 1.5rem;
 		border-radius: 9999px;
 		background-color: var(--accent);
 		color: var(--accent-foreground);
@@ -182,7 +182,7 @@
 			input[type='button'].button-small,
 			input[type='submit'].button-small
 		) {
-		padding: 4px 14px;
+		padding: 0.2rem 0.85rem;
 	}
 
 	:global(
@@ -195,11 +195,11 @@
 			input[type='url'],
 			textarea
 		) {
-		padding: 3px 2px;
+		padding: 0.75rem 0.25rem;
+		border: 1px solid var(--border);
 		border-radius: 9999px;
-		border-width: 2px;
-		outline-width: 2px;
 		outline-style: none;
+		background-color: var(--surface);
 	}
 
 	:global(button.clear) {
