@@ -332,7 +332,7 @@ progress {
 	--surface-foreground: #000f0f;
 	--accent: #464646;
 	--accent-foreground: #fafafa;
-	--gray-accent: #797067
+	--accent-gray: #797067;
 	--ring: #0f0f0f;
 	--accent-surface: #e0ddd9;
 	--radius: 0.5rem;
