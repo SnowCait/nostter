@@ -80,14 +80,14 @@
 	ul {
 		list-style: none;
 		padding: 0;
+		display: flex;
+		flex-flow: column;
+		justify-content: left;
+		gap: 1.5rem;
 	}
 
 	li {
-		width: 50px;
-		height: 50px;
 		display: flex;
-		justify-content: center;
-		align-items: center;
 	}
 
 	a:visited {
@@ -95,11 +95,15 @@
 	}
 
 	@media screen and (max-width: 600px) {
+		nav {
+			height: 100%;
+		}
 		ul {
-			display: flex;
 			flex-flow: row;
 			justify-content: space-around;
 			margin: 0;
+			align-items: center;
+			height: 100%;
 		}
 	}
 </style>

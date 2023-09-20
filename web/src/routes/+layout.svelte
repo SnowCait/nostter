@@ -61,10 +61,12 @@
 	{/if}
 
 	<header>
+		<img src="/nostter-logo.svg" alt="nostter logo" width={120} height={24} />
 		<Header />
 		{#if $pubkey && !$rom}
 			<button on:click={() => ($openNoteDialog = !$openNoteDialog)}>
 				<IconPencilPlus size={30} />
+				<p>Post</p>
 			</button>
 		{/if}
 	</header>
@@ -82,25 +84,25 @@
 
 	header {
 		position: fixed;
-
 		/* min-width: 600px */
 		top: 2.25rem;
-		width: 50px;
+		width: 220px;
+		gap: 2.25rem;
+		display: flex;
+		flex-direction: column;
 	}
 
 	header button {
-		background-color: transparent;
-		border: none;
-		cursor: pointer;
-		outline: none;
-		padding: 0;
 		width: inherit;
 		height: inherit;
-		color: var(--foreground);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
 	}
 
 	main {
-		margin-left: calc(50px + 2.25rem);
+		margin-left: calc(220px + 2.25rem);
 	}
 
 	.debug {
@@ -115,6 +117,7 @@
 		}
 
 		header {
+			padding: 0;
 			top: auto;
 			bottom: 0;
 			width: 100%;
@@ -122,15 +125,22 @@
 			background-color: white;
 		}
 
+		header img {
+			display: none;
+		}
+
 		header button {
 			position: absolute;
+			padding: 0;
 			bottom: 55px;
 			right: 10px;
 			width: 50px;
 			height: 50px;
-			background-color: white;
 			border-radius: 50%;
-			box-shadow: 0 0 5px 1px lightgray;
+		}
+
+		header button p {
+			display: none;
 		}
 
 		main {
