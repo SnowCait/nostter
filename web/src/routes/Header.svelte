@@ -124,5 +124,9 @@
 			align-items: center;
 			height: 100%;
 		}
+
+		li p {
+			display: none;
+		}
 	}
 </style>
