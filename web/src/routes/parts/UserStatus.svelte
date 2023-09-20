@@ -9,7 +9,7 @@
 	import IconPencil from '@tabler/icons-svelte/dist/svelte/icons/IconPencil.svelte';
 
 	export let pubkey: string;
-	export let showLink: boolean = false;
+	export let showLink = false;
 
 	let generalEvent: Event | undefined;
 	let musicEvent: Event | undefined;
