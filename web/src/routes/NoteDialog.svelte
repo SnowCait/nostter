@@ -16,7 +16,6 @@
 	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
 	import ChannelTitle from './parts/ChannelTitle.svelte';
 	import EmojiPickerSlide from './parts/EmojiPickerSlide.svelte';
-	import CustomEmojiList from './timeline/CustomEmojiList.svelte';
 	import CustomEmoji from './content/CustomEmoji.svelte';
 
 	let content = '';
@@ -490,6 +489,12 @@
 		margin: 0 auto;
 		z-index: 1;
 		width: 50%;
+	}
+
+	@media screen and (max-width: 600px) {
+		dialog {
+			width: 90%;
+		}
 	}
 
 	textarea {

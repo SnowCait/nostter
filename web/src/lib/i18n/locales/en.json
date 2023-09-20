@@ -1,0 +1,9 @@
+{
+	"login": {
+		"browser_extension": "Login with Browser Extension",
+		"key": "Login with key",
+		"create_account": "Create account",
+		"recommended": "(Recommended)",
+		"try_demo": "Try demo"
+	}
+}

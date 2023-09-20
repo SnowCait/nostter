@@ -63,7 +63,9 @@
 				<div>
 					<a href="/{nip19.npubEncode((zapUserEvent ?? event).pubkey)}">
 						@{(zapUserEvent ?? event).user?.name ??
-							(zapUserEvent ?? event).pubkey.substring('npub1'.length + 7)}
+							nip19
+								.npubEncode((zapUserEvent ?? event).pubkey)
+								.substring('npub1'.length + 7)}
 					</a>
 				</div>
 			{/await}
