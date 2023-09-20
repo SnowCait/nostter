@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { _ } from 'svelte-i18n';
 	import { Login } from '$lib/Login';
 	import { loginType } from '../stores/Author';
 	import { page } from '$app/stores';
@@ -93,9 +94,9 @@
 </script>
 
 <button on:click|once={loginWithNip07} disabled={$loginType !== undefined}>
-	Login with NIP-07 Browser Extension
+	{$_('login.browser_extension')}
 </button>
-<span>(Recommended)</span>
+<span>{$_('login.recommended')}</span>
 
 <div>or</div>
 
@@ -108,13 +109,15 @@
 		required
 		on:keyup|stopPropagation={() => console.debug()}
 	/>
-	<input type="submit" value="Login with key" disabled={$loginType !== undefined} />
+	<input type="submit" value={$_('login.key')} disabled={$loginType !== undefined} />
 
-	<button on:click={loginWithDemo} disabled={$loginType !== undefined}>Try demo</button>
+	<button on:click={loginWithDemo} disabled={$loginType !== undefined}>
+		{$_('login.try_demo')}
+	</button>
 </form>
 
 <div>or</div>
 
 <form on:submit|preventDefault|once={createAccount}>
-	<input type="submit" value="Create account" disabled={$loginType !== undefined} />
+	<input type="submit" value={$_('login.create_account')} disabled={$loginType !== undefined} />
 </form>
