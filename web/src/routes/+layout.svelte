@@ -7,6 +7,7 @@
 	import ReloadDialog from './ReloadDialog.svelte';
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import { pubkey, rom } from '../stores/Author';
+	import '../app.postcss';
 
 	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
