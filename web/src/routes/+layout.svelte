@@ -62,7 +62,7 @@
 	{/if}
 
 	<header>
-		<a href={pubkey ? '/home' : '/'}>
+		<a id="header-logo" href={pubkey ? '/home' : '/'}>
 			<img src="/nostter-logo.svg" alt="nostter logo" width={120} height={24} />
 		</a>
 		<Header />
@@ -124,11 +124,11 @@
 			top: auto;
 			bottom: 0;
 			width: 100%;
-			height: 50px;
+			height: 60px;
 			background-color: white;
 		}
 
-		header img {
+		#header-logo {
 			display: none;
 		}
 
