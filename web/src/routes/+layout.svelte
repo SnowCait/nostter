@@ -77,14 +77,14 @@
 <style>
 	.app {
 		max-width: 800px;
-		margin: 0 auto;
+		margin: 2.25rem auto;
 	}
 
 	header {
 		position: fixed;
 
 		/* min-width: 600px */
-		top: 0;
+		top: 2.25rem;
 		width: 50px;
 	}
 
