@@ -59,7 +59,7 @@
 	<div>by</div>
 	<div>
 		<a href="/{nip19.npubEncode(event.pubkey)}">
-			@{user?.name ?? nip19.npubEncode(event.pubkey).substring('npub1'.length + 7)}
+			@{user?.name ?? nip19.npubEncode(event.pubkey).substring(0, 'npub1'.length + 7)}
 		</a>
 	</div>
 	<div class="json-button">
