@@ -1,9 +1,21 @@
 {
+	"layout": {
+		"header": {
+			"home": "Home",
+			"search": "Search",
+			"global": "Global",
+			"notifications": "Notifications",
+			"bookmark": "Bookmark",
+			"profile": "Profile",
+			"preference": "Settings"
+		}
+	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",
 		"key": "Login with key",
 		"create_account": "Create account",
 		"recommended": "(Recommended)",
 		"try_demo": "Try demo"
-	}
+	},
+	"post": "Post"
 }
