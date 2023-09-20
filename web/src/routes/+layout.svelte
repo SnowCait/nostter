@@ -159,6 +159,38 @@
 		overflow: hidden;
 	}
 
+	:global(ul.clear) {
+		list-style: none;
+		padding: 0;
+	}
+
+	:global(button, input[type='button'], input[type='submit']) {
+		@apply px-6 py-2.5 rounded-full bg-accent text-accent-foreground font-semibold cursor-pointer;
+	}
+	:hover {
+	}
+
+	:global(
+			button.button-small,
+			input[type='button'].button-small,
+			input[type='submit'].button-small
+		) {
+		@apply px-3.5 py-1;
+	}
+
+	:global(
+			input[type='text'],
+			input[type='email'],
+			input[type='number'],
+			input[type='password'],
+			input[type='search'],
+			input[type='tel'],
+			input[type='url'],
+			textarea
+		) {
+		@apply px-3 py-2 rounded border-2 outline-2 outline-none;
+	}
+
 	:global(button.clear) {
 		background-color: transparent;
 		border: none;
@@ -167,10 +199,5 @@
 		padding: 0;
 		width: inherit;
 		height: inherit;
-	}
-
-	:global(ul.clear) {
-		list-style: none;
-		padding: 0;
 	}
 </style>
