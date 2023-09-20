@@ -100,7 +100,7 @@
 	}
 
 	main {
-		margin-left: 60px;
+		margin-left: calc(50px + 2.25rem);
 	}
 
 	.debug {
@@ -110,6 +110,10 @@
 	}
 
 	@media screen and (max-width: 600px) {
+		.app {
+			margin: 0 auto;
+		}
+
 		header {
 			top: auto;
 			bottom: 0;
