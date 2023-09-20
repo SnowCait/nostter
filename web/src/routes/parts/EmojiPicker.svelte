@@ -92,7 +92,7 @@
 
 <style>
 	button {
-		color: var(--color, lightgray);
+		color: var(--accent-gray);
 		height: 20px;
 	}
 

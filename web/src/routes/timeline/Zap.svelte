@@ -127,7 +127,7 @@
 		cursor: pointer;
 		outline: none;
 		padding: 0;
-		color: lightgray;
+		color: var(--accent-gray);
 		height: 20px;
 	}
 

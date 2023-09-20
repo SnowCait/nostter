@@ -195,9 +195,9 @@
 			input[type='url'],
 			textarea
 		) {
-		padding: 0.75rem 0.25rem;
+		padding: 0.75rem;
 		border: 1px solid var(--border);
-		border-radius: 9999px;
+		border-radius: 0.5rem;
 		outline-style: none;
 		background-color: var(--surface);
 	}

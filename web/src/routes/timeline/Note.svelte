@@ -550,8 +550,8 @@
 		cursor: pointer;
 		outline: none;
 		padding: 0;
-		color: lightgray;
 		height: 20px;
+		color: var(--accent-gray);
 	}
 
 	.action-menu button.hidden {
