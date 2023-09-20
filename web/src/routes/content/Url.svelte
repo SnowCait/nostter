@@ -25,7 +25,9 @@
 	<audio src={link.href} controls />
 {:else if /\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)/i.test(link.pathname)}
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<video src={link.href} controls />
+	<div>
+		<video src={link.href} controls />
+	</div>
 {:else}
 	<a href={link.href} target="_blank" rel="noopener noreferrer">
 		{text}<IconExternalLink size={15} />
