@@ -7,7 +7,7 @@
 	import ReloadDialog from './ReloadDialog.svelte';
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import { pubkey, rom } from '../stores/Author';
-	import '../app.postcss';
+	import '../app.css';
 
 	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
@@ -165,11 +165,16 @@
 	}
 
 	:global(button, input[type='button'], input[type='submit']) {
-		@apply px-6 py-2.5 rounded-full bg-accent text-accent-foreground font-semibold cursor-pointer;
+		padding: 10px 24px;
+		border-radius: 9999px;
+		background-color: var(--accent);
+		color: var(--accent-foreground);
+		font-weight: bold;
+		cursor: pointer;
 	}
 
 	:global(button:hover, input[type='button']:hover, input[type='submit']:hover) {
-		@apply opacity-75;
+		opacity: 0.75;
 	}
 
 	:global(
@@ -177,7 +182,7 @@
 			input[type='button'].button-small,
 			input[type='submit'].button-small
 		) {
-		@apply px-3.5 py-1;
+		padding: 4px 14px;
 	}
 
 	:global(
@@ -190,7 +195,11 @@
 			input[type='url'],
 			textarea
 		) {
-		@apply px-3 py-2 rounded border-2 outline-2 outline-none;
+		padding: 3px 2px;
+		border-radius: 9999px;
+		border-width: 2px;
+		outline-width: 2px;
+		outline-style: none;
 	}
 
 	:global(button.clear) {
