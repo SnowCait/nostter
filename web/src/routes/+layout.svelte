@@ -96,6 +96,7 @@
 		padding: 0;
 		width: inherit;
 		height: inherit;
+		color: var(--foreground);
 	}
 
 	main {
