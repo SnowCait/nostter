@@ -4,14 +4,14 @@
 	import IconSearch from '@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte';
 	import IconWorld from '@tabler/icons-svelte/dist/svelte/icons/IconWorld.svelte';
 	import IconBell from '@tabler/icons-svelte/dist/svelte/icons/IconBell.svelte';
-	import IconBellRingingFilled from '@tabler/icons-svelte/dist/svelte/icons/IconBellRingingFilled.svelte';
 	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
 	import IconSettings from '@tabler/icons-svelte/dist/svelte/icons/IconSettings.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
+	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import { nip19 } from 'nostr-tools';
-	import { pubkey } from '../stores/Author';
 	import { japaneseBotNpub, trendingPeopleBotNpub } from '$lib/Constants';
 	import { unreadEvents } from '../stores/Notifications';
+	import { pubkey, rom } from '../stores/Author';
 	import { _ } from 'svelte-i18n';
 
 	let npub = trendingPeopleBotNpub;
@@ -21,72 +21,105 @@
 			npub = japaneseBotNpub;
 		}
 	});
+
+	export let onClickPostButton: () => void;
 </script>
 
-<nav>
-	<ul>
-		{#if $pubkey}
-			<a href="/home">
+<div class="header">
+	<a id="div-logo" href={pubkey ? '/home' : '/'}>
+		<img src="/nostter-logo-icon.svg" alt="nostter logo" width={30} height={30} />
+	</a>
+	<nav>
+		<ul>
+			{#if $pubkey}
+				<a href="/home">
+					<li>
+						<IconHome size={30} />
+						<p>{$_('layout.header.home')}</p>
+					</li>
+				</a>
+			{:else}
+				<a href="/">
+					<li>
+						<IconHome size={30} />
+						<p>{$_('layout.header.home')}</p>
+					</li>
+				</a>
+			{/if}
+			<a href="/search">
 				<li>
-					<IconHome size={30} />
-					<p>{$_('layout.header.home')}</p>
+					<IconSearch size={30} />
+					<p>{$_('layout.header.search')}</p>
 				</li>
 			</a>
-		{:else}
-			<a href="/">
+			<a href="/{npub}/timeline">
 				<li>
-					<IconHome size={30} />
-					<p>{$_('layout.header.home')}</p>
+					<IconWorld size={30} />
+					<p>{$_('layout.header.global')}</p>
 				</li>
 			</a>
-		{/if}
-		<a href="/search">
-			<li>
-				<IconSearch size={30} />
-				<p>{$_('layout.header.search')}</p>
-			</li>
-		</a>
-		<a href="/{npub}/timeline">
-			<li>
-				<IconWorld size={30} />
-				<p>{$_('layout.header.global')}</p>
-			</li>
-		</a>
-		{#if $pubkey}
-			<a href="/notifications">
-				<li>
-					<div class="notifications-icon">
+			{#if $pubkey}
+				<a href="/notifications">
+					<li class="notifications-icon">
 						<IconBell size={30} />
 						{#if $unreadEvents.length > 0}
 							<span class="notifications-icon-badge" />
 						{/if}
-					</div>
-					<p>{$_('layout.header.notifications')}</p>
-				</li>
-			</a>
-			<a href="/{nip19.npubEncode($pubkey)}/bookmark">
-				<li>
-					<IconBookmark size={30} />
-					<p>{$_('layout.header.bookmark')}</p>
-				</li>
-			</a>
-			<a href="/{nip19.npubEncode($pubkey)}">
-				<li>
-					<IconUser size={30} />
-					<p>{$_('layout.header.profile')}</p>
-				</li>
-			</a>
-			<a href="/preference">
-				<li>
-					<IconSettings size={30} />
-					<p>{$_('layout.header.preference')}</p>
-				</li>
-			</a>
-		{/if}
-	</ul>
-</nav>
+						<p>{$_('layout.header.notifications')}</p>
+					</li>
+				</a>
+				<a href="/{nip19.npubEncode($pubkey)}/bookmark">
+					<li>
+						<IconBookmark size={30} />
+						<p>{$_('layout.header.bookmark')}</p>
+					</li>
+				</a>
+				<a href="/{nip19.npubEncode($pubkey)}">
+					<li>
+						<IconUser size={30} />
+						<p>{$_('layout.header.profile')}</p>
+					</li>
+				</a>
+				<a href="/preference">
+					<li>
+						<IconSettings size={30} />
+						<p>{$_('layout.header.preference')}</p>
+					</li>
+				</a>
+			{/if}
+		</ul>
+	</nav>
+	{#if $pubkey && !$rom}
+		<button on:click={onClickPostButton}>
+			<IconPencilPlus size={30} />
+			<p>{$_('post')}</p>
+		</button>
+	{/if}
+</div>
 
 <style>
+	.header {
+		/* min-width: 600px */
+		top: 2.25rem;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	nav {
+		margin-top: 1.5rem;
+		margin-bottom: 2rem;
+	}
+
+	button {
+		width: inherit;
+		height: inherit;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+	}
+
 	ul {
 		list-style: none;
 		padding: 0;
@@ -118,7 +151,7 @@
 	.notifications-icon .notifications-icon-badge {
 		position: absolute;
 		top: 0.05rem;
-		right: 0.2rem;
+		left: 1rem;
 		width: 0.72rem;
 		height: 0.72rem;
 		border-radius: 9999px;
@@ -126,9 +159,57 @@
 		border: 0.18rem solid var(--accent);
 	}
 
+	@media screen and (max-width: 928px) {
+		.header {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+		button {
+			padding: 0;
+			padding-bottom: 4px;
+			width: 3.125rem;
+			height: 3.125rem;
+			border-radius: 50%;
+		}
+
+		button p {
+			display: none;
+		}
+
+		li p {
+			display: none;
+			margin-left: 0.5rem;
+			font-size: 1.15rem;
+		}
+	}
+
 	@media screen and (max-width: 600px) {
+		.header {
+			padding: 0;
+			top: auto;
+			bottom: 0;
+			width: 100%;
+			height: 3.125rem;
+			background-color: white;
+			position: fixed;
+			box-shadow: 0 0 0.25rem 0 rgba(0, 0, 0, 0.2);
+		}
+
+		#div-logo {
+			display: none;
+		}
+
+		button {
+			position: fixed;
+			bottom: calc(3.125rem + 0.75rem);
+			right: 0.75rem;
+		}
+
 		nav {
 			height: 100%;
+			margin: 0;
 		}
 		ul {
 			flex-flow: row;
