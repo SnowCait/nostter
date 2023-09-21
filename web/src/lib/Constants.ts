@@ -7,8 +7,7 @@ export const minTimelineLength = 25;
 export const filterLimitItems = 1000;
 export const timelineBufferMs = 1000;
 export const timeout = 3400;
-export const notFoundImageUrl =
-	'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png';
+export const notFoundImageUrl = '/1f43e.png';
 
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
 
