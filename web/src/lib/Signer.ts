@@ -56,18 +56,18 @@ export class Signer {
 		}
 	}
 
-	public static getRelays(): Map<string, { read: boolean; write: boolean }> {
+	public static async getRelays(): Promise<{ [url: string]: { read: boolean; write: boolean } }> {
 		const storage = new WebStorage(localStorage);
 		const login = storage.get('login');
 		if (login === 'NIP-07') {
 			try {
-				return window.nostr.getRelays();
+				return await window.nostr.getRelays();
 			} catch (error) {
 				console.error('[NIP-07 getRelays()]', error);
-				return new Map();
+				return {};
 			}
 		} else {
-			return new Map();
+			return {};
 		}
 	}
 
