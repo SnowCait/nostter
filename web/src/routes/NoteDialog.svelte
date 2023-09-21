@@ -110,10 +110,10 @@
 			}
 
 			await tick();
-				console.log(textarea, textarea.selectionStart);
-				textarea.setSelectionRange(0, 0);
-				dialog.showModal();
-				textarea.focus();
+			console.log(textarea, textarea.selectionStart);
+			textarea.setSelectionRange(0, 0);
+			dialog.showModal();
+			textarea.focus();
 		}
 	});
 
