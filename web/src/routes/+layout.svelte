@@ -244,4 +244,8 @@
 		border-radius: 0.5rem;
 		border: var(--default-border);
 	}
+
+	:global(a) {
+		color: var(--accent-gray);
+	}
 </style>
