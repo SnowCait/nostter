@@ -5,8 +5,7 @@
 	import { onMount } from 'svelte';
 	import { debugMode } from '../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
-	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
-	import { pubkey, rom } from '../stores/Author';
+	import { pubkey } from '../stores/Author';
 	import { _ } from 'svelte-i18n';
 	import '../app.css';
 
@@ -62,16 +61,9 @@
 	{/if}
 
 	<header>
-		<a id="header-logo" href={pubkey ? '/home' : '/'}>
-			<img src="/nostter-logo.svg" alt="nostter logo" width={120} height={24} />
-		</a>
-		<Header />
-		{#if $pubkey && !$rom}
-			<button on:click={() => ($openNoteDialog = !$openNoteDialog)}>
-				<IconPencilPlus size={30} />
-				<p>{$_('post')}</p>
-			</button>
-		{/if}
+		<div>
+			<Header onClickPostButton={() => ($openNoteDialog = !$openNoteDialog)} />
+		</div>
 	</header>
 
 	<main>
@@ -81,31 +73,26 @@
 
 <style>
 	.app {
-		max-width: 860px;
+		max-width: 926px;
 		margin: 2.25rem auto;
+		padding: 0 2.25rem;
+		display: grid;
+		grid-template-columns: 220px 598px;
+		gap: 2.25rem;
 	}
 
 	header {
 		position: fixed;
-		/* min-width: 600px */
-		top: 2.25rem;
-		width: 220px;
-		gap: 2.25rem;
-		display: flex;
-		flex-direction: column;
-	}
-
-	header button {
-		width: inherit;
-		height: inherit;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
+		max-width: 220px;
+		width: 100%;
+		height: 100%;
+		z-index: 3;
 	}
 
 	main {
-		margin-left: calc(220px + 2.25rem);
+		margin: 0 auto;
+		grid-column: 2 / 3; /* 第二カラムに配置 */
+		max-width: 598px;
 	}
 
 	.debug {
@@ -114,36 +101,23 @@
 		background-color: white;
 	}
 
-	@media screen and (max-width: 600px) {
+	@media screen and (max-width: 926px) {
 		.app {
-			margin: 0 auto;
+			max-width: calc(926px - (220px - 2.25rem));
+			gap: 1.5rem;
+			grid-template-columns: 3.125rem auto;
 		}
 
 		header {
+			max-width: 3.125rem;
+		}
+	}
+
+	@media screen and (max-width: 600px) {
+		.app {
+			margin: 0 auto 50px 0;
 			padding: 0;
-			top: auto;
-			bottom: 0;
-			width: 100%;
-			height: 60px;
-			background-color: white;
-		}
-
-		#header-logo {
-			display: none;
-		}
-
-		header button {
-			position: absolute;
-			padding: 0;
-			bottom: 55px;
-			right: 10px;
-			width: 50px;
-			height: 50px;
-			border-radius: 50%;
-		}
-
-		header button p {
-			display: none;
+			display: block;
 		}
 
 		main {
