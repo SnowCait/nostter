@@ -81,7 +81,7 @@
 
 <style>
 	.app {
-		max-width: 800px;
+		max-width: 860px;
 		margin: 2.25rem auto;
 	}
 
