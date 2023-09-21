@@ -59,8 +59,9 @@ export class Login {
 
 		console.timeLog('NIP-07');
 
-		const nip07Relays = Signer.getRelays();
+		const nip07Relays = await Signer.getRelays();
 
+		console.log('[NIP-07 relays]', nip07Relays);
 		console.timeLog('NIP-07');
 
 		const profileRelays = new Set([...Object.keys(nip07Relays), ...defaultRelays]);
