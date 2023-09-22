@@ -258,6 +258,11 @@
 		color: var(--accent-gray);
 	}
 
+	:global(a[target='_blank']) {
+		color: var(--accent-gray);
+		text-decoration-line: underline;
+	}
+
 	@keyframes -global-rotation {
 		0% {
 			transform: rotate(0);
