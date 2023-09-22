@@ -11,6 +11,19 @@
 
 	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
+	const konamiCode = [
+		'ArrowUp',
+		'ArrowUp',
+		'ArrowDown',
+		'ArrowDown',
+		'ArrowLeft',
+		'ArrowRight',
+		'ArrowLeft',
+		'ArrowRight',
+		'b',
+		'a'
+	];
+	let konamiIndex = 0;
 
 	function keyboardShortcut(event: KeyboardEvent) {
 		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
@@ -25,7 +38,22 @@
 				behavior: 'smooth'
 			});
 		}
+
+		// Konami
+		if (event.key === konamiCode[konamiIndex]) {
+			console.log('[konami]', konamiIndex);
+			konamiIndex++;
+		} else {
+			konamiIndex = 0;
+		}
+		if (konamiIndex === konamiCode.length) {
+			console.log('[konami command]');
+			konamiIndex = 0;
+			rotateLogo();
+		}
 	}
+
+	function rotateLogo() {}
 
 	function onVisibilityChange() {
 		console.log('[visibilitychange]', document.visibilityState);
