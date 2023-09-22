@@ -26,8 +26,14 @@
 </script>
 
 <div class="header">
-	<a id="div-logo" href={pubkey ? '/home' : '/'}>
-		<img src="/nostter-logo-icon.svg" alt="nostter logo" width={30} height={30} />
+	<a href={pubkey ? '/home' : '/'}>
+		<img
+			id="logo-icon"
+			src="/nostter-logo-icon.svg"
+			alt="nostter logo"
+			width={30}
+			height={30}
+		/>
 	</a>
 	<nav>
 		<ul>
@@ -104,6 +110,11 @@
 		width: 100%;
 		display: flex;
 		flex-direction: column;
+	}
+
+	a:has(#logo-icon) {
+		width: 30px;
+		height: 30px;
 	}
 
 	nav {
@@ -197,7 +208,7 @@
 			box-shadow: 0 0 0.25rem 0 rgba(0, 0, 0, 0.2);
 		}
 
-		#div-logo {
+		#logo-icon {
 			display: none;
 		}
 

@@ -53,7 +53,14 @@
 		}
 	}
 
-	function rotateLogo() {}
+	function rotateLogo() {
+		const logoIconElem = document.getElementById('logo-icon');
+		if (!logoIconElem) return;
+		logoIconElem.style.animation = '1.5s linear infinite rotation';
+		setTimeout(() => {
+			logoIconElem.style.animation = '';
+		}, 4500); // 3週分
+	}
 
 	function onVisibilityChange() {
 		console.log('[visibilitychange]', document.visibilityState);
@@ -119,7 +126,7 @@
 
 	main {
 		margin: 0 auto;
-		grid-column: 2 / 3; /* 第二カラムに配置 */
+		grid-column: 2 / 3;
 		max-width: 598px;
 	}
 
@@ -249,5 +256,14 @@
 
 	:global(a) {
 		color: var(--accent-gray);
+	}
+
+	@keyframes -global-rotation {
+		0% {
+			transform: rotate(0);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 </style>
