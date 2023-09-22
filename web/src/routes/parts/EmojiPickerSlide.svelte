@@ -1,18 +1,36 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { onMount, createEventDispatcher } from 'svelte';
 	import { Picker } from 'emoji-kitchen-mart';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
-	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
+	import { browser } from '$app/environment';
 	import { customEmojiTags } from '../../stores/CustomEmojis';
-	import { onMount } from 'svelte';
+	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 
-	let emojiPicker: HTMLElement;
+	let emojiPicker: HTMLElement | undefined;
 	let hidden = true;
 
 	const dispatch = createEventDispatcher();
 
 	onMount(() => {
+		updatePicker();
+	});
+
+	if (browser) {
+		customEmojiTags.subscribe(() => {
+			updatePicker();
+		});
+	}
+
+	function updatePicker() {
+		if (emojiPicker === undefined) {
+			return;
+		}
+
+		if (emojiPicker.firstChild !== null) {
+			emojiPicker.removeChild(emojiPicker.firstChild);
+		}
+
 		const customEmojis = $customEmojiTags.map(([, shortcode, url]) => {
 			return {
 				id: shortcode,
@@ -26,7 +44,7 @@
 				]
 			};
 		});
-		console.log('[emoji picker slide on mount]', customEmojis);
+		console.log('[emoji picker slide]', customEmojis);
 		const picker = new Picker({
 			data,
 			onEmojiSelect,
@@ -39,7 +57,7 @@
 			]
 		});
 		emojiPicker.appendChild(picker as any);
-	});
+	}
 
 	async function onClick() {
 		hidden = !hidden;
