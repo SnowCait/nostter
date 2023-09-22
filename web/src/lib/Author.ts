@@ -9,7 +9,8 @@ import {
 	updateRelays,
 	authorProfile,
 	metadataEvent,
-	bookmarkEvent
+	bookmarkEvent,
+	isMuteEvent
 } from '../stores/Author';
 import { RelayList } from './RelayList';
 import { filterTags, parseRelayJson } from './EventHelper';
@@ -44,7 +45,7 @@ export class Author {
 	}
 
 	public isNotified(event: Event): boolean {
-		return event.pubkey !== this.pubkey && this.isRelated(event);
+		return event.pubkey !== this.pubkey && this.isRelated(event) && !isMuteEvent(event);
 	}
 
 	public async fetchRelays(relays: string[]) {

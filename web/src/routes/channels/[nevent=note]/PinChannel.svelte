@@ -144,3 +144,9 @@
 {:else}
 	<button class="clear" on:click={pin}><IconPin /></button>
 {/if}
+
+<style>
+	button {
+		color: var(--accent-gray);
+	}
+</style>

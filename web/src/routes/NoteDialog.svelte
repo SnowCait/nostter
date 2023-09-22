@@ -101,20 +101,19 @@
 		});
 	});
 
-	openNoteDialog.subscribe((open) => {
+	openNoteDialog.subscribe(async (open) => {
 		console.log('[open]', open);
 		if (open) {
 			if ($quotes.length > 0) {
 				content =
 					'\n' + $quotes.map((event) => `nostr:${nip19.noteEncode(event.id)}`).join('\n');
 			}
-			// Wait for content updated
-			setTimeout(() => {
-				console.log(textarea, textarea.selectionStart);
-				textarea.setSelectionRange(0, 0);
-				dialog.showModal();
-				textarea.focus();
-			}, 10);
+
+			await tick();
+			console.log(textarea, textarea.selectionStart);
+			textarea.setSelectionRange(0, 0);
+			dialog.showModal();
+			textarea.focus();
 		}
 	});
 

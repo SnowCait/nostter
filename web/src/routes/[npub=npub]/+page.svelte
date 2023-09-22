@@ -21,6 +21,7 @@
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
 	import IconAlertTriangle from '@tabler/icons-svelte/dist/svelte/icons/IconAlertTriangle.svelte';
+	import UserStatus from '../parts/UserStatus.svelte';
 
 	let metadata: Metadata;
 	let user: User | undefined;
@@ -170,6 +171,10 @@
 				{/await}
 			</div>
 		{/if}
+
+		<div class="user-status">
+			<UserStatus {pubkey} showLink={true} />
+		</div>
 		<div class="nip19">{nip19.npubEncode(pubkey)}</div>
 		<div class="nip19">{nip19.nprofileEncode({ pubkey })}</div>
 		{#if followees.some((pubkey) => pubkey === $authorPubkey)}

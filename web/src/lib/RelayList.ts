@@ -55,6 +55,8 @@ export class RelayList {
 					return { url, read, write };
 				})
 			);
+		} else {
+			await rxNostr.switchRelays(defaultRelays);
 		}
 	}
 }

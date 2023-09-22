@@ -349,6 +349,10 @@
 		margin-left: 1rem;
 	}
 
+	button {
+		color: var(--accent-gray);
+	}
+
 	.channel-id {
 		color: gray;
 		font-size: 0.6rem;
