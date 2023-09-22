@@ -59,7 +59,7 @@
 		logoIconElem.style.animation = '1.5s linear infinite rotation';
 		setTimeout(() => {
 			logoIconElem.style.animation = '';
-		}, 4500); // 3週分
+		}, 4500); // 3 times
 	}
 
 	function onVisibilityChange() {
