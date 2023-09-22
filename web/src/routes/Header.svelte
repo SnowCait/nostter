@@ -27,13 +27,16 @@
 
 <div class="header">
 	<a href={pubkey ? '/home' : '/'}>
-		<img
-			id="logo-icon"
-			src="/nostter-logo-icon.svg"
-			alt="nostter logo"
-			width={30}
-			height={30}
-		/>
+		<picture>
+			<source srcset="/nostter-logo.svg" media="(min-width:928px)" width={120} height={24} />
+			<img
+				id="logo-icon"
+				src="/nostter-logo-icon.svg"
+				alt="nostter logo"
+				width={30}
+				height={30}
+			/>
+		</picture>
 	</a>
 	<nav>
 		<ul>
@@ -112,14 +115,13 @@
 		flex-direction: column;
 	}
 
-	a:has(#logo-icon) {
-		width: 30px;
-		height: 30px;
-	}
-
 	nav {
 		margin-top: 1.5rem;
 		margin-bottom: 2rem;
+	}
+
+	a {
+		align-self: flex-start;
 	}
 
 	button {
