@@ -1,15 +1,14 @@
 <script lang="ts">
-	import { pool } from '../stores/Pool';
-	import { pubkey, rom, writeRelays, readRelays } from '../stores/Author';
+	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { NoteComposer } from '$lib/NoteComposer';
+	import { pubkey, rom } from '../stores/Author';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../stores/NoteDialog';
 	import Note from './timeline/Note.svelte';
 	import IconSend from '@tabler/icons-svelte/dist/svelte/icons/IconSend.svelte';
-	import { Api } from '$lib/Api';
 	import { Content } from '$lib/Content';
 	import { Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
-	import type { ProfilePointer } from 'nostr-tools/lib/nip19';
 	import { userEvents } from '../stores/UserEvents';
-	import type { UserEvent, User } from './types';
+	import type { UserEvent } from './types';
 	import { customEmojiTags } from '../stores/CustomEmojis';
 	import { onMount, tick } from 'svelte';
 	import { Channel, channelIdStore } from '$lib/Channel';
@@ -279,152 +278,48 @@
 		posting = true;
 
 		let tags: string[][] = [];
-		if ($channelIdStore) {
-			tags.push(['e', $channelIdStore, '', 'root']);
-			if ($replyTo !== undefined) {
-				tags.push(['e', $replyTo.id, '', 'reply']);
-				if (
-					$replyTo.tags.some(
-						([tagName, pubkey]) => tagName === 'p' && pubkey === $replyTo?.pubkey
-					)
-				) {
-					tags.push(...$replyTo.tags.filter(([tagName]) => tagName === 'p'));
-				} else {
-					tags.push(...$replyTo.tags.filter(([tagName]) => tagName === 'p'), [
-						'p',
-						$replyTo.pubkey
-					]);
+
+		const noteComposer = new NoteComposer();
+		const event = await noteComposer.compose(
+			$channelIdStore !== undefined || $replyTo?.kind === Kind.ChannelMessage
+				? Kind.ChannelMessage
+				: Kind.Text,
+			Content.replaceNip19(content),
+			tags,
+			$replyTo,
+			emojiTags,
+			$channelIdStore,
+			pubkeys,
+			selectedCustomEmojis
+		);
+
+		console.log('[rx-nostr send to]', rxNostr.getAllRelayState());
+		const sendToRelays = rxNostr
+			.getRelays()
+			.filter(({ write }) => write)
+			.map(({ url }) => url);
+		const sentRelays = new Map<string, boolean>();
+		rxNostr.send(event).subscribe({
+			next: (packet) => {
+				console.log('[rx-nostr send next]', packet);
+				sentRelays.set(packet.from, packet.ok);
+				if (packet.ok) {
+					posting = false;
+					dialog.close();
 				}
-			}
-		} else if ($replyTo !== undefined) {
-			if ($replyTo.tags.filter((x) => x[0] === 'e').length === 0) {
-				// root
-				tags.push(['e', $replyTo.id, '', 'root']);
-			} else {
-				// reply
-				tags.push(['e', $replyTo.id, '', 'reply']);
-				const root = $replyTo.tags.find(
-					([tagName, , , marker]) => tagName === 'e' && marker === 'root'
+			},
+			complete: () => {
+				console.log('[rx-nostr send complete]');
+			},
+			error: (error) => {
+				console.error(
+					'[rx-nostr send error]',
+					error,
+					sendToRelays.filter((url) => !sentRelays.has(url))
 				);
-				if (root !== undefined) {
-					tags.push(['e', root[1], '', 'root']);
-				}
+				posting = false;
 			}
-			pubkeys = new Set([
-				$replyTo.pubkey,
-				...$replyTo.tags.filter((x) => x[0] === 'p').map((x) => x[1])
-			]);
-		}
-
-		const eventIds = Content.findNotesAndNeventsToIds(content);
-		tags.push(...Array.from(new Set(eventIds)).map((eventId) => ['e', eventId, '', 'mention']));
-
-		for (const { type, data } of Content.findNpubsAndNprofiles(content).map((x) => {
-			try {
-				return nip19.decode(x);
-			} catch {
-				return { type: undefined, data: undefined };
-			}
-		})) {
-			switch (type) {
-				case 'npub': {
-					pubkeys.add(data as string);
-					break;
-				}
-				case 'nprofile': {
-					pubkeys.add((data as ProfilePointer).pubkey);
-				}
-			}
-		}
-		tags.push(...Array.from(pubkeys).map((pubkey) => ['p', pubkey]));
-
-		const hashtags = Content.findHashtags(content);
-		tags.push(...Array.from(hashtags).map((hashtag) => ['t', hashtag]));
-
-		// Custom emojis
-		tags.push(...emojiTags);
-		const readApi = new Api($pool, $readRelays);
-		const shortcodes = Array.from(
-			new Set(
-				[...content.matchAll(/:(?<shortcode>\w+):/g)]
-					.map((match) => match.groups?.shortcode)
-					.filter((x): x is string => x !== undefined)
-			)
-		);
-		new Map(
-			['npub']
-				.filter((x) => x.startsWith('npub'))
-				.map((x) => {
-					try {
-						// throw new Error();
-						return [x, (x + 1) as string];
-					} catch (e) {
-						return [x, ''];
-					}
-				})
-		);
-		const customEmojiPubkeysMap = new Map(
-			shortcodes
-				.filter((shortcode) => shortcode.startsWith('npub1'))
-				.map((npub) => {
-					try {
-						const { data: pubkey } = nip19.decode(npub);
-						return [npub, pubkey as string];
-					} catch (error) {
-						console.warn('[invalid npub]', npub, error);
-						return [npub, undefined];
-					}
-				})
-		);
-		const customEmojiMetadataEventsMap = await readApi.fetchMetadataEventsMap(
-			[...customEmojiPubkeysMap]
-				.map(([, pubkey]) => pubkey)
-				.filter((pubkey): pubkey is string => pubkey !== undefined)
-		);
-		tags.push(
-			...shortcodes
-				.filter(([, shortcode]) => !emojiTags.some(([, s]) => s === shortcode))
-				.map((shortcode) => {
-					const imageUrl = selectedCustomEmojis.get(shortcode);
-					if (imageUrl === undefined) {
-						const pubkey = customEmojiPubkeysMap.get(shortcode);
-						if (pubkey === undefined) {
-							return null;
-						}
-						const metadataEvent = customEmojiMetadataEventsMap.get(pubkey);
-						if (metadataEvent === undefined) {
-							return null;
-						}
-						try {
-							const metadata = JSON.parse(metadataEvent.content) as User;
-							const picture = new URL(metadata.picture);
-							return ['emoji', shortcode, picture.href];
-						} catch (error) {
-							console.warn('[invalid metadata]', metadataEvent, error);
-							return null;
-						}
-					}
-					return ['emoji', shortcode, imageUrl];
-				})
-				.filter((x): x is string[] => x !== null)
-		);
-
-		const api = new Api($pool, $writeRelays);
-		try {
-			await api.signAndPublish(
-				$channelIdStore !== undefined || $replyTo?.kind === Kind.ChannelMessage
-					? Kind.ChannelMessage
-					: Kind.Text,
-				Content.replaceNip19(content),
-				tags
-			);
-			console.log('[success]');
-			dialog.close();
-		} catch (error) {
-			console.error('[failure]', error);
-		} finally {
-			posting = false;
-		}
+		});
 	}
 </script>
 
