@@ -60,16 +60,20 @@
 		relays = pointer.relays ?? [];
 
 		kind40Event = cachedEvents.get(channelId);
+		kind41Event = channelMetadataEvents.get(channelId);
 		console.log('[channel metadata cache 40]', kind40Event);
-		if (kind40Event !== undefined) {
-			channelMetadata = Channel.parseMetadata(kind40Event);
-			$channelIdStore = channelId;
+		console.log('[channel metadata cache 41]', kind41Event);
+
+		if (kind40Event === undefined) {
+			return;
 		}
 
-		kind41Event = channelMetadataEvents.get(channelId);
-		console.log('[channel metadata cache 41]', kind41Event);
-		if (kind41Event !== undefined) {
+		$channelIdStore = channelId;
+
+		if (kind41Event !== undefined && kind40Event.pubkey === kind41Event.pubkey) {
 			channelMetadata = Channel.parseMetadata(kind41Event);
+		} else {
+			channelMetadata = Channel.parseMetadata(kind40Event);
 		}
 	}
 
@@ -102,13 +106,14 @@
 			.pipe(uniq(), latest())
 			.subscribe((packet) => {
 				console.log('[channel metadata event]', packet);
-				channelMetadata = Channel.parseMetadata(packet.event);
+
 				if (packet.event.kind === 41) {
 					channelMetadataEvents.set(channelId, packet.event);
 				} else {
 					cachedEvents.set(packet.event.id, packet.event);
-					$channelIdStore = channelId;
 				}
+
+				updateChannelMetadata();
 			});
 
 		const channelMessageReq = createRxForwardReq();
