@@ -13,9 +13,10 @@
 	import { customEmojiTags } from '../../stores/CustomEmojis';
 	import IconSend from '@tabler/icons-svelte/dist/svelte/icons/IconSend.svelte';
 	import Note from '../timeline/Note.svelte';
-	import ChannelTitle from './ChannelTitle.svelte';
+	import ChannelTitle from '../parts/ChannelTitle.svelte';
 	import EmojiPickerSlide from './EmojiPickerSlide.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
+	import ContentWarning from './ContentWarning.svelte';
 
 	export function clear(): void {
 		console.log('[note editor clear]');
@@ -26,6 +27,7 @@
 		$quotes = [];
 		exitComplement();
 		emojiTags = [];
+		contentWarningReason = undefined;
 	}
 
 	export function isAutocompleting(): boolean {
@@ -42,6 +44,7 @@
 	let emojiTags: string[][] = [];
 	let autocompleting = false;
 	let pubkeys = new Set<string>();
+	let contentWarningReason: string | undefined;
 
 	let textarea: HTMLTextAreaElement;
 	let article: HTMLElement;
@@ -280,7 +283,8 @@
 			emojiTags,
 			$channelIdStore,
 			pubkeys,
-			selectedCustomEmojis
+			selectedCustomEmojis,
+			contentWarningReason
 		);
 
 		console.log('[rx-nostr send to]', rxNostr.getAllRelayState());
@@ -332,8 +336,13 @@
 		<input id="send" type="submit" disabled={!pubkey || posting} />
 		<label for="send"><IconSend size={30} /></label>
 	</form>
-	<div class="emoji-picker">
-		<EmojiPickerSlide on:pick={onEmojiPick} />
+	<div class="options">
+		<div class="emoji-picker">
+			<EmojiPickerSlide on:pick={onEmojiPick} />
+		</div>
+		<div class="content-warning">
+			<ContentWarning bind:reason={contentWarningReason} />
+		</div>
 	</div>
 	{#if $quotes.length > 0}
 		{#each $quotes as quote}
@@ -392,8 +401,11 @@
 		padding: 0;
 	}
 
-	.emoji-picker {
+	.options {
 		margin-top: -30px;
+
+		display: flex;
+		flex-direction: row;
 	}
 
 	:global(.tribute-container ul) {

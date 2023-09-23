@@ -58,8 +58,8 @@
 		delete originalUser.zapEndpoint;
 	}
 
-	let contentWarning = event.tags.find(([tagName]) => tagName === 'content-warning')?.at(1);
-	let showContent = contentWarning === undefined;
+	let contentWarningTag = event.tags.find(([tagName]) => tagName === 'content-warning');
+	let showContent = contentWarningTag === undefined;
 	const showWarningContent = () => {
 		showContent = true;
 	};
@@ -305,7 +305,7 @@
 		{/if}
 		{#if !showContent}
 			<div class="content-warning">
-				<div>{contentWarning}</div>
+				<div>{contentWarningTag?.at(1) ?? ''}</div>
 				<button on:click={showWarningContent}>Show</button>
 			</div>
 		{:else if event.kind === Kind.EncryptedDirectMessage}
