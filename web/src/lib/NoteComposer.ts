@@ -18,7 +18,8 @@ export class NoteComposer {
 		emojiTags: string[][] = [],
 		$channelIdStore: string | undefined = undefined,
 		pubkeys: Set<string> = new Set(),
-		selectedCustomEmojis: Map<string, string> = new Map()
+		selectedCustomEmojis: Map<string, string> = new Map(),
+		contentWarningReason: string | undefined = undefined
 	): Promise<Event> {
 		if ($channelIdStore) {
 			tags.push(['e', $channelIdStore, '', 'root']);
@@ -149,6 +150,15 @@ export class NoteComposer {
 				})
 				.filter((x): x is string[] => x !== null)
 		);
+
+		// Content Warning
+		if (contentWarningReason !== undefined) {
+			tags.push(
+				contentWarningReason === ''
+					? ['content-warning']
+					: ['content-warning', contentWarningReason]
+			);
+		}
 
 		return await Signer.signEvent({
 			kind,
