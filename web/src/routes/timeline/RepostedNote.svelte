@@ -79,6 +79,17 @@
 		<div>{nip19.npubEncode(event.pubkey)}</div>
 		<h5>User JSON</h5>
 		<pre><code class="json">{JSON.stringify(event.user, null, 2)}</code></pre>
+		<div>
+			Open in <a
+				href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode({
+					id: event.id
+				})}"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				nostr-post-checker
+			</a>
+		</div>
 	</div>
 {/if}
 {#if originalEvent !== undefined}
