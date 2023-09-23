@@ -43,3 +43,9 @@
 	<input type="text" required bind:value={word} />
 	<input type="submit" value="Mute" />
 </form>
+
+<style>
+	button {
+		color: var(--accent-gray);
+	}
+</style>

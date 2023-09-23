@@ -243,5 +243,6 @@
 		height: inherit;
 
 		font-size: 1.2rem;
+		color: var(--accent-gray);
 	}
 </style>
