@@ -7,12 +7,14 @@
 	import Channel from './Channel.svelte';
 	import Zap from './Zap.svelte';
 	import Note from './Note.svelte';
-	import { Metadata } from '$lib/Items';
+	import { EventItem, Metadata } from '$lib/Items';
 	import CustomEmojiList from './CustomEmojiList.svelte';
 
-	export let event: Event;
+	export let eventItem: Event | EventItem;
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
+
+	$: event = eventItem instanceof EventItem ? eventItem.event : eventItem;
 </script>
 
 {#if event.kind === Kind.Metadata}

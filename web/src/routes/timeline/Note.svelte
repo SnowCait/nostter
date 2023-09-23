@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Kind, nip19 } from 'nostr-tools';
+	import { Kind, nip19, type Event } from 'nostr-tools';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
@@ -11,7 +11,7 @@
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
-	import type { Event } from '../types';
+	import type { User } from '../types';
 	import { reactionEmoji } from '../../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
 	import { readRelays, writeRelays, pubkey, isBookmarked, author } from '../../stores/Author';
@@ -40,6 +40,7 @@
 
 	const iconSize = 20;
 
+	let user: User | undefined;
 	let reposted = false;
 	let reactioned = false;
 	let bookmarked = isBookmarked(event);
@@ -55,7 +56,7 @@
 	$: {
 		originalEvent = Object.assign({}, event) as any;
 		delete originalEvent.user;
-		originalUser = Object.assign({}, event.user) as any;
+		originalUser = Object.assign({}, user) as any;
 		delete originalUser.zapEndpoint;
 	}
 
@@ -74,7 +75,10 @@
 	let showMenu = false;
 
 	function reply(event: Event) {
-		$replyTo = event;
+		$replyTo = {
+			...event,
+			user
+		};
 		$openNoteDialog = true;
 	}
 
@@ -103,7 +107,10 @@
 	}
 
 	function quote(event: Event) {
-		$quotes.push(event);
+		$quotes.push({
+			...event,
+			user
+		});
 		$openNoteDialog = true;
 	}
 
@@ -250,6 +257,9 @@
 			new Set(event.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey))
 		);
 		const api = new Api($pool, $readRelays);
+		api.fetchUserEvent(event.pubkey).then((userEvent) => {
+			user = userEvent?.user;
+		});
 		const promises = pubkeys.map(async (pubkey) => {
 			const userEvent = await api.fetchUserEvent(pubkey);
 			return (
@@ -278,16 +288,16 @@
 	<ZapDialog {event} bind:this={zapDialogComponent} on:zapped={onZapped} />
 	<div>
 		<a href="/{nip19.npubEncode(event.pubkey)}">
-			<img class="picture" src={event.user?.picture} alt="" />
+			<img class="picture" src={user?.picture} alt="" />
 		</a>
 	</div>
 	<div class="note">
 		<div class="user">
 			<div class="display_name">
-				{event.user?.display_name ? event.user.display_name : event.user?.name}
+				{user?.display_name ? user.display_name : user?.name}
 			</div>
 			<div class="name">
-				@{event.user?.name ? event.user.name : event.user?.display_name}
+				@{user?.name ? user.name : user?.display_name}
 			</div>
 			<div class="created_at">
 				<a href="/{nip19.noteEncode(event.id)}">
@@ -407,8 +417,8 @@
 					</button>
 					<button
 						class="zap"
-						class:hidden={event.user === undefined ||
-							event.user.zapEndpoint === null ||
+						class:hidden={user === undefined ||
+							user.zapEndpoint === null ||
 							event.kind === Kind.EncryptedDirectMessage}
 						disabled={zapped}
 						on:click={() => zapDialogComponent.openZapDialog()}
@@ -436,13 +446,13 @@
 				<h5>Code Points</h5>
 				<h6>display name</h6>
 				<p>
-					{getCodePoints(event.user?.display_name ?? '')
+					{getCodePoints(user?.display_name ?? '')
 						.map((codePoint) => `0x${codePoint.toString(16)}`)
 						.join(' ')}
 				</p>
 				<h6>@name</h6>
 				<p>
-					{getCodePoints(event.user?.name ?? '')
+					{getCodePoints(user?.name ?? '')
 						.map((codePoint) => `0x${codePoint.toString(16)}`)
 						.join(' ')}
 				</p>

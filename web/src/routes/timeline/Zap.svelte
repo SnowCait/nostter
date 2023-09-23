@@ -2,7 +2,7 @@
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import { pool } from '../../stores/Pool';
-	import type { Event as NostrEvent } from '../types';
+	import type { Event as NostrEvent, User } from '../types';
 	import { readRelays } from '../../stores/Author';
 	import { nip19, type Event } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
@@ -11,10 +11,11 @@
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
 
-	export let event: NostrEvent;
+	export let event: Event;
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
+	let user: User | undefined;
 	let originalEvent: NostrEvent | undefined;
 	let jsonDisplay = false;
 
@@ -41,6 +42,10 @@
 		} else {
 			console.warn('[zapped event not found]', event);
 		}
+
+		api.fetchUserEvent(event.pubkey).then((userEvent) => {
+			user = userEvent?.user;
+		});
 	});
 
 	const toggleJsonDisplay = () => {
@@ -62,7 +67,7 @@
 			{:then zapUserEvent}
 				<div>
 					<a href="/{nip19.npubEncode((zapUserEvent ?? event).pubkey)}">
-						@{(zapUserEvent ?? event).user?.name ??
+						@{(zapUserEvent?.user ?? user)?.name ??
 							nip19
 								.npubEncode((zapUserEvent ?? event).pubkey)
 								.substring(0, 'npub1'.length + 7)}
@@ -96,7 +101,7 @@
 		<h5>User ID</h5>
 		<div>{nip19.npubEncode(event.pubkey)}</div>
 		<h5>User JSON</h5>
-		<pre><code class="json">{JSON.stringify(event.user, null, 2)}</code></pre>
+		<pre><code class="json">{JSON.stringify(user, null, 2)}</code></pre>
 		<div>
 			Open in <a
 				href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode({
@@ -111,7 +116,7 @@
 	</div>
 {/if}
 {#if originalEvent !== undefined}
-	<EventComponent event={originalEvent} {readonly} {createdAtFormat} />
+	<EventComponent eventItem={originalEvent} {readonly} {createdAtFormat} />
 {:else if originalTag !== undefined}
 	<NoteLink eventId={originalTag[1]} />
 {/if}
