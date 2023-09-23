@@ -52,7 +52,7 @@
 				Open in <a
 					href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode({
 						id: event.id
-					})}"
+					})}&kind={event.kind}"
 					target="_blank"
 					rel="noopener noreferrer"
 				>
