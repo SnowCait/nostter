@@ -59,4 +59,8 @@
 		width: 20px;
 		height: 20px;
 	}
+
+	button {
+		color: var(--accent-gray);
+	}
 </style>
