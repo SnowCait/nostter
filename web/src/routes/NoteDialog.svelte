@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { openNoteDialog } from '../stores/NoteDialog';
-	import NoteEditor from './parts/NoteEditor.svelte';
+	import NoteEditor from './editor/NoteEditor.svelte';
 
 	let dialog: HTMLDialogElement;
 	let editor: NoteEditor;

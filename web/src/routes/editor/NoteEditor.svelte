@@ -13,7 +13,7 @@
 	import { customEmojiTags } from '../../stores/CustomEmojis';
 	import IconSend from '@tabler/icons-svelte/dist/svelte/icons/IconSend.svelte';
 	import Note from '../timeline/Note.svelte';
-	import ChannelTitle from './ChannelTitle.svelte';
+	import ChannelTitle from '../parts/ChannelTitle.svelte';
 	import EmojiPickerSlide from './EmojiPickerSlide.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 
