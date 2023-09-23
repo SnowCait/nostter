@@ -447,6 +447,17 @@
 						.map((codePoint) => `0x${codePoint.toString(16)}`)
 						.join(' ')}
 				</p>
+				<div>
+					Open in <a
+						href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode(
+							{ id: event.id }
+						)}"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						nostr-post-checker
+					</a>
+				</div>
 			</div>
 		{/if}
 	</div>
