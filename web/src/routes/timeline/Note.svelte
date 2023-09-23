@@ -5,6 +5,7 @@
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
+	import IconStar from '@tabler/icons-svelte/dist/svelte/icons/IconStar.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
@@ -360,11 +361,15 @@
 				<button
 					class="reaction"
 					class:hidden={event.kind === Kind.EncryptedDirectMessage}
+					class:paw-pad={$reactionEmoji === '🐾'}
+					class:star={$reactionEmoji === '⭐'}
 					disabled={reactioned}
 					on:click={() => reaction(event)}
 				>
 					{#if $reactionEmoji === '🐾'}
 						<IconPaw size={iconSize} />
+					{:else if $reactionEmoji === '⭐'}
+						<IconStar size={iconSize} />
 					{:else}
 						<IconHeart size={iconSize} />
 					{/if}
@@ -575,6 +580,14 @@
 
 	.reaction:disabled {
 		color: lightpink;
+	}
+
+	.reaction.paw-pad:disabled {
+		color: orange;
+	}
+
+	.reaction.star:disabled {
+		color: gold;
 	}
 
 	.bookmark.bookmarked {
