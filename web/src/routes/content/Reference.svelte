@@ -26,10 +26,7 @@
 	onMount(async () => {
 		if (item === undefined && eventId !== undefined) {
 			const api = new Api($pool, $readRelays);
-			const e = await api.fetchEventById(eventId);
-			if (e !== undefined) {
-				item = new EventItem(e, metadataEvents.get(e.pubkey));
-			}
+			item = await api.fetchEventItemById(eventId);
 		}
 	});
 </script>

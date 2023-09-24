@@ -68,10 +68,7 @@
 		}
 
 		if (dataType === 'event' && item === undefined) {
-			const e = await api.fetchEventById(eventId);
-			if (e !== undefined) {
-				item = new EventItem(e);
-			}
+			item = await api.fetchEventItemById(eventId);
 		}
 
 		if (dataType === 'addr') {

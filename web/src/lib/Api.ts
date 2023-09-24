@@ -188,18 +188,18 @@ export class Api {
 		return new EventItem(event, metadataEventsMap.get(event.pubkey));
 	}
 
-	async fetchEventById(id: string): Promise<NostrEvent | undefined> {
+	async fetchEventItemById(id: string): Promise<EventItem | undefined> {
 		// If exsits in store
 		const $events = get(timelineEvents);
-		const storedEvent = $events.find((x) => x.id === id);
+		const storedEvent = $events.find((x) => x.event.id === id);
 		if (storedEvent !== undefined) {
 			return storedEvent;
 		}
-		const $cachedEvents = get(cachedEvents);
-		const cachedEvent = $cachedEvents.get(id);
-		if (cachedEvent !== undefined) {
-			return cachedEvent;
-		}
+		// const $cachedEvents = get(cachedEvents);
+		// const cachedEvent = $cachedEvents.get(id);
+		// if (cachedEvent !== undefined) {
+		// 	return cachedEvent;
+		// }
 
 		// Fetch event
 		const event = await this.pool.get(this.relays, {
@@ -213,27 +213,17 @@ export class Api {
 
 		const userEvent = await this.fetchUserEvent(event.pubkey);
 		if (userEvent === undefined) {
-			return event as NostrEvent;
+			return new EventItem(event);
 		}
 
-		// Return
-		const nostrEvent = event as NostrEvent;
-		nostrEvent.user = userEvent.user;
+		// // Return
+		// const nostrEvent = event as NostrEvent;
+		// nostrEvent.user = userEvent.user;
 
 		// Cache
-		$cachedEvents.set(nostrEvent.id, nostrEvent);
+		// $cachedEvents.set(nostrEvent.id, nostrEvent);
 
-		return nostrEvent;
-	}
-
-	// With metadata
-	async fetchEventItemById(id: string): Promise<EventItem | undefined> {
-		const event = await this.fetchEventById(id);
-		if (event === undefined) {
-			return undefined;
-		}
-		const metadataEventsMap = await this.fetchMetadataEventsMap([event.pubkey]);
-		return new EventItem(event, metadataEventsMap.get(event.pubkey));
+		return new EventItem(event, userEvent);
 	}
 
 	async fetchContactsEvent(pubkey: string): Promise<Event | undefined> {

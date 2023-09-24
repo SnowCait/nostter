@@ -73,7 +73,7 @@
 		}
 
 		const api = new Api($pool, [...new Set([...$readRelays, ...relays])]);
-		event = await api.fetchEventById(eventId);
+		event = await (await api.fetchEventItemById(eventId))?.toEvent();
 		if (event === undefined) {
 			throw error(404);
 		}
