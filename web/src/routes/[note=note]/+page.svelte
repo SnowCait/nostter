@@ -2,7 +2,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { error } from '@sveltejs/kit';
-	import { nip19, Kind } from 'nostr-tools';
+	import { nip19, Kind, type Event } from 'nostr-tools';
 	import { author, readRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
@@ -10,7 +10,7 @@
 	import type { EventPointer } from 'nostr-tools/lib/nip19';
 	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';
-	import type { EventItem, Metadata } from '$lib/Items';
+	import { EventItem, type Metadata } from '$lib/Items';
 	import Counter from './Counter.svelte';
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { chronologicalItem } from '$lib/Constants';
@@ -25,6 +25,8 @@
 
 	let repostEvents: EventItem[] | undefined;
 	let reactionEvents: EventItem[] | undefined;
+
+	$: items = events.map((x) => new EventItem(x, x.user as Event | undefined));
 
 	$: repostMetadataList =
 		repostEvents !== undefined
@@ -138,7 +140,7 @@
 <h1>note</h1>
 
 <TimelineView
-	{events}
+	{items}
 	readonly={false}
 	load={async () => console.debug()}
 	showLoading={false}

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
 	import { onMount } from 'svelte';
-	import type { Event } from './types';
+	import type { Item } from '$lib/Items';
 	import { author, isMuteEvent } from '../stores/Author';
 	import Loading from './Loading.svelte';
 	import EventComponent from './timeline/EventComponent.svelte';
 	import { nip19 } from 'nostr-tools';
 
-	export let events: Event[] = [];
+	export let items: Item[] = [];
 	export let readonly = false;
 	export let load: () => Promise<void>;
 	export let showLoading = true;
@@ -67,14 +67,14 @@
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
 <ul class="card timeline" bind:this={timelineRef}>
-	{#each events as event (event.id)}
-		{#if !isMuteEvent(event)}
+	{#each items as item (item.event.id)}
+		{#if !isMuteEvent(item.event)}
 			<li
 				class={transitionable ? 'transitionable-post' : ''}
-				class:related={$author?.isNotified(event)}
-				on:mouseup={transitionable ? (e) => viewDetail(e, event.id) : null}
+				class:related={$author?.isNotified(item.event)}
+				on:mouseup={transitionable ? (e) => viewDetail(e, item.event.id) : null}
 			>
-				<EventComponent eventItem={event} {readonly} {createdAtFormat} />
+				<EventComponent {item} {readonly} {createdAtFormat} />
 			</li>
 		{/if}
 	{/each}

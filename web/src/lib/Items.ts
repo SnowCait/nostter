@@ -1,12 +1,12 @@
 import { nip57, type Event } from 'nostr-tools';
 import type { Event as NostrEvent, User } from '../routes/types'; // for compatibility
 
-interface Item {
+export interface Item {
 	readonly event: Event;
 }
 
 export class EventItem implements Item {
-	public readonly metadata: Metadata | undefined;
+	public metadata: Metadata | undefined;
 	constructor(public readonly event: Event, metadataEvent: Event | undefined = undefined) {
 		if (metadataEvent !== undefined) {
 			this.metadata = new Metadata(metadataEvent);
@@ -31,7 +31,7 @@ export class Metadata implements Item {
 		try {
 			this.content = JSON.parse(event.content);
 		} catch (error) {
-			console.warn('[invalid metadata]', error, event);
+			console.warn('[invalid metadata item]', error, event);
 		}
 	}
 

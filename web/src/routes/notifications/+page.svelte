@@ -38,13 +38,13 @@
 		let firstLength = $notifiedEvents.length;
 		let count = 0;
 		let until =
-			$notifiedEvents.at($notifiedEvents.length - 1)?.created_at ??
+			$notifiedEvents.at($notifiedEvents.length - 1)?.event.created_at ??
 			Math.floor(Date.now() / 1000);
 		let seconds = 12 * 60 * 60;
 
 		while ($notifiedEvents.length - firstLength < minTimelineLength && count < 10) {
 			const pastEventItems = await timeline.fetch(until, until - seconds);
-			$notifiedEvents.push(...(await Promise.all(pastEventItems.map((x) => x.toEvent()))));
+			$notifiedEvents.push(...pastEventItems);
 			$notifiedEvents = $notifiedEvents;
 
 			until -= seconds;
@@ -57,4 +57,4 @@
 
 <h1>Notifications</h1>
 
-<TimelineView events={$notifiedEvents} {load} />
+<TimelineView items={$notifiedEvents} {load} />

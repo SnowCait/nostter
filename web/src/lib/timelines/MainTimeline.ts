@@ -22,15 +22,11 @@ rxNostr
 
 			const metadata = new Metadata(packet.event);
 			console.log('[rx-nostr metadata]', packet, metadata.content?.name);
-			const user = {
-				...metadata.content,
-				zapEndpoint: (await metadata.zapUrl())?.href ?? null
-			} as User;
-			for (const event of $events) {
-				if (event.pubkey !== packet.event.pubkey) {
+			for (const item of $events) {
+				if (item.event.pubkey !== packet.event.pubkey) {
 					continue;
 				}
-				event.user = user;
+				item.metadata = metadata;
 			}
 			events.set($events);
 		}

@@ -4,15 +4,15 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { WebStorage } from '$lib/WebStorage';
+	import { EventItem } from '$lib/Items';
 	import { User as UserDecoder } from '$lib/User';
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
 	import type { Event } from 'nostr-tools';
 	import { onDestroy } from 'svelte';
 	import { firstValueFrom, EmptyError } from 'rxjs';
 	import TimelineView from '../../TimelineView.svelte';
-	import type { UserEvent } from '../../types';
 
-	let events: UserEvent[] = [];
+	let items: EventItem[] = [];
 
 	const rxNostr = createRxNostr();
 
@@ -60,8 +60,8 @@
 			.pipe(uniq())
 			.subscribe((packet) => {
 				console.log('[pin e tag]', packet);
-				events.push(packet.event);
-				events = events;
+				items.push(new EventItem(packet.event));
+				items = items;
 			});
 	});
 
@@ -72,4 +72,4 @@
 
 <h1>PINs</h1>
 
-<TimelineView {events} load={async () => console.debug()} showLoading={false} />
+<TimelineView {items} load={async () => console.debug()} showLoading={false} />
