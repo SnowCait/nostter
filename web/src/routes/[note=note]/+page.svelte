@@ -160,7 +160,7 @@
 	</div>
 	<div class="mute">
 		<MuteButton tagName="p" tagContent={event.pubkey} />
-		<span>Mute @{event.user.name}</span>
+		<span>Mute @{event.user?.name}</span>
 	</div>
 {/if}
 

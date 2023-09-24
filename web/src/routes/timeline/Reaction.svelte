@@ -5,7 +5,7 @@
 	import { pool } from '../../stores/Pool';
 	import type { Event as NostrEvent, User } from '../types';
 	import { readRelays } from '../../stores/Author';
-	import { nip19 } from 'nostr-tools';
+	import { nip19, type Event } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
@@ -13,7 +13,7 @@
 	import EventComponent from './EventComponent.svelte';
 	import Content from '../content/Content.svelte';
 
-	export let event: NostrEvent;
+	export let event: Event;
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
@@ -82,7 +82,7 @@
 		<h5>User ID</h5>
 		<div>{nip19.npubEncode(event.pubkey)}</div>
 		<h5>User JSON</h5>
-		<pre><code class="json">{JSON.stringify(event.user, null, 2)}</code></pre>
+		<pre><code class="json">{JSON.stringify(user, null, 2)}</code></pre>
 		<div>
 			Open in <a
 				href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode({
@@ -97,7 +97,7 @@
 	</div>
 {/if}
 {#if originalEvent !== undefined}
-	<EventComponent event={originalEvent} {readonly} {createdAtFormat} />
+	<EventComponent eventItem={originalEvent} {readonly} {createdAtFormat} />
 {:else if originalTag !== undefined}
 	<NoteLink eventId={originalTag[1]} />
 {/if}

@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { nip57 } from 'nostr-tools';
+	import { nip57, type Event } from 'nostr-tools';
 	import QRCode from 'qrcode';
-	import type { Event } from './types';
-	import { writeRelays } from '../stores/Author';
-	import { createEventDispatcher } from 'svelte';
+	import { readRelays, writeRelays } from '../stores/Author';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import { Signer } from '$lib/Signer';
+	import type { User } from './types';
+	import { Api } from '$lib/Api';
+	import { pool } from '../stores/Pool';
 
 	export let event: Event;
 
@@ -13,12 +15,20 @@
 		dialog.showModal();
 	}
 
+	let user: User | undefined;
 	let sats = 50;
 	let zapComment = '';
 	let invoice = '';
 	let dialog: HTMLDialogElement;
 
 	const dispatch = createEventDispatcher();
+
+	onMount(() => {
+		const api = new Api($pool, $readRelays);
+		api.fetchUserEvent(event.pubkey).then((userEvent) => {
+			user = userEvent?.user;
+		});
+	});
 
 	async function zap() {
 		const amount = sats * 1000;
@@ -30,10 +40,10 @@
 			relays: $writeRelays
 		});
 		const zapRequestEvent = await Signer.signEvent(zapRequest);
-		console.log('[zap request]', zapRequestEvent, event.user);
+		console.log('[zap request]', zapRequestEvent, user);
 		const encoded = encodeURI(JSON.stringify(zapRequestEvent));
 
-		const url = `${event.user.zapEndpoint}?amount=${amount}&nostr=${encoded}`;
+		const url = `${user?.zapEndpoint}?amount=${amount}&nostr=${encoded}`;
 		console.log('[zap url]', url);
 
 		const response = await fetch(url);
@@ -61,7 +71,7 @@
 <dialog bind:this={dialog} on:click={closeZapDialog}>
 	<div class="zap-dialog">
 		{#if invoice === ''}
-			<div>@{event.user?.name ?? event.user?.display_name}</div>
+			<div>@{user?.name ?? user?.display_name}</div>
 			<form on:submit|preventDefault={zap}>
 				<div>
 					<input
