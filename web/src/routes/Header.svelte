@@ -26,16 +26,10 @@
 </script>
 
 <div class="header">
-	<a href={pubkey ? '/home' : '/'}>
+	<a href={pubkey ? '/home' : '/'} id="logo-icon">
 		<picture>
 			<source srcset="/nostter-logo.svg" media="(min-width:928px)" width={120} height={24} />
-			<img
-				id="logo-icon"
-				src="/nostter-logo-icon.svg"
-				alt="nostter logo"
-				width={30}
-				height={30}
-			/>
+			<img src="/nostter-logo-icon.svg" alt="nostter logo" width={30} height={30} />
 		</picture>
 	</a>
 	<nav>
@@ -177,6 +171,16 @@
 			display: flex;
 			flex-direction: column;
 			align-items: center;
+		}
+
+		#logo-icon {
+			width: 100%;
+		}
+
+		#logo-icon picture {
+			width: 100%;
+			display: flex;
+			justify-content: center;
 		}
 
 		button {
