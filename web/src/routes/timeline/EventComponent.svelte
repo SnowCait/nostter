@@ -27,5 +27,5 @@
 {:else if Number(item.event.kind) === 30030}
 	<CustomEmojiList tags={item.event.tags} />
 {:else}
-	<Note event={item.event} {readonly} {createdAtFormat} />
+	<Note {item} {readonly} {createdAtFormat} />
 {/if}

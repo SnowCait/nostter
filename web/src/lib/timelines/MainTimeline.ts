@@ -6,7 +6,6 @@ import { timeout } from '$lib/Constants';
 import { Metadata } from '../Items';
 import { metadataEvents } from '../cache/Events';
 import { events } from '../../stores/Events';
-import type { User } from '../../routes/types';
 
 export const rxNostr = createRxNostr({ timeout }); // for home & notification timeline
 export const metadataReq = createRxBackwardReq();
@@ -21,7 +20,7 @@ rxNostr
 			metadataEvents.set(packet.event.pubkey, packet.event);
 
 			const metadata = new Metadata(packet.event);
-			console.log('[rx-nostr metadata]', packet, metadata.content?.name);
+			console.log('[rx-nostr metadata]', packet, metadata.content?.name, $events.length);
 			for (const item of $events) {
 				if (item.event.pubkey !== packet.event.pubkey) {
 					continue;
