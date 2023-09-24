@@ -5,5 +5,5 @@ import type { EventItem } from '$lib/Items';
 export const events: Writable<EventItem[]> = writable([]);
 export const eventsPool: Writable<EventItem[]> = writable([]);
 export const searchEvents: Writable<Event[]> = writable([]);
-export const userTimelineEvents: Writable<Event[]> = writable([]);
+export const userTimelineEvents: Writable<EventItem[]> = writable([]);
 export const cachedEvents: Writable<Map<string, Event>> = writable(new Map());

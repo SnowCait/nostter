@@ -1,50 +1,49 @@
 <script lang="ts">
-	import { EventItem } from '$lib/Items';
+	import { EventItem, type Item } from '$lib/Items';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import { pool } from '../../stores/Pool';
-	import type { User } from '../types';
 	import { readRelays } from '../../stores/Author';
-	import { nip19, type Event } from 'nostr-tools';
+	import { nip19 } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
 
-	export let event: Event;
+	export let item: Item;
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
-	let user: User | undefined;
+	$: metadata = (item as EventItem).metadata;
+
 	let originalEvent: EventItem | undefined;
 	let jsonDisplay = false;
 
-	let originalTag = event.tags.find(
-		([tagName, , , marker]) => tagName === 'e' && (marker === 'mention' || marker === undefined)
+	let originalTag = item.event.tags.find(
+		([tagName, eventId, , marker]) =>
+			tagName === 'e' &&
+			eventId !== undefined &&
+			(marker === 'mention' || marker === undefined)
 	);
 
 	// Workaround for some incorrect clients
 	if (originalTag === undefined) {
-		originalTag = event.tags.findLast(([t]) => t === 'e');
+		originalTag = item.event.tags.findLast(
+			([tagName, eventId]) => tagName === 'e' && eventId !== undefined
+		);
 	}
 
 	onMount(async () => {
 		const api = new Api($pool, $readRelays);
-		api.fetchUserEvent(event.pubkey).then((userEvent) => {
-			user = userEvent?.user;
-		});
 
 		if (originalTag === undefined) {
-			console.warn('[repost not found]', event);
+			console.warn('[repost not found]', item.event);
 			return;
 		}
 
 		const eventId = originalTag[1];
-		const e = await api.fetchEventById(eventId);
-		if (e !== undefined) {
-			originalEvent = new EventItem(e);
-		}
+		originalEvent = await api.fetchEventItemById(eventId);
 	});
 
 	const toggleJsonDisplay = () => {
@@ -58,8 +57,9 @@
 	</div>
 	<div>by</div>
 	<div>
-		<a href="/{nip19.npubEncode(event.pubkey)}">
-			@{user?.name ?? nip19.npubEncode(event.pubkey).substring(0, 'npub1'.length + 7)}
+		<a href="/{nip19.npubEncode(item.event.pubkey)}">
+			@{metadata?.content?.name ??
+				nip19.npubEncode(item.event.pubkey).substring(0, 'npub1'.length + 7)}
 		</a>
 	</div>
 	<div class="json-button">
@@ -68,26 +68,26 @@
 		</button>
 	</div>
 	<div class="created-at">
-		<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
+		<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
 	</div>
 </article>
 {#if jsonDisplay}
 	<div class="develop">
 		<h5>Event ID</h5>
-		<div>{nip19.noteEncode(event.id)}</div>
+		<div>{nip19.noteEncode(item.event.id)}</div>
 		<br />
-		<div>{nip19.neventEncode({ id: event.id })}</div>
+		<div>{nip19.neventEncode({ id: item.event.id })}</div>
 		<h5>Event JSON</h5>
-		<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
+		<pre><code class="json">{JSON.stringify(item.event, null, 2)}</code></pre>
 		<h5>User ID</h5>
-		<div>{nip19.npubEncode(event.pubkey)}</div>
+		<div>{nip19.npubEncode(item.event.pubkey)}</div>
 		<h5>User JSON</h5>
-		<pre><code class="json">{JSON.stringify(user, null, 2)}</code></pre>
+		<pre><code class="json">{JSON.stringify(metadata?.content, null, 2)}</code></pre>
 		<div>
 			Open in <a
 				href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode({
-					id: event.id
-				})}&kind={event.kind}"
+					id: item.event.id
+				})}&kind={item.event.kind}"
 				target="_blank"
 				rel="noopener noreferrer"
 			>

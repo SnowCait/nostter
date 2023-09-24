@@ -3,7 +3,7 @@ import { readRelays, bookmarkEvent, updateRelays, author } from '../stores/Autho
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
 import { get } from 'svelte/store';
-import type { EventItem } from './Items';
+import { EventItem } from './Items';
 import type { Filter, Event as NostrEvent } from 'nostr-tools';
 import type { Event } from '../routes/types';
 import { saveMetadataEvent } from '../stores/UserEvents';
@@ -117,7 +117,7 @@ export class Timeline {
 			// }
 
 			const events = get(userTimelineEvents);
-			events.unshift(event);
+			events.unshift(new EventItem(event, userEvent));
 			userTimelineEvents.set(events);
 
 			// // Cache
@@ -167,5 +167,16 @@ export class Timeline {
 		const eventItems = await this.api.fetchEventItems(filters);
 
 		return eventItems.filter((x) => x.event.created_at !== until);
+	}
+
+	public static createChunkedFilters(authors: string[], since: number, until: number): Filter[] {
+		return chunk(authors, filterLimitItems).map((chunkedAuthors) => {
+			return {
+				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
+				authors: chunkedAuthors,
+				until,
+				since
+			};
+		});
 	}
 }

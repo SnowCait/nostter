@@ -47,6 +47,7 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import { findIdentifier } from '$lib/EventHelper';
 	import { authorReplaceableKinds } from '$lib/Author';
+	import { Timeline } from '$lib/Timeline';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -427,16 +428,9 @@
 				new Date(until * 1000)
 			);
 
-			const authorsFilter = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
-				return {
-					kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-					authors: chunkedAuthors,
-					until,
-					since
-				};
-			});
+			const followeesFilters = Timeline.createChunkedFilters($followees, since, until);
 			const filters = [
-				...authorsFilter,
+				...followeesFilters,
 				{
 					kinds: [
 						Kind.Text,
