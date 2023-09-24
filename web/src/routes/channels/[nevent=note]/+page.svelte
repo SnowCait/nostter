@@ -22,10 +22,9 @@
 	import { timeout } from '$lib/Constants';
 	import type { ChannelMetadata } from '$lib/Types';
 	import { author, readRelays } from '../../../stores/Author';
-	import type { Event as ExtendedEvent, User } from '../../types';
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
-	import { Metadata } from '$lib/Items';
+	import { EventItem, Metadata } from '$lib/Items';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '../../parts/ChannelTitle.svelte';
@@ -80,7 +79,7 @@
 	const rxNostr = createRxNostr({ timeout });
 	const metadataReq = createRxBackwardReq();
 
-	let events: ExtendedEvent[] = [];
+	let items: EventItem[] = [];
 
 	afterNavigate(async () => {
 		slug = $page.params.nevent;
@@ -134,19 +133,8 @@
 				console.debug('[channel message event]', packet);
 				const { event } = packet;
 				const metadataEvent = metadataEvents.get(event.pubkey);
-				if (metadataEvent !== undefined) {
-					const metadata = new Metadata(metadataEvent);
-					events.unshift({
-						...event,
-						user: {
-							...metadata.content,
-							zapEndpoint: (await metadata.zapUrl())?.href ?? null
-						}
-					} as ExtendedEvent);
-				} else {
-					events.unshift(event as ExtendedEvent);
-				}
-				events = events;
+				items.unshift(new EventItem(event, metadataEvent));
+				items = items;
 			});
 
 		channelMessageReq.emit({ kinds: [42], '#e': [channelId], since: now() });
@@ -164,17 +152,13 @@
 
 						const metadata = new Metadata(packet.event);
 						console.log('[channel related metadata]', packet, metadata.content?.name);
-						const user = {
-							...metadata.content,
-							zapEndpoint: (await metadata.zapUrl())?.href ?? null
-						} as User;
-						for (const event of events) {
-							if (event.pubkey !== packet.event.pubkey) {
+						for (const item of items) {
+							if (item.event.pubkey !== packet.event.pubkey) {
 								continue;
 							}
-							event.user = user;
+							item.metadata = metadata;
 						}
-						events = events;
+						items = items;
 					}
 				});
 		}
@@ -185,7 +169,7 @@
 	beforeNavigate(() => {
 		console.log('[channel page before navigate]', slug, channelId);
 		channelMessageSubscription?.unsubscribe();
-		events = [];
+		items = [];
 	});
 
 	onDestroy(() => {
@@ -200,15 +184,15 @@
 			return;
 		}
 
-		const firstLength = events.length;
+		const firstLength = items.length;
 		let count = 0;
 		let until =
-			events.length > 0
-				? Math.min(...events.map((event) => event.created_at))
+			items.length > 0
+				? Math.min(...items.map((item) => item.event.created_at))
 				: Math.floor(Date.now() / 1000);
 		let seconds = 24 * 60 * 60;
 
-		while (events.length - firstLength < minTimelineLength && count < 10) {
+		while (items.length - firstLength < minTimelineLength && count < 10) {
 			const since = until - seconds;
 			const filter = { kinds: [42], '#e': [channelId], until, since };
 			console.debug('[channel messages REQ]', filter);
@@ -231,29 +215,15 @@
 						next: async (packets) => {
 							console.debug('[channel messages]', packets);
 							packets.sort(reverseChronologicalItem);
-							events.push(
-								...(await Promise.all(
-									packets
-										.filter(({ event }) => event.created_at < until)
-										.map(async ({ event }) => {
-											const metadataEvent = metadataEvents.get(event.pubkey);
-											if (metadataEvent !== undefined) {
-												const metadata = new Metadata(metadataEvent);
-												return {
-													...event,
-													user: {
-														...metadata.content,
-														zapEndpoint:
-															(await metadata.zapUrl())?.href ?? null
-													}
-												} as ExtendedEvent;
-											} else {
-												return event as ExtendedEvent;
-											}
-										})
-								))
+							items.push(
+								...packets
+									.filter(({ event }) => event.created_at < until)
+									.map(
+										({ event }) =>
+											new EventItem(event, metadataEvents.get(event.pubkey))
+									)
 							);
-							events = events;
+							items = items;
 						},
 						complete: () => {
 							resolve();
@@ -267,7 +237,7 @@
 			until -= seconds;
 			seconds *= 2;
 			count++;
-			console.log('[channel load]', count, until, seconds / 3600, events.length);
+			console.log('[channel load]', count, until, seconds / 3600, items.length);
 		}
 	}
 </script>
@@ -334,7 +304,7 @@
 	{/if}
 </header>
 
-<TimelineView {events} {load} />
+<TimelineView {items} {load} />
 
 <style>
 	header {

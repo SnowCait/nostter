@@ -10,11 +10,14 @@
 	import { Kind, type Filter } from 'nostr-tools';
 	import type { Event } from '../../types';
 	import { minTimelineLength } from '$lib/Constants';
+	import { EventItem } from '$lib/Items';
 
 	let pubkey: string;
 	let relays: string[];
 	let events: Event[] = [];
 	let showLoading = false;
+
+	$: items = events.map((x) => new EventItem(x, x.user as Event | undefined));
 
 	afterNavigate(async () => {
 		const slug = $page.params.npub;
@@ -74,4 +77,4 @@
 
 <h1>Reactions</h1>
 
-<TimelineView {events} {load} {showLoading} />
+<TimelineView {items} {load} {showLoading} />

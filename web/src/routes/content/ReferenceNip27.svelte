@@ -11,6 +11,7 @@
 	import Naddr from './Naddr.svelte';
 	import EventComponent from '../timeline/EventComponent.svelte';
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
+	import { EventItem } from '$lib/Items';
 
 	export let text: string;
 
@@ -18,7 +19,7 @@
 	let pubkey = '';
 	let userEvent: UserEvent | undefined = undefined;
 	let eventId = '';
-	let event: Event | undefined;
+	let item: EventItem | undefined;
 	let addressPointer: AddressPointer;
 	let slug = text.substring('nostr:'.length);
 
@@ -33,7 +34,7 @@
 			case 'note': {
 				dataType = 'event';
 				eventId = data as string;
-				event = $events.find((x) => x.id === eventId);
+				item = $events.find((x) => x.event.id === eventId);
 				break;
 			}
 			case 'nprofile': {
@@ -46,7 +47,7 @@
 				dataType = 'event';
 				const e = data as nip19.EventPointer;
 				eventId = e.id;
-				event = $events.find((x) => x.id === eventId);
+				item = $events.find((x) => x.event.id === eventId);
 				break;
 			}
 			case 'naddr': {
@@ -66,18 +67,24 @@
 			userEvent = await api.fetchUserEvent(pubkey);
 		}
 
-		if (dataType === 'event' && event === undefined) {
-			event = await api.fetchEventById(eventId);
+		if (dataType === 'event' && item === undefined) {
+			const e = await api.fetchEventById(eventId);
+			if (e !== undefined) {
+				item = new EventItem(e);
+			}
 		}
 
 		if (dataType === 'addr') {
-			event = (await api.fetchEvent([
+			const e = (await api.fetchEvent([
 				{
 					kinds: [addressPointer.kind],
 					authors: [addressPointer.pubkey],
 					'#d': [addressPointer.identifier]
 				}
 			])) as Event;
+			if (e !== undefined) {
+				item = new EventItem(e);
+			}
 		}
 	});
 </script>
@@ -89,11 +96,11 @@
 			: nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)}
 	</a>
 {:else if dataType === 'event'}
-	{#if event !== undefined}
-		{#if event.kind === 1063}
-			<Nip94 {event} />
+	{#if item !== undefined}
+		{#if Number(item.event.kind) === 1063}
+			<Nip94 event={item.event} />
 		{:else}
-			<blockquote><EventComponent eventItem={event} readonly={true} /></blockquote>
+			<blockquote><EventComponent {item} readonly={true} /></blockquote>
 		{/if}
 	{:else}
 		<a href="/{nip19.noteEncode(eventId)}">
@@ -101,8 +108,8 @@
 		</a>
 	{/if}
 {:else if dataType === 'addr'}
-	{#if event !== undefined && event.kind === 30030}
-		<EventComponent eventItem={event} readonly={true} />
+	{#if item !== undefined && Number(item.event.kind) === 30030}
+		<EventComponent {item} readonly={true} />
 	{:else}
 		<Naddr naddr={slug} />
 	{/if}

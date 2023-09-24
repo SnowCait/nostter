@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import { Search } from '$lib/Search';
 	import { minTimelineLength } from '$lib/Constants';
+	import { EventItem } from '$lib/Items';
 	import type { Event } from '../types';
 	import TimelineView from '../TimelineView.svelte';
 	import SearchForm from './SearchForm.svelte';
@@ -15,6 +16,8 @@
 	let showLoading = false;
 
 	const search = new Search();
+
+	$: items = events.map((x) => new EventItem(x, x.user as Event | undefined));
 
 	afterNavigate(async () => {
 		if (query === $page.url.searchParams.get('q')) {
@@ -80,7 +83,7 @@
 {/if}
 
 <section>
-	<TimelineView {events} {load} {showLoading} />
+	<TimelineView {items} {load} {showLoading} />
 </section>
 
 <style>

@@ -35,7 +35,7 @@
 		notifiedEvents,
 		unreadEvents
 	} from '../../stores/Notifications';
-	import { EventItem, Metadata } from '$lib/Items';
+	import { EventItem } from '$lib/Items';
 	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { Mute } from '$lib/Mute';
 	import { autoRefresh } from '../../stores/Preference';
@@ -201,7 +201,7 @@
 			const eventItem = new EventItem(event, userEvent);
 			if (eose) {
 				if ($autoRefresh) {
-					$events.unshift(event);
+					$events.unshift(eventItem);
 					$events = $events;
 				} else {
 					$eventsPool.unshift(eventItem);
@@ -226,7 +226,7 @@
 		subscribe.on('eose', async () => {
 			eose = true;
 			if ($autoRefresh) {
-				$events.unshift(...(await Promise.all(newEvents.map((x) => x.toEvent()))));
+				$events.unshift(...newEvents);
 				$events = $events;
 			} else {
 				$eventsPool.unshift(...newEvents);
@@ -343,7 +343,7 @@
 
 	async function showPooledEvents() {
 		$eventsPool.sort(reverseChronologicalItem);
-		$events.unshift(...(await Promise.all($eventsPool.map((x) => x.toEvent()))));
+		$events.unshift(...$eventsPool);
 		$events = $events;
 		$eventsPool = [];
 	}
@@ -414,7 +414,7 @@
 		let count = 0;
 		let until =
 			$events.length > 0
-				? Math.min(...$events.map((event) => event.created_at))
+				? Math.min(...$events.map((item) => item.event.created_at))
 				: Math.floor(Date.now() / 1000);
 		let seconds = 30 * 60;
 
@@ -477,33 +477,19 @@
 						next: async (packets) => {
 							console.debug('[rx-nostr home timeline packets]', packets);
 							packets.sort(reverseChronologicalItem);
-							const newEvents = await Promise.all(
-								packets
-									.filter(({ event }) => event.created_at < until)
-									.map(async ({ event }) => {
-										const metadataEvent = metadataEvents.get(event.pubkey);
-										if (metadataEvent !== undefined) {
-											const metadata = new Metadata(metadataEvent);
-											return {
-												...event,
-												user: {
-													...metadata.content,
-													zapEndpoint:
-														(await metadata.zapUrl())?.href ?? null
-												}
-											} as Event;
-										} else {
-											return event as Event;
-										}
-									})
-							);
-							$events.push(...newEvents);
+							const newEventItems = packets
+								.filter(({ event }) => event.created_at < until)
+								.map(
+									({ event }) =>
+										new EventItem(event, metadataEvents.get(event.pubkey))
+								);
+							$events.push(...newEventItems);
 							$events = $events;
 
 							// Cache
-							for (const event of newEvents) {
-								if (event.kind === Kind.Text) {
-									saveLastNote(event);
+							for (const item of newEventItems) {
+								if (item.event.kind === Kind.Text) {
+									saveLastNote(item.event);
 								}
 							}
 						},
@@ -514,7 +500,7 @@
 							console.debug('[rx-nostr user status emit]');
 							userStatusReq.emit({
 								kinds: [30315],
-								authors: [...new Set($events.map((x) => x.pubkey))]
+								authors: [...new Set($events.map((x) => x.event.pubkey))]
 							});
 
 							resolve();
@@ -551,7 +537,7 @@
 	</article>
 {/if}
 
-<TimelineView events={$events} {load} />
+<TimelineView items={$events} {load} />
 
 <style>
 	article {

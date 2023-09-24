@@ -10,9 +10,17 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import type { Event } from '../../types';
 	import { Signer } from '$lib/Signer';
+	import { EventItem } from '$lib/Items';
 
 	let publicBookmarkEvents: Event[] = [];
 	let privateBookmarkEvents: Event[] = [];
+
+	$: publicBookmarkEventItems = publicBookmarkEvents.map(
+		(x) => new EventItem(x, x.user as Event | undefined)
+	);
+	$: privateBookmarkEventItems = privateBookmarkEvents.map(
+		(x) => new EventItem(x, x.user as Event | undefined)
+	);
 
 	onMount(async () => {
 		const slug = $page.params.npub;
@@ -91,7 +99,7 @@
 	<h2>Private</h2>
 
 	<TimelineView
-		events={publicBookmarkEvents}
+		items={privateBookmarkEventItems}
 		load={async () => console.debug()}
 		showLoading={false}
 	/>
@@ -100,7 +108,7 @@
 <h2>Public</h2>
 
 <TimelineView
-	events={publicBookmarkEvents}
+	items={publicBookmarkEventItems}
 	load={async () => console.debug()}
 	showLoading={false}
 />
