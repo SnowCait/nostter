@@ -4,7 +4,7 @@
 	import { page } from '$app/stores';
 	import { Search } from '$lib/Search';
 	import { minTimelineLength } from '$lib/Constants';
-	import { EventItem } from '$lib/Items';
+	import type { EventItem } from '$lib/Items';
 	import type { Event } from '../types';
 	import TimelineView from '../TimelineView.svelte';
 	import SearchForm from './SearchForm.svelte';
@@ -12,19 +12,17 @@
 
 	let query = '';
 	let filter: Filter;
-	let events: Event[] = [];
+	let items: EventItem[] = [];
 	let showLoading = false;
 
 	const search = new Search();
-
-	$: items = events.map((x) => new EventItem(x, x.user as Event | undefined));
 
 	afterNavigate(async () => {
 		if (query === $page.url.searchParams.get('q')) {
 			return;
 		}
 		query = $page.url.searchParams.get('q') ?? '';
-		events = [];
+		items = [];
 		console.log('[q]', query);
 		filter = search.parseQuery(query);
 		await load();
@@ -37,29 +35,22 @@
 
 		showLoading = true;
 
-		let firstLength = events.length;
+		let firstLength = items.length;
 		let count = 0;
-		let until = events.at(events.length - 1)?.created_at ?? Math.floor(Date.now() / 1000);
+		let until = items.at(items.length - 1)?.event.created_at ?? Math.floor(Date.now() / 1000);
 		let seconds = 24 * 60 * 60;
 
-		while (events.length - firstLength < minTimelineLength && count < 10) {
+		while (items.length - firstLength < minTimelineLength && count < 10) {
 			filter.until = until;
 			filter.since = until - seconds;
 			const eventItems = await search.fetch(filter);
-			events.push(
-				...eventItems.map((x) => {
-					return {
-						...x.event,
-						user: x.metadata?.content
-					} as Event;
-				})
-			);
-			events = events;
+			items.push(...eventItems);
+			items = items;
 
 			until -= seconds;
 			seconds *= 2;
 			count++;
-			console.log('[load]', count, until, seconds / 3600, events.length);
+			console.log('[load]', count, until, seconds / 3600, items.length);
 		}
 
 		showLoading = false;
