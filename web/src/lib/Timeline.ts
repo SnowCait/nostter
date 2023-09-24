@@ -3,7 +3,7 @@ import { readRelays, bookmarkEvent, updateRelays, author } from '../stores/Autho
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
 import { get } from 'svelte/store';
-import type { EventItem } from './Items';
+import { EventItem } from './Items';
 import type { Filter, Event as NostrEvent } from 'nostr-tools';
 import type { Event } from '../routes/types';
 import { saveMetadataEvent } from '../stores/UserEvents';
@@ -117,7 +117,7 @@ export class Timeline {
 			// }
 
 			const events = get(userTimelineEvents);
-			events.unshift(event);
+			events.unshift(new EventItem(event, userEvent));
 			userTimelineEvents.set(events);
 
 			// // Cache
