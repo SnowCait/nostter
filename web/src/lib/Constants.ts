@@ -5,8 +5,8 @@ export const trendingPeopleBotNpub =
 	'npub1qsytpsj0pk8pfyk2msyx8ymmvkavn2lg2pxdxsdxufeu83ax5ymsgd4t3w';
 export const minTimelineLength = 25;
 export const filterLimitItems = 1000;
-export const timelineBufferMs = 1000;
-export const timeout = 3400;
+export const timelineBufferMs = 1500;
+export const timeout = 10000;
 export const notFoundImageUrl = '/1f43e.png';
 
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
