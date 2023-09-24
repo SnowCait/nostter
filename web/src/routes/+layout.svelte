@@ -5,7 +5,6 @@
 	import { onMount } from 'svelte';
 	import { debugMode } from '../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
-	import { pubkey } from '../stores/Author';
 	import { _ } from 'svelte-i18n';
 	import '../app.css';
 
@@ -141,7 +140,7 @@
 		padding: 12px 16px;
 		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 	}
-	
+
 	:global(article.timeline-item + article.timeline-item) {
 		padding-top: 0;
 	}
