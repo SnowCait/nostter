@@ -1,13 +1,16 @@
 <script lang="ts">
-	import type { Kind } from 'nostr-tools';
+	import type { Event, Kind } from 'nostr-tools';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { minTimelineLength } from '$lib/Constants';
+	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
 	import { notifiedEvents, unreadEvents, loadingNotifications } from '../../stores/Notifications';
 	import { pubkey, writeRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
+
+	$: items = $notifiedEvents.map((x) => new EventItem(x, x.user as Event | undefined));
 
 	afterNavigate(() => {
 		console.log('[notifications page]');
@@ -57,4 +60,4 @@
 
 <h1>Notifications</h1>
 
-<TimelineView events={$notifiedEvents} {load} />
+<TimelineView {items} {load} />

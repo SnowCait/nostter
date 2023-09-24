@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
 	import { onMount } from 'svelte';
-	import type { Event } from './types';
+	import type { Item } from '$lib/Items';
 	import { author, isMuteEvent } from '../stores/Author';
 	import Loading from './Loading.svelte';
 	import EventComponent from './timeline/EventComponent.svelte';
 
-	export let events: Event[] = [];
+	export let items: Item[] = [];
 	export let readonly = false;
 	export let focusEventId: string | undefined = undefined;
 	export let load: () => Promise<void>;
@@ -38,10 +38,13 @@
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
 <ul class="card">
-	{#each events as event (event.id)}
-		{#if !isMuteEvent(event)}
-			<li class:focus={event.id === focusEventId} class:related={$author?.isNotified(event)}>
-				<EventComponent eventItem={event} {readonly} {createdAtFormat} />
+	{#each items as item (item.event.id)}
+		{#if !isMuteEvent(item.event)}
+			<li
+				class:focus={item.event.id === focusEventId}
+				class:related={$author?.isNotified(item.event)}
+			>
+				<EventComponent {item} {readonly} {createdAtFormat} />
 			</li>
 		{/if}
 	{/each}

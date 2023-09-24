@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { EventItem } from '$lib/Items';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import IconHeartBroken from '@tabler/icons-svelte/dist/svelte/icons/IconHeartBroken.svelte';
 	import { pool } from '../../stores/Pool';
-	import type { Event as NostrEvent, User } from '../types';
+	import type { User } from '../types';
 	import { readRelays } from '../../stores/Author';
 	import { nip19, type Event } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
@@ -18,7 +19,7 @@
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
 	let user: User | undefined;
-	let originalEvent: NostrEvent | undefined;
+	let originalEvent: EventItem | undefined;
 	let jsonDisplay = false;
 
 	const eTags = event.tags.filter(
@@ -38,7 +39,8 @@
 		}
 
 		const [, eventId] = originalTag;
-		originalEvent = await api.fetchEventById(eventId);
+		const e = await api.fetchEventById(eventId);
+		originalEvent = new EventItem(e as Event);
 	});
 
 	const toggleJsonDisplay = () => {
@@ -97,7 +99,7 @@
 	</div>
 {/if}
 {#if originalEvent !== undefined}
-	<EventComponent eventItem={originalEvent} {readonly} {createdAtFormat} />
+	<EventComponent item={originalEvent} {readonly} {createdAtFormat} />
 {:else if originalTag !== undefined}
 	<NoteLink eventId={originalTag[1]} />
 {/if}

@@ -16,7 +16,7 @@
 	import MuteButton from '../action/MuteButton.svelte';
 	import Badges from '../Badges.svelte';
 	import Content from '../content/Content.svelte';
-	import { Metadata } from '$lib/Items';
+	import { EventItem, Metadata } from '$lib/Items';
 	import { minTimelineLength } from '$lib/Constants';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
@@ -26,7 +26,7 @@
 	let metadata: Metadata;
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
-	let events: Event[] = [];
+	let events: EventItem[] = [];
 	let pubkey = '';
 	let followees: string[] = [];
 	let followers: string[] = [];
@@ -99,19 +99,12 @@
 
 		let firstLength = events.length;
 		let count = 0;
-		let until = events.at(events.length - 1)?.created_at ?? Math.floor(Date.now() / 1000);
+		let until = events.at(events.length - 1)?.event.created_at ?? Math.floor(Date.now() / 1000);
 		let seconds = 12 * 60 * 60;
 
 		while (events.length - firstLength < minTimelineLength && count < 10) {
 			const pastEventItems = await timeline.fetch(until, seconds);
-			events.push(
-				...pastEventItems.map((x) => {
-					return {
-						...x.event,
-						user: x.metadata?.content
-					} as Event;
-				})
-			);
+			events.push(...pastEventItems);
 			events = events;
 
 			until -= seconds;
@@ -219,7 +212,7 @@
 </section>
 
 <section>
-	<TimelineView {events} readonly={!$authorPubkey} {load} />
+	<TimelineView items={events} readonly={!$authorPubkey} {load} />
 </section>
 
 <style>

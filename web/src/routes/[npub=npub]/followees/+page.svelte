@@ -12,9 +12,12 @@
 	import { Kind, type Filter } from 'nostr-tools';
 	import { lastNotesMap, saveLastNote } from '../../../stores/LastNotes';
 	import { chunk } from '$lib/Array';
+	import { Metadata } from '$lib/Items';
 
 	let events: UserEvent[] = [];
 	let showLoading = true;
+
+	$: items = events.map((x) => new Metadata(x));
 
 	afterNavigate(async () => {
 		const slug = $page.params.npub;
@@ -72,4 +75,4 @@
 
 <h1>followees</h1>
 
-<TimelineView {events} load={async () => console.debug()} {showLoading} />
+<TimelineView {items} load={async () => console.debug()} {showLoading} />

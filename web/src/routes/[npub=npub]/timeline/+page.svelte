@@ -15,10 +15,13 @@
 	import { userTimelineEvents as events } from '../../../stores/Events';
 	import { SimplePool } from 'nostr-tools';
 	import { minTimelineLength } from '$lib/Constants';
+	import { EventItem } from '$lib/Items';
 
 	let pubkey: string;
 	let timeline: Timeline;
 	let unsubscribe: () => void;
+
+	$: items = $events.map((x) => new EventItem(x, x.user as Event | undefined));
 
 	afterNavigate(async () => {
 		const slug = $page.params.npub;
@@ -79,4 +82,4 @@
 	}
 </script>
 
-<TimelineView events={$events} readonly={!$authorPubkey} {load} />
+<TimelineView {items} readonly={!$authorPubkey} {load} />
