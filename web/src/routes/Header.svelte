@@ -212,6 +212,7 @@
 			background-color: white;
 			position: fixed;
 			box-shadow: 0 0 0.25rem 0 rgba(0, 0, 0, 0.2);
+			justify-content: center;
 		}
 
 		#logo-icon {
@@ -225,15 +226,14 @@
 		}
 
 		nav {
-			height: 100%;
 			margin: 0;
 		}
+
 		ul {
 			flex-flow: row;
 			justify-content: space-around;
 			margin: 0;
 			align-items: center;
-			height: 100%;
 		}
 
 		li p {
