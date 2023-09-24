@@ -1,8 +1,19 @@
 <script lang="ts">
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
-	import { nip05, nip19, SimplePool } from 'nostr-tools';
-	import type { Event, User } from '../types';
+	import { nip05, nip19, SimplePool, type Event } from 'nostr-tools';
+	import {
+		batch,
+		createRxBackwardReq,
+		createRxOneshotReq,
+		latestEach,
+		now,
+		uniq
+	} from 'rx-nostr';
+	import { tap, bufferTime } from 'rxjs';
+	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { metadataEvents } from '$lib/cache/Events';
+	import type { User } from '../types';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays, rom } from '../../stores/Author';
@@ -17,7 +28,7 @@
 	import Badges from '../Badges.svelte';
 	import Content from '../content/Content.svelte';
 	import { EventItem, Metadata } from '$lib/Items';
-	import { minTimelineLength } from '$lib/Constants';
+	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
 	import IconAlertTriangle from '@tabler/icons-svelte/dist/svelte/icons/IconAlertTriangle.svelte';
@@ -37,6 +48,27 @@
 	let relays = $readRelays;
 	let slug = $page.params.npub;
 	const api = new Api($pool, relays);
+
+	const metadataReq = createRxBackwardReq();
+	rxNostr
+		.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
+		.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
+		.subscribe(async (packet) => {
+			const cache = metadataEvents.get(packet.event.pubkey);
+			if (cache === undefined || cache.created_at < packet.event.created_at) {
+				metadataEvents.set(packet.event.pubkey, packet.event);
+
+				const metadata = new Metadata(packet.event);
+				console.log('[rx-nostr metadata]', packet, metadata.content?.name);
+				for (const item of events) {
+					if (item.event.pubkey !== packet.event.pubkey) {
+						continue;
+					}
+					item.metadata = metadata;
+				}
+				events = events;
+			}
+		});
 
 	afterNavigate(async () => {
 		slug = $page.params.npub;
@@ -99,13 +131,60 @@
 
 		let firstLength = events.length;
 		let count = 0;
-		let until = events.at(events.length - 1)?.event.created_at ?? Math.floor(Date.now() / 1000);
+		let until =
+			events.length > 0 ? Math.min(...events.map((item) => item.event.created_at)) : now();
 		let seconds = 12 * 60 * 60;
 
 		while (events.length - firstLength < minTimelineLength && count < 10) {
-			const pastEventItems = await timeline.fetch(until, seconds);
-			events.push(...pastEventItems);
-			events = events;
+			const since = until - seconds;
+			console.log(
+				'[rx-nostr user timeline period]',
+				new Date(since * 1000),
+				new Date(until * 1000)
+			);
+
+			const filters = Timeline.createChunkedFilters([pubkey], since, until);
+			console.log('[rx-nostr user timeline REQ]', filters, rxNostr.getAllRelayState());
+			const pastEventsReq = createRxOneshotReq({ filters });
+			await new Promise<void>((resolve, reject) => {
+				rxNostr
+					.use(pastEventsReq)
+					.pipe(
+						uniq(),
+						tap(({ event }: { event: Event }) => {
+							metadataReq.emit({
+								kinds: [0],
+								authors: [event.pubkey],
+								limit: 1
+							});
+						}),
+						bufferTime(timelineBufferMs)
+					)
+					.subscribe({
+						next: async (packets) => {
+							console.log('[rx-nostr user timeline packets]', packets);
+							packets.sort(reverseChronologicalItem);
+							const newEventItems = packets
+								.filter(
+									({ event }) =>
+										since <= event.created_at && event.created_at < until
+								)
+								.map(
+									({ event }) =>
+										new EventItem(event, metadataEvents.get(event.pubkey))
+								);
+							events.push(...newEventItems);
+							events = events;
+						},
+						complete: () => {
+							console.log('[rx-nostr user timeline complete]');
+							resolve();
+						},
+						error: (error) => {
+							reject(error);
+						}
+					});
+			});
 
 			until -= seconds;
 			seconds *= 2;
