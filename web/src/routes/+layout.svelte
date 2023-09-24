@@ -158,7 +158,9 @@
 
 		main {
 			margin-left: auto;
-			margin-bottom: 50px;
+			padding-bottom: 3.125rem;
+			margin-top: 3.125rem;
+			height: auto;
 		}
 
 		.debug {

@@ -26,12 +26,19 @@
 </script>
 
 <div class="header">
-	<a href={pubkey ? '/home' : '/'} id="logo-icon">
-		<picture>
-			<source srcset="/nostter-logo.svg" media="(min-width:928px)" width={120} height={24} />
-			<img src="/nostter-logo-icon.svg" alt="nostter logo" width={30} height={30} />
-		</picture>
-	</a>
+	<div id="logo-icon-wrapper">
+		<a href={pubkey ? '/home' : '/'} id="logo-icon">
+			<picture>
+				<source
+					srcset="/nostter-logo.svg"
+					media="(min-width:928px)"
+					width={120}
+					height={24}
+				/>
+				<img src="/nostter-logo-icon.svg" alt="nostter logo" width={30} height={30} />
+			</picture>
+		</a>
+	</div>
 	<nav>
 		<ul>
 			{#if $pubkey}
@@ -173,7 +180,7 @@
 			align-items: center;
 		}
 
-		#logo-icon {
+		#logo-icon-wrapper {
 			width: 100%;
 		}
 
@@ -209,14 +216,28 @@
 			bottom: 0;
 			width: 100%;
 			height: 3.125rem;
-			background-color: white;
+			background-color: var(--background);
 			position: fixed;
-			box-shadow: 0 0 0.25rem 0 rgba(0, 0, 0, 0.2);
+			box-shadow: var(--shadow);
 			justify-content: center;
+			margin-top: 30px;
 		}
 
-		#logo-icon {
-			display: none;
+		#logo-icon-wrapper {
+			position: fixed;
+			top: 0;
+			background-color: var(--background);
+			box-shadow: var(--shadow);
+			width: 100%;
+			height: 3.125rem;
+			padding: auto;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		#logo-icon-wrapper > a {
+			align-self: auto;
 		}
 
 		button {
