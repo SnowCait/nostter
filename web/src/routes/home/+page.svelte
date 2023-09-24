@@ -474,23 +474,29 @@
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({
-						next: (packets) => {
+						next: async (packets) => {
 							console.debug('[rx-nostr home timeline packets]', packets);
 							packets.sort(reverseChronologicalItem);
-							const newEvents = packets
-								.filter(({ event }) => event.created_at < until)
-								.map(({ event }) => {
-									const metadataEvent = metadataEvents.get(event.pubkey);
-									if (metadataEvent !== undefined) {
-										const metadata = new Metadata(metadataEvent);
-										return {
-											...event,
-											user: metadata.content
-										} as Event;
-									} else {
-										return event as Event;
-									}
-								});
+							const newEvents = await Promise.all(
+								packets
+									.filter(({ event }) => event.created_at < until)
+									.map(async ({ event }) => {
+										const metadataEvent = metadataEvents.get(event.pubkey);
+										if (metadataEvent !== undefined) {
+											const metadata = new Metadata(metadataEvent);
+											return {
+												...event,
+												user: {
+													...metadata.content,
+													zapEndpoint:
+														(await metadata.zapUrl())?.href ?? null
+												}
+											} as Event;
+										} else {
+											return event as Event;
+										}
+									})
+							);
 							$events.push(...newEvents);
 							$events = $events;
 
