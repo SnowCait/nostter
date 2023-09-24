@@ -93,7 +93,7 @@
 		{#if event.kind === 1063}
 			<Nip94 {event} />
 		{:else}
-			<blockquote><EventComponent {event} readonly={true} /></blockquote>
+			<blockquote><EventComponent eventItem={event} readonly={true} /></blockquote>
 		{/if}
 	{:else}
 		<a href="/{nip19.noteEncode(eventId)}">
@@ -102,7 +102,7 @@
 	{/if}
 {:else if dataType === 'addr'}
 	{#if event !== undefined && event.kind === 30030}
-		<EventComponent {event} readonly={true} />
+		<EventComponent eventItem={event} readonly={true} />
 	{:else}
 		<Naddr naddr={slug} />
 	{/if}

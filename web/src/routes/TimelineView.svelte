@@ -41,7 +41,7 @@
 	{#each events as event (event.id)}
 		{#if !isMuteEvent(event)}
 			<li class:focus={event.id === focusEventId} class:related={$author?.isNotified(event)}>
-				<EventComponent {event} {readonly} {createdAtFormat} />
+				<EventComponent eventItem={event} {readonly} {createdAtFormat} />
 			</li>
 		{/if}
 	{/each}

@@ -64,7 +64,7 @@
 			metadata = new Metadata(event);
 			user = {
 				...metadata.content,
-				zapEndpoint: metadata.zapUrl?.href ?? null
+				zapEndpoint: (await metadata.zapUrl())?.href ?? null
 			} as User;
 		}
 

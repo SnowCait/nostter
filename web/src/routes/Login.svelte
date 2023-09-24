@@ -102,7 +102,7 @@
 
 <form on:submit|preventDefault|once={loginWithKey}>
 	<input
-		type="text"
+		type="password"
 		bind:value={key}
 		placeholder="npub or nsec"
 		pattern="^(npub|nsec)1[a-z0-9]+$"

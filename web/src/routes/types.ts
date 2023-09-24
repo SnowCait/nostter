@@ -6,7 +6,7 @@ export interface Event {
 	tags: string[][];
 	content: string;
 	sig: string;
-	user: User;
+	user: User | undefined;
 }
 
 export interface UserEvent extends Event {

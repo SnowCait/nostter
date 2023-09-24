@@ -38,3 +38,9 @@
 		</li>
 	{/each}
 </ul>
+
+<style>
+	button {
+		color: var(--accent-gray);
+	}
+</style>

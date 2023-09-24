@@ -3,6 +3,7 @@
 	import { loginType } from '../stores/Author';
 
 	let saved = false;
+	let showNsec = false;
 	const storage = new WebStorage(localStorage);
 
 	async function logout() {
@@ -13,7 +14,11 @@
 
 {#if $loginType === 'nsec'}
 	<h4>Ensure to save nsec before logout</h4>
-	<div>{storage.get('login')}</div>
+	<div>
+		<span>nsec:</span>
+		<input type={showNsec ? 'text' : 'password'} value={storage.get('login')} readonly />
+		<button on:click={() => (showNsec = !showNsec)}>Show</button>
+	</div>
 {/if}
 
 <button on:click={logout} disabled={$loginType === 'nsec' && !saved}>Logout</button>
@@ -28,6 +33,7 @@
 	h4 {
 		margin: 0.5rem auto;
 	}
+
 	button {
 		margin: 1rem auto;
 	}
