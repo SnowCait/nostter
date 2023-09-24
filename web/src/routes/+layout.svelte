@@ -263,6 +263,12 @@
 		text-decoration-line: underline;
 	}
 
+	:global(dialog) {
+		position: fixed;
+		inset: 0;
+		margin: auto;
+	}
+
 	@keyframes -global-rotation {
 		0% {
 			transform: rotate(0);
