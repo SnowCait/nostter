@@ -258,7 +258,7 @@
 		color: var(--accent-gray);
 	}
 
-	:global(a[target='_blank']) {
+	:global(main a) {
 		color: var(--accent-gray);
 		text-decoration-line: underline;
 	}
