@@ -16,14 +16,18 @@
 {#if link === undefined}
 	<Text {text} />
 {:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
-	<a href={link.href} target="_blank" rel="noreferrer">
-		<img src={link.href} alt="" />
-	</a>
+	<div>
+		<a href={link.href} target="_blank" rel="noreferrer">
+			<img src={link.href} alt="" />
+		</a>
+	</div>
 {:else if /\.(mp3|m4a|wav)/i.test(link.pathname)}
 	<audio src={link.href} controls />
 {:else if /\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)/i.test(link.pathname)}
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<video src={link.href} controls />
+	<div>
+		<video src={link.href} controls />
+	</div>
 {:else}
 	<a href={link.href} target="_blank" rel="noopener noreferrer">
 		{text}<IconExternalLink size={15} />

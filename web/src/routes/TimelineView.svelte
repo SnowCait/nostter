@@ -63,6 +63,8 @@
 		border-bottom: var(--default-border);
 		animation-name: add;
 		animation-duration: 0.8s;
+		overflow-x: hidden;
+		text-overflow: ellipsis;
 	}
 
 	li.focus {

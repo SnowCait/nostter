@@ -78,6 +78,7 @@ abbr[title] {
 }
 
 a {
+	text-decoration: none;
 	background-color: transparent;
 	/* Remove the gray background on active links in IE 10 */
 }
@@ -334,6 +335,12 @@ progress {
 	--accent-foreground: #fafafa;
 	--accent-gray: #797067;
 	--ring: #0f0f0f;
+	--red: #fc6262;
+	--blue: #54a0f8;
+	--purple: #cc81fe;
+	--green: #7ef795;
+	--yellow: #ffeb77;
+	--orange: #ffa167;
 	--accent-surface: #e0ddd9;
 	--radius: 0.5rem;
 	--default-border: 1px solid #e1d8cb;

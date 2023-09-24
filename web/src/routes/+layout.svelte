@@ -5,12 +5,25 @@
 	import { onMount } from 'svelte';
 	import { debugMode } from '../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
-	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
-	import { pubkey, rom } from '../stores/Author';
+	import { pubkey } from '../stores/Author';
+	import { _ } from 'svelte-i18n';
 	import '../app.css';
 
 	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
+	const konamiCode = [
+		'ArrowUp',
+		'ArrowUp',
+		'ArrowDown',
+		'ArrowDown',
+		'ArrowLeft',
+		'ArrowRight',
+		'ArrowLeft',
+		'ArrowRight',
+		'b',
+		'a'
+	];
+	let konamiIndex = 0;
 
 	function keyboardShortcut(event: KeyboardEvent) {
 		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
@@ -25,6 +38,28 @@
 				behavior: 'smooth'
 			});
 		}
+
+		// Konami
+		if (event.key === konamiCode[konamiIndex]) {
+			console.log('[konami]', konamiIndex);
+			konamiIndex++;
+		} else {
+			konamiIndex = 0;
+		}
+		if (konamiIndex === konamiCode.length) {
+			console.log('[konami command]');
+			konamiIndex = 0;
+			rotateLogo();
+		}
+	}
+
+	function rotateLogo() {
+		const logoIconElem = document.getElementById('logo-icon');
+		if (!logoIconElem) return;
+		logoIconElem.style.animation = '1.5s linear infinite rotation';
+		setTimeout(() => {
+			logoIconElem.style.animation = '';
+		}, 4500); // 3 times
 	}
 
 	function onVisibilityChange() {
@@ -61,12 +96,9 @@
 	{/if}
 
 	<header>
-		<Header />
-		{#if $pubkey && !$rom}
-			<button on:click={() => ($openNoteDialog = !$openNoteDialog)}>
-				<IconPencilPlus size={30} />
-			</button>
-		{/if}
+		<div>
+			<Header onClickPostButton={() => ($openNoteDialog = !$openNoteDialog)} />
+		</div>
 	</header>
 
 	<main>
@@ -76,31 +108,26 @@
 
 <style>
 	.app {
-		max-width: 800px;
+		max-width: 926px;
 		margin: 2.25rem auto;
+		padding: 0 2.25rem;
+		display: grid;
+		grid-template-columns: 220px 598px;
+		gap: 2.25rem;
 	}
 
 	header {
 		position: fixed;
-
-		/* min-width: 600px */
-		top: 2.25rem;
-		width: 50px;
-	}
-
-	header button {
-		background-color: transparent;
-		border: none;
-		cursor: pointer;
-		outline: none;
-		padding: 0;
-		width: inherit;
-		height: inherit;
-		color: var(--foreground);
+		max-width: 220px;
+		width: 100%;
+		height: 100%;
+		z-index: 3;
 	}
 
 	main {
-		margin-left: calc(50px + 2.25rem);
+		margin: 0 auto;
+		grid-column: 2 / 3;
+		max-width: 598px;
 	}
 
 	.debug {
@@ -109,28 +136,23 @@
 		background-color: white;
 	}
 
-	@media screen and (max-width: 600px) {
+	@media screen and (max-width: 926px) {
 		.app {
-			margin: 0 auto;
+			max-width: calc(926px - (220px - 2.25rem));
+			gap: 1.5rem;
+			grid-template-columns: 3.125rem auto;
 		}
 
 		header {
-			top: auto;
-			bottom: 0;
-			width: 100%;
-			height: 50px;
-			background-color: white;
+			max-width: 3.125rem;
 		}
+	}
 
-		header button {
-			position: absolute;
-			bottom: 55px;
-			right: 10px;
-			width: 50px;
-			height: 50px;
-			background-color: white;
-			border-radius: 50%;
-			box-shadow: 0 0 5px 1px lightgray;
+	@media screen and (max-width: 600px) {
+		.app {
+			margin: 0 auto 50px 0;
+			padding: 0;
+			display: block;
 		}
 
 		main {
@@ -166,7 +188,7 @@
 	}
 
 	:global(button, input[type='button'], input[type='submit']) {
-		padding: 0.75rem 1.5rem;
+		padding: 0.6rem 1.5rem;
 		border-radius: 9999px;
 		background-color: var(--accent);
 		color: var(--accent-foreground);
@@ -196,11 +218,22 @@
 			input[type='url'],
 			textarea
 		) {
-		padding: 0.75rem;
-		border: 1px solid var(--default-border);
+		padding: 0.5rem 0.75rem;
 		border-radius: 0.5rem;
 		outline-style: none;
 		background-color: var(--surface);
+	}
+
+	:global(
+			input[type='text'],
+			input[type='email'],
+			input[type='number'],
+			input[type='password'],
+			input[type='search'],
+			input[type='tel'],
+			input[type='url']
+		) {
+		border: var(--default-border);
 	}
 
 	:global(button.clear) {
@@ -218,6 +251,24 @@
 		color: var(--surface-foreground);
 		padding: 1rem;
 		border-radius: 0.5rem;
-		border: 2px solid var(--default-border);
+		border: var(--default-border);
+	}
+
+	:global(a) {
+		color: var(--accent-gray);
+	}
+
+	:global(main a) {
+		color: var(--accent-gray);
+		text-decoration-line: underline;
+	}
+
+	@keyframes -global-rotation {
+		0% {
+			transform: rotate(0);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 </style>

@@ -1,9 +1,21 @@
 {
+	"layout": {
+		"header": {
+			"home": "ホーム",
+			"search": "検索",
+			"global": "日本語",
+			"notifications": "通知",
+			"bookmark": "ブックマーク",
+			"profile": "プロフィール",
+			"preference": "設定"
+		}
+	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",
 		"recommended": "（推奨）",
 		"key": "鍵でログイン",
 		"create_account": "アカウントを作成",
 		"try_demo": "デモを試す"
-	}
+	},
+	"post": "投稿"
 }
