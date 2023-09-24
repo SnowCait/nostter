@@ -168,4 +168,15 @@ export class Timeline {
 
 		return eventItems.filter((x) => x.event.created_at !== until);
 	}
+
+	public static createChunkedFilters(authors: string[], since: number, until: number): Filter[] {
+		return chunk(authors, filterLimitItems).map((chunkedAuthors) => {
+			return {
+				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
+				authors: chunkedAuthors,
+				until,
+				since
+			};
+		});
+	}
 }
