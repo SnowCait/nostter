@@ -300,9 +300,7 @@
 				@{user?.name ? user.name : user?.display_name}
 			</div>
 			<div class="created_at">
-				<a href="/{nip19.noteEncode(event.id)}">
-					<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
-				</a>
+				<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 			</div>
 		</div>
 		<div class="user-status">
