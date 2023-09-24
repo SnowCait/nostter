@@ -43,7 +43,7 @@
 {:else if tag.at(0) === 'e' && tag.at(1) !== undefined}
 	{#if item !== undefined}
 		<blockquote>
-			<Note event={item.event} readonly={true} />
+			<Note {item} readonly={true} />
 		</blockquote>
 	{:else}
 		<a href="/{nip19.noteEncode(tag[1])}">
