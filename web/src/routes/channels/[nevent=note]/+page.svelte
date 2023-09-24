@@ -130,7 +130,7 @@
 					});
 				})
 			)
-			.subscribe((packet) => {
+			.subscribe(async (packet) => {
 				console.debug('[channel message event]', packet);
 				const { event } = packet;
 				const metadataEvent = metadataEvents.get(event.pubkey);
@@ -138,7 +138,10 @@
 					const metadata = new Metadata(metadataEvent);
 					events.unshift({
 						...event,
-						user: metadata.content
+						user: {
+							...metadata.content,
+							zapEndpoint: (await metadata.zapUrl())?.href ?? null
+						}
 					} as ExtendedEvent);
 				} else {
 					events.unshift(event as ExtendedEvent);
@@ -225,24 +228,30 @@
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({
-						next: (packets) => {
+						next: async (packets) => {
 							console.debug('[channel messages]', packets);
 							packets.sort(reverseChronologicalItem);
 							events.push(
-								...packets
-									.filter(({ event }) => event.created_at < until)
-									.map(({ event }) => {
-										const metadataEvent = metadataEvents.get(event.pubkey);
-										if (metadataEvent !== undefined) {
-											const metadata = new Metadata(metadataEvent);
-											return {
-												...event,
-												user: metadata.content
-											} as ExtendedEvent;
-										} else {
-											return event as ExtendedEvent;
-										}
-									})
+								...(await Promise.all(
+									packets
+										.filter(({ event }) => event.created_at < until)
+										.map(async ({ event }) => {
+											const metadataEvent = metadataEvents.get(event.pubkey);
+											if (metadataEvent !== undefined) {
+												const metadata = new Metadata(metadataEvent);
+												return {
+													...event,
+													user: {
+														...metadata.content,
+														zapEndpoint:
+															(await metadata.zapUrl())?.href ?? null
+													}
+												} as ExtendedEvent;
+											} else {
+												return event as ExtendedEvent;
+											}
+										})
+								))
 							);
 							events = events;
 						},
