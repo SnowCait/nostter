@@ -190,8 +190,9 @@
 			// Notification
 			if ($author?.isNotified(event)) {
 				console.log('[related]', event);
-				$unreadEvents.unshift(new EventItem(event, userEvent));
-				$notifiedEvents.unshift(event);
+				const item = new EventItem(event, userEvent);
+				$unreadEvents.unshift(item);
+				$notifiedEvents.unshift(item);
 				$unreadEvents = $unreadEvents;
 				$notifiedEvents = $notifiedEvents;
 
@@ -398,7 +399,7 @@
 		const notifiedEventItems = await notificationTimeline.fetch(now, $lastReadAt);
 		$unreadEvents.push(...notifiedEventItems);
 		$unreadEvents = $unreadEvents;
-		$notifiedEvents = await Promise.all(notifiedEventItems.map((x) => x.toEvent()));
+		$notifiedEvents = notifiedEventItems;
 		$loadingNotifications = false;
 	});
 

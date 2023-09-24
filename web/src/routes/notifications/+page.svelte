@@ -1,16 +1,13 @@
 <script lang="ts">
-	import type { Event, Kind } from 'nostr-tools';
+	import type { Kind } from 'nostr-tools';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { minTimelineLength } from '$lib/Constants';
-	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
 	import { notifiedEvents, unreadEvents, loadingNotifications } from '../../stores/Notifications';
 	import { pubkey, writeRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
-
-	$: items = $notifiedEvents.map((x) => new EventItem(x, x.user as Event | undefined));
 
 	afterNavigate(() => {
 		console.log('[notifications page]');
@@ -41,13 +38,13 @@
 		let firstLength = $notifiedEvents.length;
 		let count = 0;
 		let until =
-			$notifiedEvents.at($notifiedEvents.length - 1)?.created_at ??
+			$notifiedEvents.at($notifiedEvents.length - 1)?.event.created_at ??
 			Math.floor(Date.now() / 1000);
 		let seconds = 12 * 60 * 60;
 
 		while ($notifiedEvents.length - firstLength < minTimelineLength && count < 10) {
 			const pastEventItems = await timeline.fetch(until, until - seconds);
-			$notifiedEvents.push(...(await Promise.all(pastEventItems.map((x) => x.toEvent()))));
+			$notifiedEvents.push(...pastEventItems);
 			$notifiedEvents = $notifiedEvents;
 
 			until -= seconds;
@@ -60,4 +57,4 @@
 
 <h1>Notifications</h1>
 
-<TimelineView {items} {load} />
+<TimelineView items={$notifiedEvents} {load} />
