@@ -44,11 +44,15 @@
 		eventId: string
 	) => {
 		const target = clickEvent.target as HTMLElement;
+
 		let parent = target.parentElement;
 		if (parent) {
 			while (parent && !parent.classList.contains('timeline')) {
 				const tagName = parent.tagName.toLocaleLowerCase();
 				if (tagName === 'a' || tagName === 'button') {
+					return;
+				}
+				if (tagName === 'p' && String(document.getSelection()).length) {
 					return;
 				}
 				parent = parent.parentElement;
@@ -68,7 +72,7 @@
 			<li
 				class={transitionable ? 'transitionable-post' : ''}
 				class:related={$author?.isNotified(event)}
-				on:mousedown={transitionable ? (e) => viewDetail(e, event.id) : null}
+				on:mouseup={transitionable ? (e) => viewDetail(e, event.id) : null}
 			>
 				<EventComponent eventItem={event} {readonly} {createdAtFormat} />
 			</li>
@@ -94,20 +98,6 @@
 		animation-duration: 0.8s;
 		overflow-x: hidden;
 		text-overflow: ellipsis;
-	}
-
-	:global(li *) {
-		position: relative;
-		z-index: 10;
-	}
-
-	:global(li *::after) {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		content: ' ';
 	}
 
 	.transitionable-post {
