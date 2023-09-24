@@ -39,10 +39,7 @@
 		}
 
 		const [, eventId] = originalTag;
-		const e = await api.fetchEventById(eventId);
-		if (e !== undefined) {
-			originalEvent = new EventItem(e);
-		}
+		originalEvent = await api.fetchEventItemById(eventId);
 	});
 
 	const toggleJsonDisplay = () => {
