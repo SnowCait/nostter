@@ -137,38 +137,6 @@
 		background-color: white;
 	}
 
-	@media screen and (max-width: 926px) {
-		.app {
-			max-width: calc(926px - (220px - 2.25rem));
-			gap: 1.5rem;
-			grid-template-columns: 3.125rem auto;
-		}
-
-		header {
-			max-width: 3.125rem;
-		}
-	}
-
-	@media screen and (max-width: 600px) {
-		.app {
-			margin: 0 auto 50px 0;
-			padding: 0;
-			display: block;
-		}
-
-		main {
-			margin-left: auto;
-			padding-bottom: 3.125rem;
-			margin-top: 3.125rem;
-			height: auto;
-		}
-
-		.debug {
-			bottom: 50px;
-			overflow: auto;
-		}
-	}
-
 	:global(article.timeline-item) {
 		padding: 12px 16px;
 		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -278,6 +246,43 @@
 		}
 		100% {
 			transform: rotate(360deg);
+		}
+	}
+
+	@media screen and (max-width: 926px) {
+		.app {
+			max-width: calc(926px - (220px - 2.25rem));
+			gap: 1.5rem;
+			grid-template-columns: 3.125rem auto;
+		}
+
+		header {
+			max-width: 3.125rem;
+		}
+	}
+
+	@media screen and (max-width: 600px) {
+		.app {
+			margin: 0 auto 50px 0;
+			padding: 0;
+			display: block;
+		}
+
+		main {
+			margin-left: auto;
+			padding-bottom: 3.125rem;
+			margin-top: 3.125rem;
+			height: auto;
+		}
+
+		.debug {
+			bottom: 50px;
+			overflow: auto;
+		}
+
+		:global(.card) {
+			border-radius: 0;
+			border: none;
 		}
 	}
 </style>
