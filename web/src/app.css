@@ -344,6 +344,7 @@ progress {
 	--accent-surface: #e0ddd9;
 	--radius: 0.5rem;
 	--default-border: 1px solid #e1d8cb;
+	--shadow: 0 0 0.25rem 0 rgba(0, 0, 0, 0.2);
 }
 
 .dark {
