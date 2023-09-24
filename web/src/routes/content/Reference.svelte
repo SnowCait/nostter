@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
+	import { EventItem } from '$lib/Items';
+	import { metadataEvents } from '$lib/cache/Events';
 	import { events } from '../../stores/Events';
 	import { userEvents } from '../../stores/UserEvents';
 	import Note from '../timeline/Note.svelte';
-	import type { Event } from '../types';
 	import Hashtag from './Hashtag.svelte';
 	import Text from './Text.svelte';
 	import { onMount } from 'svelte';
@@ -17,15 +18,18 @@
 
 	$: eventId = tag.at(1);
 
-	let event: Event | undefined;
+	let item: EventItem | undefined;
 	if (tag.at(0) === 'e' && tag.at(1) !== undefined) {
-		event = $events.find((x) => x.id === eventId);
+		item = $events.find((x) => x.event.id === eventId);
 	}
 
 	onMount(async () => {
-		if (event === undefined && eventId !== undefined) {
+		if (item === undefined && eventId !== undefined) {
 			const api = new Api($pool, $readRelays);
-			event = await api.fetchEventById(eventId);
+			const e = await api.fetchEventById(eventId);
+			if (e !== undefined) {
+				item = new EventItem(e, metadataEvents.get(e.pubkey))
+			}
 		}
 	});
 </script>
@@ -37,9 +41,9 @@
 			: nip19.npubEncode(tag[1]).substring(0, 'npub1'.length + 7)}
 	</a>
 {:else if tag.at(0) === 'e' && tag.at(1) !== undefined}
-	{#if event !== undefined}
+	{#if item !== undefined}
 		<blockquote>
-			<Note {event} readonly={true} />
+			<Note event={item.event} readonly={true} />
 		</blockquote>
 	{:else}
 		<a href="/{nip19.noteEncode(tag[1])}">
