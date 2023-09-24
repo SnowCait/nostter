@@ -5,17 +5,20 @@
 	import { author, isMuteEvent } from '../stores/Author';
 	import Loading from './Loading.svelte';
 	import EventComponent from './timeline/EventComponent.svelte';
+	import { nip19 } from 'nostr-tools';
 
 	export let events: Event[] = [];
 	export let readonly = false;
-	export let focusEventId: string | undefined = undefined;
 	export let load: () => Promise<void>;
 	export let showLoading = true;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	export let transitionable = true;
 
 	let loading = false;
 	let innerHeight: number;
 	let scrollY = writable(0);
+
+	let timelineRef: HTMLUListElement | null = null;
 
 	onMount(() => {
 		console.log('Timeline.onMount');
@@ -33,14 +36,40 @@
 			}
 		});
 	});
+
+	const viewDetail = (
+		clickEvent: MouseEvent & {
+			currentTarget: EventTarget & HTMLLIElement;
+		},
+		eventId: string
+	) => {
+		const target = clickEvent.target as HTMLElement;
+		let parent = target.parentElement;
+		if (parent) {
+			while (parent && !parent.classList.contains('timeline')) {
+				const tagName = parent.tagName.toLocaleLowerCase();
+				if (tagName === 'a' || tagName === 'button') {
+					return;
+				}
+				parent = parent.parentElement;
+			}
+		}
+		const noteId = nip19.noteEncode(eventId);
+		window.location.href = `/${noteId}`;
+		return;
+	};
 </script>
 
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
-<ul class="card">
+<ul class="card timeline" bind:this={timelineRef}>
 	{#each events as event (event.id)}
 		{#if !isMuteEvent(event)}
-			<li class:focus={event.id === focusEventId} class:related={$author?.isNotified(event)}>
+			<li
+				class={transitionable ? 'transitionable-post' : ''}
+				class:related={$author?.isNotified(event)}
+				on:mousedown={transitionable ? (e) => viewDetail(e, event.id) : null}
+			>
 				<EventComponent eventItem={event} {readonly} {createdAtFormat} />
 			</li>
 		{/if}
@@ -67,8 +96,26 @@
 		text-overflow: ellipsis;
 	}
 
-	li.focus {
-		border: 1px solid lightgray;
+	:global(li *) {
+		position: relative;
+		z-index: 10;
+	}
+
+	:global(li *::after) {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		content: ' ';
+	}
+
+	.transitionable-post {
+		cursor: pointer;
+	}
+
+	.transitionable-post:hover {
+		background: var(--accent-surface-low);
 	}
 
 	li.related {
