@@ -128,6 +128,7 @@
 		margin: 0 auto;
 		grid-column: 2 / 3;
 		max-width: 598px;
+		width: 100%;
 	}
 
 	.debug {
