@@ -43,4 +43,8 @@
 		white-space: pre-wrap;
 		word-break: break-word;
 	}
+
+	:global(.content a) {
+		text-decoration: underline;
+	}
 </style>
