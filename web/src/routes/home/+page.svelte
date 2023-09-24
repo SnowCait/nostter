@@ -563,5 +563,6 @@
 		width: 100%;
 		height: 2rem;
 		background-color: rgb(240, 240, 240);
+		color: var(--accent-gray);
 	}
 </style>

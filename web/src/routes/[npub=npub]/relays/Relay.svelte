@@ -23,7 +23,7 @@
 	</div>
 	{#if !readonly}
 		<div class="remove">
-			<button on:click|preventDefault={remove}>
+			<button on:click|preventDefault={remove} class="clear">
 				<IconTrash size={17} />
 			</button>
 		</div>
@@ -58,12 +58,6 @@
 	}
 
 	button {
-		background-color: transparent;
-		border: none;
-		cursor: pointer;
-		outline: none;
-		padding: 0;
-		width: inherit;
-		height: inherit;
+		color: var(--accent-gray);
 	}
 </style>
