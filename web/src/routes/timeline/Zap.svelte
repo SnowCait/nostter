@@ -40,7 +40,9 @@
 		if (originalTag !== undefined) {
 			const eventId = originalTag[1];
 			const e = await api.fetchEventById(eventId);
-			originalEvent = new EventItem(e as Event);
+			if (e !== undefined) {
+				originalEvent = new EventItem(e);
+			}
 		} else {
 			console.warn('[zapped event not found]', event);
 		}
