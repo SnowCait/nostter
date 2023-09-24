@@ -31,7 +31,7 @@ export class Metadata implements Item {
 		try {
 			this.content = JSON.parse(event.content);
 		} catch (error) {
-			console.warn('[invalid metadata]', error, event);
+			console.warn('[invalid metadata item]', error, event);
 		}
 	}
 
