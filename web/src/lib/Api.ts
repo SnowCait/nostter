@@ -291,13 +291,10 @@ export class Api {
 		);
 
 		// Cache events
-		const $cachedEvents = get(cachedEvents);
-		for (const event of await Promise.all(
-			[...eventItems, ...referencedEventItems].map((x) => x.toEvent())
-		)) {
-			$cachedEvents.set(event.id, event);
+		for (const item of [...eventItems, ...referencedEventItems]) {
+			newCachedEvents.set(item.event.id, item.event);
 		}
-		console.debug('[cache]', events.length, referencedEventIds, $cachedEvents);
+		console.debug('[cache]', events.length, referencedEventIds, newCachedEvents);
 
 		return eventItems;
 	}
