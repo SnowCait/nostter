@@ -341,7 +341,7 @@
 		<label for="send"><IconSend size={30} /></label>
 	</form>
 	<div class="options">
-		<div class="emoji-picker-2">
+		<div class="emoji-picker">
 			<EmojiPickerSlide bind:this={emojiPickerSlide} on:pick={onEmojiPick} />
 		</div>
 		<div class="content-warning">
