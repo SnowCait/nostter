@@ -59,8 +59,7 @@
 			}
 		}
 		const noteId = nip19.noteEncode(eventId);
-		window.location.href = `/${noteId}`;
-		return;
+		await goto(`/${noteId}`);
 	};
 </script>
 
