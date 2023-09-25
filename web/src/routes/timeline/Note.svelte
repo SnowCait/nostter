@@ -67,11 +67,8 @@
 	const fullMenu = timelineConfig?.fullMenu ?? false;
 	let showMenu = false;
 
-	function reply(event: Event) {
-		$replyTo = {
-			...event,
-			user: metadata?.content as User
-		};
+	function reply(item: EventItem) {
+		$replyTo = item;
 		$openNoteDialog = true;
 	}
 
@@ -346,7 +343,7 @@
 			<div class="action-menu">
 				<button
 					class:hidden={item.event.kind === Kind.EncryptedDirectMessage}
-					on:click={() => reply(item.event)}
+					on:click={() => reply(item)}
 				>
 					<IconMessageCircle2 size={iconSize} />
 				</button>

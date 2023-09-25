@@ -275,7 +275,7 @@
 
 		const noteComposer = new NoteComposer();
 		const event = await noteComposer.compose(
-			$channelIdStore !== undefined || $replyTo?.kind === Kind.ChannelMessage
+			$channelIdStore !== undefined || $replyTo?.event?.kind === Kind.ChannelMessage
 				? Kind.ChannelMessage
 				: Kind.Text,
 			Content.replaceNip19(content),
@@ -323,7 +323,7 @@
 		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
 	{/if}
 	{#if $replyTo}
-		<Note item={new EventItem($replyTo)} readonly={true} />
+		<Note item={$replyTo} readonly={true} />
 	{/if}
 	<form on:submit|preventDefault={postNote}>
 		<textarea
