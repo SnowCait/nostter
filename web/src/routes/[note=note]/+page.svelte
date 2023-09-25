@@ -2,31 +2,28 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { error } from '@sveltejs/kit';
-	import { nip19, Kind, type Event } from 'nostr-tools';
+	import { nip19, Kind } from 'nostr-tools';
 	import { author, readRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
-	import type { Event as NostrEvent } from '../types';
 	import type { EventPointer } from 'nostr-tools/lib/nip19';
 	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';
-	import { EventItem, type Metadata } from '$lib/Items';
+	import type { EventItem, Metadata } from '$lib/Items';
 	import Counter from './Counter.svelte';
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { chronologicalItem } from '$lib/Constants';
 	import { setContext } from 'svelte';
 	import MuteButton from '../action/MuteButton.svelte';
 
-	let event: NostrEvent | undefined;
-	let events: NostrEvent[] = [];
+	let item: EventItem | undefined;
+	let items: EventItem[] = [];
 	let eventId = '';
 	let rootId: string | undefined;
 	let relays: string[] = [];
 
 	let repostEvents: EventItem[] | undefined;
 	let reactionEvents: EventItem[] | undefined;
-
-	$: items = events.map((x) => new EventItem(x, x.user as Event | undefined));
 
 	$: repostMetadataList =
 		repostEvents !== undefined
@@ -73,12 +70,12 @@
 		}
 
 		const api = new Api($pool, [...new Set([...$readRelays, ...relays])]);
-		event = await (await api.fetchEventItemById(eventId))?.toEvent();
-		if (event === undefined) {
+		item = await api.fetchEventItemById(eventId);
+		if (item === undefined) {
 			throw error(404);
 		}
-		events.push(event);
-		events = events;
+		items.push(item);
+		items = items;
 
 		const relatedEvents = await api.fetchEventItems([
 			{
@@ -95,7 +92,7 @@
 		reactionEvents = relatedEvents.filter((x) => x.event.kind === Kind.Reaction);
 		console.log(repliedEvents, repostEvents, reactionEvents);
 
-		const { root, reply } = referTags(event);
+		const { root, reply } = referTags(item.event);
 		rootId = root?.at(1);
 		let replyId = reply?.at(1);
 		console.log(rootId, replyId);
@@ -104,8 +101,8 @@
 		while (replyId !== undefined) {
 			const replyToEvent = await api.fetchEventItemById(replyId);
 			if (replyToEvent !== undefined) {
-				events.unshift(await replyToEvent.toEvent());
-				events = events;
+				items.unshift(replyToEvent);
+				items = items;
 				replyId = referTags(replyToEvent.event).reply?.at(1);
 			}
 			i++;
@@ -114,20 +111,20 @@
 			}
 		}
 
-		if (rootId !== undefined && !events.some((x) => x.id === rootId) && i <= 20) {
+		if (rootId !== undefined && !items.some((x) => x.event.id === rootId) && i <= 20) {
 			const rootEvent = await api.fetchEventItemById(rootId);
 			if (rootEvent !== undefined) {
-				events.unshift(await rootEvent.toEvent());
-				events = events;
+				items.unshift(rootEvent);
+				items = items;
 			}
 		}
 
-		events.push(...(await Promise.all(repliedEvents.map(async (x) => await x.toEvent()))));
-		events = events;
+		items.push(...repliedEvents);
+		items = items;
 	});
 
 	function clear() {
-		events = [];
+		items = [];
 		repostEvents = undefined;
 		reactionEvents = undefined;
 	}
@@ -155,14 +152,14 @@
 	<Counter label={'Reactions'} count={reactionEvents.length} />
 	<ProfileIconList metadataList={reactionMetadataList} />
 {/if}
-{#if $author !== undefined && event !== undefined}
+{#if $author !== undefined && item !== undefined}
 	<div class="mute">
 		<MuteButton tagName="e" tagContent={rootId === undefined ? eventId : rootId} />
 		<span>Mute this thread</span>
 	</div>
 	<div class="mute">
-		<MuteButton tagName="p" tagContent={event.pubkey} />
-		<span>Mute @{event.user?.name}</span>
+		<MuteButton tagName="p" tagContent={item.event.pubkey} />
+		<span>Mute @{item.metadata?.content?.name}</span>
 	</div>
 {/if}
 
