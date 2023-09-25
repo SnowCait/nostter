@@ -60,7 +60,12 @@
 	}
 
 	async function onClick() {
+		updatePicker();
 		hidden = !hidden;
+	}
+
+	export function hide() {
+		hidden = true;
 	}
 
 	function onEmojiSelect(emoji: BaseEmoji) {
