@@ -37,7 +37,7 @@
 		});
 	});
 
-	const viewDetail = (
+	const viewDetail = async (
 		clickEvent: MouseEvent & {
 			currentTarget: EventTarget & HTMLLIElement;
 		},
