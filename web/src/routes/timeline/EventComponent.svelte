@@ -17,7 +17,7 @@
 {#if item.event.kind === Kind.Metadata}
 	<Profile metadata={new Metadata(item.event)} />
 {:else if Number(item.event.kind) === 6}
-	<RepostedNote event={item.event} {readonly} {createdAtFormat} />
+	<RepostedNote {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.Reaction}
 	<Reaction event={item.event} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
@@ -27,5 +27,5 @@
 {:else if Number(item.event.kind) === 30030}
 	<CustomEmojiList tags={item.event.tags} />
 {:else}
-	<Note event={item.event} {readonly} {createdAtFormat} />
+	<Note {item} {readonly} {createdAtFormat} />
 {/if}

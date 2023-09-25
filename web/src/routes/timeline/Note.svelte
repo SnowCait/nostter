@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Kind, nip19, type Event } from 'nostr-tools';
+	import type { EventItem, Item } from '$lib/Items';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
@@ -30,9 +31,11 @@
 	import EmojiPicker from '../parts/EmojiPicker.svelte';
 	import ProxyLink from '../parts/ProxyLink.svelte';
 
-	export let event: Event;
+	export let item: Item;
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
+
+	$: metadata = (item as EventItem).metadata;
 
 	if ($rom) {
 		readonly = true;
@@ -40,27 +43,17 @@
 
 	const iconSize = 20;
 
-	let user: User | undefined;
 	let reposted = false;
 	let reactioned = false;
-	let bookmarked = isBookmarked(event);
+	let bookmarked = isBookmarked(item.event);
 	let zapped = false;
 	let jsonDisplay = false;
 	let replyToNames: string[] = [];
 	let channelId: string | undefined;
 	let channelName: string | undefined;
-	let originalEvent: any;
-	let originalUser: any;
 	let zapDialogComponent: ZapDialog;
 
-	$: {
-		originalEvent = Object.assign({}, event) as any;
-		delete originalEvent.user;
-		originalUser = Object.assign({}, user) as any;
-		delete originalUser.zapEndpoint;
-	}
-
-	let contentWarningTag = event.tags.find(([tagName]) => tagName === 'content-warning');
+	let contentWarningTag = item.event.tags.find(([tagName]) => tagName === 'content-warning');
 	let showContent = contentWarningTag === undefined;
 	const showWarningContent = () => {
 		showContent = true;
@@ -77,7 +70,7 @@
 	function reply(event: Event) {
 		$replyTo = {
 			...event,
-			user
+			user: metadata?.content as User
 		};
 		$openNoteDialog = true;
 	}
@@ -109,7 +102,7 @@
 	function quote(event: Event) {
 		$quotes.push({
 			...event,
-			user
+			user: metadata?.content as User
 		});
 		$openNoteDialog = true;
 	}
@@ -254,12 +247,11 @@
 
 	onMount(async () => {
 		const pubkeys = Array.from(
-			new Set(event.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey))
+			new Set(
+				item.event.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey)
+			)
 		);
 		const api = new Api($pool, $readRelays);
-		api.fetchUserEvent(event.pubkey).then((userEvent) => {
-			user = userEvent?.user;
-		});
 		const promises = pubkeys.map(async (pubkey) => {
 			const userEvent = await api.fetchUserEvent(pubkey);
 			return (
@@ -268,8 +260,8 @@
 		});
 		replyToNames = await Promise.all(promises);
 
-		if (event.kind === Kind.ChannelMessage) {
-			channelId = event.tags
+		if (item.event.kind === Kind.ChannelMessage) {
+			channelId = item.event.tags
 				.find(([tagName, , , marker]) => tagName === 'e' && marker === 'root')
 				?.at(1);
 			if (channelId === undefined) {
@@ -285,28 +277,32 @@
 </script>
 
 <article class="timeline-item">
-	<ZapDialog {event} bind:this={zapDialogComponent} on:zapped={onZapped} />
+	<ZapDialog event={item.event} bind:this={zapDialogComponent} on:zapped={onZapped} />
 	<div>
-		<a href="/{nip19.npubEncode(event.pubkey)}">
-			<img class="picture" src={user?.picture} alt="" />
+		<a href="/{nip19.npubEncode(item.event.pubkey)}">
+			<img class="picture" src={metadata?.content?.picture} alt="" />
 		</a>
 	</div>
 	<div class="note">
 		<div class="user">
 			<div class="display_name">
-				{user?.display_name ? user.display_name : user?.name}
+				{metadata?.content?.display_name
+					? metadata?.content.display_name
+					: metadata?.content?.name}
 			</div>
 			<div class="name">
-				@{user?.name ? user.name : user?.display_name}
+				@{metadata?.content?.name
+					? metadata?.content.name
+					: metadata?.content?.display_name}
 			</div>
 			<div class="created_at">
-				<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
+				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
 			</div>
 		</div>
 		<div class="user-status">
-			<UserStatus pubkey={event.pubkey} />
+			<UserStatus pubkey={item.event.pubkey} />
 		</div>
-		{#if isReply(event)}
+		{#if isReply(item.event)}
 			<div class="reply">
 				<span>To</span>
 				<span>@{replyToNames.join(' @')}</span>
@@ -317,10 +313,10 @@
 				<div>{contentWarningTag?.at(1) ?? ''}</div>
 				<button on:click={showWarningContent}>Show</button>
 			</div>
-		{:else if event.kind === Kind.EncryptedDirectMessage}
+		{:else if item.event.kind === Kind.EncryptedDirectMessage}
 			<p class="direct-message">
 				<span>Direct Message.</span>
-				{#if $author?.isRelated(event) || event.pubkey === $pubkey}
+				{#if $author?.isRelated(item.event) || item.event.pubkey === $pubkey}
 					<span>Please open in other client.</span>
 				{:else}
 					<span>This message is not for you.</span>
@@ -328,10 +324,10 @@
 			</p>
 		{:else}
 			<div class="content">
-				<Content content={event.content} tags={event.tags} />
+				<Content content={item.event.content} tags={item.event.tags} />
 			</div>
 		{/if}
-		{#if event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdStore === undefined}
+		{#if item.event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdStore === undefined}
 			<div class="channel">
 				<IconMessages size={16} color={'gray'} />
 				<span>
@@ -341,38 +337,39 @@
 				</span>
 			</div>
 		{/if}
-		{#each event.tags.filter(([tagName]) => tagName === 'proxy') as tag}
+		{#each item.event.tags.filter(([tagName]) => tagName === 'proxy') as tag}
 			<div class="proxy"><ProxyLink {tag} /></div>
 		{/each}
 		{#if !readonly}
 			<div class="action-menu">
 				<button
-					class:hidden={event.kind === Kind.EncryptedDirectMessage}
-					on:click={() => reply(event)}
+					class:hidden={item.event.kind === Kind.EncryptedDirectMessage}
+					on:click={() => reply(item.event)}
 				>
 					<IconMessageCircle2 size={iconSize} />
 				</button>
 				<button
 					class="repost"
-					class:hidden={event.kind === 42 || event.kind === Kind.EncryptedDirectMessage}
+					class:hidden={item.event.kind === 42 ||
+						item.event.kind === Kind.EncryptedDirectMessage}
 					disabled={reposted}
-					on:click={() => repost(event)}
+					on:click={() => repost(item.event)}
 				>
 					<IconRepeat size={iconSize} />
 				</button>
 				<button
-					class:hidden={event.kind === Kind.EncryptedDirectMessage}
-					on:click={() => quote(event)}
+					class:hidden={item.event.kind === Kind.EncryptedDirectMessage}
+					on:click={() => quote(item.event)}
 				>
 					<IconQuote size={iconSize} />
 				</button>
 				<button
 					class="reaction"
-					class:hidden={event.kind === Kind.EncryptedDirectMessage}
+					class:hidden={item.event.kind === Kind.EncryptedDirectMessage}
 					class:paw-pad={$reactionEmoji === '🐾'}
 					class:star={$reactionEmoji === '⭐'}
 					disabled={reactioned}
-					on:click={() => reaction(event)}
+					on:click={() => reaction(item.event)}
 				>
 					{#if $reactionEmoji === '🐾'}
 						<IconPaw size={iconSize} />
@@ -382,8 +379,8 @@
 						<IconHeart size={iconSize} />
 					{/if}
 				</button>
-				<span class:hidden={event.kind === Kind.EncryptedDirectMessage}>
-					<EmojiPicker on:pick={({ detail }) => emojiReaction(event, detail)} />
+				<span class:hidden={item.event.kind === Kind.EncryptedDirectMessage}>
+					<EmojiPicker on:pick={({ detail }) => emojiReaction(item.event, detail)} />
 				</span>
 				<button class:hidden={fullMenu} on:click={() => (showMenu = !showMenu)}>
 					<IconDots size={iconSize} />
@@ -405,19 +402,20 @@
 					<button
 						class="bookmark"
 						class:hidden={!(
-							event.kind === Kind.Text || event.kind === Kind.ChannelMessage
+							item.event.kind === Kind.Text || item.event.kind === Kind.ChannelMessage
 						)}
 						class:bookmarked
-						on:click={() => bookmark(event)}
-						on:dblclick={() => removeBookmark(event)}
+						on:click={() => bookmark(item.event)}
+						on:dblclick={() => removeBookmark(item.event)}
 					>
 						<IconBookmark size={iconSize} />
 					</button>
 					<button
 						class="zap"
-						class:hidden={user === undefined ||
-							user.zapEndpoint === null ||
-							event.kind === Kind.EncryptedDirectMessage}
+						class:hidden={metadata?.content === undefined ||
+							(metadata?.content.lud16 === undefined &&
+								metadata?.content.lud06 === undefined) ||
+							item.event.kind === Kind.EncryptedDirectMessage}
 						disabled={zapped}
 						on:click={() => zapDialogComponent.openZapDialog()}
 					>
@@ -432,39 +430,40 @@
 		{#if jsonDisplay}
 			<div class="develop">
 				<h5>Event ID</h5>
-				<div>{nip19.noteEncode(event.id)}</div>
+				<div>{nip19.noteEncode(item.event.id)}</div>
 				<br />
-				<div>{nip19.neventEncode({ id: event.id })}</div>
+				<div>{nip19.neventEncode({ id: item.event.id })}</div>
 				<h5>Event JSON</h5>
-				<pre><code class="json">{JSON.stringify(originalEvent, null, 2)}</code></pre>
+				<pre><code class="json">{JSON.stringify(item.event, null, 2)}</code></pre>
 				<h5>User ID</h5>
-				<div>{nip19.npubEncode(event.pubkey)}</div>
+				<div>{nip19.npubEncode(item.event.pubkey)}</div>
 				<h5>User JSON</h5>
-				<pre><code class="json">{JSON.stringify(originalUser, null, 2)}</code></pre>
+				<pre><code class="json">{JSON.stringify(metadata?.event ?? '{}', null, 2)}</code
+					></pre>
 				<h5>Code Points</h5>
 				<h6>display name</h6>
 				<p>
-					{getCodePoints(user?.display_name ?? '')
+					{getCodePoints(metadata?.content?.display_name ?? '')
 						.map((codePoint) => `0x${codePoint.toString(16)}`)
 						.join(' ')}
 				</p>
 				<h6>@name</h6>
 				<p>
-					{getCodePoints(user?.name ?? '')
+					{getCodePoints(metadata?.content?.name ?? '')
 						.map((codePoint) => `0x${codePoint.toString(16)}`)
 						.join(' ')}
 				</p>
 				<h6>content</h6>
 				<p>
-					{getCodePoints(event.content)
+					{getCodePoints(item.event.content)
 						.map((codePoint) => `0x${codePoint.toString(16)}`)
 						.join(' ')}
 				</p>
 				<div>
 					Open in <a
 						href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode(
-							{ id: event.id }
-						)}&kind={event.kind}"
+							{ id: item.event.id }
+						)}&kind={item.event.kind}"
 						target="_blank"
 						rel="noopener noreferrer"
 					>

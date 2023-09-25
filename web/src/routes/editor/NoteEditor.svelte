@@ -6,6 +6,7 @@
 	import { channelIdStore, Channel } from '$lib/Channel';
 	import { Content } from '$lib/Content';
 	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
+	import { EventItem } from '$lib/Items';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../../stores/NoteDialog';
 	import { pubkey, rom } from '../../stores/Author';
 	import { userEvents } from '../../stores/UserEvents';
@@ -322,7 +323,7 @@
 		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
 	{/if}
 	{#if $replyTo}
-		<Note event={$replyTo} readonly={true} />
+		<Note item={new EventItem($replyTo)} readonly={true} />
 	{/if}
 	<form on:submit|preventDefault={postNote}>
 		<textarea
@@ -346,7 +347,7 @@
 	</div>
 	{#if $quotes.length > 0}
 		{#each $quotes as quote}
-			<Note event={quote} readonly={true} />
+			<Note item={new EventItem(quote)} readonly={true} />
 		{/each}
 	{/if}
 	{#if complementStart >= 0}

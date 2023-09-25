@@ -6,22 +6,18 @@
 	import { Api } from '$lib/Api';
 	import { User as UserDecoder } from '$lib/User';
 	import TimelineView from '../../TimelineView.svelte';
-	import type { Event } from '../../types';
 	import {
 		pubkey as authorPubkey,
 		followees as authorFollowees,
 		readRelays
 	} from '../../../stores/Author';
-	import { userTimelineEvents as events } from '../../../stores/Events';
+	import { userTimelineEvents as items } from '../../../stores/Events';
 	import { SimplePool } from 'nostr-tools';
 	import { minTimelineLength } from '$lib/Constants';
-	import { EventItem } from '$lib/Items';
 
 	let pubkey: string;
 	let timeline: Timeline;
 	let unsubscribe: () => void;
-
-	$: items = $events.map((x) => new EventItem(x, x.user as Event | undefined));
 
 	afterNavigate(async () => {
 		const slug = $page.params.npub;
@@ -39,7 +35,7 @@
 		}
 
 		pubkey = data.pubkey;
-		$events = [];
+		$items = [];
 		if (unsubscribe !== undefined) {
 			unsubscribe();
 		}
@@ -57,29 +53,22 @@
 			return;
 		}
 
-		let firstLength = $events.length;
+		let firstLength = $items.length;
 		let count = 0;
-		let until = $events.at($events.length - 1)?.created_at ?? Math.floor(Date.now() / 1000);
+		let until = $items.at($items.length - 1)?.event.created_at ?? Math.floor(Date.now() / 1000);
 		let seconds = 1 * 60 * 60;
 
-		while ($events.length - firstLength < minTimelineLength && count < 10) {
+		while ($items.length - firstLength < minTimelineLength && count < 10) {
 			const pastEventItems = await timeline.fetch(until, seconds);
-			$events.push(
-				...pastEventItems.map((x) => {
-					return {
-						...x.event,
-						user: x.metadata?.content
-					} as Event;
-				})
-			);
-			$events = $events;
+			$items.push(...pastEventItems);
+			$items = $items;
 
 			until -= seconds;
 			seconds *= 2;
 			count++;
-			console.log('[load]', count, until, seconds / 3600, $events.length);
+			console.log('[load]', count, until, seconds / 3600, $items.length);
 		}
 	}
 </script>
 
-<TimelineView {items} readonly={!$authorPubkey} {load} />
+<TimelineView items={$items} readonly={!$authorPubkey} {load} />
