@@ -19,6 +19,8 @@
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import ContentWarning from './ContentWarning.svelte';
 
+	let emojiPickerSlide: EmojiPickerSlide | undefined;
+
 	export function clear(): void {
 		console.log('[note editor clear]');
 		$openNoteDialog = false;
@@ -29,6 +31,7 @@
 		exitComplement();
 		emojiTags = [];
 		contentWarningReason = undefined;
+		emojiPickerSlide?.hide();
 	}
 
 	export function isAutocompleting(): boolean {
@@ -339,7 +342,7 @@
 	</form>
 	<div class="options">
 		<div class="emoji-picker">
-			<EmojiPickerSlide on:pick={onEmojiPick} />
+			<EmojiPickerSlide bind:this={emojiPickerSlide} on:pick={onEmojiPick} />
 		</div>
 		<div class="content-warning">
 			<ContentWarning bind:reason={contentWarningReason} />
