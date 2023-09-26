@@ -5,7 +5,7 @@
 	import { author, isMuteEvent } from '../stores/Author';
 	import Loading from './Loading.svelte';
 	import EventComponent from './timeline/EventComponent.svelte';
-	import { nip19 } from 'nostr-tools';
+	import { nip19, type Event } from 'nostr-tools';
 	import { goto } from '$app/navigation';
 
 	export let items: Item[] = [];
@@ -42,7 +42,7 @@
 		clickEvent: MouseEvent & {
 			currentTarget: EventTarget & HTMLLIElement;
 		},
-		eventId: string
+		nostrEvent: Event
 	) => {
 		let target: HTMLElement | null = clickEvent.target as HTMLElement;
 		if (target) {
@@ -54,11 +54,25 @@
 				if (tagName === 'p' && String(document.getSelection()).length) {
 					return;
 				}
+				if (tagName === 'blockquote') {
+					const eTags = nostrEvent.tags.filter(
+						([tagName, tagContent]) => tagName === 'e' && tagContent !== undefined
+					);
+					const [_, refEventId] = eTags.at(eTags.length - 1) || ['', ''];
+					if (!refEventId) {
+						continue;
+					}
+					const noteId = nip19.noteEncode(refEventId);
+					await goto(`/${noteId}`);
+					return;
+				}
 				target = target.parentElement;
 			}
 		}
-		const noteId = nip19.noteEncode(eventId);
-		await goto(`/${noteId}`);
+		if (transitionable) {
+			const noteId = nip19.noteEncode(nostrEvent.id);
+			await goto(`/${noteId}`);
+		}
 	};
 </script>
 
@@ -70,7 +84,7 @@
 			<li
 				class={transitionable ? 'transitionable-post' : ''}
 				class:related={$author?.isNotified(item.event)}
-				on:mouseup={transitionable ? (e) => viewDetail(e, item.event.id) : null}
+				on:mouseup={(e) => viewDetail(e, item.event)}
 			>
 				<EventComponent {item} {readonly} {createdAtFormat} />
 			</li>
@@ -104,6 +118,18 @@
 	}
 
 	.transitionable-post:hover {
+		background: var(--accent-surface-low);
+	}
+
+	:global(blockquote) {
+		cursor: pointer;
+	}
+
+	:global(.transitionable-post blockquote:hover) {
+		background: var(--accent-surface);
+	}
+
+	:global(blockquote:hover) {
 		background: var(--accent-surface-low);
 	}
 
