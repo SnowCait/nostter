@@ -126,7 +126,7 @@
 	}
 
 	:global(.transitionable-post blockquote:hover) {
-		background: var(--accent-surface);
+		background: var(--accent-surface-high);
 	}
 
 	:global(blockquote:hover) {
