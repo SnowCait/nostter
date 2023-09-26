@@ -12,16 +12,6 @@ export class EventItem implements Item {
 			this.metadata = new Metadata(metadataEvent);
 		}
 	}
-
-	public async toEvent(): Promise<NostrEvent> {
-		return {
-			...this.event,
-			user: {
-				...this.metadata?.content,
-				zapEndpoint: (await this.metadata?.zapUrl())?.href ?? null
-			} as User
-		};
-	}
 }
 
 export class Metadata implements Item {

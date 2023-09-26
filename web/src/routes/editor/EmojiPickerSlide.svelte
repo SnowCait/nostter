@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, createEventDispatcher } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 	import { Picker } from 'emoji-kitchen-mart';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
@@ -11,10 +11,6 @@
 	let hidden = true;
 
 	const dispatch = createEventDispatcher();
-
-	onMount(() => {
-		updatePicker();
-	});
 
 	if (browser) {
 		customEmojiTags.subscribe(() => {
@@ -60,7 +56,12 @@
 	}
 
 	async function onClick() {
+		updatePicker();
 		hidden = !hidden;
+	}
+
+	export function hide() {
+		hidden = true;
 	}
 
 	function onEmojiSelect(emoji: BaseEmoji) {

@@ -8,16 +8,13 @@
 	import { error } from '@sveltejs/kit';
 	import { User as UserDecoder } from '$lib/User';
 	import { Kind, type Filter } from 'nostr-tools';
-	import type { Event } from '../../types';
 	import { minTimelineLength } from '$lib/Constants';
-	import { EventItem } from '$lib/Items';
+	import type { EventItem } from '$lib/Items';
 
 	let pubkey: string;
 	let relays: string[];
-	let events: Event[] = [];
+	let items: EventItem[] = [];
 	let showLoading = false;
-
-	$: items = events.map((x) => new EventItem(x, x.user as Event | undefined));
 
 	afterNavigate(async () => {
 		const slug = $page.params.npub;
@@ -52,23 +49,23 @@
 		};
 		const api = new Api($pool, [...new Set([...$readRelays, ...relays])]);
 
-		let firstLength = events.length;
+		let firstLength = items.length;
 		let count = 0;
-		let until = events.at(events.length - 1)?.created_at ?? Math.floor(Date.now() / 1000);
+		let until = items.at(items.length - 1)?.event.created_at ?? Math.floor(Date.now() / 1000);
 		let seconds = 12 * 60 * 60;
 
-		while (events.length - firstLength < minTimelineLength && count < 10) {
+		while (items.length - firstLength < minTimelineLength && count < 10) {
 			filter.until = until;
 			filter.since = until - seconds;
 
 			const eventItems = await api.fetchEventItems([filter]);
-			events.push(...(await Promise.all(eventItems.map(async (x) => await x.toEvent()))));
-			events = events;
+			items.push(...eventItems);
+			items = items;
 
 			until -= seconds;
 			seconds *= 2;
 			count++;
-			console.log('[load]', count, until, seconds / 3600, events.length);
+			console.log('[load]', count, until, seconds / 3600, items.length);
 		}
 
 		showLoading = false;

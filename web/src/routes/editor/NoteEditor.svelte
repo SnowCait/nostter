@@ -19,6 +19,8 @@
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import ContentWarning from './ContentWarning.svelte';
 
+	let emojiPickerSlide: EmojiPickerSlide | undefined;
+
 	export function clear(): void {
 		console.log('[note editor clear]');
 		$openNoteDialog = false;
@@ -29,6 +31,7 @@
 		exitComplement();
 		emojiTags = [];
 		contentWarningReason = undefined;
+		emojiPickerSlide?.hide();
 	}
 
 	export function isAutocompleting(): boolean {
@@ -275,7 +278,7 @@
 
 		const noteComposer = new NoteComposer();
 		const event = await noteComposer.compose(
-			$channelIdStore !== undefined || $replyTo?.kind === Kind.ChannelMessage
+			$channelIdStore !== undefined || $replyTo?.event?.kind === Kind.ChannelMessage
 				? Kind.ChannelMessage
 				: Kind.Text,
 			Content.replaceNip19(content),
@@ -323,7 +326,7 @@
 		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
 	{/if}
 	{#if $replyTo}
-		<Note item={new EventItem($replyTo)} readonly={true} />
+		<Note item={$replyTo} readonly={true} />
 	{/if}
 	<form on:submit|preventDefault={postNote}>
 		<textarea
@@ -339,7 +342,7 @@
 	</form>
 	<div class="options">
 		<div class="emoji-picker">
-			<EmojiPickerSlide on:pick={onEmojiPick} />
+			<EmojiPickerSlide bind:this={emojiPickerSlide} on:pick={onEmojiPick} />
 		</div>
 		<div class="content-warning">
 			<ContentWarning bind:reason={contentWarningReason} />

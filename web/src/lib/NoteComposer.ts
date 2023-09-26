@@ -8,13 +8,14 @@ import { Api } from './Api';
 import { pool } from '../stores/Pool';
 import { get } from 'svelte/store';
 import { readRelays } from '../stores/Author';
+import type { EventItem } from './Items';
 
 export class NoteComposer {
 	async compose(
 		kind: number,
 		content: string,
 		tags: string[][],
-		$replyTo: Event | undefined = undefined,
+		$replyTo: EventItem | undefined = undefined,
 		emojiTags: string[][] = [],
 		$channelIdStore: string | undefined = undefined,
 		pubkeys: Set<string> = new Set(),
@@ -24,28 +25,28 @@ export class NoteComposer {
 		if ($channelIdStore) {
 			tags.push(['e', $channelIdStore, '', 'root']);
 			if ($replyTo !== undefined) {
-				tags.push(['e', $replyTo.id, '', 'reply']);
+				tags.push(['e', $replyTo.event.id, '', 'reply']);
 				if (
-					$replyTo.tags.some(
-						([tagName, pubkey]) => tagName === 'p' && pubkey === $replyTo?.pubkey
+					$replyTo.event.tags.some(
+						([tagName, pubkey]) => tagName === 'p' && pubkey === $replyTo.event.pubkey
 					)
 				) {
-					tags.push(...$replyTo.tags.filter(([tagName]) => tagName === 'p'));
+					tags.push(...$replyTo.event.tags.filter(([tagName]) => tagName === 'p'));
 				} else {
-					tags.push(...$replyTo.tags.filter(([tagName]) => tagName === 'p'), [
+					tags.push(...$replyTo.event.tags.filter(([tagName]) => tagName === 'p'), [
 						'p',
-						$replyTo.pubkey
+						$replyTo.event.pubkey
 					]);
 				}
 			}
 		} else if ($replyTo !== undefined) {
-			if ($replyTo.tags.filter((x) => x[0] === 'e').length === 0) {
+			if ($replyTo.event.tags.filter((x) => x[0] === 'e').length === 0) {
 				// root
-				tags.push(['e', $replyTo.id, '', 'root']);
+				tags.push(['e', $replyTo.event.id, '', 'root']);
 			} else {
 				// reply
-				tags.push(['e', $replyTo.id, '', 'reply']);
-				const root = $replyTo.tags.find(
+				tags.push(['e', $replyTo.event.id, '', 'reply']);
+				const root = $replyTo.event.tags.find(
 					([tagName, , , marker]) => tagName === 'e' && marker === 'root'
 				);
 				if (root !== undefined) {
@@ -53,8 +54,8 @@ export class NoteComposer {
 				}
 			}
 			pubkeys = new Set([
-				$replyTo.pubkey,
-				...$replyTo.tags.filter((x) => x[0] === 'p').map((x) => x[1])
+				$replyTo.event.pubkey,
+				...$replyTo.event.tags.filter((x) => x[0] === 'p').map((x) => x[1])
 			]);
 		}
 
