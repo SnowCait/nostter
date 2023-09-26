@@ -44,19 +44,17 @@
 		},
 		eventId: string
 	) => {
-		const target = clickEvent.target as HTMLElement;
-
-		let parent = target.parentElement;
-		if (parent) {
-			while (parent && !parent.classList.contains('timeline')) {
-				const tagName = parent.tagName.toLocaleLowerCase();
+		let target: HTMLElement | null = clickEvent.target as HTMLElement;
+		if (target) {
+			while (target && !target.classList.contains('timeline')) {
+				const tagName = target.tagName.toLocaleLowerCase();
 				if (tagName === 'a' || tagName === 'button') {
 					return;
 				}
 				if (tagName === 'p' && String(document.getSelection()).length) {
 					return;
 				}
-				parent = parent.parentElement;
+				target = target.parentElement;
 			}
 		}
 		const noteId = nip19.noteEncode(eventId);
