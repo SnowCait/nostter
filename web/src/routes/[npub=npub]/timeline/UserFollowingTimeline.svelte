@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { error } from '@sveltejs/kit';
 	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
 	import { Timeline } from '$lib/Timeline';
 	import { Api } from '$lib/Api';
-	import { User as UserDecoder } from '$lib/User';
 	import TimelineView from '../../TimelineView.svelte';
 	import {
 		pubkey as authorPubkey,
@@ -15,26 +12,11 @@
 	import { SimplePool } from 'nostr-tools';
 	import { minTimelineLength } from '$lib/Constants';
 
-	let pubkey: string;
+	export let pubkey: string;
 	let timeline: Timeline;
 	let unsubscribe: () => void;
 
 	afterNavigate(async () => {
-		const slug = $page.params.npub;
-		console.log('[timeline page]', slug);
-
-		const data = await UserDecoder.decode(slug);
-		console.log('[data]', data);
-
-		if (data.pubkey === undefined) {
-			throw error(404);
-		}
-
-		if (pubkey === data.pubkey) {
-			return;
-		}
-
-		pubkey = data.pubkey;
 		$items = [];
 		if (unsubscribe !== undefined) {
 			unsubscribe();
