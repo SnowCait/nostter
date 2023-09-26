@@ -6,6 +6,7 @@
 	import Loading from './Loading.svelte';
 	import EventComponent from './timeline/EventComponent.svelte';
 	import { nip19 } from 'nostr-tools';
+	import { goto } from '$app/navigation';
 
 	export let items: Item[] = [];
 	export let readonly = false;
