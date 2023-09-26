@@ -19,7 +19,7 @@
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import ContentWarning from './ContentWarning.svelte';
 
-	let emojiPickerSlide: any = null;
+	let emojiPickerSlide: EmojiPickerSlide | undefined;
 
 	export function clear(): void {
 		console.log('[note editor clear]');
@@ -31,7 +31,7 @@
 		exitComplement();
 		emojiTags = [];
 		contentWarningReason = undefined;
-		emojiPickerSlide.hide();
+		emojiPickerSlide?.hide();
 	}
 
 	export function isAutocompleting(): boolean {
