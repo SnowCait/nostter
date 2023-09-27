@@ -114,7 +114,6 @@
 
 	.transitionable-post {
 		cursor: pointer;
-		border-start-start-radius: var(--radius);
 	}
 
 	.transitionable-post:hover {
