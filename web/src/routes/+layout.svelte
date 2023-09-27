@@ -266,6 +266,10 @@
 			padding: 0;
 			display: block;
 		}
+    
+    header {
+			position: static;
+		}
 
 		main {
 			margin-left: auto;
