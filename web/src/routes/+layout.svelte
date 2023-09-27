@@ -175,7 +175,7 @@
 			input[type='button'].button-small,
 			input[type='submit'].button-small
 		) {
-		padding: 0.2rem 0.85rem;
+		padding: 0.5rem 1rem;
 	}
 
 	:global(
