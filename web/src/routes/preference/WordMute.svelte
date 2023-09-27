@@ -40,7 +40,7 @@
 </ul>
 
 <form on:submit|preventDefault={mute}>
-	<input type="text" required bind:value={word} />
+	<input type="text" required bind:value={word} on:keyup|stopPropagation={console.debug} />
 	<input type="submit" value="Mute" />
 </form>
 

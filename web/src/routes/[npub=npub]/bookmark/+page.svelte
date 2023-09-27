@@ -8,19 +8,11 @@
 	import { User } from '$lib/User';
 	import { error } from '@sveltejs/kit';
 	import TimelineView from '../../TimelineView.svelte';
-	import type { Event } from '../../types';
 	import { Signer } from '$lib/Signer';
 	import { EventItem } from '$lib/Items';
 
-	let publicBookmarkEvents: Event[] = [];
-	let privateBookmarkEvents: Event[] = [];
-
-	$: publicBookmarkEventItems = publicBookmarkEvents.map(
-		(x) => new EventItem(x, x.user as Event | undefined)
-	);
-	$: privateBookmarkEventItems = privateBookmarkEvents.map(
-		(x) => new EventItem(x, x.user as Event | undefined)
-	);
+	let publicBookmarkEventItems: EventItem[] = [];
+	let privateBookmarkEventItems: EventItem[] = [];
 
 	onMount(async () => {
 		const slug = $page.params.npub;
@@ -72,30 +64,18 @@
 		);
 		console.log('[bookmark metadata]', metadataEvents);
 
-		publicBookmarkEvents = withUser(originalPublicBookmarkEvents, metadataEvents);
-		privateBookmarkEvents = withUser(originalPrivateBookmarkEvents, metadataEvents);
+		publicBookmarkEventItems = originalPublicBookmarkEvents.map(
+			(event) => new EventItem(event, metadataEvents.get(event.pubkey))
+		);
+		privateBookmarkEventItems = originalPrivateBookmarkEvents.map(
+			(event) => new EventItem(event, metadataEvents.get(event.pubkey))
+		);
 	});
-
-	function withUser(events: NostrEvent[], metadataMap: Map<string, NostrEvent>): Event[] {
-		return events.map((event) => {
-			const metadataEvent = metadataMap.get(event.pubkey);
-			if (metadataEvent === undefined) {
-				return event as Event;
-			}
-			try {
-				const user = JSON.parse(metadataEvent.content);
-				return { ...event, user };
-			} catch (error) {
-				console.warn('[invalid metadata]', metadataEvent);
-				return event as Event;
-			}
-		});
-	}
 </script>
 
 <h1>Bookmark</h1>
 
-{#if privateBookmarkEvents.length > 0}
+{#if privateBookmarkEventItems.length > 0}
 	<h2>Private</h2>
 
 	<TimelineView
