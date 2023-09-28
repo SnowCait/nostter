@@ -77,8 +77,8 @@
 			const eventId = [6, 7, 9735].includes(nostrEvent.kind)
 				? getTargetETag(nostrEvent.tags)
 				: nostrEvent.id;
-			const noteId = nip19.noteEncode(eventId);
-			await goto(`/${noteId}`);
+			const encodedId = nip19.neventEncode({ id: eventId });
+			await goto(`/${encodedId}`);
 		}
 	};
 </script>
