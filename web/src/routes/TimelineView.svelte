@@ -66,7 +66,7 @@
 					if (!refEventId) {
 						continue;
 					}
-					const noteId = nip19.neventEncode({ id: refEventId };
+					const noteId = nip19.neventEncode({ id: refEventId });
 					await goto(`/${noteId}`);
 					return;
 				}
