@@ -38,6 +38,13 @@
 		});
 	});
 
+	const getTargetETag = (tags: string[][]) => {
+		const [_, refEventId] = tags.findLast(
+			([tagName, tagContent]) => tagName === 'e' && tagContent !== undefined
+		) ?? ['', ''];
+		return refEventId;
+	};
+
 	const viewDetail = async (
 		clickEvent: MouseEvent & {
 			currentTarget: EventTarget & HTMLLIElement;
@@ -55,9 +62,7 @@
 					return;
 				}
 				if (tagName === 'blockquote') {
-					const [_, refEventId] = nostrEvent.tags.findLast(
-						([tagName, tagContent]) => tagName === 'e' && tagContent !== undefined
-					) ?? ['', ''];
+					const refEventId = getTargetETag(nostrEvent.tags);
 					if (!refEventId) {
 						continue;
 					}
@@ -69,7 +74,12 @@
 			}
 		}
 		if (transitionable) {
-			const noteId = nip19.noteEncode(nostrEvent.id);
+			const eventId = [6, 7, 9735].includes(nostrEvent.kind)
+				? getTargetETag(nostrEvent.tags)
+				: nostrEvent.id;
+			if ([6, 7, 9735].includes(nostrEvent.kind)) {
+			}
+			const noteId = nip19.noteEncode(eventId);
 			await goto(`/${noteId}`);
 		}
 	};
