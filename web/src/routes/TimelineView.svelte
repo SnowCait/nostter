@@ -119,6 +119,10 @@
 		background: var(--accent-surface-low);
 	}
 
+	:global(.timeline a) {
+		text-decoration: underline;
+	}
+
 	:global(blockquote) {
 		cursor: pointer;
 	}
