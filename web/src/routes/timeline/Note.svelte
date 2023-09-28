@@ -293,9 +293,7 @@
 					: metadata?.content?.display_name}
 			</div>
 			<div class="created_at">
-				<a href="/{nip19.noteEncode(item.event.id)}">
-					<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
-				</a>
+				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
 			</div>
 		</div>
 		<div class="user-status">

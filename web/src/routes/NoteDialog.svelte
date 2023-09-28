@@ -13,10 +13,18 @@
 	});
 
 	function closeDialog(event: MouseEvent) {
-		console.debug('[click]', `(${event.x}, ${event.y})`);
-
 		if (editor.isAutocompleting()) {
 			return;
+		}
+
+		let target: HTMLElement | null = event.target as HTMLElement;
+		if (target) {
+			while (target) {
+				if (target?.classList.contains('note-editor')) {
+					return;
+				}
+				target = target.parentElement;
+			}
 		}
 
 		const insideDialog =
@@ -47,14 +55,12 @@
 
 <style>
 	dialog {
-		border: 1px;
-		border-style: solid;
-		border-color: lightgray;
-		border-radius: 10px;
-		max-width: 100%;
+		border: var(--border);
+		border-radius: var(--radius);
+		max-width: 600px;
 		margin: 0 auto;
 		z-index: 1;
-		width: 50%;
+		width: 100%;
 	}
 
 	@media screen and (max-width: 600px) {

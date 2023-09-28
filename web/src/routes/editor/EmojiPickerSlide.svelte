@@ -70,14 +70,25 @@
 	}
 </script>
 
-<button on:click={onClick} class="clear emoji-picker">
-	<slot>
-		<IconMoodSmile size={30} />
-	</slot>
-</button>
-<div bind:this={emojiPicker} class:hidden on:keyup|stopPropagation={console.debug} />
+<div>
+	<button on:click={onClick} class="clear emoji-picker">
+		<slot>
+			<IconMoodSmile size={30} />
+		</slot>
+	</button>
+	<div
+		class="emoji-picker"
+		bind:this={emojiPicker}
+		class:hidden
+		on:keyup|stopPropagation={console.debug}
+	/>
+</div>
 
 <style>
+	div.emoji-picker {
+		position: fixed;
+	}
+
 	button {
 		color: var(--color, black);
 		height: 30px;

@@ -12,7 +12,6 @@
 	import { userEvents } from '../../stores/UserEvents';
 	import type { UserEvent } from '../types';
 	import { customEmojiTags } from '../../stores/CustomEmojis';
-	import IconSend from '@tabler/icons-svelte/dist/svelte/icons/IconSend.svelte';
 	import Note from '../timeline/Note.svelte';
 	import ChannelTitle from '../parts/ChannelTitle.svelte';
 	import EmojiPickerSlide from './EmojiPickerSlide.svelte';
@@ -321,31 +320,28 @@
 	}
 </script>
 
-<article bind:this={article}>
+<article bind:this={article} class="note-editor">
 	{#if channelEvent !== undefined}
 		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
 	{/if}
 	{#if $replyTo}
 		<Note item={$replyTo} readonly={true} />
 	{/if}
-	<form on:submit|preventDefault={postNote}>
-		<textarea
-			placeholder="What's happening?"
-			bind:value={content}
-			bind:this={textarea}
-			on:keydown={submitFromKeyboard}
-			on:keyup|stopPropagation={() => console.debug}
-			on:input={onInput}
-		/>
-		<input id="send" type="submit" disabled={!pubkey || posting} />
-		<label for="send"><IconSend size={30} /></label>
-	</form>
-	<div class="options">
-		<div class="emoji-picker">
+	<textarea
+		placeholder="What's happening?"
+		bind:value={content}
+		bind:this={textarea}
+		on:keydown={submitFromKeyboard}
+		on:keyup|stopPropagation={() => console.debug}
+		on:input={onInput}
+	/>
+	<div class="actions">
+		<div class="options">
 			<EmojiPickerSlide bind:this={emojiPickerSlide} on:pick={onEmojiPick} />
-		</div>
-		<div class="content-warning">
 			<ContentWarning bind:reason={contentWarningReason} />
+		</div>
+		<div>
+			<button class="button-small" on:click={postNote}>ポストする</button>
 		</div>
 	</div>
 	{#if $quotes.length > 0}
@@ -379,25 +375,19 @@
 <style>
 	textarea {
 		width: 100%;
-		height: 4em;
+		padding: 1rem;
 	}
 
-	label {
-		display: block;
-		margin-left: auto;
-		width: 30px;
-	}
-
-	input[type='submit'] {
-		display: none;
-	}
-
-	input[type='submit']:disabled + label {
+	button:disabled {
 		color: lightgray;
 	}
 
-	label {
-		height: 30px;
+	.actions {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.5rem;
+		border-top: var(--default-border);
 	}
 
 	ul {
@@ -406,10 +396,12 @@
 	}
 
 	.options {
-		margin-top: -30px;
-
 		display: flex;
-		flex-direction: row;
+		height: 30px;
+	}
+
+	:global(.options > *) {
+		height: inherit;
 	}
 
 	:global(.tribute-container ul) {

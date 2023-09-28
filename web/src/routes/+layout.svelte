@@ -5,7 +5,6 @@
 	import { onMount } from 'svelte';
 	import { debugMode } from '../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
-	import { pubkey } from '../stores/Author';
 	import { _ } from 'svelte-i18n';
 	import '../app.css';
 
@@ -128,46 +127,13 @@
 		margin: 0 auto;
 		grid-column: 2 / 3;
 		max-width: 598px;
+		width: 100%;
 	}
 
 	.debug {
 		position: fixed;
 		bottom: 0;
 		background-color: white;
-	}
-
-	@media screen and (max-width: 926px) {
-		.app {
-			max-width: calc(926px - (220px - 2.25rem));
-			gap: 1.5rem;
-			grid-template-columns: 3.125rem auto;
-		}
-
-		header {
-			max-width: 3.125rem;
-		}
-	}
-
-	@media screen and (max-width: 600px) {
-		.app {
-			margin: 0 auto 50px 0;
-			padding: 0;
-			display: block;
-		}
-
-		header {
-			position: static;
-		}
-
-		main {
-			margin-left: auto;
-			margin-bottom: 50px;
-		}
-
-		.debug {
-			bottom: 50px;
-			overflow: auto;
-		}
 	}
 
 	:global(article.timeline-item) {
@@ -209,7 +175,7 @@
 			input[type='button'].button-small,
 			input[type='submit'].button-small
 		) {
-		padding: 0.2rem 0.85rem;
+		padding: 0.5rem 1rem;
 	}
 
 	:global(
@@ -262,9 +228,13 @@
 		color: var(--accent-gray);
 	}
 
-	:global(main a) {
+	:global(a[target='_blank']) {
 		color: var(--accent-gray);
 		text-decoration-line: underline;
+	}
+
+	:global(a):hover {
+		color: var(--accent);
 	}
 
 	:global(dialog) {
@@ -279,6 +249,47 @@
 		}
 		100% {
 			transform: rotate(360deg);
+		}
+	}
+
+	@media screen and (max-width: 926px) {
+		.app {
+			max-width: calc(926px - (220px - 2.25rem));
+			gap: 1.5rem;
+			grid-template-columns: 3.125rem auto;
+		}
+
+		header {
+			max-width: 3.125rem;
+		}
+	}
+
+	@media screen and (max-width: 600px) {
+		.app {
+			margin: 0 auto 50px 0;
+			padding: 0;
+			display: block;
+		}
+
+		header {
+			position: static;
+		}
+
+		main {
+			margin-left: auto;
+			padding-bottom: 3.125rem;
+			margin-top: 3.125rem;
+			height: auto;
+		}
+
+		.debug {
+			bottom: 50px;
+			overflow: auto;
+		}
+
+		:global(.card) {
+			border-radius: 0;
+			border: none;
 		}
 	}
 </style>

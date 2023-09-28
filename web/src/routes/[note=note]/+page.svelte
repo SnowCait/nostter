@@ -139,9 +139,9 @@
 <TimelineView
 	{items}
 	readonly={false}
-	focusEventId={eventId}
 	load={async () => console.debug()}
 	showLoading={false}
+	transitionable={false}
 />
 
 {#if repostEvents !== undefined}

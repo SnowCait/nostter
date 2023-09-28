@@ -5,17 +5,21 @@
 	import { author, isMuteEvent } from '../stores/Author';
 	import Loading from './Loading.svelte';
 	import EventComponent from './timeline/EventComponent.svelte';
+	import { nip19, type Event } from 'nostr-tools';
+	import { goto } from '$app/navigation';
 
 	export let items: Item[] = [];
 	export let readonly = false;
-	export let focusEventId: string | undefined = undefined;
 	export let load: () => Promise<void>;
 	export let showLoading = true;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	export let transitionable = true;
 
 	let loading = false;
 	let innerHeight: number;
 	let scrollY = writable(0);
+
+	let timelineRef: HTMLUListElement | null = null;
 
 	onMount(() => {
 		console.log('Timeline.onMount');
@@ -33,16 +37,61 @@
 			}
 		});
 	});
+
+	const getTargetETag = (tags: string[][]) => {
+		const [_, refEventId] = tags.findLast(
+			([tagName, tagContent]) => tagName === 'e' && tagContent !== undefined
+		) ?? ['', ''];
+		return refEventId;
+	};
+
+	const viewDetail = async (
+		clickEvent: MouseEvent & {
+			currentTarget: EventTarget & HTMLLIElement;
+		},
+		nostrEvent: Event
+	) => {
+		let target: HTMLElement | null = clickEvent.target as HTMLElement;
+		if (target) {
+			while (target && !target.classList.contains('timeline')) {
+				const tagName = target.tagName.toLocaleLowerCase();
+				if (tagName === 'a' || tagName === 'button') {
+					return;
+				}
+				if (tagName === 'p' && String(document.getSelection()).length) {
+					return;
+				}
+				if (tagName === 'blockquote') {
+					const refEventId = getTargetETag(nostrEvent.tags);
+					if (!refEventId) {
+						continue;
+					}
+					const noteId = nip19.neventEncode({ id: refEventId });
+					await goto(`/${noteId}`);
+					return;
+				}
+				target = target.parentElement;
+			}
+		}
+		if (transitionable) {
+			const eventId = [6, 7, 9735].includes(nostrEvent.kind)
+				? getTargetETag(nostrEvent.tags)
+				: nostrEvent.id;
+			const encodedId = nip19.neventEncode({ id: eventId });
+			await goto(`/${encodedId}`);
+		}
+	};
 </script>
 
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
-<ul class="card">
+<ul class="card timeline" bind:this={timelineRef}>
 	{#each items as item (item.event.id)}
 		{#if !isMuteEvent(item.event)}
 			<li
-				class:focus={item.event.id === focusEventId}
+				class={transitionable ? 'transitionable-post' : ''}
 				class:related={$author?.isNotified(item.event)}
+				on:mouseup={(e) => viewDetail(e, item.event)}
 			>
 				<EventComponent {item} {readonly} {createdAtFormat} />
 			</li>
@@ -70,8 +119,28 @@
 		text-overflow: ellipsis;
 	}
 
-	li.focus {
-		border: 1px solid lightgray;
+	.transitionable-post {
+		cursor: pointer;
+	}
+
+	.transitionable-post:hover {
+		background: var(--accent-surface-low);
+	}
+
+	:global(.timeline a) {
+		text-decoration: underline;
+	}
+
+	:global(blockquote) {
+		cursor: pointer;
+	}
+
+	:global(.transitionable-post blockquote:hover) {
+		background: var(--accent-surface-high);
+	}
+
+	:global(blockquote:hover) {
+		background: var(--accent-surface-low);
 	}
 
 	li.related {
