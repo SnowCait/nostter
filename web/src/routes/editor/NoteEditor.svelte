@@ -343,33 +343,33 @@
 		<div>
 			<button class="button-small" on:click={postNote}>ポストする</button>
 		</div>
-		{#if $quotes.length > 0}
-			{#each $quotes as quote}
-				<Note item={new EventItem(quote)} readonly={true} />
-			{/each}
-		{/if}
-		{#if complementStart >= 0}
-			<ul>
-				{#each complementUserEvents as event}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<li on:click|stopPropagation={async () => await replaceComplement(event)}>
-						<span>{event.user.display_name ?? ''}</span>
-						<span>@{event.user.name ?? event.user.display_name}</span>
-					</li>
-				{/each}
-			</ul>
-		{/if}
-		{#if emojiTags.length > 0}
-			<ul>
-				{#each emojiTags as tag}
-					<li>
-						<span>:{tag[1]}:</span>
-						<CustomEmoji text={tag[1]} url={tag[2]} />
-					</li>
-				{/each}
-			</ul>
-		{/if}
 	</div>
+	{#if $quotes.length > 0}
+		{#each $quotes as quote}
+			<Note item={new EventItem(quote)} readonly={true} />
+		{/each}
+	{/if}
+	{#if complementStart >= 0}
+		<ul>
+			{#each complementUserEvents as event}
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<li on:click|stopPropagation={async () => await replaceComplement(event)}>
+					<span>{event.user.display_name ?? ''}</span>
+					<span>@{event.user.name ?? event.user.display_name}</span>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+	{#if emojiTags.length > 0}
+		<ul>
+			{#each emojiTags as tag}
+				<li>
+					<span>:{tag[1]}:</span>
+					<CustomEmoji text={tag[1]} url={tag[2]} />
+				</li>
+			{/each}
+		</ul>
+	{/if}
 </article>
 
 <style>
