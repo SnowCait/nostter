@@ -54,6 +54,9 @@
 		let target: HTMLElement | null = clickEvent.target as HTMLElement;
 		if (target) {
 			while (target && !target.classList.contains('timeline')) {
+				if (target.classList.contains('emoji-picker')) {
+					return;
+				}
 				const tagName = target.tagName.toLocaleLowerCase();
 				if (tagName === 'a' || tagName === 'button') {
 					return;
