@@ -55,10 +55,9 @@
 					return;
 				}
 				if (tagName === 'blockquote') {
-					const eTags = nostrEvent.tags.filter(
+					const [_, refEventId] = nostrEvent.tags.findLast(
 						([tagName, tagContent]) => tagName === 'e' && tagContent !== undefined
-					);
-					const [_, refEventId] = eTags.at(eTags.length - 1) || ['', ''];
+					) ?? ['', ''];
 					if (!refEventId) {
 						continue;
 					}

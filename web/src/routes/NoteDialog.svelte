@@ -49,7 +49,7 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<dialog class="note-dialog" bind:this={dialog} on:click={closeDialog} on:close={closed}>
+<dialog bind:this={dialog} on:click={closeDialog} on:close={closed}>
 	<NoteEditor bind:this={editor} on:sent={close} />
 </dialog>
 
