@@ -8,18 +8,16 @@
 	import AutoRefresh from './AutoRefresh.svelte';
 	import MutedUsers from './MutedUsers.svelte';
 	import MutedEvents from './MutedEvents.svelte';
+	import ClearEmojiMartCache from './ClearEmojiMartCache.svelte';
 
 	let debugCounter = 0;
 
 	function enableDebugMode() {
-		if ($debugMode) {
-			return;
-		}
-
 		debugCounter++;
 		if (debugCounter >= 5) {
-			$debugMode = true;
-			console.log('[debug mode] enabled');
+			$debugMode = !$debugMode;
+			debugCounter = 0;
+			console.log('[debug mode]', $debugMode ? 'enabled' : 'disabled');
 		}
 	}
 </script>
@@ -39,6 +37,9 @@
 <div><WordMute /></div>
 <div><Notification /></div>
 <div><AutoRefresh /></div>
+{#if $debugMode}
+	<div><ClearEmojiMartCache /></div>
+{/if}
 <div><Logout /></div>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
