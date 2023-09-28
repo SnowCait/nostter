@@ -233,6 +233,10 @@
 		text-decoration-line: underline;
 	}
 
+	:global(a):hover {
+		color: var(--accent);
+	}
+
 	:global(dialog) {
 		position: fixed;
 		inset: 0;
@@ -266,8 +270,8 @@
 			padding: 0;
 			display: block;
 		}
-    
-    header {
+
+		header {
 			position: static;
 		}
 
