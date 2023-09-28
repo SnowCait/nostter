@@ -77,8 +77,6 @@
 			const eventId = [6, 7, 9735].includes(nostrEvent.kind)
 				? getTargetETag(nostrEvent.tags)
 				: nostrEvent.id;
-			if ([6, 7, 9735].includes(nostrEvent.kind)) {
-			}
 			const noteId = nip19.noteEncode(eventId);
 			await goto(`/${noteId}`);
 		}
