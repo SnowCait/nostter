@@ -19,8 +19,6 @@
 	let innerHeight: number;
 	let scrollY = writable(0);
 
-	let timelineRef: HTMLUListElement | null = null;
-
 	onMount(() => {
 		console.log('Timeline.onMount');
 		scrollY.subscribe(async (y) => {
@@ -91,7 +89,7 @@
 
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
-<ul class="card timeline" bind:this={timelineRef}>
+<ul class="card timeline">
 	{#each items as item (item.event.id)}
 		{#if !isMuteEvent(item.event)}
 			<li
