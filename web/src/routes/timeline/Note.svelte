@@ -422,8 +422,6 @@
 						<IconCodeDots size={iconSize} />
 					</button>
 				</div>
-			{/if}
-		{/if}
 		{#if jsonDisplay}
 			<div class="develop">
 				<h5>Event ID</h5>
@@ -435,7 +433,8 @@
 				<h5>User ID</h5>
 				<div>{nip19.npubEncode(item.event.pubkey)}</div>
 				<h5>User JSON</h5>
-				<pre><code class="json">{JSON.stringify(metadata?.event ?? '{}', null, 2)}</code
+						<pre><code class="json"
+								>{JSON.stringify(metadata?.event ?? '{}', null, 2)}</code
 					></pre>
 				<h5>Code Points</h5>
 				<h6>display name</h6>
@@ -468,6 +467,8 @@
 					</a>
 				</div>
 			</div>
+		{/if}
+			{/if}
 		{/if}
 	</div>
 </article>
