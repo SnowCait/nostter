@@ -540,6 +540,11 @@
 		overflow: auto;
 	}
 
+	.develop {
+		cursor: default;
+		background-color: var(--surface);
+	}
+
 	.develop pre {
 		background-color: #f6f8fa;
 		padding: 0.5em;
