@@ -7,8 +7,10 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		%sveltekit.head%
 		<style>
-			body {
-				overscroll-behavior-y: none;
+			@media not (display-mode: standalone) {
+				body {
+					overscroll-behavior-y: none;
+				}
 			}
 
 			@media screen and (max-width: 600px) {
