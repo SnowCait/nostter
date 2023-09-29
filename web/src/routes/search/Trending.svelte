@@ -56,6 +56,10 @@
 		font-size: 0.8rem;
 	}
 
+	a {
+		text-decoration: underline;
+	}
+
 	li + li {
 		margin-top: 0.5rem;
 	}
