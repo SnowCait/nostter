@@ -67,8 +67,8 @@
 	const fullMenu = timelineConfig?.fullMenu ?? false;
 	let showMenu = false;
 
-	function reply(item: EventItem) {
-		$replyTo = item;
+	function reply(item: Item) {
+		$replyTo = item as EventItem;
 		$openNoteDialog = true;
 	}
 
@@ -422,52 +422,53 @@
 						<IconCodeDots size={iconSize} />
 					</button>
 				</div>
+				{#if jsonDisplay}
+					<div class="develop">
+						<h5>Event ID</h5>
+						<div>{nip19.noteEncode(item.event.id)}</div>
+						<br />
+						<div>{nip19.neventEncode({ id: item.event.id })}</div>
+						<h5>Event JSON</h5>
+						<pre><code class="json">{JSON.stringify(item.event, null, 2)}</code></pre>
+						<h5>User ID</h5>
+						<div>{nip19.npubEncode(item.event.pubkey)}</div>
+						<h5>User JSON</h5>
+						<pre><code class="json"
+								>{JSON.stringify(metadata?.event ?? '{}', null, 2)}</code
+							></pre>
+						<h5>Code Points</h5>
+						<h6>display name</h6>
+						<p>
+							{getCodePoints(metadata?.content?.display_name ?? '')
+								.map((codePoint) => `0x${codePoint.toString(16)}`)
+								.join(' ')}
+						</p>
+						<h6>@name</h6>
+						<p>
+							{getCodePoints(metadata?.content?.name ?? '')
+								.map((codePoint) => `0x${codePoint.toString(16)}`)
+								.join(' ')}
+						</p>
+						<h6>content</h6>
+						<p>
+							{getCodePoints(item.event.content)
+								.map((codePoint) => `0x${codePoint.toString(16)}`)
+								.join(' ')}
+						</p>
+						<div>
+							Open in <a
+								href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode(
+									{ id: item.event.id }
+								)}&kind={item.event.kind}"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								nostr-post-checker
+							</a>
+						</div>
+					</div>
+				{/if}
 			{/if}
-		{/if}
-		{#if jsonDisplay}
-			<div class="develop">
-				<h5>Event ID</h5>
-				<div>{nip19.noteEncode(item.event.id)}</div>
-				<br />
-				<div>{nip19.neventEncode({ id: item.event.id })}</div>
-				<h5>Event JSON</h5>
-				<pre><code class="json">{JSON.stringify(item.event, null, 2)}</code></pre>
-				<h5>User ID</h5>
-				<div>{nip19.npubEncode(item.event.pubkey)}</div>
-				<h5>User JSON</h5>
-				<pre><code class="json">{JSON.stringify(metadata?.event ?? '{}', null, 2)}</code
-					></pre>
-				<h5>Code Points</h5>
-				<h6>display name</h6>
-				<p>
-					{getCodePoints(metadata?.content?.display_name ?? '')
-						.map((codePoint) => `0x${codePoint.toString(16)}`)
-						.join(' ')}
-				</p>
-				<h6>@name</h6>
-				<p>
-					{getCodePoints(metadata?.content?.name ?? '')
-						.map((codePoint) => `0x${codePoint.toString(16)}`)
-						.join(' ')}
-				</p>
-				<h6>content</h6>
-				<p>
-					{getCodePoints(item.event.content)
-						.map((codePoint) => `0x${codePoint.toString(16)}`)
-						.join(' ')}
-				</p>
-				<div>
-					Open in <a
-						href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode(
-							{ id: item.event.id }
-						)}&kind={item.event.kind}"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						nostr-post-checker
-					</a>
-				</div>
-			</div>
 		{/if}
 	</div>
 </article>
