@@ -155,7 +155,6 @@
 	readonly={false}
 	load={async () => console.debug()}
 	showLoading={false}
-	transitionable={false}
 />
 
 <div bind:this={focusedElement}>
@@ -174,7 +173,6 @@
 	readonly={false}
 	load={async () => console.debug()}
 	showLoading={false}
-	transitionable={false}
 />
 
 {#if repostEvents !== undefined}
