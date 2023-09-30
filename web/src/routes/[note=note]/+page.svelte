@@ -13,8 +13,10 @@
 	import Counter from './Counter.svelte';
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { chronologicalItem } from '$lib/Constants';
-	import { setContext } from 'svelte';
+	import { setContext, tick } from 'svelte';
 	import MuteButton from '../action/MuteButton.svelte';
+
+	let focusedElement: HTMLDivElement | undefined;
 
 	let item: EventItem | undefined;
 	let items: EventItem[] = [];
@@ -82,6 +84,9 @@
 		items.push(item);
 		items = items;
 
+		await tick();
+		focusedElement?.scrollIntoView();
+
 		api.fetchEventItems([
 			{
 				'#e': [eventId]
@@ -127,6 +132,9 @@
 				items = items;
 			}
 		}
+
+		await tick();
+		focusedElement?.scrollIntoView();
 	});
 
 	function clear() {
@@ -150,14 +158,16 @@
 	transitionable={false}
 />
 
-<!-- TODO: Replace to EventComponent (Using TimelineView for CSS now) -->
-<TimelineView
-	items={focusedItems}
-	readonly={false}
-	load={async () => console.debug()}
-	showLoading={false}
-	transitionable={false}
-/>
+<div bind:this={focusedElement}>
+	<!-- TODO: Replace to EventComponent (Using TimelineView for CSS now) -->
+	<TimelineView
+		items={focusedItems}
+		readonly={false}
+		load={async () => console.debug()}
+		showLoading={false}
+		transitionable={false}
+	/>
+</div>
 
 <TimelineView
 	items={futureItems}
