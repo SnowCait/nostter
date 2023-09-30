@@ -34,6 +34,7 @@
 	export let item: Item;
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	export let full = false;
 
 	$: metadata = (item as EventItem).metadata;
 
@@ -63,8 +64,6 @@
 		jsonDisplay = !jsonDisplay;
 	};
 
-	const timelineConfig: { fullMenu: boolean } | undefined = getContext('timeline-config');
-	const fullMenu = timelineConfig?.fullMenu ?? false;
 	let showMenu = false;
 
 	function reply(item: Item) {
@@ -379,11 +378,11 @@
 				<span class:hidden={item.event.kind === Kind.EncryptedDirectMessage}>
 					<EmojiPicker on:pick={({ detail }) => emojiReaction(item.event, detail)} />
 				</span>
-				<button class:hidden={fullMenu} on:click={() => (showMenu = !showMenu)}>
+				<button class:hidden={full} on:click={() => (showMenu = !showMenu)}>
 					<IconDots size={iconSize} />
 				</button>
 			</div>
-			{#if fullMenu || showMenu}
+			{#if full || showMenu}
 				<div class="action-menu">
 					<!-- instead of margin -->
 					<button class:hidden={true} on:click={console.debug}>
