@@ -177,7 +177,17 @@
 									({ event }) =>
 										new EventItem(event, metadataEvents.get(event.pubkey))
 								);
-							events.push(...newEventItems);
+							const duplicateEvents = newEventItems.filter((item) =>
+								events.some((x) => x.event.id === item.event.id)
+							);
+							if (duplicateEvents.length > 0) {
+								console.warn('[duplicate events]', duplicateEvents);
+							}
+							events.push(
+								...newEventItems.filter(
+									(item) => !events.some((x) => x.event.id === item.event.id)
+								)
+							);
 							events = events;
 						},
 						complete: () => {
