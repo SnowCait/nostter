@@ -13,8 +13,10 @@
 	import Counter from './Counter.svelte';
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { chronologicalItem } from '$lib/Constants';
-	import { setContext } from 'svelte';
+	import { setContext, tick } from 'svelte';
 	import MuteButton from '../action/MuteButton.svelte';
+
+	let focusedElement: HTMLDivElement | undefined;
 
 	let item: EventItem | undefined;
 	let items: EventItem[] = [];
@@ -24,6 +26,11 @@
 
 	let repostEvents: EventItem[] | undefined;
 	let reactionEvents: EventItem[] | undefined;
+
+	// TODO: Replace
+	$: pastItems = items.filter((x) => x.event.created_at < (item?.event.created_at ?? 0));
+	$: focusedItems = items.filter((x) => x.event.created_at === (item?.event.created_at ?? 0));
+	$: futureItems = items.filter((x) => x.event.created_at > (item?.event.created_at ?? 0));
 
 	$: repostMetadataList =
 		repostEvents !== undefined
@@ -77,20 +84,27 @@
 		items.push(item);
 		items = items;
 
-		const relatedEvents = await api.fetchEventItems([
+		await tick();
+		focusedElement?.scrollIntoView();
+
+		api.fetchEventItems([
 			{
 				'#e': [eventId]
 			}
-		]);
-		relatedEvents.sort(chronologicalItem);
-		console.log('[#e events]', relatedEvents);
+		]).then((relatedEvents) => {
+			relatedEvents.sort(chronologicalItem);
+			console.log('[#e events]', relatedEvents);
 
-		const repliedEvents = relatedEvents.filter(
-			(x) => x.event.kind === Kind.Text && x.event.id !== eventId
-		);
-		repostEvents = relatedEvents.filter((x) => Number(x.event.kind) === 6);
-		reactionEvents = relatedEvents.filter((x) => x.event.kind === Kind.Reaction);
-		console.log(repliedEvents, repostEvents, reactionEvents);
+			const repliedEvents = relatedEvents.filter(
+				(x) => x.event.kind === Kind.Text && x.event.id !== eventId
+			);
+			repostEvents = relatedEvents.filter((x) => Number(x.event.kind) === 6);
+			reactionEvents = relatedEvents.filter((x) => x.event.kind === Kind.Reaction);
+			console.log(repliedEvents, repostEvents, reactionEvents);
+
+			items.push(...repliedEvents);
+			items = items;
+		});
 
 		const { root, reply } = referTags(item.event);
 		rootId = root?.at(1);
@@ -119,8 +133,8 @@
 			}
 		}
 
-		items.push(...repliedEvents);
-		items = items;
+		await tick();
+		focusedElement?.scrollIntoView();
 	});
 
 	function clear() {
@@ -131,13 +145,32 @@
 </script>
 
 <svelte:head>
-	<title>nostter - note</title>
+	<title>nostter - thread</title>
 </svelte:head>
 
-<h1>note</h1>
+<h1>Thread</h1>
 
 <TimelineView
-	{items}
+	items={pastItems}
+	readonly={false}
+	load={async () => console.debug()}
+	showLoading={false}
+	transitionable={false}
+/>
+
+<div bind:this={focusedElement}>
+	<!-- TODO: Replace to EventComponent (Using TimelineView for CSS now) -->
+	<TimelineView
+		items={focusedItems}
+		readonly={false}
+		load={async () => console.debug()}
+		showLoading={false}
+		transitionable={false}
+	/>
+</div>
+
+<TimelineView
+	items={futureItems}
 	readonly={false}
 	load={async () => console.debug()}
 	showLoading={false}
