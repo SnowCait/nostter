@@ -199,7 +199,7 @@
 							events = events;
 						},
 						complete: () => {
-							console.log('[rx-nostr user timeline complete]');
+							console.log('[rx-nostr user timeline complete]', pastEventsReq.rxReqId);
 							resolve();
 						},
 						error: (error) => {
@@ -213,6 +213,7 @@
 			count++;
 			console.log(
 				'[rx-nostr user timeline loaded]',
+				pastEventsReq.rxReqId,
 				count,
 				until,
 				seconds / 3600,
