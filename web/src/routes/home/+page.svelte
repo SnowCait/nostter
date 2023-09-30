@@ -31,3 +31,13 @@
 {:else if $selected === 'global'}
 	<UserFollowingTimeline {pubkey} bind:this={userFollowingTimeline} />
 {/if}
+
+<style>
+	select {
+		border: none;
+		font-size: 2rem;
+		font-weight: bold;
+		outline: none;
+		background: none;
+	}
+</style>
