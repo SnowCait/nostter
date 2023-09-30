@@ -25,6 +25,11 @@
 	let repostEvents: EventItem[] | undefined;
 	let reactionEvents: EventItem[] | undefined;
 
+	// TODO: Replace
+	$: pastItems = items.filter((x) => x.event.created_at < (item?.event.created_at ?? 0));
+	$: focusedItems = items.filter((x) => x.event.created_at === (item?.event.created_at ?? 0));
+	$: futureItems = items.filter((x) => x.event.created_at > (item?.event.created_at ?? 0));
+
 	$: repostMetadataList =
 		repostEvents !== undefined
 			? repostEvents.map((x) => x.metadata).filter((x): x is Metadata => x !== undefined)
@@ -134,10 +139,26 @@
 	<title>nostter - note</title>
 </svelte:head>
 
-<h1>note</h1>
 
 <TimelineView
-	{items}
+	items={pastItems}
+	readonly={false}
+	load={async () => console.debug()}
+	showLoading={false}
+	transitionable={false}
+/>
+
+<!-- TODO: Replace to EventComponent (Using TimelineView for CSS now) -->
+<TimelineView
+	items={focusedItems}
+	readonly={false}
+	load={async () => console.debug()}
+	showLoading={false}
+	transitionable={false}
+/>
+
+<TimelineView
+	items={futureItems}
 	readonly={false}
 	load={async () => console.debug()}
 	showLoading={false}
