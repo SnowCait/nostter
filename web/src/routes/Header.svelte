@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import IconHome from '@tabler/icons-svelte/dist/svelte/icons/IconHome.svelte';
 	import IconSearch from '@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte';
-	import IconWorld from '@tabler/icons-svelte/dist/svelte/icons/IconWorld.svelte';
 	import IconBell from '@tabler/icons-svelte/dist/svelte/icons/IconBell.svelte';
 	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
 	import IconSettings from '@tabler/icons-svelte/dist/svelte/icons/IconSettings.svelte';
@@ -60,12 +59,6 @@
 				<li>
 					<IconSearch size={30} />
 					<p>{$_('layout.header.search')}</p>
-				</li>
-			</a>
-			<a href="/{npub}/timeline">
-				<li>
-					<IconWorld size={30} />
-					<p>{$_('layout.header.global')}</p>
 				</li>
 			</a>
 			{#if $pubkey}
