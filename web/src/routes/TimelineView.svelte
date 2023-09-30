@@ -59,7 +59,7 @@
 					return;
 				}
 				const tagName = target.tagName.toLocaleLowerCase();
-				if (tagName === 'a' || tagName === 'button') {
+				if (tagName === 'a' || tagName === 'button' || tagName === 'video') {
 					return;
 				}
 				if (tagName === 'p' && String(document.getSelection()).length) {
