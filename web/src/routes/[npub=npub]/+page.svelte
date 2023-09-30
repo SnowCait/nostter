@@ -150,6 +150,11 @@
 			const filters = Timeline.createChunkedFilters([pubkey], since, until);
 			console.log('[rx-nostr user timeline REQ]', filters, rxNostr.getAllRelayState());
 			const pastEventsReq = createRxOneshotReq({ filters });
+			console.log(
+				'[rx-nostr user timeline req ID]',
+				pastEventsReq.strategy,
+				pastEventsReq.rxReqId
+			);
 			await new Promise<void>((resolve, reject) => {
 				rxNostr
 					.use(pastEventsReq)
@@ -181,7 +186,10 @@
 								events.some((x) => x.event.id === item.event.id)
 							);
 							if (duplicateEvents.length > 0) {
-								console.warn('[duplicate events]', duplicateEvents);
+								console.warn(
+									'[rx-nostr user timeline duplicate events]',
+									duplicateEvents
+								);
 							}
 							events.push(
 								...newEventItems.filter(
@@ -203,7 +211,13 @@
 			until -= seconds;
 			seconds *= 2;
 			count++;
-			console.log('[load]', count, until, seconds / 3600, events.length);
+			console.log(
+				'[rx-nostr user timeline loaded]',
+				count,
+				until,
+				seconds / 3600,
+				events.length
+			);
 		}
 	}
 </script>
