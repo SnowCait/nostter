@@ -4,20 +4,30 @@
 	import UserFollowingTimeline from '../[npub=npub]/timeline/UserFollowingTimeline.svelte';
 	import { japaneseBotNpub } from '$lib/Constants';
 	import { nip19 } from 'nostr-tools';
+	import { tick } from 'svelte';
+	import { writable, type Writable } from 'svelte/store';
 
 	let pubkey: string;
 	$: pubkey = nip19.decode(japaneseBotNpub).data as string;
 
-	let selected: 'home' | 'global' = 'home';
+	let selected: Writable<'home' | 'global'> = writable('home');
+	let userFollowingTimeline: UserFollowingTimeline;
+
+	selected.subscribe(async (value) => {
+		if (value === 'global') {
+			await tick();
+			await userFollowingTimeline.initialize();
+		}
+	});
 </script>
 
-<select bind:value={selected}>
+<select bind:value={$selected}>
 	<option value="home">{$_('layout.header.home')}</option>
 	<option value="global">{$_('layout.header.global')}</option>
 </select>
 
-{#if selected === 'home'}
+{#if $selected === 'home'}
 	<FollowingTimeline />
-{:else if selected === 'global'}
-	<UserFollowingTimeline {pubkey} />
+{:else if $selected === 'global'}
+	<UserFollowingTimeline {pubkey} bind:this={userFollowingTimeline} />
 {/if}

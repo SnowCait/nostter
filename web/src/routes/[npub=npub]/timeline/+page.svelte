@@ -6,6 +6,7 @@
 	import UserFollowingTimeline from './UserFollowingTimeline.svelte';
 
 	let pubkey: string;
+	let timeline: UserFollowingTimeline;
 
 	afterNavigate(async () => {
 		const slug = $page.params.npub;
@@ -23,7 +24,9 @@
 		}
 
 		pubkey = data.pubkey;
+
+		await timeline.initialize();
 	});
 </script>
 
-<UserFollowingTimeline {pubkey} />
+<UserFollowingTimeline {pubkey} bind:this={timeline} />
