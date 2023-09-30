@@ -137,9 +137,10 @@
 </script>
 
 <svelte:head>
-	<title>nostter - note</title>
+	<title>nostter - thread</title>
 </svelte:head>
 
+<h1>Thread</h1>
 
 <TimelineView
 	items={pastItems}
