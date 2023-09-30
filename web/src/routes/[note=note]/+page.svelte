@@ -13,7 +13,7 @@
 	import Counter from './Counter.svelte';
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { chronologicalItem } from '$lib/Constants';
-	import { setContext, tick } from 'svelte';
+	import { tick } from 'svelte';
 	import MuteButton from '../action/MuteButton.svelte';
 
 	let focusedElement: HTMLDivElement | undefined;
@@ -40,10 +40,6 @@
 		reactionEvents !== undefined
 			? reactionEvents.map((x) => x.metadata).filter((x): x is Metadata => x !== undefined)
 			: [];
-
-	setContext('timeline-config', {
-		fullMenu: true
-	});
 
 	afterNavigate(async () => {
 		console.log('[note page]');
@@ -164,6 +160,7 @@
 		readonly={false}
 		load={async () => console.debug()}
 		showLoading={false}
+		full={true}
 		transitionable={false}
 	/>
 </div>

@@ -12,6 +12,7 @@
 	export let item: Item;
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	export let full = false;
 </script>
 
 {#if item.event.kind === Kind.Metadata}
@@ -27,5 +28,5 @@
 {:else if Number(item.event.kind) === 30030}
 	<CustomEmojiList tags={item.event.tags} />
 {:else}
-	<Note {item} {readonly} {createdAtFormat} />
+	<Note {item} {readonly} {createdAtFormat} {full} />
 {/if}

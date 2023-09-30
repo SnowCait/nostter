@@ -13,6 +13,7 @@
 	export let load: () => Promise<void>;
 	export let showLoading = true;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	export let full = false;
 	export let transitionable = true;
 
 	let loading = false;
@@ -97,7 +98,7 @@
 				class:related={$author?.isNotified(item.event)}
 				on:mouseup={(e) => viewDetail(e, item.event)}
 			>
-				<EventComponent {item} {readonly} {createdAtFormat} />
+				<EventComponent {item} {readonly} {createdAtFormat} {full} />
 			</li>
 		{/if}
 	{/each}
