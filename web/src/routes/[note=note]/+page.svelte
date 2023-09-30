@@ -82,20 +82,24 @@
 		items.push(item);
 		items = items;
 
-		const relatedEvents = await api.fetchEventItems([
+		api.fetchEventItems([
 			{
 				'#e': [eventId]
 			}
-		]);
-		relatedEvents.sort(chronologicalItem);
-		console.log('[#e events]', relatedEvents);
+		]).then((relatedEvents) => {
+			relatedEvents.sort(chronologicalItem);
+			console.log('[#e events]', relatedEvents);
 
-		const repliedEvents = relatedEvents.filter(
-			(x) => x.event.kind === Kind.Text && x.event.id !== eventId
-		);
-		repostEvents = relatedEvents.filter((x) => Number(x.event.kind) === 6);
-		reactionEvents = relatedEvents.filter((x) => x.event.kind === Kind.Reaction);
-		console.log(repliedEvents, repostEvents, reactionEvents);
+			const repliedEvents = relatedEvents.filter(
+				(x) => x.event.kind === Kind.Text && x.event.id !== eventId
+			);
+			repostEvents = relatedEvents.filter((x) => Number(x.event.kind) === 6);
+			reactionEvents = relatedEvents.filter((x) => x.event.kind === Kind.Reaction);
+			console.log(repliedEvents, repostEvents, reactionEvents);
+
+			items.push(...repliedEvents);
+			items = items;
+		});
 
 		const { root, reply } = referTags(item.event);
 		rootId = root?.at(1);
@@ -123,9 +127,6 @@
 				items = items;
 			}
 		}
-
-		items.push(...repliedEvents);
-		items = items;
 	});
 
 	function clear() {
