@@ -7,6 +7,7 @@
 	import { Content } from '$lib/Content';
 	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
 	import { EventItem } from '$lib/Items';
+	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../../stores/NoteDialog';
 	import { rom } from '../../stores/Author';
 	import { userEvents } from '../../stores/UserEvents';
@@ -31,6 +32,7 @@
 		emojiTags = [];
 		contentWarningReason = undefined;
 		emojiPickerSlide?.hide();
+		mediaFiles = [];
 	}
 
 	export function isAutocompleting(): boolean {
@@ -48,6 +50,7 @@
 	let autocompleting = false;
 	let pubkeys = new Set<string>();
 	let contentWarningReason: string | undefined;
+	let mediaFiles: File[] = [];
 
 	let textarea: HTMLTextAreaElement;
 	let article: HTMLElement;
@@ -318,6 +321,50 @@
 			}
 		});
 	}
+
+	async function paste(event: ClipboardEvent) {
+		console.log('[paste]', event.type, event.clipboardData);
+
+		if (event.clipboardData === null) {
+			return;
+		}
+
+		console.log('[paste types]', event.clipboardData.types);
+		const index = event.clipboardData.types.findIndex((x) => x === 'Files');
+		console.log('[paste file index]', index);
+
+		if (index === undefined || index < 0) {
+			return;
+		}
+
+		const file = event.clipboardData.items[index].getAsFile();
+
+		if (file === null) {
+			console.error('[paste file not found]');
+			return;
+		}
+
+		console.log('[paste file]', file);
+
+		if (file.size > 1024 * 1024) {
+			console.error('[paste file size > 1MB]', file.size.toLocaleString());
+			return;
+		}
+
+		mediaFiles.push(file);
+		mediaFiles = mediaFiles;
+
+		try {
+			const media = new NostrcheckMe();
+			const { url } = await media.upload(file);
+			if (url) {
+				content += (content === '' ? '' : '\n') + url;
+			}
+		} catch (error) {
+			console.error('[paste upload error]', error);
+			return;
+		}
+	}
 </script>
 
 <article bind:this={article} class="note-editor">
@@ -334,6 +381,7 @@
 		on:keydown={submitFromKeyboard}
 		on:keyup|stopPropagation={() => console.debug}
 		on:input={onInput}
+		on:paste={paste}
 	/>
 	<div class="actions">
 		<div class="options">
@@ -366,6 +414,15 @@
 				<li>
 					<span>:{tag[1]}:</span>
 					<CustomEmoji text={tag[1]} url={tag[2]} />
+				</li>
+			{/each}
+		</ul>
+	{/if}
+	{#if mediaFiles.length > 0}
+		<ul class="media">
+			{#each mediaFiles as file}
+				<li>
+					<img src={URL.createObjectURL(file)} alt={file.name} />
 				</li>
 			{/each}
 		</ul>
