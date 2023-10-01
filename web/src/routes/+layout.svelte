@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { WebStorage } from '$lib/WebStorage';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
 	import { openNoteDialog } from '../stores/NoteDialog';
 	import { onMount } from 'svelte';
-	import { debugMode } from '../stores/Preference';
+	import { debugMode, theme } from '../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
 	import { _ } from 'svelte-i18n';
 	import '../app.css';
@@ -79,7 +80,39 @@
 
 	onMount(() => {
 		document.addEventListener('visibilitychange', onVisibilityChange);
+		setupTheme();
 	});
+
+	function setupTheme(): void {
+		const storage = new WebStorage(localStorage);
+		$theme = (storage.get('theme') as 'system' | 'light' | 'dark' | null) ?? 'system';
+		theme.subscribe((v) => {
+			if (v === 'dark') {
+				console.log('[theme local]', 'dark');
+				document.documentElement.classList.add('dark');
+			} else if (v === 'light') {
+				console.log('[theme local]', 'light');
+				document.documentElement.classList.remove('dark');
+			}
+		});
+
+		const prefersColorSchemeIsDark = window.matchMedia('(prefers-color-scheme: dark)');
+		const switchTheme = (e: MediaQueryList | MediaQueryListEvent) => {
+			if (e.matches) {
+				console.log('[theme system]', 'dark');
+				document.documentElement.classList.add('dark');
+			} else {
+				console.log('[theme system]', 'light');
+				document.documentElement.classList.remove('dark');
+			}
+		};
+		if ($theme === 'system') {
+			switchTheme(prefersColorSchemeIsDark);
+			prefersColorSchemeIsDark.addEventListener('change', switchTheme);
+		} else {
+			prefersColorSchemeIsDark.removeEventListener('change', switchTheme);
+		}
+	}
 </script>
 
 <svelte:window on:keyup={keyboardShortcut} />

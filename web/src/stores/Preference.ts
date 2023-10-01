@@ -6,6 +6,7 @@ import { writable, type Writable } from 'svelte/store';
 export const reactionEmoji = writable('+');
 
 // Persistent in local
+export const theme: Writable<'system' | 'light' | 'dark'> = writable('system');
 export const autoRefresh: Writable<boolean> = writable(true);
 if (browser) {
 	const storage = new WebStorage(localStorage);
