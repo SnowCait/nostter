@@ -38,7 +38,7 @@
 		"@emoji-mart/data": "^1.1.2",
 		"@floating-ui/dom": "^1.5.3",
 		"@tabler/icons-svelte": "^2.34.0",
-		"emoji-kitchen-mart": "^6.0.1",
+		"emoji-kitchen-mart": "^6.0.2",
 		"lucide-svelte": "^0.279.0",
 		"nostr-tools": "^1.10.1",
 		"qrcode": "^1.5.3",
