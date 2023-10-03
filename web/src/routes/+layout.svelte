@@ -4,7 +4,7 @@
 	import NoteDialog from './NoteDialog.svelte';
 	import { openNoteDialog } from '../stores/NoteDialog';
 	import { onMount } from 'svelte';
-	import { debugMode, theme } from '../stores/Preference';
+	import { debugMode } from '../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
 	import { _ } from 'svelte-i18n';
 	import '../app.css';
@@ -80,38 +80,28 @@
 
 	onMount(() => {
 		document.addEventListener('visibilitychange', onVisibilityChange);
-		setupTheme();
+		subscribeSystemTheme();
 	});
 
-	function setupTheme(): void {
+	function subscribeSystemTheme(): void {
 		const storage = new WebStorage(localStorage);
-		$theme = (storage.get('theme') as 'system' | 'light' | 'dark' | null) ?? 'system';
-		theme.subscribe((v) => {
-			if (v === 'dark') {
-				console.log('[theme local]', 'dark');
-				document.documentElement.classList.add('dark');
-			} else if (v === 'light') {
-				console.log('[theme local]', 'light');
-				document.documentElement.classList.remove('dark');
-			}
-		});
+		window
+			.matchMedia('(prefers-color-scheme: dark)')
+			.addEventListener('change', (e: MediaQueryList | MediaQueryListEvent) => {
+				const t = storage.get('theme') ?? 'system';
 
-		const prefersColorSchemeIsDark = window.matchMedia('(prefers-color-scheme: dark)');
-		const switchTheme = (e: MediaQueryList | MediaQueryListEvent) => {
-			if (e.matches) {
-				console.log('[theme system]', 'dark');
-				document.documentElement.classList.add('dark');
-			} else {
-				console.log('[theme system]', 'light');
-				document.documentElement.classList.remove('dark');
-			}
-		};
-		if ($theme === 'system') {
-			switchTheme(prefersColorSchemeIsDark);
-			prefersColorSchemeIsDark.addEventListener('change', switchTheme);
-		} else {
-			prefersColorSchemeIsDark.removeEventListener('change', switchTheme);
-		}
+				if (t !== 'system') {
+					return;
+				}
+
+				if (e.matches) {
+					console.log('[theme system]', 'dark');
+					document.documentElement.classList.add('dark');
+				} else {
+					console.log('[theme system]', 'light');
+					document.documentElement.classList.remove('dark');
+				}
+			});
 	}
 </script>
 
