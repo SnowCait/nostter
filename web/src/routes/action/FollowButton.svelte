@@ -5,7 +5,6 @@
 	import { nip19 } from 'nostr-tools';
 	import { Contacts } from '$lib/Contacts';
 	import { _ } from 'svelte-i18n';
-	import Loading from '../Loading.svelte';
 
 	export let pubkey: string;
 
