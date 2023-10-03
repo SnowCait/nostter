@@ -6,12 +6,6 @@ import { Author } from './Author';
 import { generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
 import { WebStorage } from './WebStorage';
 
-interface Window {
-	// NIP-07
-	nostr: any;
-}
-declare const window: Window;
-
 export class Login {
 	public async generateNsec() {
 		const seckey = generatePrivateKey();
