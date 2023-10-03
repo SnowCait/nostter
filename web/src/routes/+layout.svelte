@@ -282,10 +282,6 @@
 			display: block;
 		}
 
-		header {
-			position: static;
-		}
-
 		main {
 			margin-left: auto;
 			padding-bottom: 3.125rem;
