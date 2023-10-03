@@ -8,7 +8,7 @@
 	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
 	import { EventItem } from '$lib/Items';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../../stores/NoteDialog';
-	import { pubkey, rom } from '../../stores/Author';
+	import { rom } from '../../stores/Author';
 	import { userEvents } from '../../stores/UserEvents';
 	import type { UserEvent } from '../types';
 	import { customEmojiTags } from '../../stores/CustomEmojis';
