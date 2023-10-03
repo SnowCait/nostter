@@ -358,6 +358,13 @@
 		border-radius: 0.5rem 0.5rem 0 0;
 	}
 
+	@media screen and (max-width: 600px) {
+		.banner img,
+		.banner .blank {
+			border-radius: 0;
+		}
+	}
+
 	.user-info {
 		margin-top: calc(100px + 1rem);
 	}
