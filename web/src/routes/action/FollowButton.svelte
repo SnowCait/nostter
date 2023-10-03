@@ -9,7 +9,6 @@
 	export let pubkey: string;
 
 	let processing = false;
-	let followingUser = $followees.some((x) => x === pubkey);
 
 	const api = new Api($pool, $writeRelays);
 
@@ -23,7 +22,6 @@
 			await contacts.follow(pubkey);
 			$followees.push(pubkey);
 			$followees = $followees;
-			followingUser = true;
 		} catch (error) {
 			console.error('[follow failed]', error);
 			alert('Failed to follow.');
@@ -55,7 +53,6 @@
 			const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
 			await contacts.unfollow(pubkey);
 			$followees = $followees.filter((x) => x !== pubkey);
-			followingUser = false;
 		} catch (error) {
 			console.error('[unfollow failed]', error);
 			alert('Failed to unfollow.');
@@ -65,15 +62,15 @@
 	}
 </script>
 
-<div class="following">
-	<button
-		on:click={followingUser ? unfollow : follow}
-		class={`button-small ${followingUser ? 'button-outlined' : ''}`}
-		disabled={processing}
-	>
-		{followingUser ? $_('following') : $_('follow')}
+{#if $followees.some((x) => x === pubkey)}
+	<button on:click={unfollow} class="button-small button-outlined" disabled={processing}>
+		{$_('following')}
 	</button>
-</div>
+{:else}
+	<button on:click={follow} class="button-small" disabled={processing}>
+		{$_('follow')}
+	</button>
+{/if}
 
 <style>
 	button {
