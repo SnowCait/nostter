@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
+	import type { Nip07 } from 'nostr-typedef';
 	import { Login } from '$lib/Login';
 	import { loginType } from '../stores/Author';
 	import { page } from '$app/stores';
@@ -9,6 +10,7 @@
 	import { authorProfile } from '../stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
 
+	let nostr: Nip07.Nostr | undefined;
 	let key = '';
 
 	const login = new Login();
@@ -40,17 +42,24 @@
 	}
 
 	onMount(async () => {
-		console.log('onMount');
+		const { waitNostr } = await import('nip07-awaiter');
+		console.log('[login on mount]');
 
 		const storage = new WebStorage(localStorage);
 		const savedLogin = storage.get('login');
 		console.log('[login]', savedLogin);
 
 		if (savedLogin === null) {
+			waitNostr(10000).then((n) => (nostr = n));
 			return;
 		}
 
 		if (savedLogin === 'NIP-07') {
+			nostr = await waitNostr(10000);
+			if (nostr === undefined) {
+				alert('Browser Extension was not found');
+				return;
+			}
 			await login.withNip07();
 		} else if (savedLogin.startsWith('nsec')) {
 			await login.withNsec(savedLogin);
@@ -93,12 +102,14 @@
 	});
 </script>
 
-<button on:click|once={loginWithNip07} disabled={$loginType !== undefined}>
-	{$_('login.browser_extension')}
-</button>
-<span>{$_('login.recommended')}</span>
+{#if nostr !== undefined}
+	<button on:click|once={loginWithNip07} disabled={$loginType !== undefined}>
+		{$_('login.browser_extension')}
+	</button>
+	<span>{$_('login.recommended')}</span>
 
-<div>or</div>
+	<div>or</div>
+{/if}
 
 <form on:submit|preventDefault|once={loginWithKey}>
 	<input
