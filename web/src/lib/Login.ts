@@ -13,17 +13,6 @@ interface Window {
 declare const window: Window;
 
 export class Login {
-	private async nip07Enabled(): Promise<boolean> {
-		const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-		for (let i = 0; i < 20; i++) {
-			if (window.nostr !== undefined) {
-				return true;
-			}
-			await sleep(500);
-		}
-		return false;
-	}
-
 	public async generateNsec() {
 		const seckey = generatePrivateKey();
 		await this.withNsec(nip19.nsecEncode(seckey));
@@ -32,13 +21,6 @@ export class Login {
 	public async withNip07() {
 		console.log('Login with NIP-07');
 		console.time('NIP-07');
-
-		if (!(await this.nip07Enabled())) {
-			console.error('Browser extension not found');
-			return;
-		}
-
-		console.timeLog('NIP-07');
 
 		const storage = new WebStorage(localStorage);
 		storage.set('login', 'NIP-07');
