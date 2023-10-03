@@ -9,6 +9,7 @@
 	import MutedUsers from './MutedUsers.svelte';
 	import MutedEvents from './MutedEvents.svelte';
 	import ClearEmojiMartCache from './ClearEmojiMartCache.svelte';
+	import Theme from './Theme.svelte';
 
 	let debugCounter = 0;
 
@@ -24,6 +25,9 @@
 
 <h1>Preference</h1>
 
+{#if $debugMode}
+	<Theme />
+{/if}
 {#if !$rom}
 	<div><ReactionEmoji /></div>
 {/if}
