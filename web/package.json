@@ -40,6 +40,7 @@
 		"@tabler/icons-svelte": "^2.34.0",
 		"emoji-kitchen-mart": "^6.0.2",
 		"lucide-svelte": "^0.279.0",
+		"nip07-awaiter": "^0.2.1",
 		"nostr-tools": "^1.10.1",
 		"qrcode": "^1.5.3",
 		"rx-nostr": "^1.8.0",
