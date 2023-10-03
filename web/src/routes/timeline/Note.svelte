@@ -313,7 +313,7 @@
 			<p class="direct-message">
 				<span>Direct Message.</span>
 				{#if $author?.isRelated(item.event) || item.event.pubkey === $pubkey}
-					<span>Please open in other client.</span>
+					<span>Please open in another app.</span>
 				{:else}
 					<span>This message is not for you.</span>
 				{/if}
