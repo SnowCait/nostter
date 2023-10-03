@@ -170,12 +170,23 @@
 		opacity: 0.75;
 	}
 
-	:global(
-			button.button-small,
-			input[type='button'].button-small,
-			input[type='submit'].button-small
-		) {
-		padding: 0.5rem 1rem;
+	:global(.button-small) {
+		padding: 0.5rem 1.25rem;
+	}
+
+	:global(.button-outlined) {
+		background: transparent;
+		border: 1px solid var(--accent-gray);
+		color: var(--accent-gray);
+	}
+
+	:global(.button-outlined:hover) {
+		opacity: 1;
+		background: var(--accent-surface-high);
+	}
+
+	:global(button:disabled) {
+		opacity: 0.5;
 	}
 
 	:global(
