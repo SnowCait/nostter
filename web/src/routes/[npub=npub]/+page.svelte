@@ -231,92 +231,102 @@
 	{/if}
 </svelte:head>
 
-<section>
+<section class="card profile-wrapper">
 	<div class="banner">
-		<img src={user?.banner} alt="" />
+		{#if user?.banner}
+			<img src={user.banner} alt={`${user.display_name}-banner`} />
+		{:else}
+			<div class="blank" />
+		{/if}
 	</div>
-	<div class="profile">
-		<div class="actions">
-			<div>
-				<img src={user?.picture} alt="" />
-			</div>
-			{#if !$rom}
-				{#if pubkey === $authorPubkey}
-					<div class="profile-editor">
-						<a href="/profile">
-							<IconTool />
-						</a>
+	<div class="user-info">
+		<div class="profile">
+			<div class="actions">
+				<div>
+					{#if user?.picture}
+						<img src={user?.picture} alt={`${user?.display_name}-icon`} />
+					{:else}
+						<div class="blank" />
+					{/if}
+				</div>
+				{#if !$rom}
+					{#if pubkey === $authorPubkey}
+						<div class="profile-editor">
+							<a href="/profile">
+								<IconTool />
+							</a>
+						</div>
+					{/if}
+					<div class="mute">
+						<MuteButton tagName="p" tagContent={pubkey} />
+					</div>
+					<div class="follow">
+						<FollowButton {pubkey} />
 					</div>
 				{/if}
-				<div class="mute">
-					<MuteButton tagName="p" tagContent={pubkey} />
+			</div>
+			<h1>{user?.display_name ?? user?.name ?? ''}</h1>
+			{#if user?.name}
+				<h2>@{user.name}</h2>
+			{/if}
+			{#if user?.nip05}
+				<div class="nip05">
+					<span>{user.nip05}</span>
+					{#await nip05.queryProfile(user.nip05) then pointer}
+						{#if pointer !== null}
+							<IconDiscountCheck color="skyblue" />
+						{:else}
+							<IconAlertTriangle color="red" />
+						{/if}
+					{/await}
 				</div>
-				<div class="follow">
-					<FollowButton {pubkey} />
+			{/if}
+
+			<div class="user-status">
+				<UserStatus {pubkey} showLink={true} />
+			</div>
+			<div class="nip19">{nip19.npubEncode(pubkey)}</div>
+			<div class="nip19">{nip19.nprofileEncode({ pubkey })}</div>
+			{#if followees.some((pubkey) => pubkey === $authorPubkey)}
+				<div>Follows you</div>
+			{/if}
+			{#if user?.website}
+				<div>
+					<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
+				</div>
+			{/if}
+			{#if user?.about}
+				<div class="about">
+					<Content content={user.about} tags={metadata.event.tags} />
 				</div>
 			{/if}
 		</div>
-		<h1>{user?.display_name ?? user?.name ?? ''}</h1>
-		{#if user?.name}
-			<h2>@{user.name}</h2>
-		{/if}
-		{#if user?.nip05}
-			<div class="nip05">
-				<span>{user.nip05}</span>
-				{#await nip05.queryProfile(user.nip05) then pointer}
-					{#if pointer !== null}
-						<IconDiscountCheck color="skyblue" />
-					{:else}
-						<IconAlertTriangle color="red" />
-					{/if}
-				{/await}
-			</div>
-		{/if}
-
-		<div class="user-status">
-			<UserStatus {pubkey} showLink={true} />
-		</div>
-		<div class="nip19">{nip19.npubEncode(pubkey)}</div>
-		<div class="nip19">{nip19.nprofileEncode({ pubkey })}</div>
-		{#if followees.some((pubkey) => pubkey === $authorPubkey)}
-			<div>Follows you</div>
-		{/if}
-		{#if user?.website}
-			<div>
-				<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
-			</div>
-		{/if}
-		{#if user?.about}
-			<div class="about">
-				<Content content={user.about} tags={metadata.event.tags} />
-			</div>
-		{/if}
-	</div>
-	<Badges {badges} />
-	<div>
-		Followees: {#if followeesLoading}
-			<Loading />
-		{:else}
-			<a href={`/${slug}/followees`}>{followees.length}</a>
-		{/if}
-	</div>
-	<div>
-		Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}
-	</div>
-	<div>
-		<a href="/{slug}/relays">Relays</a>
-	</div>
-	<div>
-		<a href="/{slug}/timeline">Timeline</a>
-	</div>
-	<div>
-		<a href="/{slug}/pins">PINs</a>
-	</div>
-	{#if pubkey === $authorPubkey}
+		<Badges {badges} />
 		<div>
-			<a href="/{slug}/reactions">Reactions</a>
+			Followees: {#if followeesLoading}
+				<Loading />
+			{:else}
+				<a href={`/${slug}/followees`}>{followees.length}</a>
+			{/if}
 		</div>
-	{/if}
+		<div>
+			Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}
+		</div>
+		<div>
+			<a href="/{slug}/relays">Relays</a>
+		</div>
+		<div>
+			<a href="/{slug}/timeline">Timeline</a>
+		</div>
+		<div>
+			<a href="/{slug}/pins">PINs</a>
+		</div>
+		{#if pubkey === $authorPubkey}
+			<div>
+				<a href="/{slug}/reactions">Reactions</a>
+			</div>
+		{/if}
+	</div>
 </section>
 
 <section>
@@ -324,22 +334,49 @@
 </section>
 
 <style>
+	.profile-wrapper {
+		position: relative;
+	}
+
 	section + section {
 		margin-top: 1rem;
 	}
 
-	.banner img {
+	.banner {
+		position: absolute;
+		width: 100%;
+		left: 0;
+		top: 0;
+		z-index: 0;
+	}
+
+	.banner img,
+	.banner .blank {
 		object-fit: cover;
 		width: 100%;
 		height: 200px;
+		border-radius: 0.5rem 0.5rem 0 0;
 	}
 
-	.profile img {
+	.user-info {
+		margin-top: calc(100px + 1rem);
+	}
+
+	.profile img,
+	.blank {
 		width: 128px;
 		height: 128px;
 		border-radius: 50%;
 		margin-right: 12px;
 		object-fit: cover;
+		position: relative;
+		z-index: 2;
+	}
+
+	.blank {
+		width: 100%;
+		height: 100%;
+		background-color: var(--accent-surface-high);
 	}
 
 	.profile .actions {
