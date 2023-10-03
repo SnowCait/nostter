@@ -17,5 +17,7 @@
 		"create_account": "アカウントを作成",
 		"try_demo": "デモを試す"
 	},
-	"post": "投稿"
+	"post": "投稿",
+	"follow": "フォロー",
+	"following": "フォロー中"
 }

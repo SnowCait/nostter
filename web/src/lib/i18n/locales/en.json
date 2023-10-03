@@ -17,5 +17,7 @@
 		"recommended": "(Recommended)",
 		"try_demo": "Try demo"
 	},
-	"post": "Post"
+	"post": "Post",
+	"follow": "Follow",
+	"following": "Following"
 }

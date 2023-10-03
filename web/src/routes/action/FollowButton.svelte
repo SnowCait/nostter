@@ -1,33 +1,36 @@
 <script lang="ts">
-	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
 	import { Api } from '$lib/Api';
 	import { pool } from '../../stores/Pool';
 	import { followees, pubkey as authorPubkey, writeRelays } from '../../stores/Author';
 	import { nip19 } from 'nostr-tools';
 	import { Contacts } from '$lib/Contacts';
+	import { _ } from 'svelte-i18n';
+	import Loading from '../Loading.svelte';
 
 	export let pubkey: string;
 
-	let following = false;
+	let processing = false;
+	let followingUser = $followees.some((x) => x === pubkey);
 
 	const api = new Api($pool, $writeRelays);
 
 	async function follow() {
 		console.log('[follow]');
 
-		following = true;
+		processing = true;
 
 		try {
 			const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
 			await contacts.follow(pubkey);
 			$followees.push(pubkey);
 			$followees = $followees;
+			followingUser = true;
 		} catch (error) {
 			console.error('[follow failed]', error);
 			alert('Failed to follow.');
 		}
 
-		following = false;
+		processing = false;
 	}
 
 	async function unfollow() {
@@ -47,41 +50,38 @@
 			return;
 		}
 
+		processing = true;
+
 		try {
 			const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
 			await contacts.unfollow(pubkey);
 			$followees = $followees.filter((x) => x !== pubkey);
+			followingUser = false;
 		} catch (error) {
 			console.error('[unfollow failed]', error);
 			alert('Failed to unfollow.');
 		}
+
+		processing = false;
 	}
 </script>
 
-{#if $followees.some((x) => x === pubkey)}
-	<div class="following">
-		<div>Following</div>
-		<button on:click={unfollow}><IconTrash /></button>
-	</div>
-{:else if $authorPubkey !== ''}
-	<button on:click={follow} disabled={following}>Follow</button>
-{/if}
+<div class="following">
+	<button
+		on:click={followingUser ? unfollow : follow}
+		class={`button-small ${followingUser ? 'button-outlined' : ''}`}
+		disabled={processing}
+	>
+		{followingUser ? $_('following') : $_('follow')}
+	</button>
+</div>
 
 <style>
-	.following {
+	button {
 		display: flex;
-		flex-direction: row;
+		row-gap: 2px;
 	}
-
-	.following button {
-		border: none;
-		background-color: inherit;
-		cursor: pointer;
-		outline: none;
-		padding: 0;
-		color: gray;
-		height: 20px;
-
-		margin-left: 0.2em;
+	:global(button .loader > svg) {
+		fill: white;
 	}
 </style>
