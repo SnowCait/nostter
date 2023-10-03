@@ -359,6 +359,10 @@
 	}
 
 	@media screen and (max-width: 600px) {
+		section + section {
+			margin-top: 0;
+		}
+
 		.banner img,
 		.banner .blank {
 			border-radius: 0;
