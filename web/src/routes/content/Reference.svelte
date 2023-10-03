@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
-	import { EventItem } from '$lib/Items';
-	import { metadataEvents } from '$lib/cache/Events';
+	import type { EventItem } from '$lib/Items';
 	import { events } from '../../stores/Events';
 	import { userEvents } from '../../stores/UserEvents';
 	import Note from '../timeline/Note.svelte';
