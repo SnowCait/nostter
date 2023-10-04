@@ -9,9 +9,12 @@
 	import { japaneseBotNpub } from '$lib/Constants';
 	import { authorProfile } from '../stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
+	import ModalDialog from '$lib/components/ModalDialog.svelte';
 
 	let nostr: Nip07.Nostr | undefined;
 	let key = '';
+
+	let showCreateAccountDialog = false;
 
 	const login = new Login();
 
@@ -102,6 +105,23 @@
 	});
 </script>
 
+<section>
+	<button on:click={() => (showCreateAccountDialog = true)}>{$_('login.create_account')}</button>
+	<ModalDialog bind:open={showCreateAccountDialog}>
+		<article>
+			<form method="dialog" on:submit|preventDefault|once={createAccount}>
+				<div>
+					<input
+						type="submit"
+						value={$_('login.create_account')}
+						disabled={$loginType !== undefined}
+					/>
+				</div>
+			</form>
+		</article>
+	</ModalDialog>
+</section>
+
 {#if nostr !== undefined}
 	<button on:click|once={loginWithNip07} disabled={$loginType !== undefined}>
 		{$_('login.browser_extension')}
@@ -127,8 +147,17 @@
 	</button>
 </form>
 
-<div>or</div>
+<style>
+	section {
+		margin: 1rem auto;
+	}
 
-<form on:submit|preventDefault|once={createAccount}>
-	<input type="submit" value={$_('login.create_account')} disabled={$loginType !== undefined} />
-</form>
+	article {
+		margin: 1rem;
+		text-align: center;
+	}
+
+	input::placeholder {
+		text-align: center;
+	}
+</style>
