@@ -12,9 +12,10 @@
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",
+		"recommended": "(Recommended)",
 		"key": "Login with key",
 		"create_account": "Create account",
-		"recommended": "(Recommended)",
+		"name": "name",
 		"try_demo": "Try demo"
 	},
 	"post": "Post"

@@ -6,17 +6,21 @@
 	import { nip19 } from 'nostr-tools';
 	import { tick } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
+	import { pubkey as authorPubkey, followees } from '../../stores/Author';
 
 	let pubkey: string;
 	$: pubkey = nip19.decode(japaneseBotNpub).data as string;
 
-	let selected: Writable<'home' | 'global'> = writable('home');
-	let userFollowingTimeline: UserFollowingTimeline;
+	let selected: Writable<'home' | 'global'> = writable(
+		$followees.filter((x) => x !== $authorPubkey).length > 0 ? 'home' : 'global'
+	);
+	let userFollowingTimeline: UserFollowingTimeline | undefined;
 
 	selected.subscribe(async (value) => {
+		console.log('[home selected]', value);
 		if (value === 'global') {
 			await tick();
-			await userFollowingTimeline.initialize();
+			await userFollowingTimeline?.initialize();
 		}
 	});
 </script>
