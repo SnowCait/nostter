@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { author } from '../stores/Author';
 	import Login from './Login.svelte';
 </script>
 
@@ -8,5 +9,7 @@
 
 <main>
 	<h1>nostter</h1>
-	<Login />
+	{#if author === undefined}
+		<Login />
+	{/if}
 </main>
