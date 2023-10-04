@@ -9,7 +9,7 @@
 
 <main>
 	<h1>nostter</h1>
-	{#if author === undefined}
+	{#if $author === undefined}
 		<Login />
 	{/if}
 </main>
