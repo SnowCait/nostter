@@ -3,13 +3,47 @@ import { author, loginType, pubkey, rom } from '../stores/Author';
 import { Signer } from './Signer';
 import { defaultRelays } from './Constants';
 import { Author } from './Author';
-import { generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
+import { getPublicKey, nip19 } from 'nostr-tools';
 import { WebStorage } from './WebStorage';
+import { rxNostr } from './timelines/MainTimeline';
+import { now } from 'rx-nostr';
 
 export class Login {
-	public async generateNsec() {
-		const seckey = generatePrivateKey();
-		await this.withNsec(nip19.nsecEncode(seckey));
+	public async saveBasicInfo(name: string): Promise<void> {
+		await rxNostr.switchRelays(defaultRelays);
+		console.log('[relays]', rxNostr.getRelays());
+
+		const metadataEvent = await Signer.signEvent({
+			kind: 0,
+			content: JSON.stringify({
+				display_name: name
+			}),
+			tags: [],
+			created_at: now()
+		});
+		console.log('[kind 0]', metadataEvent);
+		rxNostr.send(metadataEvent).subscribe((packet) => {
+			console.log('[save metadata]', packet);
+		});
+
+		const relayListEvent = await Signer.signEvent({
+			kind: 10002,
+			content: '',
+			tags: rxNostr.getRelays().map(({ url, read, write }) => {
+				const tag = ['r', url];
+				if (read && !write) {
+					tag.push('read');
+				} else if (!read && write) {
+					tag.push('write');
+				}
+				return tag;
+			}),
+			created_at: now()
+		});
+		console.log('[kind 10002]', relayListEvent);
+		rxNostr.send(relayListEvent).subscribe((packet) => {
+			console.log('[save relay list]', packet);
+		});
 	}
 
 	public async withNip07() {
