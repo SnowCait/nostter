@@ -1,10 +1,15 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { WebStorage } from '$lib/WebStorage';
 	import { loginType } from '../stores/Author';
 
 	let saved = false;
 	let showNsec = false;
-	const storage = new WebStorage(localStorage);
+	let storage: WebStorage;
+
+	onMount(() => {
+		storage = new WebStorage(localStorage);
+	});
 
 	async function logout() {
 		storage.clear();
