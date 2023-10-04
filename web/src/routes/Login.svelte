@@ -55,7 +55,6 @@
 	}
 
 	onMount(async () => {
-		const { waitNostr } = await import('nip07-awaiter');
 		console.log('[login on mount]');
 
 		const storage = new WebStorage(localStorage);
@@ -63,25 +62,9 @@
 		console.log('[login]', savedLogin);
 
 		if (savedLogin === null) {
+			const { waitNostr } = await import('nip07-awaiter');
 			waitNostr(10000).then((n) => (nostr = n));
-			return;
 		}
-
-		if (savedLogin === 'NIP-07') {
-			nostr = await waitNostr(10000);
-			if (nostr === undefined) {
-				alert('Browser Extension was not found');
-				return;
-			}
-			await login.withNip07();
-		} else if (savedLogin.startsWith('nsec')) {
-			await login.withNsec(savedLogin);
-		} else if (savedLogin.startsWith('npub')) {
-			await login.withNpub(savedLogin);
-		} else {
-			console.error('[logic error]', 'login');
-		}
-		await gotoHome();
 	});
 
 	async function gotoHome() {

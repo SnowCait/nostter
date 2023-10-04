@@ -2,7 +2,7 @@
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
-	import { rom } from '../../stores/Author';
+	import { author } from '../../stores/Author';
 	import { debugMode } from '../../stores/Preference';
 	import WordMute from './WordMute.svelte';
 	import AutoRefresh from './AutoRefresh.svelte';
@@ -28,17 +28,17 @@
 {#if $debugMode}
 	<Theme />
 {/if}
-{#if !$rom}
+{#if $author !== undefined}
 	<div><ReactionEmoji /></div>
+	<div>
+		<a href="https://emojis-iota.vercel.app/" target="_blank" rel="noopener noreferrer">
+			Edit custom emojis
+		</a>
+	</div>
+	<div><MutedUsers /></div>
+	<div><MutedEvents /></div>
+	<div><WordMute /></div>
 {/if}
-<div>
-	<a href="https://emojis-iota.vercel.app/" target="_blank" rel="noopener noreferrer">
-		Edit custom emojis
-	</a>
-</div>
-<div><MutedUsers /></div>
-<div><MutedEvents /></div>
-<div><WordMute /></div>
 <div><Notification /></div>
 <div><AutoRefresh /></div>
 {#if $debugMode}
