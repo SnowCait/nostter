@@ -2,9 +2,9 @@
 	"$schema": "https://json.schemastore.org/web-manifest-combined.json",
 	"name": "nostter",
 	"short_name": "nostter",
-	"start_url": ".",
+	"categories": ["social"],
+	"start_url": "home",
 	"display": "standalone",
-	"background_color": "#fff",
 	"description": "Nostr web client.",
 	"icons": [
 		{
