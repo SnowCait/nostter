@@ -7,7 +7,6 @@
 	import { loginType } from '../stores/Author';
 	import { page } from '$app/stores';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { japaneseBotNpub } from '$lib/Constants';
 	import { authorProfile } from '../stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
@@ -17,6 +16,7 @@
 	let name = '';
 
 	let showCreateAccountDialog = false;
+	let showLoginDialog = false;
 
 	const login = new Login();
 
@@ -34,11 +34,8 @@
 		await gotoHome();
 	}
 
-	function loginWithDemo() {
-		if (key !== '' && !confirm('Key is not empty. Override?')) {
-			return;
-		}
-		key = japaneseBotNpub;
+	async function loginWithDemo() {
+		await goto('/home');
 	}
 
 	function createAccount(): void {
@@ -52,6 +49,10 @@
 		await login.withNsec(key);
 		await login.saveBasicInfo(name);
 		await gotoHome();
+	}
+
+	function showLogin(): void {
+		showLoginDialog = true;
 	}
 
 	onMount(async () => {
@@ -120,30 +121,63 @@
 	</ModalDialog>
 </section>
 
-{#if nostr !== undefined}
-	<button on:click|once={loginWithNip07} disabled={$loginType !== undefined}>
-		{$_('login.browser_extension')}
-	</button>
-	<span>{$_('login.recommended')}</span>
+<section>
+	<button on:click={showLogin}>{$_('login.login')}</button>
+	<ModalDialog bind:open={showLoginDialog}>
+		<article>
+			<section>
+				<div>{$_('login.recommended')}</div>
+				{#if nostr === undefined}
+					<p>
+						Please install <a
+							href="https://github.com/nostr-protocol/nips/blob/master/07.md#implementation"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							Browser Extension
+						</a>
+					</p>
+				{/if}
+				<div>
+					<button
+						on:click|once={loginWithNip07}
+						disabled={$loginType !== undefined || nostr === undefined}
+					>
+						{$_('login.browser_extension')}
+					</button>
+				</div>
+			</section>
 
-	<div>or</div>
-{/if}
+			<section>
+				<form method="dialog" on:submit|preventDefault|once={loginWithKey}>
+					<div>
+						<input
+							type="password"
+							bind:value={key}
+							placeholder="npub or nsec"
+							pattern="^(npub|nsec)1[a-z0-9]+$"
+							required
+							on:keyup|stopPropagation={() => console.debug()}
+						/>
+					</div>
+					<div>
+						<input
+							type="submit"
+							value={$_('login.key')}
+							disabled={$loginType !== undefined}
+						/>
+					</div>
+				</form>
+			</section>
+		</article>
+	</ModalDialog>
+</section>
 
-<form on:submit|preventDefault|once={loginWithKey}>
-	<input
-		type="password"
-		bind:value={key}
-		placeholder="npub or nsec"
-		pattern="^(npub|nsec)1[a-z0-9]+$"
-		required
-		on:keyup|stopPropagation={() => console.debug()}
-	/>
-	<input type="submit" value={$_('login.key')} disabled={$loginType !== undefined} />
-
+<section>
 	<button on:click={loginWithDemo} disabled={$loginType !== undefined}>
 		{$_('login.try_demo')}
 	</button>
-</form>
+</section>
 
 <style>
 	section {
@@ -157,6 +191,14 @@
 
 	form[method='dialog'] div + div {
 		margin-top: 1rem;
+	}
+
+	button:disabled {
+		background-color: lightgray;
+	}
+
+	button:disabled:hover {
+		opacity: initial;
 	}
 
 	input::placeholder {
