@@ -2,16 +2,21 @@
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import type { Nip07 } from 'nostr-typedef';
+	import { generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
 	import { Login } from '$lib/Login';
 	import { loginType } from '../stores/Author';
 	import { page } from '$app/stores';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { japaneseBotNpub } from '$lib/Constants';
 	import { authorProfile } from '../stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
+	import ModalDialog from '$lib/components/ModalDialog.svelte';
 
 	let nostr: Nip07.Nostr | undefined;
 	let key = '';
+	let name = '';
+
+	let showCreateAccountDialog = false;
+	let showLoginDialog = false;
 
 	const login = new Login();
 
@@ -29,20 +34,28 @@
 		await gotoHome();
 	}
 
-	function loginWithDemo() {
-		if (key !== '' && !confirm('Key is not empty. Override?')) {
-			return;
-		}
-		key = japaneseBotNpub;
+	async function loginWithDemo() {
+		await goto('/home');
 	}
 
-	async function createAccount() {
-		await login.generateNsec();
-		await gotoProfile();
+	function createAccount(): void {
+		showCreateAccountDialog = true;
+		const seckey = generatePrivateKey();
+		key = nip19.nsecEncode(seckey);
+		console.log('[pubkey]', getPublicKey(seckey));
+	}
+
+	async function register(): Promise<void> {
+		await login.withNsec(key);
+		await login.saveBasicInfo(name);
+		await gotoHome();
+	}
+
+	function showLogin(): void {
+		showLoginDialog = true;
 	}
 
 	onMount(async () => {
-		const { waitNostr } = await import('nip07-awaiter');
 		console.log('[login on mount]');
 
 		const storage = new WebStorage(localStorage);
@@ -50,25 +63,9 @@
 		console.log('[login]', savedLogin);
 
 		if (savedLogin === null) {
+			const { waitNostr } = await import('nip07-awaiter');
 			waitNostr(10000).then((n) => (nostr = n));
-			return;
 		}
-
-		if (savedLogin === 'NIP-07') {
-			nostr = await waitNostr(10000);
-			if (nostr === undefined) {
-				alert('Browser Extension was not found');
-				return;
-			}
-			await login.withNip07();
-		} else if (savedLogin.startsWith('nsec')) {
-			await login.withNsec(savedLogin);
-		} else if (savedLogin.startsWith('npub')) {
-			await login.withNpub(savedLogin);
-		} else {
-			console.error('[logic error]', 'login');
-		}
-		await gotoHome();
 	});
 
 	async function gotoHome() {
@@ -79,12 +76,6 @@
 		}
 
 		const url = '/home';
-		console.log(`Redirect to ${url}`);
-		await goto(url);
-	}
-
-	async function gotoProfile() {
-		const url = '/profile';
 		console.log(`Redirect to ${url}`);
 		await goto(url);
 	}
@@ -102,33 +93,119 @@
 	});
 </script>
 
-{#if nostr !== undefined}
-	<button on:click|once={loginWithNip07} disabled={$loginType !== undefined}>
-		{$_('login.browser_extension')}
-	</button>
-	<span>{$_('login.recommended')}</span>
+<section>
+	<button on:click={createAccount}>{$_('login.create_account')}</button>
+	<ModalDialog bind:open={showCreateAccountDialog}>
+		<article>
+			<form method="dialog" on:submit|preventDefault={register}>
+				<div>
+					<input
+						type="text"
+						name="name"
+						placeholder={$_('login.name')}
+						bind:value={name}
+					/>
+				</div>
+				<div class="hidden">
+					<input type="password" bind:value={key} readonly />
+				</div>
+				<div>
+					<input
+						type="submit"
+						value={$_('login.create_account')}
+						disabled={$loginType !== undefined}
+					/>
+				</div>
+			</form>
+		</article>
+	</ModalDialog>
+</section>
 
-	<div>or</div>
-{/if}
+<section>
+	<button on:click={showLogin}>{$_('login.login')}</button>
+	<ModalDialog bind:open={showLoginDialog}>
+		<article>
+			<section>
+				<div>{$_('login.recommended')}</div>
+				{#if nostr === undefined}
+					<p>
+						Please install <a
+							href="https://github.com/nostr-protocol/nips/blob/master/07.md#implementation"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							Browser Extension
+						</a>
+					</p>
+				{/if}
+				<div>
+					<button
+						on:click|once={loginWithNip07}
+						disabled={$loginType !== undefined || nostr === undefined}
+					>
+						{$_('login.browser_extension')}
+					</button>
+				</div>
+			</section>
 
-<form on:submit|preventDefault|once={loginWithKey}>
-	<input
-		type="password"
-		bind:value={key}
-		placeholder="npub or nsec"
-		pattern="^(npub|nsec)1[a-z0-9]+$"
-		required
-		on:keyup|stopPropagation={() => console.debug()}
-	/>
-	<input type="submit" value={$_('login.key')} disabled={$loginType !== undefined} />
+			<section>
+				<form method="dialog" on:submit|preventDefault|once={loginWithKey}>
+					<div>
+						<input
+							type="password"
+							bind:value={key}
+							placeholder="npub or nsec"
+							pattern="^(npub|nsec)1[a-z0-9]+$"
+							required
+							on:keyup|stopPropagation={() => console.debug()}
+						/>
+					</div>
+					<div>
+						<input
+							type="submit"
+							value={$_('login.key')}
+							disabled={$loginType !== undefined}
+						/>
+					</div>
+				</form>
+			</section>
+		</article>
+	</ModalDialog>
+</section>
 
+<section>
 	<button on:click={loginWithDemo} disabled={$loginType !== undefined}>
 		{$_('login.try_demo')}
 	</button>
-</form>
+</section>
 
-<div>or</div>
+<style>
+	section {
+		margin: 1rem auto;
+	}
 
-<form on:submit|preventDefault|once={createAccount}>
-	<input type="submit" value={$_('login.create_account')} disabled={$loginType !== undefined} />
-</form>
+	article {
+		margin: 1rem;
+		text-align: center;
+	}
+
+	form[method='dialog'] div + div {
+		margin-top: 1rem;
+	}
+
+	button:disabled {
+		background-color: lightgray;
+	}
+
+	button:disabled:hover {
+		opacity: initial;
+	}
+
+	input::placeholder {
+		text-align: center;
+	}
+
+	.hidden {
+		display: none;
+	}
+</style>

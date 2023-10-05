@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { WebStorage } from '$lib/WebStorage';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
 	import { openNoteDialog } from '../stores/NoteDialog';
@@ -79,7 +80,29 @@
 
 	onMount(() => {
 		document.addEventListener('visibilitychange', onVisibilityChange);
+		subscribeSystemTheme();
 	});
+
+	function subscribeSystemTheme(): void {
+		const storage = new WebStorage(localStorage);
+		window
+			.matchMedia('(prefers-color-scheme: dark)')
+			.addEventListener('change', (e: MediaQueryList | MediaQueryListEvent) => {
+				const t = storage.get('theme') ?? 'system';
+
+				if (t !== 'system') {
+					return;
+				}
+
+				if (e.matches) {
+					console.log('[theme system]', 'dark');
+					document.documentElement.classList.add('dark');
+				} else {
+					console.log('[theme system]', 'light');
+					document.documentElement.classList.remove('dark');
+				}
+			});
+	}
 </script>
 
 <svelte:window on:keyup={keyboardShortcut} />

@@ -26,7 +26,7 @@
 
 <div class="header">
 	<div id="logo-icon-wrapper">
-		<a href={pubkey ? '/home' : '/'} id="logo-icon">
+		<a href={$pubkey ? '/home' : '/'} id="logo-icon">
 			<picture>
 				<source
 					srcset="/nostter-logo.svg"
@@ -40,21 +40,12 @@
 	</div>
 	<nav>
 		<ul>
-			{#if $pubkey}
-				<a href="/home">
-					<li>
-						<IconHome size={30} />
-						<p>{$_('layout.header.home')}</p>
-					</li>
-				</a>
-			{:else}
-				<a href="/">
-					<li>
-						<IconHome size={30} />
-						<p>{$_('layout.header.home')}</p>
-					</li>
-				</a>
-			{/if}
+			<a href="/home">
+				<li>
+					<IconHome size={30} />
+					<p>{$_('layout.header.home')}</p>
+				</li>
+			</a>
 			<a href="/search">
 				<li>
 					<IconSearch size={30} />

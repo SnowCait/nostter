@@ -2,13 +2,14 @@
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
-	import { rom } from '../../stores/Author';
+	import { author } from '../../stores/Author';
 	import { debugMode } from '../../stores/Preference';
 	import WordMute from './WordMute.svelte';
 	import AutoRefresh from './AutoRefresh.svelte';
 	import MutedUsers from './MutedUsers.svelte';
 	import MutedEvents from './MutedEvents.svelte';
 	import ClearEmojiMartCache from './ClearEmojiMartCache.svelte';
+	import Theme from './Theme.svelte';
 
 	let debugCounter = 0;
 
@@ -24,17 +25,20 @@
 
 <h1>Preference</h1>
 
-{#if !$rom}
-	<div><ReactionEmoji /></div>
+{#if $debugMode}
+	<Theme />
 {/if}
-<div>
-	<a href="https://emojis-iota.vercel.app/" target="_blank" rel="noopener noreferrer">
-		Edit custom emojis
-	</a>
-</div>
-<div><MutedUsers /></div>
-<div><MutedEvents /></div>
-<div><WordMute /></div>
+{#if $author !== undefined}
+	<div><ReactionEmoji /></div>
+	<div>
+		<a href="https://emojis-iota.vercel.app/" target="_blank" rel="noopener noreferrer">
+			Edit custom emojis
+		</a>
+	</div>
+	<div><MutedUsers /></div>
+	<div><MutedEvents /></div>
+	<div><WordMute /></div>
+{/if}
 <div><Notification /></div>
 <div><AutoRefresh /></div>
 {#if $debugMode}

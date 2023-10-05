@@ -1,8 +1,11 @@
-# nostter
-
-Nostr client for web. ([Demo](https://nostter.vercel.app/JapaneseUsers@snowcait.github.io/timeline))
-
-https://nostter.vercel.app/
+<div align="center">
+  <img src="web/static/nostter-logo.svg" height="50">
+</div>
+<br>
+<p align="center">
+  Nostr client for web.<br>
+  <a href="https://nostter.vercel.app/home" target="_blank">https://nostter.vercel.app/</a>
+</p>
 
 ## How to login
 
