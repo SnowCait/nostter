@@ -1,18 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { WebStorage } from '$lib/WebStorage';
 	import { loginType } from '../stores/Author';
 
 	let saved = false;
 	let showNsec = false;
-	let storage: WebStorage;
-
-	onMount(() => {
-		storage = new WebStorage(localStorage);
-	});
 
 	async function logout() {
-		storage.clear();
+		new WebStorage(localStorage).clear();
 		location.href = '/';
 	}
 </script>
@@ -21,7 +15,11 @@
 	<h4>Ensure to save nsec before logout</h4>
 	<div>
 		<span>nsec:</span>
-		<input type={showNsec ? 'text' : 'password'} value={storage.get('login')} readonly />
+		<input
+			type={showNsec ? 'text' : 'password'}
+			value={new WebStorage(localStorage).get('login')}
+			readonly
+		/>
 		<button on:click={() => (showNsec = !showNsec)}>Show</button>
 	</div>
 {/if}
