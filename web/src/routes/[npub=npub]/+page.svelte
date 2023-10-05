@@ -242,28 +242,33 @@
 	<div class="user-info">
 		<div class="profile">
 			<div class="actions">
-				<div>
+				<div class="picture-wrapper">
 					{#if user?.picture}
 						<img src={user?.picture} alt={`${user?.display_name}-icon`} />
 					{:else}
 						<div class="blank" />
 					{/if}
 				</div>
-				{#if !$rom}
-					{#if pubkey === $authorPubkey}
-						<div class="profile-editor">
-							<a href="/profile">
-								<IconTool />
-							</a>
+				<div class="buttons">
+					{#if !$rom}
+						{#if pubkey === $authorPubkey}
+							<div class="profile-editor">
+								<a href="/profile">
+									<IconTool />
+								</a>
+							</div>
+						{/if}
+						<div class="mute">
+							<MuteButton tagName="p" tagContent={pubkey} />
+						</div>
+						<div class="follow">
+							<FollowButton {pubkey} />
+							{#if followees.some((pubkey) => pubkey === $authorPubkey)}
+								<sub>Follows you</sub>
+							{/if}
 						</div>
 					{/if}
-					<div class="mute">
-						<MuteButton tagName="p" tagContent={pubkey} />
-					</div>
-					<div class="follow">
-						<FollowButton {pubkey} />
-					</div>
-				{/if}
+				</div>
 			</div>
 			<h1>{user?.display_name ?? user?.name ?? ''}</h1>
 			{#if user?.name}
@@ -287,9 +292,6 @@
 			</div>
 			<div class="nip19">{nip19.npubEncode(pubkey)}</div>
 			<div class="nip19">{nip19.nprofileEncode({ pubkey })}</div>
-			{#if followees.some((pubkey) => pubkey === $authorPubkey)}
-				<div>Follows you</div>
-			{/if}
 			{#if user?.website}
 				<div>
 					<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
@@ -374,7 +376,7 @@
 	}
 
 	.profile img,
-	.blank {
+	.profile .blank {
 		width: 128px;
 		height: 128px;
 		border-radius: 50%;
@@ -390,6 +392,23 @@
 		background-color: var(--accent-surface-high);
 	}
 
+	.actions .buttons {
+		display: flex;
+		align-items: center;
+		justify-content: start;
+		gap: 1rem;
+	}
+
+	.follow {
+		position: relative;
+	}
+
+	.follow sub {
+		color: var(--accent-gray);
+		position: absolute;
+		top: 3.15rem;
+	}
+
 	.profile .actions {
 		display: flex;
 		flex-direction: row;
@@ -398,15 +417,6 @@
 
 	.profile .actions div {
 		align-self: flex-end;
-	}
-
-	.profile .actions .profile-editor,
-	.profile .actions .mute {
-		margin-right: 1rem;
-	}
-
-	.profile .actions div:nth-child(2) {
-		margin-left: auto;
 	}
 
 	.profile h1 {
