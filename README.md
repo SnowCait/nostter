@@ -1,11 +1,11 @@
 <div align="center">
   <img src="web/static/nostter-logo.svg" height="50">
-  <p>
-  Nostr client for web.
-
-  [https://nostter.vercel.app/](https://nostter.vercel.app/home)
-  </p>
 </div>
+<br>
+<p align="center">
+  Nostr client for web.<br>
+  <a href="https://nostter.vercel.app/home" target="_blank">https://nostter.vercel.app/</a>
+</p>
 
 ## How to login
 
