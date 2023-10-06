@@ -46,7 +46,7 @@
 
 		clear();
 
-		const slug = $page.params.note;
+		const slug = $page.params.slug;
 		console.log(slug);
 		try {
 			const { type, data } = nip19.decode(slug);
