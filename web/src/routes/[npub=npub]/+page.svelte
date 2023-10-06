@@ -261,19 +261,19 @@
 						<div class="mute">
 							<MuteButton tagName="p" tagContent={pubkey} />
 						</div>
-						<div class="follow">
-							<FollowButton {pubkey} />
-							{#if followees.some((pubkey) => pubkey === $authorPubkey)}
-								<sub>Follows you</sub>
-							{/if}
-						</div>
+						<FollowButton {pubkey} />
 					{/if}
 				</div>
 			</div>
 			<h1>{user?.display_name ?? user?.name ?? ''}</h1>
-			{#if user?.name}
-				<h2>@{user.name}</h2>
-			{/if}
+			<div class="user-name-wrapper">
+				{#if user?.name}
+					<h2>@{user.name}</h2>
+				{/if}
+				{#if followees.some((pubkey) => pubkey === $authorPubkey)}
+					<p>Follows you</p>
+				{/if}
+			</div>
 			{#if user?.nip05}
 				<div class="nip05">
 					<span>{user.nip05}</span>
@@ -304,15 +304,17 @@
 			{/if}
 		</div>
 		<Badges {badges} />
-		<div>
-			Followees: {#if followeesLoading}
-				<Loading />
-			{:else}
-				<a href={`/${slug}/followees`}>{followees.length}</a>
-			{/if}
-		</div>
-		<div>
-			Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}
+		<div class="relationships">
+			<div>
+				Followees: {#if followeesLoading}
+					<Loading />
+				{:else}
+					<a href={`/${slug}/followees`}>{followees.length}</a>
+				{/if}
+			</div>
+			<div>
+				Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}
+			</div>
 		</div>
 		<div>
 			<a href="/{slug}/relays">Relays</a>
@@ -392,21 +394,31 @@
 		background-color: var(--accent-surface-high);
 	}
 
+	h2 {
+		font-weight: 400;
+	}
+
+	.user-name-wrapper {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+	}
+
+	.user-name-wrapper p {
+		padding: 0.3rem;
+		background-color: var(--accent-surface);
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--accent);
+		border-radius: 0.25rem;
+		line-height: 1;
+	}
+
 	.actions .buttons {
 		display: flex;
 		align-items: center;
 		justify-content: start;
 		gap: 1rem;
-	}
-
-	.follow {
-		position: relative;
-	}
-
-	.follow sub {
-		color: var(--accent-gray);
-		position: absolute;
-		top: 3.15rem;
 	}
 
 	.profile .actions {
@@ -444,5 +456,11 @@
 
 	.nip19 {
 		overflow: auto;
+	}
+
+	.relationships {
+		display: flex;
+		gap: 2rem;
+		font-size: 0.95rem;
 	}
 </style>
