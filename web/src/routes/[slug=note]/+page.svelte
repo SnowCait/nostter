@@ -1,12 +1,11 @@
 <script lang="ts">
+	import { Kind } from 'nostr-tools';
 	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
 	import { error } from '@sveltejs/kit';
-	import { nip19, Kind } from 'nostr-tools';
+	import type { PageData } from './$types';
 	import { author, readRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
-	import type { EventPointer } from 'nostr-tools/lib/nip19';
 	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';
 	import type { EventItem, Metadata } from '$lib/Items';
@@ -15,6 +14,14 @@
 	import { chronologicalItem } from '$lib/Constants';
 	import { tick } from 'svelte';
 	import MuteButton from '../action/MuteButton.svelte';
+
+	export let data: PageData;
+
+	$: {
+		console.debug('[thread page data]', data);
+		eventId = data.eventId;
+		relays = data.relays;
+	}
 
 	let focusedElement: HTMLDivElement | undefined;
 
@@ -42,35 +49,9 @@
 			: [];
 
 	afterNavigate(async () => {
-		console.log('[note page]');
+		console.log('[thread page after navigate]', eventId, relays);
 
 		clear();
-
-		const slug = $page.params.slug;
-		console.log(slug);
-		try {
-			const { type, data } = nip19.decode(slug);
-			console.log('[decode]', type, data);
-
-			switch (type) {
-				case 'note': {
-					eventId = data as string;
-					break;
-				}
-				case 'nevent': {
-					const pointer = data as EventPointer;
-					eventId = pointer.id;
-					relays = pointer.relays ?? [];
-					break;
-				}
-				default: {
-					throw error(500);
-				}
-			}
-		} catch (e) {
-			console.error('[decode error]', e);
-			throw error(404);
-		}
 
 		const api = new Api($pool, [...new Set([...$readRelays, ...relays])]);
 		item = await api.fetchEventItemById(eventId);
