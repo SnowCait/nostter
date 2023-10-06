@@ -29,6 +29,6 @@ export const load: PageLoad = ({ params }) => {
 		}
 	} catch (e) {
 		console.error('[thread page decode error]', e);
-		throw error(404, 'Not found');
+		throw error(404, 'Not Found');
 	}
 };
