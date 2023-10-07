@@ -481,7 +481,7 @@
 		font-size: 0.875rem;
 		font-weight: 500;
 		margin-top: 0.2rem;
-		max-width: 140px;
+		max-width: 240px;
 	}
 
 	details .nip-19 > div {
