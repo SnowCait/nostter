@@ -7,6 +7,8 @@
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 	import { customEmojiTags } from '../../stores/CustomEmojis';
 
+	console.debug('[emoji data]', data);
+
 	let button: HTMLButtonElement;
 	let emojiPicker: HTMLElement;
 	let hidden = true;
