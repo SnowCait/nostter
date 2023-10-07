@@ -19,5 +19,7 @@
 		"try_demo": "デモを試す",
 		"login": "ログイン"
 	},
-	"post": "投稿"
+	"post": "投稿",
+	"follow": "フォロー",
+	"following": "フォロー中"
 }

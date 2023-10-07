@@ -116,6 +116,14 @@
 		border-bottom-style: none;
 	}
 
+	ul li:first-child {
+		border-radius: 0.45rem 0.45rem 0 0;
+	}
+
+	ul li:last-child {
+		border-radius: 0 0 0.45rem 0.45rem;
+	}
+
 	li {
 		border-bottom: var(--default-border);
 		animation-name: add;

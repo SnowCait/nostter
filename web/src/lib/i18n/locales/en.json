@@ -19,5 +19,7 @@
 		"try_demo": "Try demo",
 		"login": "Login"
 	},
-	"post": "Post"
+	"post": "Post",
+	"follow": "Follow",
+	"following": "Following"
 }

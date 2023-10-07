@@ -33,12 +33,15 @@
 	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
 	import IconAlertTriangle from '@tabler/icons-svelte/dist/svelte/icons/IconAlertTriangle.svelte';
 	import UserStatus from '../parts/UserStatus.svelte';
+	import CopyButton from '../parts/CopyButton.svelte';
 
 	let metadata: Metadata;
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
 	let events: EventItem[] = [];
 	let pubkey = '';
+	let npub = '';
+	let nprofile = '';
 	let followees: string[] = [];
 	let followers: string[] = [];
 	let followeesLoading = true;
@@ -98,6 +101,8 @@
 				...metadata.content,
 				zapEndpoint: (await metadata.zapUrl())?.href ?? null
 			} as User;
+			npub = nip19.npubEncode(pubkey);
+			nprofile = nip19.nprofileEncode({ pubkey });
 		}
 
 		if (user !== undefined && user.nip05) {
@@ -231,92 +236,125 @@
 	{/if}
 </svelte:head>
 
-<section>
+<section class="card profile-wrapper">
 	<div class="banner">
-		<img src={user?.banner} alt="" />
+		{#if user?.banner}
+			<img src={user.banner} alt={`${user.display_name}-banner`} />
+		{:else}
+			<div class="blank" />
+		{/if}
 	</div>
-	<div class="profile">
-		<div class="actions">
-			<div>
-				<img src={user?.picture} alt="" />
-			</div>
-			{#if !$rom}
-				{#if pubkey === $authorPubkey}
-					<div class="profile-editor">
-						<a href="/profile">
-							<IconTool />
-						</a>
-					</div>
-				{/if}
-				<div class="mute">
-					<MuteButton tagName="p" tagContent={pubkey} />
+	<div class="user-info">
+		<div class="profile">
+			<div class="actions">
+				<div class="picture-wrapper">
+					{#if user?.picture}
+						<img src={user?.picture} alt={`${user?.display_name}-icon`} />
+					{:else}
+						<div class="blank" />
+					{/if}
 				</div>
-				<div class="follow">
-					<FollowButton {pubkey} />
+				<div class="buttons">
+					{#if !$rom}
+						{#if pubkey === $authorPubkey}
+							<div class="profile-editor">
+								<a href="/profile">
+									<IconTool />
+								</a>
+							</div>
+						{/if}
+						<div class="mute">
+							<MuteButton tagName="p" tagContent={pubkey} />
+						</div>
+						<FollowButton {pubkey} />
+					{/if}
+				</div>
+			</div>
+			<h1>{user?.display_name ?? user?.name ?? ''}</h1>
+			<div class="user-name-wrapper">
+				{#if user?.name}
+					<h2>@{user.name}</h2>
+				{/if}
+				{#if followees.some((pubkey) => pubkey === $authorPubkey)}
+					<p>Follows you</p>
+				{/if}
+			</div>
+
+			<div class="user-status">
+				<UserStatus {pubkey} showLink={true} />
+			</div>
+
+			<details>
+				<summary>
+					{#if user?.nip05}
+						<div class="nip05">
+							<span>{slug}</span>
+							{#await nip05.queryProfile(user.nip05) then pointer}
+								{#if pointer !== null}
+									<IconDiscountCheck color="skyblue" />
+								{:else}
+									<IconAlertTriangle color="red" />
+								{/if}
+							{/await}
+						</div>
+					{:else}
+						<div>
+							<span>{npub}</span>
+						</div>
+					{/if}
+				</summary>
+				<div class="nip-19">
+					{#if user?.nip05}
+						<div>
+							<span>{npub}</span>
+							<CopyButton text={npub} />
+						</div>
+					{/if}
+					<div>
+						<span>{nprofile}</span>
+						<CopyButton text={nprofile} />
+					</div>
+				</div>
+			</details>
+			{#if user?.website}
+				<div>
+					<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
+				</div>
+			{/if}
+			{#if user?.about}
+				<div class="about">
+					<Content content={user.about} tags={metadata.event.tags} />
 				</div>
 			{/if}
 		</div>
-		<h1>{user?.display_name ?? user?.name ?? ''}</h1>
-		{#if user?.name}
-			<h2>@{user.name}</h2>
-		{/if}
-		{#if user?.nip05}
-			<div class="nip05">
-				<span>{user.nip05}</span>
-				{#await nip05.queryProfile(user.nip05) then pointer}
-					{#if pointer !== null}
-						<IconDiscountCheck color="skyblue" />
-					{:else}
-						<IconAlertTriangle color="red" />
-					{/if}
-				{/await}
-			</div>
-		{/if}
-
-		<div class="user-status">
-			<UserStatus {pubkey} showLink={true} />
-		</div>
-		<div class="nip19">{nip19.npubEncode(pubkey)}</div>
-		<div class="nip19">{nip19.nprofileEncode({ pubkey })}</div>
-		{#if followees.some((pubkey) => pubkey === $authorPubkey)}
-			<div>Follows you</div>
-		{/if}
-		{#if user?.website}
+		<Badges {badges} />
+		<div class="relationships">
 			<div>
-				<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
+				Followees: {#if followeesLoading}
+					<Loading />
+				{:else}
+					<a href={`/${slug}/followees`}>{followees.length}</a>
+				{/if}
 			</div>
-		{/if}
-		{#if user?.about}
-			<div class="about">
-				<Content content={user.about} tags={metadata.event.tags} />
+			<div>
+				Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}
 			</div>
-		{/if}
-	</div>
-	<Badges {badges} />
-	<div>
-		Followees: {#if followeesLoading}
-			<Loading />
-		{:else}
-			<a href={`/${slug}/followees`}>{followees.length}</a>
-		{/if}
-	</div>
-	<div>
-		Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}
-	</div>
-	<div>
-		<a href="/{slug}/relays">Relays</a>
-	</div>
-	<div>
-		<a href="/{slug}/timeline">Timeline</a>
-	</div>
-	<div>
-		<a href="/{slug}/pins">PINs</a>
-	</div>
-	{#if pubkey === $authorPubkey}
-		<div>
-			<a href="/{slug}/reactions">Reactions</a>
 		</div>
-	{/if}
+		<div>
+			<a href="/{slug}/relays">Relays</a>
+		</div>
+		<div>
+			<a href="/{slug}/timeline">Timeline</a>
+		</div>
+		<div>
+			<a href="/{slug}/pins">PINs</a>
+		</div>
+		{#if pubkey === $authorPubkey}
+			<div>
+				<a href="/{slug}/reactions">Reactions</a>
+			</div>
+		{/if}
+	</div>
 </section>
 
 <section>
@@ -324,22 +362,87 @@
 </section>
 
 <style>
+	.profile-wrapper {
+		position: relative;
+	}
+
 	section + section {
 		margin-top: 1rem;
 	}
 
-	.banner img {
+	.banner {
+		position: absolute;
+		width: 100%;
+		left: 0;
+		top: 0;
+		z-index: 0;
+	}
+
+	.banner img,
+	.banner .blank {
 		object-fit: cover;
 		width: 100%;
 		height: 200px;
+		border-radius: 0.5rem 0.5rem 0 0;
 	}
 
-	.profile img {
+	@media screen and (max-width: 600px) {
+		section + section {
+			margin-top: 0;
+		}
+
+		.banner img,
+		.banner .blank {
+			border-radius: 0;
+		}
+	}
+
+	.user-info {
+		margin-top: calc(100px + 1rem);
+	}
+
+	.profile img,
+	.profile .blank {
 		width: 128px;
 		height: 128px;
 		border-radius: 50%;
 		margin-right: 12px;
 		object-fit: cover;
+		position: relative;
+		z-index: 2;
+	}
+
+	.blank {
+		width: 100%;
+		height: 100%;
+		background-color: var(--accent-surface-high);
+	}
+
+	h2 {
+		font-weight: 400;
+	}
+
+	.user-name-wrapper {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+	}
+
+	.user-name-wrapper p {
+		padding: 0.3rem;
+		background-color: var(--accent-surface);
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--accent);
+		border-radius: 0.25rem;
+		line-height: 1;
+	}
+
+	.actions .buttons {
+		display: flex;
+		align-items: center;
+		justify-content: start;
+		gap: 1rem;
 	}
 
 	.profile .actions {
@@ -350,15 +453,6 @@
 
 	.profile .actions div {
 		align-self: flex-end;
-	}
-
-	.profile .actions .profile-editor,
-	.profile .actions .mute {
-		margin-right: 1rem;
-	}
-
-	.profile .actions div:nth-child(2) {
-		margin-left: auto;
 	}
 
 	.profile h1 {
@@ -375,8 +469,27 @@
 		margin: 1rem 0;
 	}
 
-	.nip05 {
+	details {
+		display: inline-block;
+		margin: 0.35rem 0;
+		color: var(--secondary-accent);
+	}
+
+	details .nip-19 span {
+		overflow-x: hidden;
+		text-overflow: ellipsis;
+		font-size: 0.875rem;
+		font-weight: 500;
+		margin-top: 0.2rem;
+		max-width: 240px;
+	}
+
+	details .nip-19 > div {
 		display: flex;
+	}
+
+	.nip05 {
+		display: inline-flex;
 		flex-direction: row;
 	}
 
@@ -384,7 +497,9 @@
 		margin-right: 0.2rem;
 	}
 
-	.nip19 {
-		overflow: auto;
+	.relationships {
+		display: flex;
+		gap: 2rem;
+		font-size: 0.95rem;
 	}
 </style>

@@ -1,21 +1,21 @@
 <script lang="ts">
-	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
 	import { Api } from '$lib/Api';
 	import { pool } from '../../stores/Pool';
 	import { followees, pubkey as authorPubkey, writeRelays } from '../../stores/Author';
 	import { nip19 } from 'nostr-tools';
 	import { Contacts } from '$lib/Contacts';
+	import { _ } from 'svelte-i18n';
 
 	export let pubkey: string;
 
-	let following = false;
+	let processing = false;
 
 	const api = new Api($pool, $writeRelays);
 
 	async function follow() {
 		console.log('[follow]');
 
-		following = true;
+		processing = true;
 
 		try {
 			const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
@@ -27,7 +27,7 @@
 			alert('Failed to follow.');
 		}
 
-		following = false;
+		processing = false;
 	}
 
 	async function unfollow() {
@@ -47,6 +47,8 @@
 			return;
 		}
 
+		processing = true;
+
 		try {
 			const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
 			await contacts.unfollow(pubkey);
@@ -55,33 +57,27 @@
 			console.error('[unfollow failed]', error);
 			alert('Failed to unfollow.');
 		}
+
+		processing = false;
 	}
 </script>
 
 {#if $followees.some((x) => x === pubkey)}
-	<div class="following">
-		<div>Following</div>
-		<button on:click={unfollow}><IconTrash /></button>
-	</div>
-{:else if $authorPubkey !== ''}
-	<button on:click={follow} disabled={following}>Follow</button>
+	<button on:click={unfollow} class="button-small button-outlined" disabled={processing}>
+		{$_('following')}
+	</button>
+{:else}
+	<button on:click={follow} class="button-small" disabled={processing}>
+		{$_('follow')}
+	</button>
 {/if}
 
 <style>
-	.following {
+	button {
 		display: flex;
-		flex-direction: row;
+		row-gap: 2px;
 	}
-
-	.following button {
-		border: none;
-		background-color: inherit;
-		cursor: pointer;
-		outline: none;
-		padding: 0;
-		color: gray;
-		height: 20px;
-
-		margin-left: 0.2em;
+	:global(button .loader > svg) {
+		fill: white;
 	}
 </style>
