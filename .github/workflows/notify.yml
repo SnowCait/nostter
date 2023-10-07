@@ -1,12 +1,29 @@
 name: Notify
 
 on:
+  issues:
+    types:
+      opened
   pull_request:
     types:
       - closed
 
 jobs:
-  notify:
+  notify-issue:
+    if: ${{ github.event_name == 'issues' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: snow-actions/nostr@v1.7.0
+        with:
+          relays: ${{ vars.NOSTR_RELAYS }}
+          private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
+          content: |
+            Issue: ${{ github.event.issue.title }} 
+            ${{ github.event.issue.html_url }} #nostter
+          tags: |
+            - ["t", "nostter"]
+  notify-pr:
     if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -16,8 +33,8 @@ jobs:
           relays: ${{ vars.NOSTR_RELAYS }}
           private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
           content: |
-            #nostter ${{ github.event.pull_request.title }} 
-            ${{ github.event.pull_request.html_url }}
+            PR: ${{ github.event.pull_request.title }} 
+            ${{ github.event.pull_request.html_url }} #nostter
           tags: |
             - ["t", "nostter"]
   user-status:
