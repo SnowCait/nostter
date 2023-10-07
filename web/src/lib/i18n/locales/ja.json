@@ -21,5 +21,8 @@
 	},
 	"post": "投稿",
 	"follow": "フォロー",
-	"following": "フォロー中"
+	"following": "フォロー中",
+	"editor": {
+		"post": "ポストする"
+	}
 }
