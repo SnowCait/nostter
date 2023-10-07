@@ -288,7 +288,7 @@
 				<summary>
 					{#if user?.nip05}
 						<div class="nip05">
-							<span>{user.nip05}</span>
+							<span>{slug}</span>
 							{#await nip05.queryProfile(user.nip05) then pointer}
 								{#if pointer !== null}
 									<IconDiscountCheck color="skyblue" />
