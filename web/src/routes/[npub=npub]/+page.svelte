@@ -33,12 +33,15 @@
 	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
 	import IconAlertTriangle from '@tabler/icons-svelte/dist/svelte/icons/IconAlertTriangle.svelte';
 	import UserStatus from '../parts/UserStatus.svelte';
+	import CopyButton from '../parts/CopyButton.svelte';
 
 	let metadata: Metadata;
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
 	let events: EventItem[] = [];
 	let pubkey = '';
+	let npub = '';
+	let nprofile = '';
 	let followees: string[] = [];
 	let followers: string[] = [];
 	let followeesLoading = true;
@@ -98,6 +101,8 @@
 				...metadata.content,
 				zapEndpoint: (await metadata.zapUrl())?.href ?? null
 			} as User;
+			npub = nip19.npubEncode(pubkey);
+			nprofile = nip19.nprofileEncode({ pubkey });
 		}
 
 		if (user !== undefined && user.nip05) {
@@ -274,24 +279,43 @@
 					<p>Follows you</p>
 				{/if}
 			</div>
-			{#if user?.nip05}
-				<div class="nip05">
-					<span>{user.nip05}</span>
-					{#await nip05.queryProfile(user.nip05) then pointer}
-						{#if pointer !== null}
-							<IconDiscountCheck color="skyblue" />
-						{:else}
-							<IconAlertTriangle color="red" />
-						{/if}
-					{/await}
-				</div>
-			{/if}
 
 			<div class="user-status">
 				<UserStatus {pubkey} showLink={true} />
 			</div>
-			<div class="nip19">{nip19.npubEncode(pubkey)}</div>
-			<div class="nip19">{nip19.nprofileEncode({ pubkey })}</div>
+
+			<details>
+				<summary>
+					{#if user?.nip05}
+						<div class="nip05">
+							<span>{user.nip05}</span>
+							{#await nip05.queryProfile(user.nip05) then pointer}
+								{#if pointer !== null}
+									<IconDiscountCheck color="skyblue" />
+								{:else}
+									<IconAlertTriangle color="red" />
+								{/if}
+							{/await}
+						</div>
+					{:else}
+						<div>
+							<span>{npub}</span>
+						</div>
+					{/if}
+				</summary>
+				<div class="nip-19">
+					{#if user?.nip05}
+						<div>
+							<span>{npub}</span>
+							<CopyButton text={npub} />
+						</div>
+					{/if}
+					<div>
+						<span>{nprofile}</span>
+						<CopyButton text={nprofile} />
+					</div>
+				</div>
+			</details>
 			{#if user?.website}
 				<div>
 					<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
@@ -445,17 +469,32 @@
 		margin: 1rem 0;
 	}
 
-	.nip05 {
+	details {
+		display: inline-block;
+		margin: 0.35rem 0;
+		color: var(--secondary-accent);
+	}
+
+	details .nip-19 span {
+		overflow-x: hidden;
+		text-overflow: ellipsis;
+		font-size: 0.875rem;
+		font-weight: 500;
+		margin-top: 0.2rem;
+		max-width: 140px;
+	}
+
+	details .nip-19 > div {
 		display: flex;
+	}
+
+	.nip05 {
+		display: inline-flex;
 		flex-direction: row;
 	}
 
 	.nip05 span {
 		margin-right: 0.2rem;
-	}
-
-	.nip19 {
-		overflow: auto;
 	}
 
 	.relationships {
