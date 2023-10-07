@@ -21,5 +21,8 @@
 	},
 	"post": "Post",
 	"follow": "Follow",
-	"following": "Following"
+	"following": "Following",
+	"editor": {
+		"post": "Post"
+	}
 }
