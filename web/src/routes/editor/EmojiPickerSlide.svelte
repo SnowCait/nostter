@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { Picker } from 'emoji-kitchen-mart';
 	import type { BaseEmoji } from '@types/emoji-mart';
-	import data from '@emoji-mart/data';
+	import data from '../../emoji.json';
 	import { browser } from '$app/environment';
 	import { customEmojiTags } from '../../stores/CustomEmojis';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
