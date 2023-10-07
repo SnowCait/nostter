@@ -32,11 +32,15 @@ javascript:window.open(`https://nostter.vercel.app/post?content=${document.title
 
 ## Dependencies
 
-- [Nostr](https://github.com/nostr-protocol/nostr), [nostr-tools](https://github.com/nbd-wtf/nostr-tools)
-- Svelte, SvelteKit, Vite
-- TypeScript, JavaScript, Node.js
-- Vitest, Playwright
-- [Tabler Icons for Svelte](https://tabler.io/docs/icons/svelte)
+| Category | Names |
+| - | - |
+| Nostr | [Nostr](https://github.com/nostr-protocol/nostr), [nostr-tools](https://github.com/nbd-wtf/nostr-tools), [rx-nostr](https://github.com/penpenpng/rx-nostr), [nip07-awaiter](https://github.com/penpenpng/nip07-awaiter) |
+| Frameworks | Svelte, SvelteKit, Vite |
+| Languages | TypeScript, JavaScript, Node.js |
+| Tests | Vitest, Playwright |
+| UI | [Tabler Icons for Svelte](https://tabler.io/docs/icons/svelte), [emoji-kitchen-mart](https://www.npmjs.com/package/emoji-kitchen-mart) |
+
+See full list at [package.json](web/package.json)
 
 ## License
 
