@@ -4,20 +4,20 @@
 	import { writeRelays } from '../stores/Author';
 	import { createEventDispatcher } from 'svelte';
 	import { Signer } from '$lib/Signer';
-	import type { User } from './types';
 	import type { EventItem } from '$lib/Items';
+	import ModalDialog from '$lib/components/ModalDialog.svelte';
 
 	export let eventItem: EventItem;
 
 	export function openZapDialog() {
 		console.log('[zap open]');
-		dialog.showModal();
+		open = true;
 	}
 
 	let sats = 50;
 	let zapComment = '';
 	let invoice = '';
-	let dialog: HTMLDialogElement;
+	let open = false;
 
 	const dispatch = createEventDispatcher();
 
@@ -53,19 +53,10 @@
 
 		dispatch('zapped');
 	}
-
-	function closeZapDialog(e: MouseEvent) {
-		const element = (e.target as Element).closest('.zap-dialog');
-		console.log('[zap close]', element, dialog);
-		if (element === null) {
-			dialog.close();
-		}
-	}
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<dialog bind:this={dialog} on:click={closeZapDialog}>
-	<div class="zap-dialog">
+<ModalDialog bind:open>
+	<article>
 		{#if invoice === ''}
 			<div>
 				@{eventItem.metadata?.content?.name ?? eventItem.metadata?.content?.display_name}
@@ -100,20 +91,12 @@
 				<div class="text">{invoice}</div>
 			</section>
 		{/if}
-	</div>
-</dialog>
+	</article>
+</ModalDialog>
 
 <style>
-	dialog {
-		padding: 0;
-		border: 1px;
-		border-style: solid;
-		border-color: lightgray;
-		border-radius: 10px;
-	}
-
-	.zap-dialog {
-		padding: 1em;
+	article {
+		margin: 1rem;
 	}
 
 	.lnbc .text {
