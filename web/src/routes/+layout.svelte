@@ -72,7 +72,7 @@
 				break;
 			}
 			case 'visible': {
-				reloadDialogComponent.tryOpen();
+				setTimeout(() => reloadDialogComponent.tryOpen(), 1000);
 				break;
 			}
 		}
