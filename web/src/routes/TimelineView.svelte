@@ -56,7 +56,7 @@
 				if (
 					target.classList.contains('emoji-picker') ||
 					target.classList.contains('develop') ||
-					target.classList.contains('zap-dialog')
+					target.closest('dialog')
 				) {
 					return;
 				}
