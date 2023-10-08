@@ -55,7 +55,8 @@
 			while (target && !target.classList.contains('timeline')) {
 				if (
 					target.classList.contains('emoji-picker') ||
-					target.classList.contains('develop')
+					target.classList.contains('develop') ||
+					target.classList.contains('zap-dialog')
 				) {
 					return;
 				}
