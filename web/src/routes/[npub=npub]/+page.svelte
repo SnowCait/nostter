@@ -405,6 +405,7 @@
 	.profile .blank {
 		width: 128px;
 		height: 128px;
+		border: 4px solid var(--surface);
 		border-radius: 50%;
 		margin-right: 12px;
 		object-fit: cover;
