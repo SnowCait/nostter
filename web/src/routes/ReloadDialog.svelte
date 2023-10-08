@@ -3,7 +3,9 @@
 	import { pool } from '../stores/Pool';
 	import { readRelays } from '../stores/Author';
 	import { debugMode } from '../stores/Preference';
+	import ModalDialog from '$lib/components/ModalDialog.svelte';
 
+	let open = false;
 	let relays: Relay[] = [];
 
 	export function tryOpen() {
@@ -19,50 +21,23 @@
 				'[unstable connection]',
 				relays.map((relay) => [relay.url, relay.status])
 			);
-			if (!dialog.open) {
-				dialog.showModal();
-			}
-		}
-	}
-
-	let dialog: HTMLDialogElement;
-
-	function close(e: MouseEvent) {
-		const element = (e.target as Element).closest('.dialog-content');
-		console.log('[close reload dialog]', element, dialog);
-		if (element === null) {
-			dialog.close();
+			open = true;
 		}
 	}
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<dialog bind:this={dialog} on:click={close}>
-	<div class="dialog-content">
-		<h1>Unstable connection</h1>
-		<p>More than half relays are lost connection.</p>
-		<button on:click={() => (location.href = '/')}>Reload</button>
-		<ul>
-			{#each relays as relay}
-				<li>{relay.url} {relay.status}</li>
-			{/each}
-		</ul>
-	</div>
-</dialog>
+<ModalDialog bind:open>
+	<h1>Unstable connection</h1>
+	<p>More than half relays are lost connection.</p>
+	<button on:click={() => (location.href = '/')}>Reload</button>
+	<ul>
+		{#each relays as relay}
+			<li>{relay.url} {relay.status}</li>
+		{/each}
+	</ul>
+</ModalDialog>
 
 <style>
-	dialog {
-		padding: 0;
-		border: 1px;
-		border-style: solid;
-		border-color: lightgray;
-		border-radius: 10px;
-	}
-
-	.dialog-content {
-		padding: 1em;
-	}
-
 	li {
 		word-break: break-all;
 	}
