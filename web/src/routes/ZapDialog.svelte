@@ -1,21 +1,19 @@
 <script lang="ts">
-	import { nip57, type Event } from 'nostr-tools';
+	import { nip57 } from 'nostr-tools';
 	import QRCode from 'qrcode';
-	import { readRelays, writeRelays } from '../stores/Author';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { writeRelays } from '../stores/Author';
+	import { createEventDispatcher } from 'svelte';
 	import { Signer } from '$lib/Signer';
 	import type { User } from './types';
-	import { Api } from '$lib/Api';
-	import { pool } from '../stores/Pool';
+	import type { EventItem } from '$lib/Items';
 
-	export let event: Event;
+	export let eventItem: EventItem;
 
 	export function openZapDialog() {
 		console.log('[zap open]');
 		dialog.showModal();
 	}
 
-	let user: User | undefined;
 	let sats = 50;
 	let zapComment = '';
 	let invoice = '';
@@ -23,27 +21,25 @@
 
 	const dispatch = createEventDispatcher();
 
-	onMount(() => {
-		const api = new Api($pool, $readRelays);
-		api.fetchUserEvent(event.pubkey).then((userEvent) => {
-			user = userEvent?.user;
-		});
-	});
-
 	async function zap() {
 		const amount = sats * 1000;
 		const zapRequest = nip57.makeZapRequest({
-			profile: event.pubkey,
-			event: event.id,
+			profile: eventItem.event.pubkey,
+			event: eventItem.event.id,
 			amount,
 			comment: zapComment,
 			relays: $writeRelays
 		});
 		const zapRequestEvent = await Signer.signEvent(zapRequest);
-		console.log('[zap request]', zapRequestEvent, user);
+		console.log('[zap request]', zapRequestEvent, eventItem.metadata?.content);
 		const encoded = encodeURI(JSON.stringify(zapRequestEvent));
 
-		const url = `${user?.zapEndpoint}?amount=${amount}&nostr=${encoded}`;
+		const zapUrl = (await eventItem.metadata?.zapUrl()) ?? null;
+		if (zapUrl === null) {
+			console.error('[zap url not found]', eventItem.metadata?.content?.lud16);
+			return;
+		}
+		const url = `${zapUrl.href}?amount=${amount}&nostr=${encoded}`;
 		console.log('[zap url]', url);
 
 		const response = await fetch(url);
@@ -71,7 +67,9 @@
 <dialog bind:this={dialog} on:click={closeZapDialog}>
 	<div class="zap-dialog">
 		{#if invoice === ''}
-			<div>@{user?.name ?? user?.display_name}</div>
+			<div>
+				@{eventItem.metadata?.content?.name ?? eventItem.metadata?.content?.display_name}
+			</div>
 			<form on:submit|preventDefault={zap}>
 				<div>
 					<input
