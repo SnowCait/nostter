@@ -2,10 +2,12 @@
 	import { createEventDispatcher } from 'svelte';
 	import { Picker } from 'emoji-kitchen-mart';
 	import type { BaseEmoji } from '@types/emoji-mart';
-	import data from '@emoji-mart/data';
+	import data from '../../emoji.json';
 	import { computePosition, flip, shift } from '@floating-ui/dom';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 	import { customEmojiTags } from '../../stores/CustomEmojis';
+
+	console.debug('[emoji data]', data);
 
 	let button: HTMLButtonElement;
 	let emojiPicker: HTMLElement;
