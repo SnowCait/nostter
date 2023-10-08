@@ -2,7 +2,8 @@
 	import { nip57 } from 'nostr-tools';
 	import QRCode from 'qrcode';
 	import { writeRelays } from '../stores/Author';
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
+	import { WebStorage } from '$lib/WebStorage';
 	import { Signer } from '$lib/Signer';
 	import type { EventItem } from '$lib/Items';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
@@ -20,6 +21,14 @@
 	let open = false;
 
 	const dispatch = createEventDispatcher();
+
+	onMount(() => {
+		const storage = new WebStorage(localStorage);
+		const previousSats = storage.get('zap');
+		if (previousSats !== null) {
+			sats = Number(previousSats);
+		}
+	});
 
 	async function zap() {
 		const amount = sats * 1000;
@@ -50,6 +59,9 @@
 		const { pr } = await response.json();
 		invoice = pr;
 		console.log('[zap invoice]', invoice);
+
+		const storage = new WebStorage(localStorage);
+		storage.set('zap', sats.toString());
 
 		dispatch('zapped');
 	}
