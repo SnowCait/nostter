@@ -29,7 +29,7 @@
 <ModalDialog bind:open>
 	<h1>Unstable connection</h1>
 	<p>More than half relays are lost connection.</p>
-	<button on:click={() => (location.href = '/')}>Reload</button>
+	<button on:click={() => (location.href = location.href)}>Reload</button>
 	<ul>
 		{#each relays as relay}
 			<li>{relay.url} {relay.status}</li>
