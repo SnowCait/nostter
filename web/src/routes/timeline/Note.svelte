@@ -20,7 +20,7 @@
 	import { rom } from '../../stores/Author';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { Api } from '$lib/Api';
-	import { getContext, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import ZapDialog from '../ZapDialog.svelte';
 	import Content from '../content/Content.svelte';
 	import { Signer } from '$lib/Signer';
@@ -36,7 +36,8 @@
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 	export let full = false;
 
-	$: metadata = (item as EventItem).metadata;
+	$: eventItem = item as EventItem;
+	$: metadata = eventItem.metadata;
 
 	if ($rom) {
 		readonly = true;
@@ -273,7 +274,7 @@
 </script>
 
 <article class="timeline-item">
-	<ZapDialog event={item.event} bind:this={zapDialogComponent} on:zapped={onZapped} />
+	<ZapDialog {eventItem} bind:this={zapDialogComponent} on:zapped={onZapped} />
 	<div>
 		<a href="/{nip19.npubEncode(item.event.pubkey)}">
 			<img class="picture" src={metadata?.content?.picture} alt="" />
