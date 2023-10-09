@@ -305,6 +305,10 @@
 			display: block;
 		}
 
+		header {
+			width: 0;
+		}
+
 		main {
 			margin-left: auto;
 			padding-bottom: 3.125rem;
