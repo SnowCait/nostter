@@ -38,7 +38,8 @@
 	export let full = false;
 
 	$: eventItem = item as EventItem;
-	$: metadata = eventItem.metadata;
+	$: metadataEvent = metadataEvents.get(eventItem.event.pubkey);
+	$: metadata = metadataEvent !== undefined ? new Metadata(metadataEvent) : undefined;
 
 	if ($rom) {
 		readonly = true;
