@@ -2,6 +2,8 @@
 	import { writable } from 'svelte/store';
 	import { onMount } from 'svelte';
 	import type { Item } from '$lib/Items';
+	import { channelIdStore } from '$lib/Channel';
+	import { findChannelId } from '$lib/EventHelper';
 	import { author, isMuteEvent } from '../stores/Author';
 	import Loading from './Loading.svelte';
 	import EventComponent from './timeline/EventComponent.svelte';
@@ -80,6 +82,13 @@
 			}
 		}
 		if (transitionable) {
+			if (nostrEvent.kind === 42 && $channelIdStore === undefined) {
+				const channelId = findChannelId(nostrEvent.tags);
+				if (channelId !== undefined) {
+					await goto(`/channels/${nip19.neventEncode({ id: channelId })}`);
+					return;
+				}
+			}
 			const eventId = [6, 7, 9735].includes(nostrEvent.kind)
 				? getTargetETag(nostrEvent.tags)
 				: nostrEvent.id;
