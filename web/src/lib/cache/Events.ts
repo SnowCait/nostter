@@ -1,13 +1,12 @@
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
+import type { id, pubkey } from '$lib/Types';
 import { EventItem } from '$lib/Items';
 import { events } from '../../stores/Events';
 
-type id = string;
-type pubkey = string;
 // <event.id, event>
 export const cachedEvents = new Map<id, Event>();
-// <pubkey, event>
+// <event.pubkey, event>
 export const metadataEvents = new Map<pubkey, Event>();
 // <root-id, event>
 export const channelMetadataEvents = new Map<id, Event>();

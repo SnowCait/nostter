@@ -1,5 +1,6 @@
 import { nip57, type Event } from 'nostr-tools';
-import type { Event as NostrEvent, User } from '../routes/types'; // for compatibility
+import type { pubkey } from './Types';
+import { filterTags } from './EventHelper';
 
 export interface Item {
 	readonly event: Event;
@@ -11,6 +12,10 @@ export class EventItem implements Item {
 		if (metadataEvent !== undefined) {
 			this.metadata = new Metadata(metadataEvent);
 		}
+	}
+
+	public get replyToPubkeys(): pubkey[] {
+		return [...new Set(filterTags('p', this.event.tags))];
 	}
 }
 

@@ -1,14 +1,24 @@
 import { get } from 'svelte/store';
-import type { Event } from 'nostr-tools';
+import type { Event } from 'nostr-typedef';
 import { batch, createRxBackwardReq, createRxNostr, latestEach } from 'rx-nostr';
 import { bufferTime } from 'rxjs';
 import { timeout } from '$lib/Constants';
+import { filterTags } from '$lib/EventHelper';
 import { Metadata } from '../Items';
 import { metadataEvents } from '../cache/Events';
 import { events } from '../../stores/Events';
 
 export const rxNostr = createRxNostr({ timeout }); // for home & notification timeline
 export const metadataReq = createRxBackwardReq();
+export function metadataReqEmit(event: Event): void {
+	for (const pubkey of [event.pubkey, ...filterTags('p', event.tags)]) {
+		metadataReq.emit({
+			kinds: [0],
+			authors: [pubkey],
+			limit: 1
+		});
+	}
+}
 
 const $events = get(events);
 rxNostr

@@ -43,7 +43,7 @@
 	import { tap, bufferTime } from 'rxjs';
 	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
 	import { metadataEvents } from '$lib/cache/Events';
-	import { metadataReq, rxNostr } from '$lib/timelines/MainTimeline';
+	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { WebStorage } from '$lib/WebStorage';
 	import { findIdentifier } from '$lib/EventHelper';
 	import { authorReplaceableKinds } from '$lib/Author';
@@ -172,35 +172,33 @@
 				return;
 			}
 
-			const api = new Api($pool, $readRelays);
-			const userEvent = await api.fetchUserEvent(event.pubkey); // not chronological
-			if (userEvent !== undefined) {
-				event.user = userEvent.user;
-			}
+			metadataReqEmit(event);
 
 			// Cache note events
 			const eventIds = new Set([
 				...event.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
 				...Content.findNotesAndNeventsToIds(event.content)
 			]);
+			const api = new Api($pool, $readRelays);
 			await api.fetchEventsByIds([...eventIds]);
 
 			// Streaming speed (experimental)
 			notifyStreamingSpeed(event.created_at);
 
+			const metadataEvent = metadataEvents.get(event.pubkey);
+			const eventItem = new EventItem(event, metadataEvent);
+
 			// Notification
 			if ($author?.isNotified(event)) {
 				console.log('[related]', event);
-				const item = new EventItem(event, userEvent);
-				$unreadEvents.unshift(item);
-				$notifiedEvents.unshift(item);
+				$unreadEvents.unshift(eventItem);
+				$notifiedEvents.unshift(eventItem);
 				$unreadEvents = $unreadEvents;
 				$notifiedEvents = $notifiedEvents;
 
 				notify(event);
 			}
 
-			const eventItem = new EventItem(event, userEvent);
 			if (eose) {
 				if ($autoRefresh) {
 					$events.unshift(eventItem);
@@ -459,13 +457,7 @@
 					.use(pastChannelMessageReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => {
-							metadataReq.emit({
-								kinds: [0],
-								authors: [event.pubkey],
-								limit: 1
-							});
-						}),
+						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({
