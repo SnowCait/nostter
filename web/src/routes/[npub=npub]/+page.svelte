@@ -60,16 +60,6 @@
 			const cache = metadataEvents.get(packet.event.pubkey);
 			if (cache === undefined || cache.created_at < packet.event.created_at) {
 				metadataEvents.set(packet.event.pubkey, packet.event);
-
-				const metadata = new Metadata(packet.event);
-				console.log('[rx-nostr metadata]', packet, metadata.content?.name);
-				for (const item of events) {
-					if (item.event.pubkey !== packet.event.pubkey) {
-						continue;
-					}
-					item.metadata = metadata;
-				}
-				events = events;
 			}
 		});
 
