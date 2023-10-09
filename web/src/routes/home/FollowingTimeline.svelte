@@ -172,7 +172,7 @@
 				return;
 			}
 
-			metadataReqEmit(event.pubkey);
+			metadataReqEmit(event);
 
 			// Cache note events
 			const eventIds = new Set([
@@ -457,9 +457,7 @@
 					.use(pastChannelMessageReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => {
-							metadataReqEmit(event.pubkey);
-						}),
+						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({
