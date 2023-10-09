@@ -5,7 +5,12 @@
 	import { tap, bufferTime, firstValueFrom, EmptyError } from 'rxjs';
 	import { afterNavigate } from '$app/navigation';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import { cachedEvents, getCachedEventItem, metadataEvents } from '$lib/cache/Events';
+	import {
+		cachedEvents,
+		getCachedEventItem,
+		metadataEvents,
+		metadataStore
+	} from '$lib/cache/Events';
 	import { error } from '@sveltejs/kit';
 	import type { PageData } from './$types';
 	import { author, readRelays } from '../../stores/Author';
@@ -36,8 +41,7 @@
 	let rootId: string | undefined;
 	let relays: string[] = [];
 
-	$: metadataEvent = item !== undefined ? metadataEvents.get(item.event.pubkey) : undefined;
-	$: metadata = metadataEvent !== undefined ? new Metadata(metadataEvent) : undefined;
+	$: metadata = item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined;
 
 	let repostEvents: EventItem[] | undefined;
 	let reactionEvents: EventItem[] | undefined;
@@ -50,16 +54,14 @@
 	$: repostMetadataList =
 		repostEvents !== undefined
 			? repostEvents
-					.map((x) => metadataEvents.get(x.event.pubkey))
-					.filter((x): x is Event => x !== undefined)
-					.map((x) => new Metadata(x))
+					.map((x) => $metadataStore.get(x.event.pubkey))
+					.filter((x): x is Metadata => x !== undefined)
 			: [];
 	$: reactionMetadataList =
 		reactionEvents !== undefined
 			? reactionEvents
-					.map((x) => metadataEvents.get(x.event.pubkey))
-					.filter((x): x is Event => x !== undefined)
-					.map((x) => new Metadata(x))
+					.map((x) => $metadataStore.get(x.event.pubkey))
+					.filter((x): x is Metadata => x !== undefined)
 			: [];
 
 	const metadataReq = createRxBackwardReq();
@@ -113,7 +115,7 @@
 					)
 				);
 				console.log('[thread page event]', packet);
-				item = new EventItem(packet.event, metadataEvents.get(packet.event.pubkey));
+				item = new EventItem(packet.event);
 				cachedEvents.set(packet.event.id, packet.event);
 			} catch (error) {
 				if (!(error instanceof EmptyError)) {

@@ -5,15 +5,13 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { WebStorage } from '$lib/WebStorage';
 	import { Signer } from '$lib/Signer';
-	import { Metadata, type EventItem } from '$lib/Items';
-	import { metadataEvents } from '$lib/cache/Events';
+	import type { EventItem } from '$lib/Items';
+	import { metadataStore } from '$lib/cache/Events';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 
 	export let eventItem: EventItem;
 
-	$: metadataEvent =
-		eventItem !== undefined ? metadataEvents.get(eventItem.event.pubkey) : undefined;
-	$: metadata = metadataEvent !== undefined ? new Metadata(metadataEvent) : undefined;
+	$: metadata = $metadataStore.get(eventItem.event.pubkey);
 
 	export function openZapDialog() {
 		console.log('[zap open]');

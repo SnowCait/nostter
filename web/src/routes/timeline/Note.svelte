@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Kind, nip19, type Event } from 'nostr-tools';
-	import { Metadata, type EventItem, type Item } from '$lib/Items';
-	import { metadataEvents } from '$lib/cache/Events';
+	import type { EventItem, Item } from '$lib/Items';
+	import { metadataStore } from '$lib/cache/Events';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
@@ -38,8 +38,7 @@
 	export let full = false;
 
 	$: eventItem = item as EventItem;
-	$: metadataEvent = metadataEvents.get(eventItem.event.pubkey);
-	$: metadata = metadataEvent !== undefined ? new Metadata(metadataEvent) : undefined;
+	$: metadata = $metadataStore.get(eventItem.event.pubkey);
 
 	if ($rom) {
 		readonly = true;
@@ -293,11 +292,7 @@
 				<span>
 					@{eventItem.replyToPubkeys
 						.map((pubkey) => {
-							const metadataEvent = metadataEvents.get(pubkey);
-							if (metadataEvent === undefined) {
-								return nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7);
-							}
-							const metadata = new Metadata(metadataEvent);
+							const metadata = $metadataStore.get(pubkey);
 							const name = metadata?.content?.name;
 							if (name !== undefined && name !== '') {
 								return name;
