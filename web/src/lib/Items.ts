@@ -7,12 +7,7 @@ export interface Item {
 }
 
 export class EventItem implements Item {
-	public metadata: Metadata | undefined;
-	constructor(public readonly event: Event, metadataEvent: Event | undefined = undefined) {
-		if (metadataEvent !== undefined) {
-			this.metadata = new Metadata(metadataEvent);
-		}
-	}
+	constructor(public readonly event: Event) {}
 
 	public get replyToPubkeys(): pubkey[] {
 		return [...new Set(filterTags('p', this.event.tags))];
