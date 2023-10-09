@@ -9,6 +9,13 @@ import { events } from '../../stores/Events';
 
 export const rxNostr = createRxNostr({ timeout }); // for home & notification timeline
 export const metadataReq = createRxBackwardReq();
+export function metadataReqEmit(pubkey: string) {
+	metadataReq.emit({
+		kinds: [0],
+		authors: [pubkey],
+		limit: 1
+	});
+}
 
 const $events = get(events);
 rxNostr
