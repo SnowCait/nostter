@@ -36,6 +36,9 @@
 	let rootId: string | undefined;
 	let relays: string[] = [];
 
+	$: metadataEvent = item !== undefined ? metadataEvents.get(item.event.pubkey) : undefined;
+	$: metadata = metadataEvent !== undefined ? new Metadata(metadataEvent) : undefined;
+
 	let repostEvents: EventItem[] | undefined;
 	let reactionEvents: EventItem[] | undefined;
 
@@ -46,11 +49,17 @@
 
 	$: repostMetadataList =
 		repostEvents !== undefined
-			? repostEvents.map((x) => x.metadata).filter((x): x is Metadata => x !== undefined)
+			? repostEvents
+					.map((x) => metadataEvents.get(x.event.pubkey))
+					.filter((x): x is Event => x !== undefined)
+					.map((x) => new Metadata(x))
 			: [];
 	$: reactionMetadataList =
 		reactionEvents !== undefined
-			? reactionEvents.map((x) => x.metadata).filter((x): x is Metadata => x !== undefined)
+			? reactionEvents
+					.map((x) => metadataEvents.get(x.event.pubkey))
+					.filter((x): x is Event => x !== undefined)
+					.map((x) => new Metadata(x))
 			: [];
 
 	const metadataReq = createRxBackwardReq();
@@ -238,7 +247,7 @@
 	</div>
 	<div class="mute">
 		<MuteButton tagName="p" tagContent={item.event.pubkey} />
-		<span>Mute @{item.metadata?.content?.name}</span>
+		<span>Mute @{metadata?.content?.name}</span>
 	</div>
 {/if}
 
