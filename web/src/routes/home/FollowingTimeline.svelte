@@ -42,7 +42,6 @@
 	import { batch, createRxForwardReq, createRxOneshotReq, latestEach, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
 	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
-	import { metadataEvents } from '$lib/cache/Events';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { WebStorage } from '$lib/WebStorage';
 	import { findIdentifier } from '$lib/EventHelper';
@@ -185,8 +184,7 @@
 			// Streaming speed (experimental)
 			notifyStreamingSpeed(event.created_at);
 
-			const metadataEvent = metadataEvents.get(event.pubkey);
-			const eventItem = new EventItem(event, metadataEvent);
+			const eventItem = new EventItem(event);
 
 			// Notification
 			if ($author?.isNotified(event)) {
@@ -466,10 +464,7 @@
 							packets.sort(reverseChronologicalItem);
 							const newEventItems = packets
 								.filter(({ event }) => event.created_at < until)
-								.map(
-									({ event }) =>
-										new EventItem(event, metadataEvents.get(event.pubkey))
-								);
+								.map(({ event }) => new EventItem(event));
 							$events.push(...newEventItems);
 							$events = $events;
 

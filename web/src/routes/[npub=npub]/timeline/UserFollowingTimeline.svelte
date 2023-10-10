@@ -1,12 +1,5 @@
 <script lang="ts">
-	import {
-		batch,
-		createRxBackwardReq,
-		createRxOneshotReq,
-		latestEach,
-		now,
-		uniq
-	} from 'rx-nostr';
+	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
 	import { Timeline } from '$lib/Timeline';
 	import { Api } from '$lib/Api';
@@ -19,9 +12,8 @@
 	import { userTimelineEvents as items } from '../../../stores/Events';
 	import { Kind, SimplePool, type Event, nip19 } from 'nostr-tools';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import { metadataEvents } from '$lib/cache/Events';
-	import { EventItem, Metadata } from '$lib/Items';
+	import { rxNostr, metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import { EventItem } from '$lib/Items';
 
 	export let pubkey: string;
 
@@ -29,33 +21,8 @@
 	let timeline: Timeline;
 	let unsubscribe: () => void;
 
-	const metadataReq = createRxBackwardReq();
-	rxNostr
-		.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
-		.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
-		.subscribe(async (packet) => {
-			const cache = metadataEvents.get(packet.event.pubkey);
-			if (cache === undefined || cache.created_at < packet.event.created_at) {
-				metadataEvents.set(packet.event.pubkey, packet.event);
-
-				const metadata = new Metadata(packet.event);
-				console.log('[rx-nostr metadata]', packet, metadata.content?.name);
-				for (const item of $items) {
-					if (item.event.pubkey !== packet.event.pubkey) {
-						continue;
-					}
-					item.metadata = metadata;
-				}
-				$items = $items;
-			}
-		});
-
 	export async function initialize() {
-		console.log(
-			'[user following timeline initialize]',
-			nip19.npubEncode(pubkey),
-			metadataEvents.get(pubkey)?.content
-		);
+		console.log('[user following timeline initialize]', nip19.npubEncode(pubkey));
 
 		$items = [];
 		if (unsubscribe !== undefined) {
@@ -114,13 +81,7 @@
 					.use(pastEventsReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => {
-							metadataReq.emit({
-								kinds: [0],
-								authors: [event.pubkey],
-								limit: 1
-							});
-						}),
+						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({
@@ -129,10 +90,7 @@
 							packets.sort(reverseChronologicalItem);
 							const newEventItems = packets
 								.filter(({ event }) => event.created_at < until)
-								.map(
-									({ event }) =>
-										new EventItem(event, metadataEvents.get(event.pubkey))
-								);
+								.map(({ event }) => new EventItem(event));
 							const duplicateEvents = newEventItems.filter((item) =>
 								$items.some((x) => x.event.id === item.event.id)
 							);

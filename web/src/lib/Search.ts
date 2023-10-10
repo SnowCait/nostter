@@ -5,6 +5,7 @@ import { EventItem } from './Items';
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
 import { readRelays } from '../stores/Author';
+import { metadataReqEmit } from './timelines/MainTimeline';
 
 export class Search {
 	parseQuery(query: string): Filter {
@@ -67,11 +68,11 @@ export class Search {
 		const $pool = get(pool);
 		const api = new Api($pool, filter.search !== undefined ? searchRelays : get(readRelays));
 		const events = await api.fetchEvents([filter]);
-		const metadataEventsMap = await api.fetchMetadataEventsMap([
-			...new Set(events.map((x) => x.pubkey))
-		]);
-		console.log('[search events]', events, metadataEventsMap);
+		console.log('[search events]', events);
+		for (const event of events) {
+			metadataReqEmit(event);
+		}
 		events.sort(reverseChronological);
-		return events.map((event) => new EventItem(event, metadataEventsMap.get(event.pubkey)));
+		return events.map((event) => new EventItem(event));
 	}
 }

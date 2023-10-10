@@ -6,9 +6,12 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import { Signer } from '$lib/Signer';
 	import type { EventItem } from '$lib/Items';
+	import { metadataStore } from '$lib/cache/Events';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 
 	export let eventItem: EventItem;
+
+	$: metadata = $metadataStore.get(eventItem.event.pubkey);
 
 	export function openZapDialog() {
 		console.log('[zap open]');
@@ -40,12 +43,12 @@
 			relays: $writeRelays
 		});
 		const zapRequestEvent = await Signer.signEvent(zapRequest);
-		console.log('[zap request]', zapRequestEvent, eventItem.metadata?.content);
+		console.log('[zap request]', zapRequestEvent, metadata?.content);
 		const encoded = encodeURI(JSON.stringify(zapRequestEvent));
 
-		const zapUrl = (await eventItem.metadata?.zapUrl()) ?? null;
+		const zapUrl = (await metadata?.zapUrl()) ?? null;
 		if (zapUrl === null) {
-			console.error('[zap url not found]', eventItem.metadata?.content?.lud16);
+			console.error('[zap url not found]', metadata?.content?.lud16);
 			return;
 		}
 		const url = `${zapUrl.href}?amount=${amount}&nostr=${encoded}`;
@@ -71,7 +74,7 @@
 	<article>
 		{#if invoice === ''}
 			<div>
-				@{eventItem.metadata?.content?.name ?? eventItem.metadata?.content?.display_name}
+				@{metadata?.content?.name ?? metadata?.content?.display_name}
 			</div>
 			<form on:submit|preventDefault={zap}>
 				<div>

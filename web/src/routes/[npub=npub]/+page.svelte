@@ -2,17 +2,9 @@
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
 	import { nip05, nip19, SimplePool, type Event } from 'nostr-tools';
-	import {
-		batch,
-		createRxBackwardReq,
-		createRxOneshotReq,
-		latestEach,
-		now,
-		uniq
-	} from 'rx-nostr';
+	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import { metadataEvents } from '$lib/cache/Events';
+	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import type { User } from '../types';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
@@ -51,27 +43,6 @@
 	let relays = $readRelays;
 	let slug = $page.params.npub;
 	const api = new Api($pool, relays);
-
-	const metadataReq = createRxBackwardReq();
-	rxNostr
-		.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
-		.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
-		.subscribe(async (packet) => {
-			const cache = metadataEvents.get(packet.event.pubkey);
-			if (cache === undefined || cache.created_at < packet.event.created_at) {
-				metadataEvents.set(packet.event.pubkey, packet.event);
-
-				const metadata = new Metadata(packet.event);
-				console.log('[rx-nostr metadata]', packet, metadata.content?.name);
-				for (const item of events) {
-					if (item.event.pubkey !== packet.event.pubkey) {
-						continue;
-					}
-					item.metadata = metadata;
-				}
-				events = events;
-			}
-		});
 
 	afterNavigate(async () => {
 		slug = $page.params.npub;
@@ -165,13 +136,7 @@
 					.use(pastEventsReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => {
-							metadataReq.emit({
-								kinds: [0],
-								authors: [event.pubkey],
-								limit: 1
-							});
-						}),
+						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({
@@ -183,10 +148,7 @@
 									({ event }) =>
 										since <= event.created_at && event.created_at < until
 								)
-								.map(
-									({ event }) =>
-										new EventItem(event, metadataEvents.get(event.pubkey))
-								);
+								.map(({ event }) => new EventItem(event));
 							const duplicateEvents = newEventItems.filter((item) =>
 								events.some((x) => x.event.id === item.event.id)
 							);

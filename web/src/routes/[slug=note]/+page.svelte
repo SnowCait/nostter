@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { Kind } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
-	import { batch, createRxBackwardReq, createRxOneshotReq, latestEach } from 'rx-nostr';
-	import { tap, bufferTime, firstValueFrom, EmptyError } from 'rxjs';
+	import { createRxOneshotReq } from 'rx-nostr';
+	import { tap, firstValueFrom, EmptyError } from 'rxjs';
 	import { afterNavigate } from '$app/navigation';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import { cachedEvents, getCachedEventItem, metadataEvents } from '$lib/cache/Events';
+	import { rxNostr, metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import { cachedEvents, getCachedEventItem, metadataStore } from '$lib/cache/Events';
 	import { error } from '@sveltejs/kit';
 	import type { PageData } from './$types';
 	import { author, readRelays } from '../../stores/Author';
@@ -36,6 +36,8 @@
 	let rootId: string | undefined;
 	let relays: string[] = [];
 
+	$: metadata = item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined;
+
 	let repostEvents: EventItem[] | undefined;
 	let reactionEvents: EventItem[] | undefined;
 
@@ -46,33 +48,16 @@
 
 	$: repostMetadataList =
 		repostEvents !== undefined
-			? repostEvents.map((x) => x.metadata).filter((x): x is Metadata => x !== undefined)
+			? repostEvents
+					.map((x) => $metadataStore.get(x.event.pubkey))
+					.filter((x): x is Metadata => x !== undefined)
 			: [];
 	$: reactionMetadataList =
 		reactionEvents !== undefined
-			? reactionEvents.map((x) => x.metadata).filter((x): x is Metadata => x !== undefined)
+			? reactionEvents
+					.map((x) => $metadataStore.get(x.event.pubkey))
+					.filter((x): x is Metadata => x !== undefined)
 			: [];
-
-	const metadataReq = createRxBackwardReq();
-	rxNostr
-		.use(metadataReq.pipe(bufferTime(500, null, 10), batch()))
-		.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
-		.subscribe(async (packet) => {
-			const cache = metadataEvents.get(packet.event.pubkey);
-			if (cache === undefined || cache.created_at < packet.event.created_at) {
-				metadataEvents.set(packet.event.pubkey, packet.event);
-
-				const metadata = new Metadata(packet.event);
-				console.log('[rx-nostr metadata]', packet, metadata.content?.name);
-				for (const item of items) {
-					if (item.event.pubkey !== packet.event.pubkey) {
-						continue;
-					}
-					item.metadata = metadata;
-				}
-				items = items;
-			}
-		});
 
 	afterNavigate(async () => {
 		console.log('[thread page after navigate]', eventId, relays);
@@ -105,16 +90,12 @@
 					rxNostr.use(eventReq).pipe(
 						tap(({ event }: { event: Event }) => {
 							console.log('[thread page metadata req]', event);
-							metadataReq.emit({
-								kinds: [0],
-								authors: [event.pubkey],
-								limit: 1
-							});
+							metadataReqEmit(event);
 						})
 					)
 				);
 				console.log('[thread page event]', packet);
-				item = new EventItem(packet.event, metadataEvents.get(packet.event.pubkey));
+				item = new EventItem(packet.event);
 				cachedEvents.set(packet.event.id, packet.event);
 			} catch (error) {
 				if (!(error instanceof EmptyError)) {
@@ -238,7 +219,7 @@
 	</div>
 	<div class="mute">
 		<MuteButton tagName="p" tagContent={item.event.pubkey} />
-		<span>Mute @{item.metadata?.content?.name}</span>
+		<span>Mute @{metadata?.content?.name}</span>
 	</div>
 {/if}
 

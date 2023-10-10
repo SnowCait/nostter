@@ -1,7 +1,7 @@
 import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
-import type { Event as NostrEvent, UserEvent } from '../routes/types';
-import { cachedEvents, events as timelineEvents } from '../stores/Events';
+import type { UserEvent } from '../routes/types';
+import { events as timelineEvents } from '../stores/Events';
 import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { EventItem } from './Items';
 import { Content } from './Content';
@@ -9,6 +9,7 @@ import { Signer } from './Signer';
 import { channelMetadataEvents } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
+import { metadataReqEmit } from './timelines/MainTimeline';
 
 export class Api {
 	public static readonly replaceableKinds = [
@@ -178,16 +179,6 @@ export class Api {
 		return events.at(0);
 	}
 
-	// With metadata
-	async fetchEventItem(filter: Filter): Promise<EventItem | undefined> {
-		const event = await this.fetchEvent([filter]);
-		if (event === undefined) {
-			return undefined;
-		}
-		const metadataEventsMap = await this.fetchMetadataEventsMap([event.pubkey]);
-		return new EventItem(event, metadataEventsMap.get(event.pubkey));
-	}
-
 	async fetchEventItemById(id: string): Promise<EventItem | undefined> {
 		// If exsits in store
 		const $events = get(timelineEvents);
@@ -211,10 +202,7 @@ export class Api {
 			return undefined;
 		}
 
-		const userEvent = await this.fetchUserEvent(event.pubkey);
-		if (userEvent === undefined) {
-			return new EventItem(event);
-		}
+		metadataReqEmit(event);
 
 		// // Return
 		// const nostrEvent = event as NostrEvent;
@@ -223,7 +211,7 @@ export class Api {
 		// Cache
 		// $cachedEvents.set(nostrEvent.id, nostrEvent);
 
-		return new EventItem(event, userEvent);
+		return new EventItem(event);
 	}
 
 	async fetchContactsEvent(pubkey: string): Promise<Event | undefined> {
@@ -267,28 +255,13 @@ export class Api {
 		);
 		const referencedEvents = await this.fetchEventsByIds([...referencedEventIds]);
 
-		const referencedPubkeys = events
-			.map((x) => x.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey))
-			.flat();
-		const referencedPubkeysOfReferencedEvents = referencedEvents
-			.map((x) => x.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey))
-			.flat();
-
-		const metadataEventsMap = await this.fetchMetadataEventsMap([
-			...new Set([
-				...[...events, ...referencedEvents].map((x) => x.pubkey),
-				...referencedPubkeys,
-				...referencedPubkeysOfReferencedEvents
-			])
-		]);
+		for (const event of [...events, ...referencedEvents]) {
+			metadataReqEmit(event);
+		}
 
 		events.sort(reverseChronological);
-		const eventItems = events.map(
-			(event) => new EventItem(event, metadataEventsMap.get(event.pubkey))
-		);
-		const referencedEventItems = referencedEvents.map(
-			(event) => new EventItem(event, metadataEventsMap.get(event.pubkey))
-		);
+		const eventItems = events.map((event) => new EventItem(event));
+		const referencedEventItems = referencedEvents.map((event) => new EventItem(event));
 
 		// Cache events
 		for (const item of [...eventItems, ...referencedEventItems]) {
