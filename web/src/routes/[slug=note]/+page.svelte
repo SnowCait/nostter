@@ -1,16 +1,11 @@
 <script lang="ts">
 	import { Kind } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
-	import { batch, createRxBackwardReq, createRxOneshotReq, latestEach } from 'rx-nostr';
-	import { tap, bufferTime, firstValueFrom, EmptyError } from 'rxjs';
+	import { createRxOneshotReq } from 'rx-nostr';
+	import { tap, firstValueFrom, EmptyError } from 'rxjs';
 	import { afterNavigate } from '$app/navigation';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import {
-		cachedEvents,
-		getCachedEventItem,
-		metadataEvents,
-		metadataStore
-	} from '$lib/cache/Events';
+	import { rxNostr, metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import { cachedEvents, getCachedEventItem, metadataStore } from '$lib/cache/Events';
 	import { error } from '@sveltejs/kit';
 	import type { PageData } from './$types';
 	import { author, readRelays } from '../../stores/Author';
@@ -64,17 +59,6 @@
 					.filter((x): x is Metadata => x !== undefined)
 			: [];
 
-	const metadataReq = createRxBackwardReq();
-	rxNostr
-		.use(metadataReq.pipe(bufferTime(500, null, 10), batch()))
-		.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
-		.subscribe(async (packet) => {
-			const cache = metadataEvents.get(packet.event.pubkey);
-			if (cache === undefined || cache.created_at < packet.event.created_at) {
-				metadataEvents.set(packet.event.pubkey, packet.event);
-			}
-		});
-
 	afterNavigate(async () => {
 		console.log('[thread page after navigate]', eventId, relays);
 
@@ -106,11 +90,7 @@
 					rxNostr.use(eventReq).pipe(
 						tap(({ event }: { event: Event }) => {
 							console.log('[thread page metadata req]', event);
-							metadataReq.emit({
-								kinds: [0],
-								authors: [event.pubkey],
-								limit: 1
-							});
+							metadataReqEmit(event);
 						})
 					)
 				);

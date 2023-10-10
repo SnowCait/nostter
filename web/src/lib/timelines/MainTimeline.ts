@@ -7,8 +7,10 @@ import { filterTags } from '$lib/EventHelper';
 import { Metadata } from '$lib/Items';
 import { metadataEvents, metadataStore } from '../cache/Events';
 
-export const rxNostr = createRxNostr({ timeout }); // for home & notification timeline
-export const metadataReq = createRxBackwardReq();
+export const rxNostr = createRxNostr({ timeout }); // Based on NIP-65
+
+const metadataReq = createRxBackwardReq();
+
 export function metadataReqEmit(event: Event): void {
 	for (const pubkey of [event.pubkey, ...filterTags('p', event.tags)]) {
 		console.debug('[rx-nostr metadata REQ emit]', pubkey);

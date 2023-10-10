@@ -1,12 +1,9 @@
 <script lang="ts">
 	import {
-		batch,
-		createRxBackwardReq,
 		createRxForwardReq,
 		createRxNostr,
 		createRxOneshotReq,
 		latest,
-		latestEach,
 		now,
 		uniq
 	} from 'rx-nostr';
@@ -17,10 +14,11 @@
 	import IconInfoCircle from '@tabler/icons-svelte/dist/svelte/icons/IconInfoCircle.svelte';
 	import { page } from '$app/stores';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
-	import { cachedEvents, channelMetadataEvents, metadataEvents } from '$lib/cache/Events';
+	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import { timeout } from '$lib/Constants';
 	import type { ChannelMetadata } from '$lib/Types';
+	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { author, readRelays } from '../../../stores/Author';
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
@@ -39,7 +37,6 @@
 	let channelMetadata: ChannelMetadata | undefined;
 
 	let channelMessageSubscription: Subscription | undefined;
-	let metadataSubscription: Subscription | undefined;
 
 	let showInformation = false;
 
@@ -77,7 +74,6 @@
 	}
 
 	const rxNostr = createRxNostr({ timeout });
-	const metadataReq = createRxBackwardReq();
 
 	let items: EventItem[] = [];
 
@@ -121,13 +117,7 @@
 			.use(channelMessageReq)
 			.pipe(
 				uniq(),
-				tap(({ event }: { event: Event }) => {
-					metadataReq.emit({
-						kinds: [0],
-						authors: [event.pubkey],
-						limit: 1
-					});
-				})
+				tap(({ event }: { event: Event }) => metadataReqEmit(event))
 			)
 			.subscribe(async (packet) => {
 				console.debug('[channel message event]', packet);
@@ -137,20 +127,6 @@
 			});
 
 		channelMessageReq.emit({ kinds: [42], '#e': [channelId], since: now() });
-
-		if (metadataSubscription !== undefined) {
-			console.debug('[channel page already subscribe metadata]');
-		} else {
-			metadataSubscription = rxNostr
-				.use(metadataReq.pipe(bufferTime(1000), batch()))
-				.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
-				.subscribe(async (packet) => {
-					const cache = metadataEvents.get(packet.event.pubkey);
-					if (cache === undefined || cache.created_at < packet.event.created_at) {
-						metadataEvents.set(packet.event.pubkey, packet.event);
-					}
-				});
-		}
 
 		await load();
 	});
@@ -191,13 +167,7 @@
 					.use(pastChannelMessageReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => {
-							metadataReq.emit({
-								kinds: [0],
-								authors: [event.pubkey],
-								limit: 1
-							});
-						}),
+						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({

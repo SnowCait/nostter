@@ -1,12 +1,5 @@
 <script lang="ts">
-	import {
-		batch,
-		createRxBackwardReq,
-		createRxOneshotReq,
-		latestEach,
-		now,
-		uniq
-	} from 'rx-nostr';
+	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
 	import { Timeline } from '$lib/Timeline';
 	import { Api } from '$lib/Api';
@@ -19,26 +12,15 @@
 	import { userTimelineEvents as items } from '../../../stores/Events';
 	import { Kind, SimplePool, type Event, nip19 } from 'nostr-tools';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { rxNostr, metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { metadataEvents } from '$lib/cache/Events';
-	import { EventItem, Metadata } from '$lib/Items';
+	import { EventItem } from '$lib/Items';
 
 	export let pubkey: string;
 
 	let followees: string[] = [];
 	let timeline: Timeline;
 	let unsubscribe: () => void;
-
-	const metadataReq = createRxBackwardReq();
-	rxNostr
-		.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
-		.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
-		.subscribe(async (packet) => {
-			const cache = metadataEvents.get(packet.event.pubkey);
-			if (cache === undefined || cache.created_at < packet.event.created_at) {
-				metadataEvents.set(packet.event.pubkey, packet.event);
-			}
-		});
 
 	export async function initialize() {
 		console.log(
@@ -104,13 +86,7 @@
 					.use(pastEventsReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => {
-							metadataReq.emit({
-								kinds: [0],
-								authors: [event.pubkey],
-								limit: 1
-							});
-						}),
+						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({
