@@ -6,7 +6,7 @@
 	import { Login } from '$lib/Login';
 	import { loginType } from '../stores/Author';
 	import { page } from '$app/stores';
-	import { afterNavigate, goto } from '$app/navigation';
+	import { afterNavigate } from '$app/navigation';
 	import { authorProfile } from '../stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
@@ -35,7 +35,7 @@
 	}
 
 	async function loginWithDemo() {
-		await goto('/home');
+		location.pathname = '/home';
 	}
 
 	function createAccount(): void {
@@ -66,6 +66,10 @@
 			const { waitNostr } = await import('nip07-awaiter');
 			waitNostr(10000).then((n) => (nostr = n));
 		}
+
+		if ($authorProfile) {
+			gotoHome();
+		}
 	});
 
 	async function gotoHome() {
@@ -77,7 +81,7 @@
 
 		const url = '/home';
 		console.log(`Redirect to ${url}`);
-		await goto(url);
+		location.pathname = url;
 	}
 
 	afterNavigate(async () => {
@@ -93,116 +97,264 @@
 	});
 </script>
 
-<section>
-	<button on:click={createAccount}>{$_('login.create_account')}</button>
-	<ModalDialog bind:open={showCreateAccountDialog}>
-		<article>
-			<form method="dialog" on:submit|preventDefault={register}>
-				<div>
-					<input
-						type="text"
-						name="name"
-						placeholder={$_('login.name')}
-						bind:value={name}
-					/>
-				</div>
-				<div class="hidden">
-					<input type="password" bind:value={key} readonly />
-				</div>
-				<div>
-					<input
-						type="submit"
-						value={$_('login.create_account')}
-						disabled={$loginType !== undefined}
-					/>
-				</div>
-			</form>
-		</article>
-	</ModalDialog>
-</section>
+<div class="login-wrapper">
+	<div class="login">
+		<img src="/nostter-logo.svg" alt="nostter-logo" />
+		<div class="messages-and-actions">
+			<p class="hero-message">
+				{$_('login.hero-message')}
+			</p>
+			<p class="hero-message-sub">
+				{$_('login.hero-message-sub')}
+			</p>
 
-<section>
-	<button on:click={showLogin}>{$_('login.login')}</button>
-	<ModalDialog bind:open={showLoginDialog}>
-		<article>
-			<section>
-				<div>{$_('login.recommended')}</div>
-				{#if nostr === undefined}
-					<p>
-						Please install <a
-							href="https://github.com/nostr-protocol/nips/blob/master/07.md#implementation"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							Browser Extension
-						</a>
-					</p>
-				{/if}
-				<div>
-					<button
-						on:click|once={loginWithNip07}
-						disabled={$loginType !== undefined || nostr === undefined}
-					>
-						{$_('login.browser_extension')}
+			<div class="actions">
+				<section>
+					<button on:click={createAccount}>{$_('login.create_account')}</button>
+					<ModalDialog bind:open={showCreateAccountDialog}>
+						<div>
+							<h2>{$_('login.create_account')}</h2>
+							<article>
+								<form method="dialog" on:submit|preventDefault={register}>
+									<div>
+										<input
+											type="text"
+											name="name"
+											placeholder={$_('login.name')}
+											bind:value={name}
+										/>
+									</div>
+									<div class="hidden">
+										<input type="password" bind:value={key} readonly />
+									</div>
+									<div>
+										<input
+											type="submit"
+											value={$_('login.create')}
+											disabled={$loginType !== undefined}
+										/>
+									</div>
+								</form>
+							</article>
+						</div>
+					</ModalDialog>
+				</section>
+
+				<section>
+					<button on:click={loginWithDemo} disabled={$loginType !== undefined}>
+						{$_('login.try_demo')}
 					</button>
+				</section>
+
+				<div class="divider-with-message">
+					<div />
+					<p>{$_('or')}</p>
+					<div />
 				</div>
-			</section>
 
-			<section>
-				<form method="dialog" on:submit|preventDefault|once={loginWithKey}>
-					<div>
-						<input
-							type="password"
-							bind:value={key}
-							placeholder="npub or nsec"
-							pattern="^(npub|nsec)1[a-z0-9]+$"
-							required
-							on:keyup|stopPropagation={() => console.debug()}
-						/>
-					</div>
-					<div>
-						<input
-							type="submit"
-							value={$_('login.key')}
-							disabled={$loginType !== undefined}
-						/>
-					</div>
-				</form>
-			</section>
-		</article>
-	</ModalDialog>
-</section>
+				<section>
+					<button class="button-outlined" on:click={showLogin}>{$_('login.login')}</button
+					>
+					<ModalDialog bind:open={showLoginDialog}>
+						<article class="login-modal-content">
+							<section>
+								<p class="login-recommend">{$_('login.recommended')}</p>
+								{#if nostr === undefined}
+									<p>
+										Please install <a
+											href="https://github.com/nostr-protocol/nips/blob/master/07.md#implementation"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											Browser Extension
+										</a>
+									</p>
+								{/if}
+								<div>
+									<button
+										on:click|once={loginWithNip07}
+										disabled={$loginType !== undefined || nostr === undefined}
+									>
+										{$_('login.browser_extension')}
+									</button>
+								</div>
+							</section>
 
-<section>
-	<button on:click={loginWithDemo} disabled={$loginType !== undefined}>
-		{$_('login.try_demo')}
-	</button>
-</section>
+							<div class="divider-with-message">
+								<div />
+								<p>{$_('or')}</p>
+								<div />
+							</div>
+
+							<section>
+								<form method="dialog" on:submit|preventDefault|once={loginWithKey}>
+									<div>
+										<input
+											type="password"
+											bind:value={key}
+											placeholder="npub or nsec"
+											pattern="^(npub|nsec)1[a-z0-9]+$"
+											required
+											on:keyup|stopPropagation={() => console.debug()}
+										/>
+									</div>
+
+									<div>
+										<input
+											type="submit"
+											value={$_('login.key')}
+											disabled={$loginType !== undefined}
+										/>
+									</div>
+								</form>
+							</section>
+						</article>
+					</ModalDialog>
+				</section>
+			</div>
+		</div>
+	</div>
+</div>
+
+<footer>
+	<p>
+		© 2023 🐾 nostter. Created By: <a
+			href="/npub1s02jksmr6tgmcksf3hnmue7pyzlm0sxwarh7lk8tdeprw2hjg6ysp7fxtw"
+		>
+			@SnowCait
+		</a>
+	</p>
+</footer>
 
 <style>
-	section {
-		margin: 1rem auto;
+	:global(header) {
+		display: none;
+	}
+
+	:global(.app) {
+		max-width: 100% !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		display: block !important;
+	}
+
+	:global(main) {
+		margin: 0 !important;
+		max-width: 100% !important;
+	}
+
+	h2 {
+		font-size: 2rem;
+	}
+
+	.login-wrapper {
+		display: flex;
+		width: 100lvw;
+		height: 100lvh;
+		align-items: center;
+		justify-content: center;
+	}
+
+	footer {
+		position: absolute;
+		bottom: 0;
+		width: 100%;
+		border-top: var(--default-border);
+		padding: 0.75rem;
+		margin: 0 auto;
+		text-align: center;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--accent);
+	}
+
+	.login {
+		display: flex;
+		justify-content: center;
+		max-width: 1020px;
+		width: 100%;
+		gap: 3rem;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+
+	.login img {
+		width: 100%;
+		max-width: 360px;
+	}
+
+	.messages-and-actions {
+		display: flex;
+		flex-direction: column;
+		gap: 2.5rem;
+	}
+
+	.hero-message {
+		font-size: 4.25rem;
+		font-weight: 600;
+		line-height: 1.05;
+	}
+
+	.hero-message-sub {
+		font-size: 1.25rem;
+		color: var(--accent);
+		word-wrap: break-word;
+	}
+
+	.actions {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		max-width: 320px;
+	}
+
+	.divider-with-message {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		color: var(--accent-gray);
+	}
+
+	.divider-with-message > div {
+		width: 100%;
+		border-top: var(--default-border);
+	}
+
+	.divider-with-message > p {
+		text-wrap: nowrap;
+		text-align: center;
+	}
+
+	button {
+		width: 100%;
 	}
 
 	article {
-		margin: 1rem;
-		text-align: center;
-	}
-
-	form[method='dialog'] div + div {
 		margin-top: 1rem;
 	}
 
-	button:disabled {
-		background-color: lightgray;
+	.login-modal-content section {
+		margin: 1rem 0;
 	}
 
-	button:disabled:hover {
-		opacity: initial;
+	.login-modal-content section > * {
+		margin: 0.5rem 0;
 	}
 
-	input::placeholder {
-		text-align: center;
+	.login-recommend {
+		font-weight: 600;
+		color: var(--accent);
+	}
+
+	form {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	input[type='text'],
+	input[type='password'] {
+		min-width: 280px;
 	}
 
 	.hidden {

@@ -15,11 +15,15 @@
 		"recommended": "推奨",
 		"key": "鍵でログイン",
 		"create_account": "アカウントを作成",
+		"create": "作成",
 		"name": "名前",
 		"try_demo": "デモを試す",
-		"login": "ログイン"
+		"login": "ログイン",
+		"hero-message": "みんなのための、自由なSNS。",
+		"hero-message-sub": "突然投稿ができなくなることも、アカウントが消えることもない。必要なのは「鍵」ひとつだけ。"
 	},
 	"post": "投稿",
 	"follow": "フォロー",
-	"following": "フォロー中"
+	"following": "フォロー中",
+	"or": "または"
 }

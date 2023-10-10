@@ -15,11 +15,16 @@
 		"recommended": "Recommended",
 		"key": "Login with key",
 		"create_account": "Create account",
+		"create": "Create",
 		"name": "name",
 		"try_demo": "Try demo",
-		"login": "Login"
+		"login": "Login",
+		"hero-message": "A Liberating Social Network for All.",
+		"hero-message-sub": "No sudden post restrictions, no disappearing accounts. All you need is just one KEY."
 	},
 	"post": "Post",
 	"follow": "Follow",
-	"following": "Following"
+	"following": "Following",
+	"cancel": "Cancel",
+	"or": "OR"
 }
