@@ -249,8 +249,8 @@
 
 	.login-wrapper {
 		display: flex;
-		width: 100lvw;
-		height: 100lvh;
+		width: 100dvw;
+		height: 100dvh;
 		align-items: center;
 		justify-content: center;
 	}
@@ -271,7 +271,7 @@
 	.login {
 		display: flex;
 		justify-content: center;
-		max-width: 1020px;
+		max-width: 984px;
 		width: 100%;
 		gap: 3rem;
 		margin: 0 auto;
@@ -290,7 +290,7 @@
 	}
 
 	.hero-message {
-		font-size: 4.25rem;
+		font-size: 4rem;
 		font-weight: 600;
 		line-height: 1.05;
 	}
@@ -359,5 +359,33 @@
 
 	.hidden {
 		display: none;
+	}
+
+	@media screen and (max-width: 860px) {
+		:global(main) {
+			padding-bottom: 0;
+		}
+
+		.login {
+			flex-direction: column;
+			gap: 1.5rem;
+		}
+
+		.login img {
+			max-width: 220px;
+		}
+
+		.messages-and-actions {
+			gap: 1.5rem;
+		}
+	}
+
+	@media screen and (max-width: 600px) {
+		.hero-message {
+			font-size: 3rem;
+		}
+		.actions {
+			max-width: 100%;
+		}
 	}
 </style>
