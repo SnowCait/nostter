@@ -173,10 +173,7 @@
 									({ event }) =>
 										since <= event.created_at && event.created_at < until
 								)
-								.map(
-									({ event }) =>
-										new EventItem(event, metadataEvents.get(event.pubkey))
-								);
+								.map(({ event }) => new EventItem(event));
 							const duplicateEvents = newEventItems.filter((item) =>
 								events.some((x) => x.event.id === item.event.id)
 							);

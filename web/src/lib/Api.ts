@@ -179,16 +179,6 @@ export class Api {
 		return events.at(0);
 	}
 
-	// With metadata
-	async fetchEventItem(filter: Filter): Promise<EventItem | undefined> {
-		const event = await this.fetchEvent([filter]);
-		if (event === undefined) {
-			return undefined;
-		}
-		const metadataEventsMap = await this.fetchMetadataEventsMap([event.pubkey]);
-		return new EventItem(event, metadataEventsMap.get(event.pubkey));
-	}
-
 	async fetchEventItemById(id: string): Promise<EventItem | undefined> {
 		// If exsits in store
 		const $events = get(timelineEvents);

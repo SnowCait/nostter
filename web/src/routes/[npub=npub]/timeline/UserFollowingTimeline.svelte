@@ -119,10 +119,7 @@
 							packets.sort(reverseChronologicalItem);
 							const newEventItems = packets
 								.filter(({ event }) => event.created_at < until)
-								.map(
-									({ event }) =>
-										new EventItem(event, metadataEvents.get(event.pubkey))
-								);
+								.map(({ event }) => new EventItem(event));
 							const duplicateEvents = newEventItems.filter((item) =>
 								$items.some((x) => x.event.id === item.event.id)
 							);

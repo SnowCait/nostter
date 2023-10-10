@@ -17,7 +17,7 @@ export function getCachedEventItem(id: string): EventItem | undefined {
 	if (item === undefined) {
 		const event = cachedEvents.get(id);
 		if (event !== undefined) {
-			item = new EventItem(event, metadataEvents.get(event.pubkey));
+			item = new EventItem(event);
 		}
 	}
 	return item;

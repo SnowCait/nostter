@@ -24,7 +24,7 @@
 	import { author, readRelays } from '../../../stores/Author';
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
-	import { EventItem, Metadata } from '$lib/Items';
+	import { EventItem } from '$lib/Items';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '../../parts/ChannelTitle.svelte';
@@ -132,8 +132,7 @@
 			.subscribe(async (packet) => {
 				console.debug('[channel message event]', packet);
 				const { event } = packet;
-				const metadataEvent = metadataEvents.get(event.pubkey);
-				items.unshift(new EventItem(event, metadataEvent));
+				items.unshift(new EventItem(event));
 				items = items;
 			});
 
@@ -208,10 +207,7 @@
 							items.push(
 								...packets
 									.filter(({ event }) => event.created_at < until)
-									.map(
-										({ event }) =>
-											new EventItem(event, metadataEvents.get(event.pubkey))
-									)
+									.map(({ event }) => new EventItem(event))
 							);
 							items = items;
 						},
