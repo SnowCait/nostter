@@ -1,49 +1,57 @@
 <script lang="ts">
-	import { nip57, type Event } from 'nostr-tools';
+	import { nip57 } from 'nostr-tools';
 	import QRCode from 'qrcode';
-	import { readRelays, writeRelays } from '../stores/Author';
+	import { writeRelays } from '../stores/Author';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import { WebStorage } from '$lib/WebStorage';
 	import { Signer } from '$lib/Signer';
-	import type { User } from './types';
-	import { Api } from '$lib/Api';
-	import { pool } from '../stores/Pool';
+	import type { EventItem } from '$lib/Items';
+	import { metadataStore } from '$lib/cache/Events';
+	import ModalDialog from '$lib/components/ModalDialog.svelte';
 
-	export let event: Event;
+	export let eventItem: EventItem;
+
+	$: metadata = $metadataStore.get(eventItem.event.pubkey);
 
 	export function openZapDialog() {
 		console.log('[zap open]');
-		dialog.showModal();
+		open = true;
 	}
 
-	let user: User | undefined;
 	let sats = 50;
 	let zapComment = '';
 	let invoice = '';
-	let dialog: HTMLDialogElement;
+	let open = false;
 
 	const dispatch = createEventDispatcher();
 
 	onMount(() => {
-		const api = new Api($pool, $readRelays);
-		api.fetchUserEvent(event.pubkey).then((userEvent) => {
-			user = userEvent?.user;
-		});
+		const storage = new WebStorage(localStorage);
+		const previousSats = storage.get('zap');
+		if (previousSats !== null) {
+			sats = Number(previousSats);
+		}
 	});
 
 	async function zap() {
 		const amount = sats * 1000;
 		const zapRequest = nip57.makeZapRequest({
-			profile: event.pubkey,
-			event: event.id,
+			profile: eventItem.event.pubkey,
+			event: eventItem.event.id,
 			amount,
 			comment: zapComment,
 			relays: $writeRelays
 		});
 		const zapRequestEvent = await Signer.signEvent(zapRequest);
-		console.log('[zap request]', zapRequestEvent, user);
+		console.log('[zap request]', zapRequestEvent, metadata?.content);
 		const encoded = encodeURI(JSON.stringify(zapRequestEvent));
 
-		const url = `${user?.zapEndpoint}?amount=${amount}&nostr=${encoded}`;
+		const zapUrl = (await metadata?.zapUrl()) ?? null;
+		if (zapUrl === null) {
+			console.error('[zap url not found]', metadata?.content?.lud16);
+			return;
+		}
+		const url = `${zapUrl.href}?amount=${amount}&nostr=${encoded}`;
 		console.log('[zap url]', url);
 
 		const response = await fetch(url);
@@ -55,23 +63,19 @@
 		invoice = pr;
 		console.log('[zap invoice]', invoice);
 
-		dispatch('zapped');
-	}
+		const storage = new WebStorage(localStorage);
+		storage.set('zap', sats.toString());
 
-	function closeZapDialog(e: MouseEvent) {
-		const element = (e.target as Element).closest('.zap-dialog');
-		console.log('[zap close]', element, dialog);
-		if (element === null) {
-			dialog.close();
-		}
+		dispatch('zapped');
 	}
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<dialog bind:this={dialog} on:click={closeZapDialog}>
-	<div class="zap-dialog">
+<ModalDialog bind:open>
+	<article>
 		{#if invoice === ''}
-			<div>@{user?.name ?? user?.display_name}</div>
+			<div>
+				@{metadata?.content?.name ?? metadata?.content?.display_name}
+			</div>
 			<form on:submit|preventDefault={zap}>
 				<div>
 					<input
@@ -102,20 +106,12 @@
 				<div class="text">{invoice}</div>
 			</section>
 		{/if}
-	</div>
-</dialog>
+	</article>
+</ModalDialog>
 
 <style>
-	dialog {
-		padding: 0;
-		border: 1px;
-		border-style: solid;
-		border-color: lightgray;
-		border-radius: 10px;
-	}
-
-	.zap-dialog {
-		padding: 1em;
+	article {
+		margin: 1rem;
 	}
 
 	.lnbc .text {

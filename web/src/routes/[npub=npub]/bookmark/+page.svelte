@@ -10,6 +10,7 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import { Signer } from '$lib/Signer';
 	import { EventItem } from '$lib/Items';
+	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 
 	let publicBookmarkEventItems: EventItem[] = [];
 	let privateBookmarkEventItems: EventItem[] = [];
@@ -54,21 +55,15 @@
 		}
 		console.log('[bookmarks]', originalPublicBookmarkEvents, originalPrivateBookmarkEvents);
 
-		const metadataEvents = await api.fetchMetadataEventsMap(
-			Array.from(
-				new Set([
-					...originalPublicBookmarkEvents.map((x) => x.pubkey),
-					...originalPrivateBookmarkEvents.map((x) => x.pubkey)
-				])
-			)
-		);
-		console.log('[bookmark metadata]', metadataEvents);
+		for (const event of [...originalPublicBookmarkEvents, ...originalPrivateBookmarkEvents]) {
+			metadataReqEmit(event);
+		}
 
 		publicBookmarkEventItems = originalPublicBookmarkEvents.map(
-			(event) => new EventItem(event, metadataEvents.get(event.pubkey))
+			(event) => new EventItem(event)
 		);
 		privateBookmarkEventItems = originalPrivateBookmarkEvents.map(
-			(event) => new EventItem(event, metadataEvents.get(event.pubkey))
+			(event) => new EventItem(event)
 		);
 	});
 </script>

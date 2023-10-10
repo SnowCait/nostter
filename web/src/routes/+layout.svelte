@@ -8,6 +8,7 @@
 	import ReloadDialog from './ReloadDialog.svelte';
 	import { _ } from 'svelte-i18n';
 	import '../app.css';
+	import Gdpr from './parts/Gdpr.svelte';
 
 	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
@@ -72,7 +73,7 @@
 				break;
 			}
 			case 'visible': {
-				reloadDialogComponent.tryOpen();
+				setTimeout(() => reloadDialogComponent.tryOpen(), 1000);
 				break;
 			}
 		}
@@ -128,6 +129,8 @@
 	</main>
 </div>
 
+<Gdpr />
+
 <style>
 	.app {
 		max-width: 926px;
@@ -161,7 +164,13 @@
 
 	:global(article.timeline-item) {
 		padding: 12px 16px;
-		font-family: 'Segoe UI', Meiryo, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+		font-family:
+			'Segoe UI',
+			Meiryo,
+			system-ui,
+			-apple-system,
+			BlinkMacSystemFont,
+			sans-serif;
 	}
 
 	:global(article.timeline-item + article.timeline-item) {
@@ -303,6 +312,10 @@
 			margin: 0 auto 50px 0;
 			padding: 0;
 			display: block;
+		}
+
+		header {
+			width: 0;
 		}
 
 		main {

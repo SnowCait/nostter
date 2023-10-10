@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { EventItem, type Item } from '$lib/Items';
+	import type { EventItem, Item } from '$lib/Items';
+	import { metadataStore } from '$lib/cache/Events';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import { pool } from '../../stores/Pool';
@@ -15,7 +16,7 @@
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
-	$: metadata = (item as EventItem).metadata;
+	$: metadata = $metadataStore.get(item.event.pubkey);
 
 	let originalEvent: EventItem | undefined;
 	let jsonDisplay = false;

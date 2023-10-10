@@ -1,12 +1,9 @@
 <script lang="ts">
 	import {
-		batch,
-		createRxBackwardReq,
 		createRxForwardReq,
 		createRxNostr,
 		createRxOneshotReq,
 		latest,
-		latestEach,
 		now,
 		uniq
 	} from 'rx-nostr';
@@ -17,14 +14,15 @@
 	import IconInfoCircle from '@tabler/icons-svelte/dist/svelte/icons/IconInfoCircle.svelte';
 	import { page } from '$app/stores';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
-	import { cachedEvents, channelMetadataEvents, metadataEvents } from '$lib/cache/Events';
+	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import { timeout } from '$lib/Constants';
 	import type { ChannelMetadata } from '$lib/Types';
+	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { author, readRelays } from '../../../stores/Author';
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
-	import { EventItem, Metadata } from '$lib/Items';
+	import { EventItem } from '$lib/Items';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '../../parts/ChannelTitle.svelte';
@@ -39,7 +37,6 @@
 	let channelMetadata: ChannelMetadata | undefined;
 
 	let channelMessageSubscription: Subscription | undefined;
-	let metadataSubscription: Subscription | undefined;
 
 	let showInformation = false;
 
@@ -77,7 +74,6 @@
 	}
 
 	const rxNostr = createRxNostr({ timeout });
-	const metadataReq = createRxBackwardReq();
 
 	let items: EventItem[] = [];
 
@@ -121,47 +117,16 @@
 			.use(channelMessageReq)
 			.pipe(
 				uniq(),
-				tap(({ event }: { event: Event }) => {
-					metadataReq.emit({
-						kinds: [0],
-						authors: [event.pubkey],
-						limit: 1
-					});
-				})
+				tap(({ event }: { event: Event }) => metadataReqEmit(event))
 			)
 			.subscribe(async (packet) => {
 				console.debug('[channel message event]', packet);
 				const { event } = packet;
-				const metadataEvent = metadataEvents.get(event.pubkey);
-				items.unshift(new EventItem(event, metadataEvent));
+				items.unshift(new EventItem(event));
 				items = items;
 			});
 
 		channelMessageReq.emit({ kinds: [42], '#e': [channelId], since: now() });
-
-		if (metadataSubscription !== undefined) {
-			console.debug('[channel page already subscribe metadata]');
-		} else {
-			metadataSubscription = rxNostr
-				.use(metadataReq.pipe(bufferTime(1000), batch()))
-				.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
-				.subscribe(async (packet) => {
-					const cache = metadataEvents.get(packet.event.pubkey);
-					if (cache === undefined || cache.created_at < packet.event.created_at) {
-						metadataEvents.set(packet.event.pubkey, packet.event);
-
-						const metadata = new Metadata(packet.event);
-						console.log('[channel related metadata]', packet, metadata.content?.name);
-						for (const item of items) {
-							if (item.event.pubkey !== packet.event.pubkey) {
-								continue;
-							}
-							item.metadata = metadata;
-						}
-						items = items;
-					}
-				});
-		}
 
 		await load();
 	});
@@ -202,13 +167,7 @@
 					.use(pastChannelMessageReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => {
-							metadataReq.emit({
-								kinds: [0],
-								authors: [event.pubkey],
-								limit: 1
-							});
-						}),
+						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({
@@ -218,10 +177,7 @@
 							items.push(
 								...packets
 									.filter(({ event }) => event.created_at < until)
-									.map(
-										({ event }) =>
-											new EventItem(event, metadataEvents.get(event.pubkey))
-									)
+									.map(({ event }) => new EventItem(event))
 							);
 							items = items;
 						},

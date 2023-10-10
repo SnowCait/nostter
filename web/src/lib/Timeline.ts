@@ -11,13 +11,17 @@ import { userTimelineEvents } from '../stores/Events';
 import { chunk } from './Array';
 import { filterLimitItems } from './Constants';
 import { Content } from './Content';
+import { metadataReqEmit } from './timelines/MainTimeline';
 
 export class Timeline {
 	private readonly $pool: SimplePool;
 	private readonly $readRelays: string[];
 	private readonly api: Api;
 
-	constructor(private readonly pubkey: string, private readonly authors: string[]) {
+	constructor(
+		private readonly pubkey: string,
+		private readonly authors: string[]
+	) {
 		this.$pool = get(pool);
 		this.$readRelays = get(readRelays);
 		this.api = new Api(this.$pool, this.$readRelays);
@@ -95,10 +99,7 @@ export class Timeline {
 				return;
 			}
 
-			const userEvent = await this.api.fetchUserEvent(event.pubkey); // not chronological
-			if (userEvent !== undefined) {
-				event.user = userEvent.user;
-			}
+			metadataReqEmit(event);
 
 			// Cache note events
 			const eventIds = new Set([
@@ -117,7 +118,7 @@ export class Timeline {
 			// }
 
 			const events = get(userTimelineEvents);
-			events.unshift(new EventItem(event, userEvent));
+			events.unshift(new EventItem(event));
 			userTimelineEvents.set(events);
 
 			// // Cache

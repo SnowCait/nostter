@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Kind, nip19, type Event } from 'nostr-tools';
 	import type { EventItem, Item } from '$lib/Items';
+	import { metadataStore } from '$lib/cache/Events';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
@@ -20,7 +21,7 @@
 	import { rom } from '../../stores/Author';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { Api } from '$lib/Api';
-	import { getContext, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import ZapDialog from '../ZapDialog.svelte';
 	import Content from '../content/Content.svelte';
 	import { Signer } from '$lib/Signer';
@@ -36,7 +37,8 @@
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 	export let full = false;
 
-	$: metadata = (item as EventItem).metadata;
+	$: eventItem = item as EventItem;
+	$: metadata = $metadataStore.get(eventItem.event.pubkey);
 
 	if ($rom) {
 		readonly = true;
@@ -49,7 +51,6 @@
 	let bookmarked = isBookmarked(item.event);
 	let zapped = false;
 	let jsonDisplay = false;
-	let replyToNames: string[] = [];
 	let channelId: string | undefined;
 	let channelName: string | undefined;
 	let zapDialogComponent: ZapDialog;
@@ -242,20 +243,6 @@
 	}
 
 	onMount(async () => {
-		const pubkeys = Array.from(
-			new Set(
-				item.event.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey)
-			)
-		);
-		const api = new Api($pool, $readRelays);
-		const promises = pubkeys.map(async (pubkey) => {
-			const userEvent = await api.fetchUserEvent(pubkey);
-			return (
-				userEvent?.user?.name ?? nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)
-			);
-		});
-		replyToNames = await Promise.all(promises);
-
 		if (item.event.kind === Kind.ChannelMessage) {
 			channelId = item.event.tags
 				.find(([tagName, , , marker]) => tagName === 'e' && marker === 'root')
@@ -263,6 +250,7 @@
 			if (channelId === undefined) {
 				return;
 			}
+			const api = new Api($pool, $readRelays);
 			const channelMetadataEvent = await api.fetchChannelMetadataEvent(channelId);
 			if (channelMetadataEvent === undefined) {
 				return;
@@ -273,7 +261,7 @@
 </script>
 
 <article class="timeline-item">
-	<ZapDialog event={item.event} bind:this={zapDialogComponent} on:zapped={onZapped} />
+	<ZapDialog {eventItem} bind:this={zapDialogComponent} on:zapped={onZapped} />
 	<div>
 		<a href="/{nip19.npubEncode(item.event.pubkey)}">
 			<img class="picture" src={metadata?.content?.picture} alt="" />
@@ -301,7 +289,22 @@
 		{#if isReply(item.event)}
 			<div class="reply">
 				<span>To</span>
-				<span>@{replyToNames.join(' @')}</span>
+				<span>
+					@{eventItem.replyToPubkeys
+						.map((pubkey) => {
+							const metadata = $metadataStore.get(pubkey);
+							const name = metadata?.content?.name;
+							if (name !== undefined && name !== '') {
+								return name;
+							}
+							const displayName = metadata?.content?.display_name;
+							if (displayName !== undefined && displayName !== '') {
+								return displayName;
+							}
+							return nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7);
+						})
+						.join(' @')}
+				</span>
 			</div>
 		{/if}
 		{#if !showContent}
@@ -432,8 +435,7 @@
 						<h5>User ID</h5>
 						<div>{nip19.npubEncode(item.event.pubkey)}</div>
 						<h5>User JSON</h5>
-						<pre><code class="json"
-								>{JSON.stringify(metadata?.event ?? '{}', null, 2)}</code
+						<pre><code class="json">{JSON.stringify(metadata?.content, null, 2)}</code
 							></pre>
 						<h5>Code Points</h5>
 						<h6>display name</h6>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount, tick } from 'svelte';
+	import { _ } from 'svelte-i18n';
 	import { Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { NoteComposer } from '$lib/NoteComposer';
@@ -389,7 +390,7 @@
 			<ContentWarning bind:reason={contentWarningReason} />
 		</div>
 		<div>
-			<button class="button-small" on:click={postNote}>ポストする</button>
+			<button class="button-small" on:click={postNote}>{$_('editor.post')}</button>
 		</div>
 	</div>
 	{#if $quotes.length > 0}

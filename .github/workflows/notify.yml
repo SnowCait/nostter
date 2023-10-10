@@ -19,7 +19,7 @@ jobs:
           relays: ${{ vars.NOSTR_RELAYS }}
           private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
           content: |
-            Issue: ${{ github.event.issue.title }} 
+            Issue by @${{ github.event.sender.login }}: ${{ github.event.issue.title }}
             ${{ github.event.issue.html_url }} #nostter
           tags: |
             - ["t", "nostter"]
@@ -33,7 +33,7 @@ jobs:
           relays: ${{ vars.NOSTR_RELAYS }}
           private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
           content: |
-            PR: ${{ github.event.pull_request.title }} 
+            PR merged: ${{ github.event.pull_request.title }}
             ${{ github.event.pull_request.html_url }} #nostter
           tags: |
             - ["t", "nostter"]
