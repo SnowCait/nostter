@@ -19,10 +19,15 @@
 	};
 
 	function initAnalytics() {
-		console.log('[analytics init]');
+		console.debug('[analytics init]');
+
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+
+		gtag('config', 'G-G1WMSV0PBP');
 	}
 </script>
-
 <GdprBanner
 	cookieName="beyonk_gdpr"
 	heading={$_('gdpr.heading')}
