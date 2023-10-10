@@ -4,11 +4,10 @@ import type { id, pubkey } from '$lib/Types';
 import { EventItem, Metadata } from '$lib/Items';
 import { events } from '../../stores/Events';
 
+export const metadataStore = writable(new Map<pubkey, Metadata>());
+
 // <event.id, event>
 export const cachedEvents = new Map<id, Event>();
-// <event.pubkey, event>
-export const metadataEvents = new Map<pubkey, Event>();
-export const metadataStore = writable(new Map<pubkey, Metadata>());
 // <root-id, event>
 export const channelMetadataEvents = new Map<id, Event>();
 

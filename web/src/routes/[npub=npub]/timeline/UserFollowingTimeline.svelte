@@ -13,7 +13,6 @@
 	import { Kind, SimplePool, type Event, nip19 } from 'nostr-tools';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import { rxNostr, metadataReqEmit } from '$lib/timelines/MainTimeline';
-	import { metadataEvents } from '$lib/cache/Events';
 	import { EventItem } from '$lib/Items';
 
 	export let pubkey: string;
@@ -23,11 +22,7 @@
 	let unsubscribe: () => void;
 
 	export async function initialize() {
-		console.log(
-			'[user following timeline initialize]',
-			nip19.npubEncode(pubkey),
-			metadataEvents.get(pubkey)?.content
-		);
+		console.log('[user following timeline initialize]', nip19.npubEncode(pubkey));
 
 		$items = [];
 		if (unsubscribe !== undefined) {

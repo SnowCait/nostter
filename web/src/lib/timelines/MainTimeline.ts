@@ -5,7 +5,7 @@ import { bufferTime } from 'rxjs';
 import { timeout } from '$lib/Constants';
 import { filterTags } from '$lib/EventHelper';
 import { Metadata } from '$lib/Items';
-import { metadataEvents, metadataStore } from '../cache/Events';
+import { metadataStore } from '../cache/Events';
 
 export const rxNostr = createRxNostr({ timeout }); // Based on NIP-65
 
@@ -26,10 +26,8 @@ rxNostr
 	.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
 	.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
 	.subscribe(async (packet) => {
-		const cache = metadataEvents.get(packet.event.pubkey);
-		if (cache === undefined || cache.created_at < packet.event.created_at) {
-			metadataEvents.set(packet.event.pubkey, packet.event);
-
+		const cache = get(metadataStore).get(packet.event.pubkey);
+		if (cache === undefined || cache.event.created_at < packet.event.created_at) {
 			const metadata = new Metadata(packet.event);
 			console.log('[rx-nostr metadata]', packet, metadata.content?.name);
 			const store = get(metadataStore);
