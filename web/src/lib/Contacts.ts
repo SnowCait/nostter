@@ -5,7 +5,11 @@ import { WebStorage } from './WebStorage';
 export class Contacts {
 	private readonly api: Api;
 
-	constructor(private readonly authorPubkey: string, pool: SimplePool, writeRelays: string[]) {
+	constructor(
+		private readonly authorPubkey: string,
+		pool: SimplePool,
+		writeRelays: string[]
+	) {
 		this.api = new Api(pool, writeRelays);
 	}
 
