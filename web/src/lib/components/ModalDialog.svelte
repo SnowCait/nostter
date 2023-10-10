@@ -28,6 +28,7 @@
 
 <dialog
 	bind:this={dialog}
+	class="card"
 	on:click={tryClose}
 	on:keyup|stopPropagation={console.debug}
 	on:close={onClose}
@@ -40,6 +41,10 @@
 <style>
 	dialog {
 		border: var(--default-border);
-		border-radius: 10px;
+		border-radius: var(--radius);
+	}
+
+	.dialog-content {
+		margin: 0.5rem;
 	}
 </style>
