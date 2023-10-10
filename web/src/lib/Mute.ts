@@ -10,7 +10,11 @@ export class Mute {
 	private readonly api: Api;
 	private readonly kind = 10000 as Kind;
 
-	constructor(private readonly authorPubkey: string, pool: SimplePool, writeRelays: string[]) {
+	constructor(
+		private readonly authorPubkey: string,
+		pool: SimplePool,
+		writeRelays: string[]
+	) {
 		this.api = new Api(pool, writeRelays);
 	}
 
