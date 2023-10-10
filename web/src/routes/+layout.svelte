@@ -8,6 +8,7 @@
 	import ReloadDialog from './ReloadDialog.svelte';
 	import { _ } from 'svelte-i18n';
 	import '../app.css';
+	import Gdpr from './parts/Gdpr.svelte';
 
 	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
@@ -127,6 +128,8 @@
 		<slot />
 	</main>
 </div>
+
+<Gdpr />
 
 <style>
 	.app {

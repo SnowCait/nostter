@@ -24,5 +24,20 @@
 	"following": "Following",
 	"editor": {
 		"post": "Post"
+	},
+	"gdpr": {
+		"heading": "Cookie",
+		"description": "We use cookies to analyze site traffic.",
+		"accept_label": "OK",
+		"settings_label": "Settings",
+		"close_label": "Close",
+		"necessary": {
+			"label": "Settings",
+			"description": "Used for cookie control. Can't be turned off."
+		},
+		"analytics": {
+			"label": "Analytics",
+			"description": "Used to control Google Analytics."
+		}
 	}
 }

@@ -24,5 +24,20 @@
 	"following": "フォロー中",
 	"editor": {
 		"post": "ポストする"
+	},
+	"gdpr": {
+		"heading": "クッキー",
+		"description": "サイトのアクセス数等を把握するためクッキーを使用します。",
+		"accept_label": "OK",
+		"settings_label": "設定",
+		"close_label": "閉じる",
+		"necessary": {
+			"label": "設定の保存",
+			"description": "設定の保存に使用されます。オフにすることはできません。"
+		},
+		"analytics": {
+			"label": "アナリティクス",
+			"description": "Google Analytics に使用されます。"
+		}
 	}
 }
