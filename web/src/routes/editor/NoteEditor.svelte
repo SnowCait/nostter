@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount, tick } from 'svelte';
+	import { writable, type Writable } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
 	import { Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
@@ -16,6 +17,7 @@
 	import { customEmojiTags } from '../../stores/CustomEmojis';
 	import Note from '../timeline/Note.svelte';
 	import ChannelTitle from '../parts/ChannelTitle.svelte';
+	import MediaPicker from './MediaPicker.svelte';
 	import EmojiPickerSlide from './EmojiPickerSlide.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import ContentWarning from './ContentWarning.svelte';
@@ -33,7 +35,7 @@
 		emojiTags = [];
 		contentWarningReason = undefined;
 		emojiPickerSlide?.hide();
-		mediaFiles = [];
+		$mediaFiles = [];
 	}
 
 	export function isAutocompleting(): boolean {
@@ -51,12 +53,25 @@
 	let autocompleting = false;
 	let pubkeys = new Set<string>();
 	let contentWarningReason: string | undefined;
-	let mediaFiles: File[] = [];
+	let mediaFiles: Writable<File[]> = writable([]);
 
 	let textarea: HTMLTextAreaElement;
 	let article: HTMLElement;
 
 	const dispatch = createEventDispatcher();
+
+	mediaFiles.subscribe(async (files: File[]) => {
+		const file = files[files.length - 1];
+		try {
+			const media = new NostrcheckMe();
+			const { url } = await media.upload(file);
+			if (url) {
+				content += (content === '' ? '' : '\n') + url;
+			}
+		} catch (error) {
+			console.error('[media upload error]', error);
+		}
+	})
 
 	onMount(async () => {
 		console.log('[note editor on mount]', textarea, article);
@@ -352,19 +367,8 @@
 			return;
 		}
 
-		mediaFiles.push(file);
-		mediaFiles = mediaFiles;
-
-		try {
-			const media = new NostrcheckMe();
-			const { url } = await media.upload(file);
-			if (url) {
-				content += (content === '' ? '' : '\n') + url;
-			}
-		} catch (error) {
-			console.error('[paste upload error]', error);
-			return;
-		}
+		$mediaFiles.push(file);
+		$mediaFiles = $mediaFiles;
 	}
 </script>
 
@@ -386,6 +390,7 @@
 	/>
 	<div class="actions">
 		<div class="options">
+			<MediaPicker bind:mediaFiles={$mediaFiles} />
 			<EmojiPickerSlide bind:this={emojiPickerSlide} on:pick={onEmojiPick} />
 			<ContentWarning bind:reason={contentWarningReason} />
 		</div>
@@ -419,9 +424,9 @@
 			{/each}
 		</ul>
 	{/if}
-	{#if mediaFiles.length > 0}
+	{#if $mediaFiles.length > 0}
 		<ul class="media">
-			{#each mediaFiles as file}
+			{#each $mediaFiles as file}
 				<li>
 					<img src={URL.createObjectURL(file)} alt={file.name} />
 				</li>
