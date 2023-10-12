@@ -218,7 +218,7 @@
 
 <footer>
 	<p>
-		© 2023 🐾 nostter. Created By: <a
+		© 2023 🐾 nostter, <a
 			href="/npub1s02jksmr6tgmcksf3hnmue7pyzlm0sxwarh7lk8tdeprw2hjg6ysp7fxtw"
 		>
 			@SnowCait
