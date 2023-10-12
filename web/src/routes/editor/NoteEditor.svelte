@@ -462,6 +462,10 @@
 		padding: 0;
 	}
 
+	.media img {
+		max-height: 200px;
+	}
+
 	.options {
 		display: flex;
 		height: 30px;
