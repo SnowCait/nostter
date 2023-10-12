@@ -61,6 +61,10 @@
 	const dispatch = createEventDispatcher();
 
 	mediaFiles.subscribe(async (files: File[]) => {
+		if (files.length === 0) {
+			return;
+		}
+
 		const file = files[files.length - 1];
 		try {
 			const media = new NostrcheckMe();
@@ -456,6 +460,10 @@
 	ul {
 		list-style: none;
 		padding: 0;
+	}
+
+	.media img {
+		max-height: 200px;
 	}
 
 	.options {
