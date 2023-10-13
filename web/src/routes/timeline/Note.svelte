@@ -264,7 +264,7 @@
 	<ZapDialog {eventItem} bind:this={zapDialogComponent} on:zapped={onZapped} />
 	<div>
 		<a href="/{nip19.npubEncode(item.event.pubkey)}">
-			<img class="picture" src={metadata?.content?.picture} alt="" />
+			<img class="picture" src={metadata?.picture} alt="" />
 		</a>
 	</div>
 	<div class="note">
