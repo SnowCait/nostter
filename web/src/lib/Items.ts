@@ -1,4 +1,4 @@
-import { nip57, type Event } from 'nostr-tools';
+import { nip57, type Event, nip19 } from 'nostr-tools';
 import type { pubkey } from './Types';
 import { filterTags } from './EventHelper';
 
@@ -23,6 +23,12 @@ export class Metadata implements Item {
 		} catch (error) {
 			console.warn('[invalid metadata item]', error, event);
 		}
+	}
+
+	get picture(): string {
+		return this.content?.picture !== undefined && this.content.picture !== ''
+			? this.content.picture
+			: `https://robohash.org/${nip19.npubEncode(this.event.pubkey)}?set=set4`;
 	}
 
 	public async zapUrl(): Promise<URL | null> {

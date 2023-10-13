@@ -27,7 +27,7 @@
 	import UserStatus from '../parts/UserStatus.svelte';
 	import CopyButton from '../parts/CopyButton.svelte';
 
-	let metadata: Metadata;
+	let metadata: Metadata | undefined;
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
 	let events: EventItem[] = [];
@@ -210,11 +210,7 @@
 		<div class="profile">
 			<div class="actions">
 				<div class="picture-wrapper">
-					{#if user?.picture}
-						<img src={user?.picture} alt={`${user?.display_name}-icon`} />
-					{:else}
-						<div class="blank" />
-					{/if}
+					<img src={metadata?.picture} alt={`${user?.display_name}-icon`} />
 				</div>
 				<div class="buttons">
 					{#if !$rom}
@@ -285,7 +281,7 @@
 			{/if}
 			{#if user?.about}
 				<div class="about">
-					<Content content={user.about} tags={metadata.event.tags} />
+					<Content content={user.about} tags={metadata?.event.tags ?? []} />
 				</div>
 			{/if}
 		</div>
@@ -363,8 +359,7 @@
 		margin-top: calc(100px + 1rem);
 	}
 
-	.profile img,
-	.profile .blank {
+	.profile img {
 		width: 128px;
 		height: 128px;
 		border: 4px solid var(--surface);
