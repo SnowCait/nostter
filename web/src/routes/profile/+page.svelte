@@ -25,7 +25,7 @@
 		}
 	}
 
-	async function bannerUploaded({detail: files}: {detail: FileList}): Promise<void> {
+	async function bannerPicked({detail: files}: {detail: FileList}): Promise<void> {
 		console.log('[profile banner]', files);
 		if (files.length !== 1) {
 			console.error('[profile banner error]', files);
@@ -66,6 +66,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Edit profile - nostter</title>
+</svelte:head>
+
 <h1>Edit profile</h1>
 
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
@@ -94,7 +98,7 @@
 				placeholder="https://example.com/banner.webp"
 				bind:value={$authorProfile.banner}
 			/>
-			<MediaPicker on:pick={bannerUploaded} />
+			<MediaPicker on:pick={bannerPicked} />
 		</div>
 		{#if $authorProfile.banner}
 			<img src={$authorProfile.banner} alt="preview" />
