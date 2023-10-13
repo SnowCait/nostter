@@ -66,6 +66,7 @@
 		}
 
 		const file = files[files.length - 1];
+		console.log('[media file]', file);
 		try {
 			const media = new NostrcheckMe();
 			const { url } = await media.upload(file);
@@ -374,6 +375,18 @@
 		$mediaFiles.push(file);
 		$mediaFiles = $mediaFiles;
 	}
+
+	async function mediaPicked({detail: files}: {detail: FileList}): Promise<void> {
+		console.log('[media picked]', files);
+		if (files.length === 0) {
+			return;
+		}
+
+		for (const file of files) {
+			$mediaFiles.push(file);
+			$mediaFiles = $mediaFiles;
+		}
+	}
 </script>
 
 <article bind:this={article} class="note-editor">
@@ -394,7 +407,7 @@
 	/>
 	<div class="actions">
 		<div class="options">
-			<MediaPicker bind:mediaFiles={$mediaFiles} />
+			<MediaPicker on:pick={mediaPicked} />
 			<EmojiPickerSlide bind:this={emojiPickerSlide} on:pick={onEmojiPick} />
 			<ContentWarning bind:reason={contentWarningReason} />
 		</div>
