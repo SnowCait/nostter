@@ -201,7 +201,7 @@
 <section class="card profile-wrapper">
 	<div class="banner">
 		{#if user?.banner}
-			<img src={user.banner} alt={`${user.display_name}-banner`} />
+			<img src={user.banner} alt="" />
 		{:else}
 			<div class="blank" />
 		{/if}
@@ -210,7 +210,11 @@
 		<div class="profile">
 			<div class="actions">
 				<div class="picture-wrapper">
-					<img src={metadata?.picture} alt={`${user?.display_name}-icon`} />
+					{#if metadata !== undefined}
+						<img src={metadata?.picture} alt="" />
+					{:else}
+						<div class="blank" />
+					{/if}
 				</div>
 				<div class="buttons">
 					{#if !$rom}
@@ -359,7 +363,8 @@
 		margin-top: calc(100px + 1rem);
 	}
 
-	.profile img {
+	.profile img,
+	.profile .blank {
 		width: 128px;
 		height: 128px;
 		border: 4px solid var(--surface);
@@ -368,6 +373,10 @@
 		object-fit: cover;
 		position: relative;
 		z-index: 2;
+	}
+
+	.profile img {
+		background-color: var(--surface);
 	}
 
 	.blank {
