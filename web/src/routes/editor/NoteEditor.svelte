@@ -350,30 +350,20 @@
 			return;
 		}
 
-		console.log('[paste types]', event.clipboardData.types);
-		const index = event.clipboardData.types.findIndex((x) => x === 'Files');
-		console.log('[paste file index]', index);
+		for (const item of event.clipboardData.items) {
+			console.log('[paste file]', item);
+			if (item.kind !== 'file' || !item.type.startsWith('image/')) {
+				continue;
+			}
 
-		if (index === undefined || index < 0) {
-			return;
+			const file = item.getAsFile();
+			if (file === null) {
+				continue;
+			}
+
+			$mediaFiles.push(file);
+			$mediaFiles = $mediaFiles;
 		}
-
-		const file = event.clipboardData.items[index].getAsFile();
-
-		if (file === null) {
-			console.error('[paste file not found]');
-			return;
-		}
-
-		console.log('[paste file]', file);
-
-		if (file.size > 1024 * 1024) {
-			console.error('[paste file size > 1MB]', file.size.toLocaleString());
-			return;
-		}
-
-		$mediaFiles.push(file);
-		$mediaFiles = $mediaFiles;
 	}
 
 	async function mediaPicked({detail: files}: {detail: FileList}): Promise<void> {
