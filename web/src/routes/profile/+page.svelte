@@ -1,11 +1,49 @@
 <script lang="ts">
 	import { Kind, nip19 } from 'nostr-tools';
 	import { Api } from '$lib/Api';
+	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
 	import { pubkey, author, authorProfile, metadataEvent, writeRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import { goto } from '$app/navigation';
+	import MediaPicker from '../editor/MediaPicker.svelte';
 
-	async function save() {
+	async function picturePicked({detail: files}: {detail: FileList}): Promise<void> {
+		console.log('[profile picture]', files);
+		if (files.length !== 1) {
+			console.error('[profile picture error]', files);
+		}
+
+		const file = files[0];
+		try {
+			const media = new NostrcheckMe();
+			const { url } = await media.upload(file);
+			if (url) {
+				$authorProfile.picture = url;
+			}
+		} catch (error) {
+			console.error('[media upload error]', error);
+		}
+	}
+
+	async function bannerUploaded({detail: files}: {detail: FileList}): Promise<void> {
+		console.log('[profile banner]', files);
+		if (files.length !== 1) {
+			console.error('[profile banner error]', files);
+		}
+
+		const file = files[0];
+		try {
+			const media = new NostrcheckMe();
+			const { url } = await media.upload(file);
+			if (url) {
+				$authorProfile.banner = url;
+			}
+		} catch (error) {
+			console.error('[media upload error]', error);
+		}
+	}
+
+	async function save(): Promise<void> {
 		console.log('[save metadata]', $authorProfile);
 
 		if ($authorProfile === undefined) {
@@ -30,27 +68,34 @@
 
 <h1>Edit profile</h1>
 
-<form on:submit|preventDefault={save} on:keyup|stopPropagation={() => console.debug}>
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<form on:submit|preventDefault={save} on:keyup|stopPropagation={console.debug}>
 	<div class="picture">
 		<label for="picture">Picture</label>
-		<input
-			type="url"
-			id="picture"
-			placeholder="https://example.com/picture.png"
-			bind:value={$authorProfile.picture}
-		/>
+		<div>
+			<input
+				type="url"
+				id="picture"
+				placeholder="https://example.com/picture.png"
+				bind:value={$authorProfile.picture}
+			/>
+			<MediaPicker on:pick={picturePicked} />
+		</div>
 		{#if $authorProfile.picture}
 			<img src={$authorProfile.picture} alt="preview" />
 		{/if}
 	</div>
 	<div class="banner">
 		<label for="banner">Banner</label>
-		<input
-			type="url"
-			id="banner"
-			placeholder="https://example.com/banner.webp"
-			bind:value={$authorProfile.banner}
-		/>
+		<div>
+			<input
+				type="url"
+				id="banner"
+				placeholder="https://example.com/banner.webp"
+				bind:value={$authorProfile.banner}
+			/>
+			<MediaPicker on:pick={bannerUploaded} />
+		</div>
 		{#if $authorProfile.banner}
 			<img src={$authorProfile.banner} alt="preview" />
 		{/if}
@@ -118,6 +163,17 @@
 		width: 100%;
 	}
 
+	.picture div, .banner div {
+		display: flex;
+		margin-top: 0;
+		margin-bottom: 1rem;
+	}
+
+	.picture input, .banner input {
+		width: calc(100% - 50px);
+		margin-right: 10px;
+	}
+
 	textarea {
 		height: 10rem;
 	}
@@ -128,6 +184,7 @@
 	}
 
 	img {
+		max-width: 100%;
 		max-height: 10rem;
 	}
 </style>
