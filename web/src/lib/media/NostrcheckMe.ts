@@ -4,12 +4,12 @@ import type { Media, MediaResult } from './Media';
 import { now } from 'rx-nostr';
 
 export class NostrcheckMe implements Media {
-	async upload(file: File): Promise<MediaResult> {
+	async upload(file: File, type: 'media' | 'avatar' | 'banner' = 'media'): Promise<MediaResult> {
 		const method = 'POST';
 		const url = 'https://nostrcheck.me/api/v1/media';
 
 		const form = new FormData();
-		form.set('uploadtype', 'media');
+		form.set('uploadtype', type);
 		form.set('mediafile', file);
 
 		const event = await Signer.signEvent({
@@ -37,12 +37,13 @@ export class NostrcheckMe implements Media {
 			throw new Error(await response.text());
 		}
 
-		const result = await response.json();
+		const data = await response.json();
 
-		console.log('[nostrcheck.me result]', result);
+		console.log('[nostrcheck.me result]', data);
 
 		return {
-			url: result.url
+			url: data.url,
+			data
 		};
 	}
 }

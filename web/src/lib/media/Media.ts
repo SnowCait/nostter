@@ -4,4 +4,5 @@ export interface Media {
 
 export type MediaResult = {
 	url: string;
+	data: any;
 };
