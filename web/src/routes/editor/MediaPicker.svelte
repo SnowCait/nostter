@@ -2,6 +2,8 @@
 	import { createEventDispatcher } from 'svelte';
 	import IconPhoto from '@tabler/icons-svelte/dist/svelte/icons/IconPhoto.svelte';
 
+	export let multiple = false;
+
 	let input: HTMLInputElement | undefined;
 	let files: FileList;
 
@@ -11,7 +13,7 @@
 <button on:click|preventDefault={() => input?.click()} class="clear">
 	<IconPhoto size="30" />
 </button>
-<input type="file" bind:this={input} bind:files on:change={() => dispatch('pick', files)} accept="image/*" hidden>
+<input type="file" {multiple} bind:this={input} bind:files on:change={() => dispatch('pick', files)} accept="image/*" hidden>
 
 <style>
 	button {

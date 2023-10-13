@@ -397,7 +397,7 @@
 	/>
 	<div class="actions">
 		<div class="options">
-			<MediaPicker on:pick={mediaPicked} />
+			<MediaPicker multiple={true} on:pick={mediaPicked} />
 			<EmojiPickerSlide bind:this={emojiPickerSlide} on:pick={onEmojiPick} />
 			<ContentWarning bind:reason={contentWarningReason} />
 		</div>
