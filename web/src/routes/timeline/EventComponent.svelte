@@ -20,11 +20,11 @@
 {:else if Number(item.event.kind) === 6}
 	<RepostedNote {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.Reaction}
-	<Reaction event={item.event} {readonly} {createdAtFormat} />
+	<Reaction {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
 	<Channel event={item.event} />
 {:else if item.event.kind === Kind.Zap}
-	<Zap event={item.event} {readonly} {createdAtFormat} />
+	<Zap {item} {readonly} {createdAtFormat} />
 {:else if Number(item.event.kind) === 30030}
 	<CustomEmojiList tags={item.event.tags} />
 {:else}
