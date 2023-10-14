@@ -10,11 +10,12 @@
 	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';
 	import { EventItem, Metadata } from '$lib/Items';
-	import Counter from './Counter.svelte';
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { chronologicalItem } from '$lib/Constants';
 	import { tick } from 'svelte';
 	import MuteButton from '../action/MuteButton.svelte';
+	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
+	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 
 	export let data: PageData;
 
@@ -176,10 +177,16 @@
 	/>
 </div>
 
-<Counter label={'Reposts'} count={repostEventItems.length} />
-<ProfileIconList metadataList={repostMetadataList} />
-<Counter label={'Reactions'} count={reactionEventItems.length} />
-<ProfileIconList metadataList={reactionMetadataList} />
+<section class="repost counter card">
+	<span class="icon"><IconRepeat /></span>
+	<span class="count">{repostEventItems.length}</span>
+	<ProfileIconList metadataList={repostMetadataList} />
+</section>
+<section class="reaction counter card">
+	<span class="icon"><IconHeart /></span>
+	<span class="count">{reactionEventItems.length}</span>
+	<ProfileIconList metadataList={reactionMetadataList} />
+</section>
 {#if $author !== undefined && item !== undefined}
 	<div class="mute">
 		<MuteButton tagName="e" tagContent={rootId === undefined ? item.event.id : rootId} />
@@ -199,6 +206,34 @@
 />
 
 <style>
+	section {
+		margin: 0.5rem auto;
+		padding: 6px;
+	}
+
+	.counter {
+		display: flex;
+		align-items: center;
+	}
+
+	.icon {
+		margin-right: 0.5rem;
+		width: 24px;
+		height: 24px;
+	}
+
+	.count {
+		margin-right: 0.5rem;
+	}
+
+	.repost .icon {
+		color: var(--green);
+	}
+
+	.reaction .icon {
+		color: var(--red);
+	}
+
 	.mute {
 		margin-top: 16px;
 		display: flex;
