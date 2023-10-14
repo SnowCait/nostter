@@ -1,12 +1,8 @@
 <script lang="ts">
-	import { Kind } from 'nostr-tools';
-	import type { Event } from 'nostr-typedef';
-	import { createRxOneshotReq } from 'rx-nostr';
-	import { tap, firstValueFrom, EmptyError } from 'rxjs';
-	import { afterNavigate } from '$app/navigation';
+	import { createRxOneshotReq, filterKind, uniq, type LazyFilter } from 'rx-nostr';
+	import { tap } from 'rxjs';
 	import { rxNostr, metadataReqEmit } from '$lib/timelines/MainTimeline';
-	import { cachedEvents, getCachedEventItem, metadataStore } from '$lib/cache/Events';
-	import { error } from '@sveltejs/kit';
+	import { cachedEvents, metadataStore } from '$lib/cache/Events';
 	import type { PageData } from './$types';
 	import { author, readRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
@@ -22,12 +18,6 @@
 
 	export let data: PageData;
 
-	$: {
-		console.debug('[thread page data]', data);
-		eventId = data.eventId;
-		relays = data.relays;
-	}
-
 	let focusedElement: HTMLDivElement | undefined;
 
 	let item: EventItem | undefined;
@@ -38,109 +28,100 @@
 
 	$: metadata = item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined;
 
-	let repostEvents: EventItem[] | undefined;
-	let reactionEvents: EventItem[] | undefined;
-
-	// TODO: Replace
-	$: pastItems = items.filter((x) => x.event.created_at < (item?.event.created_at ?? 0));
-	$: focusedItems = items.filter((x) => x.event.created_at === (item?.event.created_at ?? 0));
-	$: futureItems = items.filter((x) => x.event.created_at > (item?.event.created_at ?? 0));
+	let replyToEventItems: EventItem[] = [];
+	let repliedToEventItems: EventItem[] = [];
+	let repostEventItems: EventItem[] = [];
+	let reactionEventItems: EventItem[] = [];
 
 	$: repostMetadataList =
-		repostEvents !== undefined
-			? repostEvents
-					.map((x) => $metadataStore.get(x.event.pubkey))
-					.filter((x): x is Metadata => x !== undefined)
-			: [];
+		repostEventItems
+			.map((x) => $metadataStore.get(x.event.pubkey))
+			.filter((x): x is Metadata => x !== undefined);
 	$: reactionMetadataList =
-		reactionEvents !== undefined
-			? reactionEvents
-					.map((x) => $metadataStore.get(x.event.pubkey))
-					.filter((x): x is Metadata => x !== undefined)
-			: [];
+		reactionEventItems
+			.map((x) => $metadataStore.get(x.event.pubkey))
+			.filter((x): x is Metadata => x !== undefined);
 
-	afterNavigate(async () => {
-		console.log('[thread page after navigate]', eventId, relays);
-
-		if (eventId === undefined) {
-			throw error(500, 'Internal Server Error');
-		}
+	$: if (eventId !== data.eventId) {
+		eventId = data.eventId;
+		console.log('[thread event id]', eventId);
 
 		clear();
 
-		for (const relay of relays) {
-			await rxNostr.addRelay({ url: relay, read: true, write: false });
-		}
-
-		item = getCachedEventItem(eventId);
-		if (item === undefined) {
-			const eventReq = createRxOneshotReq({
-				filters: [
-					{
-						ids: [eventId]
-					}
-				]
-			});
-			try {
-				const packet = await firstValueFrom(
-					rxNostr.use(eventReq).pipe(
-						tap(({ event }: { event: Event }) => {
-							console.log('[thread page metadata req]', event);
-							metadataReqEmit(event);
-						})
-					)
-				);
-				console.log('[thread page event]', packet);
-				item = new EventItem(packet.event);
-				cachedEvents.set(packet.event.id, packet.event);
-			} catch (error) {
-				if (!(error instanceof EmptyError)) {
-					throw error;
-				}
-			}
-		}
-
-		if (item === undefined) {
-			throw error(404, 'Not Found');
-		}
-
-		items.push(item);
-		items = items;
-
-		await tick();
-		focusedElement?.scrollIntoView();
-
-		const api = new Api($pool, [...new Set([...$readRelays, ...relays])]);
-		api.fetchEventItems([
+		const event = cachedEvents.get(eventId);
+		const filters: LazyFilter[] = [
 			{
 				'#e': [eventId]
 			}
-		]).then((relatedEvents) => {
-			relatedEvents.sort(chronologicalItem);
-			console.log('[#e events]', relatedEvents);
+		];
+		if (event !== undefined) {
+			item = new EventItem(event);
+		} else {
+			filters.push({
+				ids: [eventId]
+			});
+		}
+		console.log('[thread REQ]', filters)
+		const eventReq = createRxOneshotReq({filters});
+		const observable = rxNostr.use(eventReq).pipe(uniq(), tap(({event}) => metadataReqEmit(event)));
 
-			const repliedEvents = relatedEvents.filter(
-				(x) => x.event.kind === Kind.Text && x.event.id !== eventId
-			);
-			repostEvents = relatedEvents.filter((x) => Number(x.event.kind) === 6);
-			reactionEvents = relatedEvents.filter((x) => x.event.kind === Kind.Reaction);
-			console.log(repliedEvents, repostEvents, reactionEvents);
-
-			items.push(...repliedEvents);
-			items = items;
+		// Replies
+		observable.pipe(filterKind(1)).subscribe(packet => {
+			console.log('[thread kind 1]', packet);
+			const eventItem = new EventItem(packet.event);
+			if (packet.event.id === eventId) {
+				item = eventItem;
+			} else {
+				if (repliedToEventItems.some(x => x.event.id === eventItem.event.id)) {
+					console.warn('[thread duplicate event]', packet);
+					return;
+				}
+				repliedToEventItems.push(eventItem);
+				repliedToEventItems.sort(chronologicalItem);
+				repliedToEventItems = repliedToEventItems;
+			}
 		});
+
+		// Repost
+		observable.pipe(filterKind(6)).subscribe(packet => {
+			console.log('[thread kind 6]', packet);
+			const eventItem = new EventItem(packet.event);
+			repostEventItems.sort(chronologicalItem);
+			repostEventItems.push(eventItem);
+			repostEventItems = repostEventItems;
+		});
+
+		// Reaction
+		observable.pipe(filterKind(7)).subscribe(packet => {
+			console.log('[thread kind 7]', packet);
+			const eventItem = new EventItem(packet.event);
+			reactionEventItems.sort(chronologicalItem);
+			reactionEventItems.push(eventItem);
+			reactionEventItems = reactionEventItems;
+		});
+	}
+
+	$: if (item !== undefined) {
+		console.log('[thread item]', item);
 
 		const { root, reply } = referTags(item.event);
 		rootId = root?.at(1);
 		let replyId = reply?.at(1);
-		console.log(rootId, replyId);
+		console.log('[thread root, reply]', rootId, replyId);
 
+		fetchReplies(replyId);
+	}
+
+	async function fetchReplies(originalReplyId: string | undefined): Promise<void> {
+		const api = new Api($pool, [...new Set([...$readRelays, ...relays])]);
+
+		let replyId = originalReplyId;
 		let i = 0;
 		while (replyId !== undefined) {
 			const replyToEvent = await api.fetchEventItemById(replyId);
 			if (replyToEvent !== undefined) {
-				items.unshift(replyToEvent);
-				items = items;
+				replyToEventItems.unshift(replyToEvent);
+				replyToEventItems = replyToEventItems;
 				replyId = referTags(replyToEvent.event).reply?.at(1);
 			}
 			i++;
@@ -149,22 +130,23 @@
 			}
 		}
 
-		if (rootId !== undefined && !items.some((x) => x.event.id === rootId) && i <= 20) {
+		if (rootId !== undefined && !replyToEventItems.some((x) => x.event.id === rootId) && i <= 20) {
 			const rootEvent = await api.fetchEventItemById(rootId);
 			if (rootEvent !== undefined) {
-				items.unshift(rootEvent);
-				items = items;
+				replyToEventItems.unshift(rootEvent);
+				replyToEventItems = replyToEventItems;
 			}
 		}
 
 		await tick();
 		focusedElement?.scrollIntoView();
-	});
+	}
 
 	function clear() {
 		items = [];
-		repostEvents = undefined;
-		reactionEvents = undefined;
+		repliedToEventItems = [];
+		repostEventItems = [];
+		reactionEventItems = [];
 	}
 </script>
 
@@ -175,7 +157,7 @@
 <h1>Thread</h1>
 
 <TimelineView
-	items={pastItems}
+	items={replyToEventItems}
 	readonly={false}
 	load={async () => console.debug()}
 	showLoading={false}
@@ -184,7 +166,7 @@
 <div bind:this={focusedElement}>
 	<!-- TODO: Replace to EventComponent (Using TimelineView for CSS now) -->
 	<TimelineView
-		items={focusedItems}
+		items={item !== undefined ? [item] : []}
 		readonly={false}
 		load={async () => console.debug()}
 		showLoading={false}
@@ -193,21 +175,10 @@
 	/>
 </div>
 
-<TimelineView
-	items={futureItems}
-	readonly={false}
-	load={async () => console.debug()}
-	showLoading={false}
-/>
-
-{#if repostEvents !== undefined}
-	<Counter label={'Reposts'} count={repostEvents.length} />
-	<ProfileIconList metadataList={repostMetadataList} />
-{/if}
-{#if reactionEvents !== undefined}
-	<Counter label={'Reactions'} count={reactionEvents.length} />
-	<ProfileIconList metadataList={reactionMetadataList} />
-{/if}
+<Counter label={'Reposts'} count={repostEventItems.length} />
+<ProfileIconList metadataList={repostMetadataList} />
+<Counter label={'Reactions'} count={reactionEventItems.length} />
+<ProfileIconList metadataList={reactionMetadataList} />
 {#if $author !== undefined && item !== undefined}
 	<div class="mute">
 		<MuteButton tagName="e" tagContent={rootId === undefined ? item.event.id : rootId} />
@@ -218,6 +189,13 @@
 		<span>Mute @{metadata?.content?.name}</span>
 	</div>
 {/if}
+
+<TimelineView
+	items={repliedToEventItems}
+	readonly={false}
+	load={async () => console.debug()}
+	showLoading={false}
+/>
 
 <style>
 	.mute {
