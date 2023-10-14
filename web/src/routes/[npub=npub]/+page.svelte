@@ -105,10 +105,6 @@
 			return;
 		}
 
-		if (rxNostr.getRelays().length === 0) {
-			await rxNostr.switchRelays(relays);
-		}
-
 		let firstLength = events.length;
 		let count = 0;
 		let until =

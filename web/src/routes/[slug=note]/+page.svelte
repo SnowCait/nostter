@@ -68,10 +68,6 @@
 
 		clear();
 
-		if (rxNostr.getRelays().length === 0) {
-			await rxNostr.switchRelays($readRelays);
-		}
-
 		for (const relay of relays) {
 			await rxNostr.addRelay({ url: relay, read: true, write: false });
 		}
