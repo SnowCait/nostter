@@ -44,10 +44,6 @@
 			return;
 		}
 
-		if (rxNostr.getRelays().length === 0) {
-			await rxNostr.switchRelays($readRelays);
-		}
-
 		let firstLength = $items.length;
 		let count = 0;
 		let until =

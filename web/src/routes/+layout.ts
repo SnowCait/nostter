@@ -3,12 +3,17 @@ import { browser } from '$app/environment';
 import { Login } from '$lib/Login';
 import { WebStorage } from '$lib/WebStorage';
 import '$lib/i18n';
+import { rxNostr } from '$lib/timelines/MainTimeline';
+import { defaultRelays } from '$lib/Constants';
 
 export const load = async () => {
 	console.log('[layout load]');
 	if (browser) {
 		locale.set(window.navigator.language);
-		await tryLogin();
+		const success = await tryLogin();
+		if (!success) {
+			await rxNostr.switchRelays(defaultRelays);
+		}
 	}
 	await waitLocale();
 };
