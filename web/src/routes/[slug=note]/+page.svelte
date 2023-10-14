@@ -41,10 +41,6 @@
 		repostEventItems
 			.map((x) => $metadataStore.get(x.event.pubkey))
 			.filter((x): x is Metadata => x !== undefined);
-	$: reactionMetadataList =
-		reactionEventItems
-			.map((x) => $metadataStore.get(x.event.pubkey))
-			.filter((x): x is Metadata => x !== undefined);
 
 	$: reactionMetadataMap = reactionEventItems.reduce((map, item) => {
 		let content = item.event.content;
@@ -72,7 +68,6 @@
 		}
 		return map;
 	}, new Map<string, EventItem[]>());
-	$: console.log('[reaction map]', reactionMetadataMap);
 
 	$: if (eventId !== data.eventId) {
 		eventId = data.eventId;
