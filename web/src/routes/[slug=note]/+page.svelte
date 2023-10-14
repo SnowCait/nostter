@@ -14,6 +14,7 @@
 	import { chronologicalItem } from '$lib/Constants';
 	import { tick } from 'svelte';
 	import MuteButton from '../action/MuteButton.svelte';
+	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 
@@ -34,6 +35,8 @@
 	let repostEventItems: EventItem[] = [];
 	let reactionEventItems: EventItem[] = [];
 
+	let customEmojiShortcode = new Map<string, string>();
+
 	$: repostMetadataList =
 		repostEventItems
 			.map((x) => $metadataStore.get(x.event.pubkey))
@@ -42,6 +45,34 @@
 		reactionEventItems
 			.map((x) => $metadataStore.get(x.event.pubkey))
 			.filter((x): x is Metadata => x !== undefined);
+
+	$: reactionMetadataMap = reactionEventItems.reduce((map, item) => {
+		let content = item.event.content;
+		if (item.event.content.startsWith(':')) {
+			const emojiTag = item.event.tags
+				.find(([tagName, shortcode, url]) => tagName === 'emoji' && `:${shortcode}:` === content && url !== undefined && url !== '');
+			if (emojiTag !== undefined) {
+				const [, shortcode, url] = emojiTag;
+				try {
+					new URL(url);
+					content = url;
+					if (!customEmojiShortcode.has(url)) {
+						customEmojiShortcode.set(url, shortcode)
+					}
+				} catch (error) {
+					console.error('[custum emoji invalid]', item);
+				}
+			}
+		}
+		const items = map.get(content);
+		if (items !== undefined) {
+			items.push(item);
+		} else {
+			map.set(content, [item]);
+		}
+		return map;
+	}, new Map<string, EventItem[]>());
+	$: console.log('[reaction map]', reactionMetadataMap);
 
 	$: if (eventId !== data.eventId) {
 		eventId = data.eventId;
@@ -149,6 +180,7 @@
 		repliedToEventItems = [];
 		repostEventItems = [];
 		reactionEventItems = [];
+		customEmojiShortcode = new Map<string, string>();
 	}
 </script>
 
@@ -182,11 +214,21 @@
 	<span class="count">{repostEventItems.length}</span>
 	<ProfileIconList metadataList={repostMetadataList} />
 </section>
-<section class="reaction counter card">
-	<span class="icon"><IconHeart /></span>
-	<span class="count">{reactionEventItems.length}</span>
-	<ProfileIconList metadataList={reactionMetadataList} />
-</section>
+{#each [...reactionMetadataMap] as [content, items]}
+	<section class="reaction counter card">
+		<span class="icon" class:heart={content === '+'}>
+			{#if content === '+'}
+				<IconHeart />
+			{:else if content.startsWith('https')}
+				<CustomEmoji url={content} text={customEmojiShortcode.get(content)} />
+			{:else}
+				<span>{content}</span>
+			{/if}
+		</span>
+		<span class="count">{items.length}</span>
+		<ProfileIconList metadataList={items.map(item => $metadataStore.get(item.event.pubkey))} />
+	</section>
+{/each}
 {#if $author !== undefined && item !== undefined}
 	<div class="mute">
 		<MuteButton tagName="e" tagContent={rootId === undefined ? item.event.id : rootId} />
@@ -218,7 +260,6 @@
 
 	.icon {
 		margin-right: 0.5rem;
-		width: 24px;
 		height: 24px;
 	}
 
@@ -230,7 +271,7 @@
 		color: var(--green);
 	}
 
-	.reaction .icon {
+	.heart {
 		color: var(--red);
 	}
 
