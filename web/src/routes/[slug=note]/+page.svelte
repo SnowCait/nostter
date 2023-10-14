@@ -144,6 +144,7 @@
 
 	function clear() {
 		items = [];
+		replyToEventItems = [];
 		repliedToEventItems = [];
 		repostEventItems = [];
 		reactionEventItems = [];
