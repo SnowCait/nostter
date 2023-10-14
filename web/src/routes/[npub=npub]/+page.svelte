@@ -307,11 +307,9 @@
 		<div>
 			<a href="/{slug}/pins">PINs</a>
 		</div>
-		{#if pubkey === $authorPubkey}
-			<div>
-				<a href="/{slug}/reactions">Reactions</a>
-			</div>
-		{/if}
+		<div>
+			<a href="/{slug}/reactions">Reactions</a>
+		</div>
 	</div>
 </section>
 
