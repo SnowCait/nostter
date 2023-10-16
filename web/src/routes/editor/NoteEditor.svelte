@@ -7,13 +7,11 @@
 	import { NoteComposer } from '$lib/NoteComposer';
 	import { channelIdStore, Channel } from '$lib/Channel';
 	import { Content } from '$lib/Content';
-	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
-	import { EventItem } from '$lib/Items';
+	import { cachedEvents, channelMetadataEvents, metadataStore } from '$lib/cache/Events';
+	import { EventItem, Metadata } from '$lib/Items';
 	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../../stores/NoteDialog';
 	import { rom } from '../../stores/Author';
-	import { userEvents } from '../../stores/UserEvents';
-	import type { UserEvent } from '../types';
 	import { customEmojiTags } from '../../stores/CustomEmojis';
 	import Note from '../timeline/Note.svelte';
 	import ChannelTitle from '../parts/ChannelTitle.svelte';
@@ -46,7 +44,7 @@
 	let posting = false;
 	let complementStart = -1;
 	let complementEnd = -1;
-	let complementUserEvents: UserEvent[] = [];
+	let complementMetadataList: Metadata[] = [];
 	let selectedCustomEmojis = new Map<string, string>();
 	let channelEvent: NostrEvent | undefined;
 	let emojiTags: string[][] = [];
@@ -208,47 +206,48 @@
 			complementEnd = selectionEnd;
 			const complementName = content.slice(complementStart + 1, selectionStart).toLowerCase();
 			const max = 5;
-			complementUserEvents = [...$userEvents]
+			complementMetadataList = [...$metadataStore]
 				.filter(
-					([, e]) =>
-						e.user?.name?.toLowerCase().startsWith(complementName) ||
-						e.user?.display_name?.toLowerCase().startsWith(complementName)
+					([, metadata]) =>
+						metadata.content?.name?.toLowerCase().startsWith(complementName) ||
+						metadata.content?.display_name?.toLowerCase().startsWith(complementName)
 				)
-				.map(([, e]) => e)
+				.map(([, metadata]) => metadata)
 				.slice(0, max);
-			if (complementUserEvents.length < max) {
-				complementUserEvents.push(
-					...[...$userEvents]
+			if (complementMetadataList.length < max) {
+				complementMetadataList.push(
+					...[...$metadataStore]
 						.filter(
-							([, e]) =>
-								e.user?.name?.toLowerCase().includes(complementName) ||
-								e.user?.display_name?.toLowerCase().includes(complementName)
+							([, metadata]) =>
+								metadata.content?.name?.toLowerCase().includes(complementName) ||
+								metadata.content?.display_name?.toLowerCase().includes(complementName) ||
+								nip19.npubEncode(metadata.event.pubkey).includes(complementName)
 						)
-						.filter(([p]) => !complementUserEvents.some((x) => x.pubkey === p))
+						.filter(([p]) => !complementMetadataList.some((x) => x.event.pubkey === p))
 						.map(([, e]) => e)
-						.slice(0, max - complementUserEvents.length)
+						.slice(0, max - complementMetadataList.length)
 				);
 			}
-			if (complementUserEvents.length < max) {
+			if (complementMetadataList.length < max) {
 				// TODO: fetch
 			}
 			console.debug(
 				'[complement]',
 				complementName,
-				complementUserEvents.map((x) => `@${x.user.name}, ${x.pubkey}`)
+				complementMetadataList.map((x) => `@${x.content?.name}, ${x.event.pubkey}`)
 			);
 
 			// Exit if not found
-			if (complementUserEvents.length === 0) {
+			if (complementMetadataList.length === 0) {
 				exitComplement();
 			}
 		}
 	}
 
-	async function replaceComplement(event: UserEvent) {
+	async function replaceComplement(metadata: Metadata): Promise<void> {
 		console.debug('[replace complement]', content, complementStart, complementEnd);
 		const beforeCursor =
-			content.substring(0, complementStart) + `nostr:${nip19.npubEncode(event.pubkey)} `;
+			content.substring(0, complementStart) + `nostr:${nip19.npubEncode(metadata.event.pubkey)} `;
 		const afterCursor = content.substring(complementEnd);
 		content = beforeCursor + afterCursor;
 		const cursor = beforeCursor.length;
@@ -262,7 +261,7 @@
 	function exitComplement() {
 		complementStart = -1;
 		complementEnd = -1;
-		complementUserEvents = [];
+		complementMetadataList = [];
 	}
 
 	function onEmojiPick({ detail: emoji }: { detail: any }) {
@@ -412,11 +411,12 @@
 	{/if}
 	{#if complementStart >= 0}
 		<ul>
-			{#each complementUserEvents as event}
+			{#each complementMetadataList as metadata}
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<li on:click|stopPropagation={async () => await replaceComplement(event)}>
-					<span>{event.user.display_name ?? ''}</span>
-					<span>@{event.user.name ?? event.user.display_name}</span>
+				<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+				<li on:click|stopPropagation={async () => await replaceComplement(metadata)}>
+					<span>{metadata.content?.display_name ?? ''}</span>
+					<span>@{metadata.content?.name ?? metadata?.content?.display_name}</span>
 				</li>
 			{/each}
 		</ul>
