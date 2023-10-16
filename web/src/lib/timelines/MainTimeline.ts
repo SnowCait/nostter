@@ -31,19 +31,23 @@ export function referencesReqEmit(event: Event): void {
 	}
 
 	const $eventItemStore = get(eventItemStore);
-	eventsReq.emit({
-		ids: [
-			...new Set([
-				...event.tags
-					.filter(
-						([tagName, id]) =>
-							tagName === 'e' && id !== undefined && !$eventItemStore.has(id)
-					)
-					.map(([, id]) => id),
-				...Content.findNotesAndNeventsToIds(event.content)
-			])
-		]
-	});
+	const ids = [
+		...new Set([
+			...event.tags
+				.filter(
+					([tagName, id]) =>
+						tagName === 'e' && id !== undefined && !$eventItemStore.has(id)
+				)
+				.map(([, id]) => id),
+			...Content.findNotesAndNeventsToIds(event.content)
+		])
+	];
+
+	if (ids.length > 0) {
+		eventsReq.emit({
+			ids
+		});
+	}
 }
 
 rxNostr
