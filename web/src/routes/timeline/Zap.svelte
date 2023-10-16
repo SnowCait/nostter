@@ -1,13 +1,12 @@
 <script lang="ts">
 	import type { EventItem, Item } from '$lib/Items';
-	import { metadataStore } from '$lib/cache/Events';
+	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import { pool } from '../../stores/Pool';
 	import { readRelays } from '../../stores/Author';
 	import { nip19, type Event } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
-	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
@@ -37,16 +36,11 @@
 		console.error('[invalid description tag]', error, descriptionTag);
 	}
 
-	const api = new Api($pool, $readRelays);
+	$: if (originalTag !== undefined) {
+		originalEvent = $eventItemStore.get(originalTag[1]);
+	}
 
-	onMount(async () => {
-		if (originalTag !== undefined) {
-			const eventId = originalTag[1];
-			originalEvent = await api.fetchEventItemById(eventId);
-		} else {
-			console.warn('[zapped event not found]', event);
-		}
-	});
+	const api = new Api($pool, $readRelays);
 
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;

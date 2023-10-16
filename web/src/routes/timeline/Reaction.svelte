@@ -1,15 +1,11 @@
 <script lang="ts">
 	import type { EventItem, Item } from '$lib/Items';
-	import { metadataStore } from '$lib/cache/Events';
+	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import IconHeartBroken from '@tabler/icons-svelte/dist/svelte/icons/IconHeartBroken.svelte';
-	import { pool } from '../../stores/Pool';
-	import { readRelays } from '../../stores/Author';
 	import { nip19 } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
-	import { onMount } from 'svelte';
-	import { Api } from '$lib/Api';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
 	import Content from '../content/Content.svelte';
@@ -30,16 +26,9 @@
 	);
 	const originalTag = eTags.at(eTags.length - 1);
 
-	onMount(async () => {
-		if (originalTag === undefined) {
-			console.warn('[reacted event not found]', event);
-			return;
-		}
-
-		const [, eventId] = originalTag;
-		const api = new Api($pool, $readRelays);
-		originalEvent = await api.fetchEventItemById(eventId);
-	});
+	$: if (originalTag !== undefined) {
+		originalEvent = $eventItemStore.get(originalTag[1]);
+	}
 
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;

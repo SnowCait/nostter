@@ -3,7 +3,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import { events } from '../../stores/Events';
-	import type { Event, UserEvent } from '../types';
+	import type { Event } from '../types';
 	import { pool } from '../../stores/Pool';
 	import { readRelays } from '../../stores/Author';
 	import Text from './Text.svelte';
@@ -11,14 +11,15 @@
 	import Naddr from './Naddr.svelte';
 	import EventComponent from '../timeline/EventComponent.svelte';
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
-	import { EventItem } from '$lib/Items';
+	import { EventItem, Metadata } from '$lib/Items';
+	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 
 	export let text: string;
 
 	let dataType: 'user' | 'event' | 'addr';
-	let pubkey = '';
-	let userEvent: UserEvent | undefined = undefined;
-	let eventId = '';
+	let pubkey: string | undefined;
+	let metadata: Metadata | undefined;
+	let eventId: string | undefined;
 	let item: EventItem | undefined;
 	let addressPointer: AddressPointer;
 	let slug = text.substring('nostr:'.length);
@@ -60,18 +61,17 @@
 		console.warn('[decode failed]', text, e);
 	}
 
+	$: if (dataType === 'user' && pubkey !== undefined) {
+		metadata = $metadataStore.get(pubkey);
+	}
+
+	$: if (dataType === 'event' && item === undefined && eventId !== undefined) {
+		item = $eventItemStore.get(eventId);
+	}
+
 	onMount(async () => {
-		const api = new Api($pool, $readRelays);
-
-		if (dataType === 'user') {
-			userEvent = await api.fetchUserEvent(pubkey);
-		}
-
-		if (dataType === 'event' && item === undefined) {
-			item = await api.fetchEventItemById(eventId);
-		}
-
 		if (dataType === 'addr') {
+			const api = new Api($pool, $readRelays);
 			const e = (await api.fetchEvent([
 				{
 					kinds: [addressPointer.kind],
@@ -86,13 +86,13 @@
 	});
 </script>
 
-{#if dataType === 'user'}
+{#if dataType === 'user' && pubkey !== undefined}
 	<a href="/{nip19.npubEncode(pubkey)}">
-		@{userEvent !== undefined
-			? userEvent.user?.name
+		@{metadata !== undefined
+			? metadata.content?.name
 			: nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)}
 	</a>
-{:else if dataType === 'event'}
+{:else if dataType === 'event' && eventId !== undefined}
 	{#if item !== undefined}
 		{#if Number(item.event.kind) === 1063}
 			<Nip94 event={item.event} />
