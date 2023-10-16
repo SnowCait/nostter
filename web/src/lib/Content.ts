@@ -1,5 +1,5 @@
 import { nip19 } from 'nostr-tools';
-import type { EventPointer } from 'nostr-tools/lib/nip19';
+import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
 
 export class Token {
 	constructor(
@@ -100,6 +100,26 @@ export class Content {
 		const matches = content.matchAll(/(?<=^|\s)(nostr:)?(?<npub>(npub|nprofile)1\w{6,})\b/g);
 		return [...matches]
 			.map((match) => match.groups?.npub)
+			.filter((x): x is string => x !== undefined);
+	}
+
+	static findNpubsAndNprofilesToPubkeys(content: string): string[] {
+		return this.findNpubsAndNprofiles(content)
+			.map((x) => {
+				try {
+					const { type, data } = nip19.decode(x);
+					switch (type) {
+						case 'npub':
+							return data as string;
+						case 'nprofile':
+							return (data as ProfilePointer).pubkey;
+						default:
+							return undefined;
+					}
+				} catch (error) {
+					return undefined;
+				}
+			})
 			.filter((x): x is string => x !== undefined);
 	}
 
