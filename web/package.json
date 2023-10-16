@@ -47,7 +47,7 @@
 		"nostr-tools": "^1.10.1",
 		"qrcode": "^1.5.3",
 		"rx-nostr": "^1.8.1",
-		"svelte-i18n": "^3.7.3",
+		"svelte-i18n": "^4.0.0",
 		"tributejs": "^5.1.3"
 	}
 }
