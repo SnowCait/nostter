@@ -220,7 +220,8 @@
 						.filter(
 							([, metadata]) =>
 								metadata.content?.name?.toLowerCase().includes(complementName) ||
-								metadata.content?.display_name?.toLowerCase().includes(complementName)
+								metadata.content?.display_name?.toLowerCase().includes(complementName) ||
+								nip19.npubEncode(metadata.event.pubkey).includes(complementName)
 						)
 						.filter(([p]) => !complementMetadataList.some((x) => x.event.pubkey === p))
 						.map(([, e]) => e)
