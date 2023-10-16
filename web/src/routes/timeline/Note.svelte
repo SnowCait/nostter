@@ -301,7 +301,13 @@
 							if (displayName !== undefined && displayName !== '') {
 								return displayName;
 							}
-							return nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7);
+
+							try {
+								return nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7);
+							} catch (error) {
+								console.error('[npub encode error]', pubkey);
+								return '-';
+							}
 						})
 						.join(' @')}
 				</span>
