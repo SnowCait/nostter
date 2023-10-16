@@ -9,7 +9,7 @@ import { Signer } from './Signer';
 import { channelMetadataEvents } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
-import { metadataReqEmit } from './timelines/MainTimeline';
+import { referencesReqEmit } from './timelines/MainTimeline';
 
 export class Api {
 	public static readonly replaceableKinds = [
@@ -205,7 +205,7 @@ export class Api {
 			return undefined;
 		}
 
-		metadataReqEmit(event);
+		referencesReqEmit(event);
 
 		// // Return
 		// const nostrEvent = event as NostrEvent;
@@ -259,7 +259,7 @@ export class Api {
 		const referencedEvents = await this.fetchEventsByIds([...referencedEventIds]);
 
 		for (const event of [...events, ...referencedEvents]) {
-			metadataReqEmit(event);
+			referencesReqEmit(event);
 		}
 
 		events.sort(reverseChronological);

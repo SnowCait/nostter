@@ -11,10 +11,17 @@ import { Content } from '$lib/Content';
 export const rxNostr = createRxNostr({ timeout }); // Based on NIP-65
 
 const metadataReq = createRxBackwardReq();
-const referencesReq = createRxBackwardReq();
+const eventsReq = createRxBackwardReq();
 
-export function metadataReqEmit(event: Event): void {
-	for (const pubkey of [event.pubkey, ...filterTags('p', event.tags)]) {
+export function referencesReqEmit(event: Event): void {
+	console.debug('[rx-nostr references REQ emit]', event);
+	for (const pubkey of [
+		...new Set([
+			event.pubkey,
+			...filterTags('p', event.tags),
+			...Content.findNpubsAndNprofilesToPubkeys(event.content)
+		])
+	]) {
 		console.debug('[rx-nostr metadata REQ emit]', pubkey);
 		metadataReq.emit({
 			kinds: [0],
@@ -23,10 +30,8 @@ export function metadataReqEmit(event: Event): void {
 		});
 	}
 
-	const ids = Content.findNotesAndNeventsToIds(event.content);
-
 	const $eventItemStore = get(eventItemStore);
-	referencesReq.emit({
+	eventsReq.emit({
 		ids: [
 			...new Set([
 				...event.tags
@@ -35,7 +40,7 @@ export function metadataReqEmit(event: Event): void {
 							tagName === 'e' && id !== undefined && !$eventItemStore.has(id)
 					)
 					.map(([, id]) => id),
-				...ids
+				...Content.findNotesAndNeventsToIds(event.content)
 			])
 		]
 	});
@@ -56,10 +61,10 @@ rxNostr
 	});
 
 rxNostr
-	.use(referencesReq.pipe(bufferTime(1000, null, 10), batch()))
+	.use(eventsReq.pipe(bufferTime(1000, null, 10), batch()))
 	.pipe(uniq())
 	.subscribe(async (packet) => {
-		console.log('[rx-nostr id]', packet);
+		console.log('[rx-nostr event]', packet);
 		const eventItem = new EventItem(packet.event);
 		const $eventItemStore = get(eventItemStore);
 		$eventItemStore.set(eventItem.event.id, eventItem);

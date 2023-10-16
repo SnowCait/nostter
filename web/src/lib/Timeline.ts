@@ -11,7 +11,7 @@ import { userTimelineEvents } from '../stores/Events';
 import { chunk } from './Array';
 import { filterLimitItems } from './Constants';
 import { Content } from './Content';
-import { metadataReqEmit } from './timelines/MainTimeline';
+import { referencesReqEmit } from './timelines/MainTimeline';
 
 export class Timeline {
 	private readonly $pool: SimplePool;
@@ -99,7 +99,7 @@ export class Timeline {
 				return;
 			}
 
-			metadataReqEmit(event);
+			referencesReqEmit(event);
 
 			// Cache note events
 			const eventIds = new Set([

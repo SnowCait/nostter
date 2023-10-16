@@ -4,7 +4,7 @@
 	import { nip05, nip19, SimplePool, type Event } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
-	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import type { User } from '../types';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
@@ -132,7 +132,7 @@
 					.use(pastEventsReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
+						tap(({ event }: { event: Event }) => referencesReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({

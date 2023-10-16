@@ -10,7 +10,7 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import { Signer } from '$lib/Signer';
 	import { EventItem } from '$lib/Items';
-	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit } from '$lib/timelines/MainTimeline';
 
 	let publicBookmarkEventItems: EventItem[] = [];
 	let privateBookmarkEventItems: EventItem[] = [];
@@ -56,7 +56,7 @@
 		console.log('[bookmarks]', originalPublicBookmarkEvents, originalPrivateBookmarkEvents);
 
 		for (const event of [...originalPublicBookmarkEvents, ...originalPrivateBookmarkEvents]) {
-			metadataReqEmit(event);
+			referencesReqEmit(event);
 		}
 
 		publicBookmarkEventItems = originalPublicBookmarkEvents.map(
