@@ -23,6 +23,7 @@
 	}
 
 	onMount(async () => {
+		console.debug('[deprecated reference]');
 		if (item === undefined && eventId !== undefined) {
 			const api = new Api($pool, $readRelays);
 			item = await api.fetchEventItemById(eventId);
