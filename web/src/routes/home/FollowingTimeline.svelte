@@ -42,7 +42,7 @@
 	import { batch, createRxForwardReq, createRxOneshotReq, latestEach, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
 	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
-	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { WebStorage } from '$lib/WebStorage';
 	import { findIdentifier } from '$lib/EventHelper';
 	import { authorReplaceableKinds } from '$lib/Author';
@@ -171,7 +171,7 @@
 				return;
 			}
 
-			metadataReqEmit(event);
+			referencesReqEmit(event);
 
 			// Cache note events
 			const eventIds = new Set([
@@ -455,7 +455,7 @@
 					.use(pastChannelMessageReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
+						tap(({ event }: { event: Event }) => referencesReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({

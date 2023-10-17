@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import { author, loginType, pubkey, rom } from '../stores/Author';
+import { author, authorProfile, loginType, pubkey, rom } from '../stores/Author';
 import { Signer } from './Signer';
 import { defaultRelays } from './Constants';
 import { Author } from './Author';
@@ -7,17 +7,20 @@ import { getPublicKey, nip19 } from 'nostr-tools';
 import { WebStorage } from './WebStorage';
 import { rxNostr } from './timelines/MainTimeline';
 import { now } from 'rx-nostr';
+import type { User } from '../routes/types';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
 		await rxNostr.switchRelays(defaultRelays);
 		console.log('[relays]', rxNostr.getRelays());
 
+		const user = {
+			display_name: name,
+			picture: `https://robohash.org/${nip19.npubEncode(Signer.getPublicKey())}?set=set4`
+		} as User;
 		const metadataEvent = await Signer.signEvent({
 			kind: 0,
-			content: JSON.stringify({
-				display_name: name
-			}),
+			content: JSON.stringify(user),
 			tags: [],
 			created_at: now()
 		});
@@ -25,6 +28,7 @@ export class Login {
 		rxNostr.send(metadataEvent).subscribe((packet) => {
 			console.log('[save metadata]', packet);
 		});
+		authorProfile.set(user);
 
 		const relayListEvent = await Signer.signEvent({
 			kind: 10002,

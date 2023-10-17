@@ -21,8 +21,8 @@
 		"@types/beyonk__gdpr-cookie-consent-banner": "^9.0.2",
 		"@types/emoji-mart": "^3.0.10",
 		"@types/qrcode": "^1.5.2",
-		"@typescript-eslint/eslint-plugin": "^6.7.5",
-		"@typescript-eslint/parser": "^6.7.5",
+		"@typescript-eslint/eslint-plugin": "^6.8.0",
+		"@typescript-eslint/parser": "^6.8.0",
 		"eslint": "^8.51.0",
 		"eslint-config-prettier": "^9.0.0",
 		"eslint-plugin-svelte": "^2.34.0",
@@ -47,7 +47,7 @@
 		"nostr-tools": "^1.10.1",
 		"qrcode": "^1.5.3",
 		"rx-nostr": "^1.8.1",
-		"svelte-i18n": "^3.7.3",
+		"svelte-i18n": "^4.0.0",
 		"tributejs": "^5.1.3"
 	}
 }

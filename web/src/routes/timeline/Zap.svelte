@@ -1,22 +1,24 @@
 <script lang="ts">
-	import { EventItem } from '$lib/Items';
+	import type { EventItem, Item } from '$lib/Items';
+	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import { pool } from '../../stores/Pool';
-	import type { User } from '../types';
 	import { readRelays } from '../../stores/Author';
 	import { nip19, type Event } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
-	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
 
-	export let event: Event;
+	export let item: Item;
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
-	let user: User | undefined;
+	const event = item.event;
+
+	$: metadata = $metadataStore.get(item.event.pubkey);
+
 	let originalEvent: EventItem | undefined;
 	let jsonDisplay = false;
 
@@ -34,20 +36,11 @@
 		console.error('[invalid description tag]', error, descriptionTag);
 	}
 
+	$: if (originalTag !== undefined) {
+		originalEvent = $eventItemStore.get(originalTag[1]);
+	}
+
 	const api = new Api($pool, $readRelays);
-
-	onMount(async () => {
-		if (originalTag !== undefined) {
-			const eventId = originalTag[1];
-			originalEvent = await api.fetchEventItemById(eventId);
-		} else {
-			console.warn('[zapped event not found]', event);
-		}
-
-		api.fetchUserEvent(event.pubkey).then((userEvent) => {
-			user = userEvent?.user;
-		});
-	});
 
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
@@ -68,7 +61,7 @@
 			{:then zapUserEvent}
 				<div>
 					<a href="/{nip19.npubEncode((zapUserEvent ?? event).pubkey)}">
-						@{(zapUserEvent?.user ?? user)?.name ??
+						@{(zapUserEvent?.user ?? metadata?.content)?.name ??
 							nip19
 								.npubEncode((zapUserEvent ?? event).pubkey)
 								.substring(0, 'npub1'.length + 7)}
@@ -102,7 +95,7 @@
 		<h5>User ID</h5>
 		<div>{nip19.npubEncode(event.pubkey)}</div>
 		<h5>User JSON</h5>
-		<pre><code class="json">{JSON.stringify(user, null, 2)}</code></pre>
+		<pre><code class="json">{JSON.stringify(metadata?.content, null, 2)}</code></pre>
 		<div>
 			Open in <a
 				href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode({

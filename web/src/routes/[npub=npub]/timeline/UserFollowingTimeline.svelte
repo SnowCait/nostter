@@ -12,7 +12,7 @@
 	import { userTimelineEvents as items } from '../../../stores/Events';
 	import { Kind, SimplePool, type Event, nip19 } from 'nostr-tools';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
-	import { rxNostr, metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { EventItem } from '$lib/Items';
 
 	export let pubkey: string;
@@ -42,10 +42,6 @@
 
 		if (followees.length === 0) {
 			return;
-		}
-
-		if (rxNostr.getRelays().length === 0) {
-			await rxNostr.switchRelays($readRelays);
 		}
 
 		let firstLength = $items.length;
@@ -81,7 +77,7 @@
 					.use(pastEventsReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
+						tap(({ event }: { event: Event }) => referencesReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({

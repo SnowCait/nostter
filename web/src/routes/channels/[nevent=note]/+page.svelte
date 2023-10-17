@@ -18,7 +18,7 @@
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import { timeout } from '$lib/Constants';
 	import type { ChannelMetadata } from '$lib/Types';
-	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { author, readRelays } from '../../../stores/Author';
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
@@ -117,7 +117,7 @@
 			.use(channelMessageReq)
 			.pipe(
 				uniq(),
-				tap(({ event }: { event: Event }) => metadataReqEmit(event))
+				tap(({ event }: { event: Event }) => referencesReqEmit(event))
 			)
 			.subscribe(async (packet) => {
 				console.debug('[channel message event]', packet);
@@ -167,7 +167,7 @@
 					.use(pastChannelMessageReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
+						tap(({ event }: { event: Event }) => referencesReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({

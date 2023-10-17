@@ -2,8 +2,8 @@ import type { Media, MediaResult } from './Media';
 
 export class VoidCat implements Media {
 	async upload(file: File): Promise<MediaResult> {
-		const data = await file.arrayBuffer();
-		const buffer = await crypto.subtle.digest('SHA-256', data);
+		const bufferSource = await file.arrayBuffer();
+		const buffer = await crypto.subtle.digest('SHA-256', bufferSource);
 		const digest = Array.from(new Uint8Array(buffer))
 			.map((b) => b.toString(16).padStart(2, '0'))
 			.join('');
@@ -16,23 +16,24 @@ export class VoidCat implements Media {
 				'V-Full-Digest': digest,
 				'V-Filename': file.name
 			},
-			body: data
+			body: bufferSource
 		});
 
 		if (!response.ok) {
 			throw new Error(await response.text());
 		}
 
-		const result = await response.json();
+		const data = await response.json();
 
-		console.log('[void.cat]', result);
+		console.log('[void.cat]', data);
 
-		if (!result.ok) {
-			throw new Error(result.errorMessage);
+		if (!data.ok) {
+			throw new Error(data.errorMessage);
 		}
 
 		return {
-			url: '' // TODO
+			url: '', // TODO
+			data
 		};
 	}
 }

@@ -2,13 +2,15 @@
 	import type { Metadata } from '$lib/Items';
 	import ProfileIcon from './ProfileIcon.svelte';
 
-	export let metadataList: Metadata[];
+	export let metadataList: (Metadata | undefined)[];
 </script>
 
 <ul class="clear">
 	{#each metadataList as metadata}
 		<li>
-			<ProfileIcon {metadata} />
+			{#if metadata !== undefined}
+				<ProfileIcon {metadata} />
+			{/if}
 		</li>
 	{/each}
 </ul>

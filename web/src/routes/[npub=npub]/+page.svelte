@@ -4,7 +4,7 @@
 	import { nip05, nip19, SimplePool, type Event } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
-	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import type { User } from '../types';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
@@ -27,7 +27,7 @@
 	import UserStatus from '../parts/UserStatus.svelte';
 	import CopyButton from '../parts/CopyButton.svelte';
 
-	let metadata: Metadata;
+	let metadata: Metadata | undefined;
 	let user: User | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
 	let events: EventItem[] = [];
@@ -105,10 +105,6 @@
 			return;
 		}
 
-		if (rxNostr.getRelays().length === 0) {
-			await rxNostr.switchRelays(relays);
-		}
-
 		let firstLength = events.length;
 		let count = 0;
 		let until =
@@ -136,7 +132,7 @@
 					.use(pastEventsReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => metadataReqEmit(event)),
+						tap(({ event }: { event: Event }) => referencesReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({
@@ -201,7 +197,7 @@
 <section class="card profile-wrapper">
 	<div class="banner">
 		{#if user?.banner}
-			<img src={user.banner} alt={`${user.display_name}-banner`} />
+			<img src={user.banner} alt="" />
 		{:else}
 			<div class="blank" />
 		{/if}
@@ -210,8 +206,8 @@
 		<div class="profile">
 			<div class="actions">
 				<div class="picture-wrapper">
-					{#if user?.picture}
-						<img src={user?.picture} alt={`${user?.display_name}-icon`} />
+					{#if metadata !== undefined}
+						<img src={metadata?.picture} alt="" />
 					{:else}
 						<div class="blank" />
 					{/if}
@@ -285,7 +281,7 @@
 			{/if}
 			{#if user?.about}
 				<div class="about">
-					<Content content={user.about} tags={metadata.event.tags} />
+					<Content content={user.about} tags={metadata?.event.tags ?? []} />
 				</div>
 			{/if}
 		</div>
@@ -311,11 +307,9 @@
 		<div>
 			<a href="/{slug}/pins">PINs</a>
 		</div>
-		{#if pubkey === $authorPubkey}
-			<div>
-				<a href="/{slug}/reactions">Reactions</a>
-			</div>
-		{/if}
+		<div>
+			<a href="/{slug}/reactions">Reactions</a>
+		</div>
 	</div>
 </section>
 
@@ -373,6 +367,10 @@
 		object-fit: cover;
 		position: relative;
 		z-index: 2;
+	}
+
+	.profile img {
+		background-color: var(--surface);
 	}
 
 	.blank {

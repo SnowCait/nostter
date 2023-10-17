@@ -1,14 +1,10 @@
 <script lang="ts">
 	import type { EventItem, Item } from '$lib/Items';
-	import { metadataStore } from '$lib/cache/Events';
+	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
-	import { pool } from '../../stores/Pool';
-	import { readRelays } from '../../stores/Author';
 	import { nip19 } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
-	import { onMount } from 'svelte';
-	import { Api } from '$lib/Api';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
 
@@ -35,17 +31,9 @@
 		);
 	}
 
-	onMount(async () => {
-		const api = new Api($pool, $readRelays);
-
-		if (originalTag === undefined) {
-			console.warn('[repost not found]', item.event);
-			return;
-		}
-
-		const eventId = originalTag[1];
-		originalEvent = await api.fetchEventItemById(eventId);
-	});
+	$: if (originalTag !== undefined) {
+		originalEvent = $eventItemStore.get(originalTag[1]);
+	}
 
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
