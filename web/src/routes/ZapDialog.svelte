@@ -95,15 +95,17 @@
 				</div>
 			</form>
 		{:else}
+			{@const url = `lightning:${invoice}`}
 			<section class="lnbc">
 				<div>
-					{#await QRCode.toDataURL(`lightning:${invoice}`) then dataUrl}
-						<a href="lightning:{invoice}" target="_blank" rel="noopener noreferrer">
+					{#await QRCode.toDataURL(url) then dataUrl}
+						<a href={url} target="_blank" rel="noopener noreferrer">
 							<img src={dataUrl} alt="" />
 						</a>
 					{/await}
 				</div>
 				<div class="text">{invoice}</div>
+				<iframe src={url} title="Lightning" width="0" height="0"></iframe>
 			</section>
 		{/if}
 	</article>
