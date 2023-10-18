@@ -209,7 +209,7 @@
 	<span class="count">{repostEventItems.length}</span>
 	<ProfileIconList metadataList={repostMetadataList} />
 </section>
-{#each [...reactionMetadataMap] as [content, items]}
+{#each [...reactionMetadataMap] as [content, metadataList]}
 	<section class="reaction counter card">
 		<span class="icon" class:heart={content === '+'}>
 			{#if content === '+'}
@@ -220,7 +220,15 @@
 				<span>{content}</span>
 			{/if}
 		</span>
-		<span class="count">{items.length}</span>
+		<span class="count">{metadataList.length}</span>
+		<ProfileIconList metadataList={metadataList.map(item => $metadataStore.get(item.event.pubkey))} />
+	</section>
+{:else}
+	<section class="reaction counter card">
+		<span class="icon heart">
+			<IconHeart />
+		</span>
+		<span class="count">0</span>
 		<ProfileIconList metadataList={items.map(item => $metadataStore.get(item.event.pubkey))} />
 	</section>
 {/each}
