@@ -47,9 +47,7 @@
 	};
 
 	const viewDetail = async (
-		clickEvent: MouseEvent & {
-			currentTarget: EventTarget & HTMLLIElement;
-		},
+		clickEvent: MouseEvent,
 		nostrEvent: Event
 	) => {
 		let target: HTMLElement | null = clickEvent.target as HTMLElement;
@@ -57,13 +55,12 @@
 			while (target && !target.classList.contains('timeline')) {
 				if (
 					target.classList.contains('emoji-picker') ||
-					target.classList.contains('develop') ||
-					target.closest('dialog')
+					target.classList.contains('develop')
 				) {
 					return;
 				}
 				const tagName = target.tagName.toLocaleLowerCase();
-				if (tagName === 'a' || tagName === 'button' || tagName === 'video') {
+				if (tagName === 'a' || tagName === 'button' || tagName === 'video' || tagName === 'dialog') {
 					return;
 				}
 				if (tagName === 'p' && String(document.getSelection()).length) {
