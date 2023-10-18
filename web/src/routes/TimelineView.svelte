@@ -72,7 +72,7 @@
 				if (tagName === 'blockquote') {
 					const refEventId = getTargetETag(nostrEvent.tags);
 					if (!refEventId) {
-						continue;
+						return;
 					}
 					const noteId = nip19.neventEncode({ id: refEventId });
 					await goto(`/${noteId}`);
