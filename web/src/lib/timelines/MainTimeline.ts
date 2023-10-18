@@ -1,7 +1,7 @@
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-typedef';
 import { batch, createRxBackwardReq, createRxNostr, latestEach, uniq } from 'rx-nostr';
-import { bufferTime } from 'rxjs';
+import { tap, bufferTime } from 'rxjs';
 import { timeout } from '$lib/Constants';
 import { filterTags } from '$lib/EventHelper';
 import { EventItem, Metadata } from '$lib/Items';
@@ -13,7 +13,7 @@ export const rxNostr = createRxNostr({ timeout }); // Based on NIP-65
 const metadataReq = createRxBackwardReq();
 const eventsReq = createRxBackwardReq();
 
-export function referencesReqEmit(event: Event): void {
+export function referencesReqEmit(event: Event, metadataOnly: boolean = false): void {
 	console.debug('[rx-nostr references REQ emit]', event);
 	for (const pubkey of [
 		...new Set([
@@ -28,6 +28,10 @@ export function referencesReqEmit(event: Event): void {
 			authors: [pubkey],
 			limit: 1
 		});
+	}
+
+	if (metadataOnly) {
+		return;
 	}
 
 	const $eventItemStore = get(eventItemStore);
@@ -66,7 +70,10 @@ rxNostr
 
 rxNostr
 	.use(eventsReq.pipe(bufferTime(1000, null, 10), batch()))
-	.pipe(uniq())
+	.pipe(
+		uniq(),
+		tap(({ event }: { event: Event }) => referencesReqEmit(event, true))
+	)
 	.subscribe(async (packet) => {
 		console.log('[rx-nostr event]', packet);
 		const eventItem = new EventItem(packet.event);
