@@ -56,7 +56,7 @@
 						customEmojiShortcode.set(url, shortcode)
 					}
 				} catch (error) {
-					console.error('[custum emoji invalid]', item);
+					console.error('[custom emoji invalid]', item);
 				}
 			}
 		}
@@ -200,7 +200,7 @@
 		load={async () => console.debug()}
 		showLoading={false}
 		full={true}
-		transitionable={false}
+		transitional={false}
 	/>
 </div>
 

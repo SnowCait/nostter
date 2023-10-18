@@ -16,7 +16,7 @@
 	export let showLoading = true;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 	export let full = false;
-	export let transitionable = true;
+	export let transitional = true;
 
 	let loading = false;
 	let innerHeight: number;
@@ -78,7 +78,7 @@
 				target = target.parentElement;
 			}
 		}
-		if (transitionable) {
+		if (transitional) {
 			if (nostrEvent.kind === 42 && $channelIdStore === undefined) {
 				const channelId = findChannelId(nostrEvent.tags);
 				if (channelId !== undefined) {
@@ -101,7 +101,7 @@
 	{#each items as item (item.event.id)}
 		{#if !isMuteEvent(item.event)}
 			<li
-				class={transitionable ? 'transitionable-post' : ''}
+				class={transitional ? 'transitional-post' : ''}
 				class:related={$author?.isNotified(item.event)}
 				on:mouseup={(e) => viewDetail(e, item.event)}
 			>
@@ -139,11 +139,11 @@
 		text-overflow: ellipsis;
 	}
 
-	.transitionable-post {
+	.transitional-post {
 		cursor: pointer;
 	}
 
-	.transitionable-post:hover {
+	.transitional-post:hover {
 		background: var(--accent-surface-low);
 	}
 
@@ -155,7 +155,7 @@
 		cursor: pointer;
 	}
 
-	:global(.transitionable-post blockquote:hover) {
+	:global(.transitional-post blockquote:hover) {
 		background: var(--accent-surface-high);
 	}
 
