@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Event } from 'nostr-typedef';
 	import { createRxOneshotReq, filterKind, uniq, type LazyFilter } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
@@ -17,6 +18,7 @@
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
+	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 
 	export let data: PageData;
 
@@ -34,6 +36,7 @@
 	let repliedToEventItems: EventItem[] = [];
 	let repostEventItems: EventItem[] = [];
 	let reactionEventItems: EventItem[] = [];
+	let zapEventItems: EventItem[] = [];
 
 	let customEmojiShortcode = new Map<string, string>();
 
@@ -68,6 +71,11 @@
 		}
 		return map;
 	}, new Map<string, EventItem[]>());
+
+	$: zapMetadataList =
+		zapEventItems
+			.map((x) => $metadataStore.get(x.event.pubkey))
+			.filter((x): x is Metadata => x !== undefined);
 
 	$: if (eventId !== data.eventId) {
 		eventId = data.eventId;
@@ -126,6 +134,34 @@
 			reactionEventItems.push(eventItem);
 			reactionEventItems = reactionEventItems;
 		});
+
+		// Zap
+		observable.pipe(filterKind(9735)).subscribe(packet => {
+			console.log('[thread kind 9735]', packet);
+
+			let event: Event | undefined;
+			const description = packet.event.tags
+				.find(([tagName, tagContent]) => tagName === 'description' && tagContent !== undefined)
+				?.at(1);
+			if (description !== undefined) {
+				console.log('[thread kind 9734]', description);
+				try {
+					event = JSON.parse(description) as Event;
+					referencesReqEmit(event, true);
+				} catch (error) {
+					console.log('[zap description parse error]', description);
+				}
+			}
+
+			if (event === undefined) {
+				return;
+			}
+
+			const eventItem = new EventItem(event);
+			zapEventItems.sort(chronologicalItem);
+			zapEventItems.push(eventItem);
+			zapEventItems = zapEventItems;
+		});
 	}
 
 	$: if (item !== undefined) {
@@ -175,6 +211,7 @@
 		repliedToEventItems = [];
 		repostEventItems = [];
 		reactionEventItems = [];
+		zapEventItems = [];
 		customEmojiShortcode = new Map<string, string>();
 	}
 </script>
@@ -232,6 +269,13 @@
 		<ProfileIconList metadataList={items.map(item => $metadataStore.get(item.event.pubkey))} />
 	</section>
 {/each}
+<section class="zap counter card">
+	<span class="icon"><IconBolt /></span>
+	{#if zapMetadataList.length === 0}
+		<span class="count">-</span>
+	{/if}
+	<ProfileIconList metadataList={zapMetadataList} />
+</section>
 {#if $author !== undefined && item !== undefined}
 	<div class="mute">
 		<MuteButton tagName="e" tagContent={rootId === undefined ? item.event.id : rootId} />
@@ -276,6 +320,10 @@
 
 	.heart {
 		color: var(--red);
+	}
+
+	.zap .icon {
+		color: var(--yellow);
 	}
 
 	.mute {
