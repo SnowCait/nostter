@@ -200,7 +200,7 @@
 		load={async () => console.debug()}
 		showLoading={false}
 		full={true}
-		transitional={false}
+		canTransition={false}
 	/>
 </div>
 
