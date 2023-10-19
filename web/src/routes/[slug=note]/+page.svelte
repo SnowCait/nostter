@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Event } from 'nostr-typedef';
 	import { createRxOneshotReq, filterKind, uniq, type LazyFilter } from 'rx-nostr';
-	import { tap } from 'rxjs';
+	import { tap, merge } from 'rxjs';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { cachedEvents, metadataStore } from '$lib/cache/Events';
 	import type { PageData } from './$types';
@@ -101,7 +101,7 @@
 		const observable = rxNostr.use(eventReq).pipe(uniq(), tap(({event}) => referencesReqEmit(event)));
 
 		// Replies
-		observable.pipe(filterKind(1)).subscribe(packet => {
+		merge(observable.pipe(filterKind(1)), observable.pipe(filterKind(42))).subscribe(packet => {
 			console.log('[thread kind 1]', packet);
 			const eventItem = new EventItem(packet.event);
 			if (packet.event.id === eventId) {
