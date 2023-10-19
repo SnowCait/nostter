@@ -3,7 +3,7 @@
 	import { createRxOneshotReq, filterKind, uniq, type LazyFilter } from 'rx-nostr';
 	import { tap, merge } from 'rxjs';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
-	import { cachedEvents, metadataStore } from '$lib/cache/Events';
+	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { PageData } from './$types';
 	import { author, readRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
@@ -83,15 +83,13 @@
 
 		clear();
 
-		const event = cachedEvents.get(eventId);
+		item = $eventItemStore.get(eventId);
 		const filters: LazyFilter[] = [
 			{
 				'#e': [eventId]
 			}
 		];
-		if (event !== undefined) {
-			item = new EventItem(event);
-		} else {
+		if (item === undefined) {
 			filters.push({
 				ids: [eventId]
 			});
