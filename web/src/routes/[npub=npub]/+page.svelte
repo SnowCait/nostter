@@ -4,8 +4,8 @@
 	import { nip05, nip19, SimplePool, type Event } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
+	import { metadataStore } from '$lib/cache/Events';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import type { User } from '../types';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays, rom } from '../../stores/Author';
@@ -19,7 +19,7 @@
 	import MuteButton from '../action/MuteButton.svelte';
 	import Badges from '../Badges.svelte';
 	import Content from '../content/Content.svelte';
-	import { EventItem, Metadata } from '$lib/Items';
+	import { EventItem, Metadata, type MetadataContent } from '$lib/Items';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
@@ -28,10 +28,10 @@
 	import CopyButton from '../parts/CopyButton.svelte';
 
 	let metadata: Metadata | undefined;
-	let user: User | undefined;
+	let user: MetadataContent | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
 	let events: EventItem[] = [];
-	let pubkey = '';
+	let pubkey: string | undefined;
 	let npub = '';
 	let nprofile = '';
 	let followees: string[] = [];
@@ -43,6 +43,22 @@
 	let relays = $readRelays;
 	let slug = $page.params.npub;
 	const api = new Api($pool, relays);
+
+	$: if (pubkey !== undefined) {
+		npub = nip19.npubEncode(pubkey);
+		nprofile = nip19.nprofileEncode({ pubkey });
+	}
+
+	$: if (metadata !== undefined) {
+		user = metadata.content;
+		if (user !== undefined && user.nip05) {
+			const normalizedNip05 = user.nip05.replace(/^_@/, '');
+			if (slug !== normalizedNip05) {
+				history.replaceState(history.state, '', normalizedNip05);
+				slug = normalizedNip05;
+			}
+		}
+	}
 
 	afterNavigate(async () => {
 		slug = $page.params.npub;
@@ -64,23 +80,12 @@
 		relays = Array.from(new Set([...relays, ...data.relays]));
 		timeline = new Timeline(pubkey, [pubkey]);
 
-		const event = await api.fetchUserEvent(pubkey);
-		console.log('[metadata]', event);
-		if (event !== undefined) {
-			metadata = new Metadata(event);
-			user = {
-				...metadata.content,
-				zapEndpoint: (await metadata.zapUrl())?.href ?? null
-			} as User;
-			npub = nip19.npubEncode(pubkey);
-			nprofile = nip19.nprofileEncode({ pubkey });
-		}
-
-		if (user !== undefined && user.nip05) {
-			const normalizedNip05 = user.nip05.replace(/^_@/, '');
-			if (slug !== normalizedNip05) {
-				history.replaceState(history.state, '', normalizedNip05);
-				slug = normalizedNip05;
+		metadata = $metadataStore.get(pubkey);
+		if (metadata === undefined) {
+			const event = await api.fetchUserEvent(pubkey);
+			console.log('[metadata]', event);
+			if (event !== undefined) {
+				metadata = new Metadata(event);
 			}
 		}
 
@@ -101,7 +106,7 @@
 	});
 
 	async function load() {
-		if (timeline === undefined) {
+		if (timeline === undefined || pubkey === undefined) {
 			return;
 		}
 
@@ -187,8 +192,8 @@
 </script>
 
 <svelte:head>
-	{#if user}
-		<title>{user.display_name} (@{user.name}) - nostter</title>
+	{#if metadata !== undefined}
+		<title>{user?.display_name ?? user?.name} (@{user?.name ?? user?.display_name}) - nostter</title>
 	{:else}
 		<title>ghost - nostter</title>
 	{/if}
@@ -213,7 +218,7 @@
 					{/if}
 				</div>
 				<div class="buttons">
-					{#if !$rom}
+					{#if !$rom && pubkey !== undefined}
 						{#if pubkey === $authorPubkey}
 							<div class="profile-editor">
 								<a href="/profile">
@@ -238,9 +243,11 @@
 				{/if}
 			</div>
 
-			<div class="user-status">
-				<UserStatus {pubkey} showLink={true} />
-			</div>
+			{#if pubkey !== undefined}
+				<div class="user-status">
+					<UserStatus {pubkey} showLink={true} />
+				</div>
+			{/if}
 
 			<details>
 				<summary>
