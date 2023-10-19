@@ -80,7 +80,6 @@
 	}
 
 	onMount(() => {
-		document.addEventListener('visibilitychange', onVisibilityChange);
 		subscribeSystemTheme();
 	});
 
@@ -107,6 +106,7 @@
 </script>
 
 <svelte:window on:keyup={keyboardShortcut} />
+<svelte:document on:visibilitychange={onVisibilityChange} />
 
 <div class="app">
 	<NoteDialog />
