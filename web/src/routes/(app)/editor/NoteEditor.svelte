@@ -10,9 +10,9 @@
 	import { cachedEvents, channelMetadataEvents, metadataStore } from '$lib/cache/Events';
 	import { EventItem, Metadata } from '$lib/Items';
 	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
-	import { openNoteDialog, replyTo, quotes, intentContent } from '../../stores/NoteDialog';
-	import { rom } from '../../stores/Author';
-	import { customEmojiTags } from '../../stores/CustomEmojis';
+	import { openNoteDialog, replyTo, quotes, intentContent } from '../../../stores/NoteDialog';
+	import { rom } from '../../../stores/Author';
+	import { customEmojiTags } from '../../../stores/CustomEmojis';
 	import Note from '../timeline/Note.svelte';
 	import ChannelTitle from '../parts/ChannelTitle.svelte';
 	import MediaPicker from './MediaPicker.svelte';

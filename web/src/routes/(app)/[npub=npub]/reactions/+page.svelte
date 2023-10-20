@@ -2,8 +2,8 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { Api } from '$lib/Api';
-	import { pool } from '../../../stores/Pool';
-	import { readRelays } from '../../../stores/Author';
+	import { pool } from '../../../../stores/Pool';
+	import { readRelays } from '../../../../stores/Author';
 	import { page } from '$app/stores';
 	import { error } from '@sveltejs/kit';
 	import { User as UserDecoder } from '$lib/User';

@@ -3,7 +3,7 @@
 	import { error } from '@sveltejs/kit';
 	import { nip19, type Event } from 'nostr-tools';
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
-	import { pool } from '../../stores/Pool';
+	import { pool } from '../../../stores/Pool';
 	import { Api } from '$lib/Api';
 	import { defaultRelays } from '$lib/Constants';
 	import { onMount } from 'svelte';

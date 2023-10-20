@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { WebStorage } from '$lib/WebStorage';
-	import { loginType } from '../stores/Author';
+	import { loginType } from '../../stores/Author';
 
 	let saved = false;
 	let showNsec = false;

@@ -4,7 +4,7 @@
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
 	import { Api } from '$lib/Api';
 	import { defaultRelays } from '$lib/Constants';
-	import { pool } from '../../stores/Pool';
+	import { pool } from '../../../stores/Pool';
 	import LongFormContent from './LongFormContent.svelte';
 
 	export let naddr: string;

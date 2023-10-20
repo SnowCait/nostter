@@ -2,12 +2,12 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
-	import { openNoteDialog } from '../stores/NoteDialog';
+	import { openNoteDialog } from '../../stores/NoteDialog';
 	import { onMount } from 'svelte';
-	import { debugMode } from '../stores/Preference';
+	import { debugMode } from '../../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
 	import { _ } from 'svelte-i18n';
-	import '../app.css';
+	import '../../app.css';
 	import Gdpr from './parts/Gdpr.svelte';
 
 	let debugMessage = '';

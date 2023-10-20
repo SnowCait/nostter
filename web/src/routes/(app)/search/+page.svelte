@@ -5,7 +5,7 @@
 	import { Search } from '$lib/Search';
 	import { minTimelineLength } from '$lib/Constants';
 	import type { EventItem } from '$lib/Items';
-	import type { Event } from '../types';
+	import type { Event } from '../../types';
 	import TimelineView from '../TimelineView.svelte';
 	import SearchForm from './SearchForm.svelte';
 	import Trending from './Trending.svelte';

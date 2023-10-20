@@ -6,7 +6,7 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import { EventItem } from '$lib/Items';
 	import { User as UserDecoder } from '$lib/User';
-	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
+	import { pubkey as authorPubkey, readRelays } from '../../../../stores/Author';
 	import type { Event } from 'nostr-tools';
 	import { onDestroy } from 'svelte';
 	import { firstValueFrom, EmptyError } from 'rxjs';

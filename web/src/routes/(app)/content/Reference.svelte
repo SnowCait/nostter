@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
 	import type { EventItem } from '$lib/Items';
-	import { events } from '../../stores/Events';
-	import { userEvents } from '../../stores/UserEvents';
+	import { events } from '../../../stores/Events';
+	import { userEvents } from '../../../stores/UserEvents';
 	import Note from '../timeline/Note.svelte';
 	import Hashtag from './Hashtag.svelte';
 	import Text from './Text.svelte';
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
-	import { pool } from '../../stores/Pool';
-	import { readRelays } from '../../stores/Author';
+	import { pool } from '../../../stores/Pool';
+	import { readRelays } from '../../../stores/Author';
 	import Url from './Url.svelte';
 
 	export let text: string;

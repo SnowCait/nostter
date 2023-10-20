@@ -2,11 +2,11 @@
 	import { onMount } from 'svelte';
 	import { Api } from '$lib/Api';
 	import { nip19, type Event } from 'nostr-tools';
-	import { pool } from '../../stores/Pool';
-	import { readRelays } from '../../stores/Author';
+	import { pool } from '../../../stores/Pool';
+	import { readRelays } from '../../../stores/Author';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
-	import { intentContent, openNoteDialog } from '../../stores/NoteDialog';
+	import { intentContent, openNoteDialog } from '../../../stores/NoteDialog';
 	import { Channel } from '$lib/Channel';
 
 	export let event: Event;

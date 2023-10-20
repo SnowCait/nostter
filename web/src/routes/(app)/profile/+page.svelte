@@ -2,8 +2,8 @@
 	import { Kind, nip19 } from 'nostr-tools';
 	import { Api } from '$lib/Api';
 	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
-	import { pubkey, author, authorProfile, metadataEvent, writeRelays } from '../../stores/Author';
-	import { pool } from '../../stores/Pool';
+	import { pubkey, author, authorProfile, metadataEvent, writeRelays } from '../../../stores/Author';
+	import { pool } from '../../../stores/Pool';
 	import { goto } from '$app/navigation';
 	import MediaPicker from '../editor/MediaPicker.svelte';
 

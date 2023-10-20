@@ -4,12 +4,12 @@
 	import { page } from '$app/stores';
 	import { User as UserDecoder } from '$lib/User';
 	import { Api } from '$lib/Api';
-	import { pubkey as authorPubkey, readRelays, writeRelays } from '../../../stores/Author';
-	import { pool } from '../../../stores/Pool';
+	import { pubkey as authorPubkey, readRelays, writeRelays } from '../../../../stores/Author';
+	import { pool } from '../../../../stores/Pool';
 	import { Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
 	import { filterRelayTags, parseRelayJson } from '$lib/EventHelper';
-	import type { User } from '../../types';
+	import type { User } from '../../../types';
 	import IconPencil from '@tabler/icons-svelte/dist/svelte/icons/IconPencil.svelte';
 	import IconDeviceFloppy from '@tabler/icons-svelte/dist/svelte/icons/IconDeviceFloppy.svelte';
 	import Loading from '../../Loading.svelte';

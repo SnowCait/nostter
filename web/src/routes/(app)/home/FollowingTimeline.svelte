@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Event } from '../types';
+	import type { Event } from '../../types';
 	import TimelineView from '../TimelineView.svelte';
-	import { events, eventsPool } from '../../stores/Events';
-	import { saveMetadataEvent } from '../../stores/UserEvents';
-	import { pool } from '../../stores/Pool';
+	import { events, eventsPool } from '../../../stores/Events';
+	import { saveMetadataEvent } from '../../../stores/UserEvents';
+	import { pool } from '../../../stores/Pool';
 	import {
 		pubkey,
 		author,
@@ -15,11 +15,11 @@
 		rom,
 		bookmarkEvent,
 		writeRelays
-	} from '../../stores/Author';
+	} from '../../../stores/Author';
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
 	import { Kind, type Filter, type Event as NostrEvent, type Relay } from 'nostr-tools';
-	import { saveLastNote } from '../../stores/LastNotes';
+	import { saveLastNote } from '../../../stores/LastNotes';
 	import { Signer } from '$lib/Signer';
 	import {
 		filterLimitItems,
@@ -34,14 +34,14 @@
 		loadingNotifications,
 		notifiedEvents,
 		unreadEvents
-	} from '../../stores/Notifications';
+	} from '../../../stores/Notifications';
 	import { EventItem } from '$lib/Items';
 	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { Mute } from '$lib/Mute';
-	import { autoRefresh } from '../../stores/Preference';
+	import { autoRefresh } from '../../../stores/Preference';
 	import { batch, createRxForwardReq, createRxOneshotReq, latestEach, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
-	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
+	import { userStatusesGeneral, userStatusesMusic } from '../../../stores/UserStatuses';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { WebStorage } from '$lib/WebStorage';
 	import { findIdentifier } from '$lib/EventHelper';

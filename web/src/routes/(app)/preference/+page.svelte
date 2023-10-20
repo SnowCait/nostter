@@ -2,8 +2,8 @@
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
-	import { author } from '../../stores/Author';
-	import { debugMode } from '../../stores/Preference';
+	import { author } from '../../../stores/Author';
+	import { debugMode } from '../../../stores/Preference';
 	import WordMute from './WordMute.svelte';
 	import AutoRefresh from './AutoRefresh.svelte';
 	import MutedUsers from './MutedUsers.svelte';

@@ -9,8 +9,8 @@
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { japaneseBotNpub, trendingPeopleBotNpub } from '$lib/Constants';
-	import { unreadEvents } from '../stores/Notifications';
-	import { pubkey, rom } from '../stores/Author';
+	import { unreadEvents } from '../../stores/Notifications';
+	import { pubkey, rom } from '../../stores/Author';
 	import { _ } from 'svelte-i18n';
 
 	let npub = trendingPeopleBotNpub;

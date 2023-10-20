@@ -6,7 +6,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { tick } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
-	import { pubkey as authorPubkey, followees } from '../../stores/Author';
+	import { pubkey as authorPubkey, followees } from '../../../stores/Author';
 
 	let pubkey: string;
 	$: pubkey = nip19.decode(japaneseBotNpub).data as string;

@@ -5,8 +5,8 @@
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { PageData } from './$types';
-	import { author, readRelays } from '../../stores/Author';
-	import { pool } from '../../stores/Pool';
+	import { author, readRelays } from '../../../stores/Author';
+	import { pool } from '../../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';

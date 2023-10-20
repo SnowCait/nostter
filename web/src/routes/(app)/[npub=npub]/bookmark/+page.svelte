@@ -2,8 +2,8 @@
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
 	import type { Event as NostrEvent } from 'nostr-tools';
-	import { pool } from '../../../stores/Pool';
-	import { pubkey as authorPubkey, readRelays, rom, bookmarkEvent } from '../../../stores/Author';
+	import { pool } from '../../../../stores/Pool';
+	import { pubkey as authorPubkey, readRelays, rom, bookmarkEvent } from '../../../../stores/Author';
 	import { page } from '$app/stores';
 	import { User } from '$lib/User';
 	import { error } from '@sveltejs/kit';

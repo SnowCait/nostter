@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { autoRefresh } from '../../stores/Preference';
+	import { autoRefresh } from '../../../stores/Preference';
 
 	let needRefresh = false;
 </script>

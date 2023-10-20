@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Relay } from 'nostr-tools';
-	import { pool } from '../stores/Pool';
-	import { readRelays } from '../stores/Author';
-	import { debugMode } from '../stores/Preference';
+	import { pool } from '../../stores/Pool';
+	import { readRelays } from '../../stores/Author';
+	import { debugMode } from '../../stores/Preference';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 
 	let open = false;

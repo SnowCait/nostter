@@ -7,9 +7,9 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { normalizeNip05 } from '$lib/MetadataHelper';
-	import { pool } from '../../stores/Pool';
+	import { pool } from '../../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
-	import { pubkey as authorPubkey, readRelays, rom } from '../../stores/Author';
+	import { pubkey as authorPubkey, readRelays, rom } from '../../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
 	import FollowButton from '../action/FollowButton.svelte';
 	import { Api } from '$lib/Api';
@@ -24,7 +24,7 @@
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 	import UserStatus from '../parts/UserStatus.svelte';
-	import NostrAddress from './NostrAddress.svelte';
+	import NostrAddress from '../[npub=npub]/NostrAddress.svelte';
 
 	let metadata: Metadata | undefined;
 	let user: MetadataContent | undefined;

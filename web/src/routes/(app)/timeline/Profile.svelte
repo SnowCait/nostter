@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
 	import FollowButton from '../action/FollowButton.svelte';
-	import { rom } from '../../stores/Author';
-	import { lastNotesMap } from '../../stores/LastNotes';
+	import { rom } from '../../../stores/Author';
+	import { lastNotesMap } from '../../../stores/LastNotes';
 	import Content from '../content/Content.svelte';
 	import type { Metadata } from '$lib/Items';
 

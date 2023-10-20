@@ -4,8 +4,8 @@
 	import { Mute } from '$lib/Mute';
 	import { Api } from '$lib/Api';
 	import { Metadata } from '$lib/Items';
-	import { pubkey, mutePubkeys, writeRelays } from '../../stores/Author';
-	import { pool } from '../../stores/Pool';
+	import { pubkey, mutePubkeys, writeRelays } from '../../../stores/Author';
+	import { pool } from '../../../stores/Pool';
 	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
 
 	let metadataEvents = new Map<string, Event>();

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { Mute } from '$lib/Mute';
 	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
-	import { pubkey, muteWords, writeRelays } from '../../stores/Author';
-	import { pool } from '../../stores/Pool';
+	import { pubkey, muteWords, writeRelays } from '../../../stores/Author';
+	import { pool } from '../../../stores/Pool';
 
 	let word = '';
 

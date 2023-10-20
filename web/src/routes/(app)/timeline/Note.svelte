@@ -13,12 +13,12 @@
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
-	import type { User } from '../types';
-	import { reactionEmoji } from '../../stores/Preference';
-	import { openNoteDialog, quotes, replyTo } from '../../stores/NoteDialog';
-	import { readRelays, writeRelays, pubkey, isBookmarked, author } from '../../stores/Author';
-	import { pool } from '../../stores/Pool';
-	import { rom } from '../../stores/Author';
+	import type { User } from '../../types';
+	import { reactionEmoji } from '../../../stores/Preference';
+	import { openNoteDialog, quotes, replyTo } from '../../../stores/NoteDialog';
+	import { readRelays, writeRelays, pubkey, isBookmarked, author } from '../../../stores/Author';
+	import { pool } from '../../../stores/Pool';
+	import { rom } from '../../../stores/Author';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { reactionEmoji } from '../../stores/Preference';
-	import { pool } from '../../stores/Pool';
-	import { writeRelays } from '../../stores/Author';
+	import { reactionEmoji } from '../../../stores/Preference';
+	import { pool } from '../../../stores/Pool';
+	import { writeRelays } from '../../../stores/Author';
 	import { Signer } from '$lib/Signer';
 	import type { Kind } from 'nostr-tools';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';

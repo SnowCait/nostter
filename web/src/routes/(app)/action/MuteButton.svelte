@@ -2,14 +2,14 @@
 	import { nip19 } from 'nostr-tools';
 	import IconVolumeOff from '@tabler/icons-svelte/dist/svelte/icons/IconVolumeOff.svelte';
 	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
-	import { pool } from '../../stores/Pool';
+	import { pool } from '../../../stores/Pool';
 	import {
 		pubkey as authorPubkey,
 		mutePubkeys,
 		muteEventIds,
 		muteWords,
 		writeRelays
-	} from '../../stores/Author';
+	} from '../../../stores/Author';
 	import { Mute } from '$lib/Mute';
 
 	export let tagName: 'p' | 'e' | 'word';

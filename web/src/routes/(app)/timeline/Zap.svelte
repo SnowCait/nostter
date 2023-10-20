@@ -3,8 +3,8 @@
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
-	import { pool } from '../../stores/Pool';
-	import { readRelays } from '../../stores/Author';
+	import { pool } from '../../../stores/Pool';
+	import { readRelays } from '../../../stores/Author';
 	import { nip19, type Event } from 'nostr-tools';
 	import CreatedAt from '../CreatedAt.svelte';
 	import { Api } from '$lib/Api';

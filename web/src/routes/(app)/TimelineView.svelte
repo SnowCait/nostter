@@ -4,7 +4,7 @@
 	import type { Item } from '$lib/Items';
 	import { channelIdStore } from '$lib/Channel';
 	import { findChannelId } from '$lib/EventHelper';
-	import { author, isMuteEvent } from '../stores/Author';
+	import { author, isMuteEvent } from '../../stores/Author';
 	import Loading from './Loading.svelte';
 	import EventComponent from './timeline/EventComponent.svelte';
 	import { nip19, type Event } from 'nostr-tools';

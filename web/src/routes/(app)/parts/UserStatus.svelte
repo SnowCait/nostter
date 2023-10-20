@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Event } from 'nostr-tools';
 	import { chronological } from '$lib/Constants';
-	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
-	import { pubkey as authorPubkey } from '../../stores/Author';
+	import { userStatusesGeneral, userStatusesMusic } from '../../../stores/UserStatuses';
+	import { pubkey as authorPubkey } from '../../../stores/Author';
 	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
 	import IconMusic from '@tabler/icons-svelte/dist/svelte/icons/IconMusic.svelte';
 	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';

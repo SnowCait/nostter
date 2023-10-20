@@ -4,13 +4,13 @@
 	import { page } from '$app/stores';
 	import { Api } from '$lib/Api';
 	import { User as UserDecoder } from '$lib/User';
-	import type { UserEvent } from '../../types';
-	import { pool } from '../../../stores/Pool';
-	import { readRelays, rom } from '../../../stores/Author';
+	import type { UserEvent } from '../../../types';
+	import { pool } from '../../../../stores/Pool';
+	import { readRelays, rom } from '../../../../stores/Author';
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
 	import { Kind, type Filter } from 'nostr-tools';
-	import { lastNotesMap, saveLastNote } from '../../../stores/LastNotes';
+	import { lastNotesMap, saveLastNote } from '../../../../stores/LastNotes';
 	import { chunk } from '$lib/Array';
 	import { Metadata } from '$lib/Items';
 

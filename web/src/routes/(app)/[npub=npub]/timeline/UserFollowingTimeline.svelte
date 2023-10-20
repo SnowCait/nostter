@@ -8,8 +8,8 @@
 		pubkey as authorPubkey,
 		followees as authorFollowees,
 		readRelays
-	} from '../../../stores/Author';
-	import { userTimelineEvents as items } from '../../../stores/Events';
+	} from '../../../../stores/Author';
+	import { userTimelineEvents as items } from '../../../../stores/Events';
 	import { Kind, SimplePool, type Event, nip19 } from 'nostr-tools';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
