@@ -67,9 +67,11 @@
 	.nip05 {
 		display: inline-flex;
 		flex-direction: row;
+		align-items: end;
 	}
 
 	.nip05 span {
 		margin-right: 0.2rem;
+		word-break: break-all;
 	}
 </style>
