@@ -26,18 +26,17 @@
 				{/await}
 			</div>
 		{:else}
-			<div>
-				<span>{npub}</span>
+			<div class="nip05">
+				<span>{npub.slice(0, 'npub1'.length + 7)}</span>
+				<IconAlertTriangle color="red" />
 			</div>
 		{/if}
 	</summary>
 	<div class="nip-19">
-		{#if metadata.content?.nip05}
-			<div>
-				<span>{npub}</span>
-				<CopyButton text={npub} />
-			</div>
-		{/if}
+		<div>
+			<span>{npub}</span>
+			<CopyButton text={npub} />
+		</div>
 		<div>
 			<span>{nprofile}</span>
 			<CopyButton text={nprofile} />
