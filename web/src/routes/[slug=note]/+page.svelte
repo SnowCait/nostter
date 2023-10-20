@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { Event } from 'nostr-typedef';
 	import { createRxOneshotReq, filterKind, uniq, type LazyFilter } from 'rx-nostr';
-	import { tap } from 'rxjs';
+	import { tap, merge } from 'rxjs';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
-	import { cachedEvents, metadataStore } from '$lib/cache/Events';
+	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { PageData } from './$types';
 	import { author, readRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
@@ -17,6 +18,7 @@
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
+	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 
 	export let data: PageData;
 
@@ -34,6 +36,7 @@
 	let repliedToEventItems: EventItem[] = [];
 	let repostEventItems: EventItem[] = [];
 	let reactionEventItems: EventItem[] = [];
+	let zapEventItems: EventItem[] = [];
 
 	let customEmojiShortcode = new Map<string, string>();
 
@@ -56,7 +59,7 @@
 						customEmojiShortcode.set(url, shortcode)
 					}
 				} catch (error) {
-					console.error('[custum emoji invalid]', item);
+					console.error('[custom emoji invalid]', item);
 				}
 			}
 		}
@@ -69,21 +72,24 @@
 		return map;
 	}, new Map<string, EventItem[]>());
 
+	$: zapMetadataList =
+		zapEventItems
+			.map((x) => $metadataStore.get(x.event.pubkey))
+			.filter((x): x is Metadata => x !== undefined);
+
 	$: if (eventId !== data.eventId) {
 		eventId = data.eventId;
 		console.log('[thread event id]', eventId);
 
 		clear();
 
-		const event = cachedEvents.get(eventId);
+		item = $eventItemStore.get(eventId);
 		const filters: LazyFilter[] = [
 			{
 				'#e': [eventId]
 			}
 		];
-		if (event !== undefined) {
-			item = new EventItem(event);
-		} else {
+		if (item === undefined) {
 			filters.push({
 				ids: [eventId]
 			});
@@ -93,7 +99,7 @@
 		const observable = rxNostr.use(eventReq).pipe(uniq(), tap(({event}) => referencesReqEmit(event)));
 
 		// Replies
-		observable.pipe(filterKind(1)).subscribe(packet => {
+		merge(observable.pipe(filterKind(1)), observable.pipe(filterKind(42))).subscribe(packet => {
 			console.log('[thread kind 1]', packet);
 			const eventItem = new EventItem(packet.event);
 			if (packet.event.id === eventId) {
@@ -125,6 +131,34 @@
 			reactionEventItems.sort(chronologicalItem);
 			reactionEventItems.push(eventItem);
 			reactionEventItems = reactionEventItems;
+		});
+
+		// Zap
+		observable.pipe(filterKind(9735)).subscribe(packet => {
+			console.log('[thread kind 9735]', packet);
+
+			let event: Event | undefined;
+			const description = packet.event.tags
+				.find(([tagName, tagContent]) => tagName === 'description' && tagContent !== undefined)
+				?.at(1);
+			if (description !== undefined) {
+				console.log('[thread kind 9734]', description);
+				try {
+					event = JSON.parse(description) as Event;
+					referencesReqEmit(event, true);
+				} catch (error) {
+					console.log('[zap description parse error]', description);
+				}
+			}
+
+			if (event === undefined) {
+				return;
+			}
+
+			const eventItem = new EventItem(event);
+			zapEventItems.sort(chronologicalItem);
+			zapEventItems.push(eventItem);
+			zapEventItems = zapEventItems;
 		});
 	}
 
@@ -175,6 +209,7 @@
 		repliedToEventItems = [];
 		repostEventItems = [];
 		reactionEventItems = [];
+		zapEventItems = [];
 		customEmojiShortcode = new Map<string, string>();
 	}
 </script>
@@ -200,7 +235,7 @@
 		load={async () => console.debug()}
 		showLoading={false}
 		full={true}
-		transitionable={false}
+		canTransition={false}
 	/>
 </div>
 
@@ -209,7 +244,7 @@
 	<span class="count">{repostEventItems.length}</span>
 	<ProfileIconList metadataList={repostMetadataList} />
 </section>
-{#each [...reactionMetadataMap] as [content, items]}
+{#each [...reactionMetadataMap] as [content, metadataList]}
 	<section class="reaction counter card">
 		<span class="icon" class:heart={content === '+'}>
 			{#if content === '+'}
@@ -220,10 +255,25 @@
 				<span>{content}</span>
 			{/if}
 		</span>
-		<span class="count">{items.length}</span>
+		<span class="count">{metadataList.length}</span>
+		<ProfileIconList metadataList={metadataList.map(item => $metadataStore.get(item.event.pubkey))} />
+	</section>
+{:else}
+	<section class="reaction counter card">
+		<span class="icon heart">
+			<IconHeart />
+		</span>
+		<span class="count">0</span>
 		<ProfileIconList metadataList={items.map(item => $metadataStore.get(item.event.pubkey))} />
 	</section>
 {/each}
+<section class="zap counter card">
+	<span class="icon"><IconBolt /></span>
+	{#if zapMetadataList.length === 0}
+		<span class="count">-</span>
+	{/if}
+	<ProfileIconList metadataList={zapMetadataList} />
+</section>
 {#if $author !== undefined && item !== undefined}
 	<div class="mute">
 		<MuteButton tagName="e" tagContent={rootId === undefined ? item.event.id : rootId} />
@@ -268,6 +318,10 @@
 
 	.heart {
 		color: var(--red);
+	}
+
+	.zap .icon {
+		color: var(--yellow);
 	}
 
 	.mute {

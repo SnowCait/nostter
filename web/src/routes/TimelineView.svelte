@@ -16,7 +16,7 @@
 	export let showLoading = true;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 	export let full = false;
-	export let transitionable = true;
+	export let canTransition = true;
 
 	let loading = false;
 	let innerHeight: number;
@@ -47,9 +47,7 @@
 	};
 
 	const viewDetail = async (
-		clickEvent: MouseEvent & {
-			currentTarget: EventTarget & HTMLLIElement;
-		},
+		clickEvent: MouseEvent,
 		nostrEvent: Event
 	) => {
 		let target: HTMLElement | null = clickEvent.target as HTMLElement;
@@ -57,13 +55,12 @@
 			while (target && !target.classList.contains('timeline')) {
 				if (
 					target.classList.contains('emoji-picker') ||
-					target.classList.contains('develop') ||
-					target.closest('dialog')
+					target.classList.contains('develop')
 				) {
 					return;
 				}
 				const tagName = target.tagName.toLocaleLowerCase();
-				if (tagName === 'a' || tagName === 'button' || tagName === 'video') {
+				if (tagName === 'a' || tagName === 'button' || tagName === 'video' || tagName === 'audio' || tagName === 'dialog') {
 					return;
 				}
 				if (tagName === 'p' && String(document.getSelection()).length) {
@@ -72,7 +69,7 @@
 				if (tagName === 'blockquote') {
 					const refEventId = getTargetETag(nostrEvent.tags);
 					if (!refEventId) {
-						continue;
+						return;
 					}
 					const noteId = nip19.neventEncode({ id: refEventId });
 					await goto(`/${noteId}`);
@@ -81,7 +78,7 @@
 				target = target.parentElement;
 			}
 		}
-		if (transitionable) {
+		if (canTransition) {
 			if (nostrEvent.kind === 42 && $channelIdStore === undefined) {
 				const channelId = findChannelId(nostrEvent.tags);
 				if (channelId !== undefined) {
@@ -104,7 +101,7 @@
 	{#each items as item (item.event.id)}
 		{#if !isMuteEvent(item.event)}
 			<li
-				class={transitionable ? 'transitionable-post' : ''}
+				class={canTransition ? 'canTransition-post' : ''}
 				class:related={$author?.isNotified(item.event)}
 				on:mouseup={(e) => viewDetail(e, item.event)}
 			>
@@ -142,11 +139,11 @@
 		text-overflow: ellipsis;
 	}
 
-	.transitionable-post {
+	.canTransition-post {
 		cursor: pointer;
 	}
 
-	.transitionable-post:hover {
+	.canTransition-post:hover {
 		background: var(--accent-surface-low);
 	}
 
@@ -158,7 +155,7 @@
 		cursor: pointer;
 	}
 
-	:global(.transitionable-post blockquote:hover) {
+	:global(.canTransition-post blockquote:hover) {
 		background: var(--accent-surface-high);
 	}
 

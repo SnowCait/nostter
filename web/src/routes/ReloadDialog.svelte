@@ -27,17 +27,26 @@
 </script>
 
 <ModalDialog bind:open>
-	<h1>Unstable connection</h1>
-	<p>More than half relays are lost connection.</p>
-	<button on:click={() => (location.href = location.href)}>Reload</button>
-	<ul>
-		{#each relays as relay}
-			<li>{relay.url} {relay.status}</li>
-		{/each}
-	</ul>
+	<article>
+		<h1>Unstable connection</h1>
+		<p>More than half relays are lost connection.</p>
+		<button on:click={() => (location.href = location.href)}>Reload</button>
+		<details>
+			<title>Details</title>
+			<ul>
+				{#each relays as relay}
+					<li>{relay.url} {relay.status}</li>
+				{/each}
+			</ul>
+		</details>
+	</article>
 </ModalDialog>
 
 <style>
+	button {
+		margin: 1rem auto;
+	}
+
 	li {
 		word-break: break-all;
 	}
