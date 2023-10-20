@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
-	import { nip05, nip19, SimplePool, type Event } from 'nostr-tools';
+	import { SimplePool, type Event } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
 	import { metadataStore } from '$lib/cache/Events';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { normalizeNip05 } from '$lib/MetadataHelper';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays, rom } from '../../stores/Author';
@@ -22,18 +23,14 @@
 	import { EventItem, Metadata, type MetadataContent } from '$lib/Items';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
-	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
-	import IconAlertTriangle from '@tabler/icons-svelte/dist/svelte/icons/IconAlertTriangle.svelte';
 	import UserStatus from '../parts/UserStatus.svelte';
-	import CopyButton from '../parts/CopyButton.svelte';
+	import NostrAddress from './NostrAddress.svelte';
 
 	let metadata: Metadata | undefined;
 	let user: MetadataContent | undefined;
 	let badges: Badge[] = []; // NIP-58 Badges
 	let events: EventItem[] = [];
 	let pubkey: string | undefined;
-	let npub = '';
-	let nprofile = '';
 	let followees: string[] = [];
 	let followers: string[] = [];
 	let followeesLoading = true;
@@ -44,15 +41,10 @@
 	let slug = $page.params.npub;
 	const api = new Api($pool, relays);
 
-	$: if (pubkey !== undefined) {
-		npub = nip19.npubEncode(pubkey);
-		nprofile = nip19.nprofileEncode({ pubkey });
-	}
-
 	$: if (metadata !== undefined) {
 		user = metadata.content;
 		if (user !== undefined && user.nip05) {
-			const normalizedNip05 = user.nip05.replace(/^_@/, '');
+			const normalizedNip05 = normalizeNip05(user.nip05);
 			if (slug !== normalizedNip05) {
 				history.replaceState(history.state, '', normalizedNip05);
 				slug = normalizedNip05;
@@ -249,38 +241,10 @@
 				</div>
 			{/if}
 
-			<details>
-				<summary>
-					{#if user?.nip05}
-						<div class="nip05">
-							<span>{slug}</span>
-							{#await nip05.queryProfile(user.nip05) then pointer}
-								{#if pointer !== null}
-									<IconDiscountCheck color="skyblue" />
-								{:else}
-									<IconAlertTriangle color="red" />
-								{/if}
-							{/await}
-						</div>
-					{:else}
-						<div>
-							<span>{npub}</span>
-						</div>
-					{/if}
-				</summary>
-				<div class="nip-19">
-					{#if user?.nip05}
-						<div>
-							<span>{npub}</span>
-							<CopyButton text={npub} />
-						</div>
-					{/if}
-					<div>
-						<span>{nprofile}</span>
-						<CopyButton text={nprofile} />
-					</div>
-				</div>
-			</details>
+			{#if metadata !== undefined}
+				<NostrAddress {metadata} />
+			{/if}
+
 			{#if user?.website}
 				<div>
 					<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
@@ -435,34 +399,6 @@
 
 	.about {
 		margin: 1rem 0;
-	}
-
-	details {
-		display: inline-block;
-		margin: 0.35rem 0;
-		color: var(--secondary-accent);
-	}
-
-	details .nip-19 span {
-		overflow-x: hidden;
-		text-overflow: ellipsis;
-		font-size: 0.875rem;
-		font-weight: 500;
-		margin-top: 0.2rem;
-		max-width: 240px;
-	}
-
-	details .nip-19 > div {
-		display: flex;
-	}
-
-	.nip05 {
-		display: inline-flex;
-		flex-direction: row;
-	}
-
-	.nip05 span {
-		margin-right: 0.2rem;
 	}
 
 	.relationships {
