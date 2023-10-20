@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { nip05, nip19 } from "nostr-tools";
 	import type { Metadata } from "$lib/Items";
+	import { normalizeNip05 } from "$lib/MetadataHelper";
 	import CopyButton from '../parts/CopyButton.svelte';
 	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
 	import IconAlertTriangle from '@tabler/icons-svelte/dist/svelte/icons/IconAlertTriangle.svelte';
 
 	export let metadata: Metadata;
-	export let slug: string;
 
 	$: npub = nip19.npubEncode(metadata.event.pubkey);
 	$: nprofile = nip19.nprofileEncode({pubkey: metadata.event.pubkey});
@@ -16,7 +16,7 @@
 	<summary>
 		{#if metadata.content?.nip05}
 			<div class="nip05">
-				<span>{slug}</span>
+				<span>{normalizeNip05(metadata.content.nip05)}</span>
 				{#await nip05.queryProfile(metadata.content.nip05) then pointer}
 					{#if pointer !== null}
 						<IconDiscountCheck color="skyblue" />

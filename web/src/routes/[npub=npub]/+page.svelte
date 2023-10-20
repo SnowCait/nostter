@@ -6,6 +6,7 @@
 	import { tap, bufferTime } from 'rxjs';
 	import { metadataStore } from '$lib/cache/Events';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { normalizeNip05 } from '$lib/MetadataHelper';
 	import { pool } from '../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays, rom } from '../../stores/Author';
@@ -43,7 +44,7 @@
 	$: if (metadata !== undefined) {
 		user = metadata.content;
 		if (user !== undefined && user.nip05) {
-			const normalizedNip05 = user.nip05.replace(/^_@/, '');
+			const normalizedNip05 = normalizeNip05(user.nip05);
 			if (slug !== normalizedNip05) {
 				history.replaceState(history.state, '', normalizedNip05);
 				slug = normalizedNip05;
@@ -241,7 +242,7 @@
 			{/if}
 
 			{#if metadata !== undefined}
-				<NostrAddress {metadata} {slug} />
+				<NostrAddress {metadata} />
 			{/if}
 
 			{#if user?.website}
