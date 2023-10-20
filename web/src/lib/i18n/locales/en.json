@@ -22,7 +22,7 @@
 		"hero-message": "A Liberating Social Network for All.",
 		"hero-message-sub": "No sudden post restrictions, no disappearing accounts. All you need is just one KEY."
 	},
-  "editor": {
+	"editor": {
 		"post": "Post"
 	},
 	"gdpr": {
@@ -39,7 +39,7 @@
 			"label": "Analytics",
 			"description": "Used to control Google Analytics."
 		}
-  },
+	},
 	"post": "Post",
 	"follow": "Follow",
 	"following": "Following",
