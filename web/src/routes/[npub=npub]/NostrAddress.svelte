@@ -21,14 +21,14 @@
 					{#if pointer !== null}
 						<IconDiscountCheck color="skyblue" />
 					{:else}
-						<IconAlertTriangle color="red" />
+						<IconAlertTriangle color="orange" />
 					{/if}
 				{/await}
 			</div>
 		{:else}
 			<div class="nip05">
 				<span>{npub.slice(0, 'npub1'.length + 7)}</span>
-				<IconAlertTriangle color="red" />
+				<IconAlertTriangle color="orange" />
 			</div>
 		{/if}
 	</summary>
