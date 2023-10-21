@@ -25,6 +25,7 @@
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 	import UserStatus from '../parts/UserStatus.svelte';
 	import NostrAddress from '../[npub=npub]/NostrAddress.svelte';
+	import ZapButton from '$lib/components/ZapButton.svelte';
 
 	let metadata: Metadata | undefined;
 	let user: MetadataContent | undefined;
@@ -220,6 +221,9 @@
 						{/if}
 						<div class="mute">
 							<MuteButton tagName="p" tagContent={pubkey} />
+						</div>
+						<div class="mute">
+							<ZapButton {pubkey} />
 						</div>
 						<FollowButton {pubkey} />
 					{/if}

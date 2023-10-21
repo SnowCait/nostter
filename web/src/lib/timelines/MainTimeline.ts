@@ -13,15 +13,8 @@ export const rxNostr = createRxNostr({ timeout }); // Based on NIP-65
 const metadataReq = createRxBackwardReq();
 const eventsReq = createRxBackwardReq();
 
-export function referencesReqEmit(event: Event, metadataOnly: boolean = false): void {
-	console.debug('[rx-nostr references REQ emit]', event);
-	for (const pubkey of [
-		...new Set([
-			event.pubkey,
-			...filterTags('p', event.tags),
-			...Content.findNpubsAndNprofilesToPubkeys(event.content)
-		])
-	]) {
+export function metadataReqEmit(pubkeys: string[]): void {
+	for (const pubkey of pubkeys) {
 		console.debug('[rx-nostr metadata REQ emit]', pubkey);
 		metadataReq.emit({
 			kinds: [0],
@@ -29,6 +22,17 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 			limit: 1
 		});
 	}
+}
+
+export function referencesReqEmit(event: Event, metadataOnly: boolean = false): void {
+	console.debug('[rx-nostr references REQ emit]', event);
+	metadataReqEmit([
+		...new Set([
+			event.pubkey,
+			...filterTags('p', event.tags),
+			...Content.findNpubsAndNprofilesToPubkeys(event.content)
+		])
+	]);
 
 	if (metadataOnly) {
 		return;

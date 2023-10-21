@@ -31,6 +31,10 @@ export class Metadata implements Item {
 			: `https://robohash.org/${nip19.npubEncode(this.event.pubkey)}?set=set4`;
 	}
 
+	get canZap(): boolean {
+		return !(!this.content?.lud16 && !this.content?.lud06);
+	}
+
 	public async zapUrl(): Promise<URL | null> {
 		if (this._zapUrl !== undefined) {
 			return this._zapUrl;
