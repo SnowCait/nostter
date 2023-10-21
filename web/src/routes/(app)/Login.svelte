@@ -6,7 +6,7 @@
 	import { Login } from '$lib/Login';
 	import { loginType } from '../../stores/Author';
 	import { page } from '$app/stores';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { authorProfile } from '../../stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
@@ -35,7 +35,7 @@
 	}
 
 	async function loginWithDemo() {
-		location.pathname = '/home';
+		await goto('/home');
 	}
 
 	function createAccount(): void {
@@ -66,10 +66,6 @@
 			const { waitNostr } = await import('nip07-awaiter');
 			waitNostr(10000).then((n) => (nostr = n));
 		}
-
-		if ($authorProfile) {
-			gotoHome();
-		}
 	});
 
 	async function gotoHome() {
@@ -81,7 +77,7 @@
 
 		const url = '/home';
 		console.log(`Redirect to ${url}`);
-		location.pathname = url;
+		await goto(url);
 	}
 
 	afterNavigate(async () => {
