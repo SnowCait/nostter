@@ -4,17 +4,18 @@
 
 <style>
 	:global(html, body) {
-		height: 100%;
+		width: 100vw;
+		height: 100vh;
 	}
 
 	main {
-		height: 100%;
+		height: 100vh;
 		display: flex;
 		justify-content: center;
 	}
 
 	img {
-		width: 100%;
+		width: 90vw;
 		max-width: 360px;
 	}
 </style>
