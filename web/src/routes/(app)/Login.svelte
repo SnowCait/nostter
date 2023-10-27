@@ -314,7 +314,7 @@
 	}
 
 	.divider-with-message > p {
-		text-wrap: nowrap;
+		white-space: nowrap;
 		text-align: center;
 	}
 
