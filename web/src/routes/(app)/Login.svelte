@@ -229,15 +229,19 @@
 	}
 
 	.login-wrapper {
+		position: fixed;
 		display: flex;
-		width: 100dvw;
-		height: 100dvh;
+		flex-direction: column;
+		width: 100%;
+		height: calc(100% - 46px);
 		align-items: center;
 		justify-content: center;
+		overflow-y: scroll;
+		margin-bottom: 46px;
 	}
 
 	footer {
-		position: absolute;
+		position: fixed;
 		bottom: 0;
 		width: 100%;
 		border-top: var(--default-border);
@@ -247,6 +251,7 @@
 		font-size: 0.875rem;
 		font-weight: 600;
 		color: var(--accent);
+		background: var(--background);
 	}
 
 	.login {
@@ -257,6 +262,7 @@
 		gap: 3rem;
 		margin: 0 auto;
 		padding: 2rem;
+		position: absolute;
 	}
 
 	.login img {
@@ -383,6 +389,12 @@
 
 		.actions {
 			max-width: 100%;
+		}
+	}
+
+	@media screen and (max-height: 576px) {
+		.login {
+			top: 0
 		}
 	}
 </style>
