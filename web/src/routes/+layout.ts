@@ -8,14 +8,19 @@ import { defaultRelays } from '$lib/Constants';
 
 export const load = async () => {
 	console.log('[layout load]');
+	let authenticated = false;
 	if (browser) {
 		locale.set(window.navigator.language);
-		const success = await tryLogin();
-		if (!success) {
+		authenticated = await tryLogin();
+		if (!authenticated) {
 			await rxNostr.switchRelays(defaultRelays);
 		}
 	}
 	await waitLocale();
+	return {
+		splash: !browser || authenticated,
+		authenticated
+	};
 };
 
 async function tryLogin(): Promise<boolean> {

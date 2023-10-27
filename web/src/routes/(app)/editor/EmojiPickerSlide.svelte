@@ -7,7 +7,7 @@
 	import { customEmojiTags } from '../../../stores/CustomEmojis';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 
-	let emojiPicker: HTMLElement | undefined;
+	let emojiPicker: HTMLElement | null = null;
 	let hidden = true;
 
 	const dispatch = createEventDispatcher();
@@ -19,7 +19,7 @@
 	}
 
 	function updatePicker() {
-		if (emojiPicker === undefined) {
+		if (emojiPicker === null) {
 			return;
 		}
 

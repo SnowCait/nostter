@@ -6,7 +6,7 @@
 	import { Login } from '$lib/Login';
 	import { loginType } from '../../stores/Author';
 	import { page } from '$app/stores';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { authorProfile } from '../../stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
@@ -35,7 +35,7 @@
 	}
 
 	async function loginWithDemo() {
-		location.pathname = '/home';
+		await goto('/home');
 	}
 
 	function createAccount(): void {
@@ -66,10 +66,6 @@
 			const { waitNostr } = await import('nip07-awaiter');
 			waitNostr(10000).then((n) => (nostr = n));
 		}
-
-		if ($authorProfile) {
-			gotoHome();
-		}
 	});
 
 	async function gotoHome() {
@@ -81,7 +77,7 @@
 
 		const url = '/home';
 		console.log(`Redirect to ${url}`);
-		location.pathname = url;
+		await goto(url);
 	}
 
 	afterNavigate(async () => {
@@ -99,7 +95,7 @@
 
 <div class="login-wrapper">
 	<div class="login">
-		<img src="/nostter-logo.svg" alt="nostter-logo" />
+		<img src="/nostter-logo.svg" alt="nostter" />
 		<div class="messages-and-actions">
 			<p class="hero-message">
 				{$_('login.hero-message')}
@@ -227,22 +223,6 @@
 </footer>
 
 <style>
-	:global(header) {
-		display: none;
-	}
-
-	:global(.app) {
-		max-width: 100% !important;
-		margin: 0 !important;
-		padding: 0 !important;
-		display: block !important;
-	}
-
-	:global(main) {
-		margin: 0 !important;
-		max-width: 100% !important;
-	}
-
 	h2 {
 		font-size: 2rem;
 	}
