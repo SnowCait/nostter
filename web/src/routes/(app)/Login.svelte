@@ -98,7 +98,7 @@
 		<img src="/nostter-logo.svg" alt="nostter" />
 		<div class="messages-and-actions">
 			<p class="hero-message">
-				{$_('login.hero-message')}
+				{$_('login.hero-message')}<img src="https://www.gstatic.com/android/keyboard/emojikitchen/20201001/u1f431/u1f431_u1f383.png" alt="cute pumpkin cat emoji" />
 			</p>
 			<p class="hero-message-sub">
 				{$_('login.hero-message-sub')}
@@ -204,6 +204,7 @@
 									</div>
 								</form>
 							</section>
+
 						</article>
 					</ModalDialog>
 				</section>
@@ -275,8 +276,14 @@
 		line-height: 1.05;
 	}
 
+	.hero-message > img {
+    vertical-align: bottom;
+		width: 4.5rem;
+		height: 4.5rem;
+	}
+
 	.hero-message-sub {
-		font-size: 1.25rem;
+		font-size: 1.2rem;
 		color: var(--accent);
 		word-wrap: break-word;
 	}
@@ -364,6 +371,16 @@
 		.hero-message {
 			font-size: 3rem;
 		}
+
+		.hero-message > img {
+			width: 3.5rem;
+			height: 3.5rem;
+		}
+
+		.hero-message-sub {
+			font-size: 1.1rem;
+		}
+
 		.actions {
 			max-width: 100%;
 		}
