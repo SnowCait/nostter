@@ -71,11 +71,11 @@
 		});
 
 		const storage = new WebStorage(localStorage);
-		const cachedAt = storage.get('cached_at');
+		const cachedAt = storage.getCachedAt();
 		const authorFilter: Filter = {
-			kinds: authorReplaceableKinds.map(({ kind }) => kind),
+			kinds: [...new Set(authorReplaceableKinds.map(({ kind }) => kind))],
 			authors: [$pubkey],
-			since: cachedAt === null ? now : Number(cachedAt)
+			since: cachedAt ?? now
 		};
 		console.log('[author filter]', authorFilter, new Date((authorFilter.since ?? 0) * 1000));
 
@@ -148,6 +148,7 @@
 				const identifier = findIdentifier(event.tags);
 				if (identifier === 'notifications/lastOpened') {
 					console.log('[last read]', event);
+					$lastReadAt = event.created_at;
 					$unreadEvents = [];
 				} else if (identifier !== undefined) {
 					console.log('[people list]', event);
@@ -168,6 +169,14 @@
 			if (event.kind === 30078) {
 				console.log('[preferences]', event, $pool.seenOn(event.id));
 				storage.setParameterizedReplaceableEvent(event);
+
+				const identifier = findIdentifier(event.tags);
+				if (identifier === 'nostter-read') {
+					console.log('[last read]', event);
+					$lastReadAt = event.created_at;
+					$unreadEvents = [];
+				}
+
 				return;
 			}
 
@@ -394,7 +403,7 @@
 		// Past notification
 		const notificationTimeline = new NotificationTimeline($pubkey);
 		const notifiedEventItems = await notificationTimeline.fetch(now, $lastReadAt);
-		$unreadEvents.push(...notifiedEventItems);
+		$unreadEvents.push(...notifiedEventItems.filter(x => x.event.created_at > $lastReadAt));
 		$unreadEvents = $unreadEvents;
 		$notifiedEvents = notifiedEventItems;
 		$loadingNotifications = false;
