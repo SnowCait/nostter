@@ -148,6 +148,7 @@
 				const identifier = findIdentifier(event.tags);
 				if (identifier === 'notifications/lastOpened') {
 					console.log('[last read]', event);
+					$lastReadAt = event.created_at;
 					$unreadEvents = [];
 				} else if (identifier !== undefined) {
 					console.log('[people list]', event);
@@ -402,7 +403,7 @@
 		// Past notification
 		const notificationTimeline = new NotificationTimeline($pubkey);
 		const notifiedEventItems = await notificationTimeline.fetch(now, $lastReadAt);
-		$unreadEvents.push(...notifiedEventItems);
+		$unreadEvents.push(...notifiedEventItems.filter(x => x.event.created_at > $lastReadAt));
 		$unreadEvents = $unreadEvents;
 		$notifiedEvents = notifiedEventItems;
 		$loadingNotifications = false;
