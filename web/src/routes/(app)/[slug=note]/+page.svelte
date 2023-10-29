@@ -162,7 +162,7 @@
 		});
 	}
 
-	$: if (item !== undefined) {
+	$: if (item !== undefined && rootId === undefined) {
 		console.log('[thread item]', item);
 
 		const { root, reply } = referTags(item.event);
@@ -179,11 +179,16 @@
 		let replyId = originalReplyId;
 		let i = 0;
 		while (replyId !== undefined) {
-			const replyToEvent = await api.fetchEventItemById(replyId);
-			if (replyToEvent !== undefined) {
-				replyToEventItems.unshift(replyToEvent);
+			const replyToEventItem = await api.fetchEventItemById(replyId);
+			console.log('[thread reply]', replyToEventItem);
+			if (replyToEventItem !== undefined) {
+				replyToEventItems.unshift(replyToEventItem);
 				replyToEventItems = replyToEventItems;
-				replyId = referTags(replyToEvent.event).reply?.at(1);
+				const { root, reply } = referTags(replyToEventItem.event);
+				replyId = reply?.at(1);
+				if (rootId === undefined) {
+					rootId = root?.at(1);
+				}
 			}
 			i++;
 			if (i > 20) {
@@ -192,9 +197,10 @@
 		}
 
 		if (rootId !== undefined && !replyToEventItems.some((x) => x.event.id === rootId) && i <= 20) {
-			const rootEvent = await api.fetchEventItemById(rootId);
-			if (rootEvent !== undefined) {
-				replyToEventItems.unshift(rootEvent);
+			const rootEventItem = await api.fetchEventItemById(rootId);
+			console.log('[thread root]', rootEventItem);
+			if (rootEventItem !== undefined) {
+				replyToEventItems.unshift(rootEventItem);
 				replyToEventItems = replyToEventItems;
 			}
 		}
