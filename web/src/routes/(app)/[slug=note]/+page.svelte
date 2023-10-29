@@ -162,7 +162,7 @@
 		});
 	}
 
-	$: if (item !== undefined) {
+	$: if (item !== undefined && rootId === undefined) {
 		console.log('[thread item]', item);
 
 		const { root, reply } = referTags(item.event);
@@ -180,10 +180,15 @@
 		let i = 0;
 		while (replyId !== undefined) {
 			const replyToEvent = await api.fetchEventItemById(replyId);
+			console.log('[thread reply]', replyToEvent);
 			if (replyToEvent !== undefined) {
 				replyToEventItems.unshift(replyToEvent);
 				replyToEventItems = replyToEventItems;
-				replyId = referTags(replyToEvent.event).reply?.at(1);
+				const { root, reply } = referTags(replyToEvent.event);
+				replyId = reply?.at(1);
+				if (rootId === undefined) {
+					rootId = root?.at(1);
+				}
 			}
 			i++;
 			if (i > 20) {
@@ -193,6 +198,7 @@
 
 		if (rootId !== undefined && !replyToEventItems.some((x) => x.event.id === rootId) && i <= 20) {
 			const rootEvent = await api.fetchEventItemById(rootId);
+			console.log('[thread root]', rootEvent);
 			if (rootEvent !== undefined) {
 				replyToEventItems.unshift(rootEvent);
 				replyToEventItems = replyToEventItems;

@@ -93,7 +93,7 @@ export function referTags(event: Event): {
 	if (root === undefined && reply === undefined) {
 		const eTags = event.tags.filter((tag) => tag.at(0) === 'e' && tag.length < 4);
 		if (eTags.length === 1) {
-			reply = eTags[0];
+			root = eTags[0];
 		} else if (eTags.length > 1) {
 			root = eTags[0];
 			reply = eTags[eTags.length - 1];
