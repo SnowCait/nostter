@@ -15,13 +15,13 @@
 		"recommended": "推奨",
 		"key": "鍵でログイン",
 		"create_account": "アカウントを作成",
+		"create": "作成",
 		"name": "名前",
-		"try_demo": "デモを試す",
-		"login": "ログイン"
+		"try_demo": "タイムラインをのぞいてみる",
+		"login": "ログイン",
+		"hero-message": "すべての自由が、ここに。",
+		"hero-message-sub": "必要なのは名前だけ。メールアドレスも要らない、凍結もない、オープンなSNS。絵文字キッチンで遊ぼう。"
 	},
-	"post": "投稿",
-	"follow": "フォロー",
-	"following": "フォロー中",
 	"editor": {
 		"post": "ポストする"
 	},
@@ -39,5 +39,9 @@
 			"label": "アナリティクス",
 			"description": "Google Analytics に使用されます。"
 		}
-	}
+	},
+	"post": "投稿",
+	"follow": "フォロー",
+	"following": "フォロー中",
+	"or": "または"
 }

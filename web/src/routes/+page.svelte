@@ -1,15 +1,23 @@
 <script lang="ts">
-	import { author } from '../stores/Author';
-	import Login from './Login.svelte';
+	import { goto } from '$app/navigation';
+	import type { LayoutData } from './$types';
+	import SplashScreen from './SplashScreen.svelte';
+	import Login from './(app)/Login.svelte';
+	import '../app.css';
+
+	export let data: LayoutData;
+
+	$: if (data.authenticated) {
+		goto('/home');
+	}
 </script>
 
 <svelte:head>
 	<title>nostter</title>
 </svelte:head>
 
-<main>
-	<h1>nostter</h1>
-	{#if $author === undefined}
-		<Login />
-	{/if}
-</main>
+{#if data.splash}
+	<SplashScreen />
+{:else}
+	<Login />
+{/if}

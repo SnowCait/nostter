@@ -15,13 +15,13 @@
 		"recommended": "Recommended",
 		"key": "Login with key",
 		"create_account": "Create account",
+		"create": "Create",
 		"name": "name",
-		"try_demo": "Try demo",
-		"login": "Login"
+		"try_demo": "See timeline",
+		"login": "Login",
+		"hero-message": "Freedom is Here",
+		"hero-message-sub": "All you need is name. No e-mail address, no account suspension, open SNS. Play with Emoji Kitchen."
 	},
-	"post": "Post",
-	"follow": "Follow",
-	"following": "Following",
 	"editor": {
 		"post": "Post"
 	},
@@ -39,5 +39,10 @@
 			"label": "Analytics",
 			"description": "Used to control Google Analytics."
 		}
-	}
+	},
+	"post": "Post",
+	"follow": "Follow",
+	"following": "Following",
+	"cancel": "Cancel",
+	"or": "OR"
 }
