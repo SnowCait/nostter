@@ -6,7 +6,7 @@ import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { EventItem } from './Items';
 import { Content } from './Content';
 import { Signer } from './Signer';
-import { channelMetadataEvents } from './cache/Events';
+import { channelMetadataEvents, eventItemStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
 import { referencesReqEmit } from './timelines/MainTimeline';
@@ -185,15 +185,15 @@ export class Api {
 	async fetchEventItemById(id: string): Promise<EventItem | undefined> {
 		// If exists in store
 		const $events = get(timelineEvents);
-		const storedEvent = $events.find((x) => x.event.id === id);
-		if (storedEvent !== undefined) {
-			return storedEvent;
+		const storedEventItem1 = $events.find((x) => x.event.id === id);
+		if (storedEventItem1 !== undefined) {
+			return storedEventItem1;
 		}
-		// const $cachedEvents = get(cachedEvents);
-		// const cachedEvent = $cachedEvents.get(id);
-		// if (cachedEvent !== undefined) {
-		// 	return cachedEvent;
-		// }
+		const $eventItemStore = get(eventItemStore);
+		const storedEventItem2 = $eventItemStore.get(id);
+		if (storedEventItem2 !== undefined) {
+			return storedEventItem2;
+		}
 
 		// Fetch event
 		const event = await this.pool.get(this.relays, {
@@ -201,20 +201,19 @@ export class Api {
 		});
 
 		if (event === null) {
-			console.log('[id not found]', id, nip19.noteEncode(id), nip19.neventEncode({ id }));
+			console.warn('[id not found]', id, nip19.noteEncode(id), nip19.neventEncode({ id }));
 			return undefined;
 		}
 
 		referencesReqEmit(event);
 
-		// // Return
-		// const nostrEvent = event as NostrEvent;
-		// nostrEvent.user = userEvent.user;
+		const eventItem = new EventItem(event);
 
 		// Cache
-		// $cachedEvents.set(nostrEvent.id, nostrEvent);
+		$eventItemStore.set(eventItem.event.id, eventItem);
+		eventItemStore.set($eventItemStore);
 
-		return new EventItem(event);
+		return eventItem;
 	}
 
 	async fetchContactsEvent(pubkey: string): Promise<Event | undefined> {
