@@ -17,10 +17,10 @@
 		"create_account": "Create account",
 		"create": "Create",
 		"name": "name",
-		"try_demo": "Try demo",
+		"try_demo": "See timeline",
 		"login": "Login",
-		"hero-message": "A Liberating Social Network for All.",
-		"hero-message-sub": "No sudden post restrictions, no disappearing accounts. All you need is just one KEY."
+		"hero-message": "Freedom is Here",
+		"hero-message-sub": "All you need is name. No e-mail address, no account suspension, open SNS. Play with Emoji Kitchen."
 	},
 	"editor": {
 		"post": "Post"
