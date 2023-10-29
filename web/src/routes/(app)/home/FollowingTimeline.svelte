@@ -73,7 +73,7 @@
 		const storage = new WebStorage(localStorage);
 		const cachedAt = storage.get('cached_at');
 		const authorFilter: Filter = {
-			kinds: authorReplaceableKinds.map(({ kind }) => kind),
+			kinds: [...new Set(authorReplaceableKinds.map(({ kind }) => kind))],
 			authors: [$pubkey],
 			since: cachedAt === null ? now : Number(cachedAt)
 		};
@@ -168,6 +168,14 @@
 			if (event.kind === 30078) {
 				console.log('[preferences]', event, $pool.seenOn(event.id));
 				storage.setParameterizedReplaceableEvent(event);
+
+				const identifier = findIdentifier(event.tags);
+				if (identifier === 'nostter-read') {
+					console.log('[last read]', event);
+					$lastReadAt = event.created_at;
+					$unreadEvents = [];
+				}
+
 				return;
 			}
 

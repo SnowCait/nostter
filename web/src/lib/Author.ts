@@ -1,5 +1,6 @@
 import { Kind, type Event, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
+import { now } from 'rx-nostr';
 import { Api } from './Api';
 import { pool } from '../stores/Pool';
 import {
@@ -32,7 +33,8 @@ export const authorReplaceableKinds: AuthorReplaceableKind[] = [
 	}),
 	{ kind: 30000, identifier: 'notifications/lastOpened' },
 	{ kind: 30001, identifier: 'bookmark' },
-	{ kind: 30078, identifier: 'nostter-reaction-emoji' }
+	{ kind: 30078, identifier: 'nostter-reaction-emoji' },
+	{ kind: 30078, identifier: 'nostter-read' }
 ];
 
 export class Author {
@@ -183,13 +185,16 @@ export class Author {
 			console.log('[reaction emoji]', get(reactionEmoji));
 		}
 
-		const lastReadEvent = parameterizedReplaceableEvents.get(
+		const lastReadEvent = parameterizedReplaceableEvents.get(`${30078 as Kind}:nostter-read`);
+		const regacyLastReadEvent = parameterizedReplaceableEvents.get(
 			`${30000 as Kind}:notifications/lastOpened`
 		);
 		if (lastReadEvent !== undefined) {
 			lastReadAt.set(lastReadEvent.created_at);
+		} else if (regacyLastReadEvent !== undefined) {
+			lastReadAt.set(regacyLastReadEvent.created_at);
 		} else {
-			lastReadAt.set(Math.floor(Date.now() / 1000 - 12 * 60 * 60));
+			lastReadAt.set(now() - 12 * 60 * 60);
 		}
 		console.log('[last read at]', new Date(get(lastReadAt) * 1000));
 
@@ -248,7 +253,7 @@ export class Author {
 		for (const [, event] of [...replaceableEvents]) {
 			storage.setReplaceableEvent(event);
 		}
-		for (const [key, event] of [...parameterizedReplaceableEvents]) {
+		for (const [, event] of [...parameterizedReplaceableEvents]) {
 			storage.setParameterizedReplaceableEvent(event);
 		}
 		return { replaceableEvents, parameterizedReplaceableEvents };

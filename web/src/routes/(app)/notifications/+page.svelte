@@ -20,8 +20,8 @@
 
 		const api = new Api($pool, $writeRelays);
 		try {
-			await api.signAndPublish(30000 as Kind, Math.floor(Date.now() / 1000).toString(), [
-				['d', 'notifications/lastOpened']
+			await api.signAndPublish(30078 as Kind, '', [
+				['d', 'nostter-read']
 			]);
 		} catch (error) {
 			console.warn('[last read failed]', error);
