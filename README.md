@@ -55,6 +55,8 @@ Welcome issues, pull requests and discussions after understanding above.
 
 ## Special Thanks
 
+UI by [@kaiji](https://nostter.vercel.app/npub1s02jksmr6tgmcksf3hnmue7pyzlm0sxwarh7lk8tdeprw2hjg6ysp7fxtw)
+
 Illustration by [@stok33](https://nostter.vercel.app/npub1e09suzmq9mp6nt0ud9ttl03790qjx70wzwlc2pwwghcusvwju54qs0c800)
 
 <img src="web/static/nostter-chan.jpg" width="25%">
