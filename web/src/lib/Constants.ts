@@ -7,7 +7,7 @@ export const minTimelineLength = 25;
 export const filterLimitItems = 1000;
 export const timelineBufferMs = 1500;
 export const timeout = 10000;
-export const notFoundImageUrl = '/1f43e.png';
+export const notFoundImageUrl = '/icon.png';
 
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
 
