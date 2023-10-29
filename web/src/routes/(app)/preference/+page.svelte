@@ -10,6 +10,7 @@
 	import MutedEvents from './MutedEvents.svelte';
 	import ClearEmojiMartCache from './ClearEmojiMartCache.svelte';
 	import Theme from './Theme.svelte';
+	import ZapButton from '$lib/components/ZapButton.svelte';
 
 	let debugCounter = 0;
 
@@ -47,6 +48,7 @@
 <div><Logout /></div>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <h1 on:click={enableDebugMode}>About nostter</h1>
 <div>
 	<span>GitHub:</span>
@@ -54,13 +56,15 @@
 		SnowCait/nostter
 	</a>
 </div>
-<div>
+<div class="user">
 	<span>Author:</span>
 	<a href="/npub1s02jksmr6tgmcksf3hnmue7pyzlm0sxwarh7lk8tdeprw2hjg6ysp7fxtw">@SnowCait</a>
+	<ZapButton pubkey="83d52b4363d2d1bc5a098de7be67c120bfb7c0cee8efefd8eb6e42372af24689" />
 </div>
-<div>
+<div class="user">
 	<span>Illustration:</span>
 	<a href="/npub1e09suzmq9mp6nt0ud9ttl03790qjx70wzwlc2pwwghcusvwju54qs0c800">@stok33</a>
+	<ZapButton pubkey="cbcb0e0b602ec3a9adfc6956bfbe3e2bc12379ee13bf8505ce45f1c831d2e52a" />
 </div>
 <img
 	src="/nostter-chan.jpg"
@@ -77,5 +81,14 @@
 		width: 50%;
 		border: 1px solid lightgray;
 		border-radius: 10px;
+	}
+
+	.user {
+		display: flex;
+		align-items: center;
+	}
+
+	.user * {
+		margin-right: 0.2rem;
 	}
 </style>

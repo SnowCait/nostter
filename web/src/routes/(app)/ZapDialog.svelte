@@ -5,13 +5,14 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { WebStorage } from '$lib/WebStorage';
 	import { Signer } from '$lib/Signer';
-	import type { EventItem } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
+	import type { Event } from 'nostr-typedef';
 
-	export let eventItem: EventItem;
+	export let pubkey: string;
+	export let event: Event | undefined;
 
-	$: metadata = $metadataStore.get(eventItem.event.pubkey);
+	$: metadata = $metadataStore.get(pubkey);
 
 	export function openZapDialog() {
 		console.log('[zap open]');
@@ -36,8 +37,8 @@
 	async function zap() {
 		const amount = sats * 1000;
 		const zapRequest = nip57.makeZapRequest({
-			profile: eventItem.event.pubkey,
-			event: eventItem.event.id,
+			profile: pubkey,
+			event: event?.id ?? null,
 			amount,
 			comment: zapComment,
 			relays: $writeRelays
