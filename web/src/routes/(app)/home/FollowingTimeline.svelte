@@ -71,11 +71,11 @@
 		});
 
 		const storage = new WebStorage(localStorage);
-		const cachedAt = storage.get('cached_at');
+		const cachedAt = storage.getCachedAt();
 		const authorFilter: Filter = {
 			kinds: [...new Set(authorReplaceableKinds.map(({ kind }) => kind))],
 			authors: [$pubkey],
-			since: cachedAt === null ? now : Number(cachedAt)
+			since: cachedAt ?? now
 		};
 		console.log('[author filter]', authorFilter, new Date((authorFilter.since ?? 0) * 1000));
 
