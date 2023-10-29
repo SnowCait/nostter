@@ -21,8 +21,8 @@
 	let addingRelay = '';
 
 	afterNavigate(async () => {
-		console.log('[relays page]', $page.params.npub);
-		const data = await UserDecoder.decode($page.params.npub);
+		console.log('[relays page]', $page.params.slug);
+		const data = await UserDecoder.decode($page.params.slug);
 
 		if (data.pubkey === undefined) {
 			throw error(404);
