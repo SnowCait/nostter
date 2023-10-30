@@ -28,7 +28,6 @@
 		{:else}
 			<div class="nip05">
 				<span>{npub.slice(0, 'npub1'.length + 7)}</span>
-				<IconAlertTriangle color="orange" />
 			</div>
 		{/if}
 	</summary>
