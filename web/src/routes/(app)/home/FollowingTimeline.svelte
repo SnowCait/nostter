@@ -47,6 +47,7 @@
 	import { findIdentifier } from '$lib/EventHelper';
 	import { authorReplaceableKinds } from '$lib/Author';
 	import { Timeline } from '$lib/Timeline';
+	import { Preferences, preferencesStore } from '$lib/Preferences';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -167,7 +168,7 @@
 			}
 
 			if (event.kind === 30078) {
-				console.log('[preferences]', event, $pool.seenOn(event.id));
+				console.log('[app data]', event, $pool.seenOn(event.id));
 				storage.setParameterizedReplaceableEvent(event);
 
 				const identifier = findIdentifier(event.tags);
@@ -175,6 +176,9 @@
 					console.log('[last read]', event);
 					$lastReadAt = event.created_at;
 					$unreadEvents = [];
+				} else if (identifier === 'nostter-preferences') {
+					const preferences = new Preferences(event.content);
+					$preferencesStore = preferences;
 				}
 
 				return;

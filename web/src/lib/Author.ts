@@ -16,11 +16,11 @@ import {
 import { RelayList } from './RelayList';
 import { filterTags, parseRelayJson } from './EventHelper';
 import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
-import { reactionEmoji } from '../stores/Preference';
 import type { User } from '../routes/types';
 import { lastReadAt } from '../stores/Notifications';
 import { Mute } from './Mute';
 import { WebStorage } from './WebStorage';
+import { Preferences, preferencesStore } from './Preferences';
 
 type AuthorReplaceableKind = {
 	kind: number;
@@ -177,12 +177,22 @@ export class Author {
 
 		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`));
 
-		const reactionEmojiEvent = parameterizedReplaceableEvents.get(
-			`${30078 as Kind}:nostter-reaction-emoji`
+		const preferencesEvent = parameterizedReplaceableEvents.get(
+			`${30078 as Kind}:nostter-preferences`
 		);
-		if (reactionEmojiEvent !== undefined) {
-			reactionEmoji.set(reactionEmojiEvent.content);
-			console.log('[reaction emoji]', get(reactionEmoji));
+		if (preferencesEvent !== undefined) {
+			const preferences = new Preferences(preferencesEvent.content);
+			preferencesStore.set(preferences);
+		} else {
+			const regacyReactionEmojiEvent = parameterizedReplaceableEvents.get(
+				`${30078 as Kind}:nostter-reaction-emoji`
+			);
+			if (regacyReactionEmojiEvent !== undefined) {
+				console.log('[preferences from regacy event]', regacyReactionEmojiEvent);
+				const preferences = new Preferences('{}');
+				preferences.reactionEmoji = { content: regacyReactionEmojiEvent.content };
+				preferencesStore.set(preferences);
+			}
 		}
 
 		const lastReadEvent = parameterizedReplaceableEvents.get(`${30078 as Kind}:nostter-read`);

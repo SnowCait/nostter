@@ -1,40 +1,51 @@
 <script lang="ts">
-	import { reactionEmoji } from '../../../stores/Preference';
-	import { pool } from '../../../stores/Pool';
-	import { writeRelays } from '../../../stores/Author';
+	import { now } from 'rx-nostr';
+	import { toEmoji } from '$lib/Emoji';
+	import { preferencesStore } from '$lib/Preferences';
 	import { Signer } from '$lib/Signer';
-	import type { Kind } from 'nostr-tools';
+	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import EmojiPicker from '../parts/EmojiPicker.svelte';
+	import CustomEmoji from '../content/CustomEmoji.svelte';
 
-	async function save(emoji: string) {
-		console.log('[reaction emoji save]', emoji, $reactionEmoji);
+	async function save({ detail }: { detail: any }) {
+		const emoji = toEmoji(detail);
+		console.log('[reaction emoji save]', emoji, $preferencesStore.reactionEmoji);
 
-		if (emoji === $reactionEmoji) {
+		if (
+			emoji.content === $preferencesStore.reactionEmoji.content &&
+			emoji.url === $preferencesStore.reactionEmoji.url
+		) {
 			console.log('[reaction emoji not changed]');
 			return;
 		}
 
-		$reactionEmoji = emoji;
+		$preferencesStore.reactionEmoji = emoji;
 
-		// Save
 		const event = await Signer.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: 30078 as Kind,
-			tags: [['d', 'nostter-reaction-emoji']],
-			content: $reactionEmoji
+			created_at: now(),
+			kind: 30078,
+			tags: [['d', 'nostter-preferences']],
+			content: $preferencesStore.toJson()
 		});
 		console.log('[reaction emoji]', event);
-		await $pool.publish($writeRelays, event);
+		rxNostr.send(event).subscribe((packet) => {
+			console.log('[rx-nostr send]', packet);
+		});
 	}
 </script>
 
 <span>Like emoji:</span>
-<EmojiPicker on:pick={async ({ detail }) => save(detail.native)}>
-	{#if $reactionEmoji === '+'}
+<EmojiPicker on:pick={save}>
+	{#if $preferencesStore.reactionEmoji.content === '+'}
 		<IconHeart size={26} color={'lightpink'} />
+	{:else if $preferencesStore.reactionEmoji.url !== undefined}
+		<CustomEmoji
+			url={$preferencesStore.reactionEmoji.url}
+			text={$preferencesStore.reactionEmoji.content.replaceAll(':', '')}
+		/>
 	{:else}
-		<span class="emoji">{$reactionEmoji}</span>
+		<span class="emoji">{$preferencesStore.reactionEmoji.content}</span>
 	{/if}
 </EmojiPicker>
 

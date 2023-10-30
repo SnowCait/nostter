@@ -2,6 +2,7 @@
 	import { Kind, nip19, type Event } from 'nostr-tools';
 	import type { EventItem, Item } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
+	import { preferencesStore } from '$lib/Preferences';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
@@ -14,7 +15,6 @@
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import type { User } from '../../types';
-	import { reactionEmoji } from '../../../stores/Preference';
 	import { openNoteDialog, quotes, replyTo } from '../../../stores/NoteDialog';
 	import { readRelays, writeRelays, pubkey, isBookmarked, author } from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
@@ -114,15 +114,19 @@
 
 		reactioned = true;
 
-		const content = $reactionEmoji;
+		const content = $preferencesStore.reactionEmoji.content;
+		const tags = [
+			['e', note.id],
+			['p', note.pubkey]
+		];
+		if ($preferencesStore.reactionEmoji.url !== undefined) {
+			tags.push(['emoji', content.replaceAll(':', ''), $preferencesStore.reactionEmoji.url]);
+		}
 
 		const event = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 7,
-			tags: [
-				['e', note.id],
-				['p', note.pubkey]
-			],
+			tags,
 			content
 		});
 		console.log(event);
@@ -371,14 +375,14 @@
 				<button
 					class="reaction"
 					class:hidden={item.event.kind === Kind.EncryptedDirectMessage}
-					class:paw-pad={$reactionEmoji === '🐾'}
-					class:star={$reactionEmoji === '⭐'}
+					class:paw-pad={$preferencesStore.reactionEmoji.content === '🐾'}
+					class:star={$preferencesStore.reactionEmoji.content === '⭐'}
 					disabled={reactioned}
 					on:click={() => reaction(item.event)}
 				>
-					{#if $reactionEmoji === '🐾'}
+					{#if $preferencesStore.reactionEmoji.content === '🐾'}
 						<IconPaw size={iconSize} />
-					{:else if $reactionEmoji === '⭐'}
+					{:else if $preferencesStore.reactionEmoji.content === '⭐'}
 						<IconStar size={iconSize} />
 					{:else}
 						<IconHeart size={iconSize} />

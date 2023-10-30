@@ -8,6 +8,7 @@ import {
 	nip04
 } from 'nostr-tools';
 import { WebStorage } from './WebStorage';
+import type { UnsignedEvent } from 'nostr-typedef';
 
 interface Window {
 	// NIP-07
@@ -33,7 +34,7 @@ export class Signer {
 		}
 	}
 
-	public static async signEvent(unsignedEvent: EventTemplate): Promise<Event> {
+	public static async signEvent(unsignedEvent: EventTemplate | UnsignedEvent): Promise<Event> {
 		const storage = new WebStorage(localStorage);
 		const login = storage.get('login');
 		if (login === null || login.startsWith('npub')) {
