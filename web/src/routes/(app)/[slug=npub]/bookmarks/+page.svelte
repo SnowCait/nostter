@@ -68,7 +68,7 @@
 	});
 </script>
 
-<h1>Bookmark</h1>
+<h1>Bookmarks</h1>
 
 {#if privateBookmarkEventItems.length > 0}
 	<h2>Private</h2>
