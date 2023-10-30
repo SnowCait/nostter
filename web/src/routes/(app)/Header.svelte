@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import IconHome from '@tabler/icons-svelte/dist/svelte/icons/IconHome.svelte';
 	import IconSearch from '@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte';
 	import IconBell from '@tabler/icons-svelte/dist/svelte/icons/IconBell.svelte';
@@ -8,18 +7,9 @@
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import { nip19 } from 'nostr-tools';
-	import { japaneseBotNpub, trendingPeopleBotNpub } from '$lib/Constants';
 	import { unreadEvents } from '../../stores/Notifications';
 	import { pubkey, rom } from '../../stores/Author';
 	import { _ } from 'svelte-i18n';
-
-	let npub = trendingPeopleBotNpub;
-
-	onMount(() => {
-		if (navigator.language.startsWith('ja')) {
-			npub = japaneseBotNpub;
-		}
-	});
 
 	export let onClickPostButton: () => void;
 </script>
