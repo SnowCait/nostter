@@ -52,7 +52,7 @@
 						<p>{$_('layout.header.notifications')}</p>
 					</li>
 				</a>
-				<a href="/{nip19.npubEncode($pubkey)}/bookmark">
+				<a href="/{nip19.npubEncode($pubkey)}/bookmarks">
 					<li>
 						<IconBookmark size={30} />
 						<p>{$_('layout.header.bookmark')}</p>
