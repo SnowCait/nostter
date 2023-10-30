@@ -1,16 +1,22 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
-	import { intentContent, openNoteDialog } from '../../../stores/NoteDialog';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { intentContent } from '../../../stores/NoteDialog';
+	import NoteEditor from '../editor/NoteEditor.svelte';
 
 	onMount(async () => {
 		const content = $page.url.searchParams.get('content');
 		if (content !== null) {
 			$intentContent = content;
-			$openNoteDialog = true;
 		}
-
-		await goto('/');
 	});
+
+	async function afterPost(): Promise<void> {
+		await goto('/home');
+	}
 </script>
+
+<article class="card">
+	<NoteEditor {afterPost} />
+</article>

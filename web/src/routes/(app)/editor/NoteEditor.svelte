@@ -40,6 +40,8 @@
 		return autocompleting;
 	}
 
+	export let afterPost: () => Promise<void> = async () => {};
+
 	let content = '';
 	let posting = false;
 	let complementStart = -1;
@@ -320,12 +322,13 @@
 			.map(({ url }) => url);
 		const sentRelays = new Map<string, boolean>();
 		rxNostr.send(event).subscribe({
-			next: (packet) => {
+			next: async (packet) => {
 				console.log('[rx-nostr send next]', packet);
 				sentRelays.set(packet.from, packet.ok);
 				if (packet.ok) {
 					posting = false;
 					dispatch('sent');
+					await afterPost();
 				}
 			},
 			complete: () => {
