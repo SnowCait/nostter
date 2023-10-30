@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
-	import { SimplePool, type Event } from 'nostr-tools';
+	import { SimplePool, type Event, nip05 } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
 	import { metadataStore } from '$lib/cache/Events';
@@ -47,8 +47,14 @@
 		if (user !== undefined && user.nip05) {
 			const normalizedNip05 = normalizeNip05(user.nip05);
 			if (slug !== normalizedNip05) {
-				history.replaceState(history.state, '', normalizedNip05);
-				slug = normalizedNip05;
+				nip05.queryProfile(normalizedNip05).then((pointer) => {
+					if (pointer !== null) {
+						history.replaceState(history.state, '', normalizedNip05);
+						slug = normalizedNip05;
+					} else {
+						console.warn('[invalid NIP-05]', normalizedNip05);
+					}
+				})
 			}
 		}
 	}
