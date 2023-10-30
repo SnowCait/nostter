@@ -74,7 +74,7 @@
 						<p>{$_('layout.header.profile')}</p>
 					</li>
 				</a>
-				<a href="/preference">
+				<a href="/preferences">
 					<li>
 						<IconSettings size={30} />
 						<p>{$_('layout.header.preference')}</p>
