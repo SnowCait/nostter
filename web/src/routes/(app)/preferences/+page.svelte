@@ -24,7 +24,7 @@
 	}
 </script>
 
-<h1>Preference</h1>
+<h1>Preferences</h1>
 
 {#if $debugMode}
 	<Theme />
