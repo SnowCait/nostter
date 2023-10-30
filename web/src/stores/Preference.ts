@@ -1,10 +1,8 @@
 import { browser } from '$app/environment';
-import type { Emoji } from '$lib/Emoji';
 import { WebStorage } from '$lib/WebStorage';
 import { writable, type Writable } from 'svelte/store';
 
-// Persistent in relay
-export const reactionEmoji: Writable<Emoji> = writable({ content: '+' });
+// Persistent in relay => $lib/Preferences.ts
 
 // Persistent in local
 export const autoRefresh: Writable<boolean> = writable(true);
