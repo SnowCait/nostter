@@ -114,7 +114,7 @@
 
 		reactioned = true;
 
-		const content = $reactionEmoji;
+		const content = $reactionEmoji.content;
 
 		const event = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
@@ -371,14 +371,14 @@
 				<button
 					class="reaction"
 					class:hidden={item.event.kind === Kind.EncryptedDirectMessage}
-					class:paw-pad={$reactionEmoji === '🐾'}
-					class:star={$reactionEmoji === '⭐'}
+					class:paw-pad={$reactionEmoji.content === '🐾'}
+					class:star={$reactionEmoji.content === '⭐'}
 					disabled={reactioned}
 					on:click={() => reaction(item.event)}
 				>
-					{#if $reactionEmoji === '🐾'}
+					{#if $reactionEmoji.content === '🐾'}
 						<IconPaw size={iconSize} />
-					{:else if $reactionEmoji === '⭐'}
+					{:else if $reactionEmoji.content === '⭐'}
 						<IconStar size={iconSize} />
 					{:else}
 						<IconHeart size={iconSize} />

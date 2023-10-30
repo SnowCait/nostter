@@ -181,7 +181,7 @@ export class Author {
 			`${30078 as Kind}:nostter-reaction-emoji`
 		);
 		if (reactionEmojiEvent !== undefined) {
-			reactionEmoji.set(reactionEmojiEvent.content);
+			reactionEmoji.set({ content: reactionEmojiEvent.content });
 			console.log('[reaction emoji]', get(reactionEmoji));
 		}
 
