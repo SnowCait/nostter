@@ -115,14 +115,18 @@
 		reactioned = true;
 
 		const content = $preferencesStore.reactionEmoji.content;
+		const tags = [
+			['e', note.id],
+			['p', note.pubkey]
+		];
+		if ($preferencesStore.reactionEmoji.url !== undefined) {
+			tags.push(['emoji', content.replaceAll(':', ''), $preferencesStore.reactionEmoji.url]);
+		}
 
 		const event = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 7,
-			tags: [
-				['e', note.id],
-				['p', note.pubkey]
-			],
+			tags,
 			content
 		});
 		console.log(event);

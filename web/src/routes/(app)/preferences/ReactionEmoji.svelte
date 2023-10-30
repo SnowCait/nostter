@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { now } from 'rx-nostr';
-	import type { Emoji } from '$lib/Emoji';
+	import { toEmoji } from '$lib/Emoji';
 	import { preferencesStore } from '$lib/Preferences';
 	import { Signer } from '$lib/Signer';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import EmojiPicker from '../parts/EmojiPicker.svelte';
+	import CustomEmoji from '../content/CustomEmoji.svelte';
 
-	async function save(emoji: Emoji) {
+	async function save({ detail }: { detail: any }) {
+		const emoji = toEmoji(detail);
 		console.log('[reaction emoji save]', emoji, $preferencesStore.reactionEmoji);
 
 		if (
@@ -34,9 +36,14 @@
 </script>
 
 <span>Like emoji:</span>
-<EmojiPicker on:pick={async ({ detail }) => save({ content: detail.native })}>
+<EmojiPicker on:pick={save}>
 	{#if $preferencesStore.reactionEmoji.content === '+'}
 		<IconHeart size={26} color={'lightpink'} />
+	{:else if $preferencesStore.reactionEmoji.url !== undefined}
+		<CustomEmoji
+			url={$preferencesStore.reactionEmoji.url}
+			text={$preferencesStore.reactionEmoji.content.replaceAll(':', '')}
+		/>
 	{:else}
 		<span class="emoji">{$preferencesStore.reactionEmoji.content}</span>
 	{/if}
