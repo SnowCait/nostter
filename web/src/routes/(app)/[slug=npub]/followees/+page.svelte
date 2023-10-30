@@ -20,7 +20,7 @@
 	$: items = events.map((x) => new Metadata(x));
 
 	afterNavigate(async () => {
-		const slug = $page.params.npub;
+		const slug = $page.params.slug;
 		console.log('[followees page]', slug);
 
 		const { pubkey, relays } = await UserDecoder.decode(slug);

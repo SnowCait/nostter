@@ -17,7 +17,7 @@
 	let showLoading = false;
 
 	afterNavigate(async () => {
-		const slug = $page.params.npub;
+		const slug = $page.params.slug;
 		console.log('[reactions page]', slug);
 
 		const data = await UserDecoder.decode(slug);

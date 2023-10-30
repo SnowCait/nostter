@@ -17,7 +17,7 @@
 	const rxNostr = createRxNostr();
 
 	afterNavigate(async () => {
-		const slug = $page.params.npub;
+		const slug = $page.params.slug;
 		console.log('[pin page]', slug);
 
 		const { pubkey, relays } = await UserDecoder.decode(slug);

@@ -16,7 +16,7 @@
 	let privateBookmarkEventItems: EventItem[] = [];
 
 	onMount(async () => {
-		const slug = $page.params.npub;
+		const slug = $page.params.slug;
 		console.log('[bookmark page]', slug);
 
 		const { pubkey, relays } = await User.decode(slug);

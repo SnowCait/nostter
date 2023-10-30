@@ -24,7 +24,7 @@
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 	import UserStatus from '../parts/UserStatus.svelte';
-	import NostrAddress from '../[npub=npub]/NostrAddress.svelte';
+	import NostrAddress from './NostrAddress.svelte';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 
 	let metadata: Metadata | undefined;
@@ -39,7 +39,7 @@
 	let timeline: Timeline;
 
 	let relays = $readRelays;
-	let slug = $page.params.npub;
+	let slug = $page.params.slug;
 	const api = new Api($pool, relays);
 
 	$: if (metadata !== undefined) {
@@ -54,7 +54,7 @@
 	}
 
 	afterNavigate(async () => {
-		slug = $page.params.npub;
+		slug = $page.params.slug;
 		console.log('[profile page]', slug);
 
 		const data = await UserDecoder.decode(slug);

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import FollowingTimeline from './FollowingTimeline.svelte';
-	import UserFollowingTimeline from '../[npub=npub]/timeline/UserFollowingTimeline.svelte';
+	import UserFollowingTimeline from '../[slug=npub]/timeline/UserFollowingTimeline.svelte';
 	import { japaneseBotNpub } from '$lib/Constants';
 	import { nip19 } from 'nostr-tools';
 	import { tick } from 'svelte';

@@ -9,7 +9,7 @@
 	let timeline: UserFollowingTimeline;
 
 	afterNavigate(async () => {
-		const slug = $page.params.npub;
+		const slug = $page.params.slug;
 		console.log('[timeline page]', slug);
 
 		const data = await User.decode(slug);
