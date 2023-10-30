@@ -11,7 +11,7 @@
 	import { EventItem, Metadata } from '$lib/Items';
 	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../../../stores/NoteDialog';
-	import { rom } from '../../../stores/Author';
+	import { author, rom } from '../../../stores/Author';
 	import { customEmojiTags } from '../../../stores/CustomEmojis';
 	import Note from '../timeline/Note.svelte';
 	import ChannelTitle from '../parts/ChannelTitle.svelte';
@@ -404,7 +404,7 @@
 			<ContentWarning bind:reason={contentWarningReason} />
 		</div>
 		<div>
-			<button class="button-small" on:click={postNote}>{$_('editor.post')}</button>
+			<button class="button-small" on:click={postNote} disabled={$author === undefined}>{$_('editor.post')}</button>
 		</div>
 	</div>
 	{#if $quotes.length > 0}
