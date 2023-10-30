@@ -1,9 +1,8 @@
 <script lang="ts">
+	import { now } from 'rx-nostr';
 	import { reactionEmoji } from '../../../stores/Preference';
-	import { pool } from '../../../stores/Pool';
-	import { writeRelays } from '../../../stores/Author';
 	import { Signer } from '$lib/Signer';
-	import type { Kind } from 'nostr-tools';
+	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import EmojiPicker from '../parts/EmojiPicker.svelte';
 
@@ -19,13 +18,15 @@
 
 		// Save
 		const event = await Signer.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: 30078 as Kind,
+			created_at: now(),
+			kind: 30078,
 			tags: [['d', 'nostter-reaction-emoji']],
 			content: $reactionEmoji
 		});
 		console.log('[reaction emoji]', event);
-		await $pool.publish($writeRelays, event);
+		rxNostr.send(event).subscribe((packet) => {
+			console.log('[rx-nostr send]', packet);
+		});
 	}
 </script>
 
