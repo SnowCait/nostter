@@ -31,6 +31,7 @@
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import EmojiPicker from '../parts/EmojiPicker.svelte';
 	import ProxyLink from '../parts/ProxyLink.svelte';
+	import Nip94 from '../Nip94.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -333,7 +334,11 @@
 			</p>
 		{:else}
 			<div class="content">
-				<Content content={item.event.content} tags={item.event.tags} />
+				{#if Number(item.event.kind) === 1063}
+					<Nip94 event={item.event} />
+				{:else}
+					<Content content={item.event.content} tags={item.event.tags} />
+				{/if}
 			</div>
 		{/if}
 		{#if item.event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdStore === undefined}

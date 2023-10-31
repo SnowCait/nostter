@@ -24,8 +24,6 @@
 	<Reaction {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
 	<Channel event={item.event} />
-{:else if Number(item.event.kind) === 1063}
-	<Nip94 event={item.event} />
 {:else if item.event.kind === Kind.Zap}
 	<Zap {item} {readonly} {createdAtFormat} />
 {:else if Number(item.event.kind) === 30030}
