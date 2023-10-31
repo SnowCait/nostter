@@ -84,35 +84,38 @@
 		clear();
 
 		item = $eventItemStore.get(eventId);
-		const filters: LazyFilter[] = [
-			{
-				'#e': [eventId]
-			}
-		];
+
+		// Event
 		if (item === undefined) {
-			filters.push({
+			const eventReq = createRxOneshotReq({filters: [{
 				ids: [eventId]
-			});
+			}]});
+			rxNostr
+				.use(eventReq)
+				.pipe(uniq(), tap(({event}) => referencesReqEmit(event)))
+				.subscribe((packet) => {
+					console.log('[thread event]', packet);
+					item = new EventItem(packet.event);
+				});
 		}
-		console.log('[thread REQ]', filters)
-		const eventReq = createRxOneshotReq({filters});
-		const observable = rxNostr.use(eventReq).pipe(uniq(), tap(({event}) => referencesReqEmit(event)));
+
+		// Related Events
+		const relatedEventsReq = createRxOneshotReq({filters: [{
+			'#e': [eventId]
+		}]});
+		const observable = rxNostr.use(relatedEventsReq).pipe(uniq(), tap(({event}) => referencesReqEmit(event)));
 
 		// Replies
 		merge(observable.pipe(filterKind(1)), observable.pipe(filterKind(42))).subscribe(packet => {
 			console.log('[thread kind 1]', packet);
 			const eventItem = new EventItem(packet.event);
-			if (packet.event.id === eventId) {
-				item = eventItem;
-			} else {
-				if (repliedToEventItems.some(x => x.event.id === eventItem.event.id)) {
-					console.warn('[thread duplicate event]', packet);
-					return;
-				}
-				repliedToEventItems.push(eventItem);
-				repliedToEventItems.sort(chronologicalItem);
-				repliedToEventItems = repliedToEventItems;
+			if (repliedToEventItems.some(x => x.event.id === eventItem.event.id)) {
+				console.warn('[thread duplicate event]', packet);
+				return;
 			}
+			repliedToEventItems.push(eventItem);
+			repliedToEventItems.sort(chronologicalItem);
+			repliedToEventItems = repliedToEventItems;
 		});
 
 		// Repost
