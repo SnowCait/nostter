@@ -8,6 +8,7 @@
 	import Note from './Note.svelte';
 	import { Metadata, type Item } from '$lib/Items';
 	import CustomEmojiList from './CustomEmojiList.svelte';
+	import Nip94 from '../Nip94.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -23,6 +24,8 @@
 	<Reaction {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
 	<Channel event={item.event} />
+{:else if Number(item.event.kind) === 1063}
+	<Nip94 event={item.event} />
 {:else if item.event.kind === Kind.Zap}
 	<Zap {item} {readonly} {createdAtFormat} />
 {:else if Number(item.event.kind) === 30030}
