@@ -76,7 +76,7 @@
 		} catch (error) {
 			console.error('[media upload error]', error);
 		}
-	})
+	});
 
 	onMount(async () => {
 		console.log('[note editor on mount]', textarea, article);
@@ -368,7 +368,35 @@
 		}
 	}
 
-	async function mediaPicked({detail: files}: {detail: FileList}): Promise<void> {
+	async function dragover(event: DragEvent) {
+		event.preventDefault();
+	}
+
+	async function dragndrop(event: DragEvent) {
+		event.preventDefault();
+		console.log('[dragndrop]', event.type, event.dataTransfer);
+
+		if (event.dataTransfer === null) {
+			return;
+		}
+
+		for (const item of event.dataTransfer.items) {
+			console.log('[dragndrop file]', item);
+			if (item.kind !== 'file' || !item.type.startsWith('image/')) {
+				continue;
+			}
+
+			const file = item.getAsFile();
+			if (file === null) {
+				continue;
+			}
+
+			$mediaFiles.push(file);
+			$mediaFiles = $mediaFiles;
+		}
+	}
+
+	async function mediaPicked({ detail: files }: { detail: FileList }): Promise<void> {
 		console.log('[media picked]', files);
 		if (files.length === 0) {
 			return;
@@ -396,6 +424,8 @@
 		on:keyup|stopPropagation={() => console.debug}
 		on:input={onInput}
 		on:paste={paste}
+		on:dragover={dragover}
+		on:drop={dragndrop}
 	/>
 	<div class="actions">
 		<div class="options">
