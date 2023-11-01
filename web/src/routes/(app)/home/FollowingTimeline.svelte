@@ -427,9 +427,9 @@
 			$events.length > 0
 				? Math.min(...$events.map((item) => item.event.created_at))
 				: Math.floor(Date.now() / 1000);
-		let seconds = 30 * 60;
+		let seconds = 15 * 60;
 
-		while ($events.length - firstLength < minTimelineLength && count < 11) {
+		while ($events.length - firstLength < minTimelineLength && count < 12) {
 			const since = until - seconds;
 			console.log(
 				'[rx-nostr home timeline period]',
