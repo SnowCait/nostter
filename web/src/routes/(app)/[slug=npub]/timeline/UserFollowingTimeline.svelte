@@ -48,9 +48,9 @@
 		let count = 0;
 		let until =
 			$items.length > 0 ? Math.min(...$items.map((item) => item.event.created_at)) : now();
-		let seconds = 1 * 60 * 60;
+		let seconds = 15 * 60;
 
-		while ($items.length - firstLength < minTimelineLength && count < 10) {
+		while ($items.length - firstLength < minTimelineLength && count < 12) {
 			const since = until - seconds;
 			console.log(
 				'[rx-nostr user following timeline period]',
