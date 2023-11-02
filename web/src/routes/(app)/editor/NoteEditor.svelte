@@ -368,20 +368,15 @@
 		}
 	}
 
-	async function dragover(event: DragEvent) {
-		event.preventDefault();
-	}
-
-	async function dragndrop(event: DragEvent) {
-		event.preventDefault();
-		console.log('[dragndrop]', event.type, event.dataTransfer);
+	async function drop(event: DragEvent) {
+		console.log('[drop]', event.type, event.dataTransfer);
 
 		if (event.dataTransfer === null) {
 			return;
 		}
 
 		for (const item of event.dataTransfer.items) {
-			console.log('[dragndrop file]', item);
+			console.log('[drop file]', item);
 			if (item.kind !== 'file' || !item.type.startsWith('image/')) {
 				continue;
 			}
@@ -424,8 +419,8 @@
 		on:keyup|stopPropagation={() => console.debug}
 		on:input={onInput}
 		on:paste={paste}
-		on:dragover={dragover}
-		on:drop={dragndrop}
+		on:dragover|preventDefault={() => console.debug}
+		on:drop|preventDefault={drop}
 	/>
 	<div class="actions">
 		<div class="options">
