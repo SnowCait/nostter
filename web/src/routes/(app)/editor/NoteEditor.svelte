@@ -58,6 +58,8 @@
 	let textarea: HTMLTextAreaElement;
 	let article: HTMLElement;
 
+	let onDrag = false;
+
 	const dispatch = createEventDispatcher();
 
 	mediaFiles.subscribe(async (files: File[]) => {
@@ -368,6 +370,11 @@
 		}
 	}
 
+	async function dragover(event: DragEvent) {
+		console.log('[dragover]');
+		onDrag = true;
+	}
+
 	async function drop(event: DragEvent) {
 		console.log('[drop]', event.type, event.dataTransfer);
 
@@ -404,6 +411,22 @@
 	}
 </script>
 
+<svelte:body
+	on:dragstart|preventDefault={() => console.debug}
+	on:dragend|preventDefault={() => {
+		onDrag = false;
+	}}
+	on:dragover|preventDefault={(event) => {
+		if (!$openNoteDialog) $openNoteDialog = true;
+	}}
+	on:drop|preventDefault={() => {
+		onDrag = false;
+	}}
+	on:dragleave|preventDefault={() => {
+		onDrag = false;
+	}}
+/>
+
 <article bind:this={article} class="note-editor">
 	{#if channelEvent !== undefined}
 		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
@@ -413,13 +436,14 @@
 	{/if}
 	<textarea
 		placeholder="What's happening?"
+		class:dropzone={onDrag}
 		bind:value={content}
 		bind:this={textarea}
 		on:keydown={submitFromKeyboard}
 		on:keyup|stopPropagation={() => console.debug}
 		on:input={onInput}
 		on:paste={paste}
-		on:dragover|preventDefault={() => console.debug}
+		on:dragover|preventDefault={dragover}
 		on:drop|preventDefault={drop}
 	/>
 	<div class="actions">
@@ -474,6 +498,30 @@
 	textarea {
 		width: 100%;
 		padding: 1rem;
+	}
+
+	.dropzone {
+		background-image: linear-gradient(
+				to right,
+				#000,
+				#000 3px,
+				transparent 3px,
+				transparent 8px
+			),
+			linear-gradient(to bottom, #000, #000 3px, transparent 3px, transparent 8px),
+			linear-gradient(to left, #000, #000 3px, transparent 3px, transparent 8px),
+			linear-gradient(to top, #000, #000 3px, transparent 3px, transparent 8px);
+		background-size:
+			8px 2px,
+			2px 8px,
+			8px 2px,
+			2px 8px;
+		background-position:
+			left top,
+			right top,
+			right bottom,
+			left bottom;
+		background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
 	}
 
 	button:disabled {
