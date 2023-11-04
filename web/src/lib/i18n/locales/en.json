@@ -44,5 +44,9 @@
 	"follow": "Follow",
 	"following": "Following",
 	"cancel": "Cancel",
-	"or": "OR"
+	"or": "OR",
+	"preferences": {
+		"uri_scheme": "Open web+nostr: in nostter",
+		"enable_uri_scheme": "Enable"
+	}
 }

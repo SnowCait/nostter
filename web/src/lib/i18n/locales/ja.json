@@ -43,5 +43,9 @@
 	"post": "投稿",
 	"follow": "フォロー",
 	"following": "フォロー中",
-	"or": "または"
+	"or": "または",
+	"preferences": {
+		"uri_scheme": "web+nostr: を nostter で開く",
+		"enable_uri_scheme": "有効化"
+	}
 }
