@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
-	import { SimplePool, type Event, nip05 } from 'nostr-tools';
+	import { SimplePool, type Event, nip05, nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
 	import { metadataStore } from '$lib/cache/Events';
@@ -26,6 +26,7 @@
 	import UserStatus from '../parts/UserStatus.svelte';
 	import NostrAddress from './NostrAddress.svelte';
 	import ZapButton from '$lib/components/ZapButton.svelte';
+	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
 
 	let metadata: Metadata | undefined;
 	let user: MetadataContent | undefined;
@@ -242,6 +243,9 @@
 				{/if}
 				{#if followees.some((pubkey) => pubkey === $authorPubkey)}
 					<p>Follows you</p>
+				{/if}
+				{#if pubkey !== undefined}
+					<Nip21QrcodeButton identifier={nip19.npubEncode(pubkey)} />
 				{/if}
 			</div>
 
