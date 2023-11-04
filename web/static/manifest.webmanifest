@@ -12,5 +12,11 @@
 			"sizes": "150x150",
 			"type": "image/png"
 		}
+	],
+	"protocol_handlers": [
+		{
+			"protocol": "web+nostr",
+			"url": "/%s"
+		}
 	]
 }

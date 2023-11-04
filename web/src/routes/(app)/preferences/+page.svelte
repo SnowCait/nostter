@@ -11,6 +11,7 @@
 	import ClearEmojiMartCache from './ClearEmojiMartCache.svelte';
 	import Theme from './Theme.svelte';
 	import ZapButton from '$lib/components/ZapButton.svelte';
+	import UriScheme from './UriScheme.svelte';
 
 	let debugCounter = 0;
 
@@ -41,6 +42,7 @@
 	<div><WordMute /></div>
 {/if}
 <div><Notification /></div>
+<div><UriScheme /></div>
 <div><AutoRefresh /></div>
 {#if $debugMode}
 	<div><ClearEmojiMartCache /></div>
