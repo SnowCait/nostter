@@ -18,10 +18,7 @@ export class Timeline {
 	private readonly $readRelays: string[];
 	private readonly api: Api;
 
-	constructor(
-		private readonly pubkey: string,
-		private readonly authors: string[]
-	) {
+	constructor(private readonly pubkey: string, private readonly authors: string[]) {
 		this.$pool = get(pool);
 		this.$readRelays = get(readRelays);
 		this.api = new Api(this.$pool, this.$readRelays);

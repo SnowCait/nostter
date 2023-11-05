@@ -106,7 +106,7 @@
 					{/await}
 				</div>
 				<div class="text">{invoice}</div>
-				<iframe src={url} title="Lightning" width="0" height="0"></iframe>
+				<iframe src={url} title="Lightning" width="0" height="0" />
 			</section>
 		{/if}
 	</article>

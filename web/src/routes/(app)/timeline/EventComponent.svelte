@@ -8,7 +8,6 @@
 	import Note from './Note.svelte';
 	import { Metadata, type Item } from '$lib/Items';
 	import CustomEmojiList from './CustomEmojiList.svelte';
-	import Nip94 from '../Nip94.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;

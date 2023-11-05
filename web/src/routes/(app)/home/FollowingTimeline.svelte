@@ -407,7 +407,7 @@
 		// Past notification
 		const notificationTimeline = new NotificationTimeline($pubkey);
 		const notifiedEventItems = await notificationTimeline.fetch(now, $lastReadAt);
-		$unreadEvents.push(...notifiedEventItems.filter(x => x.event.created_at > $lastReadAt));
+		$unreadEvents.push(...notifiedEventItems.filter((x) => x.event.created_at > $lastReadAt));
 		$unreadEvents = $unreadEvents;
 		$notifiedEvents = notifiedEventItems;
 		$loadingNotifications = false;

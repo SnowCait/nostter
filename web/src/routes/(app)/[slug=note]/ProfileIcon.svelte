@@ -10,12 +10,7 @@
 
 <article>
 	<a href="/{nip19.npubEncode(metadata.event.pubkey)}">
-		<img
-			src={metadata.picture}
-			alt={name}
-			title={name}
-			on:error={onImageError}
-		/>
+		<img src={metadata.picture} alt={name} title={name} on:error={onImageError} />
 	</a>
 </article>
 

@@ -6,7 +6,6 @@
 	import { onMount } from 'svelte';
 	import { debugMode } from '../../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
-	import { _ } from 'svelte-i18n';
 	import '../../app.css';
 	import Gdpr from './parts/Gdpr.svelte';
 

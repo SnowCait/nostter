@@ -2,12 +2,18 @@
 	import { Kind, nip19 } from 'nostr-tools';
 	import { Api } from '$lib/Api';
 	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
-	import { pubkey, author, authorProfile, metadataEvent, writeRelays } from '../../../stores/Author';
+	import {
+		pubkey,
+		author,
+		authorProfile,
+		metadataEvent,
+		writeRelays
+	} from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
 	import { goto } from '$app/navigation';
 	import MediaPicker from '../editor/MediaPicker.svelte';
 
-	async function picturePicked({detail: files}: {detail: FileList}): Promise<void> {
+	async function picturePicked({ detail: files }: { detail: FileList }): Promise<void> {
 		console.log('[profile picture]', files);
 		if (files.length !== 1) {
 			console.error('[profile picture error]', files);
@@ -25,7 +31,7 @@
 		}
 	}
 
-	async function bannerPicked({detail: files}: {detail: FileList}): Promise<void> {
+	async function bannerPicked({ detail: files }: { detail: FileList }): Promise<void> {
 		console.log('[profile banner]', files);
 		if (files.length !== 1) {
 			console.error('[profile banner error]', files);
@@ -167,13 +173,15 @@
 		width: 100%;
 	}
 
-	.picture div, .banner div {
+	.picture div,
+	.banner div {
 		display: flex;
 		margin-top: 0;
 		margin-bottom: 1rem;
 	}
 
-	.picture input, .banner input {
+	.picture input,
+	.banner input {
 		width: calc(100% - 50px);
 		margin-right: 10px;
 	}
