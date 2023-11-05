@@ -9,4 +9,6 @@
 	}
 </script>
 
-<span>{$_('preferences.uri_scheme')}</span><button on:click={enableUriScheme}>{$_('preferences.enable_uri_scheme')}</button>
+{#if navigator.registerProtocolHandler !== undefined}
+	<span>{$_('preferences.uri_scheme')}</span><button on:click={enableUriScheme}>{$_('preferences.enable_uri_scheme')}</button>
+{/if}
