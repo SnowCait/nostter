@@ -266,7 +266,12 @@
 </script>
 
 <article class="timeline-item">
-	<ZapDialog pubkey={eventItem.event.pubkey} event={eventItem.event} bind:this={zapDialogComponent} on:zapped={onZapped} />
+	<ZapDialog
+		pubkey={eventItem.event.pubkey}
+		event={eventItem.event}
+		bind:this={zapDialogComponent}
+		on:zapped={onZapped}
+	/>
 	<div>
 		<a href="/{nip19.npubEncode(item.event.pubkey)}">
 			<img class="picture" src={metadata?.picture} alt="" />

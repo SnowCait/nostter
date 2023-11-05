@@ -55,7 +55,7 @@
 					} else {
 						console.warn('[invalid NIP-05]', normalizedNip05);
 					}
-				})
+				});
 			}
 		}
 	}
@@ -193,7 +193,9 @@
 
 <svelte:head>
 	{#if metadata !== undefined}
-		<title>{user?.display_name ?? user?.name} (@{user?.name ?? user?.display_name}) - nostter</title>
+		<title>
+			{user?.display_name ?? user?.name} (@{user?.name ?? user?.display_name}) - nostter
+		</title>
 	{:else}
 		<title>ghost - nostter</title>
 	{/if}

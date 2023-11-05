@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Event } from "nostr-typedef";
-	import { metadataStore } from "$lib/cache/Events";
-	import { metadataReqEmit } from "$lib/timelines/MainTimeline";
-	import ZapDialog from "../../routes/(app)/ZapDialog.svelte";
+	import type { Event } from 'nostr-typedef';
+	import { metadataStore } from '$lib/cache/Events';
+	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import ZapDialog from '../../routes/(app)/ZapDialog.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 
 	export let pubkey: string;
@@ -18,7 +18,11 @@
 	let zapDialogComponent: ZapDialog | undefined;
 </script>
 
-<button class="clear" disabled={!metadata?.canZap} on:click={() => zapDialogComponent?.openZapDialog()}>
+<button
+	class="clear"
+	disabled={!metadata?.canZap}
+	on:click={() => zapDialogComponent?.openZapDialog()}
+>
 	<IconBolt {size} />
 </button>
 <ZapDialog {pubkey} {event} bind:this={zapDialogComponent} />

@@ -46,10 +46,7 @@
 		return refEventId;
 	};
 
-	const viewDetail = async (
-		clickEvent: MouseEvent,
-		nostrEvent: Event
-	) => {
+	const viewDetail = async (clickEvent: MouseEvent, nostrEvent: Event) => {
 		let target: HTMLElement | null = clickEvent.target as HTMLElement;
 		if (target) {
 			while (target && !target.classList.contains('timeline')) {
@@ -60,7 +57,13 @@
 					return;
 				}
 				const tagName = target.tagName.toLocaleLowerCase();
-				if (tagName === 'a' || tagName === 'button' || tagName === 'video' || tagName === 'audio' || tagName === 'dialog') {
+				if (
+					tagName === 'a' ||
+					tagName === 'button' ||
+					tagName === 'video' ||
+					tagName === 'audio' ||
+					tagName === 'dialog'
+				) {
 					return;
 				}
 				if (tagName === 'p' && String(document.getSelection()).length) {

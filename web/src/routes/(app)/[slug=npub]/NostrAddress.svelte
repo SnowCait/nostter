@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { nip05, nip19 } from "nostr-tools";
-	import type { Metadata } from "$lib/Items";
-	import { normalizeNip05 } from "$lib/MetadataHelper";
+	import { nip05, nip19 } from 'nostr-tools';
+	import type { Metadata } from '$lib/Items';
+	import { normalizeNip05 } from '$lib/MetadataHelper';
 	import CopyButton from '../parts/CopyButton.svelte';
 	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
 	import IconAlertTriangle from '@tabler/icons-svelte/dist/svelte/icons/IconAlertTriangle.svelte';
@@ -9,7 +9,7 @@
 	export let metadata: Metadata;
 
 	$: npub = nip19.npubEncode(metadata.event.pubkey);
-	$: nprofile = nip19.nprofileEncode({pubkey: metadata.event.pubkey});
+	$: nprofile = nip19.nprofileEncode({ pubkey: metadata.event.pubkey });
 </script>
 
 <details>

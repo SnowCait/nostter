@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import '@beyonk/gdpr-cookie-consent-banner/banner.css'
+	import '@beyonk/gdpr-cookie-consent-banner/banner.css';
 	import GdprBanner from '@beyonk/gdpr-cookie-consent-banner';
 
 	const choices = {
@@ -22,12 +22,15 @@
 		console.debug('[analytics init]');
 
 		window.dataLayer = window.dataLayer || [];
-		function gtag(){dataLayer.push(arguments);}
+		function gtag() {
+			dataLayer.push(arguments);
+		}
 		gtag('js', new Date());
 
 		gtag('config', 'G-G1WMSV0PBP');
 	}
 </script>
+
 <GdprBanner
 	cookieName="beyonk_gdpr"
 	heading={$_('gdpr.heading')}

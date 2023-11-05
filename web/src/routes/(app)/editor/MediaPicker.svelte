@@ -13,7 +13,15 @@
 <button on:click|preventDefault={() => input?.click()} class="clear">
 	<IconPhoto size="30" />
 </button>
-<input type="file" {multiple} bind:this={input} bind:files on:change={() => dispatch('pick', files)} accept="image/*" hidden>
+<input
+	type="file"
+	{multiple}
+	bind:this={input}
+	bind:files
+	on:change={() => dispatch('pick', files)}
+	accept="image/*"
+	hidden
+/>
 
 <style>
 	button {

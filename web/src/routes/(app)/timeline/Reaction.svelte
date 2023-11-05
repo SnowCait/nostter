@@ -48,7 +48,8 @@
 	<div>by</div>
 	<div>
 		<a href="/{nip19.npubEncode(event.pubkey)}">
-			@{metadata?.content?.name ?? nip19.npubEncode(event.pubkey).substring(0, 'npub1'.length + 7)}
+			@{metadata?.content?.name ??
+				nip19.npubEncode(event.pubkey).substring(0, 'npub1'.length + 7)}
 		</a>
 	</div>
 	<div class="json-button">

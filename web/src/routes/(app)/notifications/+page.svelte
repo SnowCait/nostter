@@ -4,7 +4,11 @@
 	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { minTimelineLength } from '$lib/Constants';
 	import { Api } from '$lib/Api';
-	import { notifiedEvents, unreadEvents, loadingNotifications } from '../../../stores/Notifications';
+	import {
+		notifiedEvents,
+		unreadEvents,
+		loadingNotifications
+	} from '../../../stores/Notifications';
 	import { pubkey, writeRelays } from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
@@ -20,9 +24,7 @@
 
 		const api = new Api($pool, $writeRelays);
 		try {
-			await api.signAndPublish(30078 as Kind, '', [
-				['d', 'nostter-read']
-			]);
+			await api.signAndPublish(30078 as Kind, '', [['d', 'nostter-read']]);
 		} catch (error) {
 			console.warn('[last read failed]', error);
 		}

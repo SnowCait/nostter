@@ -40,23 +40,27 @@
 
 	let customEmojiShortcode = new Map<string, string>();
 
-	$: repostMetadataList =
-		repostEventItems
-			.map((x) => $metadataStore.get(x.event.pubkey))
-			.filter((x): x is Metadata => x !== undefined);
+	$: repostMetadataList = repostEventItems
+		.map((x) => $metadataStore.get(x.event.pubkey))
+		.filter((x): x is Metadata => x !== undefined);
 
 	$: reactionMetadataMap = reactionEventItems.reduce((map, item) => {
 		let content = item.event.content;
 		if (item.event.content.startsWith(':')) {
-			const emojiTag = item.event.tags
-				.find(([tagName, shortcode, url]) => tagName === 'emoji' && `:${shortcode}:` === content && url !== undefined && url !== '');
+			const emojiTag = item.event.tags.find(
+				([tagName, shortcode, url]) =>
+					tagName === 'emoji' &&
+					`:${shortcode}:` === content &&
+					url !== undefined &&
+					url !== ''
+			);
 			if (emojiTag !== undefined) {
 				const [, shortcode, url] = emojiTag;
 				try {
 					new URL(url);
 					content = url;
 					if (!customEmojiShortcode.has(url)) {
-						customEmojiShortcode.set(url, shortcode)
+						customEmojiShortcode.set(url, shortcode);
 					}
 				} catch (error) {
 					console.error('[custom emoji invalid]', item);
@@ -72,10 +76,9 @@
 		return map;
 	}, new Map<string, EventItem[]>());
 
-	$: zapMetadataList =
-		zapEventItems
-			.map((x) => $metadataStore.get(x.event.pubkey))
-			.filter((x): x is Metadata => x !== undefined);
+	$: zapMetadataList = zapEventItems
+		.map((x) => $metadataStore.get(x.event.pubkey))
+		.filter((x): x is Metadata => x !== undefined);
 
 	$: if (eventId !== data.eventId) {
 		eventId = data.eventId;
@@ -87,12 +90,19 @@
 
 		// Event
 		if (item === undefined) {
-			const eventReq = createRxOneshotReq({filters: [{
-				ids: [eventId]
-			}]});
+			const eventReq = createRxOneshotReq({
+				filters: [
+					{
+						ids: [eventId]
+					}
+				]
+			});
 			rxNostr
 				.use(eventReq)
-				.pipe(uniq(), tap(({event}) => referencesReqEmit(event)))
+				.pipe(
+					uniq(),
+					tap(({ event }) => referencesReqEmit(event))
+				)
 				.subscribe((packet) => {
 					console.log('[thread event]', packet);
 					item = new EventItem(packet.event);
@@ -100,26 +110,35 @@
 		}
 
 		// Related Events
-		const relatedEventsReq = createRxOneshotReq({filters: [{
-			'#e': [eventId]
-		}]});
-		const observable = rxNostr.use(relatedEventsReq).pipe(uniq(), tap(({event}) => referencesReqEmit(event)));
+		const relatedEventsReq = createRxOneshotReq({
+			filters: [
+				{
+					'#e': [eventId]
+				}
+			]
+		});
+		const observable = rxNostr.use(relatedEventsReq).pipe(
+			uniq(),
+			tap(({ event }) => referencesReqEmit(event))
+		);
 
 		// Replies
-		merge(observable.pipe(filterKind(1)), observable.pipe(filterKind(42))).subscribe(packet => {
-			console.log('[thread kind 1]', packet);
-			const eventItem = new EventItem(packet.event);
-			if (repliedToEventItems.some(x => x.event.id === eventItem.event.id)) {
-				console.warn('[thread duplicate event]', packet);
-				return;
+		merge(observable.pipe(filterKind(1)), observable.pipe(filterKind(42))).subscribe(
+			(packet) => {
+				console.log('[thread kind 1]', packet);
+				const eventItem = new EventItem(packet.event);
+				if (repliedToEventItems.some((x) => x.event.id === eventItem.event.id)) {
+					console.warn('[thread duplicate event]', packet);
+					return;
+				}
+				repliedToEventItems.push(eventItem);
+				repliedToEventItems.sort(chronologicalItem);
+				repliedToEventItems = repliedToEventItems;
 			}
-			repliedToEventItems.push(eventItem);
-			repliedToEventItems.sort(chronologicalItem);
-			repliedToEventItems = repliedToEventItems;
-		});
+		);
 
 		// Repost
-		observable.pipe(filterKind(6)).subscribe(packet => {
+		observable.pipe(filterKind(6)).subscribe((packet) => {
 			console.log('[thread kind 6]', packet);
 			const eventItem = new EventItem(packet.event);
 			repostEventItems.sort(chronologicalItem);
@@ -128,7 +147,7 @@
 		});
 
 		// Reaction
-		observable.pipe(filterKind(7)).subscribe(packet => {
+		observable.pipe(filterKind(7)).subscribe((packet) => {
 			console.log('[thread kind 7]', packet);
 			const eventItem = new EventItem(packet.event);
 			reactionEventItems.sort(chronologicalItem);
@@ -137,12 +156,14 @@
 		});
 
 		// Zap
-		observable.pipe(filterKind(9735)).subscribe(packet => {
+		observable.pipe(filterKind(9735)).subscribe((packet) => {
 			console.log('[thread kind 9735]', packet);
 
 			let event: Event | undefined;
 			const description = packet.event.tags
-				.find(([tagName, tagContent]) => tagName === 'description' && tagContent !== undefined)
+				.find(
+					([tagName, tagContent]) => tagName === 'description' && tagContent !== undefined
+				)
 				?.at(1);
 			if (description !== undefined) {
 				console.log('[thread kind 9734]', description);
@@ -199,7 +220,11 @@
 			}
 		}
 
-		if (rootId !== undefined && !replyToEventItems.some((x) => x.event.id === rootId) && i <= 20) {
+		if (
+			rootId !== undefined &&
+			!replyToEventItems.some((x) => x.event.id === rootId) &&
+			i <= 20
+		) {
 			const rootEventItem = await api.fetchEventItemById(rootId);
 			console.log('[thread root]', rootEventItem);
 			if (rootEventItem !== undefined) {
@@ -265,7 +290,9 @@
 			{/if}
 		</span>
 		<span class="count">{metadataList.length}</span>
-		<ProfileIconList metadataList={metadataList.map(item => $metadataStore.get(item.event.pubkey))} />
+		<ProfileIconList
+			metadataList={metadataList.map((item) => $metadataStore.get(item.event.pubkey))}
+		/>
 	</section>
 {:else}
 	<section class="reaction counter card">
@@ -273,7 +300,9 @@
 			<IconHeart />
 		</span>
 		<span class="count">0</span>
-		<ProfileIconList metadataList={items.map(item => $metadataStore.get(item.event.pubkey))} />
+		<ProfileIconList
+			metadataList={items.map((item) => $metadataStore.get(item.event.pubkey))}
+		/>
 	</section>
 {/each}
 <section class="zap counter card">

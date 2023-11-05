@@ -224,7 +224,9 @@
 						.filter(
 							([, metadata]) =>
 								metadata.content?.name?.toLowerCase().includes(complementName) ||
-								metadata.content?.display_name?.toLowerCase().includes(complementName) ||
+								metadata.content?.display_name
+									?.toLowerCase()
+									.includes(complementName) ||
 								nip19.npubEncode(metadata.event.pubkey).includes(complementName)
 						)
 						.filter(([p]) => !complementMetadataList.some((x) => x.event.pubkey === p))
@@ -251,7 +253,8 @@
 	async function replaceComplement(metadata: Metadata): Promise<void> {
 		console.debug('[replace complement]', content, complementStart, complementEnd);
 		const beforeCursor =
-			content.substring(0, complementStart) + `nostr:${nip19.npubEncode(metadata.event.pubkey)} `;
+			content.substring(0, complementStart) +
+			`nostr:${nip19.npubEncode(metadata.event.pubkey)} `;
 		const afterCursor = content.substring(complementEnd);
 		content = beforeCursor + afterCursor;
 		const cursor = beforeCursor.length;
@@ -453,7 +456,9 @@
 			<ContentWarning bind:reason={contentWarningReason} />
 		</div>
 		<div>
-			<button class="button-small" on:click={postNote} disabled={$author === undefined}>{$_('editor.post')}</button>
+			<button class="button-small" on:click={postNote} disabled={$author === undefined}>
+				{$_('editor.post')}
+			</button>
 		</div>
 	</div>
 	{#if $quotes.length > 0}
@@ -511,16 +516,8 @@
 			linear-gradient(to bottom, #000, #000 3px, transparent 3px, transparent 8px),
 			linear-gradient(to left, #000, #000 3px, transparent 3px, transparent 8px),
 			linear-gradient(to top, #000, #000 3px, transparent 3px, transparent 8px);
-		background-size:
-			8px 2px,
-			2px 8px,
-			8px 2px,
-			2px 8px;
-		background-position:
-			left top,
-			right top,
-			right bottom,
-			left bottom;
+		background-size: 8px 2px, 2px 8px, 8px 2px, 2px 8px;
+		background-position: left top, right top, right bottom, left bottom;
 		background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
 	}
 

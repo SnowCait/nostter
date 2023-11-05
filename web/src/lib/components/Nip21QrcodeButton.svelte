@@ -11,11 +11,11 @@
 	let open: boolean;
 </script>
 
-<button class="clear" on:click={() => open = true}>
+<button class="clear" on:click={() => (open = true)}>
 	<IconQrcode color="black" />
 </button>
 
-<ModalDialog bind:open={open}>
+<ModalDialog bind:open>
 	<article>
 		<section>
 			<h3>Native app</h3>
