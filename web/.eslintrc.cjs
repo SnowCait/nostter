@@ -26,6 +26,7 @@ module.exports = {
 		node: true
 	},
 	rules: {
-		'svelte/valid-compile': 'off'
+		'svelte/valid-compile': 'warn',
+		'@typescript-eslint/no-explicit-any': 'warn'
 	}
 };
