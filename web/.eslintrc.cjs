@@ -1,9 +1,13 @@
 module.exports = {
 	root: true,
 	parser: '@typescript-eslint/parser',
-	extends: ['plugin:svelte/recommended'],
+	extends: [
+		'eslint:recommended',
+		'plugin:@typescript-eslint/recommended',
+		'plugin:svelte/recommended',
+		'prettier'
+	],
 	plugins: ['@typescript-eslint'],
-	ignorePatterns: ['*.cjs'],
 	overrides: [
 		{
 			files: ['*.svelte'],
@@ -13,7 +17,8 @@ module.exports = {
 	],
 	parserOptions: {
 		sourceType: 'module',
-		ecmaVersion: 2020
+		ecmaVersion: 2020,
+		extraFileExtensions: ['.svelte']
 	},
 	env: {
 		browser: true,
