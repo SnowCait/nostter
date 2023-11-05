@@ -40,7 +40,7 @@
 	});
 
 	const getTargetETag = (tags: string[][]) => {
-		const [_, refEventId] = tags.findLast(
+		const [, refEventId] = tags.findLast(
 			([tagName, tagContent]) => tagName === 'e' && tagContent !== undefined
 		) ?? ['', ''];
 		return refEventId;

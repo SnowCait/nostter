@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Event } from 'nostr-typedef';
-	import { createRxOneshotReq, filterKind, uniq, type LazyFilter } from 'rx-nostr';
+	import { createRxOneshotReq, filterKind, uniq } from 'rx-nostr';
 	import { tap, merge } from 'rxjs';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';

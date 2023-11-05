@@ -373,7 +373,7 @@
 		}
 	}
 
-	async function dragover(event: DragEvent) {
+	async function dragover() {
 		console.log('[dragover]');
 		onDrag = true;
 	}
@@ -419,8 +419,10 @@
 	on:dragend|preventDefault={() => {
 		onDrag = false;
 	}}
-	on:dragover|preventDefault={(event) => {
-		if (!$openNoteDialog) $openNoteDialog = true;
+	on:dragover|preventDefault={() => {
+		if (!$openNoteDialog) {
+			$openNoteDialog = true;
+		}
 	}}
 	on:drop|preventDefault={() => {
 		onDrag = false;
