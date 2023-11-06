@@ -15,7 +15,7 @@
 	let pointer: AddressPointer;
 	let event: Event | undefined;
 
-	const naddr = $page.params.naddr;
+	const naddr = $page.params.slug;
 
 	$: title = event?.tags.find(([t]) => t === 'title')?.at(1);
 
