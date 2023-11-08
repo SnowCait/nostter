@@ -293,9 +293,9 @@
 				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
 			</div>
 		</div>
-		<div class="user-status">
+		<!-- <div class="user-status">
 			<UserStatus pubkey={item.event.pubkey} />
-		</div>
+		</div> -->
 		{#if isReply(item.event)}
 			<div class="reply">
 				<span>To</span>
