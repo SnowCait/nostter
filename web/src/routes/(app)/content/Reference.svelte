@@ -1,34 +1,18 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
-	import type { EventItem } from '$lib/Items';
-	import { events } from '../../../stores/Events';
 	import { userEvents } from '../../../stores/UserEvents';
 	import Note from '../timeline/Note.svelte';
 	import Hashtag from './Hashtag.svelte';
 	import Text from './Text.svelte';
-	import { onMount } from 'svelte';
-	import { Api } from '$lib/Api';
-	import { pool } from '../../../stores/Pool';
-	import { readRelays } from '../../../stores/Author';
 	import Url from './Url.svelte';
+	import { eventItemStore } from '$lib/cache/Events';
 
 	export let text: string;
 	export let tag: string[];
 
-	$: eventId = tag.at(1);
+	$: item = $eventItemStore.get(tag[1]);
 
-	let item: EventItem | undefined;
-	if (tag.at(0) === 'e' && tag.at(1) !== undefined) {
-		item = $events.find((x) => x.event.id === eventId);
-	}
-
-	onMount(async () => {
-		console.debug('[deprecated reference]');
-		if (item === undefined && eventId !== undefined) {
-			const api = new Api($pool, $readRelays);
-			item = await api.fetchEventItemById(eventId);
-		}
-	});
+	console.debug('[deprecated reference]', tag[1]);
 </script>
 
 {#if tag.at(0) === 'p' && tag.at(1) !== undefined}

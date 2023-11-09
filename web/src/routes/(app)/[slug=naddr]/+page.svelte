@@ -1,43 +1,34 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import { error } from '@sveltejs/kit';
-	import { nip19, type Event } from 'nostr-tools';
-	import type { AddressPointer } from 'nostr-tools/lib/nip19';
+	import type { Event } from 'nostr-tools';
 	import { pool } from '../../../stores/Pool';
 	import { Api } from '$lib/Api';
 	import { defaultRelays } from '$lib/Constants';
 	import { onMount } from 'svelte';
 	import { Content as ContentParser } from '$lib/Content';
+	import { referencesReqEmit } from '$lib/timelines/MainTimeline';
+	import type { PageData } from './$types';
 	import Content from '../content/Content.svelte';
+
+	export let data: PageData;
 
 	console.time('naddr');
 
-	let pointer: AddressPointer;
 	let event: Event | undefined;
-
-	const naddr = $page.params.slug;
 
 	$: title = event?.tags.find(([t]) => t === 'title')?.at(1);
 
-	try {
-		const { data } = nip19.decode(naddr);
-		pointer = data as AddressPointer;
-		console.log('[naddr]', pointer);
-	} catch (e) {
-		throw error(404);
+	$: if (event !== undefined) {
+		referencesReqEmit(event);
 	}
 
 	onMount(async () => {
-		const { identifier, kind, pubkey, relays } = pointer;
-		const api = new Api(
-			$pool,
-			relays !== undefined && relays.length > 0 ? relays : defaultRelays
-		);
+		const api = new Api($pool, data.relays.length > 0 ? data.relays : defaultRelays);
 		event = await api.fetchEvent([
 			{
-				kinds: [kind],
-				authors: [pubkey],
-				'#d': [identifier]
+				kinds: [data.kind],
+				authors: [data.pubkey],
+				'#d': [data.identifier]
 			}
 		]);
 		console.log('[event]', event);
