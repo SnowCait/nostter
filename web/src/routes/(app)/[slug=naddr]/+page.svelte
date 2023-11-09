@@ -6,6 +6,7 @@
 	import { defaultRelays } from '$lib/Constants';
 	import { onMount } from 'svelte';
 	import { Content as ContentParser } from '$lib/Content';
+	import { referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import type { PageData } from './$types';
 	import Content from '../content/Content.svelte';
 
@@ -16,6 +17,10 @@
 	let event: Event | undefined;
 
 	$: title = event?.tags.find(([t]) => t === 'title')?.at(1);
+
+	$: if (event !== undefined) {
+		referencesReqEmit(event);
+	}
 
 	onMount(async () => {
 		const api = new Api($pool, data.relays.length > 0 ? data.relays : defaultRelays);
