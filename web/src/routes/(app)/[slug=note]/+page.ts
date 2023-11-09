@@ -2,7 +2,6 @@ import { nip19 } from 'nostr-tools';
 import type { EventPointer } from 'nostr-tools/lib/nip19';
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
-import { rxNostr } from '$lib/timelines/MainTimeline';
 
 export const load: PageLoad<{ eventId: string; relays: string[] }> = async ({ params }) => {
 	console.log('[thread page load]', params.slug);
@@ -20,10 +19,6 @@ export const load: PageLoad<{ eventId: string; relays: string[] }> = async ({ pa
 			case 'nevent': {
 				const pointer = data as EventPointer;
 				const relays = pointer.relays ?? [];
-
-				for (const relay of relays) {
-					await rxNostr.addRelay({ url: relay, read: true, write: false });
-				}
 
 				return {
 					eventId: pointer.id,
