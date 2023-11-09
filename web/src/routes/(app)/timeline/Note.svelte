@@ -19,7 +19,6 @@
 	import { readRelays, writeRelays, pubkey, isBookmarked, author } from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
 	import { rom } from '../../../stores/Author';
-	import CreatedAt from '../CreatedAt.svelte';
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
 	import ZapDialog from '../ZapDialog.svelte';
@@ -27,8 +26,8 @@
 	import { Signer } from '$lib/Signer';
 	import { getCodePoints } from '$lib/String';
 	import { isReply } from '$lib/EventHelper';
-	import UserStatus from '../parts/UserStatus.svelte';
 	import { Channel, channelIdStore } from '$lib/Channel';
+	import EventMetadata from '$lib/components/EventMetadata.svelte';
 	import EmojiPicker from '../parts/EmojiPicker.svelte';
 	import ProxyLink from '../parts/ProxyLink.svelte';
 	import Nip94 from '../Nip94.svelte';
@@ -265,37 +264,8 @@
 	});
 </script>
 
-<article class="timeline-item">
-	<ZapDialog
-		pubkey={eventItem.event.pubkey}
-		event={eventItem.event}
-		bind:this={zapDialogComponent}
-		on:zapped={onZapped}
-	/>
-	<div>
-		<a href="/{nip19.npubEncode(item.event.pubkey)}">
-			<img class="picture" src={metadata?.picture} alt="" />
-		</a>
-	</div>
-	<div class="note">
-		<div class="user">
-			<div class="display_name">
-				{metadata?.content?.display_name
-					? metadata?.content.display_name
-					: metadata?.content?.name}
-			</div>
-			<div class="name">
-				@{metadata?.content?.name
-					? metadata?.content.name
-					: metadata?.content?.display_name}
-			</div>
-			<div class="created_at">
-				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
-			</div>
-		</div>
-		<div class="user-status">
-			<UserStatus pubkey={item.event.pubkey} />
-		</div>
+<EventMetadata {item} {createdAtFormat}>
+	<section>
 		{#if isReply(item.event)}
 			<div class="reply">
 				<span>To</span>
@@ -440,6 +410,12 @@
 					>
 						<IconBolt size={iconSize} />
 					</button>
+					<ZapDialog
+						pubkey={eventItem.event.pubkey}
+						event={eventItem.event}
+						bind:this={zapDialogComponent}
+						on:zapped={onZapped}
+					/>
 					<button on:click={toggleJsonDisplay}>
 						<IconCodeDots size={iconSize} />
 					</button>
@@ -491,61 +467,10 @@
 				{/if}
 			{/if}
 		{/if}
-	</div>
-</article>
+	</section>
+</EventMetadata>
 
 <style>
-	article {
-		display: flex;
-		flex-direction: row;
-	}
-
-	.picture {
-		width: 48px;
-		height: 48px;
-		border-radius: 50%;
-		margin-right: 12px;
-		object-fit: cover;
-	}
-
-	.note {
-		color: rgb(15, 20, 25);
-		font-size: 15px;
-		font-weight: 400;
-		width: calc(100% - 60px);
-
-		/* Workaround for unnecessary space */
-		display: flex;
-		flex-direction: column;
-	}
-
-	.user {
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
-	}
-
-	.display_name {
-		margin-right: 4px;
-		font-weight: 700;
-	}
-
-	.name {
-		color: rgb(83, 100, 113);
-		font-size: 15px;
-	}
-
-	.display_name,
-	.name {
-		text-overflow: ellipsis;
-		overflow: hidden;
-		white-space: nowrap;
-	}
-
-	.created_at {
-		margin-left: auto;
-	}
-
 	.reply {
 		font-size: 0.8em;
 		color: gray;
