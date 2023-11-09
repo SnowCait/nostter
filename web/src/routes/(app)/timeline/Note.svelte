@@ -265,7 +265,7 @@
 </script>
 
 <EventMetadata {item} {createdAtFormat}>
-	<section>
+	<section slot="content">
 		{#if isReply(item.event)}
 			<div class="reply">
 				<span>To</span>

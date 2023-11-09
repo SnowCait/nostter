@@ -65,7 +65,14 @@
 
 		const followeesFilter = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
 			return {
-				kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
+				kinds: [
+					Kind.Metadata,
+					Kind.Text,
+					6,
+					Kind.ChannelCreation,
+					Kind.ChannelMessage,
+					30315
+				],
 				authors: chunkedAuthors,
 				since
 			};
@@ -182,6 +189,13 @@
 				}
 
 				return;
+			}
+
+			if (event.kind === 30315) {
+				console.log('[user status]', event, $pool.seenOn(event.id));
+				if (event.content === '') {
+					return;
+				}
 			}
 
 			referencesReqEmit(event);

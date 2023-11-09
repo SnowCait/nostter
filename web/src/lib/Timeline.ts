@@ -170,7 +170,7 @@ export class Timeline {
 	public static createChunkedFilters(authors: string[], since: number, until: number): Filter[] {
 		return chunk(authors, filterLimitItems).map((chunkedAuthors) => {
 			return {
-				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
+				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage, 30315],
 				authors: chunkedAuthors,
 				until,
 				since
