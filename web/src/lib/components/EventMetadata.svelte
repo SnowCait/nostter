@@ -16,6 +16,9 @@
 		<a href="/{nip19.npubEncode(item.event.pubkey)}">
 			<img class="picture" src={metadata?.picture} alt="" />
 		</a>
+		<div class="icon">
+			<slot name="icon" />
+		</div>
 	</div>
 	<div class="note">
 		<div class="user">
@@ -33,7 +36,7 @@
 				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
 			</div>
 		</div>
-		<slot />
+		<slot name="content" />
 	</div>
 </article>
 
@@ -49,6 +52,15 @@
 		border-radius: 50%;
 		margin-right: 12px;
 		object-fit: cover;
+	}
+
+	.icon {
+		margin-left: 15px;
+	}
+
+	:global(.icon svg) {
+		width: 18px;
+		height: 18px;
 	}
 
 	.note {

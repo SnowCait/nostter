@@ -8,6 +8,7 @@
 	import Note from './Note.svelte';
 	import { Metadata, type Item } from '$lib/Items';
 	import CustomEmojiList from './CustomEmojiList.svelte';
+	import UserStatus from './UserStatus.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -27,6 +28,8 @@
 	<Zap {item} {readonly} {createdAtFormat} />
 {:else if Number(item.event.kind) === 30030}
 	<CustomEmojiList tags={item.event.tags} />
+{:else if Number(item.event.kind) === 30315}
+	<UserStatus {item} {createdAtFormat} />
 {:else}
 	<Note {item} {readonly} {createdAtFormat} {full} />
 {/if}
