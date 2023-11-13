@@ -55,7 +55,7 @@ export class Content {
 				return x.index - y.index;
 			});
 		} catch (error: any) {
-			return [new Token('text', `Failed to parse content: ${error.name}\n${error.message}`)];
+			return [new Token('text', content)];
 		}
 
 		const tokens: Token[] = [];
