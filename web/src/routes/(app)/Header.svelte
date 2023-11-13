@@ -32,7 +32,7 @@
 				<NostterLogoIcon width={30} height={30} />
 			</span>
 			<span class="logo-for-desktop">
-				<NostterLogo width={120} height={24} />
+				<NostterLogo width={127.5} height={32} />
 			</span>
 		</a>
 	</div>
