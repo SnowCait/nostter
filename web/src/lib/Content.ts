@@ -24,28 +24,39 @@ export class Content {
 				)
 				.map(([, shortcode, url]) => [shortcode, url])
 		);
-		const matches = [
-			...(hashtags.length > 0
-				? content.matchAll(new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'g'))
-				: []),
-			...(emojis.size > 0
-				? content.matchAll(
-						new RegExp(
-							`:(${[...emojis.keys()].filter((x) => /^\w+$/.test(x)).join('|')}):`,
-							'g'
-						)
-				  )
-				: []),
-			...content.matchAll(/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[\d+\]/g),
-			...content.matchAll(/https?:\/\/\S+/g),
-			...content.matchAll(/NIP-[0-9]{2,}/g)
-		].sort((x, y) => {
-			if (x.index === undefined || y.index === undefined) {
-				throw new Error('Index is undefined');
-			}
+		let matches: RegExpMatchArray[] = [];
+		try {
+			matches = [
+				...(hashtags.length > 0
+					? content.matchAll(
+							new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'g')
+					  )
+					: []),
+				...(emojis.size > 0
+					? content.matchAll(
+							new RegExp(
+								`:(${[...emojis.keys()]
+									.filter((x) => /^\w+$/.test(x))
+									.join('|')}):`,
+								'g'
+							)
+					  )
+					: []),
+				...content.matchAll(
+					/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[\d+\]/g
+				),
+				...content.matchAll(/https?:\/\/\S+/g),
+				...content.matchAll(/NIP-[0-9]{2,}/g)
+			].sort((x, y) => {
+				if (x.index === undefined || y.index === undefined) {
+					throw new Error('Index is undefined');
+				}
 
-			return x.index - y.index;
-		});
+				return x.index - y.index;
+			});
+		} catch (error: any) {
+			return [new Token('text', `Failed to parse content: ${error.name}\n${error.message}`)];
+		}
 
 		const tokens: Token[] = [];
 		let index = 0;
