@@ -19,7 +19,7 @@
 		"@sveltejs/adapter-auto": "^2.1.0",
 		"@sveltejs/kit": "^1.25.2",
 		"@types/beyonk__gdpr-cookie-consent-banner": "^9.0.2",
-		"@types/emoji-mart": "^3.0.10",
+		"@types/emoji-mart": "^3.0.12",
 		"@types/qrcode": "^1.5.4",
 		"@typescript-eslint/eslint-plugin": "^6.8.0",
 		"@typescript-eslint/parser": "^6.8.0",
