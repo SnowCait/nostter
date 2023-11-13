@@ -55,6 +55,7 @@ export class Content {
 				return x.index - y.index;
 			});
 		} catch (error: any) {
+			console.error('[content parse failed]', error);
 			return [new Token('text', content)];
 		}
 
