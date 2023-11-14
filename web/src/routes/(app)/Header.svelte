@@ -10,6 +10,7 @@
 	import { unreadEvents } from '../../stores/Notifications';
 	import { pubkey, rom } from '../../stores/Author';
 	import { _ } from 'svelte-i18n';
+	import { goto } from '$app/navigation';
 
 	export let onClickPostButton: () => void;
 </script>
@@ -77,6 +78,10 @@
 		<button on:click={onClickPostButton}>
 			<IconPencilPlus size={30} />
 			<p>{$_('post')}</p>
+		</button>
+	{:else}
+		<button on:click={async () => await goto('/')}>
+			<p>{$_('login.login')}</p>
 		</button>
 	{/if}
 </div>
