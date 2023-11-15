@@ -129,44 +129,6 @@ export class Timeline {
 		};
 	}
 
-	public async fetch(until: number, seconds: number = 1 * 60 * 60): Promise<EventItem[]> {
-		const since = until - seconds;
-
-		const authorsFilter = chunk(this.authors, filterLimitItems).map((chunkedAuthors) => {
-			return {
-				kinds: [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage],
-				authors: chunkedAuthors,
-				until,
-				since
-			};
-		});
-
-		const filters = [
-			...authorsFilter,
-			{
-				kinds: [
-					Kind.Text /*, Kind.EncryptedDirectMessage*/,
-					6 /*Kind.Reaction, */,
-					Kind.ChannelMessage /*, Kind.Zap*/
-				],
-				'#p': [this.pubkey],
-				until,
-				since
-			}
-			// {
-			// 	kinds: [Kind.Reaction],
-			// 	authors: [this.pubkey],
-			// 	until,
-			// 	since
-			// }
-		];
-		console.log('[past timeline filters]', filters);
-
-		const eventItems = await this.api.fetchEventItems(filters);
-
-		return eventItems.filter((x) => x.event.created_at !== until);
-	}
-
 	public static createChunkedFilters(authors: string[], since: number, until: number): Filter[] {
 		return chunk(authors, filterLimitItems).map((chunkedAuthors) => {
 			return {
