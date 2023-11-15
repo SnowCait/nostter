@@ -37,7 +37,6 @@
 	let followers: string[] = [];
 	let followeesLoading = true;
 	let followersLoading = true;
-	let timeline: Timeline;
 
 	let relays = $readRelays;
 	let slug = $page.params.slug;
@@ -78,7 +77,6 @@
 		events = [];
 		pubkey = data.pubkey;
 		relays = Array.from(new Set([...relays, ...data.relays]));
-		timeline = new Timeline(pubkey, [pubkey]);
 
 		metadata = $metadataStore.get(pubkey);
 		if (metadata === undefined) {
@@ -106,7 +104,7 @@
 	});
 
 	async function load() {
-		if (timeline === undefined || pubkey === undefined) {
+		if (pubkey === undefined) {
 			return;
 		}
 
