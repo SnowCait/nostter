@@ -9,6 +9,7 @@
 	import { referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import type { PageData } from './$types';
 	import Content from '../content/Content.svelte';
+	import Loading from '../Loading.svelte';
 
 	export let data: PageData;
 
@@ -49,11 +50,14 @@
 </svelte:head>
 
 {#if event === undefined}
-	<h1>Loading...</h1>
+	<Loading />
 {:else}
-	<h1>{title}</h1>
+	<header>
+		<h1>{title}</h1>
+		<p>{event.tags.find(([t]) => t === 'summary')?.at(1) ?? ''}</p>
+	</header>
 
-	<p>{event.tags.find(([t]) => t === 'summary')?.at(1)}</p>
-
-	<Content content={event.content} tags={event.tags} />
+	<section class="card">
+		<Content content={event.content} tags={event.tags} />
+	</section>
 {/if}
