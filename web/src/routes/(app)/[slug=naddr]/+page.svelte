@@ -1,48 +1,57 @@
 <script lang="ts">
 	import { error } from '@sveltejs/kit';
 	import type { Event } from 'nostr-tools';
-	import { pool } from '../../../stores/Pool';
-	import { Api } from '$lib/Api';
-	import { defaultRelays } from '$lib/Constants';
-	import { onMount } from 'svelte';
-	import { Content as ContentParser } from '$lib/Content';
-	import { referencesReqEmit } from '$lib/timelines/MainTimeline';
+	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import type { PageData } from './$types';
 	import Content from '../content/Content.svelte';
 	import Loading from '../Loading.svelte';
 
 	export let data: PageData;
 
-	console.time('naddr');
-
 	let event: Event | undefined;
 
 	$: title = event?.tags.find(([t]) => t === 'title')?.at(1);
+	$: summary = event?.tags.find(([t]) => t === 'summary')?.at(1) ?? '';
 
-	$: if (event !== undefined) {
-		referencesReqEmit(event);
+	$: {
+		const promises = data.relays.map((relay) =>
+			rxNostr.addRelay({ url: relay, write: false, read: true })
+		);
+		Promise.allSettled(promises).then(() => {
+			const naddrReq = createRxOneshotReq({
+				filters: [
+					{
+						kinds: [data.kind],
+						authors: [data.pubkey],
+						'#d': [data.identifier]
+					}
+				]
+			});
+
+			rxNostr
+				.use(naddrReq)
+				.pipe(uniq(), latest())
+				.subscribe({
+					next: (packet) => {
+						console.log('[rx-nostr naddr next]', packet);
+						event = packet.event;
+					},
+					complete: () => {
+						console.log('[rx-nostr naddr complete]');
+					},
+					error: (e) => {
+						console.error('[rx-nostr naddr error]', e);
+						throw error(404);
+					}
+				});
+		});
 	}
 
-	onMount(async () => {
-		const api = new Api($pool, data.relays.length > 0 ? data.relays : defaultRelays);
-		event = await api.fetchEvent([
-			{
-				kinds: [data.kind],
-				authors: [data.pubkey],
-				'#d': [data.identifier]
-			}
-		]);
-		console.log('[event]', event);
-
-		if (event === undefined) {
-			throw error(404);
-		}
-
-		const tokens = ContentParser.parse(event.content);
-		console.log('[tokens]', tokens);
-
-		console.timeEnd('naddr');
-	});
+	$: if (event !== undefined) {
+		console.log('[references req]', event);
+		referencesReqEmit(event);
+	}
 </script>
 
 <svelte:head>
@@ -54,7 +63,7 @@
 {:else}
 	<header>
 		<h1>{title}</h1>
-		<p>{event.tags.find(([t]) => t === 'summary')?.at(1) ?? ''}</p>
+		<p>{summary}</p>
 	</header>
 
 	<section class="card">
