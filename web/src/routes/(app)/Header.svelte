@@ -5,7 +5,9 @@
 	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
 	import IconSettings from '@tabler/icons-svelte/dist/svelte/icons/IconSettings.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
+	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
+	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { unreadEvents } from '../../stores/Notifications';
 	import { pubkey, rom } from '../../stores/Author';
@@ -13,6 +15,8 @@
 	import { goto } from '$app/navigation';
 
 	export let onClickPostButton: () => void;
+
+	let show = false;
 </script>
 
 <div class="header">
@@ -53,24 +57,40 @@
 						<p>{$_('layout.header.notifications')}</p>
 					</li>
 				</a>
-				<a href="/{nip19.npubEncode($pubkey)}/bookmarks">
-					<li>
-						<IconBookmark size={30} />
-						<p>{$_('layout.header.bookmark')}</p>
-					</li>
-				</a>
 				<a href="/{nip19.npubEncode($pubkey)}">
 					<li>
 						<IconUser size={30} />
 						<p>{$_('layout.header.profile')}</p>
 					</li>
 				</a>
-				<a href="/preferences">
-					<li>
-						<IconSettings size={30} />
-						<p>{$_('layout.header.preference')}</p>
+				{#if window.matchMedia('(max-width: 600px)').matches}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+					<li on:click={() => (show = !show)}>
+						<IconDots size={30} />
+						<p>...</p>
 					</li>
-				</a>
+				{/if}
+				{#if !window.matchMedia('(max-width: 600px)').matches || show}
+					<a href="/{nip19.npubEncode($pubkey)}/bookmarks">
+						<li>
+							<IconBookmark size={30} />
+							<p>{$_('layout.header.bookmarks')}</p>
+						</li>
+					</a>
+					<a href="/channels">
+						<li>
+							<IconMessages size={30} />
+							<p>{$_('layout.header.channels')}</p>
+						</li>
+					</a>
+					<a href="/preferences">
+						<li>
+							<IconSettings size={30} />
+							<p>{$_('layout.header.preference')}</p>
+						</li>
+					</a>
+				{/if}
 			{/if}
 		</ul>
 	</nav>
@@ -227,6 +247,8 @@
 
 		nav {
 			margin: 0;
+			width: 100%;
+			overflow: auto;
 		}
 
 		ul {
