@@ -5,7 +5,8 @@
 			"search": "検索",
 			"global": "トレンド",
 			"notifications": "通知",
-			"bookmark": "ブックマーク",
+			"bookmarks": "ブックマーク",
+			"channels": "チャンネル",
 			"profile": "プロフィール",
 			"preference": "設定"
 		}

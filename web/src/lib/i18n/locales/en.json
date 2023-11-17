@@ -5,7 +5,8 @@
 			"search": "Search",
 			"global": "Trend",
 			"notifications": "Notifications",
-			"bookmark": "Bookmark",
+			"bookmarks": "Bookmarks",
+			"channels": "Channels",
 			"profile": "Profile",
 			"preference": "Settings"
 		}
