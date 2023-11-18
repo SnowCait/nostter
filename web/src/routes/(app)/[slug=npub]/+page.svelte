@@ -8,7 +8,6 @@
 	import { normalizeNip05 } from '$lib/MetadataHelper';
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
-	import { afterNavigate } from '$app/navigation';
 	import { Timeline } from '$lib/Timeline';
 	import { EventItem, Metadata, type MetadataContent } from '$lib/Items';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
@@ -20,13 +19,16 @@
 	let metadata: Metadata | undefined;
 	let user: MetadataContent | undefined;
 	let events: EventItem[] = [];
-	let pubkey: string | undefined;
 
 	let relays = $readRelays;
 	let slug = $page.params.slug;
 
 	$: if (metadata === undefined || metadata.event.pubkey !== data.pubkey) {
 		console.log('[npub metadata]', nip19.npubEncode(data.pubkey));
+
+		events = [];
+		relays = [...new Set([...$readRelays, ...data.relays])];
+
 		metadata = $metadataStore.get(data.pubkey);
 		if (metadata === undefined) {
 			metadataReqEmit([data.pubkey]);
@@ -49,25 +51,8 @@
 		}
 	}
 
-	afterNavigate(async () => {
-		slug = $page.params.slug;
-		console.log('[profile page]', slug);
-
-		if (pubkey === data.pubkey) {
-			return;
-		}
-
-		events = [];
-		pubkey = data.pubkey;
-		relays = Array.from(new Set([...relays, ...data.relays]));
-
-		await load();
-	});
-
 	async function load() {
-		if (pubkey === undefined) {
-			return;
-		}
+		console.log('[npub page timeline load]', data.pubkey);
 
 		let firstLength = events.length;
 		let count = 0;
@@ -83,7 +68,7 @@
 				new Date(until * 1000)
 			);
 
-			const filters = Timeline.createChunkedFilters([pubkey], since, until);
+			const filters = Timeline.createChunkedFilters([data.pubkey], since, until);
 			console.log('[rx-nostr user timeline REQ]', filters, rxNostr.getAllRelayState());
 			const pastEventsReq = createRxOneshotReq({ filters });
 			console.log(
