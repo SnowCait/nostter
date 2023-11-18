@@ -133,7 +133,7 @@
 				return;
 			}
 
-			if (event.kind === 10001) {
+			if (event.kind === 10001 || event.kind === 10005) {
 				storage.setReplaceableEvent(event);
 				return;
 			}

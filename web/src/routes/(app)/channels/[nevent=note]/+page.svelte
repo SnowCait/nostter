@@ -24,7 +24,7 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import { EventItem } from '$lib/Items';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
-	// import PinChannel from './PinChannel.svelte';
+	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '../../parts/ChannelTitle.svelte';
 	import MuteButton from '../../action/MuteButton.svelte';
 
@@ -212,7 +212,7 @@
 			</button>
 		</div>
 		{#if $author !== undefined && channelId !== undefined}
-			<!-- <div class="pin"><PinChannel {channelId} /></div> -->
+			<div class="pin"><PinChannel {channelId} /></div>
 			<div class="mute"><MuteButton tagName="e" tagContent={channelId} text="channel" /></div>
 		{/if}
 	</section>

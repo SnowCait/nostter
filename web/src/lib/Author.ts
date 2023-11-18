@@ -1,6 +1,6 @@
 import { Kind, type Event, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { now } from 'rx-nostr';
+import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 import { Api } from './Api';
 import { pool } from '../stores/Pool';
 import {
@@ -21,6 +21,8 @@ import { lastReadAt } from '../stores/Notifications';
 import { Mute } from './Mute';
 import { WebStorage } from './WebStorage';
 import { Preferences, preferencesStore } from './Preferences';
+import { rxNostr } from './timelines/MainTimeline';
+import { Signer } from './Signer';
 
 type AuthorReplaceableKind = {
 	kind: number;
@@ -31,7 +33,6 @@ export const authorReplaceableKinds: AuthorReplaceableKind[] = [
 	...Api.replaceableKinds.map((kind) => {
 		return { kind };
 	}),
-	{ kind: 30000, identifier: 'notifications/lastOpened' },
 	{ kind: 30001, identifier: 'bookmark' },
 	{ kind: 30078, identifier: 'nostter-reaction-emoji' },
 	{ kind: 30078, identifier: 'nostter-read' }
@@ -222,6 +223,13 @@ export class Author {
 			);
 		}
 
+		// Channels
+		const pinEvent = replaceableEvents.get(10001 as Kind);
+		const channelsEvent = replaceableEvents.get(10005 as Kind);
+		if (channelsEvent === undefined && pinEvent !== undefined) {
+			this.migrateChannels(pinEvent);
+		}
+
 		console.log('[relays]', get(readRelays), get(writeRelays));
 	}
 
@@ -268,5 +276,69 @@ export class Author {
 			storage.setParameterizedReplaceableEvent(event);
 		}
 		return { replaceableEvents, parameterizedReplaceableEvents };
+	}
+
+	private migrateChannels(regacyChannelsEvent: Event) {
+		console.log('[channels migration]', regacyChannelsEvent);
+
+		const ids = filterTags('e', regacyChannelsEvent.tags);
+		if (ids.length === 0) {
+			return;
+		}
+
+		const channelIds = new Set<string>();
+		const channelsMetadataReq = createRxOneshotReq({
+			filters: [
+				{
+					kinds: [40],
+					ids
+				}
+			]
+		});
+		rxNostr
+			.use(channelsMetadataReq)
+			.pipe(uniq())
+			.subscribe({
+				next: (packet) => {
+					console.log('[channel metadata next]', packet);
+					channelIds.add(packet.event.id);
+				},
+				complete: async () => {
+					console.log('[channels metadata complete]');
+
+					if (channelIds.size === 0) {
+						return;
+					}
+
+					const storage = new WebStorage(localStorage);
+
+					const event = await Signer.signEvent({
+						kind: 10005,
+						content: '',
+						tags: regacyChannelsEvent.tags.filter(
+							([tagName, id]) => tagName === 'e' && channelIds.has(id)
+						),
+						created_at: now()
+					});
+					rxNostr.send(event).subscribe((packet) => {
+						console.log('[channels migration send]', packet);
+						if (packet.ok && storage.getReplaceableEvent(10005) === undefined) {
+							storage.setReplaceableEvent(event);
+						}
+					});
+
+					const pinEvent = await Signer.signEvent({
+						kind: regacyChannelsEvent.kind,
+						content: regacyChannelsEvent.content,
+						tags: regacyChannelsEvent.tags.filter(
+							([tagName, id]) => !(tagName === 'e' && channelIds.has(id))
+						),
+						created_at: now()
+					});
+					rxNostr.send(pinEvent).subscribe((packet) => {
+						console.log('[channels migration send pin]', packet);
+					});
+				}
+			});
 	}
 }
