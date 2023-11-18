@@ -15,6 +15,10 @@ const eventsReq = createRxBackwardReq();
 
 export function metadataReqEmit(pubkeys: string[]): void {
 	for (const pubkey of pubkeys) {
+		if (get(metadataStore).has(pubkey)) {
+			console.debug('[rx-nostr metadata REQ skipped]', pubkey);
+			continue;
+		}
 		console.debug('[rx-nostr metadata REQ emit]', pubkey);
 		metadataReq.emit({
 			kinds: [0],
