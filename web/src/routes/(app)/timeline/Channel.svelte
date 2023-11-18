@@ -8,11 +8,12 @@
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
 	import { intentContent, openNoteDialog } from '../../../stores/NoteDialog';
 	import { Channel } from '$lib/Channel';
+	import { findChannelId } from '$lib/EventHelper';
 
 	export let event: Event;
 
 	let channelMetadata = Channel.parseMetadata(event);
-	console.log('[channel (kind 40)]', channelMetadata);
+	console.log('[channel (kind 40)]', channelMetadata, event);
 
 	const iconSize = 20;
 	let jsonDisplay = false;
@@ -46,7 +47,11 @@
 		{/if}
 		<div class="channel">
 			<h1>
-				<a href="/channels/{nip19.neventEncode({ id: event.id })}">
+				<a
+					href="/channels/{nip19.neventEncode({
+						id: event.kind === 40 ? event.id : findChannelId(event.tags) ?? ''
+					})}"
+				>
 					{channelMetadata?.name ?? ''}
 				</a>
 			</h1>
