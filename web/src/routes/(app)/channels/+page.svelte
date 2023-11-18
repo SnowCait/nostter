@@ -66,7 +66,7 @@
 		channelsEvent = storage.getReplaceableEvent(10005);
 	});
 
-	async function search(e: SubmitEvent) {
+	async function search() {
 		console.log('[channels search]', keyword);
 
 		if (keyword === '') {
