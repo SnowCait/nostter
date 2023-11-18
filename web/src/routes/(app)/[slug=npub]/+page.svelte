@@ -9,7 +9,7 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
 	import { Timeline } from '$lib/Timeline';
-	import { EventItem, Metadata, type MetadataContent } from '$lib/Items';
+	import { EventItem, Metadata } from '$lib/Items';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import type { LayoutData } from './$types';
 	import Profile from '$lib/components/Profile.svelte';
@@ -17,7 +17,6 @@
 	export let data: LayoutData;
 
 	let metadata: Metadata | undefined;
-	let user: MetadataContent | undefined;
 	let events: EventItem[] = [];
 
 	let relays = $readRelays;
@@ -34,17 +33,16 @@
 			metadataReqEmit([data.pubkey]);
 		} else {
 			referencesReqEmit(metadata.event);
-			user = metadata?.content;
 			overwriteSlug();
 		}
 	}
 
 	function overwriteSlug() {
-		if (user === undefined || !user.nip05) {
+		if (metadata?.content === undefined || !metadata.content.nip05) {
 			return;
 		}
 
-		const normalizedNip05 = normalizeNip05(user.nip05);
+		const normalizedNip05 = normalizeNip05(metadata.content.nip05);
 		if (slug === normalizedNip05) {
 			return;
 		}
@@ -145,11 +143,9 @@
 
 <svelte:head>
 	{#if metadata !== undefined}
-		<title>
-			{user?.display_name ?? user?.name} (@{user?.name ?? user?.display_name}) - nostter
-		</title>
+		<title>nostter - {metadata.displayName} (@{metadata.name})</title>
 	{:else}
-		<title>ghost - nostter</title>
+		<title>nostter - ghost</title>
 	{/if}
 </svelte:head>
 

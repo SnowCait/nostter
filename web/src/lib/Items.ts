@@ -25,6 +25,26 @@ export class Metadata implements Item {
 		}
 	}
 
+	get name(): string {
+		if (this.content?.name !== undefined && this.content.name !== '') {
+			return this.content.name;
+		} else if (this.content?.display_name !== undefined && this.content.display_name !== '') {
+			return this.content.display_name;
+		} else {
+			return nip19.npubEncode(this.event.pubkey).slice(0, 'npub1'.length + 7);
+		}
+	}
+
+	get displayName(): string {
+		if (this.content?.display_name !== undefined && this.content.display_name !== '') {
+			return this.content.display_name;
+		} else if (this.content?.name !== undefined && this.content.name !== '') {
+			return this.content.name;
+		} else {
+			return nip19.npubEncode(this.event.pubkey).slice(0, 'npub1'.length + 7);
+		}
+	}
+
 	get picture(): string {
 		return this.content?.picture !== undefined && this.content.picture !== ''
 			? this.content.picture
