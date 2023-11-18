@@ -8,9 +8,8 @@
 	import { normalizeNip05 } from '$lib/MetadataHelper';
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
-	import { afterNavigate } from '$app/navigation';
 	import { Timeline } from '$lib/Timeline';
-	import { EventItem, Metadata, type MetadataContent } from '$lib/Items';
+	import { EventItem, Metadata } from '$lib/Items';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import type { LayoutData } from './$types';
 	import Profile from '$lib/components/Profile.svelte';
@@ -18,56 +17,48 @@
 	export let data: LayoutData;
 
 	let metadata: Metadata | undefined;
-	let user: MetadataContent | undefined;
 	let events: EventItem[] = [];
-	let pubkey: string | undefined;
 
 	let relays = $readRelays;
 	let slug = $page.params.slug;
 
 	$: if (metadata === undefined || metadata.event.pubkey !== data.pubkey) {
 		console.log('[npub metadata]', nip19.npubEncode(data.pubkey));
+
+		events = [];
+		relays = [...new Set([...$readRelays, ...data.relays])];
+
 		metadata = $metadataStore.get(data.pubkey);
 		if (metadata === undefined) {
 			metadataReqEmit([data.pubkey]);
 		} else {
 			referencesReqEmit(metadata.event);
-			user = metadata?.content;
-			if (user !== undefined && user.nip05) {
-				const normalizedNip05 = normalizeNip05(user.nip05);
-				if (slug !== normalizedNip05) {
-					nip05.queryProfile(normalizedNip05).then((pointer) => {
-						if (pointer !== null) {
-							history.replaceState(history.state, '', normalizedNip05);
-							slug = normalizedNip05;
-						} else {
-							console.warn('[invalid NIP-05]', normalizedNip05);
-						}
-					});
-				}
-			}
+			overwriteSlug();
 		}
 	}
 
-	afterNavigate(async () => {
-		slug = $page.params.slug;
-		console.log('[profile page]', slug);
-
-		if (pubkey === data.pubkey) {
+	function overwriteSlug() {
+		if (metadata?.content === undefined || !metadata.content.nip05) {
 			return;
 		}
 
-		events = [];
-		pubkey = data.pubkey;
-		relays = Array.from(new Set([...relays, ...data.relays]));
+		const normalizedNip05 = normalizeNip05(metadata.content.nip05);
+		if (slug === normalizedNip05) {
+			return;
+		}
 
-		await load();
-	});
+		nip05.queryProfile(normalizedNip05).then((pointer) => {
+			if (pointer !== null) {
+				history.replaceState(history.state, '', normalizedNip05);
+				slug = normalizedNip05;
+			} else {
+				console.warn('[invalid NIP-05]', normalizedNip05);
+			}
+		});
+	}
 
 	async function load() {
-		if (pubkey === undefined) {
-			return;
-		}
+		console.log('[npub page timeline load]', data.pubkey);
 
 		let firstLength = events.length;
 		let count = 0;
@@ -83,7 +74,7 @@
 				new Date(until * 1000)
 			);
 
-			const filters = Timeline.createChunkedFilters([pubkey], since, until);
+			const filters = Timeline.createChunkedFilters([data.pubkey], since, until);
 			console.log('[rx-nostr user timeline REQ]', filters, rxNostr.getAllRelayState());
 			const pastEventsReq = createRxOneshotReq({ filters });
 			console.log(
@@ -152,11 +143,9 @@
 
 <svelte:head>
 	{#if metadata !== undefined}
-		<title>
-			{user?.display_name ?? user?.name} (@{user?.name ?? user?.display_name}) - nostter
-		</title>
+		<title>nostter - {metadata.displayName} (@{metadata.name})</title>
 	{:else}
-		<title>ghost - nostter</title>
+		<title>nostter - ghost</title>
 	{/if}
 </svelte:head>
 
