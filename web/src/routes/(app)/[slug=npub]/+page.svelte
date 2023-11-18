@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { type Event, nip05, nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
-	import { tap, bufferTime } from 'rxjs';
+	import { tap } from 'rxjs';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { normalizeNip05 } from '$lib/MetadataHelper';
@@ -10,7 +10,7 @@
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
 	import { Timeline } from '$lib/Timeline';
 	import { EventItem, Metadata } from '$lib/Items';
-	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
+	import { minTimelineLength } from '$lib/Constants';
 	import type { LayoutData } from './$types';
 	import Profile from '$lib/components/Profile.svelte';
 
@@ -87,33 +87,38 @@
 					.use(pastEventsReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => referencesReqEmit(event)),
-						bufferTime(timelineBufferMs)
+						tap(({ event }: { event: Event }) => referencesReqEmit(event))
 					)
 					.subscribe({
-						next: async (packets) => {
-							console.log('[rx-nostr user timeline packets]', packets);
-							packets.sort(reverseChronologicalItem);
-							const newEventItems = packets
-								.filter(
-									({ event }) =>
-										since <= event.created_at && event.created_at < until
+						next: async (packet) => {
+							console.log('[rx-nostr user timeline packet]', packet);
+							if (
+								!(
+									since <= packet.event.created_at &&
+									packet.event.created_at < until
 								)
-								.map(({ event }) => new EventItem(event));
-							const duplicateEvents = newEventItems.filter((item) =>
-								events.some((x) => x.event.id === item.event.id)
-							);
-							if (duplicateEvents.length > 0) {
+							) {
 								console.warn(
-									'[rx-nostr user timeline duplicate events]',
-									duplicateEvents
+									'[rx-nostr user timeline out of period]',
+									packet,
+									since,
+									until
 								);
+								return;
 							}
-							events.push(
-								...newEventItems.filter(
-									(item) => !events.some((x) => x.event.id === item.event.id)
-								)
+							if (events.some((x) => x.event.id === packet.event.id)) {
+								console.warn('[rx-nostr user timeline duplicate]', packet.event);
+								return;
+							}
+							const item = new EventItem(packet.event);
+							const index = events.findIndex(
+								(x) => x.event.created_at < item.event.created_at
 							);
+							if (index < 0) {
+								events.push(item);
+							} else {
+								events.splice(index, 0, item);
+							}
 							events = events;
 						},
 						complete: () => {
