@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { SimplePool, nip19 } from 'nostr-tools';
+	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import { filterTags } from '$lib/EventHelper';
+	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { Api } from '$lib/Api';
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
 	import type { Metadata } from '$lib/Items';
 	import { pubkey as authorPubkey, rom } from '../../stores/Author';
-	import { pool } from '../../stores/Pool';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
 	import Badges from './Badges.svelte';
@@ -20,10 +22,8 @@
 	export let metadata: Metadata | undefined;
 	export let relays: string[] = [];
 
-	let followees: string[] = [];
-	let followers: string[] = [];
-	let followeesLoading = true;
-	let followersLoading = true;
+	let followees: string[] | undefined;
+	let followers: string[] | undefined;
 
 	let badges: Badge[] = []; // NIP-58 Badges
 
@@ -33,22 +33,30 @@
 	$: if (pubkey !== undefined && relays.length > 0) {
 		console.log('[npub follows]', nip19.npubEncode(pubkey), relays);
 
-		followees = [];
-		followers = [];
-		followeesLoading = true;
-		followersLoading = true;
+		followees = undefined;
+		followers = undefined;
 		badges = [];
 
-		const api = new Api($pool, relays);
-		api.fetchFollowees(pubkey).then((pubkeys) => {
-			followees = pubkeys;
-			followeesLoading = false;
+		const contactsReq = createRxOneshotReq({
+			filters: [
+				{
+					kinds: [3],
+					authors: [pubkey],
+					limit: 1
+				}
+			]
 		});
+		rxNostr
+			.use(contactsReq)
+			.pipe(uniq(), latest())
+			.subscribe((packet) => {
+				console.log('[rx-nostr npub contacts]', packet);
+				followees = [...new Set(filterTags('p', packet.event.tags))];
+			});
 
 		const longWaitApi = new Api(new SimplePool({ eoseSubTimeout: 10000 }), relays);
 		longWaitApi.fetchFollowers(pubkey).then((pubkeys) => {
 			followers = pubkeys;
-			followersLoading = false;
 		});
 
 		const badgeApi = new BadgeApi();
@@ -99,7 +107,7 @@
 			{#if user?.name}
 				<h2>@{user.name}</h2>
 			{/if}
-			{#if followees.some((pubkey) => pubkey === $authorPubkey)}
+			{#if followees?.some((pubkey) => pubkey === $authorPubkey)}
 				<p>Follows you</p>
 			{/if}
 			{#if pubkey !== undefined}
@@ -131,14 +139,14 @@
 	<Badges {badges} />
 	<div class="relationships">
 		<div>
-			Followees: {#if followeesLoading}
+			Followees: {#if followees === undefined}
 				<Loading />
 			{:else}
 				<a href={`/${slug}/followees`}>{followees.length}</a>
 			{/if}
 		</div>
 		<div>
-			Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}
+			Followers: {#if followers === undefined}<Loading />{:else}{followers.length}+{/if}
 		</div>
 	</div>
 	<div>
