@@ -484,10 +484,11 @@ dialog {
 dialog::backdrop {
 	background: rgba(0 0 0 / 40%);
 }
+
 svg.logo {
-	fill: #464646;
+	fill: var(--accent);
 }
 	
 .dark svg.logo {
-	fill: #fff5e7;
+	fill: var(--accent);
 }
