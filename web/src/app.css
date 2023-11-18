@@ -478,7 +478,7 @@ dialog {
 	position: fixed;
 	inset: 0;
 	margin: auto;
-	background: var(--background);
+	background: var(--surface);
 }
 
 dialog::backdrop {
