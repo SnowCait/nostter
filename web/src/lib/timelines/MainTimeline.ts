@@ -30,11 +30,12 @@ export function metadataReqEmit(pubkeys: string[]): void {
 
 export function referencesReqEmit(event: Event, metadataOnly: boolean = false): void {
 	console.debug('[rx-nostr references REQ emit]', event);
+	const content = event.kind > 0 ? event.content : new Metadata(event).content?.about ?? '';
 	metadataReqEmit([
 		...new Set([
 			event.pubkey,
 			...filterTags('p', event.tags),
-			...Content.findNpubsAndNprofilesToPubkeys(event.content)
+			...Content.findNpubsAndNprofilesToPubkeys(content)
 		])
 	]);
 
@@ -51,7 +52,7 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 						tagName === 'e' && id !== undefined && !$eventItemStore.has(id)
 				)
 				.map(([, id]) => id),
-			...Content.findNotesAndNeventsToIds(event.content)
+			...Content.findNotesAndNeventsToIds(content)
 		])
 	];
 

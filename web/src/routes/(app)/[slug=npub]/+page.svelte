@@ -31,6 +31,7 @@
 		if (metadata === undefined) {
 			metadataReqEmit([data.pubkey]);
 		} else {
+			referencesReqEmit(metadata.event);
 			if (user !== undefined && user.nip05) {
 				const normalizedNip05 = normalizeNip05(user.nip05);
 				if (slug !== normalizedNip05) {
