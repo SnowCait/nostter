@@ -488,7 +488,3 @@ dialog::backdrop {
 svg.logo {
 	fill: var(--accent);
 }
-	
-.dark svg.logo {
-	fill: var(--accent);
-}
