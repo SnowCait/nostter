@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createRxOneshotReq, filterKind, uniq } from 'rx-nostr';
 	import type { Event } from 'nostr-typedef';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { WebStorage } from '$lib/WebStorage';
 	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
@@ -11,6 +11,7 @@
 
 	let channelsEvent: Event | undefined;
 	let channelIds: string[] = [];
+	let keyword = '';
 
 	$: items = channelIds.map((channelId) => {
 		let event = channelMetadataEvents.get(channelId);
@@ -64,8 +65,30 @@
 		const storage = new WebStorage(localStorage);
 		channelsEvent = storage.getReplaceableEvent(10005);
 	});
+
+	async function search() {
+		console.log('[channels search]', keyword);
+
+		if (keyword === '') {
+			return;
+		}
+
+		const q = encodeURIComponent(`${keyword} kind:40 kind:41`);
+		await goto(`/search?q=${q}`);
+	}
 </script>
 
 <h1>Channels</h1>
 
+<form on:submit|preventDefault={search}>
+	<input type="search" bind:value={keyword} on:keyup|stopPropagation={() => console.debug} />
+	<input type="submit" value="Search" />
+</form>
+
 <TimelineView {items} load={async () => console.debug()} showLoading={false} />
+
+<style>
+	form {
+		margin: 1rem auto;
+	}
+</style>
