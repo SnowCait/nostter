@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
 	import { SimplePool, type Event, nip05, nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
 	import { metadataStore } from '$lib/cache/Events';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { normalizeNip05 } from '$lib/MetadataHelper';
 	import { pool } from '../../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
@@ -15,7 +14,6 @@
 	import { Api } from '$lib/Api';
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
 	import Loading from '../Loading.svelte';
-	import { User as UserDecoder } from '$lib/User';
 	import { Timeline } from '$lib/Timeline';
 	import MuteButton from '../action/MuteButton.svelte';
 	import Badges from '../Badges.svelte';
@@ -27,6 +25,9 @@
 	import NostrAddress from './NostrAddress.svelte';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
+	import type { LayoutData } from './$types';
+
+	export let data: LayoutData;
 
 	let metadata: Metadata | undefined;
 	let user: MetadataContent | undefined;
@@ -42,19 +43,25 @@
 	let slug = $page.params.slug;
 	const api = new Api($pool, relays);
 
-	$: if (metadata !== undefined) {
-		user = metadata.content;
-		if (user !== undefined && user.nip05) {
-			const normalizedNip05 = normalizeNip05(user.nip05);
-			if (slug !== normalizedNip05) {
-				nip05.queryProfile(normalizedNip05).then((pointer) => {
-					if (pointer !== null) {
-						history.replaceState(history.state, '', normalizedNip05);
-						slug = normalizedNip05;
-					} else {
-						console.warn('[invalid NIP-05]', normalizedNip05);
-					}
-				});
+	$: if (metadata === undefined || metadata.event.pubkey !== data.pubkey) {
+		console.log('[npub metadata]', nip19.npubEncode(data.pubkey));
+		metadata = $metadataStore.get(data.pubkey);
+		if (metadata === undefined) {
+			metadataReqEmit([data.pubkey]);
+		} else {
+			user = metadata.content;
+			if (user !== undefined && user.nip05) {
+				const normalizedNip05 = normalizeNip05(user.nip05);
+				if (slug !== normalizedNip05) {
+					nip05.queryProfile(normalizedNip05).then((pointer) => {
+						if (pointer !== null) {
+							history.replaceState(history.state, '', normalizedNip05);
+							slug = normalizedNip05;
+						} else {
+							console.warn('[invalid NIP-05]', normalizedNip05);
+						}
+					});
+				}
 			}
 		}
 	}
@@ -62,12 +69,6 @@
 	afterNavigate(async () => {
 		slug = $page.params.slug;
 		console.log('[profile page]', slug);
-
-		const data = await UserDecoder.decode(slug);
-
-		if (data.pubkey === undefined) {
-			throw error(404);
-		}
 
 		if (pubkey === data.pubkey) {
 			return;
@@ -77,15 +78,6 @@
 		events = [];
 		pubkey = data.pubkey;
 		relays = Array.from(new Set([...relays, ...data.relays]));
-
-		metadata = $metadataStore.get(pubkey);
-		if (metadata === undefined) {
-			const event = await api.fetchUserEvent(pubkey);
-			console.log('[metadata]', event);
-			if (event !== undefined) {
-				metadata = new Metadata(event);
-			}
-		}
 
 		api.fetchFollowees(pubkey).then((pubkeys) => {
 			followees = pubkeys;
