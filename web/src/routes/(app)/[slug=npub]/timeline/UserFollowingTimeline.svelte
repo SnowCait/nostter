@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
-	import { tap, bufferTime } from 'rxjs';
+	import { tap } from 'rxjs';
 	import { Timeline } from '$lib/Timeline';
 	import { Api } from '$lib/Api';
 	import TimelineView from '../../TimelineView.svelte';
@@ -11,7 +11,7 @@
 	} from '../../../../stores/Author';
 	import { userTimelineEvents as items } from '../../../../stores/Events';
 	import { Kind, SimplePool, type Event, nip19 } from 'nostr-tools';
-	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
+	import { minTimelineLength } from '$lib/Constants';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { EventItem } from '$lib/Items';
 
@@ -77,26 +77,41 @@
 					.use(pastEventsReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => referencesReqEmit(event)),
-						bufferTime(timelineBufferMs)
+						tap(({ event }: { event: Event }) => referencesReqEmit(event))
 					)
 					.subscribe({
-						next: async (packets) => {
-							console.debug('[rx-nostr user following timeline packets]', packets);
-							packets.sort(reverseChronologicalItem);
-							const newEventItems = packets
-								.filter(({ event }) => event.created_at < until)
-								.map(({ event }) => new EventItem(event));
-							const duplicateEvents = newEventItems.filter((item) =>
-								$items.some((x) => x.event.id === item.event.id)
-							);
-							if (duplicateEvents.length > 0) {
+						next: async (packet) => {
+							console.debug('[rx-nostr user following timeline packet]', packet);
+							if (
+								!(
+									since <= packet.event.created_at &&
+									packet.event.created_at < until
+								)
+							) {
 								console.warn(
-									'[rx-nostr user following timeline duplicate events]',
-									duplicateEvents
+									'[rx-nostr user following timeline out of period]',
+									packet,
+									since,
+									until
 								);
+								return;
 							}
-							$items.push(...newEventItems);
+							if ($items.some((x) => x.event.id === packet.event.id)) {
+								console.warn(
+									'[rx-nostr user following timeline duplicate]',
+									packet.event
+								);
+								return;
+							}
+							const item = new EventItem(packet.event);
+							const index = $items.findIndex(
+								(x) => x.event.created_at < item.event.created_at
+							);
+							if (index < 0) {
+								$items.push(item);
+							} else {
+								$items.splice(index, 0, item);
+							}
 							$items = $items;
 						},
 						complete: () => {
