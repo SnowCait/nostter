@@ -90,7 +90,7 @@
 	}
 
 	button {
-		color: var(--color, black);
+		color: var(--accent);
 		height: 30px;
 	}
 

@@ -34,3 +34,9 @@
 	<option value="light">Light</option>
 	<option value="dark">Dark</option>
 </select>
+
+<style>
+	select {
+		color: inherit;
+	}
+</style>

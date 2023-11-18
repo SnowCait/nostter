@@ -145,7 +145,7 @@
 	li {
 		display: flex;
 		align-items: center;
-		color: var(--accent);
+		color: var(--foreground);
 	}
 
 	li p {

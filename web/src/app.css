@@ -167,6 +167,7 @@ textarea {
 	/* Internet Explorer 11+ */
 	resize: vertical;
 	/* Specify textarea resizability */
+	color: var(--foreground)
 }
 
 button,
@@ -333,13 +334,48 @@ progress {
 }
 
 .dark {
-	--background: #000f0f;
-	--foreground: #fafafa;
-	--surface: #000f0f;
-	--surface-foreground: #fafafa;
-	--default-border: 1px solid #262626;
-	--accent: #262626;
-	--accent-foreground: #fafafa;
+	--background: #232323;
+	/* ダークな背景色 */
+	--foreground: #ffffff;
+	/* 明るい前景色 */
+	--surface: #1e1e1e;
+	/* ダークなサーフェス色 */
+	--surface-foreground: #ffffff;
+	/* 明るいサーフェスの前景色 */
+	--accent: #fff5e7;
+	/* アクセントカラーのダークバージョン */
+	--accent-foreground: #1e1e1e;
+	/* ダークなアクセントの前景色 */
+	--accent-gray: #a29a91;
+	/* アクセントグレーのダークバージョン */
+	--secondary-accent: #a09384;
+	/* セカンダリアクセントのダークバージョン */
+	--ring: #f1f1f1;
+	/* 明るいリングカラー */
+	--red: #fc6262;
+	/* 赤色はそのままでもよい */
+	--blue: #54a0f8;
+	/* 青色もそのままでもよい */
+	--purple: #cc81fe;
+	/* 紫色もそのままでもよい */
+	--green: #7ef795;
+	/* 緑色もそのままでもよい */
+	--yellow: #ffeb77;
+	/* 黄色もそのままでもよい */
+	--orange: #ffa167;
+	/* オレンジもそのままでもよい */
+	--accent-surface: #333333;
+	/* アクセントサーフェスのダークバージョン */
+	--accent-surface-low: #2c2c2c;
+	/* アクセントサーフェスの低いダークバージョン */
+	--accent-surface-high: #383838;
+	/* アクセントサーフェスの高いダークバージョン */
+	--radius: 0.5rem;
+	/* 角丸の半径はそのまま */
+	--default-border: 1px solid #424242;
+	/* ボーダーのダークバージョン */
+	--shadow: 0 0 0.25rem 0 rgba(255, 255, 255, 0.2);
+	/* 明るい影 */
 }
 
 body {
@@ -464,4 +500,9 @@ dialog {
 	position: fixed;
 	inset: 0;
 	margin: auto;
+	background: var(--background);
+}
+
+dialog::backdrop {
+	background: rgba(0 0 0 / 40%);
 }

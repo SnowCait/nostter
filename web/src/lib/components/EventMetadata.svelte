@@ -64,7 +64,7 @@
 	}
 
 	.note {
-		color: rgb(15, 20, 25);
+		color: var(--foreground);
 		font-size: 15px;
 		font-weight: 400;
 		width: calc(100% - 60px);
@@ -86,7 +86,7 @@
 	}
 
 	.name {
-		color: rgb(83, 100, 113);
+		color: var(--accent-gray);
 		font-size: 15px;
 	}
 
