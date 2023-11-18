@@ -392,7 +392,10 @@
 
 		rxNostr
 			.use(userStatusReq.pipe(bufferTime(1000), batch()))
-			.pipe(latestEach((packet) => packet.event.pubkey))
+			.pipe(
+				uniq(),
+				latestEach((packet) => packet.event.pubkey)
+			)
 			.subscribe((packet) => {
 				console.log('[user status]', packet, packet.event.pubkey, packet.event.content);
 				const tags: string[][] = packet.event.tags;
@@ -485,7 +488,7 @@
 					.use(pastChannelMessageReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => referencesReqEmit(event)),
+						tap(({ event }) => referencesReqEmit(event)),
 						bufferTime(timelineBufferMs)
 					)
 					.subscribe({
@@ -507,6 +510,10 @@
 						},
 						complete: () => {
 							console.log('[rx-nostr home timeline complete]');
+
+							if ($events.length === 0) {
+								return;
+							}
 
 							// User Status
 							console.debug('[rx-nostr user status emit]');
