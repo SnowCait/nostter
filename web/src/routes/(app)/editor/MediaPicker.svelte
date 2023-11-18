@@ -19,7 +19,7 @@
 	bind:this={input}
 	bind:files
 	on:change={() => dispatch('pick', files)}
-	accept="image/*"
+	accept="image/*,video/*,audio/*"
 	hidden
 />
 
