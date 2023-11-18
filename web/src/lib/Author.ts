@@ -1,6 +1,7 @@
 import { Kind, type Event, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { createRxOneshotReq, now, uniq } from 'rx-nostr';
+import { createRxOneshotReq, latest, now, uniq } from 'rx-nostr';
+import { firstValueFrom, EmptyError } from 'rxjs';
 import { Api } from './Api';
 import { pool } from '../stores/Pool';
 import {
@@ -227,7 +228,7 @@ export class Author {
 		const pinEvent = replaceableEvents.get(10001 as Kind);
 		const channelsEvent = replaceableEvents.get(10005 as Kind);
 		if (channelsEvent === undefined && pinEvent !== undefined) {
-			this.migrateChannels(pinEvent);
+			await this.migrateChannels(pinEvent);
 		}
 
 		console.log('[relays]', get(readRelays), get(writeRelays));
@@ -278,12 +279,31 @@ export class Author {
 		return { replaceableEvents, parameterizedReplaceableEvents };
 	}
 
-	private migrateChannels(regacyChannelsEvent: Event) {
+	private async migrateChannels(regacyChannelsEvent: Event) {
 		console.log('[channels migration]', regacyChannelsEvent);
 
 		const ids = filterTags('e', regacyChannelsEvent.tags);
 		if (ids.length === 0) {
 			return;
+		}
+
+		const storage = new WebStorage(localStorage);
+
+		try {
+			const channelsReq = createRxOneshotReq({
+				filters: {
+					kinds: [10005],
+					authors: [regacyChannelsEvent.pubkey]
+				}
+			});
+			const packet = await firstValueFrom(rxNostr.use(channelsReq).pipe(uniq(), latest()));
+			console.log('[channels event]', packet);
+			storage.setReplaceableEvent(packet.event);
+			return;
+		} catch (error) {
+			if (!(error instanceof EmptyError)) {
+				throw error;
+			}
 		}
 
 		const channelIds = new Set<string>();
@@ -309,8 +329,6 @@ export class Author {
 					if (channelIds.size === 0) {
 						return;
 					}
-
-					const storage = new WebStorage(localStorage);
 
 					const event = await Signer.signEvent({
 						kind: 10005,
