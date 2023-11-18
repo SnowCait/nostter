@@ -23,4 +23,4 @@ if (browser) {
 }
 
 // Temporary
-export const debugMode = writable(false);
+export const debugMode = writable(true);

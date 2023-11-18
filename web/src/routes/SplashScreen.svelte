@@ -1,5 +1,11 @@
+<script>
+	import NostterLogo from './(app)/parts/NostterLogo.svelte';
+</script>
+
 <main>
-	<img src="/nostter-logo.svg" alt="nostter" />
+	<div>
+		<NostterLogo width="100%" />
+	</div>
 </main>
 
 <style>
@@ -12,9 +18,10 @@
 		height: 100vh;
 		display: flex;
 		justify-content: center;
+		align-items: center;
 	}
 
-	img {
+	main > div {
 		width: 90vw;
 		max-width: 360px;
 	}

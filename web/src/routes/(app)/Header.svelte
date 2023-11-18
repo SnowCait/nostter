@@ -13,6 +13,8 @@
 	import { pubkey, rom } from '../../stores/Author';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
+	import NostterLogo from './parts/NostterLogo.svelte';
+	import NostterLogoIcon from './parts/NostterLogoIcon.svelte';
 
 	export let onClickPostButton: () => void;
 
@@ -22,15 +24,12 @@
 <div class="header">
 	<div id="logo-icon-wrapper">
 		<a href={$pubkey ? '/home' : '/'} id="logo-icon">
-			<picture>
-				<source
-					srcset="/nostter-logo.svg"
-					media="(min-width:928px)"
-					width={120}
-					height={24}
-				/>
-				<img src="/nostter-logo-icon.svg" alt="nostter logo" width={30} height={30} />
-			</picture>
+			<span class="logo-for-mobile">
+				<NostterLogoIcon width={30} height={30} />
+			</span>
+			<span class="logo-for-desktop">
+				<NostterLogo width={120} height={24} />
+			</span>
 		</a>
 	</div>
 	<nav>
@@ -115,6 +114,10 @@
 		flex-direction: column;
 	}
 
+	.logo-for-mobile {
+		display: none;
+	}
+
 	nav {
 		margin-top: 1.5rem;
 		margin-bottom: 2rem;
@@ -145,7 +148,7 @@
 	li {
 		display: flex;
 		align-items: center;
-		color: var(--foreground);
+		color: var(--accent);
 	}
 
 	li p {
@@ -183,10 +186,14 @@
 			width: 100%;
 		}
 
-		#logo-icon picture {
+		.logo-for-mobile {
 			width: 100%;
 			display: flex;
 			justify-content: center;
+		}
+
+		.logo-for-desktop {
+			display: none;
 		}
 
 		button {
