@@ -35,20 +35,28 @@
 		} else {
 			referencesReqEmit(metadata.event);
 			user = metadata?.content;
-			if (user !== undefined && user.nip05) {
-				const normalizedNip05 = normalizeNip05(user.nip05);
-				if (slug !== normalizedNip05) {
-					nip05.queryProfile(normalizedNip05).then((pointer) => {
-						if (pointer !== null) {
-							history.replaceState(history.state, '', normalizedNip05);
-							slug = normalizedNip05;
-						} else {
-							console.warn('[invalid NIP-05]', normalizedNip05);
-						}
-					});
-				}
-			}
+			overwriteSlug();
 		}
+	}
+
+	function overwriteSlug() {
+		if (user === undefined || !user.nip05) {
+			return;
+		}
+
+		const normalizedNip05 = normalizeNip05(user.nip05);
+		if (slug === normalizedNip05) {
+			return;
+		}
+
+		nip05.queryProfile(normalizedNip05).then((pointer) => {
+			if (pointer !== null) {
+				history.replaceState(history.state, '', normalizedNip05);
+				slug = normalizedNip05;
+			} else {
+				console.warn('[invalid NIP-05]', normalizedNip05);
+			}
+		});
 	}
 
 	async function load() {
