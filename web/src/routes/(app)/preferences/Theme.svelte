@@ -29,11 +29,14 @@
 	}
 </script>
 
-<select bind:value={$theme}>
-	<option value="system">System</option>
-	<option value="light">Light</option>
-	<option value="dark">Dark</option>
-</select>
+<div>
+	<label for="theme-select">Theme:</label>
+	<select bind:value={$theme} id="theme-select">
+		<option value="system">System</option>
+		<option value="light">Light</option>
+		<option value="dark">Dark</option>
+	</select>
+</div>
 
 <style>
 	select {
