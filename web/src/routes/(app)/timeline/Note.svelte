@@ -492,7 +492,7 @@
 	}
 
 	.develop pre {
-		background-color: #f6f8fa;
+		background-color: var(--accent-surface-low);
 		padding: 0.5em;
 		overflow: auto;
 	}
