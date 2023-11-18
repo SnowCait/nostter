@@ -12,7 +12,7 @@
 	import type { User } from '../../../types';
 	import IconPencil from '@tabler/icons-svelte/dist/svelte/icons/IconPencil.svelte';
 	import IconDeviceFloppy from '@tabler/icons-svelte/dist/svelte/icons/IconDeviceFloppy.svelte';
-	import Loading from '../../Loading.svelte';
+	import Loading from '$lib/components/Loading.svelte';
 
 	let pubkey: string;
 	let relays: { url: string; read: boolean; write: boolean }[] = [];

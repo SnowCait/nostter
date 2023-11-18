@@ -5,7 +5,7 @@
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import type { PageData } from './$types';
 	import Content from '../content/Content.svelte';
-	import Loading from '../Loading.svelte';
+	import Loading from '$lib/components/Loading.svelte';
 
 	export let data: PageData;
 
