@@ -267,9 +267,8 @@ export class Author {
 		}
 
 		const api = new Api(get(pool), get(writeRelays));
-		const { replaceableEvents, parameterizedReplaceableEvents } = await api.fetchAuthorEvents(
-			pubkey
-		);
+		const { replaceableEvents, parameterizedReplaceableEvents } =
+			await api.fetchAuthorEvents(pubkey);
 		for (const [, event] of [...replaceableEvents]) {
 			storage.setReplaceableEvent(event);
 		}

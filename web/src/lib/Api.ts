@@ -24,7 +24,10 @@ export class Api {
 
 	public static readonly parameterizedReplaceableKinds = [30000, 30001, 30078];
 
-	constructor(private pool: SimplePool, private relays: string[]) {}
+	constructor(
+		private pool: SimplePool,
+		private relays: string[]
+	) {}
 
 	public async fetchRelayEvents(pubkey: string): Promise<Map<Kind, Event>> {
 		const events = await this.pool.list(this.relays, [
