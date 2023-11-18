@@ -18,6 +18,7 @@ export class Api {
 		10000,
 		10001,
 		Kind.RelayList,
+		10005,
 		10030
 	];
 
@@ -253,6 +254,7 @@ export class Api {
 				.flat()
 		);
 		const referencedEvents = await this.fetchEventsByIds([...referencedEventIds]);
+		console.debug('[references events]', events.length, referencedEvents.length);
 
 		for (const event of [...events, ...referencedEvents]) {
 			referencesReqEmit(event);
