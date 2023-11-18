@@ -1,60 +1,48 @@
 <script lang="ts">
-	import { error } from '@sveltejs/kit';
 	import { page } from '$app/stores';
-	import { SimplePool, type Event, nip05, nip19 } from 'nostr-tools';
+	import { type Event, nip05, nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap, bufferTime } from 'rxjs';
 	import { metadataStore } from '$lib/cache/Events';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { normalizeNip05 } from '$lib/MetadataHelper';
-	import { pool } from '../../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
-	import { pubkey as authorPubkey, readRelays, rom } from '../../../stores/Author';
+	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
 	import { afterNavigate } from '$app/navigation';
-	import FollowButton from '../action/FollowButton.svelte';
-	import { Api } from '$lib/Api';
-	import { BadgeApi, type Badge } from '$lib/BadgeApi';
-	import Loading from '../Loading.svelte';
-	import { User as UserDecoder } from '$lib/User';
 	import { Timeline } from '$lib/Timeline';
-	import MuteButton from '../action/MuteButton.svelte';
-	import Badges from '../Badges.svelte';
-	import Content from '../content/Content.svelte';
 	import { EventItem, Metadata, type MetadataContent } from '$lib/Items';
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
-	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
-	import UserStatus from '../parts/UserStatus.svelte';
-	import NostrAddress from './NostrAddress.svelte';
-	import ZapButton from '$lib/components/ZapButton.svelte';
-	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
+	import type { LayoutData } from './$types';
+	import Profile from '$lib/components/Profile.svelte';
+
+	export let data: LayoutData;
 
 	let metadata: Metadata | undefined;
 	let user: MetadataContent | undefined;
-	let badges: Badge[] = []; // NIP-58 Badges
 	let events: EventItem[] = [];
 	let pubkey: string | undefined;
-	let followees: string[] = [];
-	let followers: string[] = [];
-	let followeesLoading = true;
-	let followersLoading = true;
 
 	let relays = $readRelays;
 	let slug = $page.params.slug;
-	const api = new Api($pool, relays);
 
-	$: if (metadata !== undefined) {
-		user = metadata.content;
-		if (user !== undefined && user.nip05) {
-			const normalizedNip05 = normalizeNip05(user.nip05);
-			if (slug !== normalizedNip05) {
-				nip05.queryProfile(normalizedNip05).then((pointer) => {
-					if (pointer !== null) {
-						history.replaceState(history.state, '', normalizedNip05);
-						slug = normalizedNip05;
-					} else {
-						console.warn('[invalid NIP-05]', normalizedNip05);
-					}
-				});
+	$: if (metadata === undefined || metadata.event.pubkey !== data.pubkey) {
+		console.log('[npub metadata]', nip19.npubEncode(data.pubkey));
+		metadata = $metadataStore.get(data.pubkey);
+		if (metadata === undefined) {
+			metadataReqEmit([data.pubkey]);
+		} else {
+			if (user !== undefined && user.nip05) {
+				const normalizedNip05 = normalizeNip05(user.nip05);
+				if (slug !== normalizedNip05) {
+					nip05.queryProfile(normalizedNip05).then((pointer) => {
+						if (pointer !== null) {
+							history.replaceState(history.state, '', normalizedNip05);
+							slug = normalizedNip05;
+						} else {
+							console.warn('[invalid NIP-05]', normalizedNip05);
+						}
+					});
+				}
 			}
 		}
 	}
@@ -63,43 +51,14 @@
 		slug = $page.params.slug;
 		console.log('[profile page]', slug);
 
-		const data = await UserDecoder.decode(slug);
-
-		if (data.pubkey === undefined) {
-			throw error(404);
-		}
-
 		if (pubkey === data.pubkey) {
 			return;
 		}
 
-		badges = [];
 		events = [];
 		pubkey = data.pubkey;
 		relays = Array.from(new Set([...relays, ...data.relays]));
 
-		metadata = $metadataStore.get(pubkey);
-		if (metadata === undefined) {
-			const event = await api.fetchUserEvent(pubkey);
-			console.log('[metadata]', event);
-			if (event !== undefined) {
-				metadata = new Metadata(event);
-			}
-		}
-
-		api.fetchFollowees(pubkey).then((pubkeys) => {
-			followees = pubkeys;
-			followeesLoading = false;
-		});
-		const longWaitApi = new Api(new SimplePool({ eoseSubTimeout: 10000 }), relays);
-		longWaitApi.fetchFollowers(pubkey).then((pubkeys) => {
-			followers = pubkeys;
-			followersLoading = false;
-		});
-		const badgeApi = new BadgeApi();
-		badgeApi.fetchBadges(relays, pubkey).then((data) => {
-			badges = data;
-		});
 		await load();
 	});
 
@@ -200,102 +159,7 @@
 </svelte:head>
 
 <section class="card profile-wrapper">
-	<div class="banner">
-		{#if user?.banner}
-			<img src={user.banner} alt="" />
-		{:else}
-			<div class="blank" />
-		{/if}
-	</div>
-	<div class="user-info">
-		<div class="profile">
-			<div class="actions">
-				<div class="picture-wrapper">
-					{#if metadata !== undefined}
-						<img src={metadata?.picture} alt="" />
-					{:else}
-						<div class="blank" />
-					{/if}
-				</div>
-				<div class="buttons">
-					{#if !$rom && pubkey !== undefined}
-						{#if pubkey === $authorPubkey}
-							<div class="profile-editor">
-								<a href="/profile">
-									<IconTool />
-								</a>
-							</div>
-						{/if}
-						<div class="mute">
-							<MuteButton tagName="p" tagContent={pubkey} />
-						</div>
-						<div class="mute">
-							<ZapButton {pubkey} />
-						</div>
-						<FollowButton {pubkey} />
-					{/if}
-				</div>
-			</div>
-			<h1>{user?.display_name ?? user?.name ?? ''}</h1>
-			<div class="user-name-wrapper">
-				{#if user?.name}
-					<h2>@{user.name}</h2>
-				{/if}
-				{#if followees.some((pubkey) => pubkey === $authorPubkey)}
-					<p>Follows you</p>
-				{/if}
-				{#if pubkey !== undefined}
-					<Nip21QrcodeButton identifier={nip19.npubEncode(pubkey)} />
-				{/if}
-			</div>
-
-			{#if pubkey !== undefined}
-				<div class="user-status">
-					<UserStatus {pubkey} showLink={true} />
-				</div>
-			{/if}
-
-			{#if metadata !== undefined}
-				<NostrAddress {metadata} />
-			{/if}
-
-			{#if user?.website}
-				<div>
-					<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
-				</div>
-			{/if}
-			{#if user?.about}
-				<div class="about">
-					<Content content={user.about} tags={metadata?.event.tags ?? []} />
-				</div>
-			{/if}
-		</div>
-		<Badges {badges} />
-		<div class="relationships">
-			<div>
-				Followees: {#if followeesLoading}
-					<Loading />
-				{:else}
-					<a href={`/${slug}/followees`}>{followees.length}</a>
-				{/if}
-			</div>
-			<div>
-				Followers: {#if followersLoading}<Loading />{:else}{followers.length}+{/if}
-			</div>
-		</div>
-		<div>
-			<a href="/{slug}/relays">Relays</a>
-		</div>
-		<div>
-			<a href="/{slug}/timeline">Timeline</a>
-		</div>
-		<div>
-			<a href="/{slug}/pins">PINs</a>
-		</div>
-		<div>
-			<a href="/{slug}/reactions">Reactions</a>
-		</div>
-	</div>
+	<Profile {slug} {metadata} {relays} />
 </section>
 
 <section>
@@ -311,113 +175,9 @@
 		margin-top: 1rem;
 	}
 
-	.banner {
-		position: absolute;
-		width: 100%;
-		left: 0;
-		top: 0;
-		z-index: 0;
-	}
-
-	.banner img,
-	.banner .blank {
-		object-fit: cover;
-		width: 100%;
-		height: 200px;
-		border-radius: 0.5rem 0.5rem 0 0;
-	}
-
 	@media screen and (max-width: 600px) {
 		section + section {
 			margin-top: 0;
 		}
-
-		.banner img,
-		.banner .blank {
-			border-radius: 0;
-		}
-	}
-
-	.user-info {
-		margin-top: calc(100px + 1rem);
-	}
-
-	.profile img,
-	.profile .blank {
-		width: 128px;
-		height: 128px;
-		border: 4px solid var(--surface);
-		border-radius: 50%;
-		margin-right: 12px;
-		object-fit: cover;
-		position: relative;
-		z-index: 2;
-	}
-
-	.profile img {
-		background-color: var(--surface);
-	}
-
-	.blank {
-		width: 100%;
-		height: 100%;
-		background-color: var(--accent-surface-high);
-	}
-
-	h2 {
-		font-weight: 400;
-	}
-
-	.user-name-wrapper {
-		display: flex;
-		gap: 0.5rem;
-		align-items: center;
-	}
-
-	.user-name-wrapper p {
-		padding: 0.3rem;
-		background-color: var(--accent-surface);
-		font-size: 0.75rem;
-		font-weight: 600;
-		color: var(--accent);
-		border-radius: 0.25rem;
-		line-height: 1;
-	}
-
-	.actions .buttons {
-		display: flex;
-		align-items: center;
-		justify-content: start;
-		gap: 1rem;
-	}
-
-	.profile .actions {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-	}
-
-	.profile .actions div {
-		align-self: flex-end;
-	}
-
-	.profile h1 {
-		margin: 0;
-	}
-
-	.profile h2 {
-		margin: 0;
-		color: gray;
-		font-size: 1em;
-	}
-
-	.about {
-		margin: 1rem 0;
-	}
-
-	.relationships {
-		display: flex;
-		gap: 2rem;
-		font-size: 0.95rem;
 	}
 </style>
