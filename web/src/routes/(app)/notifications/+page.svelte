@@ -1,16 +1,24 @@
 <script lang="ts">
 	import type { Kind } from 'nostr-tools';
-	import { afterNavigate, beforeNavigate } from '$app/navigation';
+	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { minTimelineLength } from '$lib/Constants';
 	import { Api } from '$lib/Api';
+	import type { LayoutData } from '../$types';
 	import { notifiedEventItems, unreadEventItems } from '../../../stores/Notifications';
 	import { pubkey, writeRelays } from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 
-	afterNavigate(() => {
+	export let data: LayoutData;
+
+	afterNavigate(async () => {
 		console.log('[notifications page]');
+
+		if (!data.authenticated) {
+			await goto('/');
+		}
+
 		$unreadEventItems = [];
 	});
 
