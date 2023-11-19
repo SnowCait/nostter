@@ -24,14 +24,8 @@
 	import { filterLimitItems, minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { chunk } from '$lib/Array';
 	import { Content } from '$lib/Content';
-	import {
-		lastReadAt,
-		loadingNotifications,
-		notifiedEvents,
-		unreadEvents
-	} from '../../../stores/Notifications';
+	import { lastReadAt, notifiedEvents, unreadEvents } from '../../../stores/Notifications';
 	import { EventItem } from '$lib/Items';
-	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { Mute } from '$lib/Mute';
 	import { autoRefresh } from '../../../stores/Preference';
 	import { batch, createRxForwardReq, createRxOneshotReq, latestEach, uniq } from 'rx-nostr';
@@ -415,17 +409,6 @@
 					}
 				}
 			});
-
-		// Past notification
-		const notificationTimeline = new NotificationTimeline($pubkey);
-		const notifiedEventItems = await notificationTimeline.fetch(
-			now,
-			Math.max($lastReadAt, now - 24 * 60 * 60)
-		);
-		$unreadEvents.push(...notifiedEventItems.filter((x) => x.event.created_at > $lastReadAt));
-		$unreadEvents = $unreadEvents;
-		$notifiedEvents = notifiedEventItems;
-		$loadingNotifications = false;
 	});
 
 	async function load() {
