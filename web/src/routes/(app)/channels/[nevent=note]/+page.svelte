@@ -26,7 +26,7 @@
 	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
 	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '../../parts/ChannelTitle.svelte';
-	import MuteButton from '../../action/MuteButton.svelte';
+	import MuteButton from '$lib/components/MuteButton.svelte';
 
 	let slug = $page.params.nevent;
 	let channelId: string;

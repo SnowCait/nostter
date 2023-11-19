@@ -50,6 +50,9 @@ export class BadgeApi {
 			});
 			subscribeProfileBadges.on('eose', () => {
 				console.log('[profile badges]', profileBadges);
+				if (profileBadges.length === 0) {
+					return;
+				}
 				const pubkeys = new Set(profileBadges.map((x) => x.pubkey));
 				const subscribeBadgeDefinitions = $pool.sub(relays, [
 					{

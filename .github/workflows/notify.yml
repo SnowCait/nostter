@@ -53,5 +53,5 @@ jobs:
           tags: |
             - ["d", "general"]
             - ["t", "nostter"]
-            - ["r", "https://nostter.vercel.app/"]
+            - ["r", "https://nostter.app/"]
             - ["expiration", "${{ env.expiration }}"]

@@ -21,12 +21,7 @@
 	import { Kind, type Filter, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { saveLastNote } from '../../../stores/LastNotes';
 	import { Signer } from '$lib/Signer';
-	import {
-		filterLimitItems,
-		minTimelineLength,
-		reverseChronologicalItem,
-		timelineBufferMs
-	} from '$lib/Constants';
+	import { filterLimitItems, minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { chunk } from '$lib/Array';
 	import { Content } from '$lib/Content';
 	import {
@@ -392,7 +387,10 @@
 
 		rxNostr
 			.use(userStatusReq.pipe(bufferTime(1000), batch()))
-			.pipe(latestEach((packet) => packet.event.pubkey))
+			.pipe(
+				uniq(),
+				latestEach((packet) => packet.event.pubkey)
+			)
 			.subscribe((packet) => {
 				console.log('[user status]', packet, packet.event.pubkey, packet.event.content);
 				const tags: string[][] = packet.event.tags;
@@ -485,28 +483,51 @@
 					.use(pastChannelMessageReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => referencesReqEmit(event)),
-						bufferTime(timelineBufferMs)
+						tap(({ event }) => referencesReqEmit(event))
 					)
 					.subscribe({
-						next: async (packets) => {
-							console.debug('[rx-nostr home timeline packets]', packets);
-							packets.sort(reverseChronologicalItem);
-							const newEventItems = packets
-								.filter(({ event }) => event.created_at < until)
-								.map(({ event }) => new EventItem(event));
-							$events.push(...newEventItems);
+						next: async (packet) => {
+							console.debug('[rx-nostr home timeline packet]', packet);
+							if (
+								!(
+									since <= packet.event.created_at &&
+									packet.event.created_at < until
+								)
+							) {
+								console.warn(
+									'[rx-nostr home timeline out of period]',
+									packet,
+									since,
+									until
+								);
+								return;
+							}
+							if ($events.some((x) => x.event.id === packet.event.id)) {
+								console.warn('[rx-nostr home timeline duplicate]', packet.event);
+								return;
+							}
+							const item = new EventItem(packet.event);
+							const index = $events.findIndex(
+								(x) => x.event.created_at < item.event.created_at
+							);
+							if (index < 0) {
+								$events.push(item);
+							} else {
+								$events.splice(index, 0, item);
+							}
 							$events = $events;
 
 							// Cache
-							for (const item of newEventItems) {
-								if (item.event.kind === Kind.Text) {
-									saveLastNote(item.event);
-								}
+							if (item.event.kind === Kind.Text) {
+								saveLastNote(item.event);
 							}
 						},
 						complete: () => {
 							console.log('[rx-nostr home timeline complete]');
+
+							if ($events.length === 0) {
+								return;
+							}
 
 							// User Status
 							console.debug('[rx-nostr user status emit]');

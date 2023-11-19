@@ -2,7 +2,7 @@
 	import { nip05, nip19 } from 'nostr-tools';
 	import type { Metadata } from '$lib/Items';
 	import { normalizeNip05 } from '$lib/MetadataHelper';
-	import CopyButton from '../parts/CopyButton.svelte';
+	import CopyButton from './CopyButton.svelte';
 	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
 	import IconAlertTriangle from '@tabler/icons-svelte/dist/svelte/icons/IconAlertTriangle.svelte';
 
