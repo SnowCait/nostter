@@ -4,7 +4,7 @@
 <br>
 <p align="center">
   Nostr client for web.<br>
-  <a href="https://nostter.vercel.app/home" target="_blank">https://nostter.vercel.app/</a>
+  <a href="https://nostter.app/home" target="_blank">https://nostter.app/</a>
 </p>
 
 ## How to login
@@ -18,14 +18,14 @@
 Link to
 
 ```
-https://nostter.vercel.app/post?content={url-encoded-text-here}
+https://nostter.app/post?content={url-encoded-text-here}
 ```
 
 <details>
 <summary>Bookmarklet</summary>
 
 ```js
-javascript:window.open(`https://nostter.vercel.app/post?content=${document.title}%20${location.href}`);
+javascript:window.open(`https://nostter.app/post?content=${document.title}%20${location.href}`);
 ```
 
 </details>
@@ -55,8 +55,8 @@ Welcome issues, pull requests and discussions after understanding above.
 
 ## Special Thanks
 
-UI by [@kaiji](https://nostter.vercel.app/npub194qhhn5vzzyrsqaugfms8c7ycqjyvhyguurra450nhlweatfzxkqy8tgkd)
+UI by [@kaiji](https://nostter.app/npub194qhhn5vzzyrsqaugfms8c7ycqjyvhyguurra450nhlweatfzxkqy8tgkd)
 
-Illustration by [@stok33](https://nostter.vercel.app/npub1e09suzmq9mp6nt0ud9ttl03790qjx70wzwlc2pwwghcusvwju54qs0c800)
+Illustration by [@stok33](https://nostter.app/npub1e09suzmq9mp6nt0ud9ttl03790qjx70wzwlc2pwwghcusvwju54qs0c800)
 
 <img src="web/static/nostter-chan.jpg" width="25%">
