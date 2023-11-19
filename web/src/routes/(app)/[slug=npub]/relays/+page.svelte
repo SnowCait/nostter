@@ -5,10 +5,12 @@
 	import { User as UserDecoder } from '$lib/User';
 	import { Api } from '$lib/Api';
 	import { pubkey as authorPubkey, readRelays, writeRelays } from '../../../../stores/Author';
+	import { debugMode } from '../../../../stores/Preference';
 	import { pool } from '../../../../stores/Pool';
 	import { Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
 	import { filterRelayTags, parseRelayJson } from '$lib/EventHelper';
+	import { Contacts } from '$lib/Contacts';
 	import type { User } from '../../../types';
 	import IconPencil from '@tabler/icons-svelte/dist/svelte/icons/IconPencil.svelte';
 	import IconDeviceFloppy from '@tabler/icons-svelte/dist/svelte/icons/IconDeviceFloppy.svelte';
@@ -19,6 +21,7 @@
 	let user: User | undefined;
 	let editable = false;
 	let addingRelay = '';
+	let saveToKind3 = false;
 
 	afterNavigate(async () => {
 		console.log('[relays page]', $page.params.slug);
@@ -109,6 +112,13 @@
 					.filter((x) => x.length > 0)
 			);
 
+			if (saveToKind3) {
+				const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
+				await contacts.updateRelays(
+					new Map(relays.map(({ url, read, write }) => [url, { read, write }]))
+				);
+			}
+
 			// Completed
 			editable = false;
 		} catch (error) {
@@ -172,6 +182,14 @@
 					<IconDeviceFloppy />
 					<input type="submit" value="Save" />
 				</label>
+				{#if $debugMode}
+					<div>
+						<label>
+							<input type="checkbox" bind:value={saveToKind3} />
+							<span>Write to kind 3 also (usually to kind 10002 only)</span>
+						</label>
+					</div>
+				{/if}
 			{:else}
 				<label>
 					<IconPencil />
