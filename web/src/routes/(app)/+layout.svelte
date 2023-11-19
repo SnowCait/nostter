@@ -5,12 +5,10 @@
 	import NoteDialog from './NoteDialog.svelte';
 	import { openNoteDialog } from '../../stores/NoteDialog';
 	import { onMount } from 'svelte';
-	import { debugMode } from '../../stores/Preference';
 	import ReloadDialog from './ReloadDialog.svelte';
 	import '../../app.css';
 	import Gdpr from './parts/Gdpr.svelte';
 
-	let debugMessage = '';
 	let reloadDialogComponent: ReloadDialog;
 	const konamiCode = [
 		'ArrowUp',
@@ -65,9 +63,6 @@
 
 	function onVisibilityChange() {
 		console.log('[visibilitychange]', document.visibilityState);
-		debugMessage += `${new Date().toLocaleTimeString()} [visibilitychange] ${
-			document.visibilityState
-		}\n`;
 		switch (document.visibilityState) {
 			case 'hidden': {
 				break;
@@ -113,12 +108,6 @@
 <div class="app">
 	<NoteDialog />
 	<ReloadDialog bind:this={reloadDialogComponent} />
-
-	{#if $debugMode}
-		<section class="debug">
-			<pre>{debugMessage}</pre>
-		</section>
-	{/if}
 
 	<header>
 		<div>
