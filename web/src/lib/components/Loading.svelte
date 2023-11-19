@@ -121,7 +121,7 @@
 		width: 32px;
 	}
 	.cls-1 {
-		fill: #4b4b4b;
+		fill: var(--accent);
 	}
 
 	.peta1 {

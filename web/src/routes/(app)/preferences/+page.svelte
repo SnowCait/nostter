@@ -27,9 +27,7 @@
 
 <h1>Preferences</h1>
 
-{#if $debugMode}
-	<Theme />
-{/if}
+<div><Theme /></div>
 {#if $author !== undefined}
 	<div><ReactionEmoji /></div>
 	<div>

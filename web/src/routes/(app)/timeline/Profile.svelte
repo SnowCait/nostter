@@ -68,7 +68,7 @@
 	}
 
 	.name {
-		color: rgb(83, 100, 113);
+		color: var(--accent-gray);
 		font-size: 15px;
 	}
 

@@ -43,5 +43,6 @@
 		font-weight: bold;
 		outline: none;
 		background: none;
+		color: var(--foreground);
 	}
 </style>
