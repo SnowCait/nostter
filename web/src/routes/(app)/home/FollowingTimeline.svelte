@@ -24,7 +24,11 @@
 	import { filterLimitItems, minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { chunk } from '$lib/Array';
 	import { Content } from '$lib/Content';
-	import { lastReadAt, notifiedEvents, unreadEvents } from '../../../stores/Notifications';
+	import {
+		lastReadAt,
+		notifiedEventItems,
+		unreadEventItems
+	} from '../../../stores/Notifications';
 	import { EventItem } from '$lib/Items';
 	import { Mute } from '$lib/Mute';
 	import { autoRefresh } from '../../../stores/Preference';
@@ -146,7 +150,7 @@
 				if (identifier === 'notifications/lastOpened') {
 					console.log('[last read]', event);
 					$lastReadAt = event.created_at;
-					$unreadEvents = [];
+					$unreadEventItems = [];
 				} else if (identifier !== undefined) {
 					console.log('[people list]', event);
 				}
@@ -171,7 +175,7 @@
 				if (identifier === 'nostter-read') {
 					console.log('[last read]', event);
 					$lastReadAt = event.created_at;
-					$unreadEvents = [];
+					$unreadEventItems = [];
 				} else if (identifier === 'nostter-preferences') {
 					const preferences = new Preferences(event.content);
 					$preferencesStore = preferences;
@@ -205,10 +209,10 @@
 			// Notification
 			if ($author?.isNotified(event)) {
 				console.log('[related]', event);
-				$unreadEvents.unshift(eventItem);
-				$notifiedEvents.unshift(eventItem);
-				$unreadEvents = $unreadEvents;
-				$notifiedEvents = $notifiedEvents;
+				$unreadEventItems.unshift(eventItem);
+				$notifiedEventItems.unshift(eventItem);
+				$unreadEventItems = $unreadEventItems;
+				$notifiedEventItems = $notifiedEventItems;
 
 				notify(event);
 			}

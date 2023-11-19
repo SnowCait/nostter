@@ -4,19 +4,19 @@
 	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { minTimelineLength } from '$lib/Constants';
 	import { Api } from '$lib/Api';
-	import { notifiedEvents, unreadEvents } from '../../../stores/Notifications';
+	import { notifiedEventItems, unreadEventItems } from '../../../stores/Notifications';
 	import { pubkey, writeRelays } from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 
 	afterNavigate(() => {
 		console.log('[notifications page]');
-		$unreadEvents = [];
+		$unreadEventItems = [];
 	});
 
 	beforeNavigate(async () => {
 		console.log('[notifications page leave]');
-		$unreadEvents = [];
+		$unreadEventItems = [];
 
 		const api = new Api($pool, $writeRelays);
 		try {
@@ -29,26 +29,26 @@
 	async function load() {
 		const timeline = new NotificationTimeline($pubkey);
 
-		let firstLength = $notifiedEvents.length;
+		let firstLength = $notifiedEventItems.length;
 		let count = 0;
 		let until =
-			$notifiedEvents.at($notifiedEvents.length - 1)?.event.created_at ??
+			$notifiedEventItems.at($notifiedEventItems.length - 1)?.event.created_at ??
 			Math.floor(Date.now() / 1000);
 		let seconds = 12 * 60 * 60;
 
-		while ($notifiedEvents.length - firstLength < minTimelineLength && count < 10) {
+		while ($notifiedEventItems.length - firstLength < minTimelineLength && count < 10) {
 			const pastEventItems = await timeline.fetch(until, until - seconds);
-			$notifiedEvents.push(...pastEventItems);
-			$notifiedEvents = $notifiedEvents;
+			$notifiedEventItems.push(...pastEventItems);
+			$notifiedEventItems = $notifiedEventItems;
 
 			until -= seconds;
 			seconds *= 2;
 			count++;
-			console.log('[load]', count, until, seconds / 3600, $notifiedEvents.length);
+			console.log('[load]', count, until, seconds / 3600, $notifiedEventItems.length);
 		}
 	}
 </script>
 
 <h1>Notifications</h1>
 
-<TimelineView items={$notifiedEvents} {load} />
+<TimelineView items={$notifiedEventItems} {load} />

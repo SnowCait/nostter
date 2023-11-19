@@ -1,6 +1,6 @@
 import { writable, type Writable } from 'svelte/store';
 import type { EventItem } from '$lib/Items';
 
-export const unreadEvents: Writable<EventItem[]> = writable([]);
-export const notifiedEvents: Writable<EventItem[]> = writable([]);
+export const unreadEventItems: Writable<EventItem[]> = writable([]);
+export const notifiedEventItems: Writable<EventItem[]> = writable([]);
 export const lastReadAt: Writable<number> = writable();
