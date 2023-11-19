@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import type { LayoutData } from './$types';
+	import Notice from '$lib/components/Notice.svelte';
 	import SplashScreen from './SplashScreen.svelte';
 	import Login from './(app)/Login.svelte';
 	import '../app.css';
@@ -15,6 +16,8 @@
 <svelte:head>
 	<title>nostter</title>
 </svelte:head>
+
+<Notice />
 
 {#if data.splash}
 	<SplashScreen />

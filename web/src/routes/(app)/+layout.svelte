@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { WebStorage } from '$lib/WebStorage';
+	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
 	import { openNoteDialog } from '../../stores/NoteDialog';
@@ -106,6 +107,8 @@
 
 <svelte:window on:keyup={keyboardShortcut} />
 <svelte:document on:visibilitychange={onVisibilityChange} />
+
+<Notice />
 
 <div class="app">
 	<NoteDialog />
