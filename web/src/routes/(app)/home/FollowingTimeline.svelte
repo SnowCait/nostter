@@ -19,7 +19,7 @@
 	import { goto } from '$app/navigation';
 	import { Api } from '$lib/Api';
 	import { Kind, type Filter, type Event as NostrEvent, type Relay } from 'nostr-tools';
-	import { saveLastNote } from '../../../stores/LastNotes';
+	import { saveLastNotes } from '../../../stores/LastNotes';
 	import { Signer } from '$lib/Signer';
 	import { filterLimitItems, minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { chunk } from '$lib/Array';
@@ -231,7 +231,7 @@
 
 			// Cache
 			if (event.kind === Kind.Text) {
-				saveLastNote(event);
+				saveLastNotes([event]);
 			}
 
 			// User Status
@@ -506,7 +506,7 @@
 
 							// Cache
 							if (item.event.kind === Kind.Text) {
-								saveLastNote(item.event);
+								saveLastNotes([item.event]);
 							}
 						},
 						complete: () => {
