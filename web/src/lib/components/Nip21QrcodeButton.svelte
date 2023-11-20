@@ -12,7 +12,7 @@
 </script>
 
 <button class="clear" on:click={() => (open = true)}>
-	<IconQrcode color="black" />
+	<IconQrcode />
 </button>
 
 <ModalDialog bind:open>
@@ -36,6 +36,7 @@
 	button {
 		width: 24px;
 		height: 24px;
+		color: var(--foreground);
 	}
 
 	article {
