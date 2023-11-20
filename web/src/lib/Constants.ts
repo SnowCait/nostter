@@ -6,6 +6,7 @@ export const trendingPeopleBotNpub =
 	'npub1qsytpsj0pk8pfyk2msyx8ymmvkavn2lg2pxdxsdxufeu83ax5ymsgd4t3w';
 export const minTimelineLength = 25;
 export const filterLimitItems = 1000;
+export const maxFilters = 10;
 export const timelineBufferMs = 1500;
 export const timeout = 10000;
 export const notFoundImageUrl = '/icon.png';

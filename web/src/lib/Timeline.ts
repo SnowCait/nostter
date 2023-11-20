@@ -117,11 +117,6 @@ export class Timeline {
 			const events = get(userTimelineEvents);
 			events.unshift(new EventItem(event));
 			userTimelineEvents.set(events);
-
-			// // Cache
-			// if (event.kind === Kind.Text) {
-			// 	saveLastNote(event);
-			// }
 		});
 		return () => {
 			console.log('[user timeline unsub]', subscribe);
