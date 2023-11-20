@@ -7,7 +7,7 @@
 		now,
 		uniq
 	} from 'rx-nostr';
-	import { tap, bufferTime, type Subscription } from 'rxjs';
+	import { tap, type Subscription } from 'rxjs';
 	import { onDestroy } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
 	import { error } from '@sveltejs/kit';
@@ -23,7 +23,7 @@
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
 	import { EventItem } from '$lib/Items';
-	import { minTimelineLength, reverseChronologicalItem, timelineBufferMs } from '$lib/Constants';
+	import { minTimelineLength } from '$lib/Constants';
 	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '../../parts/ChannelTitle.svelte';
 	import MuteButton from '$lib/components/MuteButton.svelte';
@@ -153,35 +153,56 @@
 		let count = 0;
 		let until =
 			items.length > 0
-				? Math.min(...items.map((item) => item.event.created_at))
+				? items[items.length - 1].event.created_at
 				: Math.floor(Date.now() / 1000);
 		let seconds = 24 * 60 * 60;
 
 		while (items.length - firstLength < minTimelineLength && count < 10) {
 			const since = until - seconds;
 			const filter = { kinds: [42], '#e': [channelId], until, since };
-			console.debug('[channel messages REQ]', filter);
+			console.debug('[rx-nostr channel messages REQ]', filter);
 			const pastChannelMessageReq = createRxOneshotReq({ filters: filter });
 			await new Promise<void>((resolve, reject) => {
 				rxNostr
 					.use(pastChannelMessageReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => referencesReqEmit(event)),
-						bufferTime(timelineBufferMs)
+						tap(({ event }: { event: Event }) => referencesReqEmit(event))
 					)
 					.subscribe({
-						next: async (packets) => {
-							console.debug('[channel messages]', packets);
-							packets.sort(reverseChronologicalItem);
-							items.push(
-								...packets
-									.filter(({ event }) => event.created_at < until)
-									.map(({ event }) => new EventItem(event))
+						next: async (packet) => {
+							console.debug('[rx-nostr channel message packet]', packet);
+							if (
+								!(
+									since <= packet.event.created_at &&
+									packet.event.created_at < until
+								)
+							) {
+								console.warn(
+									'[rx-nostr channel message out of period]',
+									packet,
+									since,
+									until
+								);
+								return;
+							}
+							if (items.some((x) => x.event.id === packet.event.id)) {
+								console.warn('[rx-nostr channel message duplicate]', packet.event);
+								return;
+							}
+							const item = new EventItem(packet.event);
+							const index = items.findIndex(
+								(x) => x.event.created_at < item.event.created_at
 							);
+							if (index < 0) {
+								items.push(item);
+							} else {
+								items.splice(index, 0, item);
+							}
 							items = items;
 						},
 						complete: () => {
+							console.log('[rx-nostr channel message complete]');
 							resolve();
 						},
 						error: (error) => {
@@ -193,7 +214,13 @@
 			until -= seconds;
 			seconds *= 2;
 			count++;
-			console.log('[channel load]', count, until, seconds / 3600, items.length);
+			console.log(
+				'[rx-nostr channel message loaded]',
+				count,
+				until,
+				seconds / 3600,
+				items.length
+			);
 		}
 	}
 </script>
