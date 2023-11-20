@@ -19,12 +19,12 @@
 			await goto('/');
 		}
 
-		$unreadEventItems = [];
+		clear();
 	});
 
 	beforeNavigate(async () => {
 		console.log('[notifications page leave]');
-		$unreadEventItems = [];
+		clear();
 
 		const api = new Api($pool, $writeRelays);
 		try {
@@ -33,6 +33,10 @@
 			console.warn('[last read failed]', error);
 		}
 	});
+
+	function clear(): void {
+		$unreadEventItems = [];
+	}
 
 	async function load() {
 		const timeline = new NotificationTimeline($pubkey);
