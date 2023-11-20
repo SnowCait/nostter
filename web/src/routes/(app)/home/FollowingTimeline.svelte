@@ -416,7 +416,7 @@
 	});
 
 	async function load() {
-		console.log('[rx-nostr home timeline load]');
+		console.log('[rx-nostr home timeline load]', $followees.length, rxNostr.getAllRelayState());
 
 		if ($followees.length === 0) {
 			console.warn('Please login');
