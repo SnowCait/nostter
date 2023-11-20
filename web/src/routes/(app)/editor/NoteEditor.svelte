@@ -538,6 +538,7 @@
 	ul {
 		list-style: none;
 		padding: 0;
+		color: var(--foreground);
 	}
 
 	.media img {

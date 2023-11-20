@@ -430,6 +430,7 @@ textarea {
 	padding: 0.5rem 0.75rem;
 	border-radius: 0.5rem;
 	outline-style: none;
+	color: var(--foreground);
 	background-color: var(--surface);
 }
 
@@ -441,6 +442,11 @@ input[type='search'],
 input[type='tel'],
 input[type='url'] {
 	border: var(--default-border);
+}
+
+option {
+	color: var(--foreground);
+	background-color: var(--surface);
 }
 
 button.clear {
