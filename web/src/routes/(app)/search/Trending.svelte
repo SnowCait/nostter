@@ -1,24 +1,22 @@
 <script lang="ts">
 	import { createRxNostr, createRxOneshotReq } from 'rx-nostr';
-	import { onMount } from 'svelte';
+	import { trendRelays } from '$lib/Constants';
 
 	let phrases: Phrase[] = [];
 
-	const relays = ['wss://nostrbuzzs-relay.fly.dev/'];
+	console.log('[trend]', trendRelays);
 	const rxNostr = createRxNostr();
-
-	onMount(async () => {
-		console.log('[trend page]');
-		await rxNostr.switchRelays(relays);
+	rxNostr.switchRelays(trendRelays).then(() => {
+		const lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+		console.log('[trend lang]', lang);
 		const rxReq = createRxOneshotReq({
-			filters: { kinds: [38225], '#d': ['buzz-phrases:ja'], limit: 1 }
+			filters: { kinds: [38225], '#d': [`buzz-phrases:${lang}`], limit: 1 }
 		});
-		const observable = rxNostr.use(rxReq);
-		const subscription = observable.subscribe(({ from, subId, event }) => {
-			console.log('[trend]', from, subId, event);
+		const subscription = rxNostr.use(rxReq).subscribe((packet) => {
+			console.log('[rx-nostr trend packet]', packet);
 			subscription.unsubscribe();
 			rxNostr.dispose();
-			const buzz: Buzz = JSON.parse(event.content);
+			const buzz = JSON.parse(packet.event.content) as Buzz;
 			phrases = buzz.phrases;
 		});
 	});
