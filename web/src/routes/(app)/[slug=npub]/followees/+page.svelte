@@ -39,7 +39,7 @@
 			.pipe(uniq(), latest())
 			.subscribe((packet) => {
 				console.log('[rx-nostr contacts]', packet);
-				pubkeys = filterTags('p', packet.event.tags);
+				pubkeys = filterTags('p', packet.event.tags).reverse();
 				metadataReqEmit(pubkeys);
 				if (!$rom) {
 					fetchLastNotes(pubkeys);
