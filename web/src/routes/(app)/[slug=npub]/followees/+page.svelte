@@ -1,53 +1,51 @@
 <script lang="ts">
-	import { error } from '@sveltejs/kit';
-	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
-	import { Api } from '$lib/Api';
-	import { User as UserDecoder } from '$lib/User';
-	import type { UserEvent } from '../../../types';
 	import { pool } from '../../../../stores/Pool';
 	import { readRelays, rom } from '../../../../stores/Author';
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
-	import { Kind, type Filter } from 'nostr-tools';
+	import { Kind, type Filter, nip19 } from 'nostr-tools';
 	import { lastNotesMap, saveLastNote } from '../../../../stores/LastNotes';
 	import { chunk } from '$lib/Array';
-	import { Metadata } from '$lib/Items';
+	import type { Metadata } from '$lib/Items';
+	import type { LayoutData } from '../$types';
+	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { metadataStore } from '$lib/cache/Events';
 
-	let events: UserEvent[] = [];
-	let showLoading = true;
+	export let data: LayoutData;
 
-	$: items = events.map((x) => new Metadata(x));
+	let pubkey: string | undefined;
+	let pubkeys: string[] = [];
 
-	afterNavigate(async () => {
-		const slug = $page.params.slug;
-		console.log('[followees page]', slug);
+	$: items = pubkeys
+		.map((pubkey) => $metadataStore.get(pubkey))
+		.filter((metadata): metadata is Metadata => metadata !== undefined);
 
-		const { pubkey, relays } = await UserDecoder.decode(slug);
+	$: if (pubkey !== data.pubkey) {
+		console.log('[followees page]', nip19.npubEncode(data.pubkey));
+		pubkey = data.pubkey;
 
-		if (pubkey === undefined) {
-			throw error(404);
-		}
-
-		const api = new Api($pool, Array.from(new Set([...relays, ...$readRelays])));
-		const event = await api.fetchContactsEvent(pubkey);
-		console.log('[contacts]', event);
-
-		if (event === undefined || event.tags.length === 0) {
-			showLoading = false;
-			return;
-		}
-
-		const pubkeys = filterTags('p', event.tags);
-		const userEventsMap = await api.fetchUserEventsMap(pubkeys);
-		events = [...userEventsMap].map(([, userEvent]) => userEvent);
-		showLoading = false;
-
-		// last note
-		if (!$rom) {
-			fetchLastNotes(pubkeys);
-		}
-	});
+		const contactsReq = createRxOneshotReq({
+			filters: [
+				{
+					kinds: [3],
+					authors: [data.pubkey],
+					limit: 1
+				}
+			]
+		});
+		rxNostr
+			.use(contactsReq)
+			.pipe(uniq(), latest())
+			.subscribe((packet) => {
+				console.log('[rx-nostr contacts]', packet);
+				pubkeys = filterTags('p', packet.event.tags);
+				metadataReqEmit(pubkeys);
+				if (!$rom) {
+					fetchLastNotes(pubkeys);
+				}
+			});
+	}
 
 	async function fetchLastNotes(pubkeys: string[]) {
 		const chunkedPubkeysList = chunk(
@@ -75,4 +73,4 @@
 
 <h1>followees</h1>
 
-<TimelineView {items} load={async () => console.debug()} {showLoading} />
+<TimelineView {items} load={async () => console.debug()} showLoading={false} />
