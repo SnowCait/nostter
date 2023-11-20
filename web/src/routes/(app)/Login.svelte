@@ -111,31 +111,39 @@
 				<section>
 					<button on:click={createAccount}>{$_('login.create_account')}</button>
 					<ModalDialog bind:open={showCreateAccountDialog}>
-						<div>
-							<h2>{$_('login.create_account')}</h2>
-							<article>
-								<form method="dialog" on:submit|preventDefault={register}>
-									<div>
-										<input
-											type="text"
-											name="name"
-											placeholder={$_('login.name')}
-											bind:value={name}
-										/>
-									</div>
-									<div class="hidden">
-										<input type="password" bind:value={key} readonly />
-									</div>
-									<div>
-										<input
-											type="submit"
-											value={$_('login.create')}
-											disabled={$loginType !== undefined}
-										/>
-									</div>
-								</form>
-							</article>
-						</div>
+						{#if $page.url.hostname === 'nostter.vercel.app'}
+							<div>
+								Site has been moved to <a href="https://nostter.app/">
+									https://nostter.app/
+								</a>
+							</div>
+						{:else}
+							<div>
+								<h2>{$_('login.create_account')}</h2>
+								<article>
+									<form method="dialog" on:submit|preventDefault={register}>
+										<div>
+											<input
+												type="text"
+												name="name"
+												placeholder={$_('login.name')}
+												bind:value={name}
+											/>
+										</div>
+										<div class="hidden">
+											<input type="password" bind:value={key} readonly />
+										</div>
+										<div>
+											<input
+												type="submit"
+												value={$_('login.create')}
+												disabled={$loginType !== undefined}
+											/>
+										</div>
+									</form>
+								</article>
+							</div>
+						{/if}
 					</ModalDialog>
 				</section>
 
@@ -354,6 +362,10 @@
 
 	.hidden {
 		display: none;
+	}
+
+	a {
+		text-decoration-line: underline;
 	}
 
 	@media screen and (max-width: 860px) {
