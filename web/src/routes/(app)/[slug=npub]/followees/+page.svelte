@@ -1,21 +1,40 @@
 <script lang="ts">
-	import { pool } from '../../../../stores/Pool';
-	import { readRelays, rom } from '../../../../stores/Author';
+	import {
+		batch,
+		createRxBackwardReq,
+		createRxOneshotReq,
+		latest,
+		latestEach,
+		uniq
+	} from 'rx-nostr';
+	import { bufferCount, bufferTime } from 'rxjs';
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
-	import { Kind, type Filter, nip19 } from 'nostr-tools';
-	import { lastNotesMap, saveLastNote } from '../../../../stores/LastNotes';
-	import { chunk } from '$lib/Array';
+	import { nip19 } from 'nostr-tools';
+	import { saveLastNotes } from '../../../../stores/LastNotes';
 	import type { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
-	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
+	import { maxFilters } from '$lib/Constants';
 
 	export let data: LayoutData;
 
 	let pubkey: string | undefined;
 	let pubkeys: string[] = [];
+
+	const lastNoteReq = createRxBackwardReq();
+	rxNostr
+		.use(lastNoteReq.pipe(bufferCount(maxFilters), batch()))
+		.pipe(
+			uniq(),
+			latestEach(({ event }) => event.pubkey),
+			bufferTime(10000)
+		)
+		.subscribe((packets) => {
+			console.log('[rx-nostr last notes]', packets);
+			saveLastNotes(packets.map((x) => x.event));
+		});
 
 	$: items = pubkeys
 		.map((pubkey) => $metadataStore.get(pubkey))
@@ -41,33 +60,19 @@
 				console.log('[rx-nostr contacts]', packet);
 				pubkeys = filterTags('p', packet.event.tags).reverse();
 				metadataReqEmit(pubkeys);
-				if (!$rom) {
-					fetchLastNotes(pubkeys);
+				if (!data.authenticated) {
+					return;
+				}
+				for (const pubkey of pubkeys) {
+					lastNoteReq.emit([
+						{
+							kinds: [1],
+							authors: [pubkey],
+							limit: 1
+						}
+					]);
 				}
 			});
-	}
-
-	async function fetchLastNotes(pubkeys: string[]) {
-		const chunkedPubkeysList = chunk(
-			pubkeys.filter((pubkey) => !$lastNotesMap.has(pubkey)),
-			5
-		);
-		for (const chunkedPubkeys of chunkedPubkeysList) {
-			const lastNotes = await $pool.list(
-				$readRelays,
-				chunkedPubkeys.map((pubkey) => {
-					return {
-						authors: [pubkey],
-						kinds: [Kind.Text],
-						limit: 1
-					} as Filter;
-				})
-			);
-			console.log('[last notes]', chunkedPubkeys, lastNotes);
-			for (const lastNote of lastNotes) {
-				saveLastNote(lastNote);
-			}
-		}
 	}
 </script>
 

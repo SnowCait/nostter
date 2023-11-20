@@ -15,3 +15,14 @@ export const saveLastNote = (event: Event) => {
 		return map;
 	});
 };
+export const saveLastNotes = (events: Event[]) => {
+	lastNotesMap.update((map) => {
+		for (const event of events.filter((x) => x.kind === Kind.Text)) {
+			const lastNote = map.get(event.pubkey);
+			if (lastNote === undefined || lastNote.created_at < event.created_at) {
+				map.set(event.pubkey, event);
+			}
+		}
+		return map;
+	});
+};
