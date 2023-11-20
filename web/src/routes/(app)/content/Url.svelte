@@ -1,3 +1,11 @@
+<script lang="ts" context="module">
+	declare global {
+		interface Window {
+			twttr: any;
+		}
+	}
+</script>
+
 <script lang="ts">
 	import IconExternalLink from '@tabler/icons-svelte/dist/svelte/icons/IconExternalLink.svelte';
 	import Text from './Text.svelte';
@@ -11,13 +19,32 @@
 	} catch (error) {
 		console.log('[invalid url]', url, error);
 	}
+
+	let twitterWidget: HTMLDivElement | undefined;
+
+	$: if (twitterWidget !== undefined) {
+		console.debug('[twitter]', twitterWidget);
+		window.twttr?.widgets.load(twitterWidget);
+	}
 </script>
 
 {#if link === undefined}
 	<Text {text} />
+{:else if link.origin === 'https://twitter.com' || link.origin === 'https://x.com'}
+	<div bind:this={twitterWidget}>
+		<blockquote class="twitter-tweet">
+			<a
+				href={link.href.replace('x.com', 'twitter.com')}
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				{link.href}
+			</a>
+		</blockquote>
+	</div>
 {:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
 	<div>
-		<a href={link.href} target="_blank" rel="noreferrer">
+		<a href={link.href} target="_blank" rel="noopener noreferrer">
 			<img src={link.href} alt="" />
 		</a>
 	</div>
