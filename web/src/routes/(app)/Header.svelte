@@ -9,7 +9,7 @@
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import { nip19 } from 'nostr-tools';
-	import { unreadEvents } from '../../stores/Notifications';
+	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '../../stores/Notifications';
 	import { pubkey, rom } from '../../stores/Author';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
@@ -50,7 +50,7 @@
 				<a href="/notifications">
 					<li class="notifications-icon">
 						<IconBell size={30} />
-						{#if $unreadEvents.length > 0}
+						{#if $unreadEventItems.length > 0 || $lastNotifiedAt > $lastReadAt}
 							<span class="notifications-icon-badge" />
 						{/if}
 						<p>{$_('layout.header.notifications')}</p>

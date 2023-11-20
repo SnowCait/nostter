@@ -4,6 +4,15 @@ import { Api } from './Api';
 import { pool } from '../stores/Pool';
 import { readRelays } from '../stores/Author';
 
+export const notificationKinds = [
+	Kind.Text,
+	Kind.EncryptedDirectMessage,
+	6,
+	Kind.Reaction,
+	Kind.ChannelMessage,
+	Kind.Zap
+];
+
 export class NotificationTimeline {
 	private readonly api: Api;
 
@@ -15,14 +24,7 @@ export class NotificationTimeline {
 
 	public async fetch(until: number, since: number) {
 		const filter = {
-			kinds: [
-				Kind.Text,
-				Kind.EncryptedDirectMessage,
-				6,
-				Kind.Reaction,
-				Kind.ChannelMessage,
-				Kind.Zap
-			],
+			kinds: notificationKinds,
 			'#p': [this.pubkey],
 			until,
 			since

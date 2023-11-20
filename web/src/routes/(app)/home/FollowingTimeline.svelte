@@ -26,12 +26,10 @@
 	import { Content } from '$lib/Content';
 	import {
 		lastReadAt,
-		loadingNotifications,
-		notifiedEvents,
-		unreadEvents
+		notifiedEventItems,
+		unreadEventItems
 	} from '../../../stores/Notifications';
 	import { EventItem } from '$lib/Items';
-	import { NotificationTimeline } from '$lib/NotificationTimeline';
 	import { Mute } from '$lib/Mute';
 	import { autoRefresh } from '../../../stores/Preference';
 	import { batch, createRxForwardReq, createRxOneshotReq, latestEach, uniq } from 'rx-nostr';
@@ -152,7 +150,7 @@
 				if (identifier === 'notifications/lastOpened') {
 					console.log('[last read]', event);
 					$lastReadAt = event.created_at;
-					$unreadEvents = [];
+					$unreadEventItems = [];
 				} else if (identifier !== undefined) {
 					console.log('[people list]', event);
 				}
@@ -177,7 +175,7 @@
 				if (identifier === 'nostter-read') {
 					console.log('[last read]', event);
 					$lastReadAt = event.created_at;
-					$unreadEvents = [];
+					$unreadEventItems = [];
 				} else if (identifier === 'nostter-preferences') {
 					const preferences = new Preferences(event.content);
 					$preferencesStore = preferences;
@@ -211,10 +209,10 @@
 			// Notification
 			if ($author?.isNotified(event)) {
 				console.log('[related]', event);
-				$unreadEvents.unshift(eventItem);
-				$notifiedEvents.unshift(eventItem);
-				$unreadEvents = $unreadEvents;
-				$notifiedEvents = $notifiedEvents;
+				$unreadEventItems.unshift(eventItem);
+				$notifiedEventItems.unshift(eventItem);
+				$unreadEventItems = $unreadEventItems;
+				$notifiedEventItems = $notifiedEventItems;
 
 				notify(event);
 			}
@@ -415,17 +413,6 @@
 					}
 				}
 			});
-
-		// Past notification
-		const notificationTimeline = new NotificationTimeline($pubkey);
-		const notifiedEventItems = await notificationTimeline.fetch(
-			now,
-			Math.max($lastReadAt, now - 24 * 60 * 60)
-		);
-		$unreadEvents.push(...notifiedEventItems.filter((x) => x.event.created_at > $lastReadAt));
-		$unreadEvents = $unreadEvents;
-		$notifiedEvents = notifiedEventItems;
-		$loadingNotifications = false;
 	});
 
 	async function load() {
