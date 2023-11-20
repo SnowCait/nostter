@@ -10,12 +10,13 @@
 		bookmarkEvent
 	} from '../../../../stores/Author';
 	import { page } from '$app/stores';
-	import { User } from '$lib/User';
-	import { error } from '@sveltejs/kit';
 	import TimelineView from '../../TimelineView.svelte';
 	import { Signer } from '$lib/Signer';
 	import { EventItem } from '$lib/Items';
 	import { referencesReqEmit } from '$lib/timelines/MainTimeline';
+	import type { LayoutData } from '../$types';
+
+	export let data: LayoutData;
 
 	let publicBookmarkEventItems: EventItem[] = [];
 	let privateBookmarkEventItems: EventItem[] = [];
@@ -24,13 +25,7 @@
 		const slug = $page.params.slug;
 		console.log('[bookmark page]', slug);
 
-		const { pubkey, relays } = await User.decode(slug);
-
-		if (pubkey === undefined) {
-			throw error(404);
-		}
-
-		const api = new Api($pool, Array.from(new Set([...relays, ...$readRelays])));
+		const api = new Api($pool, Array.from(new Set([...data.relays, ...$readRelays])));
 		const event = $bookmarkEvent;
 		console.log('[bookmark]', event);
 
@@ -45,7 +40,7 @@
 		);
 
 		let originalPrivateBookmarkEvents: NostrEvent[] = [];
-		if (pubkey === $authorPubkey && !$rom && event.content !== '') {
+		if (data.pubkey === $authorPubkey && !$rom && event.content !== '') {
 			try {
 				const json = await Signer.decrypt($authorPubkey, event.content);
 				const privateBookmark: string[][] = JSON.parse(json);
