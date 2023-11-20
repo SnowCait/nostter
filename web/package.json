@@ -17,7 +17,7 @@
 		"@beyonk/gdpr-cookie-consent-banner": "^11.0.0",
 		"@playwright/test": "^1.32.2",
 		"@sveltejs/adapter-auto": "^2.1.1",
-		"@sveltejs/kit": "^1.25.2",
+		"@sveltejs/kit": "^1.27.6",
 		"@types/beyonk__gdpr-cookie-consent-banner": "^9.0.2",
 		"@types/emoji-mart": "^3.0.12",
 		"@types/qrcode": "^1.5.5",
