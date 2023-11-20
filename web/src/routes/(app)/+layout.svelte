@@ -1,9 +1,14 @@
 <script lang="ts">
+	import { createRxOneshotReq, latest } from 'rx-nostr';
 	import { WebStorage } from '$lib/WebStorage';
+	import { notificationKinds } from '$lib/NotificationTimeline';
+	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
 	import { openNoteDialog } from '../../stores/NoteDialog';
+	import { pubkey } from '../../stores/Author';
+	import { lastReadAt, lastNotifiedAt } from '../../stores/Notifications';
 	import { onMount } from 'svelte';
 	import ReloadDialog from './ReloadDialog.svelte';
 	import '../../app.css';
@@ -23,6 +28,28 @@
 		'a'
 	];
 	let konamiIndex = 0;
+
+	checkNotifications();
+
+	function checkNotifications(): void {
+		const notificationExistsReq = createRxOneshotReq({
+			filters: [
+				{
+					kinds: notificationKinds,
+					'#p': [$pubkey],
+					since: $lastReadAt,
+					limit: 1
+				}
+			]
+		});
+		rxNostr
+			.use(notificationExistsReq)
+			.pipe(latest())
+			.subscribe((packet) => {
+				console.log('[rx-nostr notification packet]', packet);
+				$lastNotifiedAt = packet.event.created_at;
+			});
+	}
 
 	function keyboardShortcut(event: KeyboardEvent) {
 		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
