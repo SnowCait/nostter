@@ -7,8 +7,10 @@
 	console.log('[trend]', trendRelays);
 	const rxNostr = createRxNostr();
 	rxNostr.switchRelays(trendRelays).then(() => {
+		const lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+		console.log('[trend lang]', lang);
 		const rxReq = createRxOneshotReq({
-			filters: { kinds: [38225], '#d': ['buzz-phrases:ja'], limit: 1 }
+			filters: { kinds: [38225], '#d': [`buzz-phrases:${lang}`], limit: 1 }
 		});
 		const subscription = rxNostr.use(rxReq).subscribe((packet) => {
 			console.log('[rx-nostr trend packet]', packet);
