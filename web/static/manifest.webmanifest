@@ -8,9 +8,10 @@
 	"description": "Nostr web client.",
 	"icons": [
 		{
-			"src": "icon.png",
-			"sizes": "150x150",
-			"type": "image/png"
+			"src": "icons/144.png",
+			"sizes": "144x144",
+			"type": "image/png",
+			"purpose": "any maskable monochrome"
 		}
 	],
 	"protocol_handlers": [
