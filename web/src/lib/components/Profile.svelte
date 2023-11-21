@@ -158,7 +158,7 @@
 		<a href="/{slug}/relays">{$_('pages.relays')}</a>
 	</div>
 	<div>
-		<a href="/{slug}/timeline">Timeline</a>
+		<a href="/{slug}/timeline">{$_('pages.timeline')}</a>
 	</div>
 	<div>
 		<a href="/{slug}/pins">{$_('pages.pinned')}</a>

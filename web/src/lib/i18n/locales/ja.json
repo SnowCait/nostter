@@ -18,7 +18,8 @@
 		"followers": "フォロワー",
 		"pinned": "ピン留め",
 		"reactions": "リアクション",
-		"relays": "リレー"
+		"relays": "リレー",
+		"timeline": "タイムライン"
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",

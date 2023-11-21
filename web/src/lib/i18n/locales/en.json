@@ -18,7 +18,8 @@
 		"followers": "Followers",
 		"pinned": "Pinned",
 		"reactions": "Reactions",
-		"relays": "Relays"
+		"relays": "Relays",
+		"timeline": "Timeline"
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",
