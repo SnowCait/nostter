@@ -13,10 +13,6 @@
 	}
 </script>
 
-<svelte:head>
-	<title>nostter</title>
-</svelte:head>
-
 <Notice />
 
 {#if data.splash}
