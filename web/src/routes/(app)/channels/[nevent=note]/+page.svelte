@@ -15,7 +15,7 @@
 	import IconInfoCircle from '@tabler/icons-svelte/dist/svelte/icons/IconInfoCircle.svelte';
 	import { page } from '$app/stores';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
-	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
+	import { cachedEvents, channelMetadataEvents, metadataStore } from '$lib/cache/Events';
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import { appName, timeout } from '$lib/Constants';
 	import type { ChannelMetadata } from '$lib/Types';
@@ -41,6 +41,7 @@
 
 	let showInformation = false;
 
+	$: metadata = kind40Event !== undefined ? $metadataStore.get(kind40Event.pubkey) : undefined;
 	$: console.log('[channel metadata]', channelMetadata);
 
 	function updateChannelMetadata(): void {
@@ -230,7 +231,7 @@
 	<title>{appName} - {channelMetadata?.name ?? $_('layout.header.channels')}</title>
 </svelte:head>
 
-<header>
+<header class="card">
 	<section class="title">
 		<h1><ChannelTitle {channelMetadata} /></h1>
 		<div>
@@ -256,38 +257,13 @@
 					<Content content={channelMetadata.about} tags={[]} />
 				</div>
 			{/if}
-			<div class="external-link">
-				Open in <a
-					href="https://coracle.social/chat/{nip19.noteEncode(channelId)}"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Coracle
-				</a>
-				<a
-					href="https://unyu-house.vercel.app/channels/{nip19.neventEncode({
-						id: channelId
-					})}"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					うにゅうハウス
-				</a>
-				<a
-					href="https://garnet.nostrian.net/channels/{channelId}"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					GARNET
-				</a>
-				<a
-					href="https://www.nostrchat.io/channel/{channelId}"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					NostrChat
-				</a>
-			</div>
+			{#if metadata !== undefined}
+				<div>
+					Created by <a href="/{nip19.npubEncode(metadata.event.pubkey)}">
+						{metadata.displayName} @{metadata.name}
+					</a>
+				</div>
+			{/if}
 		</section>
 	{/if}
 </header>
@@ -298,7 +274,6 @@
 	header {
 		position: sticky;
 		top: 0;
-		background-color: white;
 		margin: 0;
 		padding: 0.5rem 1rem;
 	}
@@ -332,5 +307,9 @@
 
 	.channel-about {
 		margin: 0.5rem 0;
+	}
+
+	a {
+		text-decoration: underline;
 	}
 </style>
