@@ -17,7 +17,8 @@
 		"followees": "フォロー中",
 		"followers": "フォロワー",
 		"pinned": "ピン留め",
-		"reactions": "リアクション"
+		"reactions": "リアクション",
+		"relays": "リレー"
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",

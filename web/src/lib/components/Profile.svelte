@@ -155,7 +155,7 @@
 		</div>
 	</div>
 	<div>
-		<a href="/{slug}/relays">Relays</a>
+		<a href="/{slug}/relays">{$_('pages.relays')}</a>
 	</div>
 	<div>
 		<a href="/{slug}/timeline">Timeline</a>
