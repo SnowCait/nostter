@@ -10,13 +10,14 @@
 	import { tap, type Subscription } from 'rxjs';
 	import { onDestroy } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
+	import { _ } from 'svelte-i18n';
 	import { error } from '@sveltejs/kit';
 	import IconInfoCircle from '@tabler/icons-svelte/dist/svelte/icons/IconInfoCircle.svelte';
 	import { page } from '$app/stores';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
 	import { Channel, channelIdStore } from '$lib/Channel';
-	import { timeout } from '$lib/Constants';
+	import { appName, timeout } from '$lib/Constants';
 	import type { ChannelMetadata } from '$lib/Types';
 	import { referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { author, readRelays } from '../../../../stores/Author';
@@ -224,6 +225,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>{appName} - {channelMetadata?.name ?? $_('layout.header.channels')}</title>
+</svelte:head>
 
 <header>
 	<section class="title">

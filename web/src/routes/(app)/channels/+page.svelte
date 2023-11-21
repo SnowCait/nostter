@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createRxOneshotReq, filterKind, uniq } from 'rx-nostr';
 	import type { Event } from 'nostr-typedef';
+	import { _ } from 'svelte-i18n';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { WebStorage } from '$lib/WebStorage';
 	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
@@ -8,6 +9,7 @@
 	import { filterTags, findChannelId } from '$lib/EventHelper';
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
+	import { appName } from '$lib/Constants';
 
 	let channelsEvent: Event | undefined;
 	let channelIds: string[] = [];
@@ -78,7 +80,11 @@
 	}
 </script>
 
-<h1>Channels</h1>
+<svelte:head>
+	<title>{appName} - {$_('layout.header.channels')}</title>
+</svelte:head>
+
+<h1>{$_('layout.header.channels')}</h1>
 
 <form on:submit|preventDefault={search}>
 	<input type="search" bind:value={keyword} on:keyup|stopPropagation={() => console.debug} />
