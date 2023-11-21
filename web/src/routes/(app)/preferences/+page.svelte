@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
+	import { appName } from '$lib/Constants';
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
@@ -25,7 +27,11 @@
 	}
 </script>
 
-<h1>Preferences</h1>
+<svelte:head>
+	<title>{appName} - {$_('layout.header.preferences')}</title>
+</svelte:head>
+
+<h1>{$_('layout.header.preferences')}</h1>
 
 <div><Theme /></div>
 {#if $author !== undefined}

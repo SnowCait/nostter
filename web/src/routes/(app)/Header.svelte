@@ -86,7 +86,7 @@
 					<a href="/preferences">
 						<li>
 							<IconSettings size={30} />
-							<p>{$_('layout.header.preference')}</p>
+							<p>{$_('layout.header.preferences')}</p>
 						</li>
 					</a>
 				{/if}
