@@ -142,7 +142,7 @@
 
 	<header>
 		<div>
-			<Header onClickPostButton={() => ($openNoteDialog = !$openNoteDialog)} />
+			<Header />
 		</div>
 	</header>
 
