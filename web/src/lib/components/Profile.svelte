@@ -161,7 +161,7 @@
 		<a href="/{slug}/timeline">Timeline</a>
 	</div>
 	<div>
-		<a href="/{slug}/pins">PINs</a>
+		<a href="/{slug}/pins">{$_('pages.pinned')}</a>
 	</div>
 	<div>
 		<a href="/{slug}/reactions">Reactions</a>

@@ -15,7 +15,8 @@
 		"profile_edit": "プロフィール編集",
 		"thread": "スレッド",
 		"followees": "フォロー中",
-		"followers": "フォロワー"
+		"followers": "フォロワー",
+		"pinned": "ピン留め"
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",

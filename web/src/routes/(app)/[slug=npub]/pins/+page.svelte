@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { error } from '@sveltejs/kit';
+	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { appName } from '$lib/Constants';
 	import { WebStorage } from '$lib/WebStorage';
 	import { EventItem } from '$lib/Items';
 	import { User as UserDecoder } from '$lib/User';
@@ -70,6 +72,10 @@
 	});
 </script>
 
-<h1>PINs</h1>
+<svelte:head>
+	<title>{appName} - {$_('pages.pinned')}</title>
+</svelte:head>
+
+<h1>{$_('pages.pinned')}</h1>
 
 <TimelineView {items} load={async () => console.debug()} showLoading={false} />

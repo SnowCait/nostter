@@ -15,7 +15,8 @@
 		"profile_edit": "Edit profile",
 		"thread": "Thread",
 		"followees": "Followees",
-		"followers": "Followers"
+		"followers": "Followers",
+		"pinned": "Pinned"
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",
