@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { error } from '@sveltejs/kit';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { appName } from '$lib/Constants';
 	import { User as UserDecoder } from '$lib/User';
 	import { Api } from '$lib/Api';
 	import { pubkey as authorPubkey, readRelays, writeRelays } from '../../../../stores/Author';
@@ -130,9 +132,9 @@
 
 <svelte:head>
 	{#if user !== undefined}
-		<title>{user.display_name} (@{user.name}) Relays - nostter</title>
+		<title>{appName} - {user.display_name} (@{user.name}) {$_('pages.relays')}</title>
 	{:else}
-		<title>Relays - nostter</title>
+		<title>{appName} {$_('pages.relays')}</title>
 	{/if}
 </svelte:head>
 
@@ -141,7 +143,7 @@
 		<span class="display-name">{user.display_name ?? user.name}</span>
 		<span class="name">(@{user.name ?? user.display_name})</span>
 	{/if}
-	<span>Relays</span>
+	<span>{$_('pages.relays')}</span>
 </h1>
 
 <form on:submit|preventDefault={save}>

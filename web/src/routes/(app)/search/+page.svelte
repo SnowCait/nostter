@@ -1,9 +1,10 @@
 <script lang="ts">
 	import type { Filter } from 'nostr-tools';
+	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Search } from '$lib/Search';
-	import { minTimelineLength } from '$lib/Constants';
+	import { appName, minTimelineLength } from '$lib/Constants';
 	import type { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
 	import SearchForm from './SearchForm.svelte';
@@ -57,10 +58,12 @@
 </script>
 
 <svelte:head>
-	<title>nostter - {query ? `Search: ${query}` : 'Search'}</title>
+	<title>
+		{appName} - {query ? `${$_('layout.header.search')}: ${query}` : $_('layout.header.search')}
+	</title>
 </svelte:head>
 
-<h1><a href="/search">Search</a></h1>
+<h1><a href="/search">{$_('layout.header.search')}</a></h1>
 
 <section>
 	<SearchForm {query} />

@@ -10,7 +10,7 @@
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
 	import { Timeline } from '$lib/Timeline';
 	import { EventItem, Metadata } from '$lib/Items';
-	import { minTimelineLength } from '$lib/Constants';
+	import { appName, minTimelineLength } from '$lib/Constants';
 	import type { LayoutData } from './$types';
 	import Profile from '$lib/components/Profile.svelte';
 
@@ -148,9 +148,9 @@
 
 <svelte:head>
 	{#if metadata !== undefined}
-		<title>nostter - {metadata.displayName} (@{metadata.name})</title>
+		<title>{appName} - {metadata.displayName} (@{metadata.name})</title>
 	{:else}
-		<title>nostter - ghost</title>
+		<title>{appName} - ghost</title>
 	{/if}
 </svelte:head>
 

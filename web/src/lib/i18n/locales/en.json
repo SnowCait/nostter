@@ -8,8 +8,18 @@
 			"bookmarks": "Bookmarks",
 			"channels": "Channels",
 			"profile": "Profile",
-			"preference": "Settings"
+			"preferences": "Preferences"
 		}
+	},
+	"pages": {
+		"profile_edit": "Edit profile",
+		"thread": "Thread",
+		"followees": "Followees",
+		"followers": "Followers",
+		"pinned": "Pinned",
+		"reactions": "Reactions",
+		"relays": "Relays",
+		"timeline": "Timeline"
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",

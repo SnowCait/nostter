@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { error } from '@sveltejs/kit';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { appName } from '$lib/Constants';
 	import { User } from '$lib/User';
 	import UserFollowingTimeline from './UserFollowingTimeline.svelte';
 
@@ -28,5 +30,9 @@
 		await timeline.initialize();
 	});
 </script>
+
+<svelte:head>
+	<title>{appName} - {$_('pages.timeline')}</title>
+</svelte:head>
 
 <UserFollowingTimeline {pubkey} bind:this={timeline} />

@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import FollowingTimeline from './FollowingTimeline.svelte';
 	import UserFollowingTimeline from '../[slug=npub]/timeline/UserFollowingTimeline.svelte';
-	import { japaneseBotNpub } from '$lib/Constants';
+	import { appName, japaneseBotNpub } from '$lib/Constants';
 	import { nip19 } from 'nostr-tools';
 	import { tick } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
@@ -24,6 +24,10 @@
 		}
 	});
 </script>
+
+<svelte:head>
+	<title>{appName} - {$_('layout.header.home')}</title>
+</svelte:head>
 
 <select bind:value={$selected}>
 	<option value="home">{$_('layout.header.home')}</option>

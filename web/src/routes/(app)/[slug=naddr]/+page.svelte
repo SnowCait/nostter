@@ -2,6 +2,7 @@
 	import { error } from '@sveltejs/kit';
 	import type { Event } from 'nostr-tools';
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import { appName } from '$lib/Constants';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import type { PageData } from './$types';
 	import Content from '../content/Content.svelte';
@@ -55,7 +56,7 @@
 </script>
 
 <svelte:head>
-	<title>{title} - nostter</title>
+	<title>{appName} - {title}</title>
 </svelte:head>
 
 {#if event === undefined}

@@ -13,10 +13,13 @@
 	import { pubkey, rom } from '../../stores/Author';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
+	import { openNoteDialog } from '../../stores/NoteDialog';
 	import NostterLogo from './parts/NostterLogo.svelte';
 	import NostterLogoIcon from './parts/NostterLogoIcon.svelte';
 
-	export let onClickPostButton: () => void;
+	async function onClickPostButton(): Promise<void> {
+		$openNoteDialog = !$openNoteDialog;
+	}
 
 	let show = false;
 </script>
@@ -86,7 +89,7 @@
 					<a href="/preferences">
 						<li>
 							<IconSettings size={30} />
-							<p>{$_('layout.header.preference')}</p>
+							<p>{$_('layout.header.preferences')}</p>
 						</li>
 					</a>
 				{/if}

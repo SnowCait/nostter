@@ -8,8 +8,18 @@
 			"bookmarks": "ブックマーク",
 			"channels": "チャンネル",
 			"profile": "プロフィール",
-			"preference": "設定"
+			"preferences": "設定"
 		}
+	},
+	"pages": {
+		"profile_edit": "プロフィール編集",
+		"thread": "スレッド",
+		"followees": "フォロー中",
+		"followers": "フォロワー",
+		"pinned": "ピン留め",
+		"reactions": "リアクション",
+		"relays": "リレー",
+		"timeline": "タイムライン"
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",

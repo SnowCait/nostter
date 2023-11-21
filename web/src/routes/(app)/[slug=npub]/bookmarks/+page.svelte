@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { createRxOneshotReq, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
+	import { _ } from 'svelte-i18n';
 	import { pubkey as authorPubkey, rom, bookmarkEvent } from '../../../../stores/Author';
 	import { page } from '$app/stores';
 	import TimelineView from '../../TimelineView.svelte';
+	import { appName } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
 	import { Signer } from '$lib/Signer';
 	import { EventItem } from '$lib/Items';
@@ -73,7 +75,11 @@
 	}
 </script>
 
-<h1>Bookmarks</h1>
+<svelte:head>
+	<title>{appName} - {$_('layout.header.bookmarks')}</title>
+</svelte:head>
+
+<h1>{$_('layout.header.bookmarks')}</h1>
 
 <h2>Public</h2>
 
