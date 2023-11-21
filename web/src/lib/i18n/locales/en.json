@@ -11,6 +11,9 @@
 			"preferences": "Preferences"
 		}
 	},
+	"pages": {
+		"profile_edit": "Edit profile"
+	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",
 		"recommended": "Recommended",

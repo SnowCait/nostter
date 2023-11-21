@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { Kind, nip19 } from 'nostr-tools';
+	import { _ } from 'svelte-i18n';
+	import { appName } from '$lib/Constants';
 	import { Api } from '$lib/Api';
 	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
 	import {
@@ -73,10 +75,10 @@
 </script>
 
 <svelte:head>
-	<title>Edit profile - nostter</title>
+	<title>{appName} - {$_('pages.profile_edit')}</title>
 </svelte:head>
 
-<h1>Edit profile</h1>
+<h1>{$_('pages.profile_edit')}</h1>
 
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <form on:submit|preventDefault={save} on:keyup|stopPropagation={console.debug}>
