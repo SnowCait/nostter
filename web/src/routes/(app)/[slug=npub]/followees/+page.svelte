@@ -8,15 +8,16 @@
 		uniq
 	} from 'rx-nostr';
 	import { bufferCount, bufferTime } from 'rxjs';
+	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { saveLastNotes } from '../../../../stores/LastNotes';
+	import { appName, maxFilters } from '$lib/Constants';
 	import type { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
-	import { maxFilters } from '$lib/Constants';
 
 	export let data: LayoutData;
 
@@ -76,6 +77,10 @@
 	}
 </script>
 
-<h1>followees</h1>
+<svelte:head>
+	<title>{appName} - {$_('pages.followees')}</title>
+</svelte:head>
+
+<h1>{$_('pages.followees')}</h1>
 
 <TimelineView {items} load={async () => console.debug()} showLoading={false} />

@@ -13,7 +13,9 @@
 	},
 	"pages": {
 		"profile_edit": "プロフィール編集",
-		"thread": "スレッド"
+		"thread": "スレッド",
+		"followees": "フォロー中",
+		"followers": "フォロワー"
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",

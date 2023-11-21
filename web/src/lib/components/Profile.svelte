@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { SimplePool, nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { Api } from '$lib/Api';
@@ -139,14 +140,18 @@
 	<Badges {badges} />
 	<div class="relationships">
 		<div>
-			Followees: {#if followees === undefined}
+			{$_('pages.followees')}: {#if followees === undefined}
 				<Loading />
 			{:else}
 				<a href={`/${slug}/followees`}>{followees.length}</a>
 			{/if}
 		</div>
 		<div>
-			Followers: {#if followers === undefined}<Loading />{:else}{followers.length}+{/if}
+			{$_('pages.followers')}: {#if followers === undefined}
+				<Loading />
+			{:else}
+				{followers.length}+
+			{/if}
 		</div>
 	</div>
 	<div>
