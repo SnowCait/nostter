@@ -3,10 +3,11 @@
 	import type { Filter } from 'nostr-typedef';
 	import { createRxOneshotReq, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
+	import { _ } from 'svelte-i18n';
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { NotificationTimeline, notificationKinds } from '$lib/NotificationTimeline';
-	import { minTimelineLength } from '$lib/Constants';
+	import { appName, minTimelineLength } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
 	import type { LayoutData } from '../$types';
@@ -147,6 +148,10 @@
 	}
 </script>
 
-<h1>Notifications</h1>
+<svelte:head>
+	<title>{appName} - {$_('layout.header.notifications')}</title>
+</svelte:head>
+
+<h1>{$_('layout.header.notifications')}</h1>
 
 <TimelineView items={$notifiedEventItems} {load} />
