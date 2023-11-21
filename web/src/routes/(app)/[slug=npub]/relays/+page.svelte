@@ -215,7 +215,7 @@
 	}
 
 	li:nth-child(even) {
-		background-color: rgb(245, 245, 245);
+		background-color: var(--accent-surface);
 	}
 
 	.header {
