@@ -178,12 +178,6 @@
 		width: 100%;
 	}
 
-	.debug {
-		position: fixed;
-		bottom: 0;
-		background-color: white;
-	}
-
 	@keyframes -global-rotation {
 		0% {
 			transform: rotate(0);
@@ -221,11 +215,6 @@
 			padding-bottom: 3.125rem;
 			margin-top: 3.125rem;
 			height: auto;
-		}
-
-		.debug {
-			bottom: 50px;
-			overflow: auto;
 		}
 
 		:global(.card) {
