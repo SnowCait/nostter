@@ -2,6 +2,7 @@
 	import type { Event } from 'nostr-typedef';
 	import { createRxOneshotReq, filterKind, uniq } from 'rx-nostr';
 	import { tap, merge } from 'rxjs';
+	import { _ } from 'svelte-i18n';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { PageData } from './$types';
@@ -12,7 +13,7 @@
 	import { referTags } from '$lib/EventHelper';
 	import { EventItem, Metadata } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';
-	import { chronologicalItem } from '$lib/Constants';
+	import { appName, chronologicalItem } from '$lib/Constants';
 	import { tick } from 'svelte';
 	import MuteButton from '$lib/components/MuteButton.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
@@ -249,10 +250,14 @@
 </script>
 
 <svelte:head>
-	<title>nostter - thread</title>
+	<title>
+		{appName} - {item !== undefined
+			? `${metadata?.displayName}: ${item.event.content}`
+			: $_('pages.thread')}
+	</title>
 </svelte:head>
 
-<h1>Thread</h1>
+<h1>{$_('pages.thread')}</h1>
 
 <TimelineView
 	items={replyToEventItems}

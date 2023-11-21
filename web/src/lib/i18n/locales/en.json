@@ -12,7 +12,8 @@
 		}
 	},
 	"pages": {
-		"profile_edit": "Edit profile"
+		"profile_edit": "Edit profile",
+		"thread": "Thread"
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",

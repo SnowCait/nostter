@@ -12,7 +12,8 @@
 		}
 	},
 	"pages": {
-		"profile_edit": "プロフィール編集"
+		"profile_edit": "プロフィール編集",
+		"thread": "スレッド"
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",
