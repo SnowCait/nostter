@@ -149,6 +149,7 @@
 <svelte:head>
 	{#if metadata !== undefined}
 		<title>{appName} - {metadata.displayName} (@{metadata.name})</title>
+		<meta property="og:image" content={metadata.picture} />
 	{:else}
 		<title>{appName} - ghost</title>
 	{/if}

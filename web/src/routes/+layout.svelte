@@ -10,10 +10,11 @@
 	<meta name="description" content={description} />
 	<meta property="og:title" content={appName} />
 	<meta property="og:type" content="website" />
-	<meta property="og:image" content={`${$page.url.origin}/nostter-logo.png`} />
+	<meta property="og:image" content={`${$page.url.origin}/icon.png`} />
 	<meta property="og:url" content={$page.url.href} />
 	<meta property="og:description" content={description} />
 	<meta property="og:site_name" content={appName} />
+	<meta name="twitter:card" content="summary" />
 	<style>
 		@media not (display-mode: standalone) {
 			body {
