@@ -545,10 +545,6 @@
 	}
 </script>
 
-<svelte:head>
-	<title>nostter - home</title>
-</svelte:head>
-
 {#if $eventsPool.length > 0}
 	<article>
 		<button class="clear" on:click={showPooledEvents}>
