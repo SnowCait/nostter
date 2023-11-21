@@ -164,7 +164,7 @@
 		<a href="/{slug}/pins">{$_('pages.pinned')}</a>
 	</div>
 	<div>
-		<a href="/{slug}/reactions">Reactions</a>
+		<a href="/{slug}/reactions">{$_('pages.reactions')}</a>
 	</div>
 </div>
 

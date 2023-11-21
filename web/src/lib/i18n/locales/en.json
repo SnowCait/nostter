@@ -16,7 +16,8 @@
 		"thread": "Thread",
 		"followees": "Followees",
 		"followers": "Followers",
-		"pinned": "Pinned"
+		"pinned": "Pinned",
+		"reactions": "Reactions"
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",

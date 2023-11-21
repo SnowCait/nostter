@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import TimelineView from '../../TimelineView.svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { Api } from '$lib/Api';
@@ -8,7 +9,7 @@
 	import { error } from '@sveltejs/kit';
 	import { User as UserDecoder } from '$lib/User';
 	import { Kind, type Filter } from 'nostr-tools';
-	import { minTimelineLength } from '$lib/Constants';
+	import { appName, minTimelineLength } from '$lib/Constants';
 	import type { EventItem } from '$lib/Items';
 
 	let pubkey: string;
@@ -72,6 +73,10 @@
 	}
 </script>
 
-<h1>Reactions</h1>
+<svelte:head>
+	<title>{appName} - {$_('pages.reactions')}</title>
+</svelte:head>
+
+<h1>{$_('pages.reactions')}</h1>
 
 <TimelineView {items} {load} {showLoading} />

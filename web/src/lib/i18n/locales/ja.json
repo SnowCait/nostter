@@ -16,7 +16,8 @@
 		"thread": "スレッド",
 		"followees": "フォロー中",
 		"followers": "フォロワー",
-		"pinned": "ピン留め"
+		"pinned": "ピン留め",
+		"reactions": "リアクション"
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",
