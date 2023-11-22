@@ -28,12 +28,12 @@
 <div class="header">
 	<div id="logo-icon-wrapper">
 		<a href={$pubkey ? '/home' : '/'} id="logo-icon">
-			<span class="logo-for-mobile">
-				<NostterLogoIcon width={30} height={30} />
-			</span>
-			<span class="logo-for-desktop">
-				<NostterLogo width={127.5} height={32} />
-			</span>
+			<div class="logo-for-mobile">
+				<NostterLogoIcon />
+			</div>
+			<div class="logo-for-desktop">
+				<NostterLogo />
+			</div>
 		</a>
 	</div>
 	<nav>
@@ -123,6 +123,11 @@
 		display: none;
 	}
 
+	.logo-for-desktop {
+		width: 127.5px;
+		height: 32px;
+	}
+
 	nav {
 		margin-top: 1.5rem;
 		margin-bottom: 2rem;
@@ -192,9 +197,11 @@
 		}
 
 		.logo-for-mobile {
-			width: 100%;
+			width: 30px;
+			height: 30px;
 			display: flex;
 			justify-content: center;
+			margin: auto;
 		}
 
 		.logo-for-desktop {

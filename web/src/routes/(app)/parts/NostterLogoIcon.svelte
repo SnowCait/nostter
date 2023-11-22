@@ -1,9 +1,4 @@
-<script lang="ts">
-	export let width: string | number = 128;
-	export let height: string | number = 128;
-</script>
-
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" {width} {height} class="logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" class="logo">
 	<path
 		d="M71.2,54.4c10-0.1,18.2,3.7,25.2,10.3c4.9,4.6,9.8,9.2,14,14.5c5,6.3,6.9,18.5-1.5,25.4c-6,5-12.9,7.3-20.8,5.2
 			c-1.5-0.4-2.9-0.9-4.3-1.5c-3.6-1.6-6.7-0.9-9.3,2c-2.9,3.2-6.3,5.7-9.8,7.9c-6.7,4.3-13.7,3.9-20.4,0.4c-6.4-3.4-8.9-9.4-8.6-16.5
