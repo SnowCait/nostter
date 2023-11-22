@@ -10,18 +10,15 @@
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
-	import type { LayoutData } from '../$types';
 	import { notifiedEventItems, unreadEventItems } from '../../../stores/Notifications';
-	import { pubkey, writeRelays } from '../../../stores/Author';
+	import { pubkey, author, writeRelays } from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
-
-	export let data: LayoutData;
 
 	afterNavigate(async () => {
 		console.log('[notifications page]');
 
-		if (!data.authenticated) {
+		if (!$author === undefined) {
 			await goto('/');
 		}
 
