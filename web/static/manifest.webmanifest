@@ -8,7 +8,7 @@
 	"description": "Nostr web client.",
 	"icons": [
 		{
-			"src": "icons/144.png",
+			"src": "icon.png",
 			"sizes": "144x144",
 			"type": "image/png",
 			"purpose": "any maskable monochrome"
