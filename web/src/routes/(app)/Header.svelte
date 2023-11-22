@@ -7,6 +7,7 @@
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
+	import IconLogin from '@tabler/icons-svelte/dist/svelte/icons/IconLogin.svelte';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '../../stores/Notifications';
@@ -103,6 +104,7 @@
 		</button>
 	{:else}
 		<button on:click={async () => await goto('/')}>
+			<IconLogin size={30} />
 			<p>{$_('login.login')}</p>
 		</button>
 	{/if}
