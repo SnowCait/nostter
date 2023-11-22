@@ -18,7 +18,7 @@
 	afterNavigate(async () => {
 		console.log('[notifications page]');
 
-		if (!$author === undefined) {
+		if ($author === undefined) {
 			await goto('/');
 		}
 
