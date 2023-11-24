@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="web/static/nostter-logo.svg" height="50">
+  <img src="web/static/logo.svg" height="50">
 </div>
 <br>
 <p align="center">
