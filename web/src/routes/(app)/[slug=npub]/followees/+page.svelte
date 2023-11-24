@@ -13,6 +13,7 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { saveLastNotes } from '../../../../stores/LastNotes';
+	import { author } from '../../../../stores/Author';
 	import { appName, maxFilters } from '$lib/Constants';
 	import type { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
@@ -22,7 +23,7 @@
 	export let data: LayoutData;
 
 	let pubkey: string | undefined;
-	let pubkeys: string[] = [];
+	let pubkeys = new Set<string>();
 
 	const lastNoteReq = createRxBackwardReq();
 	rxNostr
@@ -37,7 +38,7 @@
 			saveLastNotes(packets.map((x) => x.event));
 		});
 
-	$: items = pubkeys
+	$: items = [...pubkeys]
 		.map((pubkey) => $metadataStore.get(pubkey))
 		.filter((metadata): metadata is Metadata => metadata !== undefined);
 
@@ -59,9 +60,9 @@
 			.pipe(uniq(), latest())
 			.subscribe((packet) => {
 				console.log('[rx-nostr contacts]', packet);
-				pubkeys = filterTags('p', packet.event.tags).reverse();
-				metadataReqEmit(pubkeys);
-				if (!data.authenticated) {
+				pubkeys = new Set(filterTags('p', packet.event.tags).reverse());
+				metadataReqEmit([...pubkeys]);
+				if ($author === undefined) {
 					return;
 				}
 				for (const pubkey of pubkeys) {
@@ -81,6 +82,6 @@
 	<title>{appName} - {$_('pages.followees')}</title>
 </svelte:head>
 
-<h1>{$_('pages.followees')}</h1>
+<h1>{$_('pages.followees')} ({pubkeys.size})</h1>
 
 <TimelineView {items} load={async () => console.debug()} showLoading={false} />

@@ -147,11 +147,7 @@
 			{/if}
 		</div>
 		<div>
-			{$_('pages.followers')}: {#if followers === undefined}
-				<Loading />
-			{:else}
-				{followers.length}+
-			{/if}
+			{$_('pages.followers')}: <a href={`/${slug}/followers`}>{$_('pages.followers_see')}</a>
 		</div>
 	</div>
 	<div>

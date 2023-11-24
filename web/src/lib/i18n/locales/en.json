@@ -16,6 +16,7 @@
 		"thread": "Thread",
 		"followees": "Followees",
 		"followers": "Followers",
+		"followers_see": "See",
 		"pinned": "Pinned",
 		"reactions": "Reactions",
 		"relays": "Relays",
