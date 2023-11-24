@@ -57,6 +57,8 @@ Welcome issues, pull requests and discussions after understanding above.
 
 UI by [@kaiji](https://nostter.app/npub194qhhn5vzzyrsqaugfms8c7ycqjyvhyguurra450nhlweatfzxkqy8tgkd)
 
+Logo by [@apco](https://nostter.app/npub1njty7prjt49kju6c3mjjlxvm0hjymf5s2qlfcyjqg5e0k8kftp3s4dpsn5)
+
 Illustration by [@stok33](https://nostter.app/npub1e09suzmq9mp6nt0ud9ttl03790qjx70wzwlc2pwwghcusvwju54qs0c800)
 
 <img src="web/static/nostter-chan.jpg" width="25%">

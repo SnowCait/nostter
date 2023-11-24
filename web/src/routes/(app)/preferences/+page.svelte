@@ -73,15 +73,16 @@
 	<ZapButton pubkey="2d417bce8c10883803bc427703e3c4c024465c88e7063ed68f9dfeecf56911ac" />
 </div>
 <div class="user">
+	<span>Logo:</span>
+	<a href="/npub1njty7prjt49kju6c3mjjlxvm0hjymf5s2qlfcyjqg5e0k8kftp3s4dpsn5">@apco</a>
+	<ZapButton pubkey="9c964f04725d4b6973588ee52f999b7de44da690503e9c12404532fb1ec95863" />
+</div>
+<div class="user">
 	<span>Illustration:</span>
 	<a href="/npub1e09suzmq9mp6nt0ud9ttl03790qjx70wzwlc2pwwghcusvwju54qs0c800">@stok33</a>
 	<ZapButton pubkey="cbcb0e0b602ec3a9adfc6956bfbe3e2bc12379ee13bf8505ce45f1c831d2e52a" />
 </div>
-<img
-	src="/nostter-chan.jpg"
-	alt=""
-	title="前から知っていたような雰囲気ですぐ馴染めるタイプの娘。パーカーの中には json が格納されていて聞くと教えてくれるよ。あとかなり物覚えが良いので昔のことも覚えててくれるよ。"
-/>
+<img src="/nostter-chan.jpg" alt="" />
 
 <style>
 	div {
