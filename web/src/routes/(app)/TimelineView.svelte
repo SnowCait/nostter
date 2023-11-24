@@ -82,7 +82,14 @@
 			}
 		}
 		if (canTransition) {
-			if (nostrEvent.kind === 42 && $channelIdStore === undefined) {
+			if (nostrEvent.kind === 40 && $channelIdStore === undefined) {
+				await goto(`/channels/${nip19.neventEncode({ id: nostrEvent.id })}`);
+				return;
+			}
+			if (
+				(nostrEvent.kind === 41 || nostrEvent.kind === 42) &&
+				$channelIdStore === undefined
+			) {
 				const channelId = findChannelId(nostrEvent.tags);
 				if (channelId !== undefined) {
 					await goto(`/channels/${nip19.neventEncode({ id: channelId })}`);
