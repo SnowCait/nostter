@@ -1,11 +1,15 @@
 <script lang="ts">
-	import { onImageError } from '$lib/Constants';
 	import type { Metadata } from '$lib/Items';
 	import { nip19 } from 'nostr-tools';
 
 	export let metadata: Metadata;
 
 	$: name = metadata.content?.display_name ?? '@' + metadata.content?.name;
+
+	const onImageError = (event: Event) => {
+		const img = event.target as HTMLImageElement;
+		img.src = `https://robohash.org/${nip19.npubEncode(metadata.event.pubkey)}?set=set4`;
+	};
 </script>
 
 <article>

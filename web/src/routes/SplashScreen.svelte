@@ -4,7 +4,7 @@
 
 <main>
 	<div>
-		<NostterLogo width="100%" />
+		<NostterLogo />
 	</div>
 </main>
 

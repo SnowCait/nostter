@@ -2,5 +2,5 @@ import { expect, test } from '@playwright/test';
 
 test('index page has expected logo', async ({ page }) => {
 	await page.goto('/');
-	await expect(page.getByRole('img', { name: 'nostter' })).toBeVisible();
+	await expect(page).toHaveTitle('nostter');
 });

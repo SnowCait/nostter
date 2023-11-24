@@ -10,6 +10,7 @@
 	import { authorProfile } from '../../stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
+	import NostterLogo from './parts/NostterLogo.svelte';
 
 	let nostr: Nip07.Nostr | undefined;
 	let key = '';
@@ -95,7 +96,9 @@
 
 <div class="login-wrapper">
 	<div class="login">
-		<img src="/nostter-logo.svg" alt="nostter" />
+		<div class="logo">
+			<NostterLogo />
+		</div>
 		<div class="messages-and-actions">
 			<p class="hero-message">
 				{$_('login.hero-message')}<img
@@ -275,9 +278,10 @@
 		position: absolute;
 	}
 
-	.login img {
+	.login .logo {
 		width: 100%;
 		max-width: 360px;
+		margin: auto;
 	}
 
 	.messages-and-actions {

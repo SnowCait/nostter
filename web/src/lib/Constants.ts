@@ -10,7 +10,6 @@ export const filterLimitItems = 1000;
 export const maxFilters = 10;
 export const timelineBufferMs = 1500;
 export const timeout = 5000;
-export const notFoundImageUrl = '/icon.png';
 
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
 
@@ -38,8 +37,3 @@ export const chronologicalItem = (x: { event: NostrEvent }, y: { event: NostrEve
 	x.event.created_at - y.event.created_at;
 export const reverseChronologicalItem = (x: { event: NostrEvent }, y: { event: NostrEvent }) =>
 	y.event.created_at - x.event.created_at;
-
-export const onImageError = (event: Event) => {
-	const img = event.target as HTMLImageElement;
-	img.src = notFoundImageUrl;
-};
