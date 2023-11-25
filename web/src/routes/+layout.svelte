@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { appName } from '$lib/Constants';
+	import '../app.css';
 
 	const description = 'Nostr client for web.';
 </script>
