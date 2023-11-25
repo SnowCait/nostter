@@ -6,7 +6,7 @@ import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { EventItem } from './Items';
 import { Content } from './Content';
 import { Signer } from './Signer';
-import { channelMetadataEvents, eventItemStore } from './cache/Events';
+import { channelMetadataEventsStore, eventItemStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
 import { referencesReqEmit } from './timelines/MainTimeline';
@@ -307,7 +307,8 @@ export class Api {
 	 * @returns kind 40 or 41 event
 	 */
 	async fetchChannelMetadataEvent(id: string): Promise<Event | undefined> {
-		const cache = channelMetadataEvents.get(id) ?? newCachedEvents.get(id);
+		const $channelMetadataEventsStore = get(channelMetadataEventsStore);
+		const cache = $channelMetadataEventsStore.get(id) ?? newCachedEvents.get(id);
 		if (cache !== undefined) {
 			console.debug('[channel metadata events cache]', cache);
 			return cache;
@@ -332,7 +333,8 @@ export class Api {
 			if (event.kind === Kind.ChannelCreation) {
 				newCachedEvents.set(id, event);
 			} else if (event.kind === Kind.ChannelMetadata) {
-				channelMetadataEvents.set(id, event);
+				$channelMetadataEventsStore.set(id, event);
+				channelMetadataEventsStore.set($channelMetadataEventsStore);
 			} else {
 				console.error('[channel metadata logic error]', event);
 			}

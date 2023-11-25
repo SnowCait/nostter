@@ -23,7 +23,7 @@
 {:else if item.event.kind === Kind.Reaction}
 	<Reaction {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
-	<Channel event={item.event} />
+	<Channel {item} />
 {:else if item.event.kind === Kind.Zap}
 	<Zap {item} {readonly} {createdAtFormat} />
 {:else if Number(item.event.kind) === 30030}

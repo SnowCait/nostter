@@ -1,19 +1,33 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { Api } from '$lib/Api';
 	import { nip19, type Event } from 'nostr-tools';
-	import { pool } from '../../../stores/Pool';
-	import { readRelays } from '../../../stores/Author';
+	import { cachedEvents, channelMetadataEventsStore, eventItemStore } from '$lib/cache/Events';
+	import type { ChannelMetadata } from '$lib/Types';
+	import type { Item } from '$lib/Items';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
 	import { intentContent, openNoteDialog } from '../../../stores/NoteDialog';
 	import { Channel } from '$lib/Channel';
 	import { findChannelId } from '$lib/EventHelper';
 
-	export let event: Event;
+	export let item: Item;
 
-	let channelMetadata = Channel.parseMetadata(event);
-	console.log('[channel (kind 40)]', channelMetadata, event);
+	$: event = item.event;
+	$: channelId = event.kind === 40 ? event.id : findChannelId(event.tags);
+
+	let channelMetadataEvent: Event | undefined;
+	let channelMetadata: ChannelMetadata | undefined;
+
+	$: if (channelId !== undefined) {
+		channelMetadataEvent =
+			$channelMetadataEventsStore.get(channelId) ??
+			cachedEvents.get(channelId) ??
+			$eventItemStore.get(channelId)?.event;
+	}
+
+	$: if (channelMetadataEvent !== undefined) {
+		channelMetadata = Channel.parseMetadata(channelMetadataEvent);
+		console.log('[channel metadata]', channelMetadata, event);
+	}
 
 	const iconSize = 20;
 	let jsonDisplay = false;
@@ -26,18 +40,6 @@
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
 	};
-
-	onMount(async () => {
-		const api = new Api($pool, $readRelays);
-		const metadataEvent = await api.fetchChannelMetadataEvent(event.id);
-
-		if (metadataEvent === undefined) {
-			return;
-		}
-
-		channelMetadata = Channel.parseMetadata(metadataEvent);
-		console.log('[channel (kind 41)]', channelMetadata);
-	});
 </script>
 
 <article class="timeline-item">
