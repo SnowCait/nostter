@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { SimplePool, nip19 } from 'nostr-tools';
+	import { nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import { Api } from '$lib/Api';
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
 	import type { Metadata } from '$lib/Items';
 	import { pubkey as authorPubkey, rom } from '../../stores/Author';
@@ -24,7 +23,6 @@
 	export let relays: string[] = [];
 
 	let followees: string[] | undefined;
-	let followers: string[] | undefined;
 
 	let badges: Badge[] = []; // NIP-58 Badges
 
@@ -35,7 +33,6 @@
 		console.log('[npub follows]', nip19.npubEncode(pubkey), relays);
 
 		followees = undefined;
-		followers = undefined;
 		badges = [];
 
 		const contactsReq = createRxOneshotReq({
@@ -54,11 +51,6 @@
 				console.log('[rx-nostr npub contacts]', packet);
 				followees = [...new Set(filterTags('p', packet.event.tags))];
 			});
-
-		const longWaitApi = new Api(new SimplePool({ eoseSubTimeout: 10000 }), relays);
-		longWaitApi.fetchFollowers(pubkey).then((pubkeys) => {
-			followers = pubkeys;
-		});
 
 		const badgeApi = new BadgeApi();
 		badgeApi.fetchBadges(relays, pubkey).then((data) => {
