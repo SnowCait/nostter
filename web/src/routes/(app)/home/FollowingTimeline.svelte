@@ -20,6 +20,7 @@
 	import { Api } from '$lib/Api';
 	import { Kind, type Filter, type Event as NostrEvent, type Relay } from 'nostr-tools';
 	import { saveLastNotes } from '../../../stores/LastNotes';
+	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { Signer } from '$lib/Signer';
 	import { filterLimitItems, minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { chunk } from '$lib/Array';
@@ -128,6 +129,7 @@
 
 			if (event.kind === 10001 || event.kind === 10005) {
 				storage.setReplaceableEvent(event);
+				$authorChannelsEventStore = event;
 				return;
 			}
 

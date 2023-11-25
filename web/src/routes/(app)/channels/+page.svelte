@@ -1,21 +1,23 @@
 <script lang="ts">
 	import { createRxOneshotReq, filterKind, uniq } from 'rx-nostr';
-	import type { Event } from 'nostr-typedef';
 	import { _ } from 'svelte-i18n';
-	import { afterNavigate, goto } from '$app/navigation';
-	import { WebStorage } from '$lib/WebStorage';
-	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
+	import { goto } from '$app/navigation';
+	import {
+		authorChannelsEventStore,
+		cachedEvents,
+		channelMetadataEvents
+	} from '$lib/cache/Events';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { filterTags, findChannelId } from '$lib/EventHelper';
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
 	import { appName } from '$lib/Constants';
 
-	let channelsEvent: Event | undefined;
-	let channelIds: string[] = [];
+	let channelIds = new Set<string>();
 	let keyword = '';
 
-	$: items = channelIds.map((channelId) => {
+	$: items = [...channelIds].map((channelId) => {
+		console.log('[channel update]');
 		let event = channelMetadataEvents.get(channelId);
 		if (event !== undefined) {
 			return new EventItem(event);
@@ -28,10 +30,10 @@
 		throw new Error(`Logic error: ${channelId}`);
 	});
 
-	$: if (channelsEvent !== undefined && channelIds.length === 0) {
-		console.log('[channels fetch]', channelsEvent);
+	$: if ($authorChannelsEventStore !== undefined && channelIds.size === 0) {
+		console.log('[channels page]', $authorChannelsEventStore);
 
-		const ids = filterTags('e', channelsEvent.tags);
+		const ids = filterTags('e', $authorChannelsEventStore.tags);
 		const channelsMetadataReq = createRxOneshotReq({
 			filters: [
 				{
@@ -40,7 +42,7 @@
 				},
 				{
 					kinds: [41],
-					ids
+					'#e': ids
 				}
 			]
 		});
@@ -49,7 +51,7 @@
 			console.log('[channel metadata original]', packet);
 			const channelId = packet.event.id;
 			cachedEvents.set(channelId, packet.event);
-			channelIds.push(channelId);
+			channelIds.add(channelId);
 			channelIds = channelIds;
 		});
 		observable.pipe(filterKind(41)).subscribe((packet) => {
@@ -60,13 +62,6 @@
 			}
 		});
 	}
-
-	afterNavigate(() => {
-		console.log('[channels page]');
-
-		const storage = new WebStorage(localStorage);
-		channelsEvent = storage.getReplaceableEvent(10005);
-	});
 
 	async function search() {
 		console.log('[channels search]', keyword);
