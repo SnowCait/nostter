@@ -27,7 +27,12 @@ export function findIdentifier(tags: string[][]): string | undefined {
 }
 
 export function findChannelId(tags: string[][]): string | undefined {
-	return tags.find(([tagName, , , marker]) => tagName === 'e' && marker === 'root')?.at(1);
+	return tags
+		.find(
+			([tagName, , , marker]) =>
+				(tagName === 'e' && marker === 'root') || marker === undefined
+		)
+		?.at(1);
 }
 
 export function filterTags(tagName: string, tags: string[][]) {

@@ -7,7 +7,7 @@
 	import { NoteComposer } from '$lib/NoteComposer';
 	import { channelIdStore, Channel } from '$lib/Channel';
 	import { Content } from '$lib/Content';
-	import { cachedEvents, channelMetadataEvents, metadataStore } from '$lib/cache/Events';
+	import { cachedEvents, channelMetadataEventsStore, metadataStore } from '$lib/cache/Events';
 	import { EventItem, Metadata } from '$lib/Items';
 	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../../../stores/NoteDialog';
@@ -145,7 +145,8 @@
 
 	channelIdStore.subscribe((channelId) => {
 		if (channelId !== undefined) {
-			channelEvent = channelMetadataEvents.get(channelId) ?? cachedEvents.get(channelId);
+			channelEvent =
+				$channelMetadataEventsStore.get(channelId) ?? cachedEvents.get(channelId);
 		} else {
 			channelEvent = undefined;
 		}

@@ -15,7 +15,7 @@
 	import IconInfoCircle from '@tabler/icons-svelte/dist/svelte/icons/IconInfoCircle.svelte';
 	import { page } from '$app/stores';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
-	import { cachedEvents, channelMetadataEvents, metadataStore } from '$lib/cache/Events';
+	import { cachedEvents, channelMetadataEventsStore, metadataStore } from '$lib/cache/Events';
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import { appName, timeout } from '$lib/Constants';
 	import type { ChannelMetadata } from '$lib/Types';
@@ -58,7 +58,7 @@
 		relays = pointer.relays ?? [];
 
 		kind40Event = cachedEvents.get(channelId);
-		kind41Event = channelMetadataEvents.get(channelId);
+		kind41Event = $channelMetadataEventsStore.get(channelId);
 		console.log('[channel metadata cache 40]', kind40Event);
 		console.log('[channel metadata cache 41]', kind41Event);
 
@@ -105,7 +105,7 @@
 				console.log('[channel metadata event]', packet);
 
 				if (packet.event.kind === 41) {
-					channelMetadataEvents.set(channelId, packet.event);
+					$channelMetadataEventsStore.set(channelId, packet.event);
 				} else {
 					cachedEvents.set(packet.event.id, packet.event);
 				}

@@ -1,37 +1,36 @@
 <script lang="ts">
-	import { createRxOneshotReq, filterKind, uniq } from 'rx-nostr';
-	import type { Event } from 'nostr-typedef';
+	import { createRxOneshotReq, filterKind, latestEach, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
-	import { afterNavigate, goto } from '$app/navigation';
-	import { WebStorage } from '$lib/WebStorage';
-	import { cachedEvents, channelMetadataEvents } from '$lib/cache/Events';
+	import { goto } from '$app/navigation';
+	import {
+		authorChannelsEventStore,
+		cachedEvents,
+		channelMetadataEventsStore
+	} from '$lib/cache/Events';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { filterTags, findChannelId } from '$lib/EventHelper';
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
 	import { appName } from '$lib/Constants';
 
-	let channelsEvent: Event | undefined;
-	let channelIds: string[] = [];
+	let channelIds = new Set<string>();
 	let keyword = '';
 
-	$: items = channelIds.map((channelId) => {
-		let event = channelMetadataEvents.get(channelId);
-		if (event !== undefined) {
-			return new EventItem(event);
-		}
-		event = cachedEvents.get(channelId);
-		if (event !== undefined) {
-			return new EventItem(event);
-		}
+	$: items = [...channelIds]
+		.map((channelId) => {
+			const event = cachedEvents.get(channelId);
+			if (event !== undefined) {
+				return new EventItem(event);
+			} else {
+				return undefined;
+			}
+		})
+		.filter((x): x is EventItem => x !== undefined);
 
-		throw new Error(`Logic error: ${channelId}`);
-	});
+	$: if ($authorChannelsEventStore !== undefined && channelIds.size === 0) {
+		console.log('[channels page]', $authorChannelsEventStore);
 
-	$: if (channelsEvent !== undefined && channelIds.length === 0) {
-		console.log('[channels fetch]', channelsEvent);
-
-		const ids = filterTags('e', channelsEvent.tags);
+		const ids = filterTags('e', $authorChannelsEventStore.tags);
 		const channelsMetadataReq = createRxOneshotReq({
 			filters: [
 				{
@@ -40,33 +39,37 @@
 				},
 				{
 					kinds: [41],
-					ids
+					'#e': ids
 				}
 			]
 		});
 		const observable = rxNostr.use(channelsMetadataReq).pipe(uniq());
 		observable.pipe(filterKind(40)).subscribe((packet) => {
-			console.log('[channel metadata original]', packet);
+			console.log('[channel definition packet]', packet);
 			const channelId = packet.event.id;
 			cachedEvents.set(channelId, packet.event);
-			channelIds.push(channelId);
+			channelIds.add(channelId);
 			channelIds = channelIds;
 		});
-		observable.pipe(filterKind(41)).subscribe((packet) => {
-			console.log('[channel metadata]', packet);
-			const channelId = findChannelId(packet.event.tags);
-			if (channelId !== undefined) {
-				channelMetadataEvents.set(channelId, packet.event);
-			}
-		});
+		observable
+			.pipe(
+				filterKind(41),
+				latestEach(({ event }) => findChannelId(event.tags))
+			)
+			.subscribe((packet) => {
+				console.log('[channel metadata packet]', packet);
+				const channelId = findChannelId(packet.event.tags);
+				if (channelId === undefined) {
+					return;
+				}
+
+				const cache = $channelMetadataEventsStore.get(channelId);
+				if (cache === undefined || cache.created_at < packet.event.created_at) {
+					$channelMetadataEventsStore.set(channelId, packet.event);
+					$channelMetadataEventsStore = $channelMetadataEventsStore;
+				}
+			});
 	}
-
-	afterNavigate(() => {
-		console.log('[channels page]');
-
-		const storage = new WebStorage(localStorage);
-		channelsEvent = storage.getReplaceableEvent(10005);
-	});
 
 	async function search() {
 		console.log('[channels search]', keyword);

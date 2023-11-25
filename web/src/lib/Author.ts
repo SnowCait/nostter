@@ -24,6 +24,7 @@ import { WebStorage } from './WebStorage';
 import { Preferences, preferencesStore } from './Preferences';
 import { rxNostr } from './timelines/MainTimeline';
 import { Signer } from './Signer';
+import { authorChannelsEventStore } from './cache/Events';
 
 type AuthorReplaceableKind = {
 	kind: number;
@@ -227,6 +228,7 @@ export class Author {
 		// Channels
 		const pinEvent = replaceableEvents.get(10001 as Kind);
 		const channelsEvent = replaceableEvents.get(10005 as Kind);
+		authorChannelsEventStore.set(channelsEvent);
 		if (channelsEvent === undefined && pinEvent !== undefined) {
 			await this.migrateChannels(pinEvent);
 		}
@@ -241,6 +243,7 @@ export class Author {
 		const storage = new WebStorage(localStorage);
 		const cachedAt = storage.getCachedAt();
 		if (cachedAt !== null) {
+			console.log('[cached at]', new Date(cachedAt * 1000));
 			const replaceableEvents = new Map(
 				authorReplaceableKinds
 					.filter(({ identifier }) => identifier === undefined)
@@ -266,6 +269,7 @@ export class Author {
 			return { replaceableEvents, parameterizedReplaceableEvents };
 		}
 
+		console.log('[cached at]', cachedAt);
 		const api = new Api(get(pool), get(writeRelays));
 		const { replaceableEvents, parameterizedReplaceableEvents } = await api.fetchAuthorEvents(
 			pubkey
@@ -299,7 +303,8 @@ export class Author {
 			const packet = await firstValueFrom(rxNostr.use(channelsReq).pipe(uniq(), latest()));
 			console.log('[channels event]', packet);
 			storage.setReplaceableEvent(packet.event);
-			return;
+			authorChannelsEventStore.set(packet.event);
+			return; // Already migrated
 		} catch (error) {
 			if (!(error instanceof EmptyError)) {
 				throw error;
@@ -340,8 +345,9 @@ export class Author {
 					});
 					rxNostr.send(event).subscribe((packet) => {
 						console.log('[channels migration send]', packet);
-						if (packet.ok && storage.getReplaceableEvent(10005) === undefined) {
+						if (packet.ok) {
 							storage.setReplaceableEvent(event);
+							authorChannelsEventStore.set(event);
 						}
 					});
 
@@ -355,6 +361,7 @@ export class Author {
 					});
 					rxNostr.send(pinEvent).subscribe((packet) => {
 						console.log('[channels migration send pin]', packet);
+						storage.setReplaceableEvent(pinEvent);
 					});
 				}
 			});
