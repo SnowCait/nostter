@@ -21,7 +21,8 @@
 		channelMetadataEvent =
 			$channelMetadataEventsStore.get(channelId) ??
 			cachedEvents.get(channelId) ??
-			$eventItemStore.get(channelId)?.event;
+			$eventItemStore.get(channelId)?.event ??
+			event;
 	}
 
 	$: if (channelMetadataEvent !== undefined) {
