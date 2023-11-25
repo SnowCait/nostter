@@ -11,7 +11,6 @@
 	import { lastReadAt, lastNotifiedAt } from '../../stores/Notifications';
 	import { onMount } from 'svelte';
 	import ReloadDialog from './ReloadDialog.svelte';
-	import '../../app.css';
 	import Gdpr from './parts/Gdpr.svelte';
 
 	let reloadDialogComponent: ReloadDialog;

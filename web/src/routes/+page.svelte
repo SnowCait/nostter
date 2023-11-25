@@ -4,7 +4,6 @@
 	import Notice from '$lib/components/Notice.svelte';
 	import SplashScreen from './SplashScreen.svelte';
 	import Login from './(app)/Login.svelte';
-	import '../app.css';
 
 	export let data: LayoutData;
 
