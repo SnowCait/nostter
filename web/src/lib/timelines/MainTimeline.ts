@@ -7,6 +7,7 @@ import { filterTags } from '$lib/EventHelper';
 import { EventItem, Metadata } from '$lib/Items';
 import { eventItemStore, metadataStore } from '../cache/Events';
 import { Content } from '$lib/Content';
+import { ToastNotification } from '$lib/ToastNotification';
 
 export const rxNostr = createRxNostr({ timeout }); // Based on NIP-65
 
@@ -74,6 +75,9 @@ rxNostr
 			const $metadataStore = get(metadataStore);
 			$metadataStore.set(metadata.event.pubkey, metadata);
 			metadataStore.set($metadataStore);
+
+			const toast = new ToastNotification();
+			toast.dequeue(metadata);
 		}
 	});
 
