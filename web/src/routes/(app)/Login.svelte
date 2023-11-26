@@ -36,7 +36,7 @@
 	}
 
 	async function loginWithDemo() {
-		await goto('/home');
+		await goto('/trend');
 	}
 
 	function createAccount(): void {
@@ -49,7 +49,7 @@
 	async function register(): Promise<void> {
 		await login.withNsec(key);
 		await login.saveBasicInfo(name);
-		await gotoHome();
+		await goto('/trend');
 	}
 
 	function showLogin(): void {
