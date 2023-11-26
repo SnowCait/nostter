@@ -5,7 +5,7 @@
 	import { Signer } from '$lib/Signer';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
-	import EmojiPicker from '../parts/EmojiPicker.svelte';
+	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 
 	async function save({ detail }: { detail: any }) {

@@ -28,7 +28,7 @@
 	import { isReply } from '$lib/EventHelper';
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
-	import EmojiPicker from '../parts/EmojiPicker.svelte';
+	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import ProxyLink from '../parts/ProxyLink.svelte';
 	import Nip94 from '../Nip94.svelte';
 
