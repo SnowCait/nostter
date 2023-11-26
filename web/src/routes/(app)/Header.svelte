@@ -11,7 +11,7 @@
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '../../stores/Notifications';
-	import { pubkey, rom } from '../../stores/Author';
+	import { followees, pubkey, rom } from '../../stores/Author';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
 	import { openNoteDialog } from '../../stores/NoteDialog';
@@ -23,11 +23,13 @@
 	}
 
 	let show = false;
+
+	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
 </script>
 
 <div class="header">
 	<div id="logo-icon-wrapper">
-		<a href={$pubkey ? '/home' : '/'} id="logo-icon">
+		<a href={$pubkey ? homeLink : '/'} id="logo-icon">
 			<div class="logo-for-mobile">
 				<NostterLogoIcon />
 			</div>
@@ -38,7 +40,7 @@
 	</div>
 	<nav>
 		<ul>
-			<a href="/home">
+			<a href={homeLink}>
 				<li>
 					<IconHome size={30} />
 					<p>{$_('layout.header.home')}</p>
