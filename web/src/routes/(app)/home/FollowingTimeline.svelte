@@ -42,6 +42,7 @@
 	import { authorReplaceableKinds } from '$lib/Author';
 	import { Timeline } from '$lib/Timeline';
 	import { Preferences, preferencesStore } from '$lib/Preferences';
+	import { ToastNotification } from '$lib/ToastNotification';
 
 	const now = Math.floor(Date.now() / 1000);
 	const streamingSpeed = new Map<number, number>();
@@ -216,7 +217,8 @@
 				$unreadEventItems = $unreadEventItems;
 				$notifiedEventItems = $notifiedEventItems;
 
-				notify(event);
+				const toast = new ToastNotification();
+				toast.notify(event);
 			}
 
 			if (eose) {
@@ -295,39 +297,6 @@
 			relay.on('error', () => {
 				console.error('[error]', relay.url);
 			});
-		});
-	}
-
-	function notify(event: Event): void {
-		if (window.Notification === undefined || Notification.permission !== 'granted') {
-			return;
-		}
-
-		let body = '';
-		switch (event.kind) {
-			case Kind.Text: {
-				body = event.content;
-				break;
-			}
-			case 6: {
-				body = 'Repost';
-				break;
-			}
-			case Kind.Reaction: {
-				body = event.content.replace('+', 'Like').replace('-', 'Dislike');
-				break;
-			}
-			case Kind.Zap: {
-				body = 'Zap';
-				break;
-			}
-			default:
-				break;
-		}
-
-		new Notification(`@${event.user?.name}`, {
-			icon: event.user?.picture,
-			body
 		});
 	}
 
