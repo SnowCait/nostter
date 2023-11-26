@@ -69,7 +69,7 @@ export class ToastNotification {
 	}
 
 	public dequeue(metadata: Metadata) {
-		let unsentEvents = unsentToastNotifications.get(metadata.event.pubkey);
+		const unsentEvents = unsentToastNotifications.get(metadata.event.pubkey);
 		if (unsentEvents === undefined || unsentEvents.length === 0) {
 			return;
 		}
