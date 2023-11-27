@@ -60,5 +60,8 @@
 	"preferences": {
 		"uri_scheme": "Open web+nostr: in nostter",
 		"enable_uri_scheme": "Enable"
+	},
+	"content": {
+		"show": "Show"
 	}
 }

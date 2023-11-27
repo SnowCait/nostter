@@ -14,6 +14,7 @@
 	import Theme from './Theme.svelte';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 	import UriScheme from './UriScheme.svelte';
+	import EnablePreview from './EnablePreview.svelte';
 
 	let debugCounter = 0;
 
@@ -33,8 +34,17 @@
 
 <h1>{$_('layout.header.preferences')}</h1>
 
+<h2>Device</h2>
 <div><Theme /></div>
+<div><EnablePreview /></div>
+<div><Notification /></div>
+<div><UriScheme /></div>
+<div><AutoRefresh /></div>
+{#if $debugMode}
+	<div><ClearEmojiMartCache /></div>
+{/if}
 {#if $author !== undefined}
+	<h2>Shared</h2>
 	<div><ReactionEmoji /></div>
 	<div>
 		<a href="https://emojis-iota.vercel.app/" target="_blank" rel="noopener noreferrer">
@@ -44,12 +54,6 @@
 	<div><MutedUsers /></div>
 	<div><MutedEvents /></div>
 	<div><WordMute /></div>
-{/if}
-<div><Notification /></div>
-<div><UriScheme /></div>
-<div><AutoRefresh /></div>
-{#if $debugMode}
-	<div><ClearEmojiMartCache /></div>
 {/if}
 <div><Logout /></div>
 

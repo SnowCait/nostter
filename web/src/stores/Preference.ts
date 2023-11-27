@@ -21,6 +21,9 @@ if (browser) {
 		storage.set('preference:auto-refresh', JSON.stringify(value));
 	});
 }
+export const enablePreview = writable(
+	browser ? new WebStorage(localStorage).get('preference:preview') !== 'false' : true
+);
 
 // Temporary
 export const debugMode = writable(false);

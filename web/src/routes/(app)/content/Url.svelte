@@ -7,6 +7,8 @@
 </script>
 
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
+	import { enablePreview } from '../../../stores/Preference';
 	import IconExternalLink from '@tabler/icons-svelte/dist/svelte/icons/IconExternalLink.svelte';
 	import Text from './Text.svelte';
 
@@ -26,35 +28,65 @@
 		console.debug('[twitter]', twitterWidget);
 		window.twttr?.widgets.load(twitterWidget);
 	}
+
+	let preview = $enablePreview;
 </script>
 
 {#if link === undefined}
 	<Text {text} />
 {:else if link.origin === 'https://twitter.com' || link.origin === 'https://x.com'}
-	<div bind:this={twitterWidget}>
-		<blockquote class="twitter-tweet">
-			<a
-				href={link.href.replace('x.com', 'twitter.com')}
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				{link.href}
-			</a>
-		</blockquote>
-	</div>
-{:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
-	<div>
+	{#if preview}
+		<div bind:this={twitterWidget}>
+			<blockquote class="twitter-tweet">
+				<a
+					href={link.href.replace('x.com', 'twitter.com')}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					{link.href}
+				</a>
+			</blockquote>
+		</div>
+	{:else}
 		<a href={link.href} target="_blank" rel="noopener noreferrer">
-			<img src={link.href} alt="" />
+			{text}<IconExternalLink size={15} />
 		</a>
-	</div>
+		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+	{/if}
+{:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
+	{#if preview}
+		<div>
+			<a href={link.href} target="_blank" rel="noopener noreferrer">
+				<img src={link.href} alt="" />
+			</a>
+		</div>
+	{:else}
+		<a href={link.href} target="_blank" rel="noopener noreferrer">
+			{text}<IconExternalLink size={15} />
+		</a>
+		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+	{/if}
 {:else if /\.(mp3|m4a|wav)/i.test(link.pathname)}
-	<audio src={link.href} controls />
+	{#if preview}
+		<audio src={link.href} controls />
+	{:else}
+		<a href={link.href} target="_blank" rel="noopener noreferrer">
+			{text}<IconExternalLink size={15} />
+		</a>
+		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+	{/if}
 {:else if /\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)/i.test(link.pathname)}
-	<!-- svelte-ignore a11y-media-has-caption -->
-	<div>
-		<video src={link.href} controls />
-	</div>
+	{#if preview}
+		<!-- svelte-ignore a11y-media-has-caption -->
+		<div>
+			<video src={link.href} controls />
+		</div>
+	{:else}
+		<a href={link.href} target="_blank" rel="noopener noreferrer">
+			{text}<IconExternalLink size={15} />
+		</a>
+		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+	{/if}
 {:else}
 	<a href={link.href} target="_blank" rel="noopener noreferrer">
 		{text}<IconExternalLink size={15} />
