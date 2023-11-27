@@ -59,5 +59,8 @@
 	"preferences": {
 		"uri_scheme": "web+nostr: を nostter で開く",
 		"enable_uri_scheme": "有効化"
+	},
+	"content": {
+		"show": "表示"
 	}
 }
