@@ -100,6 +100,9 @@
 								);
 								return;
 							}
+							if (!$author?.isNotified(packet.event)) {
+								return;
+							}
 							if ($notifiedEventItems.some((x) => x.event.id === packet.event.id)) {
 								console.warn(
 									'[rx-nostr notification timeline duplicate]',
