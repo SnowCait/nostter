@@ -15,13 +15,13 @@
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { EventItem } from '$lib/Items';
 
-	export let pubkey: string;
-
+	let pubkey: string | undefined;
 	let followees: string[] = [];
 	let timeline: Timeline;
 	let unsubscribe: () => void;
 
-	export async function initialize() {
+	export async function initialize(p: string): Promise<void> {
+		pubkey = p;
 		console.log('[user following timeline initialize]', nip19.npubEncode(pubkey));
 
 		$items = [];
@@ -40,7 +40,7 @@
 	async function load() {
 		console.log('[rx-nostr user following timeline load]', followees.length);
 
-		if (followees.length === 0) {
+		if (pubkey === undefined || followees.length === 0) {
 			return;
 		}
 
