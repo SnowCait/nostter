@@ -2,14 +2,15 @@
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
-	import { appName, japaneseBotNpub } from '$lib/Constants';
+	import { appName, japaneseBotNpub, trendingPeopleBotNpub } from '$lib/Constants';
 	import HomeTab from '$lib/components/HomeTab.svelte';
 	import UserFollowingTimeline from '../[slug=npub]/timeline/UserFollowingTimeline.svelte';
 
-	const pubkey = nip19.decode(japaneseBotNpub).data as string;
 	let userFollowingTimeline: UserFollowingTimeline | undefined;
 
 	onMount(async () => {
+		const npub = navigator.language.startsWith('ja') ? japaneseBotNpub : trendingPeopleBotNpub;
+		const pubkey = nip19.decode(npub).data as string;
 		await userFollowingTimeline?.initialize(pubkey);
 	});
 </script>
