@@ -27,7 +27,7 @@
 
 		pubkey = data.pubkey;
 
-		await timeline.initialize();
+		await timeline.initialize(pubkey);
 	});
 </script>
 
@@ -35,4 +35,4 @@
 	<title>{appName} - {$_('pages.timeline')}</title>
 </svelte:head>
 
-<UserFollowingTimeline {pubkey} bind:this={timeline} />
+<UserFollowingTimeline bind:this={timeline} />

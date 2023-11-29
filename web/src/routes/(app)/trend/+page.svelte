@@ -10,7 +10,7 @@
 	let userFollowingTimeline: UserFollowingTimeline | undefined;
 
 	onMount(async () => {
-		await userFollowingTimeline?.initialize();
+		await userFollowingTimeline?.initialize(pubkey);
 	});
 </script>
 
@@ -20,4 +20,4 @@
 
 <HomeTab selected="trend" />
 
-<UserFollowingTimeline {pubkey} bind:this={userFollowingTimeline} />
+<UserFollowingTimeline bind:this={userFollowingTimeline} />
