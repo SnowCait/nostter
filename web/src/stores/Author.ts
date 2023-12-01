@@ -1,4 +1,5 @@
 import { get, writable, type Writable } from 'svelte/store';
+import escapeStringRegexp from 'escape-string-regexp';
 import type { User } from '../routes/types';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
@@ -29,7 +30,12 @@ export const isMuteEvent = (event: Event) => {
 	) {
 		return true;
 	}
-	if ($muteWords.length > 0 && new RegExp(`(${$muteWords.join('|')})`, 'i').test(event.content)) {
+	if (
+		$muteWords.length > 0 &&
+		new RegExp(`(${$muteWords.map((word) => escapeStringRegexp(word)).join('|')})`, 'i').test(
+			event.content
+		)
+	) {
 		return true;
 	}
 
