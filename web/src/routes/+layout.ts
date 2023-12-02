@@ -32,10 +32,11 @@ async function tryLogin(): Promise<boolean> {
 		return false;
 	}
 
-	const { waitNostr } = await import('nip07-awaiter');
 	const login = new Login();
 	if (savedLogin === 'NIP-07') {
+		const { waitNostr } = await import('nip07-awaiter');
 		const nostr = await waitNostr(10000);
+		console.log('[NIP-07]', nostr);
 		if (nostr === undefined) {
 			console.error('Browser Extension was not found');
 			return false;

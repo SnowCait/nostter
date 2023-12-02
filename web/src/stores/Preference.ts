@@ -2,6 +2,8 @@ import { browser } from '$app/environment';
 import { WebStorage } from '$lib/WebStorage';
 import { writable, type Writable } from 'svelte/store';
 
+console.log('[preference store]');
+
 // Persistent in relay => $lib/Preferences.ts
 
 // Persistent in local

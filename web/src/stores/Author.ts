@@ -6,6 +6,8 @@ import { defaultRelays } from '$lib/Constants';
 import type { Author } from '$lib/Author';
 import { filterRelayTags } from '$lib/EventHelper';
 
+console.log('[author store]');
+
 export const loginType: Writable<'NIP-07' | 'nsec' | 'npub'> = writable();
 export const pubkey = writable('');
 export const author: Writable<Author | undefined> = writable();

@@ -17,7 +17,7 @@ interface Window {
 declare const window: Window;
 
 export class Signer {
-	public static getPublicKey(): string {
+	public static async getPublicKey(): Promise<string> {
 		const storage = new WebStorage(localStorage);
 		const login = storage.get('login');
 		if (login === null || login.startsWith('npub')) {
