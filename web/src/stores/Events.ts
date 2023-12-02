@@ -2,6 +2,8 @@ import { writable, type Writable } from 'svelte/store';
 import type { Event } from '../routes/types';
 import type { EventItem } from '$lib/Items';
 
+console.log('[events store]');
+
 export const events: Writable<EventItem[]> = writable([]);
 export const eventsPool: Writable<EventItem[]> = writable([]);
 export const searchEvents: Writable<Event[]> = writable([]);

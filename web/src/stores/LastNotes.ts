@@ -1,6 +1,8 @@
 import { Kind, type Event } from 'nostr-tools';
 import { writable } from 'svelte/store';
 
+console.log('[last notes store]');
+
 export const lastNotesMap = writable(new Map<string, Event>());
 export const saveLastNotes = (events: Event[]) => {
 	lastNotesMap.update((map) => {
