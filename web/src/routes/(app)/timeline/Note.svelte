@@ -115,7 +115,9 @@
 		reactioned = true;
 
 		const content = $preferencesStore.reactionEmoji.content;
-		const tags = note.tags.filter(([tagName, p]) => tagName === 'e' || (tagName === 'p' && p !== note.pubkey));
+		const tags = note.tags.filter(
+			([tagName, p]) => tagName === 'e' || (tagName === 'p' && p !== note.pubkey)
+		);
 		tags.push(['e', note.id]);
 		tags.push(['p', note.pubkey]);
 		tags.push(['k', String(note.kind)]);
