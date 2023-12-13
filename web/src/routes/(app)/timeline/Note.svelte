@@ -146,10 +146,12 @@
 			return;
 		}
 
-		const tags = [
-			['e', note.id],
-			['p', note.pubkey]
-		];
+		const tags = note.tags.filter(
+			([tagName, p]) => tagName === 'e' || (tagName === 'p' && p !== note.pubkey)
+		);
+		tags.push(['e', note.id]);
+		tags.push(['p', note.pubkey]);
+		tags.push(['k', String(note.kind)]);
 		if (emoji.native === undefined && emoji.src !== undefined) {
 			tags.push(['emoji', emoji.id.replaceAll('+', '_'), emoji.src]);
 		}
