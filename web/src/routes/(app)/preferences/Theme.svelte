@@ -26,10 +26,13 @@
 				}
 			}
 
-			const color = getComputedStyle(document.documentElement).getPropertyValue('--background')
-			let themeColorMetaTag: HTMLMetaElement = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement
-			themeColorMetaTag.content = color
-
+			const color = getComputedStyle(document.documentElement).getPropertyValue(
+				'--background'
+			);
+			let themeColorMetaTag: HTMLMetaElement = document.querySelector(
+				'meta[name="theme-color"]'
+			) as HTMLMetaElement;
+			themeColorMetaTag.content = color;
 		});
 	}
 </script>
