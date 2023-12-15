@@ -26,11 +26,11 @@ export const load: PageLoad<{ eventId: string; relays: string[] }> = async ({ pa
 				};
 			}
 			default: {
-				throw error(500);
+				error(500);
 			}
 		}
 	} catch (e) {
 		console.error('[thread page decode error]', e);
-		throw error(404, 'Not Found');
+		error(404, 'Not Found');
 	}
 };

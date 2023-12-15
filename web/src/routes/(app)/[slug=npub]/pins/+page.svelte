@@ -25,7 +25,7 @@
 		const { pubkey, relays } = await UserDecoder.decode(slug);
 
 		if (pubkey === undefined) {
-			throw error(404);
+			error(404);
 		}
 
 		await rxNostr.switchRelays([...$readRelays, ...relays]);

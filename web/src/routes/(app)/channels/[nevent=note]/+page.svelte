@@ -49,7 +49,7 @@
 		const { type, data } = nip19.decode(slug);
 		if (type !== 'nevent') {
 			console.error('[channel page decode error]', slug);
-			throw error(404);
+			error(404);
 		}
 
 		const pointer = data as nip19.EventPointer;

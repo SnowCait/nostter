@@ -52,7 +52,7 @@
 				},
 				error: (e) => {
 					console.error('[rx-nostr naddr error]', e);
-					throw error(404);
+					error(404);
 				}
 			});
 	});

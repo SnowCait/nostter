@@ -30,7 +30,7 @@
 		const data = await UserDecoder.decode($page.params.slug);
 
 		if (data.pubkey === undefined) {
-			throw error(404);
+			error(404);
 		}
 
 		pubkey = data.pubkey;

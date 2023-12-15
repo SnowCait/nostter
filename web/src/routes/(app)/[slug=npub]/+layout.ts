@@ -9,7 +9,7 @@ export const load: LayoutLoad<{
 	console.log('[npub page load]', params.slug);
 	const data = await User.decode(params.slug);
 	if (data.pubkey === undefined) {
-		throw error(404, 'Not Found');
+		error(404, 'Not Found');
 	}
 	return {
 		pubkey: data.pubkey,
