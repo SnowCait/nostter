@@ -24,7 +24,7 @@
 		const data = await UserDecoder.decode(slug);
 
 		if (data.pubkey === undefined) {
-			throw error(404);
+			error(404);
 		}
 
 		if (pubkey === data.pubkey) {

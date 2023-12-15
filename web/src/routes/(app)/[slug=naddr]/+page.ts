@@ -22,6 +22,6 @@ export const load: PageLoad<{
 		};
 	} catch (e) {
 		console.error('[naddr page decode error]', e);
-		throw error(404, 'Not Found');
+		error(404, 'Not Found');
 	}
 };
