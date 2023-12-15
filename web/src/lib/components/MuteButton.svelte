@@ -2,13 +2,11 @@
 	import { nip19 } from 'nostr-tools';
 	import IconVolumeOff from '@tabler/icons-svelte/dist/svelte/icons/IconVolumeOff.svelte';
 	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
-	import { pool } from '../../stores/Pool';
 	import {
 		pubkey as authorPubkey,
 		mutePubkeys,
 		muteEventIds,
-		muteWords,
-		writeRelays
+		muteWords
 	} from '../../stores/Author';
 	import { Mute } from '$lib/Mute';
 
@@ -41,7 +39,7 @@
 		executing = true;
 
 		try {
-			await new Mute($authorPubkey, $pool, $writeRelays).mutePrivate(tagName, tagContent);
+			await new Mute().mutePrivate(tagName, tagContent);
 		} catch (error) {
 			alert('Failed to mute.');
 		}
@@ -60,7 +58,7 @@
 		executing = true;
 
 		try {
-			await new Mute($authorPubkey, $pool, $writeRelays).unmutePrivate(tagName, tagContent);
+			await new Mute().unmutePrivate(tagName, tagContent);
 		} catch (error) {
 			alert('Failed to unmute.');
 		}

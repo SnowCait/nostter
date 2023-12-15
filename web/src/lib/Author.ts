@@ -215,14 +215,11 @@ export class Author {
 		const legacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);
 
 		if (muteEvent !== undefined) {
-			await new Mute(this.pubkey, get(pool), get(writeRelays)).update(muteEvent);
+			await new Mute().update(muteEvent);
 		}
 
 		if (legacyMuteEvent !== undefined) {
-			await new Mute(this.pubkey, get(pool), get(writeRelays)).migrate(
-				legacyMuteEvent,
-				muteEvent
-			);
+			await new Mute().migrate(legacyMuteEvent, muteEvent);
 		}
 
 		// Channels
