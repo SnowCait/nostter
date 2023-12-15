@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { Mute } from '$lib/Mute';
 	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
-	import { pubkey, muteWords, writeRelays } from '../../../stores/Author';
-	import { pool } from '../../../stores/Pool';
+	import { muteWords } from '../../../stores/Author';
 
 	let word = '';
 
@@ -10,7 +9,7 @@
 		console.log('[mute word]', word);
 
 		try {
-			await new Mute($pubkey, $pool, $writeRelays).mutePrivate('word', word);
+			await new Mute().mutePrivate('word', word);
 			word = '';
 		} catch (error) {
 			alert('Failed to mute.');
@@ -21,7 +20,7 @@
 		console.log('[unmute word]', word);
 
 		try {
-			await new Mute($pubkey, $pool, $writeRelays).unmutePrivate('word', word);
+			await new Mute().unmutePrivate('word', word);
 		} catch (error) {
 			alert('Failed to unmute.');
 		}

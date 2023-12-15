@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
 	import { Mute } from '$lib/Mute';
-	import { pubkey, muteEventIds, writeRelays } from '../../../stores/Author';
-	import { pool } from '../../../stores/Pool';
+	import { muteEventIds } from '../../../stores/Author';
 	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
 
 	let unmuting = false;
 
-	const mute = new Mute($pubkey, $pool, $writeRelays);
+	const mute = new Mute();
 
 	async function unmute(eventId: string) {
 		console.log('[unmute event]', eventId);

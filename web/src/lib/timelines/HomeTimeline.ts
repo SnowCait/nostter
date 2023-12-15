@@ -12,6 +12,7 @@ import { ToastNotification } from '$lib/ToastNotification';
 import { authorReplaceableKinds } from '$lib/Author';
 import { chunk } from '$lib/Array';
 import { filterLimitItems } from '$lib/Constants';
+import { Mute } from '$lib/Mute';
 import { userStatusReq } from '$lib/UserStatus';
 import { pubkey, author, updateRelays, bookmarkEvent, followees } from '../../stores/Author';
 import { lastReadAt, notifiedEventItems, unreadEventItems } from '../../stores/Notifications';
@@ -28,7 +29,7 @@ const homeTimelineReq = createRxForwardReq();
 rxNostr
 	.use(homeTimelineReq)
 	.pipe(uniq())
-	.subscribe((packet) => {
+	.subscribe(async (packet) => {
 		console.log('[rx-nostr subscribe home timeline]', packet);
 
 		const { event } = packet;
@@ -65,7 +66,7 @@ rxNostr
 		if (event.kind === 10000) {
 			console.log('[mute list]', event, packet.from);
 			storage.setReplaceableEvent(event);
-			// await new Mute($pubkey, $pool, $writeRelays).update(event);
+			await new Mute().update(event);
 			return;
 		}
 

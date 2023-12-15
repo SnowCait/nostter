@@ -1,17 +1,19 @@
 import { get } from 'svelte/store';
-import type { Event, Kind, SimplePool } from 'nostr-tools';
+import type { Event, Kind } from 'nostr-tools';
 import { Api } from './Api';
 import { Signer } from './Signer';
-import { muteEventIds, mutePubkeys, muteWords } from '../stores/Author';
+import { muteEventIds, mutePubkeys, muteWords, pubkey, writeRelays } from '../stores/Author';
 import { filterTags } from './EventHelper';
 import { WebStorage } from './WebStorage';
+import { pool } from '../stores/Pool';
 
 export class Mute {
+	private readonly authorPubkey = get(pubkey);
 	private readonly api: Api;
 	private readonly kind = 10000 as Kind;
 
-	constructor(private readonly authorPubkey: string, pool: SimplePool, writeRelays: string[]) {
-		this.api = new Api(pool, writeRelays);
+	constructor() {
+		this.api = new Api(get(pool), get(writeRelays));
 	}
 
 	public async mutePrivate(tagName: string, tagContent: string): Promise<void> {
