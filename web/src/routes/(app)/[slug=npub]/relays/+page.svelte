@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { error } from '@sveltejs/kit';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { appName } from '$lib/Constants';
-	import { User as UserDecoder } from '$lib/User';
 	import { Api } from '$lib/Api';
 	import { pubkey as authorPubkey, readRelays, writeRelays } from '../../../../stores/Author';
 	import { debugMode } from '../../../../stores/Preference';
@@ -17,8 +15,12 @@
 	import IconPencil from '@tabler/icons-svelte/dist/svelte/icons/IconPencil.svelte';
 	import IconDeviceFloppy from '@tabler/icons-svelte/dist/svelte/icons/IconDeviceFloppy.svelte';
 	import Loading from '$lib/components/Loading.svelte';
+	import type { LayoutData } from '../$types';
 
-	let pubkey: string;
+	export let data: LayoutData;
+
+	$: pubkey = data.pubkey;
+
 	let relays: { url: string; read: boolean; write: boolean }[] = [];
 	let user: User | undefined;
 	let editable = false;
@@ -27,13 +29,6 @@
 
 	afterNavigate(async () => {
 		console.log('[relays page]', $page.params.slug);
-		const data = await UserDecoder.decode($page.params.slug);
-
-		if (data.pubkey === undefined) {
-			error(404);
-		}
-
-		pubkey = data.pubkey;
 
 		const api = new Api(
 			$pool,
