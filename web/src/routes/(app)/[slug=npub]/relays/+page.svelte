@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { error } from '@sveltejs/kit';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
+	import type { LayoutData } from '../$types';
 	import { appName } from '$lib/Constants';
-	import { User as UserDecoder } from '$lib/User';
 	import { Api } from '$lib/Api';
+	import { metadataStore } from '$lib/cache/Events';
+	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { pubkey as authorPubkey, readRelays, writeRelays } from '../../../../stores/Author';
 	import { debugMode } from '../../../../stores/Preference';
 	import { pool } from '../../../../stores/Pool';
@@ -13,27 +14,26 @@
 	import Relay from './Relay.svelte';
 	import { filterRelayTags, parseRelayJson } from '$lib/EventHelper';
 	import { Contacts } from '$lib/Contacts';
-	import type { User } from '../../../types';
 	import IconPencil from '@tabler/icons-svelte/dist/svelte/icons/IconPencil.svelte';
 	import IconDeviceFloppy from '@tabler/icons-svelte/dist/svelte/icons/IconDeviceFloppy.svelte';
 	import Loading from '$lib/components/Loading.svelte';
 
-	let pubkey: string;
+	export let data: LayoutData;
+
+	$: pubkey = data.pubkey;
+	$: metadata = $metadataStore.get(pubkey);
+
 	let relays: { url: string; read: boolean; write: boolean }[] = [];
-	let user: User | undefined;
 	let editable = false;
 	let addingRelay = '';
 	let saveToKind3 = false;
 
 	afterNavigate(async () => {
 		console.log('[relays page]', $page.params.slug);
-		const data = await UserDecoder.decode($page.params.slug);
 
-		if (data.pubkey === undefined) {
-			error(404);
+		if (metadata === undefined) {
+			metadataReqEmit([pubkey]);
 		}
-
-		pubkey = data.pubkey;
 
 		const api = new Api(
 			$pool,
@@ -44,10 +44,6 @@
 				])
 			)
 		);
-
-		api.fetchUserEvent(pubkey).then((userEvent) => {
-			user = userEvent?.user;
-		});
 
 		const events = await api.fetchRelayEvents(pubkey);
 		console.log('[relay events]', events);
@@ -67,6 +63,9 @@
 			});
 		} else {
 			console.warn('[relay events not found]');
+			if (pubkey === $authorPubkey) {
+				relays = rxNostr.getRelays();
+			}
 		}
 	});
 
@@ -131,17 +130,17 @@
 </script>
 
 <svelte:head>
-	{#if user !== undefined}
-		<title>{appName} - {user.display_name} (@{user.name}) {$_('pages.relays')}</title>
+	{#if metadata !== undefined}
+		<title>{appName} - {metadata.displayName} (@{metadata.name}) {$_('pages.relays')}</title>
 	{:else}
 		<title>{appName} {$_('pages.relays')}</title>
 	{/if}
 </svelte:head>
 
 <h1>
-	{#if user !== undefined}
-		<span class="display-name">{user.display_name ?? user.name}</span>
-		<span class="name">(@{user.name ?? user.display_name})</span>
+	{#if metadata !== undefined}
+		<span class="display-name">{metadata.displayName}</span>
+		<span class="name">(@{metadata.name})</span>
 	{/if}
 	<span>{$_('pages.relays')}</span>
 </h1>
