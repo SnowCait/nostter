@@ -36,6 +36,7 @@ export const authorReplaceableKinds: AuthorReplaceableKind[] = [
 		return { kind };
 	}),
 	{ kind: 30001, identifier: 'bookmark' },
+	{ kind: 30078, identifier: 'nostter-preferences' },
 	{ kind: 30078, identifier: 'nostter-reaction-emoji' },
 	{ kind: 30078, identifier: 'nostter-read' }
 ];
