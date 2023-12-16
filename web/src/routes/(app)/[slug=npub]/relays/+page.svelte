@@ -6,7 +6,7 @@
 	import { appName } from '$lib/Constants';
 	import { Api } from '$lib/Api';
 	import { metadataStore } from '$lib/cache/Events';
-	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { pubkey as authorPubkey, readRelays, writeRelays } from '../../../../stores/Author';
 	import { debugMode } from '../../../../stores/Preference';
 	import { pool } from '../../../../stores/Pool';
@@ -63,6 +63,9 @@
 			});
 		} else {
 			console.warn('[relay events not found]');
+			if (pubkey === $authorPubkey) {
+				relays = rxNostr.getRelays();
+			}
 		}
 	});
 
