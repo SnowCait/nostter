@@ -23,6 +23,7 @@ jobs:
             ${{ github.event.issue.html_url }} #nostter
           tags: |
             - ["t", "nostter"]
+            - ["proxy", "${{ github.event.issue.html_url }}", "web"]
   notify-pr:
     if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
@@ -37,6 +38,7 @@ jobs:
             ${{ github.event.pull_request.html_url }} #nostter
           tags: |
             - ["t", "nostter"]
+            - ["proxy", "${{ github.event.pull_request.html_url }}", "web"]
   user-status:
     if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
