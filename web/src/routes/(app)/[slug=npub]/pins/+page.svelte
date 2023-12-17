@@ -1,18 +1,20 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
-	import { error } from '@sveltejs/kit';
+	import { firstValueFrom, EmptyError } from 'rxjs';
+	import type { Event } from 'nostr-typedef';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
+	import type { LayoutData } from '../$types';
 	import { appName } from '$lib/Constants';
 	import { WebStorage } from '$lib/WebStorage';
 	import { EventItem } from '$lib/Items';
-	import { User as UserDecoder } from '$lib/User';
+	import { filterTags } from '$lib/EventHelper';
 	import { pubkey as authorPubkey, readRelays } from '../../../../stores/Author';
-	import type { Event } from 'nostr-tools';
-	import { onDestroy } from 'svelte';
-	import { firstValueFrom, EmptyError } from 'rxjs';
 	import TimelineView from '../../TimelineView.svelte';
+
+	export let data: LayoutData;
 
 	let items: EventItem[] = [];
 
@@ -22,23 +24,17 @@
 		const slug = $page.params.slug;
 		console.log('[pin page]', slug);
 
-		const { pubkey, relays } = await UserDecoder.decode(slug);
-
-		if (pubkey === undefined) {
-			error(404);
-		}
-
-		await rxNostr.switchRelays([...$readRelays, ...relays]);
+		rxNostr.setDefaultRelays([...$readRelays, ...data.relays]);
 
 		let event: Event | undefined;
-		if (pubkey === $authorPubkey) {
+		if (data.pubkey === $authorPubkey) {
 			const storage = new WebStorage(localStorage);
 			event = storage.getReplaceableEvent(10001);
 			console.log('[pin event (author)]', event);
 		} else {
 			try {
 				const pinReq = createRxOneshotReq({
-					filters: { kinds: [10001], authors: [pubkey], limit: 1 }
+					filters: { kinds: [10001], authors: [data.pubkey], limit: 1 }
 				});
 				const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(latest()));
 				console.log('[pin event]', packet);
@@ -51,12 +47,17 @@
 		}
 
 		if (event === undefined) {
+			console.log('[pin no event]');
 			return;
 		}
 
-		const referenceReq = createRxOneshotReq({
-			filters: { ids: event.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id) }
-		});
+		const ids = filterTags('e', event.tags);
+		if (ids.length === 0) {
+			console.log('[pin no tags]');
+			return;
+		}
+
+		const referenceReq = createRxOneshotReq({ filters: { ids } });
 		rxNostr
 			.use(referenceReq)
 			.pipe(uniq())

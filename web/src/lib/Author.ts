@@ -60,7 +60,7 @@ export class Author {
 
 		this.saveRelays(relayEvents);
 
-		await RelayList.apply(relayEvents);
+		RelayList.apply(relayEvents);
 	}
 
 	public saveCustomEmojis(event: Event) {

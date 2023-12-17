@@ -75,7 +75,7 @@
 		}
 	}
 
-	const rxNostr = createRxNostr({ timeout });
+	const rxNostr = createRxNostr({ eoseTimeout: timeout });
 
 	let items: EventItem[] = [];
 
@@ -83,8 +83,8 @@
 		slug = $page.params.nevent;
 		console.log('[channel page after navigate]', slug, channelId);
 		updateChannelMetadata();
-		await rxNostr.switchRelays([...$readRelays, ...relays]);
-		console.log('[channel relays]', rxNostr.getRelays());
+		rxNostr.setDefaultRelays([...$readRelays, ...relays]);
+		console.log('[channel relays]', rxNostr.getDefaultRelays());
 
 		const kind40Filter = {
 			kinds: [40],

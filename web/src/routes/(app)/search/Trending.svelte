@@ -7,20 +7,23 @@
 
 	onMount(() => {
 		console.log('[trend]', trendRelays);
+
 		const rxNostr = createRxNostr();
-		rxNostr.switchRelays(trendRelays).then(() => {
-			const lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
-			console.log('[trend lang]', lang);
-			const rxReq = createRxOneshotReq({
-				filters: { kinds: [38225], '#d': [`buzz-phrases:${lang}`], limit: 1 }
-			});
-			const subscription = rxNostr.use(rxReq).subscribe((packet) => {
-				console.log('[rx-nostr trend packet]', packet);
-				subscription.unsubscribe();
-				rxNostr.dispose();
-				const buzz = JSON.parse(packet.event.content) as Buzz;
-				phrases = buzz.phrases;
-			});
+		rxNostr.setDefaultRelays(trendRelays);
+
+		const lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+		console.log('[trend lang]', lang);
+
+		const rxReq = createRxOneshotReq({
+			filters: { kinds: [38225], '#d': [`buzz-phrases:${lang}`], limit: 1 }
+		});
+
+		const subscription = rxNostr.use(rxReq).subscribe((packet) => {
+			console.log('[rx-nostr trend packet]', packet);
+			subscription.unsubscribe();
+			rxNostr.dispose();
+			const buzz = JSON.parse(packet.event.content) as Buzz;
+			phrases = buzz.phrases;
 		});
 	});
 
