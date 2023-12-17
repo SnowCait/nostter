@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import { firstValueFrom, EmptyError } from 'rxjs';
 	import type { Event } from 'nostr-typedef';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
@@ -10,8 +12,6 @@
 	import { EventItem } from '$lib/Items';
 	import { filterTags } from '$lib/EventHelper';
 	import { pubkey as authorPubkey, readRelays } from '../../../../stores/Author';
-	import { onDestroy } from 'svelte';
-	import { firstValueFrom, EmptyError } from 'rxjs';
 	import TimelineView from '../../TimelineView.svelte';
 
 	export let data: LayoutData;
