@@ -11,8 +11,8 @@ import type { User } from '../routes/types';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
-		await rxNostr.switchRelays(defaultRelays);
-		console.log('[relays]', rxNostr.getRelays());
+		rxNostr.setDefaultRelays(defaultRelays);
+		console.log('[relays]', rxNostr.getDefaultRelays());
 
 		const user = {
 			name,

@@ -24,7 +24,7 @@
 		const slug = $page.params.slug;
 		console.log('[pin page]', slug);
 
-		await rxNostr.switchRelays([...$readRelays, ...data.relays]);
+		rxNostr.setDefaultRelays([...$readRelays, ...data.relays]);
 
 		let event: Event | undefined;
 		if (data.pubkey === $authorPubkey) {

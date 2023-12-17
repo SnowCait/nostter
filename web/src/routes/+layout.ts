@@ -13,7 +13,7 @@ export const load = async () => {
 		locale.set(window.navigator.language);
 		authenticated = await tryLogin();
 		if (!authenticated) {
-			await rxNostr.switchRelays(defaultRelays);
+			rxNostr.setDefaultRelays(defaultRelays);
 		}
 	}
 	await waitLocale();

@@ -44,19 +44,19 @@ export class RelayList {
 		return events;
 	}
 
-	public static async apply(eventsMap: Map<Kind, Event>) {
+	public static apply(eventsMap: Map<Kind, Event>) {
 		const kind10002 = eventsMap.get(10002);
 		const kind3 = eventsMap.get(3);
 		if (kind10002 !== undefined) {
-			await rxNostr.switchRelays(kind10002.tags);
+			rxNostr.setDefaultRelays(kind10002.tags);
 		} else if (kind3 !== undefined && kind3.content !== '') {
-			await rxNostr.switchRelays(
+			rxNostr.setDefaultRelays(
 				[...parseRelayJson(kind3.content)].map(([url, { read, write }]) => {
 					return { url, read, write };
 				})
 			);
 		} else {
-			await rxNostr.switchRelays(defaultRelays);
+			rxNostr.setDefaultRelays(defaultRelays);
 		}
 	}
 }

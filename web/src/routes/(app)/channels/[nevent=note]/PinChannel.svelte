@@ -23,7 +23,7 @@
 
 		pinned = true;
 
-		await rxNostr.switchRelays($writeRelays);
+		rxNostr.setDefaultRelays($writeRelays);
 		const pinReq = createRxOneshotReq({
 			filters: { kinds: [10005], authors: [$pubkey], limit: 1 }
 		});
@@ -82,7 +82,7 @@
 
 		pinned = false;
 
-		await rxNostr.switchRelays($writeRelays);
+		rxNostr.setDefaultRelays($writeRelays);
 		const pinReq = createRxOneshotReq({
 			filters: { kinds: [10005], authors: [$pubkey], limit: 1 }
 		});
