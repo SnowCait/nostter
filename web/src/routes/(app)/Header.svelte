@@ -235,12 +235,13 @@
 			top: auto;
 			bottom: 0;
 			width: 100%;
-			height: 3.125rem;
+			height: calc(3.125rem + env(safe-area-inset-bottom));
 			background-color: var(--background);
 			position: fixed;
 			box-shadow: var(--shadow);
 			justify-content: center;
 			margin-top: 30px;
+			padding-bottom: env(safe-area-inset-bottom);
 		}
 
 		#logo-icon-wrapper {
@@ -262,7 +263,7 @@
 
 		button {
 			position: fixed;
-			bottom: calc(3.125rem + 0.75rem);
+			bottom: calc(3.125rem + 0.75rem + env(safe-area-inset-bottom));
 			right: 0.75rem;
 		}
 

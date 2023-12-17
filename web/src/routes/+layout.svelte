@@ -38,6 +38,10 @@
 		) {
 			document.documentElement.classList.add('dark');
 		}
+
+		const color = getComputedStyle(document.documentElement).getPropertyValue('--background');
+		let themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
+		themeColorMetaTag.content = color;
 	</script>
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-G1WMSV0PBP"></script>
 </svelte:head>
