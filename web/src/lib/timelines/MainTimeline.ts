@@ -9,7 +9,7 @@ import { eventItemStore, metadataStore } from '../cache/Events';
 import { Content } from '$lib/Content';
 import { ToastNotification } from '$lib/ToastNotification';
 
-export const rxNostr = createRxNostr({ timeout }); // Based on NIP-65
+export const rxNostr = createRxNostr({ eoseTimeout: timeout }); // Based on NIP-65
 
 const metadataReq = createRxBackwardReq();
 const eventsReq = createRxBackwardReq();

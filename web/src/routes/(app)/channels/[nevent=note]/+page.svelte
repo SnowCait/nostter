@@ -75,7 +75,7 @@
 		}
 	}
 
-	const rxNostr = createRxNostr({ timeout });
+	const rxNostr = createRxNostr({ eoseTimeout: timeout });
 
 	let items: EventItem[] = [];
 
