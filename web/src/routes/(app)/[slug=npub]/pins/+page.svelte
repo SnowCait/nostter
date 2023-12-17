@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import type { Event } from 'nostr-typedef';
 	import { error } from '@sveltejs/kit';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
@@ -8,8 +9,8 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import { EventItem } from '$lib/Items';
 	import { User as UserDecoder } from '$lib/User';
+	import { filterTags } from '$lib/EventHelper';
 	import { pubkey as authorPubkey, readRelays } from '../../../../stores/Author';
-	import type { Event } from 'nostr-tools';
 	import { onDestroy } from 'svelte';
 	import { firstValueFrom, EmptyError } from 'rxjs';
 	import TimelineView from '../../TimelineView.svelte';
@@ -51,12 +52,17 @@
 		}
 
 		if (event === undefined) {
+			console.log('[pin no event]');
 			return;
 		}
 
-		const referenceReq = createRxOneshotReq({
-			filters: { ids: event.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id) }
-		});
+		const ids = filterTags('e', event.tags);
+		if (ids.length === 0) {
+			console.log('[pin no tags]');
+			return;
+		}
+
+		const referenceReq = createRxOneshotReq({ filters: { ids } });
 		rxNostr
 			.use(referenceReq)
 			.pipe(uniq())
