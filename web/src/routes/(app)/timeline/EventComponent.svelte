@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Kind } from 'nostr-tools';
+	import { Kind, nip19 } from 'nostr-tools';
 	import Profile from './Profile.svelte';
 	import RepostedNote from './RepostedNote.svelte';
 	import Reaction from './Reaction.svelte';
@@ -9,6 +9,8 @@
 	import { Metadata, type Item } from '$lib/Items';
 	import CustomEmojiList from './CustomEmojiList.svelte';
 	import UserStatus from './UserStatus.svelte';
+	import LongFormContent from '../content/LongFormContent.svelte';
+	import { findIdentifier } from '$lib/EventHelper';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -24,6 +26,15 @@
 	<Reaction {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
 	<Channel {item} />
+{:else if item.event.kind === Kind.Article}
+	<LongFormContent
+		event={item.event}
+		naddr={nip19.naddrEncode({
+			kind: Kind.Article,
+			pubkey: item.event.pubkey,
+			identifier: findIdentifier(item.event.tags) ?? ''
+		})}
+	/>
 {:else if item.event.kind === Kind.Zap}
 	<Zap {item} {readonly} {createdAtFormat} />
 {:else if Number(item.event.kind) === 30030}
