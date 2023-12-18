@@ -499,8 +499,7 @@ svg.logo {
 code {
 	display: block;
 	white-space: pre;
-	background-color: var(--surface);
+	background-color: var(--accent-surface-low);
 	overflow: auto;
 	padding: 0.8rem;
-	line-height: 1.5rem;
 }
