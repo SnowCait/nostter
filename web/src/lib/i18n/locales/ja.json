@@ -58,7 +58,8 @@
 	"or": "または",
 	"preferences": {
 		"uri_scheme": "web+nostr: を nostter で開く",
-		"enable_uri_scheme": "有効化"
+		"enable_uri_scheme": "有効化",
+		"developer_mode": "開発者モード"
 	},
 	"content": {
 		"show": "表示"

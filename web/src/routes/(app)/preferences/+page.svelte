@@ -5,7 +5,7 @@
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
 	import { author } from '../../../stores/Author';
-	import { debugMode } from '../../../stores/Preference';
+	import { debugMode, developerMode } from '../../../stores/Preference';
 	import WordMute from './WordMute.svelte';
 	import AutoRefresh from './AutoRefresh.svelte';
 	import MutedUsers from './MutedUsers.svelte';
@@ -15,6 +15,8 @@
 	import ZapButton from '$lib/components/ZapButton.svelte';
 	import UriScheme from './UriScheme.svelte';
 	import EnablePreview from './EnablePreview.svelte';
+	import DeveloperMode from './DeveloperMode.svelte';
+	import WebStorage from './WebStorage.svelte';
 
 	let debugCounter = 0;
 
@@ -40,6 +42,10 @@
 <div><Notification /></div>
 <div><UriScheme /></div>
 <div><AutoRefresh /></div>
+<div><DeveloperMode /></div>
+{#if $developerMode}
+	<div><WebStorage /></div>
+{/if}
 {#if $debugMode}
 	<div><ClearEmojiMartCache /></div>
 {/if}

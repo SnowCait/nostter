@@ -307,6 +307,7 @@ progress {
 [aria-disabled='true'] {
 	cursor: default;
 }
+
 /* End reset css */
 
 :root {
@@ -493,4 +494,13 @@ dialog::backdrop {
 
 svg.logo {
 	fill: var(--accent);
+}
+
+code {
+	display: block;
+	white-space: pre;
+	background-color: var(--surface);
+	overflow: auto;
+	padding: 0.8rem;
+	line-height: 1.5rem;
 }
