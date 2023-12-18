@@ -14,6 +14,7 @@
 	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '../../stores/Notifications';
 	import { followees, pubkey, rom } from '../../stores/Author';
 	import { _ } from 'svelte-i18n';
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { openNoteDialog } from '../../stores/NoteDialog';
 	import NostterLogo from './parts/NostterLogo.svelte';
@@ -25,7 +26,7 @@
 
 	let show = false;
 
-	$: mobile = window.matchMedia('(max-width: 600px)').matches;
+	$: mobile = browser && window.matchMedia('(max-width: 600px)').matches;
 	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
 </script>
 
