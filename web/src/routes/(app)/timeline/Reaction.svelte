@@ -68,11 +68,11 @@
 		<br />
 		<div>{nip19.neventEncode({ id: event.id })}</div>
 		<h5>Event JSON</h5>
-		<pre><code class="json">{JSON.stringify(event, null, 2)}</code></pre>
+		<code>{JSON.stringify(event, null, 2)}</code>
 		<h5>User ID</h5>
 		<div>{nip19.npubEncode(event.pubkey)}</div>
 		<h5>User JSON</h5>
-		<pre><code class="json">{JSON.stringify(metadata?.content, null, 2)}</code></pre>
+		<code>{JSON.stringify(metadata?.content, null, 2)}</code>
 		<div>
 			Open in <a
 				href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode({
@@ -114,14 +114,5 @@
 		padding: 0;
 		color: lightgray;
 		height: 20px;
-	}
-
-	.develop pre {
-		background-color: #f6f8fa;
-		padding: 0.5em;
-		overflow: auto;
-	}
-	.develop .json {
-		font-size: 0.8em;
 	}
 </style>
