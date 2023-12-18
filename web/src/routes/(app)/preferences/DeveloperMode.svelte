@@ -4,6 +4,6 @@
 </script>
 
 <label>
-	<input type="checkbox" bind:value={$developerMode} />
+	<input type="checkbox" bind:checked={$developerMode} />
 	<span>{$_('preferences.developer_mode')}</span>
 </label>
