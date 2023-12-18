@@ -9,6 +9,7 @@
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
 	import IconLogin from '@tabler/icons-svelte/dist/svelte/icons/IconLogin.svelte';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
+	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '../../stores/Notifications';
 	import { followees, pubkey, rom } from '../../stores/Author';
@@ -24,6 +25,7 @@
 
 	let show = false;
 
+	$: mobile = window.matchMedia('(max-width: 600px)').matches;
 	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
 </script>
 
@@ -68,27 +70,31 @@
 						<p>{$_('layout.header.profile')}</p>
 					</li>
 				</a>
-				{#if window.matchMedia('(max-width: 600px)').matches}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-					<li on:click={() => (show = !show)}>
-						<IconDots size={30} />
-						<p>...</p>
-					</li>
-				{/if}
-				{#if !window.matchMedia('(max-width: 600px)').matches || show}
+			{/if}
+			{#if mobile && $pubkey}
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+				<li on:click={() => (show = !show)}>
+					<IconDots size={30} />
+					<p>...</p>
+				</li>
+			{/if}
+			{#if !mobile || show || !$pubkey}
+				{#if $pubkey}
 					<a href="/{nip19.npubEncode($pubkey)}/bookmarks">
 						<li>
 							<IconBookmark size={30} />
 							<p>{$_('layout.header.bookmarks')}</p>
 						</li>
 					</a>
-					<a href="/channels">
-						<li>
-							<IconMessages size={30} />
-							<p>{$_('layout.header.channels')}</p>
-						</li>
-					</a>
+				{/if}
+				<a href="/channels">
+					<li>
+						<IconMessages size={30} />
+						<p>{$_('layout.header.channels')}</p>
+					</li>
+				</a>
+				{#if $pubkey}
 					<a href="/preferences">
 						<li>
 							<IconSettings size={30} />
@@ -96,6 +102,12 @@
 						</li>
 					</a>
 				{/if}
+				<a href="/about">
+					<li>
+						<IconPaw size={30} />
+						<p>{$_('layout.header.about')}</p>
+					</li>
+				</a>
 			{/if}
 		</ul>
 	</nav>
