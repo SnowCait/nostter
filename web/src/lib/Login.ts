@@ -14,10 +14,11 @@ export class Login {
 		rxNostr.setDefaultRelays(defaultRelays);
 		console.log('[relays]', rxNostr.getDefaultRelays());
 
+		const pubkey = await Signer.getPublicKey();
 		const user = {
 			name,
 			display_name: name,
-			picture: `https://robohash.org/${nip19.npubEncode(Signer.getPublicKey())}?set=set4`
+			picture: `https://robohash.org/${nip19.npubEncode(pubkey)}?set=set4`
 		} as User;
 		const metadataEvent = await Signer.signEvent({
 			kind: 0,
