@@ -1,6 +1,13 @@
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-typedef';
-import { batch, createRxBackwardReq, createRxNostr, latestEach, uniq } from 'rx-nostr';
+import {
+	batch,
+	createRxBackwardReq,
+	createRxNostr,
+	filterByType,
+	latestEach,
+	uniq
+} from 'rx-nostr';
 import { tap, bufferTime } from 'rxjs';
 import { timeout } from '$lib/Constants';
 import { filterTags } from '$lib/EventHelper';
@@ -10,6 +17,38 @@ import { Content } from '$lib/Content';
 import { ToastNotification } from '$lib/ToastNotification';
 
 export const rxNostr = createRxNostr({ eoseTimeout: timeout }); // Based on NIP-65
+
+rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
+	switch (state) {
+		case 'error':
+		case 'rejected':
+		case 'terminated':
+		case 'initialized': {
+			console.error('[rx-nostr connection]', from, state);
+			break;
+		}
+		case 'waiting-for-retrying':
+		case 'retrying':
+		case 'dormant': {
+			console.warn('[rx-nostr connection]', from, state);
+			break;
+		}
+		case 'connecting':
+		case 'connected':
+		default: {
+			console.log('[rx-nostr connection]', from, state);
+			break;
+		}
+	}
+});
+
+const observable = rxNostr.createAllMessageObservable();
+observable.pipe(filterByType('NOTICE')).subscribe((packet) => {
+	console.warn('[rx-nostr notice]', packet);
+});
+observable.pipe(filterByType('CLOSED')).subscribe((packet) => {
+	console.error('[rx-nostr closed]', packet);
+});
 
 const metadataReq = createRxBackwardReq();
 const eventsReq = createRxBackwardReq();
