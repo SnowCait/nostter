@@ -81,6 +81,11 @@
 								);
 								return;
 							}
+
+							if (!(await containsMedia(packet.event.content))) {
+								return;
+							}
+
 							const item = new EventItem(packet.event);
 							const index = items.findIndex(
 								(x) => x.event.created_at < item.event.created_at
@@ -117,6 +122,36 @@
 				items.length
 			);
 		}
+	}
+
+	async function containsMedia(content: string): Promise<boolean> {
+		const matches = content.matchAll(/https:\/\/\S+/g);
+		for (const match of matches) {
+			console.log('[media url]', match);
+			let response: Response;
+			try {
+				const url = new URL(match[0]);
+				response = await fetch(url, {
+					method: 'HEAD'
+				});
+			} catch (error) {
+				console.error('[media error]', match, error);
+				continue;
+			}
+			console.log('[media headers]', response.headers);
+			const contentType = response.headers.get('Content-Type');
+			if (contentType === null) {
+				continue;
+			}
+			if (
+				contentType.startsWith('image/') ||
+				contentType.startsWith('video/') ||
+				contentType.startsWith('audio/')
+			) {
+				return true;
+			}
+		}
+		return false;
 	}
 </script>
 
