@@ -146,6 +146,9 @@
 		<a href="/{slug}/relays">{$_('pages.relays')}</a>
 	</div>
 	<div>
+		<a href="/{slug}/media">{$_('pages.media')}</a>
+	</div>
+	<div>
 		<a href="/{slug}/timeline">{$_('pages.timeline')}</a>
 	</div>
 	<div>
