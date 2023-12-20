@@ -21,7 +21,8 @@
 		"pinned": "ピン留め",
 		"reactions": "リアクション",
 		"relays": "リレー",
-		"timeline": "タイムライン"
+		"timeline": "タイムライン",
+		"media": "メディア"
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",

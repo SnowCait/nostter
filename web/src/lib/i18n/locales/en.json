@@ -21,7 +21,8 @@
 		"pinned": "Pinned",
 		"reactions": "Reactions",
 		"relays": "Relays",
-		"timeline": "Timeline"
+		"timeline": "Timeline",
+		"media": "Media"
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",
