@@ -51,6 +51,14 @@ export class Metadata implements Item {
 			: `https://robohash.org/${nip19.npubEncode(this.event.pubkey)}?set=set4`;
 	}
 
+	get normalizedNip05(): string {
+		if (this.content?.nip05 === undefined || typeof this.content.nip05 !== 'string') {
+			return '';
+		}
+
+		return this.content.nip05.replace(/^_@/, '');
+	}
+
 	get canZap(): boolean {
 		return !(!this.content?.lud16 && !this.content?.lud06);
 	}

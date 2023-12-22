@@ -5,7 +5,6 @@
 	import { tap } from 'rxjs';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { normalizeNip05 } from '$lib/MetadataHelper';
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
 	import { Timeline } from '$lib/Timeline';
@@ -38,12 +37,12 @@
 	}
 
 	function overwriteSlug() {
-		if (metadata?.content === undefined || !metadata.content.nip05) {
+		if (metadata?.content === undefined) {
 			return;
 		}
 
-		const normalizedNip05 = normalizeNip05(metadata.content.nip05);
-		if (slug === normalizedNip05) {
+		const normalizedNip05 = metadata.normalizedNip05;
+		if (normalizedNip05 === '' || slug === normalizedNip05) {
 			return;
 		}
 
