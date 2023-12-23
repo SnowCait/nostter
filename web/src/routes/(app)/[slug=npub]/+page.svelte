@@ -3,38 +3,38 @@
 	import { type Event, nip05, nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
+	import { afterNavigate } from '$app/navigation';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
 	import { Timeline } from '$lib/Timeline';
-	import { EventItem, Metadata } from '$lib/Items';
+	import { EventItem } from '$lib/Items';
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import type { LayoutData } from './$types';
 	import Profile from '$lib/components/Profile.svelte';
 
 	export let data: LayoutData;
 
-	let metadata: Metadata | undefined;
-	let events: EventItem[] = [];
+	$: metadata = $metadataStore.get(data.pubkey);
 
+	let events: EventItem[] = [];
 	let relays = $readRelays;
 	let slug = $page.params.slug;
 
-	$: if (metadata === undefined || metadata.event.pubkey !== data.pubkey) {
-		console.log('[npub metadata]', nip19.npubEncode(data.pubkey));
+	afterNavigate(() => {
+		console.log('[npub page after navigate]', nip19.npubEncode(data.pubkey));
 
 		events = [];
 		relays = [...new Set([...$readRelays, ...data.relays])];
 
-		metadata = $metadataStore.get(data.pubkey);
 		if (metadata === undefined) {
 			metadataReqEmit([data.pubkey]);
 		} else {
 			referencesReqEmit(metadata.event);
 			overwriteSlug();
 		}
-	}
+	});
 
 	function overwriteSlug() {
 		if (metadata?.content === undefined) {
@@ -89,7 +89,7 @@
 						tap(({ event }: { event: Event }) => referencesReqEmit(event))
 					)
 					.subscribe({
-						next: async (packet) => {
+						next: (packet) => {
 							console.log('[rx-nostr user timeline packet]', packet);
 							if (
 								!(
