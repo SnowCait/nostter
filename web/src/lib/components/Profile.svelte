@@ -5,7 +5,7 @@
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
-	import type { Metadata } from '$lib/Items';
+	import { robohash, type Metadata, alternativeName } from '$lib/Items';
 	import { pubkey as authorPubkey, rom } from '../../stores/Author';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
@@ -82,11 +82,7 @@
 	<div class="profile">
 		<div class="actions">
 			<div class="picture-wrapper">
-				{#if metadata !== undefined}
-					<img src={metadata?.picture} alt="" />
-				{:else}
-					<div class="blank" />
-				{/if}
+				<img src={metadata?.picture ?? robohash(pubkey)} alt="" />
 			</div>
 			<div class="buttons">
 				{#if !$rom && pubkey !== undefined}
@@ -107,11 +103,9 @@
 				{/if}
 			</div>
 		</div>
-		<h1>{user?.display_name ?? user?.name ?? ''}</h1>
+		<h1>{metadata?.displayName ?? alternativeName(pubkey)}</h1>
 		<div class="user-name-wrapper">
-			{#if user?.name}
-				<h2>@{user.name}</h2>
-			{/if}
+			<h2>@{metadata?.name ?? alternativeName(pubkey)}</h2>
 			{#if followees?.some((pubkey) => pubkey === $authorPubkey)}
 				<p>Follows you</p>
 			{/if}
@@ -199,8 +193,7 @@
 		margin-top: calc(100px + 1rem);
 	}
 
-	.profile img,
-	.profile .blank {
+	.profile img {
 		width: 128px;
 		height: 128px;
 		border: 4px solid var(--surface);
@@ -209,9 +202,6 @@
 		object-fit: cover;
 		position: relative;
 		z-index: 2;
-	}
-
-	.profile img {
 		background-color: var(--surface);
 	}
 

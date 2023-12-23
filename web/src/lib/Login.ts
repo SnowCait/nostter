@@ -4,6 +4,7 @@ import { Signer } from './Signer';
 import { defaultRelays } from './Constants';
 import { Author } from './Author';
 import { getPublicKey, nip19 } from 'nostr-tools';
+import { robohash } from './Items';
 import { WebStorage } from './WebStorage';
 import { rxNostr } from './timelines/MainTimeline';
 import { now } from 'rx-nostr';
@@ -18,7 +19,7 @@ export class Login {
 		const user = {
 			name,
 			display_name: name,
-			picture: `https://robohash.org/${nip19.npubEncode(pubkey)}?set=set4`
+			picture: robohash(pubkey)
 		} as User;
 		const metadataEvent = await Signer.signEvent({
 			kind: 0,
