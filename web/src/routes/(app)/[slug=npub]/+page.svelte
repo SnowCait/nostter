@@ -155,7 +155,7 @@
 </svelte:head>
 
 <section class="card profile-wrapper">
-	<Profile {slug} {metadata} {relays} />
+	<Profile {slug} pubkey={data.pubkey} {metadata} {relays} />
 </section>
 
 <section>
