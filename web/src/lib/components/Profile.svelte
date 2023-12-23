@@ -11,7 +11,6 @@
 	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
 	import Badges from './Badges.svelte';
 	import FollowButton from './FollowButton.svelte';
-	import Loading from './Loading.svelte';
 	import MuteButton from './MuteButton.svelte';
 	import NostrAddress from './NostrAddress.svelte';
 	import UserStatus from './UserStatus.svelte';
@@ -19,19 +18,21 @@
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 
 	export let slug: string;
+	export let pubkey: string;
 	export let metadata: Metadata | undefined;
 	export let relays: string[] = [];
 
+	let p: string | undefined;
 	let followees: string[] | undefined;
 
 	let badges: Badge[] = []; // NIP-58 Badges
 
-	$: pubkey = metadata?.event.pubkey;
 	$: user = metadata?.content;
 
-	$: if (pubkey !== undefined && relays.length > 0) {
-		console.log('[npub follows]', nip19.npubEncode(pubkey), relays);
+	$: if (p !== pubkey) {
+		console.log('[npub profile]', nip19.npubEncode(pubkey), relays);
 
+		p = pubkey;
 		followees = undefined;
 		badges = [];
 
@@ -47,9 +48,20 @@
 		rxNostr
 			.use(contactsReq)
 			.pipe(uniq(), latest())
-			.subscribe((packet) => {
-				console.log('[rx-nostr npub contacts]', packet);
-				followees = [...new Set(filterTags('p', packet.event.tags))];
+			.subscribe({
+				next: (packet) => {
+					console.log('[rx-nostr npub contacts]', packet);
+					followees = [...new Set(filterTags('p', packet.event.tags))];
+				},
+				complete: () => {
+					console.log('[rx-nostr npub contacts complete]', followees);
+					if (followees === undefined) {
+						followees = [];
+					}
+				},
+				error: (error) => {
+					console.error('[rx-nostr npub contacts error]', error);
+				}
 			});
 
 		const badgeApi = new BadgeApi();
@@ -133,7 +145,7 @@
 	<div class="relationships">
 		<div>
 			{$_('pages.followees')}: {#if followees === undefined}
-				<Loading />
+				<span>-</span>
 			{:else}
 				<a href={`/${slug}/followees`}>{followees.length}</a>
 			{/if}
