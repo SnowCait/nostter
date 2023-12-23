@@ -17,6 +17,9 @@ export class Contacts {
 		const storage = new WebStorage(localStorage);
 		const cache = storage.getReplaceableEvent(3);
 		console.debug('[contacts cache]', cache);
+		if (contacts === undefined && cache !== undefined) {
+			throw new Error('Failed to fetch latest event.');
+		}
 		if (
 			contacts !== undefined &&
 			cache !== undefined &&
