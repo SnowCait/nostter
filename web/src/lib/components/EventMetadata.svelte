@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
-	import type { EventItem, Item } from '$lib/Items';
+	import { robohash, type EventItem, type Item, alternativeName } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import CreatedAt from '../../routes/(app)/CreatedAt.svelte';
 
@@ -14,7 +14,7 @@
 <article class="timeline-item">
 	<div>
 		<a href="/{nip19.npubEncode(item.event.pubkey)}">
-			<img class="picture" src={metadata?.picture} alt="" />
+			<img class="picture" src={metadata?.picture ?? robohash(item.event.pubkey)} alt="" />
 		</a>
 		<div class="icon">
 			<slot name="icon" />
@@ -23,14 +23,10 @@
 	<div class="note">
 		<div class="user">
 			<div class="display_name">
-				{metadata?.content?.display_name
-					? metadata?.content.display_name
-					: metadata?.content?.name}
+				{metadata?.displayName ?? alternativeName(item.event.pubkey)}
 			</div>
 			<div class="name">
-				@{metadata?.content?.name
-					? metadata?.content.name
-					: metadata?.content?.display_name}
+				@{metadata?.name ?? alternativeName(item.event.pubkey)}
 			</div>
 			<div class="created_at">
 				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />

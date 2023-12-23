@@ -31,7 +31,7 @@ export class Metadata implements Item {
 		} else if (this.content?.display_name !== undefined && this.content.display_name !== '') {
 			return this.content.display_name;
 		} else {
-			return nip19.npubEncode(this.event.pubkey).slice(0, 'npub1'.length + 7);
+			return alternativeName(this.event.pubkey);
 		}
 	}
 
@@ -41,14 +41,14 @@ export class Metadata implements Item {
 		} else if (this.content?.name !== undefined && this.content.name !== '') {
 			return this.content.name;
 		} else {
-			return nip19.npubEncode(this.event.pubkey).slice(0, 'npub1'.length + 7);
+			return alternativeName(this.event.pubkey);
 		}
 	}
 
 	get picture(): string {
 		return this.content?.picture !== undefined && this.content.picture !== ''
 			? this.content.picture
-			: `https://robohash.org/${nip19.npubEncode(this.event.pubkey)}?set=set4`;
+			: robohash(this.event.pubkey);
 	}
 
 	get normalizedNip05(): string {
@@ -93,4 +93,12 @@ export interface MetadataContent {
 	about: string;
 	lud06: string;
 	lud16: string;
+}
+
+export function robohash(pubkey: string): string {
+	return `https://robohash.org/${nip19.npubEncode(pubkey)}?set=set4`;
+}
+
+export function alternativeName(pubkey: string): string {
+	return nip19.npubEncode(pubkey).slice(0, 'npub1'.length + 7);
 }
