@@ -9,8 +9,8 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { enablePreview } from '../../../stores/Preference';
-	import IconExternalLink from '@tabler/icons-svelte/dist/svelte/icons/IconExternalLink.svelte';
 	import Text from './Text.svelte';
+	import ExternalLink from '$lib/components/ExternalLink.svelte';
 
 	export let text: string;
 	export let url: string = text;
@@ -48,9 +48,7 @@
 			</blockquote>
 		</div>
 	{:else}
-		<a href={link.href} target="_blank" rel="noopener noreferrer">
-			{text}<IconExternalLink size={15} />
-		</a>
+		<ExternalLink {text} {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
@@ -61,18 +59,14 @@
 			</a>
 		</div>
 	{:else}
-		<a href={link.href} target="_blank" rel="noopener noreferrer">
-			{text}<IconExternalLink size={15} />
-		</a>
+		<ExternalLink {text} {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else if /\.(mp3|m4a|wav)/i.test(link.pathname)}
 	{#if preview}
 		<audio src={link.href} controls />
 	{:else}
-		<a href={link.href} target="_blank" rel="noopener noreferrer">
-			{text}<IconExternalLink size={15} />
-		</a>
+		<ExternalLink {text} {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else if /\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)/i.test(link.pathname)}
@@ -82,15 +76,11 @@
 			<video src={link.href} controls />
 		</div>
 	{:else}
-		<a href={link.href} target="_blank" rel="noopener noreferrer">
-			{text}<IconExternalLink size={15} />
-		</a>
+		<ExternalLink {text} {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else}
-	<a href={link.href} target="_blank" rel="noopener noreferrer">
-		{text}<IconExternalLink size={15} />
-	</a>
+	<ExternalLink {text} {link} />
 {/if}
 
 <style>
