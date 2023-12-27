@@ -25,6 +25,9 @@ export const bookmarkEvent: Writable<Event | undefined> = writable();
 
 export const isMutePubkey = (pubkey: string) => get(mutePubkeys).includes(pubkey);
 export const isMuteEvent = (event: Event) => {
+	if (event.pubkey === get(pubkey)) {
+		return false;
+	}
 	const $muteWords = get(muteWords);
 	if (
 		isMutePubkey(event.pubkey) ||
