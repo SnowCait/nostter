@@ -226,6 +226,8 @@ export function hometimelineReqEmit() {
 		console.log('[home timeline subscribe already]');
 		return;
 	}
+
+	hasSubscribed = true;
 	console.log('[home timeline subscribe]');
 
 	const $pubkey = get(pubkey);
@@ -271,5 +273,4 @@ export function hometimelineReqEmit() {
 	];
 	console.log('[rx-nostr subscribe author filter]', authorFilters, new Date(sinceOfCache * 1000));
 	homeTimelineReq.emit([...followeesFilter, relatesFilter, ...authorFilters]);
-	hasSubscribed = true;
 }
