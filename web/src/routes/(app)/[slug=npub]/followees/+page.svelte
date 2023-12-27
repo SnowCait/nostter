@@ -1,42 +1,21 @@
 <script lang="ts">
-	import {
-		batch,
-		createRxBackwardReq,
-		createRxOneshotReq,
-		latest,
-		latestEach,
-		uniq
-	} from 'rx-nostr';
-	import { bufferCount, bufferTime } from 'rxjs';
+	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
 	import { nip19 } from 'nostr-tools';
-	import { saveLastNotes } from '../../../../stores/LastNotes';
 	import { author } from '../../../../stores/Author';
-	import { appName, maxFilters } from '$lib/Constants';
+	import { appName } from '$lib/Constants';
 	import type { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
+	import { lastNoteReqEmit } from '$lib/LastNotes';
 
 	export let data: LayoutData;
 
 	let pubkey: string | undefined;
 	let pubkeys = new Set<string>();
-
-	const lastNoteReq = createRxBackwardReq();
-	rxNostr
-		.use(lastNoteReq.pipe(bufferCount(maxFilters), batch()))
-		.pipe(
-			uniq(),
-			latestEach(({ event }) => event.pubkey),
-			bufferTime(10000)
-		)
-		.subscribe((packets) => {
-			console.log('[rx-nostr last notes]', packets);
-			saveLastNotes(packets.map((x) => x.event));
-		});
 
 	$: items = [...pubkeys]
 		.map((pubkey) => $metadataStore.get(pubkey))
@@ -65,15 +44,7 @@
 				if ($author === undefined) {
 					return;
 				}
-				for (const pubkey of pubkeys) {
-					lastNoteReq.emit([
-						{
-							kinds: [1],
-							authors: [pubkey],
-							limit: 1
-						}
-					]);
-				}
+				lastNoteReqEmit([...pubkeys]);
 			});
 	}
 </script>

@@ -22,7 +22,8 @@
 		"reactions": "Reactions",
 		"relays": "Relays",
 		"timeline": "Timeline",
-		"media": "Media"
+		"media": "Media",
+		"latest": "Latest notes"
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",
