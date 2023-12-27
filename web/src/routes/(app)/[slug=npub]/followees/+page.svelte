@@ -1,20 +1,11 @@
 <script lang="ts">
-	import {
-		batch,
-		createRxBackwardReq,
-		createRxOneshotReq,
-		latest,
-		latestEach,
-		uniq
-	} from 'rx-nostr';
-	import { bufferCount, bufferTime } from 'rxjs';
+	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
 	import { nip19 } from 'nostr-tools';
-	import { saveLastNotes } from '../../../../stores/LastNotes';
 	import { author } from '../../../../stores/Author';
-	import { appName, maxFilters } from '$lib/Constants';
+	import { appName } from '$lib/Constants';
 	import type { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
