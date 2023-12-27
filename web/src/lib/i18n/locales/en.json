@@ -65,6 +65,7 @@
 		"developer_mode": "Developer mode"
 	},
 	"content": {
-		"show": "Show"
+		"show": "Show",
+		"muted": "Muted content"
 	}
 }

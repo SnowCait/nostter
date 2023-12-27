@@ -1,3 +1,7 @@
+<script lang="ts">
+	import { _ } from 'svelte-i18n';
+</script>
+
 <article class="timeline-item">
-	<div>Muted</div>
+	<span>{$_('content.muted')}</span>
 </article>
