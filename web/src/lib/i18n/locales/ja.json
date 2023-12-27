@@ -22,7 +22,8 @@
 		"reactions": "リアクション",
 		"relays": "リレー",
 		"timeline": "タイムライン",
-		"media": "メディア"
+		"media": "メディア",
+		"latest": "最新の投稿"
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",
