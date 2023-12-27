@@ -64,6 +64,7 @@
 		"developer_mode": "開発者モード"
 	},
 	"content": {
-		"show": "表示"
+		"show": "表示",
+		"muted": "ミュートされたコンテンツ"
 	}
 }

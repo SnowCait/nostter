@@ -20,6 +20,8 @@
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
+	import NotFound from '$lib/components/items/NotFound.svelte';
+	import EventComponent from '../timeline/EventComponent.svelte';
 
 	export let data: PageData;
 
@@ -266,16 +268,12 @@
 	showLoading={false}
 />
 
-<div bind:this={focusedElement}>
-	<!-- TODO: Replace to EventComponent (Using TimelineView for CSS now) -->
-	<TimelineView
-		items={item !== undefined ? [item] : []}
-		readonly={false}
-		load={async () => console.debug()}
-		showLoading={false}
-		full={true}
-		canTransition={false}
-	/>
+<div bind:this={focusedElement} class="card">
+	{#if item === undefined}
+		<NotFound />
+	{:else}
+		<EventComponent {item} readonly={false} full={true} />
+	{/if}
 </div>
 
 <section class="repost counter card">
@@ -339,6 +337,10 @@
 	section {
 		margin: 0.5rem auto;
 		padding: 6px;
+	}
+
+	div.card {
+		padding: 0;
 	}
 
 	.counter {

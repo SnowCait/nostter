@@ -4,9 +4,11 @@
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import { nip19 } from 'nostr-tools';
+	import { isMuteEvent } from '../../../stores/Author';
 	import CreatedAt from '../CreatedAt.svelte';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
+	import MutedContent from './MutedContent.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -86,7 +88,11 @@
 	</div>
 {/if}
 {#if originalEvent !== undefined}
-	<EventComponent item={originalEvent} {readonly} {createdAtFormat} />
+	{#if isMuteEvent(originalEvent.event)}
+		<MutedContent />
+	{:else}
+		<EventComponent item={originalEvent} {readonly} {createdAtFormat} />
+	{/if}
 {:else if originalTag !== undefined}
 	<NoteLink eventId={originalTag[1]} />
 {/if}
