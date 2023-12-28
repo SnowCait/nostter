@@ -16,7 +16,10 @@ import { eventItemStore, metadataStore } from '../cache/Events';
 import { Content } from '$lib/Content';
 import { ToastNotification } from '$lib/ToastNotification';
 
-export const rxNostr = createRxNostr({ eoseTimeout: timeout }); // Based on NIP-65
+export const rxNostr = createRxNostr({
+	eoseTimeout: timeout,
+	keepAliveDefaultRelayConnections: false
+}); // Based on NIP-65
 
 rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 	switch (state) {
