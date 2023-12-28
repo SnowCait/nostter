@@ -65,7 +65,7 @@ export function reconnectIfConnectionsAreUnstable(): void {
 	}
 
 	// TODO: Clear timeline and reconnect WebSocket without reload
-	location.href = location.href;
+	location.reload();
 }
 
 const observable = rxNostr.createAllMessageObservable();
