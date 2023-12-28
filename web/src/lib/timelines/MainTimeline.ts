@@ -57,6 +57,7 @@ const recconectableStates: ConnectionState[] = [
 
 export function reconnectIfConnectionsAreUnstable(): void {
 	const states = Object.entries(rxNostr.getAllRelayState());
+	console.log('[relay states]', states);
 	if (
 		states.filter(([, state]) => recconectableStates.includes(state)).length * 2 <
 		states.length
@@ -65,6 +66,7 @@ export function reconnectIfConnectionsAreUnstable(): void {
 	}
 
 	// TODO: Clear timeline and reconnect WebSocket without reload
+	console.log('[reload]', states);
 	location.reload();
 }
 
