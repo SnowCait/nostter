@@ -16,6 +16,7 @@
 	import EnablePreview from './EnablePreview.svelte';
 	import DeveloperMode from './DeveloperMode.svelte';
 	import WebStorage from './WebStorage.svelte';
+	import RelayStates from './RelayStates.svelte';
 </script>
 
 <svelte:head>
@@ -32,6 +33,7 @@
 <div><AutoRefresh /></div>
 <div><DeveloperMode /></div>
 {#if $developerMode}
+	<div><RelayStates /></div>
 	<div><WebStorage /></div>
 {/if}
 {#if $debugMode}
