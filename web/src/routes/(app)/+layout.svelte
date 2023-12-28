@@ -2,7 +2,7 @@
 	import { createRxOneshotReq, latest } from 'rx-nostr';
 	import { WebStorage } from '$lib/WebStorage';
 	import { notificationKinds } from '$lib/NotificationTimeline';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { reconnectIfConnectionsAreUnstable, rxNostr } from '$lib/timelines/MainTimeline';
 	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
@@ -10,10 +10,8 @@
 	import { pubkey } from '../../stores/Author';
 	import { lastReadAt, lastNotifiedAt } from '../../stores/Notifications';
 	import { onMount } from 'svelte';
-	import ReloadDialog from './ReloadDialog.svelte';
 	import Gdpr from './parts/Gdpr.svelte';
 
-	let reloadDialogComponent: ReloadDialog;
 	const konamiCode = [
 		'ArrowUp',
 		'ArrowUp',
@@ -94,7 +92,7 @@
 				break;
 			}
 			case 'visible': {
-				setTimeout(() => reloadDialogComponent.tryOpen(), 1000);
+				setTimeout(() => reconnectIfConnectionsAreUnstable(), 1000);
 				break;
 			}
 		}
@@ -137,7 +135,6 @@
 
 <div class="app">
 	<NoteDialog />
-	<ReloadDialog bind:this={reloadDialogComponent} />
 
 	<header>
 		<div>

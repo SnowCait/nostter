@@ -6,7 +6,8 @@ import {
 	createRxNostr,
 	filterByType,
 	latestEach,
-	uniq
+	uniq,
+	type ConnectionState
 } from 'rx-nostr';
 import { tap, bufferTime } from 'rxjs';
 import { timeout } from '$lib/Constants';
@@ -16,14 +17,16 @@ import { eventItemStore, metadataStore } from '../cache/Events';
 import { Content } from '$lib/Content';
 import { ToastNotification } from '$lib/ToastNotification';
 
-export const rxNostr = createRxNostr({ eoseTimeout: timeout }); // Based on NIP-65
+export const rxNostr = createRxNostr({
+	eoseTimeout: timeout,
+	keepAliveDefaultRelayConnections: false
+}); // Based on NIP-65
 
 rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 	switch (state) {
 		case 'error':
 		case 'rejected':
-		case 'terminated':
-		case 'initialized': {
+		case 'terminated': {
 			console.error('[rx-nostr connection]', from, state);
 			break;
 		}
@@ -33,6 +36,7 @@ rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 			console.warn('[rx-nostr connection]', from, state);
 			break;
 		}
+		case 'initialized':
 		case 'connecting':
 		case 'connected':
 		default: {
@@ -41,6 +45,30 @@ rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 		}
 	}
 });
+
+const recconectableStates: ConnectionState[] = [
+	'error',
+	'rejected',
+	'terminated',
+	'waiting-for-retrying',
+	'retrying',
+	'dormant'
+];
+
+export function reconnectIfConnectionsAreUnstable(): void {
+	const states = Object.entries(rxNostr.getAllRelayState());
+	console.log('[relay states]', states);
+	if (
+		states.filter(([, state]) => recconectableStates.includes(state)).length * 2 <
+		states.length
+	) {
+		return;
+	}
+
+	// TODO: Clear timeline and reconnect WebSocket without reload
+	console.log('[reload]', states);
+	location.reload();
+}
 
 const observable = rxNostr.createAllMessageObservable();
 observable.pipe(filterByType('NOTICE')).subscribe((packet) => {
