@@ -43,7 +43,7 @@
 	<h2>Shared</h2>
 	<div><ReactionEmoji /></div>
 	<div>
-		<a href="https://emojis-iota.vercel.app/" target="_blank" rel="noopener noreferrer">
+		<a href="https://emojito.meme/" target="_blank" rel="noopener noreferrer">
 			Edit custom emojis
 		</a>
 	</div>
