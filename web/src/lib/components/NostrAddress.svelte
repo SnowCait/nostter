@@ -17,7 +17,7 @@
 			<div class="nip05">
 				<span>{metadata.normalizedNip05}</span>
 				{#await nip05.queryProfile(metadata.normalizedNip05) then pointer}
-					{#if pointer !== null}
+					{#if pointer !== null && pointer.pubkey === metadata.event.pubkey}
 						<IconDiscountCheck color="skyblue" />
 					{:else}
 						<IconAlertTriangle color="orange" />
