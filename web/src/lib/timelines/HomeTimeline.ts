@@ -17,7 +17,7 @@ import { userStatusReq } from '$lib/UserStatus';
 import { pubkey, author, updateRelays, bookmarkEvent, followees } from '../../stores/Author';
 import { lastReadAt, notifiedEventItems, unreadEventItems } from '../../stores/Notifications';
 import { events, eventsPool } from '../../stores/Events';
-import { saveLastNotes } from '../../stores/LastNotes';
+import { saveLastNote } from '../../stores/LastNotes';
 import { autoRefresh } from '../../stores/Preference';
 
 export let hasSubscribed = false;
@@ -180,7 +180,7 @@ rxNostr
 
 		// Cache
 		if (event.kind === Kind.Text) {
-			saveLastNotes([event]);
+			saveLastNote(event);
 		}
 
 		// User Status

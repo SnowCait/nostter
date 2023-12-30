@@ -8,7 +8,7 @@
 	import { events, eventsPool } from '../../../stores/Events';
 	import { pool } from '../../../stores/Pool';
 	import { pubkey, followees, rom } from '../../../stores/Author';
-	import { saveLastNotes } from '../../../stores/LastNotes';
+	import { saveLastNote } from '../../../stores/LastNotes';
 	import { Signer } from '$lib/Signer';
 	import { minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
@@ -173,7 +173,7 @@
 
 							// Cache
 							if (item.event.kind === Kind.Text) {
-								saveLastNotes([item.event]);
+								saveLastNote(item.event);
 							}
 						},
 						complete: () => {

@@ -1,21 +1,20 @@
 import { batch, createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
-import { bufferCount, bufferTime } from 'rxjs';
+import { bufferTime } from 'rxjs';
 import { rxNostr } from './timelines/MainTimeline';
 import { maxFilters } from './Constants';
-import { lastNotesMap, saveLastNotes } from '../stores/LastNotes';
+import { lastNotesMap, saveLastNote } from '../stores/LastNotes';
 import { get } from 'svelte/store';
 
 const lastNoteReq = createRxBackwardReq();
 rxNostr
-	.use(lastNoteReq.pipe(bufferCount(maxFilters), batch()))
+	.use(lastNoteReq.pipe(bufferTime(1000, null, maxFilters), batch()))
 	.pipe(
 		uniq(),
-		latestEach(({ event }) => event.pubkey),
-		bufferTime(10000)
+		latestEach(({ event }) => event.pubkey)
 	)
-	.subscribe((packets) => {
-		console.log('[rx-nostr last notes]', packets);
-		saveLastNotes(packets.map((x) => x.event));
+	.subscribe((packet) => {
+		console.log('[rx-nostr last note]', packet);
+		saveLastNote(packet.event);
 	});
 
 export function lastNoteReqEmit(pubkeys: string[]) {
