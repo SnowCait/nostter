@@ -5,15 +5,15 @@ import { followees } from './Author';
 console.log('[last notes store]');
 
 export const lastNotesMap = writable(new Map<string, Event>());
-export const saveLastNotes = (events: Event[]) => {
+export const saveLastNote = (event: Event) => {
+	if (event.kind !== Kind.Text || !get(followees).includes(event.pubkey)) {
+		return;
+	}
+
 	lastNotesMap.update((map) => {
-		for (const event of events.filter(
-			(x) => x.kind === Kind.Text && get(followees).some((pubkey) => pubkey === x.pubkey)
-		)) {
-			const lastNote = map.get(event.pubkey);
-			if (lastNote === undefined || lastNote.created_at < event.created_at) {
-				map.set(event.pubkey, event);
-			}
+		const lastNote = map.get(event.pubkey);
+		if (lastNote === undefined || lastNote.created_at < event.created_at) {
+			map.set(event.pubkey, event);
 		}
 		return map;
 	});
