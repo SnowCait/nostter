@@ -16,6 +16,7 @@ import { EventItem, Metadata } from '$lib/Items';
 import { eventItemStore, metadataStore } from '../cache/Events';
 import { Content } from '$lib/Content';
 import { ToastNotification } from '$lib/ToastNotification';
+import { sleep } from '$lib/Helper';
 
 export const rxNostr = createRxNostr({
 	eoseTimeout: timeout,
@@ -81,7 +82,7 @@ observable.pipe(filterByType('CLOSED')).subscribe((packet) => {
 const metadataReq = createRxBackwardReq();
 const eventsReq = createRxBackwardReq();
 
-export function metadataReqEmit(pubkeys: string[]): void {
+export async function metadataReqEmit(pubkeys: string[]): Promise<void> {
 	for (const pubkey of pubkeys) {
 		if (get(metadataStore).has(pubkey)) {
 			console.debug('[rx-nostr metadata REQ skipped]', pubkey);
@@ -93,6 +94,7 @@ export function metadataReqEmit(pubkeys: string[]): void {
 			authors: [pubkey],
 			limit: 1
 		});
+		await sleep(0); // UI thread
 	}
 }
 

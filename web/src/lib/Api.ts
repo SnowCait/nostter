@@ -10,6 +10,7 @@ import { channelMetadataEventsStore, eventItemStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
 import { referencesReqEmit } from './timelines/MainTimeline';
+import { sleep } from './Helper';
 
 export class Api {
 	public static readonly replaceableKinds = [
@@ -258,6 +259,7 @@ export class Api {
 
 		for (const event of [...events, ...referencedEvents]) {
 			referencesReqEmit(event);
+			await sleep(0); // UI thread
 		}
 
 		events.sort(reverseChronological);
