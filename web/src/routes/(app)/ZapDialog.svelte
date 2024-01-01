@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { nip57 } from 'nostr-tools';
+	import type { Event } from 'nostr-typedef';
 	import QRCode from 'qrcode';
 	import { writeRelays } from '../../stores/Author';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { WebStorage } from '$lib/WebStorage';
 	import { Signer } from '$lib/Signer';
+	import { zapWithWalletConnect } from '$lib/Zap';
 	import { metadataStore } from '$lib/cache/Events';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
-	import type { Event } from 'nostr-typedef';
 
 	export let pubkey: string;
 	export let event: Event | undefined;
@@ -23,6 +24,7 @@
 	let zapComment = '';
 	let invoice = '';
 	let open = false;
+	let sending = false;
 
 	const dispatch = createEventDispatcher();
 
@@ -35,6 +37,8 @@
 	});
 
 	async function zap() {
+		sending = true;
+
 		const amount = sats * 1000;
 		const zapRequest = nip57.makeZapRequest({
 			profile: pubkey,
@@ -60,13 +64,21 @@
 			console.error('[zap failed]', await response.text());
 			return;
 		}
-		const { pr } = await response.json();
-		invoice = pr;
-		console.log('[zap invoice]', invoice);
+		const { pr: zapInvoice } = await response.json();
+		console.log('[zap invoice]', zapInvoice);
 
 		const storage = new WebStorage(localStorage);
 		storage.set('zap', sats.toString());
 
+		const walletConnectUri = storage.get('nostr-wallet-connect');
+		if (walletConnectUri !== null && walletConnectUri !== '') {
+			const success = await zapWithWalletConnect(walletConnectUri, zapInvoice);
+			if (success) {
+				open = false;
+			}
+		}
+
+		invoice = zapInvoice;
 		dispatch('zapped');
 	}
 </script>
@@ -84,7 +96,7 @@
 						bind:value={sats}
 						on:keyup|stopPropagation={() => console.debug}
 					/>
-					<input type="submit" value="Zap" />
+					<input type="submit" value="Zap" disabled={sending} />
 				</div>
 				<div>
 					<input
