@@ -17,6 +17,7 @@
 	import DeveloperMode from './DeveloperMode.svelte';
 	import WebStorage from './WebStorage.svelte';
 	import RelayStates from './RelayStates.svelte';
+	import WalletConnect from './WalletConnect.svelte';
 </script>
 
 <svelte:head>
@@ -31,6 +32,7 @@
 <div><Notification /></div>
 <div><UriScheme /></div>
 <div><AutoRefresh /></div>
+<div><WalletConnect /></div>
 <div><DeveloperMode /></div>
 {#if $developerMode}
 	<div><RelayStates /></div>
