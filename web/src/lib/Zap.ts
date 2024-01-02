@@ -17,9 +17,15 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 	try {
 		const walletEvent = await new Promise<Event>((resolve, reject) => {
 			const nwcRxReq = createRxForwardReq();
-			nwcRxNostr.use(nwcRxReq).subscribe((packet) => {
-				console.log('[NWC]', packet);
-				resolve(packet.event);
+			nwcRxNostr.use(nwcRxReq).subscribe({
+				next: (packet) => {
+					console.log('[NWC]', packet);
+					resolve(packet.event);
+				},
+				error: (error) => {
+					console.error('[NWC error]', error);
+					reject();
+				}
 			});
 
 			nwcRxReq.emit([{ kinds: [23195], authors: [walletPubkey], '#e': [event.id] }]);
@@ -27,6 +33,9 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 			nwcRxNostr.send(event).subscribe({
 				next: (packet) => {
 					console.log('[NWC send]', packet);
+					if (!packet.ok) {
+						reject();
+					}
 				},
 				error: () => {
 					reject();
@@ -46,7 +55,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 			return false;
 		}
 	} catch (error) {
-		console.log('[NWC failed]');
+		console.error('[NWC failed]');
 		return false;
 	} finally {
 		nwcRxNostr.dispose();
