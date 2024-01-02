@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { WebStorage } from '$lib/WebStorage';
+	import { parseConnectionString } from '$lib/nostr-tools/nip47';
 	import IconCheck from '@tabler/icons-svelte/dist/svelte/icons/IconCheck.svelte';
 
 	let uri = browser ? new WebStorage(localStorage).get('nostr-wallet-connect') ?? '' : '';
@@ -12,8 +13,7 @@
 
 		try {
 			if (valid && uri !== '') {
-				const { searchParams } = new URL(uri);
-				valid = searchParams.has('relay') && searchParams.has('secret');
+				parseConnectionString(uri);
 			}
 		} catch (error) {
 			valid = false;
