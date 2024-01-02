@@ -75,6 +75,8 @@
 			const success = await zapWithWalletConnect(walletConnectUri, zapInvoice);
 			if (success) {
 				open = false;
+				dispatch('zapped');
+				return;
 			}
 		}
 
