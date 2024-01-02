@@ -11,7 +11,7 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';
-	import { EventItem, Metadata } from '$lib/Items';
+	import { EventItem, Metadata, ZapEventItem } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { appName, chronologicalItem } from '$lib/Constants';
 	import { tick } from 'svelte';
@@ -39,7 +39,7 @@
 	let repliedToEventItems: EventItem[] = [];
 	let repostEventItems: EventItem[] = [];
 	let reactionEventItems: EventItem[] = [];
-	let zapEventItems: EventItem[] = [];
+	let zapEventItemsMap = new Map<number | undefined, ZapEventItem[]>();
 
 	let customEmojiShortcode = new Map<string, string>();
 
@@ -78,10 +78,6 @@
 		}
 		return map;
 	}, new Map<string, EventItem[]>());
-
-	$: zapMetadataList = zapEventItems
-		.map((x) => $metadataStore.get(x.event.pubkey))
-		.filter((x): x is Metadata => x !== undefined);
 
 	$: if (eventId !== data.eventId) {
 		eventId = data.eventId;
@@ -182,10 +178,11 @@
 				return;
 			}
 
-			const eventItem = new EventItem(event);
-			zapEventItems.sort(chronologicalItem);
-			zapEventItems.push(eventItem);
-			zapEventItems = zapEventItems;
+			const eventItem = new ZapEventItem(packet.event);
+			let eventItems = zapEventItemsMap.get(eventItem.amount) ?? [];
+			eventItems.push(eventItem);
+			zapEventItemsMap.set(eventItem.amount, eventItems);
+			zapEventItemsMap = zapEventItemsMap;
 		});
 	}
 
@@ -246,7 +243,8 @@
 		repliedToEventItems = [];
 		repostEventItems = [];
 		reactionEventItems = [];
-		zapEventItems = [];
+		zapEventItemsMap.clear();
+		zapEventItemsMap = zapEventItemsMap;
 		customEmojiShortcode = new Map<string, string>();
 	}
 </script>
@@ -308,13 +306,24 @@
 		/>
 	</section>
 {/each}
-<section class="zap counter card">
-	<span class="icon"><IconBolt /></span>
-	{#if zapMetadataList.length === 0}
+{#each [...zapEventItemsMap].sort( ([amountX], [amountY]) => (amountX === undefined ? -1 : amountY === undefined ? 1 : amountY - amountX) ) as [amount, zapEventItems]}
+	<section class="zap counter card">
+		<span class="icon"><IconBolt /></span>
+		{#if amount !== undefined}
+			<span class="amount">{amount.toLocaleString()}</span>
+		{/if}
+		<ProfileIconList
+			metadataList={zapEventItems.map((item) =>
+				$metadataStore.get(item.requestEvent?.pubkey ?? item.event.pubkey)
+			)}
+		/>
+	</section>
+{:else}
+	<section class="zap counter card">
+		<span class="icon"><IconBolt /></span>
 		<span class="count">-</span>
-	{/if}
-	<ProfileIconList metadataList={zapMetadataList} />
-</section>
+	</section>
+{/each}
 {#if $author !== undefined && item !== undefined}
 	<div class="mute">
 		<MuteButton tagName="e" tagContent={rootId === undefined ? item.event.id : rootId} />
@@ -353,7 +362,8 @@
 		height: 24px;
 	}
 
-	.count {
+	.count,
+	.amount {
 		margin-right: 0.5rem;
 	}
 
