@@ -1,14 +1,12 @@
 <script lang="ts">
 	import { nip19, type Event } from 'nostr-tools';
 	import { decode, type DecodedInvoice } from 'light-bolt11-decoder';
-	import type { EventItem, Item } from '$lib/Items';
+	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import type { EventItem, Item, Metadata } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
-	import { pool } from '../../../stores/Pool';
-	import { readRelays } from '../../../stores/Author';
 	import CreatedAt from '../CreatedAt.svelte';
-	import { Api } from '$lib/Api';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
 
@@ -19,6 +17,12 @@
 	const event = item.event;
 
 	$: metadata = $metadataStore.get(item.event.pubkey);
+
+	let zapperMetadata: Metadata | undefined;
+
+	$: if (zapRequestEvent !== undefined) {
+		zapperMetadata = $metadataStore.get(zapRequestEvent.pubkey);
+	}
 
 	let originalEvent: EventItem | undefined;
 	let decodedInvoice: DecodedInvoice | undefined;
@@ -35,6 +39,7 @@
 	let zapRequestEvent: Event | undefined;
 	try {
 		zapRequestEvent = JSON.parse(descriptionTag ?? '{}') as Event;
+		metadataReqEmit([zapRequestEvent.pubkey]);
 	} catch (error) {
 		console.error('[invalid description tag]', error, descriptionTag);
 	}
@@ -64,8 +69,6 @@
 		originalEvent = $eventItemStore.get(originalTag[1]);
 	}
 
-	const api = new Api($pool, $readRelays);
-
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
 	};
@@ -83,18 +86,15 @@
 		{#if zapRequestEvent === undefined}
 			<div>Unknown</div>
 		{:else}
-			{#await api.fetchUserEvent(zapRequestEvent.pubkey)}
-				<div>@...</div>
-			{:then zapUserEvent}
-				<div>
-					<a href="/{nip19.npubEncode((zapUserEvent ?? event).pubkey)}">
-						@{(zapUserEvent?.user ?? metadata?.content)?.name ??
-							nip19
-								.npubEncode((zapUserEvent ?? event).pubkey)
-								.substring(0, 'npub1'.length + 7)}
+			<div>
+				{#if zapperMetadata !== undefined}
+					<a href="/{nip19.npubEncode(zapperMetadata.event.pubkey)}">
+						@{zapperMetadata.name}
 					</a>
-				</div>
-			{/await}
+				{:else}
+					<span>-</span>
+				{/if}
+			</div>
 		{/if}
 		<div class="json-button">
 			<button on:click={toggleJsonDisplay}>
