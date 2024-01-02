@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { nip19, type Event } from 'nostr-tools';
-	import { decode, type DecodedInvoice } from 'light-bolt11-decoder';
+	import { onMount } from 'svelte';
+	import { nip19 } from 'nostr-tools';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
-	import type { EventItem, Item, Metadata } from '$lib/Items';
+	import { ZapEventItem, type EventItem, type Item, type Metadata } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
@@ -16,17 +16,16 @@
 
 	const event = item.event;
 
+	$: zap = new ZapEventItem(item.event);
 	$: metadata = $metadataStore.get(item.event.pubkey);
 
 	let zapperMetadata: Metadata | undefined;
 
-	$: if (zapRequestEvent !== undefined) {
-		zapperMetadata = $metadataStore.get(zapRequestEvent.pubkey);
+	$: if (zap.requestEvent !== undefined) {
+		zapperMetadata = $metadataStore.get(zap.requestEvent.pubkey);
 	}
 
 	let originalEvent: EventItem | undefined;
-	let decodedInvoice: DecodedInvoice | undefined;
-	let amount: number | undefined;
 	let jsonDisplay = false;
 
 	const originalTag = event.tags.find(
@@ -34,40 +33,15 @@
 			tag.at(0) === 'e' && (tag.at(3) === 'mention' || tag.at(3) === 'root' || tag.length < 4)
 	);
 
-	const descriptionTag = event.tags.find(([tagName]) => tagName === 'description')?.at(1);
-	console.debug('[zap request]', event.id, descriptionTag);
-	let zapRequestEvent: Event | undefined;
-	try {
-		zapRequestEvent = JSON.parse(descriptionTag ?? '{}') as Event;
-		metadataReqEmit([zapRequestEvent.pubkey]);
-	} catch (error) {
-		console.error('[invalid description tag]', error, descriptionTag);
-	}
-
-	const bolt11 = event.tags.find(([tagName]) => tagName === 'bolt11')?.at(1);
-	console.log('[zap bolt11]', bolt11);
-	if (bolt11 !== undefined) {
-		try {
-			decodedInvoice = decode(bolt11);
-			console.log('[zap decoded invoice]', decodedInvoice);
-			const section = decodedInvoice.sections.find(
-				(section) => section.name === 'amount'
-			) as {
-				name: 'amount';
-				letters: string;
-				value: string;
-			};
-			if (section !== undefined) {
-				amount = Number(section.value);
-			}
-		} catch (error) {
-			console.warn('[zap invalid bolt11]', decodedInvoice);
-		}
-	}
-
 	$: if (originalTag !== undefined) {
 		originalEvent = $eventItemStore.get(originalTag[1]);
 	}
+
+	onMount(() => {
+		if (zap.requestEvent !== undefined) {
+			metadataReqEmit([zap.requestEvent.pubkey]);
+		}
+	});
 
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
@@ -78,12 +52,12 @@
 	<div class="user">
 		<div style="display: flex;">
 			<IconBolt size={18} color={'#f59f00'} />
-			{#if amount !== undefined}
-				<span>{Math.floor(amount / 1000).toLocaleString()}</span>
+			{#if zap?.amount !== undefined}
+				<span>{zap.amount.toLocaleString()}</span>
 			{/if}
 		</div>
 		<div>by</div>
-		{#if zapRequestEvent === undefined}
+		{#if zap === undefined}
 			<div>Unknown</div>
 		{:else}
 			<div>
@@ -105,8 +79,8 @@
 			<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 		</div>
 	</div>
-	{#if zapRequestEvent !== undefined && zapRequestEvent.content}
-		<div class="content">{zapRequestEvent.content}</div>
+	{#if zap.comment}
+		<div class="content">{zap.comment}</div>
 	{/if}
 </article>
 {#if jsonDisplay}
@@ -118,13 +92,13 @@
 		<h5>Event JSON</h5>
 		<code>{JSON.stringify(event, null, 2)}</code>
 		<h5>Zap Request Event JSON</h5>
-		<code>{JSON.stringify(zapRequestEvent, null, 2)}</code>
+		<code>{JSON.stringify(zap.requestEvent, null, 2)}</code>
 		<h5>User ID</h5>
 		<div>{nip19.npubEncode(event.pubkey)}</div>
 		<h5>User JSON</h5>
 		<code>{JSON.stringify(metadata?.content, null, 2)}</code>
 		<h5>Invoice</h5>
-		<code>{JSON.stringify(decodedInvoice, null, 2)}</code>
+		<code>{JSON.stringify(zap.invoice, null, 2)}</code>
 		<div>
 			Open in <a
 				href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode({

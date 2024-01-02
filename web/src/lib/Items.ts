@@ -1,4 +1,5 @@
 import { nip57, type Event, nip19 } from 'nostr-tools';
+import { decode, type DecodedInvoice } from 'light-bolt11-decoder';
 import type { pubkey } from './Types';
 import { filterTags } from './EventHelper';
 
@@ -11,6 +12,70 @@ export class EventItem implements Item {
 
 	public get replyToPubkeys(): pubkey[] {
 		return [...new Set(filterTags('p', this.event.tags))];
+	}
+}
+
+export class ZapEventItem extends EventItem {
+	private _requestEvent: Event | null | undefined;
+	private _amount: number | null | undefined;
+
+	public get requestEvent(): Event | undefined {
+		if (this._requestEvent !== undefined) {
+			return this._requestEvent ?? undefined;
+		}
+
+		const description = this.event.tags.find(([tagName]) => tagName === 'description')?.at(1);
+		console.debug('[zap request]', this.event.id, description);
+		try {
+			this._requestEvent = JSON.parse(description ?? '{}') as Event;
+			return this._requestEvent;
+		} catch (error) {
+			console.warn('[invalid description tag]', error, description);
+			this._requestEvent = null;
+			return undefined;
+		}
+	}
+
+	public get invoice(): DecodedInvoice | undefined {
+		const bolt11 = this.event.tags.find(([tagName]) => tagName === 'bolt11')?.at(1);
+		console.debug('[zap bolt11]', bolt11);
+
+		if (bolt11 === undefined) {
+			return undefined;
+		}
+
+		try {
+			return decode(bolt11);
+		} catch (error) {
+			console.warn('[zap invalid bolt11]', bolt11);
+			return undefined;
+		}
+	}
+
+	public get comment(): string | undefined {
+		return this.requestEvent?.content;
+	}
+
+	public get amount(): number | undefined {
+		if (this._amount !== undefined || this.invoice === undefined) {
+			return this._amount ?? undefined;
+		}
+
+		try {
+			const section = this.invoice.sections.find((section) => section.name === 'amount') as {
+				name: 'amount';
+				letters: string;
+				value: string;
+			};
+			if (section !== undefined) {
+				this._amount = Math.floor(Number(section.value) / 1000);
+				return this._amount;
+			}
+		} catch (error) {
+			console.warn('[zap invalid invoice]', this.invoice);
+			this._amount = null;
+			return undefined;
+		}
 	}
 }
 
