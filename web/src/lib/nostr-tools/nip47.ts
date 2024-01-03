@@ -5,8 +5,8 @@ export function parseConnectionString(connectionString: string): {
 	relay: string;
 	secret: string;
 } {
-	const { pathname, searchParams } = new URL(connectionString);
-	const pubkey = pathname.replaceAll('/', '');
+	const { hostname, pathname, searchParams } = new URL(connectionString);
+	const pubkey = hostname ? hostname : pathname.replaceAll('/', '');
 	const relay = searchParams.get('relay');
 	const secret = searchParams.get('secret');
 
