@@ -71,5 +71,11 @@
 	},
 	"wallet": {
 		"unknown": "Unknown wallet state. Please check your wallet."
+	},
+	"search": {
+		"search": "Search"
+	},
+	"public_chat": {
+		"create_channel": "Create channel"
 	}
 }
