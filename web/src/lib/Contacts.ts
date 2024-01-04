@@ -14,7 +14,7 @@ export class Contacts {
 
 	public async follow(pubkey: string): Promise<void> {
 		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
-		console.log('[contacts]', contacts);
+		console.log('[contacts latest]', contacts);
 
 		// Validation
 		const storage = new WebStorage(localStorage);
@@ -49,7 +49,7 @@ export class Contacts {
 
 	public async unfollow(pubkey: string): Promise<void> {
 		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
-		console.log('[contacts]', contacts);
+		console.log('[contacts latest]', contacts);
 		if (contacts === undefined) {
 			console.error('Contacts not found');
 			return;
