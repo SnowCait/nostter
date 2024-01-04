@@ -20,8 +20,6 @@
 		try {
 			const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
 			await contacts.follow(pubkey);
-			$followees.push(pubkey);
-			$followees = $followees;
 		} catch (error) {
 			console.error('[follow failed]', error);
 			alert('Failed to follow.');
@@ -52,7 +50,6 @@
 		try {
 			const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
 			await contacts.unfollow(pubkey);
-			$followees = $followees.filter((x) => x !== pubkey);
 		} catch (error) {
 			console.error('[unfollow failed]', error);
 			alert('Failed to unfollow.');

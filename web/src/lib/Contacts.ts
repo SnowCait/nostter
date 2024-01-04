@@ -1,6 +1,9 @@
+import { get } from 'svelte/store';
 import { Kind, type SimplePool } from 'nostr-tools';
 import { Api } from './Api';
 import { WebStorage } from './WebStorage';
+import { filterTags } from './EventHelper';
+import { followees, pubkey } from '../stores/Author';
 
 export class Contacts {
 	private readonly api: Api;
@@ -11,7 +14,7 @@ export class Contacts {
 
 	public async follow(pubkey: string): Promise<void> {
 		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
-		console.log('[contacts]', contacts);
+		console.log('[contacts latest]', contacts);
 
 		// Validation
 		const storage = new WebStorage(localStorage);
@@ -40,21 +43,23 @@ export class Contacts {
 		tags.push(['p', pubkey]);
 
 		await this.api.signAndPublish(Kind.Contacts, contacts?.content ?? '', tags);
+
+		updateFollowees(tags);
 	}
 
 	public async unfollow(pubkey: string): Promise<void> {
 		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
-		console.log('[contacts]', contacts);
+		console.log('[contacts latest]', contacts);
 		if (contacts === undefined) {
 			console.error('Contacts not found');
 			return;
 		}
 
-		await this.api.signAndPublish(
-			Kind.Contacts,
-			contacts.content,
-			contacts.tags.filter(([tagName, p]) => !(tagName === 'p' && p === pubkey))
-		);
+		const tags = contacts.tags.filter(([tagName, p]) => !(tagName === 'p' && p === pubkey));
+
+		await this.api.signAndPublish(Kind.Contacts, contacts.content, tags);
+
+		updateFollowees(tags);
 	}
 
 	// For legacy clients
@@ -77,4 +82,11 @@ export class Contacts {
 
 		await this.api.signAndPublish(Kind.Contacts, content, contacts.tags);
 	}
+}
+
+export function updateFollowees(tags: string[][]): void {
+	const pubkeys = new Set(filterTags('p', tags));
+	pubkeys.add(get(pubkey)); // Add myself
+	followees.set([...pubkeys]);
+	console.log('[contacts]', pubkeys.size);
 }

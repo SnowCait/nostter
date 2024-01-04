@@ -5,7 +5,6 @@ import { firstValueFrom, EmptyError } from 'rxjs';
 import { Api } from './Api';
 import { pool } from '../stores/Pool';
 import {
-	followees,
 	readRelays,
 	writeRelays,
 	updateRelays,
@@ -25,6 +24,7 @@ import { Preferences, preferencesStore } from './Preferences';
 import { rxNostr } from './timelines/MainTimeline';
 import { Signer } from './Signer';
 import { authorChannelsEventStore } from './cache/Events';
+import { updateFollowees } from './Contacts';
 
 type AuthorReplaceableKind = {
 	kind: number;
@@ -119,16 +119,12 @@ export class Author {
 	public saveRelays(replaceableEvents: Map<Kind, Event>) {
 		const contactsEvent = replaceableEvents.get(Kind.Contacts);
 		if (contactsEvent !== undefined) {
-			const pubkeys = new Set(filterTags('p', contactsEvent.tags));
-			pubkeys.add(this.pubkey); // Add myself
-			followees.set(Array.from(pubkeys));
-			console.log('[contacts]', pubkeys);
+			updateFollowees(contactsEvent.tags);
 
 			if (contactsEvent.content === '') {
 				console.log('[relays in kind 3] empty');
 			} else {
 				const validRelays = [...parseRelayJson(contactsEvent.content)];
-				console.log(validRelays, pubkeys);
 				readRelays.set(
 					Array.from(
 						new Set(validRelays.filter(([, { read }]) => read).map(([relay]) => relay))
@@ -144,7 +140,7 @@ export class Author {
 				console.log('[relays in kind 3]', get(readRelays), get(writeRelays));
 			}
 		} else {
-			followees.set([this.pubkey]);
+			updateFollowees([]);
 		}
 
 		const relayListEvent = replaceableEvents.get(Kind.RelayList);
