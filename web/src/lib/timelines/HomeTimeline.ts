@@ -5,6 +5,7 @@ import { WebStorage } from '$lib/WebStorage';
 import { Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { authorChannelsEventStore, metadataStore } from '$lib/cache/Events';
+import { updateFollowees } from '$lib/Contacts';
 import { findIdentifier } from '$lib/EventHelper';
 import { Preferences, preferencesStore } from '$lib/Preferences';
 import { EventItem, Metadata } from '$lib/Items';
@@ -60,6 +61,8 @@ rxNostr
 		if (event.kind === Kind.Contacts) {
 			console.log('[contacts]', event, packet.from);
 			storage.setReplaceableEvent(event);
+			updateFollowees(event.tags);
+			hometimelineReqEmit();
 			return;
 		}
 
@@ -222,13 +225,9 @@ function notifyStreamingSpeed(createdAt: number): void {
 }
 
 export function hometimelineReqEmit() {
-	if (hasSubscribed) {
-		console.log('[home timeline subscribe already]');
-		return;
-	}
+	console.log('[home timeline subscribe]');
 
 	hasSubscribed = true;
-	console.log('[home timeline subscribe]');
 
 	const $pubkey = get(pubkey);
 	const $followees = get(followees);
