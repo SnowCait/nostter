@@ -68,5 +68,8 @@
 	"content": {
 		"show": "Show",
 		"muted": "Muted content"
+	},
+	"wallet": {
+		"unknown": "Unknown wallet state. Please check your wallet."
 	}
 }

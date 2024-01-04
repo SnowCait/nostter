@@ -1,3 +1,5 @@
+import { get } from 'svelte/store';
+import { _ } from 'svelte-i18n';
 import { nip04 } from 'nostr-tools';
 import { createRxForwardReq, createRxNostr } from 'rx-nostr';
 import type { Event } from 'nostr-typedef';
@@ -15,12 +17,15 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 	nwcRxNostr.setDefaultRelays([walletRelay]);
 
 	try {
-		const walletEvent = await new Promise<Event>((resolve, reject) => {
+		const walletEvent = await new Promise<Event | null>((resolve, reject) => {
 			const nwcRxReq = createRxForwardReq();
 			nwcRxNostr.use(nwcRxReq).subscribe({
 				next: (packet) => {
 					console.log('[NWC]', packet);
 					resolve(packet.event);
+				},
+				complete: () => {
+					resolve(null);
 				},
 				error: (error) => {
 					console.error('[NWC error]', error);
@@ -42,6 +47,12 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 				}
 			});
 		});
+
+		if (walletEvent === null) {
+			console.warn('[NWC no response]');
+			alert(get(_)('wallet.unknown'));
+			return false;
+		}
 
 		const json = await nip04.decrypt(walletSeckey, walletPubkey, walletEvent.content);
 
