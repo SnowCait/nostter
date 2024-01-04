@@ -12,6 +12,7 @@
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
 	import { appName } from '$lib/Constants';
+	import ExternalLink from '$lib/components/ExternalLink.svelte';
 
 	let channelIds = new Set<string>();
 	let keyword = '';
@@ -91,13 +92,21 @@
 
 <form on:submit|preventDefault={search}>
 	<input type="search" bind:value={keyword} on:keyup|stopPropagation={() => console.debug} />
-	<input type="submit" value="Search" />
+	<input type="submit" value={$_('search.search')} />
 </form>
+
+<div>
+	<ExternalLink
+		link={new URL('https://unyu-house.vercel.app/')}
+		text={$_('public_chat.create_channel')}
+	/>
+</div>
 
 <TimelineView {items} load={async () => console.debug()} showLoading={false} />
 
 <style>
-	form {
+	form,
+	div {
 		margin: 1rem auto;
 	}
 </style>

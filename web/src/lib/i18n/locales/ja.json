@@ -70,5 +70,11 @@
 	},
 	"wallet": {
 		"unknown": "ウォレットのステータスが分かりませんでした。ウォレットを確認してください。"
+	},
+	"search": {
+		"search": "検索"
+	},
+	"public_chat": {
+		"create_channel": "チャンネルを作成"
 	}
 }
