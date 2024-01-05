@@ -49,7 +49,7 @@ export class RelayList {
 
 		// Save to cache
 		for (const [, event] of relayEventsMap) {
-			storage.setReplaceableEvent(event);
+			storage.setReplaceableEvent(event, false);
 		}
 
 		return relayEventsMap;

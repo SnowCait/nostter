@@ -30,14 +30,16 @@ export class WebStorage {
 		}
 	}
 
-	public setReplaceableEvent(event: Event): void {
+	public setReplaceableEvent(event: Event, updateCachedAt = true): void {
 		if (event.pubkey !== get(pubkey)) {
 			throw new Error('Logic error');
 		}
 		const cache = this.getReplaceableEvent(event.kind);
 		if (cache === undefined || cache.created_at < event.created_at) {
 			this.set(`kind:${event.kind}`, JSON.stringify(event));
-			this.setCachedAt();
+			if (updateCachedAt) {
+				this.setCachedAt();
+			}
 		}
 	}
 
@@ -54,7 +56,7 @@ export class WebStorage {
 		}
 	}
 
-	public setParameterizedReplaceableEvent(event: Event): void {
+	public setParameterizedReplaceableEvent(event: Event, updateCachedAt = true): void {
 		if (event.pubkey !== get(pubkey)) {
 			throw new Error('Logic error');
 		}
@@ -65,7 +67,9 @@ export class WebStorage {
 		const cache = this.getParameterizedReplaceableEvent(event.kind, identifier);
 		if (cache === undefined || cache.created_at < event.created_at) {
 			this.set(`kind:${event.kind}:${identifier}`, JSON.stringify(event));
-			this.setCachedAt();
+			if (updateCachedAt) {
+				this.setCachedAt();
+			}
 		}
 	}
 
