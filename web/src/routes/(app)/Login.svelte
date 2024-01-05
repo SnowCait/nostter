@@ -182,7 +182,7 @@
 								{/if}
 								<div>
 									<button
-										on:click|once={loginWithNip07}
+										on:click={loginWithNip07}
 										disabled={$loginType !== undefined || nostr === undefined}
 									>
 										{$_('login.browser_extension')}
@@ -197,7 +197,7 @@
 							</div>
 
 							<section>
-								<form method="dialog" on:submit|preventDefault|once={loginWithKey}>
+								<form method="dialog" on:submit|preventDefault={loginWithKey}>
 									<div>
 										<input
 											type="password"
