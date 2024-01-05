@@ -14,7 +14,7 @@ import {
 	isMuteEvent
 } from '../stores/Author';
 import { RelayList } from './RelayList';
-import { filterTags, parseRelayJson } from './EventHelper';
+import { filterEmojiTags, filterTags, parseRelayJson } from './EventHelper';
 import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
 import type { User } from '../routes/types';
 import { lastReadAt } from '../stores/Notifications';
@@ -65,28 +65,9 @@ export class Author {
 
 	public saveCustomEmojis(event: Event) {
 		console.log('[custom emoji 10030]', event);
-		const emojiTagsFilter = (tags: string[][]) => {
-			return tags.filter(([tagName, shortcode, imageUrl]) => {
-				if (tagName !== 'emoji') {
-					return false;
-				}
-				if (shortcode === undefined || imageUrl === undefined) {
-					return false;
-				}
-				if (!/^\w+$/.test(shortcode)) {
-					return false;
-				}
-				try {
-					new URL(imageUrl);
-					return true;
-				} catch {
-					return false;
-				}
-			});
-		};
 
 		// emoji tags
-		customEmojiTags.set(emojiTagsFilter(event.tags));
+		customEmojiTags.set(filterEmojiTags(event.tags));
 		const $customEmojiTags = get(customEmojiTags);
 
 		// a tags
@@ -107,7 +88,7 @@ export class Author {
 			api.fetchEvents(filters).then((events) => {
 				console.debug('[custom emoji 30030]', events);
 				for (const event of events) {
-					$customEmojiTags.push(...emojiTagsFilter(event.tags));
+					$customEmojiTags.push(...filterEmojiTags(event.tags));
 				}
 				customEmojiTags.set($customEmojiTags);
 				console.log('[custom emoji tags]', $customEmojiTags);
