@@ -29,10 +29,6 @@ export class RelayList {
 				.filter((x): x is [Kind, Event] => x[1] !== null)
 		);
 		if (cachedEvents.size > 0) {
-			api.fetchRelayEvents(pubkey).then((events) => {
-				api.close();
-				saveCache(events);
-			});
 			return cachedEvents;
 		}
 
