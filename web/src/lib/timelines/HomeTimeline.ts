@@ -5,7 +5,7 @@ import { WebStorage } from '$lib/WebStorage';
 import { Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { authorChannelsEventStore, metadataStore } from '$lib/cache/Events';
-import { updateFollowees } from '$lib/Contacts';
+import { updateFolloweesStore } from '$lib/Contacts';
 import { findIdentifier } from '$lib/EventHelper';
 import { Preferences, preferencesStore } from '$lib/Preferences';
 import { EventItem, Metadata } from '$lib/Items';
@@ -61,7 +61,7 @@ rxNostr
 		if (event.kind === Kind.Contacts) {
 			console.log('[contacts]', event, packet.from);
 			storage.setReplaceableEvent(event);
-			updateFollowees(event.tags);
+			updateFolloweesStore(event.tags);
 			hometimelineReqEmit();
 			return;
 		}

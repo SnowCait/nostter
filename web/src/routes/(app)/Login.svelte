@@ -22,6 +22,9 @@
 	const login = new Login();
 
 	async function loginWithNip07() {
+		const storage = new WebStorage(localStorage);
+		storage.set('login', 'NIP-07');
+
 		await login.withNip07();
 		await gotoHome();
 	}
@@ -182,7 +185,7 @@
 								{/if}
 								<div>
 									<button
-										on:click|once={loginWithNip07}
+										on:click={loginWithNip07}
 										disabled={$loginType !== undefined || nostr === undefined}
 									>
 										{$_('login.browser_extension')}
@@ -197,7 +200,7 @@
 							</div>
 
 							<section>
-								<form method="dialog" on:submit|preventDefault|once={loginWithKey}>
+								<form method="dialog" on:submit|preventDefault={loginWithKey}>
 									<div>
 										<input
 											type="password"

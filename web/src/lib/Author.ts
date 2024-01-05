@@ -24,7 +24,7 @@ import { Preferences, preferencesStore } from './Preferences';
 import { rxNostr } from './timelines/MainTimeline';
 import { Signer } from './Signer';
 import { authorChannelsEventStore } from './cache/Events';
-import { updateFollowees } from './Contacts';
+import { updateFolloweesStore } from './Contacts';
 
 type AuthorReplaceableKind = {
 	kind: number;
@@ -54,11 +54,11 @@ export class Author {
 		return event.pubkey !== this.pubkey && this.isRelated(event) && !isMuteEvent(event);
 	}
 
-	public async fetchRelays(relays: string[]) {
-		const relayEvents = await RelayList.fetchEvents(this.pubkey, relays);
+	public async fetchRelays() {
+		const relayEvents = await RelayList.fetchEvents(this.pubkey);
 		console.log('[relay events]', relayEvents);
 
-		this.saveRelays(relayEvents);
+		this.storeRelays(relayEvents);
 
 		RelayList.apply(relayEvents);
 	}
@@ -116,10 +116,10 @@ export class Author {
 	}
 
 	// TODO: Ensure created_at
-	public saveRelays(replaceableEvents: Map<Kind, Event>) {
+	public storeRelays(replaceableEvents: Map<Kind, Event>) {
 		const contactsEvent = replaceableEvents.get(Kind.Contacts);
 		if (contactsEvent !== undefined) {
-			updateFollowees(contactsEvent.tags);
+			updateFolloweesStore(contactsEvent.tags);
 
 			if (contactsEvent.content === '') {
 				console.log('[relays in kind 3] empty');
@@ -140,7 +140,7 @@ export class Author {
 				console.log('[relays in kind 3]', get(readRelays), get(writeRelays));
 			}
 		} else {
-			updateFollowees([]);
+			updateFolloweesStore([]);
 		}
 
 		const relayListEvent = replaceableEvents.get(Kind.RelayList);
@@ -167,7 +167,7 @@ export class Author {
 		}
 		console.log('[profile]', get(authorProfile));
 
-		this.saveRelays(replaceableEvents);
+		this.storeRelays(replaceableEvents);
 
 		customEmojisEvent.set(replaceableEvents.get(10030 as Kind));
 		const $customEmojisEvent = get(customEmojisEvent);
@@ -242,7 +242,7 @@ export class Author {
 				authorReplaceableKinds
 					.filter(({ identifier }) => identifier === undefined)
 					.map(({ kind }) => [kind, storage.getReplaceableEvent(kind)])
-					.filter((x): x is [number, Event] => x[1] !== null)
+					.filter((x): x is [number, Event] => x[1] !== undefined)
 			);
 			console.log('[author events cache re]', replaceableEvents);
 			const parameterizedReplaceableEvents = new Map(
@@ -257,7 +257,7 @@ export class Author {
 							storage.getParameterizedReplaceableEvent(kind, identifier)
 						];
 					})
-					.filter((x): x is [string, Event] => x[1] !== null)
+					.filter((x): x is [string, Event] => x[1] !== undefined)
 			);
 			console.log('[author events cache pre]', parameterizedReplaceableEvents);
 			return { replaceableEvents, parameterizedReplaceableEvents };

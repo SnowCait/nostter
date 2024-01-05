@@ -57,9 +57,6 @@ export class Login {
 		console.log('Login with NIP-07');
 		console.time('NIP-07');
 
-		const storage = new WebStorage(localStorage);
-		storage.set('login', 'NIP-07');
-
 		loginType.set('NIP-07');
 		try {
 			pubkey.set(await Signer.getPublicKey());
@@ -84,7 +81,7 @@ export class Login {
 		const profileRelays = new Set([...Object.keys(nip07Relays), ...defaultRelays]);
 		console.log('[relays for profile]', profileRelays);
 
-		await this.fetchAuthor(Array.from(profileRelays));
+		await this.fetchAuthor([...profileRelays]);
 
 		console.timeEnd('NIP-07');
 	}
@@ -125,9 +122,11 @@ export class Login {
 	private async fetchAuthor(relays: string[]) {
 		console.time('fetch author');
 
+		rxNostr.setDefaultRelays(relays);
+
 		const $author = new Author(get(pubkey));
 
-		await $author.fetchRelays(relays);
+		await $author.fetchRelays();
 		console.timeLog('fetch author');
 
 		await $author.fetchEvents();

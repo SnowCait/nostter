@@ -44,7 +44,7 @@ export class Contacts {
 
 		await this.api.signAndPublish(Kind.Contacts, contacts?.content ?? '', tags);
 
-		updateFollowees(tags);
+		updateFolloweesStore(tags);
 	}
 
 	public async unfollow(pubkey: string): Promise<void> {
@@ -59,7 +59,7 @@ export class Contacts {
 
 		await this.api.signAndPublish(Kind.Contacts, contacts.content, tags);
 
-		updateFollowees(tags);
+		updateFolloweesStore(tags);
 	}
 
 	// For legacy clients
@@ -84,7 +84,7 @@ export class Contacts {
 	}
 }
 
-export function updateFollowees(tags: string[][]): void {
+export function updateFolloweesStore(tags: string[][]): void {
 	const pubkeys = new Set(filterTags('p', tags));
 	pubkeys.add(get(pubkey)); // Add myself
 	followees.set([...pubkeys]);
