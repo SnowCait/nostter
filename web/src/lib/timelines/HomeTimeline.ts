@@ -88,7 +88,7 @@ rxNostr
 
 		if (event.kind === 10030) {
 			storage.setReplaceableEvent(event);
-			$author?.saveCustomEmojis(event);
+			$author?.storeCustomEmojis(event);
 			return;
 		}
 

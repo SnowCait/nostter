@@ -63,7 +63,7 @@ export class Author {
 		RelayList.apply(relayEvents);
 	}
 
-	public saveCustomEmojis(event: Event) {
+	public storeCustomEmojis(event: Event): void {
 		console.log('[custom emoji 10030]', event);
 
 		// emoji tags
@@ -153,7 +153,7 @@ export class Author {
 		customEmojisEvent.set(replaceableEvents.get(10030 as Kind));
 		const $customEmojisEvent = get(customEmojisEvent);
 		if ($customEmojisEvent !== undefined) {
-			this.saveCustomEmojis($customEmojisEvent);
+			this.storeCustomEmojis($customEmojisEvent);
 		}
 
 		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`));
