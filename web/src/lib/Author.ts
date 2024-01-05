@@ -25,6 +25,8 @@ import { rxNostr } from './timelines/MainTimeline';
 import { Signer } from './Signer';
 import { authorChannelsEventStore } from './cache/Events';
 import { updateFolloweesStore } from './Contacts';
+import { chunk } from './Array';
+import { maxFilters } from './Constants';
 
 type AuthorReplaceableKind = {
 	kind: number;
@@ -111,7 +113,9 @@ export class Author {
 				};
 			});
 		console.debug('[custom emoji #a]', referenceTags, filters);
-		emojisReq.emit(filters);
+		for (const chunkedFilters of chunk(filters, maxFilters)) {
+			emojisReq.emit(chunkedFilters);
+		}
 	}
 
 	// TODO: Ensure created_at
