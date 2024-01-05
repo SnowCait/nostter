@@ -1,6 +1,6 @@
 import { Kind, type Event, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { createRxOneshotReq, latest, now, uniq } from 'rx-nostr';
+import { createRxBackwardReq, createRxOneshotReq, latest, latestEach, now, uniq } from 'rx-nostr';
 import { firstValueFrom, EmptyError } from 'rxjs';
 import { Api } from './Api';
 import { pool } from '../stores/Pool';
@@ -14,7 +14,7 @@ import {
 	isMuteEvent
 } from '../stores/Author';
 import { RelayList } from './RelayList';
-import { filterTags, parseRelayJson } from './EventHelper';
+import { filterEmojiTags, filterTags, findIdentifier, parseRelayJson } from './EventHelper';
 import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
 import type { User } from '../routes/types';
 import { lastReadAt } from '../stores/Notifications';
@@ -25,6 +25,8 @@ import { rxNostr } from './timelines/MainTimeline';
 import { Signer } from './Signer';
 import { authorChannelsEventStore } from './cache/Events';
 import { updateFolloweesStore } from './Contacts';
+import { chunk } from './Array';
+import { maxFilters } from './Constants';
 
 type AuthorReplaceableKind = {
 	kind: number;
@@ -63,55 +65,56 @@ export class Author {
 		RelayList.apply(relayEvents);
 	}
 
-	public saveCustomEmojis(event: Event) {
+	public storeCustomEmojis(event: Event): void {
 		console.log('[custom emoji 10030]', event);
-		const emojiTagsFilter = (tags: string[][]) => {
-			return tags.filter(([tagName, shortcode, imageUrl]) => {
-				if (tagName !== 'emoji') {
-					return false;
-				}
-				if (shortcode === undefined || imageUrl === undefined) {
-					return false;
-				}
-				if (!/^\w+$/.test(shortcode)) {
-					return false;
-				}
-				try {
-					new URL(imageUrl);
-					return true;
-				} catch {
-					return false;
-				}
-			});
-		};
 
 		// emoji tags
-		customEmojiTags.set(emojiTagsFilter(event.tags));
+		customEmojiTags.set(filterEmojiTags(event.tags));
 		const $customEmojiTags = get(customEmojiTags);
 
 		// a tags
 		const referenceTags = event.tags.filter(([tagName]) => tagName === 'a');
-		if (referenceTags.length > 0) {
-			const filters: Filter[] = referenceTags
-				.map(([, reference]) => reference.split(':'))
-				.filter(([kind]) => kind === `${30030 as Kind}`)
-				.map(([kind, pubkey, identifier]) => {
-					return {
-						kinds: [Number(kind)],
-						authors: [pubkey],
-						'#d': [identifier]
-					};
-				});
-			console.debug('[custom emoji #a]', referenceTags, filters);
-			const api = new Api(get(pool), get(writeRelays));
-			api.fetchEvents(filters).then((events) => {
-				console.debug('[custom emoji 30030]', events);
-				for (const event of events) {
-					$customEmojiTags.push(...emojiTagsFilter(event.tags));
+		if (referenceTags.length === 0) {
+			return;
+		}
+
+		const emojisReq = createRxBackwardReq();
+		rxNostr
+			.use(emojisReq)
+			.pipe(
+				uniq(),
+				latestEach(
+					({ event }) =>
+						`${event.kind}:${event.pubkey}:${findIdentifier(event.tags) ?? ''}`
+				)
+			)
+			.subscribe({
+				next: (packet) => {
+					console.debug('[custom emoji next]', packet);
+					$customEmojiTags.push(...filterEmojiTags(packet.event.tags));
+					customEmojiTags.set($customEmojiTags);
+				},
+				complete: () => {
+					console.log('[custom emoji tags]', $customEmojiTags);
+				},
+				error: (error) => {
+					console.error('[custom emoji error]', error);
 				}
-				customEmojiTags.set($customEmojiTags);
-				console.log('[custom emoji tags]', $customEmojiTags);
 			});
+
+		const filters: Filter[] = referenceTags
+			.map(([, reference]) => reference.split(':'))
+			.filter(([kind]) => kind === `${30030 as Kind}`)
+			.map(([kind, pubkey, identifier]) => {
+				return {
+					kinds: [Number(kind)],
+					authors: [pubkey],
+					'#d': [identifier]
+				};
+			});
+		console.debug('[custom emoji #a]', referenceTags, filters);
+		for (const chunkedFilters of chunk(filters, maxFilters)) {
+			emojisReq.emit(chunkedFilters);
 		}
 	}
 
@@ -172,7 +175,7 @@ export class Author {
 		customEmojisEvent.set(replaceableEvents.get(10030 as Kind));
 		const $customEmojisEvent = get(customEmojisEvent);
 		if ($customEmojisEvent !== undefined) {
-			this.saveCustomEmojis($customEmojisEvent);
+			this.storeCustomEmojis($customEmojisEvent);
 		}
 
 		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`));

@@ -20,7 +20,7 @@ export class RelayList {
 			return relayEventsMap;
 		}
 
-		await new Promise<void>((resolve) => {
+		await new Promise<void>((resolve, reject) => {
 			const relaysReq = createRxBackwardReq();
 			rxNostr
 				.use(relaysReq)
@@ -36,6 +36,10 @@ export class RelayList {
 					complete: () => {
 						console.debug('[relay list complete]');
 						resolve();
+					},
+					error: (error) => {
+						console.error('[relay list error]', error);
+						reject();
 					}
 				});
 			relaysReq.emit([

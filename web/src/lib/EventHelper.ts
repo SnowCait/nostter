@@ -56,6 +56,26 @@ export function filterRelayTags(tags: string[][]): string[][] {
 	});
 }
 
+export const filterEmojiTags = (tags: string[][]): string[][] => {
+	return tags.filter(([tagName, shortcode, imageUrl]) => {
+		if (tagName !== 'emoji') {
+			return false;
+		}
+		if (shortcode === undefined || imageUrl === undefined) {
+			return false;
+		}
+		if (!/^\w+$/.test(shortcode)) {
+			return false;
+		}
+		try {
+			new URL(imageUrl);
+			return true;
+		} catch {
+			return false;
+		}
+	});
+};
+
 export function relayTagsToMap(tags: string[][]): Map<string, { read: boolean; write: boolean }> {
 	return new Map(
 		filterRelayTags(tags).map(([, relay, permission]) => [

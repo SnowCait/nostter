@@ -81,7 +81,7 @@ export class Timeline {
 			}
 
 			if (event.kind === 10030) {
-				$author?.saveCustomEmojis(event);
+				$author?.storeCustomEmojis(event);
 				return;
 			}
 
