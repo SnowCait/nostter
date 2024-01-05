@@ -24,7 +24,7 @@ import { Preferences, preferencesStore } from './Preferences';
 import { rxNostr } from './timelines/MainTimeline';
 import { Signer } from './Signer';
 import { authorChannelsEventStore } from './cache/Events';
-import { updateFollowees } from './Contacts';
+import { updateFolloweesStore } from './Contacts';
 
 type AuthorReplaceableKind = {
 	kind: number;
@@ -58,7 +58,7 @@ export class Author {
 		const relayEvents = await RelayList.fetchEvents(this.pubkey);
 		console.log('[relay events]', relayEvents);
 
-		this.saveRelays(relayEvents);
+		this.storeRelays(relayEvents);
 
 		RelayList.apply(relayEvents);
 	}
@@ -116,10 +116,10 @@ export class Author {
 	}
 
 	// TODO: Ensure created_at
-	public saveRelays(replaceableEvents: Map<Kind, Event>) {
+	public storeRelays(replaceableEvents: Map<Kind, Event>) {
 		const contactsEvent = replaceableEvents.get(Kind.Contacts);
 		if (contactsEvent !== undefined) {
-			updateFollowees(contactsEvent.tags);
+			updateFolloweesStore(contactsEvent.tags);
 
 			if (contactsEvent.content === '') {
 				console.log('[relays in kind 3] empty');
@@ -140,7 +140,7 @@ export class Author {
 				console.log('[relays in kind 3]', get(readRelays), get(writeRelays));
 			}
 		} else {
-			updateFollowees([]);
+			updateFolloweesStore([]);
 		}
 
 		const relayListEvent = replaceableEvents.get(Kind.RelayList);
@@ -167,7 +167,7 @@ export class Author {
 		}
 		console.log('[profile]', get(authorProfile));
 
-		this.saveRelays(replaceableEvents);
+		this.storeRelays(replaceableEvents);
 
 		customEmojisEvent.set(replaceableEvents.get(10030 as Kind));
 		const $customEmojisEvent = get(customEmojisEvent);
