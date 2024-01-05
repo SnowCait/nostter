@@ -242,7 +242,7 @@ export class Author {
 				authorReplaceableKinds
 					.filter(({ identifier }) => identifier === undefined)
 					.map(({ kind }) => [kind, storage.getReplaceableEvent(kind)])
-					.filter((x): x is [number, Event] => x[1] !== null)
+					.filter((x): x is [number, Event] => x[1] !== undefined)
 			);
 			console.log('[author events cache re]', replaceableEvents);
 			const parameterizedReplaceableEvents = new Map(
@@ -257,7 +257,7 @@ export class Author {
 							storage.getParameterizedReplaceableEvent(kind, identifier)
 						];
 					})
-					.filter((x): x is [string, Event] => x[1] !== null)
+					.filter((x): x is [string, Event] => x[1] !== undefined)
 			);
 			console.log('[author events cache pre]', parameterizedReplaceableEvents);
 			return { replaceableEvents, parameterizedReplaceableEvents };
