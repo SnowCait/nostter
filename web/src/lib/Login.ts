@@ -57,9 +57,6 @@ export class Login {
 		console.log('Login with NIP-07');
 		console.time('NIP-07');
 
-		const storage = new WebStorage(localStorage);
-		storage.set('login', 'NIP-07');
-
 		loginType.set('NIP-07');
 		try {
 			pubkey.set(await Signer.getPublicKey());

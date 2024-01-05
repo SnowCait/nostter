@@ -22,6 +22,9 @@
 	const login = new Login();
 
 	async function loginWithNip07() {
+		const storage = new WebStorage(localStorage);
+		storage.set('login', 'NIP-07');
+
 		await login.withNip07();
 		await gotoHome();
 	}
