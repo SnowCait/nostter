@@ -54,8 +54,8 @@ export class Author {
 		return event.pubkey !== this.pubkey && this.isRelated(event) && !isMuteEvent(event);
 	}
 
-	public async fetchRelays(relays: string[]) {
-		const relayEvents = await RelayList.fetchEvents(this.pubkey, relays);
+	public async fetchRelays() {
+		const relayEvents = await RelayList.fetchEvents(this.pubkey);
 		console.log('[relay events]', relayEvents);
 
 		this.saveRelays(relayEvents);

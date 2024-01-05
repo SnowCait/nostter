@@ -1,43 +1,58 @@
-import { Kind, type Event, SimplePool } from 'nostr-tools';
-import { Api } from './Api';
-import { defaultRelays } from './Constants';
+import { Kind, type Event } from 'nostr-tools';
+import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import { rxNostr } from './timelines/MainTimeline';
 import { parseRelayJson } from './EventHelper';
 import { WebStorage } from './WebStorage';
 
 export class RelayList {
-	public static async fetchEvents(
-		pubkey: string,
-		relays: string[] = []
-	): Promise<Map<Kind, Event>> {
-		const pool = new SimplePool();
-		const api = new Api(pool, Array.from(new Set([...relays, ...defaultRelays])));
-
+	public static async fetchEvents(pubkey: string): Promise<Map<Kind, Event>> {
 		const storage = new WebStorage(localStorage);
 
-		const saveCache = (events: Map<Kind, Event>): void => {
-			// Save cache
-			for (const [, event] of events) {
-				storage.setReplaceableEvent(event);
-			}
-		};
-
-		// Load cache
-		const cachedEvents = new Map(
+		// Load from cache
+		const relayEventsMap = new Map(
 			[Kind.Contacts, Kind.RelayList]
 				.map((kind) => [kind, storage.getReplaceableEvent(kind)])
 				.filter((x): x is [Kind, Event] => x[1] !== undefined)
 		);
-		if (cachedEvents.size > 0) {
-			return cachedEvents;
+
+		if (relayEventsMap.size > 0) {
+			console.debug('[relay list cache]', relayEventsMap);
+			return relayEventsMap;
 		}
 
-		const events = await api.fetchRelayEvents(pubkey);
+		await new Promise<void>((resolve) => {
+			const relaysReq = createRxBackwardReq();
+			rxNostr
+				.use(relaysReq)
+				.pipe(
+					uniq(),
+					latestEach(({ event }) => event.kind)
+				)
+				.subscribe({
+					next: (packet) => {
+						console.debug('[relay list next]', packet);
+						relayEventsMap.set(packet.event.kind, packet.event);
+					},
+					complete: () => {
+						console.debug('[relay list complete]');
+						resolve();
+					}
+				});
+			relaysReq.emit([
+				{
+					kinds: [Kind.Contacts, Kind.RelayList],
+					authors: [pubkey]
+				}
+			]);
+			relaysReq.over();
+		});
 
-		api.close();
-		saveCache(events);
+		// Save to cache
+		for (const [, event] of relayEventsMap) {
+			storage.setReplaceableEvent(event);
+		}
 
-		return events;
+		return relayEventsMap;
 	}
 
 	public static apply(eventsMap: Map<Kind, Event>) {
@@ -51,8 +66,6 @@ export class RelayList {
 					return { url, read, write };
 				})
 			);
-		} else {
-			rxNostr.setDefaultRelays(defaultRelays);
 		}
 	}
 }
