@@ -1,6 +1,6 @@
 import { Kind, type Event, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { createRxOneshotReq, latest, now, uniq } from 'rx-nostr';
+import { createRxBackwardReq, createRxOneshotReq, latest, latestEach, now, uniq } from 'rx-nostr';
 import { firstValueFrom, EmptyError } from 'rxjs';
 import { Api } from './Api';
 import { pool } from '../stores/Pool';
@@ -14,7 +14,7 @@ import {
 	isMuteEvent
 } from '../stores/Author';
 import { RelayList } from './RelayList';
-import { filterEmojiTags, filterTags, parseRelayJson } from './EventHelper';
+import { filterEmojiTags, filterTags, findIdentifier, parseRelayJson } from './EventHelper';
 import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
 import type { User } from '../routes/types';
 import { lastReadAt } from '../stores/Notifications';
@@ -72,28 +72,46 @@ export class Author {
 
 		// a tags
 		const referenceTags = event.tags.filter(([tagName]) => tagName === 'a');
-		if (referenceTags.length > 0) {
-			const filters: Filter[] = referenceTags
-				.map(([, reference]) => reference.split(':'))
-				.filter(([kind]) => kind === `${30030 as Kind}`)
-				.map(([kind, pubkey, identifier]) => {
-					return {
-						kinds: [Number(kind)],
-						authors: [pubkey],
-						'#d': [identifier]
-					};
-				});
-			console.debug('[custom emoji #a]', referenceTags, filters);
-			const api = new Api(get(pool), get(writeRelays));
-			api.fetchEvents(filters).then((events) => {
-				console.debug('[custom emoji 30030]', events);
-				for (const event of events) {
-					$customEmojiTags.push(...filterEmojiTags(event.tags));
-				}
-				customEmojiTags.set($customEmojiTags);
-				console.log('[custom emoji tags]', $customEmojiTags);
-			});
+		if (referenceTags.length === 0) {
+			return;
 		}
+
+		const emojisReq = createRxBackwardReq();
+		rxNostr
+			.use(emojisReq)
+			.pipe(
+				uniq(),
+				latestEach(
+					({ event }) =>
+						`${event.kind}:${event.pubkey}:${findIdentifier(event.tags) ?? ''}`
+				)
+			)
+			.subscribe({
+				next: (packet) => {
+					console.debug('[custom emoji next]', packet);
+					$customEmojiTags.push(...filterEmojiTags(packet.event.tags));
+					customEmojiTags.set($customEmojiTags);
+				},
+				complete: () => {
+					console.log('[custom emoji tags]', $customEmojiTags);
+				},
+				error: (error) => {
+					console.error('[custom emoji error]', error);
+				}
+			});
+
+		const filters: Filter[] = referenceTags
+			.map(([, reference]) => reference.split(':'))
+			.filter(([kind]) => kind === `${30030 as Kind}`)
+			.map(([kind, pubkey, identifier]) => {
+				return {
+					kinds: [Number(kind)],
+					authors: [pubkey],
+					'#d': [identifier]
+				};
+			});
+		console.debug('[custom emoji #a]', referenceTags, filters);
+		emojisReq.emit(filters);
 	}
 
 	// TODO: Ensure created_at
