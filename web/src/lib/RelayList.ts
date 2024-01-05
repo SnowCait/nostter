@@ -51,11 +51,6 @@ export class RelayList {
 			relaysReq.over();
 		});
 
-		// Save to cache
-		for (const [, event] of relayEventsMap) {
-			storage.setReplaceableEvent(event, false);
-		}
-
 		return relayEventsMap;
 	}
 
