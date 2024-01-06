@@ -62,7 +62,14 @@
 	"preferences": {
 		"uri_scheme": "web+nostr: を nostter で開く",
 		"enable_uri_scheme": "有効化",
-		"developer_mode": "開発者モード"
+		"developer_mode": "開発者モード",
+		"mute": {
+			"mute": "ミュート",
+			"pubkeys": "ユーザー",
+			"events": "スレッド / チャンネル",
+			"words": "単語",
+			"none": "-"
+		}
 	},
 	"content": {
 		"show": "表示",

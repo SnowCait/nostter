@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { _ } from 'svelte-i18n';
 	import { nip19, type Event } from 'nostr-tools';
 	import { Mute } from '$lib/Mute';
 	import { Api } from '$lib/Api';
@@ -33,8 +34,6 @@
 	}
 </script>
 
-<h4>Muted Pubkeys</h4>
-
 <ul>
 	{#each $mutePubkeys as pubkey}
 		{@const metadataEvent = metadataEvents.get(pubkey)}
@@ -42,15 +41,17 @@
 		<li>
 			<a href="/{nip19.npubEncode(pubkey)}">
 				<img src={metadata?.content?.picture} alt="" title="" />
-				<span
-					>{metadata?.content?.name ??
-						nip19.npubEncode(pubkey).slice(0, 'npub1'.length + 7)}</span
-				>
+				<span>
+					{metadata?.content?.name ??
+						nip19.npubEncode(pubkey).slice(0, 'npub1'.length + 7)}
+				</span>
 			</a>
 			<button class="clear" disabled={unmuting} on:click={() => unmute(pubkey)}>
 				<IconTrash size={18} />
 			</button>
 		</li>
+	{:else}
+		<li>{$_('preferences.mute.none')}</li>
 	{/each}
 </ul>
 

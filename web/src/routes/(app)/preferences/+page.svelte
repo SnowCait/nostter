@@ -49,9 +49,19 @@
 			Edit custom emojis
 		</a>
 	</div>
-	<div><MutedUsers /></div>
-	<div><MutedEvents /></div>
-	<div><WordMute /></div>
+	<h3>{$_('preferences.mute.mute')}</h3>
+	<details>
+		<summary>{$_('preferences.mute.pubkeys')}</summary>
+		<MutedUsers />
+	</details>
+	<details>
+		<summary>{$_('preferences.mute.events')}</summary>
+		<MutedEvents />
+	</details>
+	<details>
+		<summary>{$_('preferences.mute.words')}</summary>
+		<WordMute />
+	</details>
 {/if}
 <div><Logout /></div>
 
