@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { Mute } from '$lib/Mute';
 	import { muteEventIds } from '../../../stores/Author';
@@ -23,8 +24,6 @@
 	}
 </script>
 
-<h4>Muted Threads and Channels</h4>
-
 <ul>
 	{#each $muteEventIds as eventId}
 		<li>
@@ -35,6 +34,8 @@
 				<IconTrash size={18} />
 			</button>
 		</li>
+	{:else}
+		<li>{$_('preferences.mute.none')}</li>
 	{/each}
 </ul>
 

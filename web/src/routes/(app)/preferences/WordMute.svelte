@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { Mute } from '$lib/Mute';
 	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
 	import { muteWords } from '../../../stores/Author';
@@ -27,14 +28,14 @@
 	}
 </script>
 
-<h4>Mute Words</h4>
-
 <ul>
 	{#each $muteWords as word}
 		<li>
 			<span>{word}</span>
 			<button class="clear" on:click={() => unmute(word)}><IconTrash size={18} /></button>
 		</li>
+	{:else}
+		<li>{$_('preferences.mute.none')}</li>
 	{/each}
 </ul>
 
