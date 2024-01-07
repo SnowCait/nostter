@@ -3,7 +3,6 @@ import { get } from 'svelte/store';
 import { createRxBackwardReq, createRxOneshotReq, latest, latestEach, now, uniq } from 'rx-nostr';
 import { firstValueFrom, EmptyError } from 'rxjs';
 import { Api } from './Api';
-import { pool } from '../stores/Pool';
 import {
 	readRelays,
 	writeRelays,
@@ -267,8 +266,8 @@ export class Author {
 		}
 
 		console.log('[cached at]', cachedAt);
-		const api = new Api(get(pool), get(writeRelays));
-		const { replaceableEvents, parameterizedReplaceableEvents } = await api.fetchAuthorEvents(
+
+		const { replaceableEvents, parameterizedReplaceableEvents } = await this.fetchAuthorEvents(
 			pubkey
 		);
 		for (const [, event] of [...replaceableEvents]) {
@@ -277,6 +276,52 @@ export class Author {
 		for (const [, event] of [...parameterizedReplaceableEvents]) {
 			storage.setParameterizedReplaceableEvent(event);
 		}
+		return { replaceableEvents, parameterizedReplaceableEvents };
+	}
+
+	private async fetchAuthorEvents(pubkey: string) {
+		const replaceableEvents = new Map<number, Event>();
+		const parameterizedReplaceableEvents = new Map<string, Event>();
+		await new Promise<void>((resolve, reject) => {
+			const authorReq = createRxBackwardReq();
+			rxNostr
+				.use(authorReq)
+				.pipe(
+					uniq(),
+					latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`)
+				)
+				.subscribe({
+					next: (packet) => {
+						console.log('[rx-nostr author]', packet);
+						const { event } = packet;
+						if (Api.replaceableKinds.includes(event.kind)) {
+							replaceableEvents.set(event.kind, event);
+						} else if (Api.parameterizedReplaceableKinds.includes(event.kind)) {
+							parameterizedReplaceableEvents.set(
+								`${event.kind}:${findIdentifier(event.tags) ?? ''}`,
+								event
+							);
+						} else {
+							console.error('[rx-nostr author logic error]', packet);
+						}
+					},
+					complete: () => {
+						console.log('[rx-nostr author complete]');
+						resolve();
+					},
+					error: (error) => {
+						console.error('[rx-nostr author error]', error);
+						reject();
+					}
+				});
+			authorReq.emit([
+				{
+					kinds: [...Api.replaceableKinds, ...Api.parameterizedReplaceableKinds],
+					authors: [pubkey]
+				}
+			]);
+			authorReq.over();
+		});
 		return { replaceableEvents, parameterizedReplaceableEvents };
 	}
 

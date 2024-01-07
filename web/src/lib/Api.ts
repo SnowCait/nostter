@@ -39,41 +39,6 @@ export class Api {
 		return new Map<Kind, Event>(events.map((e) => [e.kind, e]));
 	}
 
-	async fetchAuthorEvents(pubkey: string): Promise<{
-		replaceableEvents: Map<Kind, Event>;
-		parameterizedReplaceableEvents: Map<string, Event>;
-	}> {
-		const events = await this.pool.list(this.relays, [
-			{
-				kinds: [...Api.replaceableKinds, ...Api.parameterizedReplaceableKinds],
-				authors: [pubkey]
-			}
-		]);
-		events.sort(chronological); // Latest event is effective
-		console.debug('[author events all]', events);
-		const replaceableEvents = new Map<Kind, Event>(
-			events.filter((e) => Api.replaceableKinds.includes(e.kind)).map((e) => [e.kind, e])
-		);
-		const parameterizedReplaceableEvents = new Map<string, Event>(
-			events
-				.filter((e) => Api.parameterizedReplaceableKinds.includes(e.kind))
-				.map((e) => {
-					const id = e.tags
-						.find(
-							([tagName, tagContent]) => tagName === 'd' && tagContent !== undefined
-						)
-						?.at(1);
-					if (id === undefined) {
-						return null;
-					}
-					return [`${e.kind}:${id}`, e];
-				})
-				.filter((x): x is [string, Event] => x !== null)
-		);
-		console.log('[author events]', replaceableEvents, parameterizedReplaceableEvents);
-		return { replaceableEvents, parameterizedReplaceableEvents };
-	}
-
 	async fetchUserEvent(pubkey: string): Promise<UserEvent | undefined> {
 		// Load cache
 		const cachedUserEvents = get(userEvents);
