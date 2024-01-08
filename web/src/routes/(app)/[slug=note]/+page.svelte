@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Event } from 'nostr-typedef';
 	import { createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
-	import { tap, merge } from 'rxjs';
+	import { tap, merge, filter } from 'rxjs';
 	import { _ } from 'svelte-i18n';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
@@ -146,13 +146,21 @@
 		});
 
 		// Reaction
-		observable.pipe(filterByKind(7)).subscribe((packet) => {
-			console.log('[thread kind 7]', packet);
-			const eventItem = new EventItem(packet.event);
-			reactionEventItems.sort(chronologicalItem);
-			reactionEventItems.push(eventItem);
-			reactionEventItems = reactionEventItems;
-		});
+		observable
+			.pipe(
+				filterByKind(7),
+				filter(
+					({ event }) =>
+						event.tags.findLast(([tagName]) => tagName === 'e')?.at(1) === eventId
+				)
+			)
+			.subscribe((packet) => {
+				console.log('[thread kind 7]', packet);
+				const eventItem = new EventItem(packet.event);
+				reactionEventItems.sort(chronologicalItem);
+				reactionEventItems.push(eventItem);
+				reactionEventItems = reactionEventItems;
+			});
 
 		// Zap
 		observable.pipe(filterByKind(9735)).subscribe((packet) => {
