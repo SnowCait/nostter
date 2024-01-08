@@ -11,7 +11,10 @@
 		$intentContent = content;
 	}
 
+	let editor: NoteEditor | undefined;
+
 	async function afterPost(): Promise<void> {
+		editor?.clear();
 		await goto('/home');
 	}
 </script>
@@ -21,5 +24,5 @@
 </svelte:head>
 
 <article class="card">
-	<NoteEditor {afterPost} />
+	<NoteEditor bind:this={editor} {afterPost} />
 </article>
