@@ -26,6 +26,7 @@
 		console.log('[note editor clear]');
 		$openNoteDialog = false;
 		content = '';
+		$intentContent = '';
 		pubkeys.clear();
 		$replyTo = undefined;
 		$quotes = [];
