@@ -20,7 +20,8 @@ import { sleep } from '$lib/Helper';
 
 export const rxNostr = createRxNostr({
 	eoseTimeout: timeout,
-	retry: { strategy: 'immediately', maxCount: 1 }
+	retry: { strategy: 'immediately', maxCount: 1 },
+	authenticator: 'auto'
 }); // Based on NIP-65
 
 rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
