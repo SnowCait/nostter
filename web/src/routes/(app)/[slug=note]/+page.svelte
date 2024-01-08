@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Event } from 'nostr-typedef';
-	import { createRxOneshotReq, filterKind, uniq } from 'rx-nostr';
-	import { tap, merge } from 'rxjs';
+	import { createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
+	import { tap, merge, filter } from 'rxjs';
 	import { _ } from 'svelte-i18n';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
@@ -122,7 +122,7 @@
 		);
 
 		// Replies
-		merge(observable.pipe(filterKind(1)), observable.pipe(filterKind(42))).subscribe(
+		merge(observable.pipe(filterByKind(1)), observable.pipe(filterByKind(42))).subscribe(
 			(packet) => {
 				console.log('[thread kind 1]', packet);
 				const eventItem = new EventItem(packet.event);
@@ -137,7 +137,7 @@
 		);
 
 		// Repost
-		observable.pipe(filterKind(6)).subscribe((packet) => {
+		observable.pipe(filterByKind(6)).subscribe((packet) => {
 			console.log('[thread kind 6]', packet);
 			const eventItem = new EventItem(packet.event);
 			repostEventItems.sort(chronologicalItem);
@@ -146,16 +146,24 @@
 		});
 
 		// Reaction
-		observable.pipe(filterKind(7)).subscribe((packet) => {
-			console.log('[thread kind 7]', packet);
-			const eventItem = new EventItem(packet.event);
-			reactionEventItems.sort(chronologicalItem);
-			reactionEventItems.push(eventItem);
-			reactionEventItems = reactionEventItems;
-		});
+		observable
+			.pipe(
+				filterByKind(7),
+				filter(
+					({ event }) =>
+						event.tags.findLast(([tagName]) => tagName === 'e')?.at(1) === eventId
+				)
+			)
+			.subscribe((packet) => {
+				console.log('[thread kind 7]', packet);
+				const eventItem = new EventItem(packet.event);
+				reactionEventItems.sort(chronologicalItem);
+				reactionEventItems.push(eventItem);
+				reactionEventItems = reactionEventItems;
+			});
 
 		// Zap
-		observable.pipe(filterKind(9735)).subscribe((packet) => {
+		observable.pipe(filterByKind(9735)).subscribe((packet) => {
 			console.log('[thread kind 9735]', packet);
 
 			let event: Event | undefined;
