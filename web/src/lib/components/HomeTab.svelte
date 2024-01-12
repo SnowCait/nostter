@@ -25,21 +25,36 @@
 		display: flex;
 		justify-content: space-around;
 		padding: 0;
+		background-color: var(--accent-surface-low);
+		overflow: hidden;
 	}
 
 	li {
 		width: 100%;
 		height: 100%;
-		padding: 0.5rem;
 		text-align: center;
+		isolation: isolate;
+	}
+
+	li > a {
+		color: var(--secondary-accent);
+	}
+
+	li:hover {
+		background-color: var(--accent-surface-high);
 	}
 
 	a {
 		display: block;
+		padding: 0.5rem;
 	}
 
 	li.selected {
-		background-color: var(--accent-surface);
+		background-color: var(--accent);
+	}
+
+	li.selected > a {
+		color: var(--accent-foreground);
 	}
 
 	li + li {
