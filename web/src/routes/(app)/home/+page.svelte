@@ -226,7 +226,9 @@
 	</article>
 {/if}
 
-<TimelineView items={$events} {load} />
+<div class="timeline">
+	<TimelineView items={$events} {load} />
+</div>
 
 <style>
 	article {
@@ -239,5 +241,11 @@
 		height: 2rem;
 		background-color: rgb(240, 240, 240);
 		color: var(--accent-gray);
+	}
+
+	@media screen and (min-width: 600px) {
+		.timeline {
+			margin-top: 0.75rem;
+		}
 	}
 </style>
