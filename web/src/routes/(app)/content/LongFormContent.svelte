@@ -50,7 +50,7 @@
 			<code>{JSON.stringify(event, null, 2)}</code>
 			<div>
 				Open in <a
-					href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode({
+					href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode({
 						id: event.id
 					})}&kind={event.kind}"
 					target="_blank"

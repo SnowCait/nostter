@@ -457,7 +457,7 @@
 						</p>
 						<div>
 							Open in <a
-								href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode(
+								href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode(
 									{ id: item.event.id }
 								)}&kind={item.event.kind}"
 								target="_blank"
