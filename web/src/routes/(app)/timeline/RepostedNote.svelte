@@ -76,9 +76,11 @@
 		<code>{JSON.stringify(metadata?.content, null, 2)}</code>
 		<div>
 			Open in <a
-				href="https://koteitan.github.io/nostr-post-checker/?eid={nip19.neventEncode({
-					id: item.event.id
-				})}&kind={item.event.kind}"
+				href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode(
+					{
+						id: item.event.id
+					}
+				)}&kind={item.event.kind}"
 				target="_blank"
 				rel="noopener noreferrer"
 			>
