@@ -26,7 +26,7 @@
 </div>
 
 <style>
-	@media screen and (min-width: 600px) {
+	@media screen and (min-width: 601px) {
 		.timeline {
 			margin-top: 0.75rem;
 		}
