@@ -7,7 +7,7 @@
 <ul class="badges">
 	{#each badges as badge}
 		<li>
-			<a href="https://badges.page/b/{badge.naddr}" target="_blank" rel="noreferrer">
+			<a href="https://badges.page/a/{badge.naddr}" target="_blank" rel="noreferrer">
 				<img
 					src={badge.thumb ? badge.thumb : badge.image}
 					alt={badge.name}
