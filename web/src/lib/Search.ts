@@ -4,11 +4,11 @@ import { hashtagsRegexp, reverseChronological, searchRelays } from './Constants'
 import { EventItem } from './Items';
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
-import { readRelays } from '../stores/Author';
+import { pubkey, readRelays } from '../stores/Author';
 import { referencesReqEmit } from './timelines/MainTimeline';
 
 export class Search {
-	parseQuery(query: string): Filter {
+	parseQuery(query: string, mine = false): Filter {
 		const fromRegexp = /from:(nostr:)?(npub1[a-z0-9]{6,})/g;
 		const toRegexp = /to:(nostr:)?(npub1[a-z0-9]{6,})/g;
 		const kindRegexp = /kind:(\d+)/g;
@@ -29,9 +29,16 @@ export class Search {
 		hashtags.sort((x, y) => y.length - x.length);
 		const kinds = [...kindMatches].map((match) => Number(match[1]));
 		console.log('[matches]', fromPubkeys, toPubkeys, hashtags, kinds);
+
 		if (kinds.length === 0) {
 			kinds.push(Kind.Text);
 		}
+
+		const $pubkey = get(pubkey);
+		if (mine && !fromPubkeys.includes($pubkey)) {
+			fromPubkeys.push($pubkey);
+		}
+
 		const keyword = query
 			.replaceAll(fromRegexp, '')
 			.replaceAll(toRegexp, '')

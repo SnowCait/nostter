@@ -79,7 +79,9 @@
 		"unknown": "ウォレットのステータスが分かりませんでした。ウォレットを確認してください。"
 	},
 	"search": {
-		"search": "検索"
+		"search": "検索",
+		"options": "検索オプション",
+		"mine": "自分"
 	},
 	"public_chat": {
 		"create_channel": "チャンネルを作成"
