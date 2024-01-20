@@ -80,7 +80,9 @@
 		"unknown": "Unknown wallet state. Please check your wallet."
 	},
 	"search": {
-		"search": "Search"
+		"search": "Search",
+		"options": "Search options",
+		"mine": "Mine"
 	},
 	"public_chat": {
 		"create_channel": "Create channel"

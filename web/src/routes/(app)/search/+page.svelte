@@ -11,6 +11,7 @@
 	import Trending from './Trending.svelte';
 
 	let query = '';
+	let mine = false;
 	let filter: Filter;
 	let items: EventItem[] = [];
 	let showLoading = false;
@@ -18,13 +19,15 @@
 	const search = new Search();
 
 	afterNavigate(async () => {
-		if (query === $page.url.searchParams.get('q')) {
+		const params = $page.url.searchParams;
+		if (query === params.get('q') && mine === params.has('mine')) {
 			return;
 		}
-		query = $page.url.searchParams.get('q') ?? '';
+		console.log('[search params]', params.toString());
+		query = params.get('q') ?? '';
+		mine = params.has('mine');
 		items = [];
-		console.log('[q]', query);
-		filter = search.parseQuery(query);
+		filter = search.parseQuery(query, mine);
 		await load();
 	});
 
@@ -66,7 +69,7 @@
 <h1><a href="/search">{$_('layout.header.search')}</a></h1>
 
 <section>
-	<SearchForm {query} />
+	<SearchForm {query} {mine} />
 </section>
 
 {#if query === ''}
