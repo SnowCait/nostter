@@ -40,7 +40,7 @@
 	.content {
 		line-height: 20px;
 		margin: 0;
-		white-space: pre-wrap;
+		white-space: pre-line;
 		word-break: break-word;
 	}
 </style>
