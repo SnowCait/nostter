@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 
 	const keys = ['emoji-mart.last', 'emoji-mart.frequently'];
@@ -14,4 +15,4 @@
 	}
 </script>
 
-<button on:click={clear}>Clear emoji cache</button>
+<button on:click={clear}>{$_('preferences.clear_emoji_cache')}</button>
