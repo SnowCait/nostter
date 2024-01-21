@@ -5,7 +5,7 @@
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
 	import { author } from '../../../stores/Author';
-	import { debugMode, developerMode } from '../../../stores/Preference';
+	import { developerMode } from '../../../stores/Preference';
 	import WordMute from './WordMute.svelte';
 	import AutoRefresh from './AutoRefresh.svelte';
 	import MutedUsers from './MutedUsers.svelte';
@@ -37,8 +37,7 @@
 {#if $developerMode}
 	<div><RelayStates /></div>
 	<div><WebStorage /></div>
-{/if}
-{#if $debugMode}
+	<h3>{$_('preferences.trouble_shooting')}</h3>
 	<div><ClearEmojiMartCache /></div>
 {/if}
 {#if $author !== undefined}

@@ -8,7 +8,7 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { pubkey as authorPubkey, readRelays, writeRelays } from '../../../../stores/Author';
-	import { debugMode } from '../../../../stores/Preference';
+	import { developerMode } from '../../../../stores/Preference';
 	import { pool } from '../../../../stores/Pool';
 	import { Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
@@ -183,7 +183,7 @@
 					<IconDeviceFloppy />
 					<input type="submit" value="Save" />
 				</label>
-				{#if $debugMode}
+				{#if $developerMode}
 					<div>
 						<label>
 							<input type="checkbox" bind:value={saveToKind3} />

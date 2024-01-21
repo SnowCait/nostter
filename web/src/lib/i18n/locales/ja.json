@@ -69,7 +69,8 @@
 			"events": "スレッド / チャンネル",
 			"words": "単語",
 			"none": "-"
-		}
+		},
+		"trouble_shooting": "トラブルシューティング"
 	},
 	"content": {
 		"show": "表示",
