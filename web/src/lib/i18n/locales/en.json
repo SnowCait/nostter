@@ -70,7 +70,8 @@
 			"events": "Threads and Channels",
 			"words": "Words",
 			"none": "-"
-		}
+		},
+		"trouble_shooting": "Trouble Shooting"
 	},
 	"content": {
 		"show": "Show",

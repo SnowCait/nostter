@@ -1,23 +1,9 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { debugMode } from '../../../stores/Preference';
 	import ZapButton from '$lib/components/ZapButton.svelte';
-
-	let debugCounter = 0;
-
-	function enableDebugMode() {
-		debugCounter++;
-		if (debugCounter >= 5) {
-			$debugMode = !$debugMode;
-			debugCounter = 0;
-			console.log('[debug mode]', $debugMode ? 'enabled' : 'disabled');
-		}
-	}
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<h1 on:click={enableDebugMode}>{$_('layout.header.about')}</h1>
+<h1>{$_('layout.header.about')}</h1>
 <div>
 	<span>GitHub:</span>
 	<a href="https://github.com/SnowCait/nostter" target="_blank" rel="noopener noreferrer">
