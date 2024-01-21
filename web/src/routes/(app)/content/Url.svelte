@@ -62,14 +62,14 @@
 		<ExternalLink {text} {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
-{:else if /\.(mp3|m4a|wav)/i.test(link.pathname)}
+{:else if /\.(mp3|m4a|wav)$/i.test(link.pathname)}
 	{#if preview}
 		<audio src={link.href} controls />
 	{:else}
 		<ExternalLink {text} {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
-{:else if /\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)/i.test(link.pathname)}
+{:else if /\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(link.pathname)}
 	{#if preview}
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<div>
