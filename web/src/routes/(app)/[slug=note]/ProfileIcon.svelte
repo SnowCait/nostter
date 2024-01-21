@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Metadata } from '$lib/Items';
+	import { robohash, type Metadata } from '$lib/Items';
 	import { nip19 } from 'nostr-tools';
 
 	export let metadata: Metadata;
@@ -8,7 +8,7 @@
 
 	const onImageError = (event: Event) => {
 		const img = event.target as HTMLImageElement;
-		img.src = `https://robohash.org/${nip19.npubEncode(metadata.event.pubkey)}?set=set4`;
+		img.src = robohash(metadata.event.pubkey);
 	};
 </script>
 
