@@ -71,7 +71,9 @@
 			"words": "Words",
 			"none": "-"
 		},
-		"trouble_shooting": "Trouble Shooting"
+		"trouble_shooting": "Trouble Shooting",
+		"clear_emoji_cache": "Clear emoji cache",
+		"reload": "Reload"
 	},
 	"content": {
 		"show": "Show",

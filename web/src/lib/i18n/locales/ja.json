@@ -70,7 +70,9 @@
 			"words": "単語",
 			"none": "-"
 		},
-		"trouble_shooting": "トラブルシューティング"
+		"trouble_shooting": "トラブルシューティング",
+		"clear_emoji_cache": "絵文字キャッシュクリア",
+		"reload": "再読み込み"
 	},
 	"content": {
 		"show": "表示",
