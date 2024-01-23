@@ -14,7 +14,9 @@
 	<IconCodeDots />
 </button>
 {#if showReplaceableEvents}
-	{#each [...$replaceableEvents].toSorted(([, x], [, y]) => x.kind - y.kind) as [_, event]}
+	{#each [...$replaceableEvents]
+		.map(([, event]) => event)
+		.toSorted((x, y) => x.kind - y.kind) as event}
 		<Json object={event} />
 	{:else}
 		<div>Fetching...</div>
