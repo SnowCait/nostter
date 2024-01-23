@@ -29,4 +29,6 @@ export const enablePreview = writable(
 );
 
 // Temporary
-export const developerMode = writable(false);
+export const developerMode = writable(
+	browser ? new WebStorage(localStorage).get('preference:developer-mode') === 'true' : false
+);
