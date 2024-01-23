@@ -7,6 +7,7 @@
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
 	import { robohash, type Metadata, alternativeName } from '$lib/Items';
 	import { pubkey as authorPubkey, rom } from '../../stores/Author';
+	import { developerMode } from '../../stores/Preference';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
 	import Badges from './Badges.svelte';
@@ -14,6 +15,7 @@
 	import MuteButton from './MuteButton.svelte';
 	import NostrAddress from './NostrAddress.svelte';
 	import UserStatus from './UserStatus.svelte';
+	import ReplaceableEventsJson from './ReplaceableEventsJson.svelte';
 	import Content from '../../routes/(app)/content/Content.svelte';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 
@@ -163,6 +165,10 @@
 	<div>
 		<a href="/{slug}/reactions">{$_('pages.reactions')}</a>
 	</div>
+
+	{#if $developerMode}
+		<ReplaceableEventsJson />
+	{/if}
 </div>
 
 <style>
