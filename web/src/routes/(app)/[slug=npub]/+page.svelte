@@ -6,13 +6,15 @@
 	import { afterNavigate } from '$app/navigation';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import TimelineView from '../TimelineView.svelte';
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
 	import { Timeline } from '$lib/Timeline';
 	import { EventItem } from '$lib/Items';
 	import { appName, minTimelineLength } from '$lib/Constants';
+	import { replaceableEvents, replaceableEventsReqEmit } from '$lib/Profile';
 	import type { LayoutData } from './$types';
+	import { developerMode } from '../../../stores/Preference';
 	import Profile from '$lib/components/Profile.svelte';
+	import TimelineView from '../TimelineView.svelte';
 
 	export let data: LayoutData;
 
@@ -33,6 +35,12 @@
 		} else {
 			referencesReqEmit(metadata.event);
 			overwriteSlug();
+		}
+
+		if ($developerMode) {
+			$replaceableEvents.clear();
+			$replaceableEvents = $replaceableEvents;
+			replaceableEventsReqEmit(data.pubkey);
 		}
 	});
 
