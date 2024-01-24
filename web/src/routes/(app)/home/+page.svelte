@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { createRxOneshotReq, uniq } from 'rx-nostr';
+	import { createRxOneshotReq, uniq, type LazyFilter } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { Kind, type Relay } from 'nostr-tools';
 	import { appName } from '$lib/Constants';
+	import { followingHashtags } from '$lib/Interest';
 	import { events, eventsPool } from '../../../stores/Events';
 	import { pool } from '../../../stores/Pool';
 	import { pubkey, followees, rom } from '../../../stores/Author';
@@ -107,8 +108,7 @@
 			);
 
 			const followeesFilters = Timeline.createChunkedFilters($followees, since, until);
-			const filters = [
-				...followeesFilters,
+			const authorFilters: LazyFilter[] = [
 				{
 					kinds: [
 						Kind.Text,
@@ -129,6 +129,15 @@
 					since
 				}
 			];
+			if ($followingHashtags.length > 0) {
+				authorFilters.push({
+					kinds: [Kind.Text],
+					'#t': $followingHashtags,
+					until,
+					since
+				});
+			}
+			const filters = [...followeesFilters, ...authorFilters];
 
 			console.debug('[rx-nostr home timeline REQ]', filters, rxNostr.getAllRelayState());
 			const pastChannelMessageReq = createRxOneshotReq({ filters });
