@@ -84,7 +84,8 @@
 	"search": {
 		"search": "検索",
 		"options": "検索オプション",
-		"mine": "自分"
+		"mine": "自分の投稿",
+		"proxy": "外部 SNS の投稿を含める"
 	},
 	"public_chat": {
 		"create_channel": "チャンネルを作成"

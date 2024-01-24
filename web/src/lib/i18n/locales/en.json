@@ -85,7 +85,8 @@
 	"search": {
 		"search": "Search",
 		"options": "Search options",
-		"mine": "Mine"
+		"mine": "My notes",
+		"proxy": "Include external SNS notes"
 	},
 	"public_chat": {
 		"create_channel": "Create channel"
