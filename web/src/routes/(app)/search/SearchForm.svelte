@@ -2,7 +2,8 @@
 	import { _ } from 'svelte-i18n';
 
 	export let query: string;
-	export let mine: boolean = false;
+	export let mine = false;
+	export let proxy = false;
 </script>
 
 <form action="/search">
@@ -11,10 +12,19 @@
 	<details>
 		<summary>{$_('search.options')}</summary>
 
-		<label>
-			<input type="checkbox" name="mine" checked={mine} />
-			<span>{$_('search.mine')}</span>
-		</label>
+		<div>
+			<label>
+				<input type="checkbox" name="mine" checked={mine} />
+				<span>{$_('search.mine')}</span>
+			</label>
+		</div>
+
+		<div>
+			<label>
+				<input type="checkbox" name="proxy" checked={proxy} />
+				<span>{$_('search.proxy')}</span>
+			</label>
+		</div>
 	</details>
 </form>
 
@@ -23,7 +33,7 @@
 		margin-top: 1rem;
 	}
 
-	summary {
-		margin-bottom: 0.75rem;
+	div {
+		margin: 0.75rem auto;
 	}
 </style>

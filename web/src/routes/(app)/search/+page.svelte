@@ -12,6 +12,7 @@
 
 	let query = '';
 	let mine = false;
+	let proxy = false;
 	let filter: Filter;
 	let items: EventItem[] = [];
 	let showLoading = false;
@@ -20,12 +21,17 @@
 
 	afterNavigate(async () => {
 		const params = $page.url.searchParams;
-		if (query === params.get('q') && mine === params.has('mine')) {
+		if (
+			query === params.get('q') &&
+			mine === params.has('mine') &&
+			proxy === params.has('proxy')
+		) {
 			return;
 		}
 		console.log('[search params]', params.toString());
 		query = params.get('q') ?? '';
 		mine = params.has('mine');
+		proxy = params.has('proxy');
 		items = [];
 		filter = search.parseQuery(query, mine);
 		await load();
@@ -47,7 +53,11 @@
 			filter.until = until;
 			filter.since = until - seconds;
 			const eventItems = await search.fetch(filter);
-			items.push(...eventItems);
+			items.push(
+				...eventItems.filter(
+					(item) => proxy || !item.event.tags.some(([tagName]) => tagName === 'proxy')
+				)
+			);
 			items = items;
 
 			until -= seconds;
