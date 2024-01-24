@@ -86,6 +86,12 @@ rxNostr
 			return;
 		}
 
+		if (event.kind === 10015) {
+			console.log('[interest list]', event, packet.from);
+			storage.setReplaceableEvent(event);
+			return;
+		}
+
 		if (event.kind === 10030) {
 			storage.setReplaceableEvent(event);
 			$author?.storeCustomEmojis(event);

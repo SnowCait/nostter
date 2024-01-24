@@ -20,6 +20,7 @@ export class Api {
 		10001,
 		Kind.RelayList,
 		10005,
+		10015,
 		10030
 	];
 

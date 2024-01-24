@@ -7,14 +7,27 @@ import { Signer } from './Signer';
 import { pubkey } from '../stores/Author';
 
 const interestKind = 10015;
-const queue: string[] = [];
+const followQueue: string[] = [];
+const unfollowQueue: string[] = [];
 
 let processing = false;
 
 export function followHashtag(hashtag: string): void {
 	console.log('[follow hashtag]', hashtag);
 
-	queue.push(hashtag);
+	followQueue.push(hashtag);
+
+	if (processing) {
+		return;
+	}
+
+	save();
+}
+
+export function unfollowHashtag(hashtag: string): void {
+	console.log('[unfollow hashtag]', hashtag);
+
+	unfollowQueue.push(hashtag);
 
 	if (processing) {
 		return;
@@ -46,9 +59,9 @@ async function save(): Promise<void> {
 		tags: latest?.tags ?? [],
 		created_at: now()
 	};
-	const length = event.tags.filter(([tagName]) => tagName === 't').length;
-	while (queue.length > 0) {
-		const hashtag = queue.shift();
+
+	while (followQueue.length > 0) {
+		const hashtag = followQueue.shift();
 		if (hashtag === undefined) {
 			continue;
 		}
@@ -57,17 +70,27 @@ async function save(): Promise<void> {
 		}
 		event.tags.push(['t', hashtag]);
 	}
-	if (event.tags.filter(([tagName]) => tagName === 't').length > length) {
-		rxNostr.send(await Signer.signEvent(event)).subscribe((packet) => {
-			console.log('[rx-nostr interest send]', packet);
-		});
+
+	while (unfollowQueue.length > 0) {
+		const hashtag = unfollowQueue.shift();
+		if (hashtag === undefined) {
+			continue;
+		}
+		if (
+			!event.tags.some(([tagName, tagContent]) => tagName === 't' && tagContent === hashtag)
+		) {
+			continue;
+		}
+		event.tags = event.tags.filter(
+			([tagName, tagContent]) => tagName !== 't' || tagContent !== hashtag
+		);
 	}
 
-	if (queue.length > 0) {
-		save();
-	} else {
-		processing = false;
-	}
+	rxNostr.send(await Signer.signEvent(event)).subscribe((packet) => {
+		console.log('[rx-nostr interest send]', packet);
+	});
+
+	processing = false;
 }
 
 async function fetch(pubkey: string): Promise<Event | undefined> {
@@ -98,7 +121,7 @@ async function fetch(pubkey: string): Promise<Event | undefined> {
 	});
 }
 
-function getCache(): Event | undefined {
+export function getCache(): Event | undefined {
 	const storage = new WebStorage(localStorage);
 	return storage.getReplaceableEvent(interestKind);
 }

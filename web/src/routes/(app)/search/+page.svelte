@@ -1,15 +1,18 @@
 <script lang="ts">
 	import type { Filter } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
+	import { browser } from '$app/environment';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Search } from '$lib/Search';
 	import { appName, minTimelineLength } from '$lib/Constants';
+	import { getCache as getInterestEvent } from '$lib/Interest';
 	import type { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
 	import SearchForm from './SearchForm.svelte';
 	import Trending from './Trending.svelte';
 	import FollowHashtagButton from '$lib/components/FollowHashtagButton.svelte';
+	import UnfollowHashtagButton from '$lib/components/UnfollowHashtagButton.svelte';
 
 	let query = '';
 	let mine = false;
@@ -20,6 +23,12 @@
 	let showLoading = false;
 
 	const search = new Search();
+
+	let followingHashtags: string[] = browser
+		? getInterestEvent()
+				?.tags.filter(([tagName]) => tagName === 't')
+				.map(([, hashtag]) => hashtag) ?? []
+		: [];
 
 	afterNavigate(async () => {
 		const params = $page.url.searchParams;
@@ -114,7 +123,11 @@
 {#if hashtags.length > 0}
 	<section>
 		{#each hashtags as hashtag}
-			<FollowHashtagButton {hashtag} />
+			{#if followingHashtags.includes(hashtag)}
+				<UnfollowHashtagButton {hashtag} />
+			{:else}
+				<FollowHashtagButton {hashtag} />
+			{/if}
 		{/each}
 	</section>
 {/if}
