@@ -8,6 +8,7 @@ import { authorChannelsEventStore, metadataStore } from '$lib/cache/Events';
 import { updateFolloweesStore } from '$lib/Contacts';
 import { findIdentifier } from '$lib/EventHelper';
 import { Preferences, preferencesStore } from '$lib/Preferences';
+import { followingHashtags, updateFollowingHashtags } from '$lib/Interest';
 import { EventItem, Metadata } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
 import { authorReplaceableKinds } from '$lib/Author';
@@ -89,6 +90,8 @@ rxNostr
 		if (event.kind === 10015) {
 			console.log('[interest list]', event, packet.from);
 			storage.setReplaceableEvent(event);
+			updateFollowingHashtags();
+			hometimelineReqEmit();
 			return;
 		}
 
@@ -276,6 +279,14 @@ export function hometimelineReqEmit() {
 			since
 		}
 	];
+	const $followingHashtags = get(followingHashtags);
+	if ($followingHashtags.length > 0) {
+		authorFilters.push({
+			kinds: [Kind.Text],
+			'#t': $followingHashtags,
+			since
+		});
+	}
 	console.log('[rx-nostr subscribe author filter]', authorFilters, new Date(sinceOfCache * 1000));
 	homeTimelineReq.emit([...followeesFilter, relatesFilter, ...authorFilters]);
 }

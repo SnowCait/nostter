@@ -1,6 +1,7 @@
-import { get } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, latest, type EventPacket, now } from 'rx-nostr';
 import type { Event, UnsignedEvent } from 'nostr-typedef';
+import { browser } from '$app/environment';
 import { rxNostr } from './timelines/MainTimeline';
 import { WebStorage } from './WebStorage';
 import { Signer } from './Signer';
@@ -12,8 +13,26 @@ const unfollowQueue: string[] = [];
 
 let processing = false;
 
+export const followingHashtags = writable(browser ? getFollowingHashtags() : []);
+
+export function updateFollowingHashtags() {
+	followingHashtags.set(getFollowingHashtags());
+}
+
+function getFollowingHashtags(): string[] {
+	return (
+		getCache()
+			?.tags.filter(([tagName]) => tagName === 't')
+			.map(([, hashtag]) => hashtag) ?? []
+	);
+}
+
 export function followHashtag(hashtag: string): void {
 	console.log('[follow hashtag]', hashtag);
+
+	if (followQueue.includes(hashtag)) {
+		return;
+	}
 
 	followQueue.push(hashtag);
 
@@ -26,6 +45,10 @@ export function followHashtag(hashtag: string): void {
 
 export function unfollowHashtag(hashtag: string): void {
 	console.log('[unfollow hashtag]', hashtag);
+
+	if (unfollowQueue.includes(hashtag)) {
+		return;
+	}
 
 	unfollowQueue.push(hashtag);
 
@@ -86,8 +109,13 @@ async function save(): Promise<void> {
 		);
 	}
 
+	let first = true;
 	rxNostr.send(await Signer.signEvent(event)).subscribe((packet) => {
 		console.log('[rx-nostr interest send]', packet);
+		if (packet.ok && first) {
+			first = false;
+			updateFollowingHashtags();
+		}
 	});
 
 	processing = false;
