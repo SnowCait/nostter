@@ -126,7 +126,7 @@
 		/>
 	</div>
 	<div class="nip05">
-		<label for="nip05">NIP-05</label>
+		<label for="nip05">Nostr Address</label>
 		<input
 			type="text"
 			id="nip05"
@@ -190,11 +190,6 @@
 
 	textarea {
 		height: 10rem;
-	}
-
-	input[type='submit'] {
-		height: 2rem;
-		margin-bottom: 2rem;
 	}
 
 	img {
