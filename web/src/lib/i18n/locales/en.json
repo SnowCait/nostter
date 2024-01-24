@@ -37,6 +37,13 @@
 		"hero-message": "Freedom is Here",
 		"hero-message-sub": "All you need is name. No e-mail address, no account suspension, open SNS. Play with Emoji Kitchen."
 	},
+	"logout": {
+		"logout": "Logout",
+		"ensure": "Ensure to save private key before logout",
+		"private_key": "Private Key",
+		"show": "Show",
+		"saved": "Saved"
+	},
 	"editor": {
 		"post": "Post"
 	},

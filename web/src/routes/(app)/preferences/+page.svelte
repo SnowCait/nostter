@@ -64,9 +64,15 @@
 		<WordMute />
 	</details>
 {/if}
+
+<h2>{$_('logout.logout')}</h2>
 <div><Logout /></div>
 
 <style>
+	h2 {
+		margin-top: 2rem;
+	}
+
 	div {
 		margin: 1em auto;
 	}

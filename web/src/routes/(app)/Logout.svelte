@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { WebStorage } from '$lib/WebStorage';
 	import { loginType } from '../../stores/Author';
 
@@ -12,32 +13,28 @@
 </script>
 
 {#if $loginType === 'nsec'}
-	<h4>Ensure to save nsec before logout</h4>
+	<h4>{$_('logout.ensure')}</h4>
 	<div>
-		<span>nsec:</span>
+		<span>{$_('logout.private_key')}:</span>
 		<input
 			type={showNsec ? 'text' : 'password'}
 			value={new WebStorage(localStorage).get('login')}
 			readonly
 		/>
-		<button on:click={() => (showNsec = !showNsec)}>Show</button>
+		<button on:click={() => (showNsec = !showNsec)}>{$_('logout.show')}</button>
 	</div>
 {/if}
 
-<button on:click={logout} disabled={$loginType === 'nsec' && !saved}>Logout</button>
+<button on:click={logout} disabled={$loginType === 'nsec' && !saved}>{$_('logout.logout')}</button>
 {#if $loginType === 'nsec'}
 	<label>
 		<input type="checkbox" bind:checked={saved} />
-		<span>Saved</span>
+		<span>{$_('logout.saved')}</span>
 	</label>
 {/if}
 
 <style>
 	h4 {
 		margin: 0.5rem auto;
-	}
-
-	button {
-		margin: 1rem auto;
 	}
 </style>
