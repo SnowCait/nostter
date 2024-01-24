@@ -9,11 +9,13 @@
 	import TimelineView from '../TimelineView.svelte';
 	import SearchForm from './SearchForm.svelte';
 	import Trending from './Trending.svelte';
+	import FollowHashtagButton from '$lib/components/FollowHashtagButton.svelte';
 
 	let query = '';
 	let mine = false;
 	let proxy = false;
 	let filter: Filter;
+	let hashtags: string[] = [];
 	let items: EventItem[] = [];
 	let showLoading = false;
 
@@ -33,7 +35,28 @@
 		mine = params.has('mine');
 		proxy = params.has('proxy');
 		items = [];
-		filter = search.parseQuery(query, mine);
+
+		const parsedQuery = search.parseQuery(query, mine);
+		const { fromPubkeys, toPubkeys, kinds, keyword } = parsedQuery;
+		hashtags = parsedQuery.hashtags;
+
+		filter = {
+			kinds
+		};
+		if (keyword.length > 0) {
+			filter.search = keyword;
+		}
+		if (fromPubkeys.length > 0) {
+			filter.authors = fromPubkeys;
+		}
+		if (toPubkeys.length > 0) {
+			filter['#p'] = toPubkeys;
+		}
+		if (hashtags.length > 0) {
+			filter['#t'] = hashtags;
+		}
+		console.log('[filter]', filter);
+
 		await load();
 	});
 
@@ -85,6 +108,14 @@
 {#if query === ''}
 	<section>
 		<Trending />
+	</section>
+{/if}
+
+{#if hashtags.length > 0}
+	<section>
+		{#each hashtags as hashtag}
+			<FollowHashtagButton {hashtag} />
+		{/each}
 	</section>
 {/if}
 

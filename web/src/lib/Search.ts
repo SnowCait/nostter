@@ -8,7 +8,16 @@ import { pubkey, readRelays } from '../stores/Author';
 import { referencesReqEmit } from './timelines/MainTimeline';
 
 export class Search {
-	parseQuery(query: string, mine = false): Filter {
+	parseQuery(
+		query: string,
+		mine = false
+	): {
+		fromPubkeys: string[];
+		toPubkeys: string[];
+		hashtags: string[];
+		kinds: number[];
+		keyword: string;
+	} {
 		const fromRegexp = /from:(nostr:)?(npub1[a-z0-9]{6,})/g;
 		const toRegexp = /to:(nostr:)?(npub1[a-z0-9]{6,})/g;
 		const kindRegexp = /kind:(\d+)/g;
@@ -46,23 +55,13 @@ export class Search {
 			.replaceAll(hashtagsRegexp, '')
 			.trim();
 
-		const filter: Filter = {
-			kinds
+		return {
+			fromPubkeys,
+			toPubkeys,
+			hashtags,
+			kinds,
+			keyword
 		};
-		if (keyword.length > 0) {
-			filter.search = keyword;
-		}
-		if (fromPubkeys.length > 0) {
-			filter.authors = fromPubkeys;
-		}
-		if (toPubkeys.length > 0) {
-			filter['#p'] = toPubkeys;
-		}
-		if (hashtags.length > 0) {
-			filter['#t'] = hashtags;
-		}
-		console.log('[filter]', filter);
-		return filter;
 	}
 
 	async fetch(filter: Filter): Promise<EventItem[]> {
