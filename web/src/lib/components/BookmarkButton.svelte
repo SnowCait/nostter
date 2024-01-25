@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import type { Event } from 'nostr-typedef';
 	import { Kind } from 'nostr-tools';
 	import { isBookmarked } from '$lib/author/Bookmark';
@@ -45,7 +46,7 @@
 		]).catch((error) => {
 			console.error('[bookmark failed]', error);
 			bookmarked = false;
-			alert('Failed to bookmark');
+			alert($_('actions.bookmark.failed'));
 		});
 	}
 
@@ -62,7 +63,7 @@
 			return;
 		}
 
-		if (!confirm('Remove bookmark?')) {
+		if (!confirm($_('actions.unbookmark.confirm'))) {
 			return;
 		}
 
@@ -86,7 +87,7 @@
 		).catch((error) => {
 			console.error('[remove bookmark failed]', error);
 			bookmarked = true;
-			alert('Failed to remove bookmark');
+			alert($_('actions.unbookmark.failed'));
 		});
 	}
 </script>

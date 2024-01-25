@@ -97,5 +97,14 @@
 	},
 	"public_chat": {
 		"create_channel": "Create channel"
+	},
+	"actions": {
+		"bookmark": {
+			"failed": "Failed to bookmark"
+		},
+		"unbookmark": {
+			"confirm": "Unbookmark?",
+			"failed": "Failed to unbookmark"
+		}
 	}
 }

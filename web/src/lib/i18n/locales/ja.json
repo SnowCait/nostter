@@ -96,5 +96,14 @@
 	},
 	"public_chat": {
 		"create_channel": "チャンネルを作成"
+	},
+	"actions": {
+		"bookmark": {
+			"failed": "ブックマークできませんでした"
+		},
+		"unbookmark": {
+			"confirm": "ブックマークを外しますか？",
+			"failed": "ブックマークを外せませんでした"
+		}
 	}
 }
