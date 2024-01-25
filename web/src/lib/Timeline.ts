@@ -1,5 +1,5 @@
 import { Kind, SimplePool } from 'nostr-tools';
-import { readRelays, bookmarkEvent, updateRelays, author } from '../stores/Author';
+import { readRelays, updateRelays, author } from '../stores/Author';
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
 import { get } from 'svelte/store';
@@ -28,7 +28,6 @@ export class Timeline {
 		const now = Math.floor(Date.now() / 1000);
 		const since = now;
 
-		// const $bookmarkEvent = get(bookmarkEvent);
 		const $author = get(author);
 
 		const authorsFilter = chunk(this.authors, filterLimitItems).map((chunkedAuthors) => {
@@ -55,12 +54,6 @@ export class Timeline {
 			// 	authors: [this.pubkey],
 			// 	since
 			// }
-			// {
-			// 	kinds: [30001],
-			// 	authors: [this.pubkey],
-			// 	'#d': ['bookmark'],
-			// 	since: $bookmarkEvent === undefined ? now : $bookmarkEvent.created_at + 1
-			// }
 		];
 		console.log('[new timeline filters]', filters);
 
@@ -82,17 +75,6 @@ export class Timeline {
 
 			if (event.kind === 10030) {
 				$author?.storeCustomEmojis(event);
-				return;
-			}
-
-			if (
-				event.kind === 30001 &&
-				event.tags.some(
-					([tagName, identifier]) => tagName === 'd' && identifier === 'bookmark'
-				)
-			) {
-				console.log('[bookmark]', event, this.$pool.seenOn(event.id));
-				bookmarkEvent.set(event);
 				return;
 			}
 

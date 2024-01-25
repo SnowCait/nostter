@@ -21,7 +21,6 @@ export const pinNotes: Writable<string[]> = writable([]);
 export const readRelays: Writable<string[]> = writable(defaultRelays);
 export const writeRelays: Writable<string[]> = writable(defaultRelays);
 export const rom = writable(false);
-export const bookmarkEvent: Writable<Event | undefined> = writable();
 
 export const isMutePubkey = (pubkey: string) => get(mutePubkeys).includes(pubkey);
 export const isMuteEvent = (event: Event) => {
@@ -75,12 +74,4 @@ export const updateRelays = (event: Event) => {
 		)
 	);
 	console.debug('[relays after]', get(readRelays), get(writeRelays));
-};
-
-export const isBookmarked = (event: Event): boolean => {
-	const $bookmarkEvent = get(bookmarkEvent);
-	if ($bookmarkEvent === undefined) {
-		return false;
-	}
-	return $bookmarkEvent.tags.some(([tagName, id]) => tagName === 'e' && id === event.id);
 };
