@@ -5,7 +5,7 @@
 	import { tap } from 'rxjs';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
-	import { repostReqEmit } from '$lib/author/Action';
+	import { authorActionReqEmit } from '$lib/author/Action';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { NotificationTimeline, notificationKinds } from '$lib/NotificationTimeline';
 	import { appName, minTimelineLength } from '$lib/Constants';
@@ -84,7 +84,7 @@
 						uniq(),
 						tap(({ event }) => {
 							referencesReqEmit(event);
-							repostReqEmit(event);
+							authorActionReqEmit(event);
 						})
 					)
 					.subscribe({

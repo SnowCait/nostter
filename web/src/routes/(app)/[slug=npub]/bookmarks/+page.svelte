@@ -6,7 +6,7 @@
 	import { page } from '$app/stores';
 	import TimelineView from '../../TimelineView.svelte';
 	import { bookmarkEvent } from '$lib/author/Bookmark';
-	import { repostReqEmit } from '$lib/author/Action';
+	import { authorActionReqEmit } from '$lib/author/Action';
 	import { appName } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
 	import { Signer } from '$lib/Signer';
@@ -37,7 +37,7 @@
 					uniq(),
 					tap(({ event }) => {
 						referencesReqEmit(event);
-						repostReqEmit(event);
+						authorActionReqEmit(event);
 					})
 				)
 				.subscribe((packet) => {
@@ -66,7 +66,7 @@
 								uniq(),
 								tap(({ event }) => {
 									referencesReqEmit(event);
-									repostReqEmit(event);
+									authorActionReqEmit(event);
 								})
 							)
 							.subscribe((packet) => {

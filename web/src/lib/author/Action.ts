@@ -19,9 +19,9 @@ export function updateRepostedEvents(events: Event[]): void {
 	repostedEventIds.set($repostedEventIds);
 }
 
-const repostReq = createRxBackwardReq();
+const authorActionReq = createRxBackwardReq();
 rxNostr
-	.use(repostReq.pipe(bufferTime(500, null, maxFilters), batch()))
+	.use(authorActionReq.pipe(bufferTime(500, null, maxFilters), batch()))
 	.pipe(
 		uniq(),
 		bufferWhen(() => interval(500)),
@@ -31,11 +31,11 @@ rxNostr
 		console.debug('[rx-nostr repost next]', packets);
 		updateRepostedEvents(packets.map(({ event }) => event));
 	});
-export function repostReqEmit(event: Event): void {
+export function authorActionReqEmit(event: Event): void {
 	const ids = [event.id, ...filterTags('e', event.tags)];
 	console.debug('[rx-nostr repost req]', ids);
 	const $pubkey = get(pubkey);
-	repostReq.emit([
+	authorActionReq.emit([
 		{
 			kinds: [6],
 			authors: [$pubkey],
