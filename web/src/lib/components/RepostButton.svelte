@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { Kind } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { Signer } from '$lib/Signer';
@@ -17,7 +18,13 @@
 			return;
 		}
 
-		reposted = true;
+		if (reposted) {
+			if (!confirm($_('actions.repost.again'))) {
+				return;
+			}
+		} else {
+			reposted = true;
+		}
 
 		const event = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
@@ -39,7 +46,7 @@
 <button
 	class="clear"
 	class:hidden={event.kind === 42 || event.kind === Kind.EncryptedDirectMessage}
-	disabled={reposted}
+	class:reposted
 	on:click={() => repost(event)}
 >
 	<IconRepeat size={iconSize} />
@@ -50,7 +57,7 @@
 		color: var(--accent-gray);
 	}
 
-	button:disabled {
-		color: lightgreen;
+	button.reposted {
+		color: var(--green);
 	}
 </style>
