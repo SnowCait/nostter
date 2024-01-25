@@ -1,18 +1,23 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { Kind } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
+	import { reactionedEventIds, updateReactionedEvents } from '$lib/author/Action';
 	import { preferencesStore } from '$lib/Preferences';
 	import { rom, writeRelays } from '../../stores/Author';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
+	import IconHeartFilled from '@tabler/icons-svelte/dist/svelte/icons/IconHeartFilled.svelte';
 	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
+	import IconPawFilled from '@tabler/icons-svelte/dist/svelte/icons/IconPawFilled.svelte';
 	import IconStar from '@tabler/icons-svelte/dist/svelte/icons/IconStar.svelte';
+	import IconStarFilled from '@tabler/icons-svelte/dist/svelte/icons/IconStarFilled.svelte';
 	import { Signer } from '$lib/Signer';
 	import { pool } from '../../stores/Pool';
 
 	export let event: Event;
 	export let iconSize: number;
 
-	let reactioned = false;
+	$: reactioned = $reactionedEventIds.has(event.id);
 
 	async function reaction(note: Event) {
 		console.log('[reaction]', note);
@@ -22,7 +27,11 @@
 			return;
 		}
 
-		reactioned = true;
+		if (reactioned) {
+			if (!confirm($_('actions.reaction.again'))) {
+				return;
+			}
+		}
 
 		const content = $preferencesStore.reactionEmoji.content;
 		const tags = note.tags.filter(
@@ -43,9 +52,8 @@
 		});
 		console.log(event);
 
-		$pool.publish($writeRelays, event).on('failed', () => {
-			reactioned = false;
-		});
+		$pool.publish($writeRelays, event);
+		updateReactionedEvents([event]);
 	}
 </script>
 
@@ -54,13 +62,23 @@
 	class:hidden={event.kind === Kind.EncryptedDirectMessage}
 	class:paw-pad={$preferencesStore.reactionEmoji.content === '🐾'}
 	class:star={$preferencesStore.reactionEmoji.content === '⭐'}
-	disabled={reactioned}
+	class:reactioned
 	on:click={() => reaction(event)}
 >
 	{#if $preferencesStore.reactionEmoji.content === '🐾'}
-		<IconPaw size={iconSize} />
+		{#if reactioned}
+			<IconPawFilled size={iconSize} />
+		{:else}
+			<IconPaw size={iconSize} />
+		{/if}
 	{:else if $preferencesStore.reactionEmoji.content === '⭐'}
-		<IconStar size={iconSize} />
+		{#if reactioned}
+			<IconStarFilled size={iconSize} />
+		{:else}
+			<IconStar size={iconSize} />
+		{/if}
+	{:else if reactioned}
+		<IconHeartFilled size={iconSize} />
 	{:else}
 		<IconHeart size={iconSize} />
 	{/if}
@@ -71,15 +89,15 @@
 		color: var(--accent-gray);
 	}
 
-	button:disabled {
-		color: lightpink;
+	button.reactioned {
+		color: var(--pink);
 	}
 
-	button.paw-pad:disabled {
-		color: orange;
+	button.paw-pad.reactioned {
+		color: var(--orange);
 	}
 
-	button.star:disabled {
-		color: gold;
+	button.star.reactioned {
+		color: var(--gold);
 	}
 </style>

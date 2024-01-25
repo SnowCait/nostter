@@ -321,10 +321,12 @@ progress {
 	--secondary-accent: #7a7673;
 	--ring: #0f0f0f;
 	--red: #fc6262;
+	--pink: lightcoral;
 	--blue: #54a0f8;
 	--purple: #cc81fe;
 	--green: #7ef795;
 	--yellow: #ffeb77;
+	--gold: gold;
 	--orange: #ffa167;
 	--accent-surface: #e0ddd9;
 	--accent-surface-low: #f8f5f2;
@@ -345,10 +347,12 @@ progress {
 	--secondary-accent: #a09384;
 	--ring: #f1f1f1;
 	--red: #fc6262;
+	--pink: lightcoral;
 	--blue: #54a0f8;
 	--purple: #cc81fe;
 	--green: #7ef795;
 	--yellow: #ffeb77;
+	--gold: gold;
 	--orange: #ffa167;
 	--accent-surface: #333333;
 	--accent-surface-low: #2c2c2c;
