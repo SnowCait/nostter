@@ -106,6 +106,6 @@
 	}
 
 	.bookmark.bookmarked {
-		color: crimson;
+		color: var(--red);
 	}
 </style>
