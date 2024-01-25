@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Kind, nip19, type Event } from 'nostr-tools';
-	import { isBookmarked } from '$lib/author/Bookmark';
 	import type { EventItem, Item } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import { preferencesStore } from '$lib/Preferences';
@@ -12,7 +11,6 @@
 	import IconStar from '@tabler/icons-svelte/dist/svelte/icons/IconStar.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
-	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import type { User } from '../../types';
@@ -28,6 +26,7 @@
 	import { getCodePoints } from '$lib/String';
 	import { isReply } from '$lib/EventHelper';
 	import { Channel, channelIdStore } from '$lib/Channel';
+	import BookmarkButton from '$lib/components/BookmarkButton.svelte';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import ProxyLink from '../parts/ProxyLink.svelte';
@@ -49,7 +48,6 @@
 
 	let reposted = false;
 	let reactioned = false;
-	let bookmarked = isBookmarked(item.event);
 	let zapped = false;
 	let jsonDisplay = false;
 	let channelId: string | undefined;
@@ -168,83 +166,6 @@
 		console.log(event);
 
 		$pool.publish($writeRelays, event);
-	}
-
-	async function bookmark(note: Event) {
-		console.log('[bookmark]', note, $rom);
-
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
-
-		if (bookmarked) {
-			console.debug('[bookmark already]');
-			return;
-		}
-
-		bookmarked = true;
-
-		const api = new Api($pool, $writeRelays);
-		const latestEvent = await api.fetchBookmarkEvent($pubkey);
-		console.log('[bookmark latest]', latestEvent);
-		if (
-			latestEvent !== undefined &&
-			latestEvent.tags.some(([tagName, id]) => tagName === 'e' && id === note.id)
-		) {
-			console.log('[bookmark already]', note);
-			return;
-		}
-
-		api.signAndPublish(30001 as Kind, latestEvent?.content ?? '', [
-			...(latestEvent?.tags ?? [['d', 'bookmark']]),
-			['e', note.id]
-		]).catch((error) => {
-			console.error('[bookmark failed]', error);
-			bookmarked = false;
-			alert('Failed to bookmark');
-		});
-	}
-
-	async function removeBookmark(note: Event) {
-		console.log('[bookmark]', note, $rom);
-
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
-
-		if (!bookmarked) {
-			console.debug('[not bookmarked]');
-			return;
-		}
-
-		if (!confirm('Remove bookmark?')) {
-			return;
-		}
-
-		bookmarked = false;
-
-		const api = new Api($pool, $writeRelays);
-		const latestEvent = await api.fetchBookmarkEvent($pubkey);
-		console.log('[bookmark latest]', latestEvent);
-		if (
-			latestEvent === undefined ||
-			!latestEvent.tags.some(([tagName, id]) => tagName === 'e' && id === note.id)
-		) {
-			console.log('[bookmark removed already]', note);
-			return;
-		}
-
-		api.signAndPublish(
-			30001 as Kind,
-			latestEvent.content,
-			latestEvent.tags.filter(([tagName, id]) => !(tagName === 'e' && id === note.id))
-		).catch((error) => {
-			console.error('[remove bookmark failed]', error);
-			bookmarked = true;
-			alert('Failed to remove bookmark');
-		});
 	}
 
 	function onZapped() {
@@ -393,17 +314,7 @@
 						<IconDots size={iconSize} />
 					</button>
 					<!-- /instead of margin -->
-					<button
-						class="bookmark"
-						class:hidden={!(
-							item.event.kind === Kind.Text || item.event.kind === Kind.ChannelMessage
-						)}
-						class:bookmarked
-						on:click={() => bookmark(item.event)}
-						on:dblclick={() => removeBookmark(item.event)}
-					>
-						<IconBookmark size={iconSize} />
-					</button>
+					<BookmarkButton event={item.event} {iconSize} />
 					<button
 						class="zap"
 						class:hidden={metadata?.content === undefined ||
@@ -539,10 +450,6 @@
 
 	.reaction.star:disabled {
 		color: gold;
-	}
-
-	.bookmark.bookmarked {
-		color: crimson;
 	}
 
 	.zap:disabled {
