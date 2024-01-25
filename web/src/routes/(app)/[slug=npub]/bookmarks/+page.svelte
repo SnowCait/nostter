@@ -2,9 +2,10 @@
 	import { createRxOneshotReq, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { _ } from 'svelte-i18n';
-	import { pubkey as authorPubkey, rom, bookmarkEvent } from '../../../../stores/Author';
+	import { pubkey as authorPubkey, rom } from '../../../../stores/Author';
 	import { page } from '$app/stores';
 	import TimelineView from '../../TimelineView.svelte';
+	import { bookmarkEvent } from '$lib/author/Bookmark';
 	import { appName } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
 	import { Signer } from '$lib/Signer';

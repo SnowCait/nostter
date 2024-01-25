@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Kind, nip19, type Event } from 'nostr-tools';
+	import { isBookmarked } from '$lib/author/Bookmark';
 	import type { EventItem, Item } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import { preferencesStore } from '$lib/Preferences';
@@ -16,7 +17,7 @@
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import type { User } from '../../types';
 	import { openNoteDialog, quotes, replyTo } from '../../../stores/NoteDialog';
-	import { readRelays, writeRelays, pubkey, isBookmarked, author } from '../../../stores/Author';
+	import { readRelays, writeRelays, pubkey, author } from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
 	import { rom } from '../../../stores/Author';
 	import { Api } from '$lib/Api';

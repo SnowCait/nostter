@@ -9,7 +9,6 @@ import {
 	updateRelays,
 	authorProfile,
 	metadataEvent,
-	bookmarkEvent,
 	isMuteEvent
 } from '../stores/Author';
 import { RelayList } from './RelayList';
@@ -26,6 +25,7 @@ import { authorChannelsEventStore } from './cache/Events';
 import { updateFolloweesStore } from './Contacts';
 import { chunk } from './Array';
 import { maxFilters } from './Constants';
+import { bookmarkEvent } from './author/Bookmark';
 
 type AuthorReplaceableKind = {
 	kind: number;
