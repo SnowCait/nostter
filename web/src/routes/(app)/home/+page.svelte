@@ -4,7 +4,7 @@
 	import { createRxOneshotReq, uniq, type LazyFilter } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { Kind, type Relay } from 'nostr-tools';
-	import { repostReqEmit } from '$lib/author/Repost';
+	import { repostReqEmit } from '$lib/author/Action';
 	import { appName } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
 	import { events, eventsPool } from '../../../stores/Events';

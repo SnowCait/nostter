@@ -3,7 +3,7 @@
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import type { Filter } from 'nostr-typedef';
 	import { tap, filter } from 'rxjs';
-	import { repostReqEmit } from '$lib/author/Repost';
+	import { repostReqEmit } from '$lib/author/Action';
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';

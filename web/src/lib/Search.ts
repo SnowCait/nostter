@@ -1,6 +1,6 @@
 import { nip19, type Filter, Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { repostReqEmit } from './author/Repost';
+import { repostReqEmit } from './author/Action';
 import { hashtagsRegexp, reverseChronological, searchRelays } from './Constants';
 import { EventItem } from './Items';
 import { pool } from '../stores/Pool';

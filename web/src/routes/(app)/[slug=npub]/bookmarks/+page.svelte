@@ -6,7 +6,7 @@
 	import { page } from '$app/stores';
 	import TimelineView from '../../TimelineView.svelte';
 	import { bookmarkEvent } from '$lib/author/Bookmark';
-	import { repostReqEmit } from '$lib/author/Repost';
+	import { repostReqEmit } from '$lib/author/Action';
 	import { appName } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
 	import { Signer } from '$lib/Signer';
