@@ -49,8 +49,8 @@
 		});
 	}
 
-	async function removeBookmark(note: Event) {
-		console.log('[bookmark]', note, $rom);
+	async function unbookmark(note: Event) {
+		console.log('[unbookmark]', note, $rom);
 
 		if ($rom) {
 			console.error('Readonly');
@@ -95,7 +95,7 @@
 	class="bookmark clear"
 	class:hidden={!(event.kind === Kind.Text || event.kind === Kind.ChannelMessage)}
 	class:bookmarked
-	on:click={() => (bookmarked ? removeBookmark(event) : bookmark(event))}
+	on:click={() => (bookmarked ? unbookmark(event) : bookmark(event))}
 >
 	{#if bookmarked}
 		<IconBookmarkFilled size={iconSize} />
