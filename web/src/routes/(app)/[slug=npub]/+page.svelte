@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { type Event, nip05, nip19 } from 'nostr-tools';
+	import { nip05, nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { afterNavigate } from '$app/navigation';
+	import { repostReqEmit } from '$lib/author/Repost';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
@@ -94,7 +95,10 @@
 					.use(pastEventsReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => referencesReqEmit(event))
+						tap(({ event }) => {
+							referencesReqEmit(event);
+							repostReqEmit(event);
+						})
 					)
 					.subscribe({
 						next: (packet) => {

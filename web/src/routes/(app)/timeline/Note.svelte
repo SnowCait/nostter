@@ -4,7 +4,6 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { preferencesStore } from '$lib/Preferences';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
-	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
@@ -29,6 +28,7 @@
 	import BookmarkButton from '$lib/components/BookmarkButton.svelte';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
+	import RepostButton from '$lib/components/RepostButton.svelte';
 	import ProxyLink from '../parts/ProxyLink.svelte';
 	import Nip94 from '../Nip94.svelte';
 
@@ -46,7 +46,6 @@
 
 	const iconSize = 20;
 
-	let reposted = false;
 	let reactioned = false;
 	let zapped = false;
 	let jsonDisplay = false;
@@ -69,30 +68,6 @@
 	function reply(item: Item) {
 		$replyTo = item as EventItem;
 		$openNoteDialog = true;
-	}
-
-	async function repost(note: Event) {
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
-
-		reposted = true;
-
-		const event = await Signer.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: 6 as Kind,
-			tags: [
-				['e', note.id, '', 'mention'],
-				['p', note.pubkey]
-			],
-			content: ''
-		});
-		console.log(event);
-
-		$pool.publish($writeRelays, event).on('failed', () => {
-			reposted = false;
-		});
 	}
 
 	function quote(event: Event) {
@@ -263,15 +238,7 @@
 				>
 					<IconMessageCircle2 size={iconSize} />
 				</button>
-				<button
-					class="repost"
-					class:hidden={item.event.kind === 42 ||
-						item.event.kind === Kind.EncryptedDirectMessage}
-					disabled={reposted}
-					on:click={() => repost(item.event)}
-				>
-					<IconRepeat size={iconSize} />
-				</button>
+				<RepostButton event={item.event} {iconSize} />
 				<button
 					class:hidden={item.event.kind === Kind.EncryptedDirectMessage}
 					on:click={() => quote(item.event)}
@@ -434,10 +401,6 @@
 
 	.action-menu button.hidden {
 		visibility: hidden;
-	}
-
-	.repost:disabled {
-		color: lightgreen;
 	}
 
 	.reaction:disabled {

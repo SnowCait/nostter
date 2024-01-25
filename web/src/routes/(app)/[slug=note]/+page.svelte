@@ -22,6 +22,7 @@
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import EventComponent from '../timeline/EventComponent.svelte';
+	import { repostReqEmit } from '$lib/author/Repost';
 
 	export let data: PageData;
 
@@ -100,7 +101,10 @@
 				.use(eventReq)
 				.pipe(
 					uniq(),
-					tap(({ event }) => referencesReqEmit(event))
+					tap(({ event }) => {
+						referencesReqEmit(event);
+						repostReqEmit(event);
+					})
 				)
 				.subscribe((packet) => {
 					console.log('[thread event]', packet);
@@ -118,7 +122,10 @@
 		});
 		const observable = rxNostr.use(relatedEventsReq).pipe(
 			uniq(),
-			tap(({ event }) => referencesReqEmit(event))
+			tap(({ event }) => {
+				referencesReqEmit(event);
+				repostReqEmit(event);
+			})
 		);
 
 		// Replies

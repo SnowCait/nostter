@@ -6,6 +6,7 @@
 	import { page } from '$app/stores';
 	import TimelineView from '../../TimelineView.svelte';
 	import { bookmarkEvent } from '$lib/author/Bookmark';
+	import { repostReqEmit } from '$lib/author/Repost';
 	import { appName } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
 	import { Signer } from '$lib/Signer';
@@ -34,7 +35,10 @@
 				.use(eventsReq)
 				.pipe(
 					uniq(),
-					tap(({ event }) => referencesReqEmit(event))
+					tap(({ event }) => {
+						referencesReqEmit(event);
+						repostReqEmit(event);
+					})
 				)
 				.subscribe((packet) => {
 					console.log('[rx-nostr public bookmark packet]', packet);
@@ -60,7 +64,10 @@
 							.use(eventsReq)
 							.pipe(
 								uniq(),
-								tap(({ event }) => referencesReqEmit(event))
+								tap(({ event }) => {
+									referencesReqEmit(event);
+									repostReqEmit(event);
+								})
 							)
 							.subscribe((packet) => {
 								console.log('[rx-nostr private bookmark packet]', packet);

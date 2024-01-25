@@ -105,6 +105,9 @@
 		"unbookmark": {
 			"confirm": "Unbookmark?",
 			"failed": "Failed to unbookmark"
+		},
+		"repost": {
+			"again": "Repost again?"
 		}
 	}
 }
