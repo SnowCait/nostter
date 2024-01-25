@@ -93,7 +93,7 @@
 </script>
 
 <button
-	class="bookmark clear"
+	class="clear"
 	class:hidden={!(event.kind === Kind.Text || event.kind === Kind.ChannelMessage)}
 	class:bookmarked
 	on:click={() => (bookmarked ? unbookmark(event) : bookmark(event))}
@@ -106,11 +106,11 @@
 </button>
 
 <style>
-	.bookmark {
+	button {
 		color: var(--accent-gray);
 	}
 
-	.bookmark.bookmarked {
+	button.bookmarked {
 		color: var(--red);
 	}
 </style>
