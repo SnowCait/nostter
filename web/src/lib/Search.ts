@@ -1,6 +1,6 @@
 import { nip19, type Filter, Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { repostReqEmit } from './author/Repost';
+import { authorActionReqEmit } from './author/Action';
 import { hashtagsRegexp, reverseChronological, searchRelays } from './Constants';
 import { EventItem } from './Items';
 import { pool } from '../stores/Pool';
@@ -78,7 +78,7 @@ export class Search {
 		console.log('[search events]', events);
 		for (const event of events) {
 			referencesReqEmit(event);
-			repostReqEmit(event);
+			authorActionReqEmit(event);
 		}
 		events.sort(reverseChronological);
 		return events.map((event) => new EventItem(event));

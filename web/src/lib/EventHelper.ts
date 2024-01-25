@@ -1,4 +1,5 @@
 import type { Event } from 'nostr-tools';
+import type { id } from './Types';
 
 export function isReply(event: Event): boolean {
 	if (!event.tags.some(([tagName]) => tagName === 'p')) {
@@ -33,6 +34,14 @@ export function findChannelId(tags: string[][]): string | undefined {
 				(tagName === 'e' && marker === 'root') || marker === undefined
 		)
 		?.at(1);
+}
+
+export function findReactionToId(tags: string[][]): id | undefined {
+	const ids = filterTags('e', tags);
+	if (ids.length === 0) {
+		return undefined;
+	}
+	return ids[ids.length - 1];
 }
 
 export function filterTags(tagName: string, tags: string[][]) {

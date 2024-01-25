@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
-	import { repostReqEmit } from '$lib/author/Repost';
+	import { authorActionReqEmit } from '$lib/author/Action';
 	import { Timeline } from '$lib/Timeline';
 	import { Api } from '$lib/Api';
 	import TimelineView from '../../TimelineView.svelte';
@@ -80,7 +80,7 @@
 						uniq(),
 						tap(({ event }) => {
 							referencesReqEmit(event);
-							repostReqEmit(event);
+							authorActionReqEmit(event);
 						})
 					)
 					.subscribe({

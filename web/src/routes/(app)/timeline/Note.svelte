@@ -2,12 +2,8 @@
 	import { Kind, nip19, type Event } from 'nostr-tools';
 	import type { EventItem, Item } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
-	import { preferencesStore } from '$lib/Preferences';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
-	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
-	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
-	import IconStar from '@tabler/icons-svelte/dist/svelte/icons/IconStar.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
@@ -28,6 +24,7 @@
 	import BookmarkButton from '$lib/components/BookmarkButton.svelte';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
+	import ReactionButton from '$lib/components/ReactionButton.svelte';
 	import RepostButton from '$lib/components/RepostButton.svelte';
 	import ProxyLink from '../parts/ProxyLink.svelte';
 	import Nip94 from '../Nip94.svelte';
@@ -46,7 +43,6 @@
 
 	const iconSize = 20;
 
-	let reactioned = false;
 	let zapped = false;
 	let jsonDisplay = false;
 	let channelId: string | undefined;
@@ -76,40 +72,6 @@
 			user: metadata?.content as User
 		});
 		$openNoteDialog = true;
-	}
-
-	async function reaction(note: Event) {
-		console.log('[reaction]', note);
-
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
-
-		reactioned = true;
-
-		const content = $preferencesStore.reactionEmoji.content;
-		const tags = note.tags.filter(
-			([tagName, p]) => tagName === 'e' || (tagName === 'p' && p !== note.pubkey)
-		);
-		tags.push(['e', note.id]);
-		tags.push(['p', note.pubkey]);
-		tags.push(['k', String(note.kind)]);
-		if ($preferencesStore.reactionEmoji.url !== undefined) {
-			tags.push(['emoji', content.replaceAll(':', ''), $preferencesStore.reactionEmoji.url]);
-		}
-
-		const event = await Signer.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: 7,
-			tags,
-			content
-		});
-		console.log(event);
-
-		$pool.publish($writeRelays, event).on('failed', () => {
-			reactioned = false;
-		});
 	}
 
 	async function emojiReaction(note: Event, emoji: any) {
@@ -245,22 +207,7 @@
 				>
 					<IconQuote size={iconSize} />
 				</button>
-				<button
-					class="reaction"
-					class:hidden={item.event.kind === Kind.EncryptedDirectMessage}
-					class:paw-pad={$preferencesStore.reactionEmoji.content === '🐾'}
-					class:star={$preferencesStore.reactionEmoji.content === '⭐'}
-					disabled={reactioned}
-					on:click={() => reaction(item.event)}
-				>
-					{#if $preferencesStore.reactionEmoji.content === '🐾'}
-						<IconPaw size={iconSize} />
-					{:else if $preferencesStore.reactionEmoji.content === '⭐'}
-						<IconStar size={iconSize} />
-					{:else}
-						<IconHeart size={iconSize} />
-					{/if}
-				</button>
+				<ReactionButton event={item.event} {iconSize} />
 				<span class:hidden={item.event.kind === Kind.EncryptedDirectMessage}>
 					<EmojiPicker on:pick={({ detail }) => emojiReaction(item.event, detail)} />
 				</span>
@@ -401,18 +348,6 @@
 
 	.action-menu button.hidden {
 		visibility: hidden;
-	}
-
-	.reaction:disabled {
-		color: lightpink;
-	}
-
-	.reaction.paw-pad:disabled {
-		color: orange;
-	}
-
-	.reaction.star:disabled {
-		color: gold;
 	}
 
 	.zap:disabled {

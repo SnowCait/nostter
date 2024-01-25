@@ -4,7 +4,7 @@
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { afterNavigate } from '$app/navigation';
-	import { repostReqEmit } from '$lib/author/Repost';
+	import { authorActionReqEmit } from '$lib/author/Action';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
@@ -97,7 +97,7 @@
 						uniq(),
 						tap(({ event }) => {
 							referencesReqEmit(event);
-							repostReqEmit(event);
+							authorActionReqEmit(event);
 						})
 					)
 					.subscribe({

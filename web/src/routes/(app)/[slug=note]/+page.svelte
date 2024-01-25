@@ -22,7 +22,7 @@
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import EventComponent from '../timeline/EventComponent.svelte';
-	import { repostReqEmit } from '$lib/author/Repost';
+	import { authorActionReqEmit } from '$lib/author/Action';
 
 	export let data: PageData;
 
@@ -103,7 +103,7 @@
 					uniq(),
 					tap(({ event }) => {
 						referencesReqEmit(event);
-						repostReqEmit(event);
+						authorActionReqEmit(event);
 					})
 				)
 				.subscribe((packet) => {
@@ -124,7 +124,7 @@
 			uniq(),
 			tap(({ event }) => {
 				referencesReqEmit(event);
-				repostReqEmit(event);
+				authorActionReqEmit(event);
 			})
 		);
 

@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { Kind } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
-	import { repostedEventIds, updateRepostedEvents } from '$lib/author/Repost';
+	import { repostedEventIds, updateRepostedEvents } from '$lib/author/Action';
 	import { Signer } from '$lib/Signer';
 	import { rom, writeRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
