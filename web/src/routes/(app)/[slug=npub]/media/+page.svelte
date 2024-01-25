@@ -3,6 +3,7 @@
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import type { Filter } from 'nostr-typedef';
 	import { tap, filter } from 'rxjs';
+	import { repostReqEmit } from '$lib/author/Repost';
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
@@ -10,6 +11,7 @@
 	import { pubkey as authorPubkey } from '../../../../stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+
 	export let data: LayoutData;
 
 	$: pubkey = data.pubkey;
@@ -55,7 +57,10 @@
 					.pipe(
 						uniq(),
 						filter(({ event }) => event.content.includes('https://')), // Media filter
-						tap(({ event }) => referencesReqEmit(event))
+						tap(({ event }) => {
+							referencesReqEmit(event);
+							repostReqEmit(event);
+						})
 					)
 					.subscribe({
 						next: async (packet) => {

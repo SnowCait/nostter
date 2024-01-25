@@ -1,5 +1,6 @@
 import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
+import { repostReqEmit } from './author/Repost';
 import type { UserEvent } from '../routes/types';
 import { events as timelineEvents } from '../stores/Events';
 import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
@@ -171,6 +172,7 @@ export class Api {
 		}
 
 		referencesReqEmit(event);
+		repostReqEmit(event);
 
 		const eventItem = new EventItem(event);
 
@@ -225,6 +227,7 @@ export class Api {
 
 		for (const event of [...events, ...referencedEvents]) {
 			referencesReqEmit(event);
+			repostReqEmit(event);
 			await sleep(0); // UI thread
 		}
 

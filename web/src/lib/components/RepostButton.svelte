@@ -2,6 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { Kind } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
+	import { repostedEventIds, updateRepostedEvents } from '$lib/author/Repost';
 	import { Signer } from '$lib/Signer';
 	import { rom, writeRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
@@ -10,9 +11,9 @@
 	export let event: Event;
 	export let iconSize: number;
 
-	let reposted = false;
+	$: reposted = $repostedEventIds.has(event.id);
 
-	async function repost(note: Event) {
+	async function repost(targetEvent: Event) {
 		if ($rom) {
 			console.error('Readonly');
 			return;
@@ -22,24 +23,21 @@
 			if (!confirm($_('actions.repost.again'))) {
 				return;
 			}
-		} else {
-			reposted = true;
 		}
 
-		const event = await Signer.signEvent({
+		const repostEvent = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 6 as Kind,
 			tags: [
-				['e', note.id, '', 'mention'],
-				['p', note.pubkey]
+				['e', targetEvent.id, '', 'mention'],
+				['p', targetEvent.pubkey]
 			],
 			content: ''
 		});
-		console.log(event);
+		console.log(repostEvent);
 
-		$pool.publish($writeRelays, event).on('failed', () => {
-			reposted = false;
-		});
+		$pool.publish($writeRelays, repostEvent);
+		updateRepostedEvents([repostEvent]);
 	}
 </script>
 

@@ -5,6 +5,7 @@ import { WebStorage } from '$lib/WebStorage';
 import { Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { bookmarkEvent } from '$lib/author/Bookmark';
+import { updateRepostedEvents } from '$lib/author/Repost';
 import { authorChannelsEventStore, metadataStore } from '$lib/cache/Events';
 import { updateFolloweesStore } from '$lib/Contacts';
 import { findIdentifier } from '$lib/EventHelper';
@@ -66,6 +67,10 @@ rxNostr
 			updateFolloweesStore(event.tags);
 			hometimelineReqEmit();
 			return;
+		}
+
+		if (event.kind === 6 && event.pubkey === $pubkey) {
+			updateRepostedEvents([event]);
 		}
 
 		if (event.kind === 10000) {

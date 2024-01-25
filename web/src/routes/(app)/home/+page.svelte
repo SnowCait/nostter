@@ -4,6 +4,7 @@
 	import { createRxOneshotReq, uniq, type LazyFilter } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { Kind, type Relay } from 'nostr-tools';
+	import { repostReqEmit } from '$lib/author/Repost';
 	import { appName } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
 	import { events, eventsPool } from '../../../stores/Events';
@@ -146,7 +147,10 @@
 					.use(pastChannelMessageReq)
 					.pipe(
 						uniq(),
-						tap(({ event }) => referencesReqEmit(event))
+						tap(({ event }) => {
+							referencesReqEmit(event);
+							repostReqEmit(event);
+						})
 					)
 					.subscribe({
 						next: async (packet) => {

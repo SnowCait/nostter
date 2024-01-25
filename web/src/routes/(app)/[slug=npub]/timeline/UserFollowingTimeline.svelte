@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
+	import { repostReqEmit } from '$lib/author/Repost';
 	import { Timeline } from '$lib/Timeline';
 	import { Api } from '$lib/Api';
 	import TimelineView from '../../TimelineView.svelte';
@@ -10,7 +11,7 @@
 		readRelays
 	} from '../../../../stores/Author';
 	import { userTimelineEvents as items } from '../../../../stores/Events';
-	import { Kind, SimplePool, type Event, nip19 } from 'nostr-tools';
+	import { Kind, SimplePool, nip19 } from 'nostr-tools';
 	import { minTimelineLength } from '$lib/Constants';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { EventItem } from '$lib/Items';
@@ -77,7 +78,10 @@
 					.use(pastEventsReq)
 					.pipe(
 						uniq(),
-						tap(({ event }: { event: Event }) => referencesReqEmit(event))
+						tap(({ event }) => {
+							referencesReqEmit(event);
+							repostReqEmit(event);
+						})
 					)
 					.subscribe({
 						next: async (packet) => {
