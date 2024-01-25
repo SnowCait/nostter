@@ -5,6 +5,7 @@
 	import { pubkey, rom, writeRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
+	import IconBookmarkFilled from '@tabler/icons-svelte/dist/svelte/icons/IconBookmarkFilled.svelte';
 	import { Api } from '$lib/Api';
 
 	export let event: Event;
@@ -94,10 +95,13 @@
 	class="bookmark clear"
 	class:hidden={!(event.kind === Kind.Text || event.kind === Kind.ChannelMessage)}
 	class:bookmarked
-	on:click={() => bookmark(event)}
-	on:dblclick={() => removeBookmark(event)}
+	on:click={() => (bookmarked ? removeBookmark(event) : bookmark(event))}
 >
-	<IconBookmark size={iconSize} />
+	{#if bookmarked}
+		<IconBookmarkFilled size={iconSize} />
+	{:else}
+		<IconBookmark size={iconSize} />
+	{/if}
 </button>
 
 <style>
