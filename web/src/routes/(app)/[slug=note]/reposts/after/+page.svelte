@@ -51,7 +51,7 @@
 					kinds: [1],
 					authors: [packet.event.pubkey],
 					since: createdAt,
-					until: createdAt + 10 * 60 * 60
+					until: createdAt + 10 * 60
 				}
 			]);
 		});
