@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { createRxOneshotReq, uniq, type LazyFilter } from 'rx-nostr';
+	import { uniq, type LazyFilter, createRxBackwardReq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { Kind, type Relay } from 'nostr-tools';
 	import { authorActionReqEmit } from '$lib/author/Action';
@@ -85,7 +85,11 @@
 	});
 
 	async function load() {
-		console.log('[rx-nostr home timeline load]', $followees.length, rxNostr.getAllRelayState());
+		console.log(
+			'[rx-nostr home timeline load]',
+			$followees.length,
+			rxNostr.getAllRelayStatus()
+		);
 
 		if ($followees.length === 0) {
 			console.warn('Please login');
@@ -140,11 +144,11 @@
 			}
 			const filters = [...followeesFilters, ...authorFilters];
 
-			console.debug('[rx-nostr home timeline REQ]', filters, rxNostr.getAllRelayState());
-			const pastChannelMessageReq = createRxOneshotReq({ filters });
+			console.debug('[rx-nostr home timeline REQ]', filters, rxNostr.getAllRelayStatus());
 			await new Promise<void>((resolve, reject) => {
+				const loadTimelineReq = createRxBackwardReq();
 				rxNostr
-					.use(pastChannelMessageReq)
+					.use(loadTimelineReq)
 					.pipe(
 						uniq(),
 						tap(({ event }) => {
@@ -209,6 +213,8 @@
 							reject(error);
 						}
 					});
+				loadTimelineReq.emit(filters);
+				loadTimelineReq.over();
 			});
 
 			until -= seconds;
