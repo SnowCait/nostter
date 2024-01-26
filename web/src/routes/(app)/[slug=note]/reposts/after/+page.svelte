@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { createRxBackwardReq, createRxForwardReq, uniq } from 'rx-nostr';
-	import { tap } from 'rxjs';
+	import { batch, createRxBackwardReq, uniq } from 'rx-nostr';
+	import { bufferTime, tap } from 'rxjs';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { EventItem } from '$lib/Items';
 	import { authorActionReqEmit } from '$lib/author/Action';
+	import { maxFilters } from '$lib/Constants';
 	import type { pubkey } from '$lib/Types';
 	import type { LayoutData } from '../../$types';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
@@ -35,7 +36,7 @@
 			repostsReq.emit([{ kinds: [6], '#e': [data.eventId] }]);
 		});
 
-	const repostsReq = createRxForwardReq();
+	const repostsReq = createRxBackwardReq();
 	rxNostr
 		.use(repostsReq)
 		.pipe(uniq())
@@ -56,9 +57,9 @@
 			]);
 		});
 
-	const eventsReq = createRxForwardReq();
+	const eventsReq = createRxBackwardReq();
 	rxNostr
-		.use(eventsReq)
+		.use(eventsReq.pipe(bufferTime(500, null, maxFilters), batch()))
 		.pipe(
 			uniq(),
 			tap(({ event }) => {
