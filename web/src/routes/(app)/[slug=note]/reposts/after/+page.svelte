@@ -45,7 +45,7 @@
 				console.error('[after reposts logic error]');
 				return;
 			}
-			const createdAt = item.event.created_at;
+			const createdAt = packet.event.created_at;
 			eventsReq.emit([
 				{
 					kinds: [1],
