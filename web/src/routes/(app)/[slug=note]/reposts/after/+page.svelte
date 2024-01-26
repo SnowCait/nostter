@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { batch, createRxBackwardReq, uniq } from 'rx-nostr';
 	import { bufferTime, tap } from 'rxjs';
-	import { afterNavigate } from '$app/navigation';
 	import { EventItem } from '$lib/Items';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { maxFilters } from '$lib/Constants';
@@ -83,8 +83,8 @@
 			}
 		});
 
-	afterNavigate(() => {
-		console.log('[after reposts page]', data);
+	onMount(() => {
+		console.log('[after reposts page]', data.eventId);
 		eventReq.emit([{ ids: [data.eventId] }]);
 	});
 </script>
