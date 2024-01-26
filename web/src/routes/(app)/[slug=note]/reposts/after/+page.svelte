@@ -87,8 +87,6 @@
 		console.log('[after reposts page]', data);
 		eventReq.emit([{ ids: [data.eventId] }]);
 	});
-
-	beforeNavigate(() => {});
 </script>
 
 <h1>{$_('thread.reposts.after.title')}</h1>
