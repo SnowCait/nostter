@@ -6,6 +6,7 @@
 	import { EventItem } from '$lib/Items';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { maxFilters } from '$lib/Constants';
+	import { filterTags } from '$lib/EventHelper';
 	import type { pubkey } from '$lib/Types';
 	import type { LayoutData } from '../../$types';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
@@ -18,7 +19,9 @@
 	let item: EventItem | undefined;
 	let itemsMap = new Map<pubkey, EventItem>();
 
-	$: items = [...itemsMap].map(([, item]) => item);
+	$: items = [...itemsMap]
+		.map(([, item]) => item)
+		.filter((item) => filterTags('e', item.event.tags).length === 0);
 
 	const eventReq = createRxBackwardReq();
 	rxNostr
