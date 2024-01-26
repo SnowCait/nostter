@@ -112,5 +112,13 @@
 		"reaction": {
 			"again": "Reaction again?"
 		}
+	},
+	"thread": {
+		"reposts": {
+			"after": {
+				"title": "Notes after reposts",
+				"none": "-"
+			}
+		}
 	}
 }
