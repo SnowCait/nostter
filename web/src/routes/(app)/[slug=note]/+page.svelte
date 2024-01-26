@@ -3,9 +3,11 @@
 	import { createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
 	import { tap, merge, filter } from 'rxjs';
 	import { _ } from 'svelte-i18n';
+	import { page } from '$app/stores';
+	import { authorActionReqEmit } from '$lib/author/Action';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
-	import type { PageData } from './$types';
+	import type { LayoutData } from './$types';
 	import { author, readRelays } from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
@@ -22,9 +24,8 @@
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import EventComponent from '../timeline/EventComponent.svelte';
-	import { authorActionReqEmit } from '$lib/author/Action';
 
-	export let data: PageData;
+	export let data: LayoutData;
 
 	let focusedElement: HTMLDivElement | undefined;
 
@@ -339,6 +340,9 @@
 		<span class="count">-</span>
 	</section>
 {/each}
+{#if repostEventItems.length > 0}
+	<div><a href="/{$page.params.slug}/reposts/after">{$_('thread.reposts.after.title')}</a></div>
+{/if}
 {#if $author !== undefined && item !== undefined}
 	<div class="mute">
 		<MuteButton tagName="e" tagContent={rootId === undefined ? item.event.id : rootId} />

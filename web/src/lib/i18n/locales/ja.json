@@ -111,5 +111,13 @@
 		"reaction": {
 			"again": "もう一度リアクションしますか？"
 		}
+	},
+	"thread": {
+		"reposts": {
+			"after": {
+				"title": "リポスト後の投稿",
+				"none": "-"
+			}
+		}
 	}
 }
