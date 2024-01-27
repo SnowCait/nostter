@@ -81,7 +81,7 @@
 <h1>{$_('pages.profile_edit')}</h1>
 
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<form on:submit|preventDefault={save} on:keyup|stopPropagation={console.debug}>
+<form class="card" on:submit|preventDefault={save} on:keyup|stopPropagation={console.debug}>
 	<div class="picture">
 		<label for="picture">Picture</label>
 		<div>
@@ -165,7 +165,7 @@
 
 <style>
 	div {
-		margin: 1rem 0;
+		margin-bottom: 1rem;
 	}
 
 	input[type='url'],
