@@ -27,53 +27,51 @@
 
 <h1>{$_('layout.header.preferences')}</h1>
 
-<h2>Device</h2>
-<div><Theme /></div>
-<div><EnablePreview /></div>
-<div><Notification /></div>
-<div><UriScheme /></div>
-<div><AutoRefresh /></div>
-<div><WalletConnect /></div>
-<div><DeveloperMode /></div>
-{#if $developerMode}
-	<div><RelayStates /></div>
-	<div><WebStorage /></div>
-	<h3>{$_('preferences.trouble_shooting')}</h3>
-	<div><Reload /></div>
-	<div><ClearEmojiMartCache /></div>
-{/if}
-{#if $author !== undefined}
-	<h2>Shared</h2>
-	<div><ReactionEmoji /></div>
-	<div>
-		<a href="https://emojito.meme/" target="_blank" rel="noopener noreferrer">
-			Edit custom emojis
-		</a>
-	</div>
-	<h3>{$_('preferences.mute.mute')}</h3>
-	<details>
-		<summary>{$_('preferences.mute.pubkeys')}</summary>
-		<MutedUsers />
-	</details>
-	<details>
-		<summary>{$_('preferences.mute.events')}</summary>
-		<MutedEvents />
-	</details>
-	<details>
-		<summary>{$_('preferences.mute.words')}</summary>
-		<WordMute />
-	</details>
-{/if}
+<div class="card">
+	<h2>Device</h2>
+	<div><Theme /></div>
+	<div><EnablePreview /></div>
+	<div><Notification /></div>
+	<div><UriScheme /></div>
+	<div><AutoRefresh /></div>
+	<div><WalletConnect /></div>
+	<div><DeveloperMode /></div>
+	{#if $developerMode}
+		<div><RelayStates /></div>
+		<div><WebStorage /></div>
+		<h3>{$_('preferences.trouble_shooting')}</h3>
+		<div><Reload /></div>
+		<div><ClearEmojiMartCache /></div>
+	{/if}
+	{#if $author !== undefined}
+		<h2>Shared</h2>
+		<div><ReactionEmoji /></div>
+		<div>
+			<a href="https://emojito.meme/" target="_blank" rel="noopener noreferrer">
+				Edit custom emojis
+			</a>
+		</div>
+		<h3>{$_('preferences.mute.mute')}</h3>
+		<details>
+			<summary>{$_('preferences.mute.pubkeys')}</summary>
+			<MutedUsers />
+		</details>
+		<details>
+			<summary>{$_('preferences.mute.events')}</summary>
+			<MutedEvents />
+		</details>
+		<details>
+			<summary>{$_('preferences.mute.words')}</summary>
+			<WordMute />
+		</details>
+	{/if}
 
-<h2>{$_('logout.logout')}</h2>
-<div><Logout /></div>
+	<h2>{$_('logout.logout')}</h2>
+	<div><Logout /></div>
+</div>
 
 <style>
-	h2 {
-		margin-top: 2rem;
-	}
-
-	div {
+	.card > div {
 		margin: 1em auto;
 	}
 </style>
