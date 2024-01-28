@@ -2,6 +2,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
+	import { browser } from '$app/environment';
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
@@ -31,7 +32,7 @@
 
 	$: user = metadata?.content;
 
-	$: if (p !== pubkey) {
+	$: if (p !== pubkey && browser) {
 		console.log('[npub profile]', nip19.npubEncode(pubkey), relays);
 
 		p = pubkey;
