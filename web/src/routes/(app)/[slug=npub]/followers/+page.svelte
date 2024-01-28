@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, latestEach, uniq } from 'rx-nostr';
 	import { bufferWhen, interval } from 'rxjs';
 	import { _ } from 'svelte-i18n';
+	import { browser } from '$app/environment';
 	import TimelineView from '../../TimelineView.svelte';
-	import { nip19 } from 'nostr-tools';
 	import { appName } from '$lib/Constants';
 	import type { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
@@ -19,7 +20,7 @@
 		.map((pubkey) => $metadataStore.get(pubkey))
 		.filter((metadata): metadata is Metadata => metadata !== undefined);
 
-	$: if (pubkey !== data.pubkey) {
+	$: if (pubkey !== data.pubkey && browser) {
 		console.log('[followers page]', nip19.npubEncode(data.pubkey));
 		pubkey = data.pubkey;
 
