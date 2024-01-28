@@ -3,6 +3,7 @@
 	import { createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
 	import { tap, merge, filter } from 'rxjs';
 	import { _ } from 'svelte-i18n';
+	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
@@ -81,7 +82,7 @@
 		return map;
 	}, new Map<string, EventItem[]>());
 
-	$: if (eventId !== data.eventId) {
+	$: if (eventId !== data.eventId && browser) {
 		eventId = data.eventId;
 		console.log('[thread event id]', eventId);
 
