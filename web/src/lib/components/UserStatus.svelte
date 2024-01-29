@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Event } from 'nostr-tools';
 	import { chronological } from '$lib/Constants';
-	import { userStatusesGeneral, userStatusesMusic } from '../../stores/UserStatuses';
+	import { findIdentifier } from '$lib/EventHelper';
+	import { userStatusesMap } from '$lib/UserStatus';
 	import { pubkey as authorPubkey } from '../../stores/Author';
 	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
 	import IconMusic from '@tabler/icons-svelte/dist/svelte/icons/IconMusic.svelte';
@@ -17,10 +18,10 @@
 	let musicLink: URL | undefined;
 
 	$: {
-		$userStatusesGeneral.sort(chronological);
-		$userStatusesMusic.sort(chronological);
-		generalEvent = $userStatusesGeneral.findLast((event) => event.pubkey === pubkey);
-		musicEvent = $userStatusesMusic.findLast((event) => event.pubkey === pubkey);
+		const statuses = $userStatusesMap.get(pubkey) ?? [];
+		statuses.sort(chronological);
+		generalEvent = statuses.findLast((event) => findIdentifier(event.tags) === 'general');
+		musicEvent = statuses.findLast((event) => findIdentifier(event.tags) === 'music');
 
 		const generalLinkTag = generalEvent?.tags.find(
 			([tagName, url]) => tagName === 'r' && url !== undefined

@@ -1,36 +1,32 @@
-import { get } from 'svelte/store';
-import { batch, createRxForwardReq, latestEach, uniq } from 'rx-nostr';
+import { get, writable } from 'svelte/store';
+import { batch, createRxBackwardReq, isExpired, uniq } from 'rx-nostr';
 import { bufferTime } from 'rxjs';
+import type { Event } from 'nostr-typedef';
 import { rxNostr } from './timelines/MainTimeline';
-import { userStatusesGeneral, userStatusesMusic } from '../stores/UserStatuses';
+import type { pubkey } from './Types';
 
-export const userStatusReq = createRxForwardReq();
+export const userStatusesMap = writable(new Map<pubkey, Event[]>());
+
+export const userStatusReq = createRxBackwardReq();
 rxNostr
 	.use(userStatusReq.pipe(bufferTime(1000), batch()))
-	.pipe(
-		uniq(),
-		latestEach((packet) => packet.event.pubkey)
-	)
+	.pipe(uniq())
 	.subscribe((packet) => {
-		console.log('[user status]', packet, packet.event.pubkey, packet.event.content);
-		const tags: string[][] = packet.event.tags;
-		const expiration = tags.find(([tagName]) => tagName === 'expiration')?.at(1);
-		if (expiration !== undefined && Number(expiration) < Math.floor(Date.now() / 1000)) {
+		console.debug('[user status]', packet, packet.event.pubkey, packet.event.content);
+		if (isExpired(packet.event)) {
 			return;
 		}
-		const identifier = tags.find(([tagName]) => tagName === 'd')?.at(1) ?? '';
-		switch (identifier) {
-			case 'general': {
-				const $userStatusesGeneral = get(userStatusesGeneral);
-				$userStatusesGeneral.push(packet.event);
-				userStatusesGeneral.set($userStatusesGeneral);
-				break;
-			}
-			case 'music': {
-				const $userStatusesMusic = get(userStatusesMusic);
-				$userStatusesMusic.push(packet.event);
-				userStatusesMusic.set($userStatusesMusic);
-				break;
-			}
+
+		const $userStatusesMap = get(userStatusesMap);
+		const statuses = $userStatusesMap.get(packet.event.pubkey);
+		if (statuses === undefined) {
+			$userStatusesMap.set(packet.event.pubkey, [packet.event]);
+		} else {
+			statuses.push(packet.event);
+			$userStatusesMap.set(
+				packet.event.pubkey,
+				statuses.filter((status) => !isExpired(status))
+			);
 		}
+		userStatusesMap.set($userStatusesMap);
 	});
