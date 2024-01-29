@@ -17,7 +17,7 @@ import { authorReplaceableKinds } from '$lib/Author';
 import { chunk } from '$lib/Array';
 import { filterLimitItems } from '$lib/Constants';
 import { Mute } from '$lib/Mute';
-import { userStatusReq } from '$lib/UserStatus';
+import { userStatusReqEmit } from '$lib/UserStatus';
 import { pubkey, author, updateRelays, followees } from '../../stores/Author';
 import { lastReadAt, notifiedEventItems, unreadEventItems } from '../../stores/Notifications';
 import { events, eventsPool } from '../../stores/Events';
@@ -206,11 +206,9 @@ rxNostr
 		}
 
 		// User Status
-		console.debug('[user status emit]', event.pubkey);
-		userStatusReq.emit({
-			kinds: [30315],
-			authors: [event.pubkey]
-		});
+		if (event.kind !== 30315 && !get(followees).includes(event.pubkey)) {
+			userStatusReqEmit(event.pubkey);
+		}
 	});
 
 function notifyStreamingSpeed(createdAt: number): void {
