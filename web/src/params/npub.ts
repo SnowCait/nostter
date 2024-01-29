@@ -10,6 +10,6 @@ export const match = ((param) => {
 		(!excludePaths.includes(param) &&
 			!matchNote(param) &&
 			!matchNaddr(param) &&
-			/^(?:[\w-.]+@)?([\w-]\.)+\w{2,}$/.test(param))
+			/^(?:[\w-.]+@)?([\w-]+\.)+\w{2,}$/.test(param))
 	);
 }) satisfies ParamMatcher;
