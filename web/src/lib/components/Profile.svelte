@@ -166,6 +166,9 @@
 	<div>
 		<a href="/{slug}/reactions">{$_('pages.reactions')}</a>
 	</div>
+	<div>
+		<a href="https://rss.nostter.app/{slug}">RSS</a>
+	</div>
 
 	{#if $developerMode}
 		<ReplaceableEventsJson />
