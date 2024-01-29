@@ -17,7 +17,7 @@ import { authorReplaceableKinds } from '$lib/Author';
 import { chunk } from '$lib/Array';
 import { filterLimitItems } from '$lib/Constants';
 import { Mute } from '$lib/Mute';
-import { userStatusReqEmit } from '$lib/UserStatus';
+import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
 import { pubkey, author, updateRelays, followees } from '../../stores/Author';
 import { lastReadAt, notifiedEventItems, unreadEventItems } from '../../stores/Notifications';
 import { events, eventsPool } from '../../stores/Events';
@@ -153,9 +153,7 @@ rxNostr
 
 		if (event.kind === 30315) {
 			console.log('[user status]', event, packet.from);
-			if (event.content === '') {
-				return;
-			}
+			updateUserStatus(event);
 		}
 
 		referencesReqEmit(event);

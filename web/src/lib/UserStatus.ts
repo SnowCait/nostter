@@ -17,20 +17,23 @@ rxNostr
 	)
 	.subscribe((packet) => {
 		console.debug('[user status]', packet, packet.event.pubkey, packet.event.content);
-
-		const $userStatusesMap = get(userStatusesMap);
-		const statuses = $userStatusesMap.get(packet.event.pubkey);
-		if (statuses === undefined) {
-			$userStatusesMap.set(packet.event.pubkey, [packet.event]);
-		} else {
-			statuses.push(packet.event);
-			$userStatusesMap.set(
-				packet.event.pubkey,
-				statuses.filter((status) => !isExpired(status))
-			);
-		}
-		userStatusesMap.set($userStatusesMap);
+		updateUserStatus(packet.event);
 	});
+
+export function updateUserStatus(event: Event): void {
+	const $userStatusesMap = get(userStatusesMap);
+	const statuses = $userStatusesMap.get(event.pubkey);
+	if (statuses === undefined) {
+		$userStatusesMap.set(event.pubkey, [event]);
+	} else {
+		statuses.push(event);
+		$userStatusesMap.set(
+			event.pubkey,
+			statuses.filter((status) => !isExpired(status))
+		);
+	}
+	userStatusesMap.set($userStatusesMap);
+}
 
 export function userStatusReqEmit(pubkey: pubkey): void {
 	console.debug('[user status emit]', pubkey);
