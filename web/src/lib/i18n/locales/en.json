@@ -120,5 +120,9 @@
 				"none": "-"
 			}
 		}
+	},
+	"error": {
+		"title": "Error",
+		"message": "Not found or something wrong."
 	}
 }
