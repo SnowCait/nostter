@@ -154,6 +154,7 @@ rxNostr
 		if (event.kind === 30315) {
 			console.log('[user status]', event, packet.from);
 			updateUserStatus(event);
+			return;
 		}
 
 		referencesReqEmit(event);
@@ -204,7 +205,7 @@ rxNostr
 		}
 
 		// User Status
-		if (event.kind !== 30315 && !get(followees).includes(event.pubkey)) {
+		if (!get(followees).includes(event.pubkey)) {
 			userStatusReqEmit(event.pubkey);
 		}
 	});

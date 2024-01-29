@@ -2,6 +2,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { robohash, type EventItem, type Item, alternativeName } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
+	import UserStatus from './UserStatus.svelte';
 	import CreatedAt from '../../routes/(app)/CreatedAt.svelte';
 
 	export let item: Item;
@@ -31,6 +32,9 @@
 			<div class="created_at">
 				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
 			</div>
+		</div>
+		<div>
+			<UserStatus pubkey={item.event.pubkey} />
 		</div>
 		<slot name="content" />
 	</div>
