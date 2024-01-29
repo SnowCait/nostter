@@ -2,7 +2,7 @@ import type { ParamMatcher } from '@sveltejs/kit';
 import { match as matchNaddr } from './naddr';
 import { match as matchNote } from './note';
 
-const excludePaths = ['robots.txt', 'apple-touch-icon-precomposed.png'];
+const excludePaths = ['robots.txt', 'icon.png', 'apple-touch-icon-precomposed.png'];
 
 export const match = ((param) => {
 	return (
