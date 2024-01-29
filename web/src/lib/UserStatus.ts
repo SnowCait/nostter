@@ -1,36 +1,44 @@
-import { get } from 'svelte/store';
-import { batch, createRxForwardReq, latestEach, uniq } from 'rx-nostr';
-import { bufferTime } from 'rxjs';
+import { get, writable } from 'svelte/store';
+import { batch, createRxBackwardReq, isExpired, uniq } from 'rx-nostr';
+import { bufferTime, filter } from 'rxjs';
+import type { Event } from 'nostr-typedef';
 import { rxNostr } from './timelines/MainTimeline';
-import { userStatusesGeneral, userStatusesMusic } from '../stores/UserStatuses';
+import { maxFilters } from './Constants';
+import type { pubkey } from './Types';
 
-export const userStatusReq = createRxForwardReq();
+export const userStatusesMap = writable(new Map<pubkey, Event[]>());
+
+export const userStatusReq = createRxBackwardReq();
 rxNostr
-	.use(userStatusReq.pipe(bufferTime(1000), batch()))
+	.use(userStatusReq.pipe(bufferTime(1000, null, maxFilters), batch()))
 	.pipe(
 		uniq(),
-		latestEach((packet) => packet.event.pubkey)
+		filter(({ event }) => !isExpired(event))
 	)
 	.subscribe((packet) => {
-		console.log('[user status]', packet, packet.event.pubkey, packet.event.content);
-		const tags: string[][] = packet.event.tags;
-		const expiration = tags.find(([tagName]) => tagName === 'expiration')?.at(1);
-		if (expiration !== undefined && Number(expiration) < Math.floor(Date.now() / 1000)) {
-			return;
-		}
-		const identifier = tags.find(([tagName]) => tagName === 'd')?.at(1) ?? '';
-		switch (identifier) {
-			case 'general': {
-				const $userStatusesGeneral = get(userStatusesGeneral);
-				$userStatusesGeneral.push(packet.event);
-				userStatusesGeneral.set($userStatusesGeneral);
-				break;
-			}
-			case 'music': {
-				const $userStatusesMusic = get(userStatusesMusic);
-				$userStatusesMusic.push(packet.event);
-				userStatusesMusic.set($userStatusesMusic);
-				break;
-			}
-		}
+		console.debug('[user status]', packet, packet.event.pubkey, packet.event.content);
+		updateUserStatus(packet.event);
 	});
+
+export function updateUserStatus(event: Event): void {
+	const $userStatusesMap = get(userStatusesMap);
+	const statuses = $userStatusesMap.get(event.pubkey);
+	if (statuses === undefined) {
+		$userStatusesMap.set(event.pubkey, [event]);
+	} else {
+		statuses.push(event);
+		$userStatusesMap.set(
+			event.pubkey,
+			statuses.filter((status) => !isExpired(status))
+		);
+	}
+	userStatusesMap.set($userStatusesMap);
+}
+
+export function userStatusReqEmit(pubkey: pubkey): void {
+	console.debug('[user status emit]', pubkey);
+	userStatusReq.emit({
+		kinds: [30315],
+		authors: [pubkey]
+	});
+}
