@@ -15,7 +15,7 @@
 	import { minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { userStatusReqEmit } from '$lib/UserStatus';
+	import { userStatusReqEmit, userStatusesMap } from '$lib/UserStatus';
 	import { hasSubscribed, hometimelineReqEmit } from '$lib/timelines/HomeTimeline';
 	import { Timeline } from '$lib/Timeline';
 	import HomeTab from '$lib/components/HomeTab.svelte';
@@ -145,7 +145,7 @@
 			const filters = [...followeesFilters, ...authorFilters];
 
 			console.debug('[rx-nostr home timeline REQ]', filters, rxNostr.getAllRelayStatus());
-			const userStatusPubkeys = new Set<string>();
+			const userStatusPubkeys = new Set<string>($userStatusesMap.keys());
 			await new Promise<void>((resolve, reject) => {
 				const loadTimelineReq = createRxBackwardReq();
 				rxNostr
@@ -155,7 +155,7 @@
 						tap(({ event }) => {
 							referencesReqEmit(event);
 							authorActionReqEmit(event);
-							if (event.kind !== 30315 && !userStatusPubkeys.has(event.pubkey)) {
+							if (!userStatusPubkeys.has(event.pubkey)) {
 								userStatusPubkeys.add(event.pubkey);
 								userStatusReqEmit(event.pubkey);
 							}
