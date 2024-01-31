@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { type LazyFilter, createRxBackwardReq, uniq, now } from 'rx-nostr';
+	import { tap } from 'rxjs';
 	import { afterNavigate } from '$app/navigation';
 	import type { PageData } from './$types';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { authorActionReqEmit } from '$lib/author/Action';
+	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { EventItem } from '$lib/Items';
 	import { items, pubkey, since } from '$lib/timelines/DateTimeline';
 	import DateNavigation from './DateNavigation.svelte';
@@ -15,7 +17,13 @@
 	const req = createRxBackwardReq();
 	rxNostr
 		.use(req)
-		.pipe(uniq())
+		.pipe(
+			uniq(),
+			tap(({ event }) => {
+				referencesReqEmit(event);
+				authorActionReqEmit(event);
+			})
+		)
 		.subscribe((packet) => {
 			console.debug('[rx-nostr event]', packet);
 			const item = new EventItem(packet.event);
