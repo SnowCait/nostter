@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { type LazyFilter, createRxBackwardReq, uniq } from 'rx-nostr';
+	import { type LazyFilter, createRxBackwardReq, uniq, now } from 'rx-nostr';
 	import { afterNavigate } from '$app/navigation';
 	import type { PageData } from './$types';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { EventItem } from '$lib/Items';
 	import { items, pubkey, since } from '$lib/timelines/DateTimeline';
+	import DateNavigation from './DateNavigation.svelte';
 	import TimelineView from '../../../../TimelineView.svelte';
 
 	export let data: PageData;
@@ -50,11 +51,15 @@
 				since: $since + hours(i * (24 / splitNumber)),
 				until: $since + hours(i * (24 / splitNumber) + splitNumber)
 			};
-		});
+		}).filter((filter) => filter.since < now());
 		req.emit(filters);
 	});
 </script>
 
 <h1>{data.date.toLocaleDateString()}</h1>
 
+<DateNavigation slug={data.slug} date={data.date} />
 <TimelineView items={$items} load={async () => console.debug()} showLoading={false} />
+{#if $items.length > 0}
+	<DateNavigation slug={data.slug} date={data.date} />
+{/if}
