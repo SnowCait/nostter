@@ -1,16 +1,21 @@
 <script lang="ts">
 	import { type LazyFilter, createRxBackwardReq, uniq, now } from 'rx-nostr';
-	import { tap } from 'rxjs';
+	import { filter, tap } from 'rxjs';
+	import { nip19 } from 'nostr-tools';
 	import { afterNavigate } from '$app/navigation';
 	import type { PageData } from './$types';
 	import { authorActionReqEmit } from '$lib/author/Action';
+	import { metadataStore } from '$lib/cache/Events';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { appName } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { items, pubkey, since } from '$lib/timelines/DateTimeline';
 	import DateNavigation from './DateNavigation.svelte';
 	import TimelineView from '../../../../TimelineView.svelte';
 
 	export let data: PageData;
+
+	$: metadata = $metadataStore.get(data.pubkey);
 
 	const splitNumber = 4;
 
@@ -22,10 +27,11 @@
 			tap(({ event }) => {
 				referencesReqEmit(event);
 				authorActionReqEmit(event);
-			})
+			}),
+			filter(({ event }) => !$items.some((x) => x.event.id === event.id))
 		)
 		.subscribe((packet) => {
-			console.debug('[rx-nostr event]', packet);
+			console.debug('[rx-nostr npub date]', packet);
 			const item = new EventItem(packet.event);
 			const index = $items.findIndex((x) => x.event.created_at < item.event.created_at);
 			if (index < 0) {
@@ -64,7 +70,21 @@
 	});
 </script>
 
-<h1>{data.date.toLocaleDateString()}</h1>
+<svelte:head>
+	{#if metadata === undefined}
+		<title>
+			{appName} -
+			{nip19.npubEncode(data.pubkey)}
+			{data.date.toLocaleDateString()}
+		</title>
+	{:else}
+		<title>
+			{appName} -
+			{metadata.displayName} (@{metadata.name})
+			{data.date.toLocaleDateString()}
+		</title>
+	{/if}
+</svelte:head>
 
 <DateNavigation slug={data.slug} date={data.date} />
 <TimelineView items={$items} load={async () => console.debug()} showLoading={false} />
