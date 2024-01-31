@@ -17,6 +17,9 @@
 	>
 		<IconChevronLeft />
 	</a>
+
+	<h1>{date.toLocaleDateString()}</h1>
+
 	<a
 		href="/{slug}/{next.getFullYear()}/{(next.getMonth() + 1)
 			.toString()
@@ -31,5 +34,9 @@
 		display: flex;
 		justify-content: space-between;
 		margin: 0.5rem auto;
+	}
+
+	a {
+		margin-top: auto;
 	}
 </style>
