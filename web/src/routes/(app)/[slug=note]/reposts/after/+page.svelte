@@ -5,7 +5,7 @@
 	import { bufferTime, tap } from 'rxjs';
 	import { EventItem } from '$lib/Items';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { maxFilters } from '$lib/Constants';
+	import { chronologicalItem, maxFilters } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
 	import type { pubkey } from '$lib/Types';
 	import type { LayoutData } from '../../$types';
@@ -21,7 +21,8 @@
 
 	$: items = [...itemsMap]
 		.map(([, item]) => item)
-		.filter((item) => filterTags('e', item.event.tags).length === 0);
+		.filter((item) => filterTags('e', item.event.tags).length === 0)
+		.sort((x, y) => chronologicalItem(x, y));
 
 	const eventReq = createRxBackwardReq();
 	rxNostr
