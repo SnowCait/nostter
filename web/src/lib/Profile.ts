@@ -1,23 +1,23 @@
 import { get, writable } from 'svelte/store';
-import type { Event } from 'nostr-typedef';
-import type { pubkey } from './Types';
-import { createRxBackwardReq, latestEach } from 'rx-nostr';
+import type { id, pubkey } from './Types';
+import { createRxBackwardReq, type EventPacket } from 'rx-nostr';
 import { rxNostr } from './timelines/MainTimeline';
 import { Api } from './Api';
 
-export const replaceableEvents = writable(new Map<number, Event>());
+export const replaceableEvents = writable(new Map<id, EventPacket[]>());
 
 export function replaceableEventsReqEmit(pubkey: pubkey) {
 	const replaceableEventsReq = createRxBackwardReq();
-	rxNostr
-		.use(replaceableEventsReq)
-		.pipe(latestEach(({ event }) => event.kind))
-		.subscribe((packet) => {
-			console.debug('[rx-nostr replaceable event]', packet);
-			const $replaceableEvents = get(replaceableEvents);
-			$replaceableEvents.set(packet.event.kind, packet.event);
-			replaceableEvents.set($replaceableEvents);
-		});
+	rxNostr.use(replaceableEventsReq).subscribe((packet) => {
+		console.debug('[rx-nostr replaceable event]', packet);
+		const $replaceableEvents = get(replaceableEvents);
+		const packets = $replaceableEvents.get(packet.event.id);
+		$replaceableEvents.set(
+			packet.event.id,
+			packets === undefined ? [packet] : [...packets, packet]
+		);
+		replaceableEvents.set($replaceableEvents);
+	});
 	replaceableEventsReq.emit([
 		{
 			kinds: Api.replaceableKinds,
