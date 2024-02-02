@@ -15,9 +15,10 @@
 </button>
 {#if showReplaceableEvents}
 	{#each [...$replaceableEvents]
-		.map(([, event]) => event)
-		.toSorted((x, y) => x.kind - y.kind) as event}
-		<Json object={event} />
+		.map(([, packets]) => packets)
+		.toSorted((x, y) => x[0].event.kind - y[0].event.kind) as packets}
+		<pre>{packets.map((packet) => packet.from).join('\n')}</pre>
+		<Json object={packets[0].event} />
 	{:else}
 		<div>Fetching...</div>
 	{/each}
