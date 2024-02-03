@@ -113,6 +113,7 @@
 		}
 	},
 	"thread": {
+		"date": "前後の投稿",
 		"reposts": {
 			"after": {
 				"title": "リポスト後の投稿",

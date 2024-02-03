@@ -1,4 +1,5 @@
 <script lang="ts">
+	import DateLink from '$lib/components/DateLink.svelte';
 	import IconChevronLeft from '@tabler/icons-svelte/dist/svelte/icons/IconChevronLeft.svelte';
 	import IconChevronRight from '@tabler/icons-svelte/dist/svelte/icons/IconChevronRight.svelte';
 
@@ -10,23 +11,19 @@
 </script>
 
 <nav>
-	<a
-		href="/{slug}/{previous.getFullYear()}/{(previous.getMonth() + 1)
-			.toString()
-			.padStart(2, '0')}/{previous.getDate()}"
-	>
-		<IconChevronLeft />
-	</a>
+	<span>
+		<DateLink {slug} date={previous}>
+			<IconChevronLeft />
+		</DateLink>
+	</span>
 
 	<h1>{date.toLocaleDateString()}</h1>
 
-	<a
-		href="/{slug}/{next.getFullYear()}/{(next.getMonth() + 1)
-			.toString()
-			.padStart(2, '0')}/{next.getDate()}"
-	>
-		<IconChevronRight />
-	</a>
+	<span>
+		<DateLink {slug} date={next}>
+			<IconChevronRight />
+		</DateLink>
+	</span>
 </nav>
 
 <style>
@@ -36,7 +33,7 @@
 		margin: 0.5rem auto;
 	}
 
-	a {
+	span {
 		margin-top: auto;
 	}
 </style>

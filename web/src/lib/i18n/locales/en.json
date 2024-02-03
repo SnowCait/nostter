@@ -114,6 +114,7 @@
 		}
 	},
 	"thread": {
+		"date": "Previous and next notes",
 		"reposts": {
 			"after": {
 				"title": "Notes after reposts",

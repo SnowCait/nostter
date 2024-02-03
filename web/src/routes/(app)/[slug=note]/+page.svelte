@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
 	import { tap, merge, filter } from 'rxjs';
@@ -24,6 +25,7 @@
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import NotFound from '$lib/components/items/NotFound.svelte';
+	import DateLink from '$lib/components/DateLink.svelte';
 	import EventComponent from '../timeline/EventComponent.svelte';
 
 	export let data: LayoutData;
@@ -341,18 +343,34 @@
 		<span class="count">-</span>
 	</section>
 {/each}
-{#if repostEventItems.length > 0}
-	<div><a href="/{$page.params.slug}/reposts/after">{$_('thread.reposts.after.title')}</a></div>
-{/if}
+<nav class="card">
+	{#if item !== undefined}
+		<div>
+			<DateLink
+				slug={nip19.npubEncode(item.event.pubkey)}
+				date={new Date(item.event.created_at * 1000)}
+			>
+				{$_('thread.date')}
+			</DateLink>
+		</div>
+	{/if}
+	{#if repostEventItems.length > 0}
+		<div>
+			<a href="/{$page.params.slug}/reposts/after">{$_('thread.reposts.after.title')}</a>
+		</div>
+	{/if}
+</nav>
 {#if $author !== undefined && item !== undefined}
-	<div class="mute">
-		<MuteButton tagName="e" tagContent={rootId === undefined ? item.event.id : rootId} />
-		<span>Mute this thread</span>
-	</div>
-	<div class="mute">
-		<MuteButton tagName="p" tagContent={item.event.pubkey} />
-		<span>Mute @{metadata?.content?.name}</span>
-	</div>
+	<nav class="card">
+		<div class="mute">
+			<MuteButton tagName="e" tagContent={rootId === undefined ? item.event.id : rootId} />
+			<span>Mute this thread</span>
+		</div>
+		<div class="mute">
+			<MuteButton tagName="p" tagContent={item.event.pubkey} />
+			<span>Mute @{metadata?.content?.name}</span>
+		</div>
+	</nav>
 {/if}
 
 <TimelineView
@@ -399,8 +417,11 @@
 		color: var(--yellow);
 	}
 
+	nav div + div {
+		margin-top: 0.5rem;
+	}
+
 	.mute {
-		margin-top: 16px;
 		display: flex;
 		flex-direction: row;
 	}
