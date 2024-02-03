@@ -13,7 +13,7 @@
 	<a
 		href="/{slug}/{previous.getFullYear()}/{(previous.getMonth() + 1)
 			.toString()
-			.padStart(2, '0')}/{previous.getDate()}"
+			.padStart(2, '0')}/{previous.getDate().toString().padStart(2, '0')}"
 	>
 		<IconChevronLeft />
 	</a>
@@ -21,9 +21,10 @@
 	<h1>{date.toLocaleDateString()}</h1>
 
 	<a
-		href="/{slug}/{next.getFullYear()}/{(next.getMonth() + 1)
+		href="/{slug}/{next.getFullYear()}/{(next.getMonth() + 1).toString().padStart(2, '0')}/{next
+			.getDate()
 			.toString()
-			.padStart(2, '0')}/{next.getDate()}"
+			.padStart(2, '0')}"
 	>
 		<IconChevronRight />
 	</a>
