@@ -14,13 +14,14 @@ export const timeout = 5000;
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
 
 export const defaultRelays = [
+	'wss://relay.nostr.band',
 	'wss://nos.lol',
 	'wss://relay.damus.io',
 	'wss://relay-jp.nostr.wirednet.jp',
 	'wss://nostr-relay.nokotaro.com',
-	'wss://nostr.holybea.com',
-	'wss://nostr.fediverse.jp',
-	'wss://yabu.me'
+	'wss://yabu.me',
+	'wss://r.kojira.io',
+	'wss://nrelay-jp.c-stellar.net'
 ];
 
 export const searchRelays = [
