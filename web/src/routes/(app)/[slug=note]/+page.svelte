@@ -120,6 +120,7 @@
 		const relatedEventsReq = createRxOneshotReq({
 			filters: [
 				{
+					kinds: [1, 6, 7, 9735],
 					'#e': [eventId]
 				}
 			]
