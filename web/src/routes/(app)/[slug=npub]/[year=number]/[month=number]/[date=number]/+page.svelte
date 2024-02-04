@@ -63,9 +63,10 @@
 				kinds: [1],
 				authors: [data.pubkey],
 				since: $since + hours(i * (24 / splitNumber)),
-				until: $since + hours(i * (24 / splitNumber) + splitNumber)
+				until: $since + hours((i + 1) * (24 / splitNumber))
 			};
 		}).filter((filter) => filter.since < now());
+		console.debug('[npub date page REQ]', filters);
 		req.emit(filters);
 	});
 </script>
