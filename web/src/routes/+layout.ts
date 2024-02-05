@@ -11,9 +11,9 @@ import { readRelays, writeRelays } from '../stores/Author';
 
 export const load: LayoutLoad = async () => {
 	console.debug('[layout load]');
-	rxNostr.setDefaultRelays(defaultRelays);
 	let authenticated = false;
 	if (browser) {
+		rxNostr.setDefaultRelays(defaultRelays);
 		locale.set(window.navigator.language);
 		if (get(locale)?.startsWith('ja')) {
 			rxNostr.addDefaultRelays(localizedRelays.ja);
