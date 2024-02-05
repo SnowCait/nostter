@@ -15,9 +15,9 @@
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
 	const event = item.event;
+	const zap = new ZapEventItem(event);
 
-	$: zap = new ZapEventItem(item.event);
-	$: metadata = $metadataStore.get(item.event.pubkey);
+	$: metadata = $metadataStore.get(event.pubkey);
 
 	let zapperMetadata: Metadata | undefined;
 
