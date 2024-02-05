@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import { _, locale, waitLocale } from 'svelte-i18n';
+import { locale, waitLocale } from 'svelte-i18n';
 import { browser } from '$app/environment';
 import { Login } from '$lib/Login';
 import { WebStorage } from '$lib/WebStorage';
