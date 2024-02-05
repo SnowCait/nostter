@@ -1,20 +1,35 @@
+import { get } from 'svelte/store';
 import { locale, waitLocale } from 'svelte-i18n';
 import { browser } from '$app/environment';
 import { Login } from '$lib/Login';
 import { WebStorage } from '$lib/WebStorage';
 import '$lib/i18n';
 import { rxNostr } from '$lib/timelines/MainTimeline';
-import { defaultRelays } from '$lib/Constants';
+import { defaultRelays, localizedRelays } from '$lib/Constants';
+import type { LayoutLoad } from './$types';
+import { readRelays, writeRelays } from '../stores/Author';
 
-export const load = async () => {
-	console.log('[layout load]');
+export const load: LayoutLoad = async () => {
+	console.debug('[layout load]');
 	let authenticated = false;
 	if (browser) {
+		rxNostr.setDefaultRelays(defaultRelays);
 		locale.set(window.navigator.language);
-		authenticated = await tryLogin();
-		if (!authenticated) {
-			rxNostr.setDefaultRelays(defaultRelays);
+		if (get(locale)?.startsWith('ja')) {
+			rxNostr.addDefaultRelays(localizedRelays.ja);
+			readRelays.set(
+				Object.entries(rxNostr.getDefaultRelays())
+					.filter(([, relay]) => relay.read)
+					.map(([, relay]) => relay.url)
+			);
+			writeRelays.set(
+				Object.entries(rxNostr.getDefaultRelays())
+					.filter(([, relay]) => relay.write)
+					.map(([, relay]) => relay.url)
+			);
 		}
+		console.debug('[default relays]', rxNostr.getDefaultRelays());
+		authenticated = await tryLogin();
 	}
 	await waitLocale();
 	return {
@@ -26,7 +41,7 @@ export const load = async () => {
 async function tryLogin(): Promise<boolean> {
 	const storage = new WebStorage(localStorage);
 	const savedLogin = storage.get('login');
-	console.log('[layout login]', savedLogin);
+	console.debug('[layout login]', savedLogin);
 
 	if (savedLogin === null) {
 		return false;
@@ -36,7 +51,7 @@ async function tryLogin(): Promise<boolean> {
 	if (savedLogin === 'NIP-07') {
 		const { waitNostr } = await import('nip07-awaiter');
 		const nostr = await waitNostr(10000);
-		console.log('[NIP-07]', nostr);
+		console.debug('[NIP-07]', nostr);
 		if (nostr === undefined) {
 			console.error('Browser Extension was not found');
 			return false;
