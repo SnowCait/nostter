@@ -1,6 +1,7 @@
 import { get } from 'svelte/store';
 import { author, authorProfile, loginType, pubkey, rom } from '../stores/Author';
 import { Signer } from './Signer';
+import { defaultRelays } from './Constants';
 import { Author } from './Author';
 import { getPublicKey, nip19 } from 'nostr-tools';
 import { robohash } from './Items';
@@ -11,6 +12,7 @@ import type { User } from '../routes/types';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
+		rxNostr.setDefaultRelays(defaultRelays);
 		console.log('[relays]', rxNostr.getDefaultRelays());
 
 		const pubkey = await Signer.getPublicKey();
@@ -76,10 +78,10 @@ export class Login {
 		console.log('[NIP-07 relays]', nip07Relays);
 		console.timeLog('NIP-07');
 
-		rxNostr.addDefaultRelays(nip07Relays);
-		console.log('[relays for profile]', rxNostr.getDefaultRelays());
+		const profileRelays = new Set([...Object.keys(nip07Relays), ...defaultRelays]);
+		console.log('[relays for profile]', profileRelays);
 
-		await this.fetchAuthor();
+		await this.fetchAuthor([...profileRelays]);
 
 		console.timeEnd('NIP-07');
 	}
@@ -96,7 +98,7 @@ export class Login {
 
 		loginType.set('nsec');
 		pubkey.set(getPublicKey(seckey));
-		await this.fetchAuthor();
+		await this.fetchAuthor(defaultRelays);
 	}
 
 	public async withNpub(key: string) {
@@ -114,11 +116,13 @@ export class Login {
 		loginType.set('npub');
 		pubkey.set(data);
 		rom.set(true);
-		await this.fetchAuthor();
+		await this.fetchAuthor(defaultRelays);
 	}
 
-	private async fetchAuthor() {
+	private async fetchAuthor(relays: string[]) {
 		console.time('fetch author');
+
+		rxNostr.setDefaultRelays(relays);
 
 		const $author = new Author(get(pubkey));
 
