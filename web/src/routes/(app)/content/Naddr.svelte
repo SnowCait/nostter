@@ -3,7 +3,7 @@
 	import { nip19, type Event, Kind } from 'nostr-tools';
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
 	import { Api } from '$lib/Api';
-	import { readRelays } from '../../../stores/Author';
+	import { defaultRelays } from '$lib/Constants';
 	import { pool } from '../../../stores/Pool';
 	import LongFormContent from './LongFormContent.svelte';
 
@@ -29,7 +29,7 @@
 		const { identifier, kind, pubkey, relays } = pointer;
 		const api = new Api(
 			$pool,
-			relays !== undefined && relays.length > 0 ? relays : $readRelays
+			relays !== undefined && relays.length > 0 ? relays : defaultRelays
 		);
 		event = await api.fetchEvent([
 			{

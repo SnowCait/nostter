@@ -14,52 +14,14 @@ export const timeout = 5000;
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
 
 export const defaultRelays = [
-	{
-		url: 'wss://relay.nostr.band/',
-		read: true,
-		write: true
-	},
-	{
-		url: 'wss://nos.lol/',
-		read: true,
-		write: true
-	},
-	{
-		url: 'wss://relay.damus.io/',
-		read: true,
-		write: true
-	}
+	'wss://nos.lol',
+	'wss://relay.damus.io',
+	'wss://relay-jp.nostr.wirednet.jp',
+	'wss://nostr-relay.nokotaro.com',
+	'wss://nostr.holybea.com',
+	'wss://nostr.fediverse.jp',
+	'wss://yabu.me'
 ];
-
-export const localizedRelays = {
-	ja: [
-		{
-			url: 'wss://relay-jp.nostr.wirednet.jp/',
-			read: true,
-			write: true
-		},
-		{
-			url: 'wss://nostr-relay.nokotaro.com/',
-			read: true,
-			write: true
-		},
-		{
-			url: 'wss://yabu.me/',
-			read: true,
-			write: true
-		},
-		{
-			url: 'wss://r.kojira.io/',
-			read: true,
-			write: true
-		},
-		{
-			url: 'wss://nrelay-jp.c-stellar.net/',
-			read: true,
-			write: true
-		}
-	]
-};
 
 export const searchRelays = [
 	'wss://relay.nostr.band',

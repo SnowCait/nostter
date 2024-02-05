@@ -59,6 +59,8 @@ export class Author {
 		const relayEvents = await RelayList.fetchEvents(this.pubkey);
 		console.log('[relay events]', relayEvents);
 
+		this.storeRelays(relayEvents);
+
 		RelayList.apply(relayEvents);
 	}
 
