@@ -117,7 +117,7 @@
 			<IconPencilPlus size={30} />
 			<p>{$_('post')}</p>
 		</button>
-	{:else}
+	{:else if !$pubkey}
 		<button on:click={async () => await goto('/')}>
 			<IconLogin size={30} />
 			<p>{$_('login.login')}</p>
