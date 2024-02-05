@@ -18,8 +18,12 @@ export const mutePubkeys: Writable<string[]> = writable([]);
 export const muteEventIds: Writable<string[]> = writable([]);
 export const muteWords: Writable<string[]> = writable([]);
 export const pinNotes: Writable<string[]> = writable([]);
-export const readRelays: Writable<string[]> = writable(defaultRelays);
-export const writeRelays: Writable<string[]> = writable(defaultRelays);
+export const readRelays: Writable<string[]> = writable(
+	defaultRelays.filter((relay) => relay.read).map((relay) => relay.url)
+);
+export const writeRelays: Writable<string[]> = writable(
+	defaultRelays.filter((relay) => relay.write).map((relay) => relay.url)
+);
 export const rom = writable(false);
 
 export const isMutePubkey = (pubkey: string) => get(mutePubkeys).includes(pubkey);
