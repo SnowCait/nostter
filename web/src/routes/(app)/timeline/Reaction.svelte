@@ -14,9 +14,9 @@
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
-	const event = item.event;
+	const { event } = item;
 
-	$: metadata = $metadataStore.get(item.event.pubkey);
+	$: metadata = $metadataStore.get(event.pubkey);
 
 	let originalEvent: EventItem | undefined;
 	let jsonDisplay = false;
