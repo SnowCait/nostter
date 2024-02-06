@@ -11,7 +11,8 @@
 
 	export let item: Item;
 
-	$: event = item.event;
+	const { event } = item;
+
 	$: channelId = event.kind === 40 ? event.id : findChannelId(event.tags);
 
 	let channelMetadataEvent: Event | undefined;

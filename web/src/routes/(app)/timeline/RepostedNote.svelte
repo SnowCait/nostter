@@ -14,12 +14,14 @@
 	export let readonly: boolean;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 
-	$: metadata = $metadataStore.get(item.event.pubkey);
+	const { event } = item;
+
+	$: metadata = $metadataStore.get(event.pubkey);
 
 	let originalEvent: EventItem | undefined;
 	let jsonDisplay = false;
 
-	let originalTag = item.event.tags.find(
+	let originalTag = event.tags.find(
 		([tagName, eventId, , marker]) =>
 			tagName === 'e' &&
 			eventId !== undefined &&
@@ -28,7 +30,7 @@
 
 	// Workaround for some incorrect clients
 	if (originalTag === undefined) {
-		originalTag = item.event.tags.findLast(
+		originalTag = event.tags.findLast(
 			([tagName, eventId]) => tagName === 'e' && eventId !== undefined
 		);
 	}
@@ -48,9 +50,9 @@
 	</div>
 	<div>by</div>
 	<div>
-		<a href="/{nip19.npubEncode(item.event.pubkey)}">
+		<a href="/{nip19.npubEncode(event.pubkey)}">
 			@{metadata?.content?.name ??
-				nip19.npubEncode(item.event.pubkey).substring(0, 'npub1'.length + 7)}
+				nip19.npubEncode(event.pubkey).substring(0, 'npub1'.length + 7)}
 		</a>
 	</div>
 	<div class="json-button">
@@ -59,28 +61,28 @@
 		</button>
 	</div>
 	<div class="created-at">
-		<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
+		<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 	</div>
 </article>
 {#if jsonDisplay}
 	<div class="develop">
 		<h5>Event ID</h5>
-		<div>{nip19.noteEncode(item.event.id)}</div>
+		<div>{nip19.noteEncode(event.id)}</div>
 		<br />
-		<div>{nip19.neventEncode({ id: item.event.id })}</div>
+		<div>{nip19.neventEncode({ id: event.id })}</div>
 		<h5>Event JSON</h5>
-		<code>{JSON.stringify(item.event, null, 2)}</code>
+		<code>{JSON.stringify(event, null, 2)}</code>
 		<h5>User ID</h5>
-		<div>{nip19.npubEncode(item.event.pubkey)}</div>
+		<div>{nip19.npubEncode(event.pubkey)}</div>
 		<h5>User JSON</h5>
 		<code>{JSON.stringify(metadata?.content, null, 2)}</code>
 		<div>
 			Open in <a
 				href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode(
 					{
-						id: item.event.id
+						id: event.id
 					}
-				)}&kind={item.event.kind}"
+				)}&kind={event.kind}"
 				target="_blank"
 				rel="noopener noreferrer"
 			>
