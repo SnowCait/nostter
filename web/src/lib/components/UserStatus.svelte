@@ -12,17 +12,21 @@
 	export let pubkey: string;
 	export let showLink = false;
 
+	const p = pubkey;
+
 	let generalEvent: Event | undefined;
 	let musicEvent: Event | undefined;
 	let generalLink: URL | undefined;
 	let musicLink: URL | undefined;
 
 	$: {
-		const statuses = $userStatusesMap.get(pubkey) ?? [];
+		const statuses = $userStatusesMap.get(p) ?? [];
 		statuses.sort(chronological);
 		generalEvent = statuses.findLast((event) => findIdentifier(event.tags) === 'general');
 		musicEvent = statuses.findLast((event) => findIdentifier(event.tags) === 'music');
+	}
 
+	$: {
 		const generalLinkTag = generalEvent?.tags.find(
 			([tagName, url]) => tagName === 'r' && url !== undefined
 		);
@@ -37,7 +41,7 @@
 				musicLink = new URL(musicLinkTag[1]);
 			}
 		} catch (error) {
-			console.error('[user status link error]', error);
+			console.error('[user status link error]', error, generalLinkTag, musicLinkTag);
 		}
 	}
 </script>
@@ -53,7 +57,7 @@
 						<IconLink size="14" />
 					</a>
 				{/if}
-				{#if pubkey === $authorPubkey}
+				{#if p === $authorPubkey}
 					<a
 						href="https://nostatus.vercel.app/"
 						target="_blank"
