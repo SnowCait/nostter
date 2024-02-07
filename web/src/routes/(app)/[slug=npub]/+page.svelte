@@ -3,7 +3,7 @@
 	import { nip05, nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, replaceState } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
@@ -57,7 +57,7 @@
 
 		nip05.queryProfile(normalizedNip05).then((pointer) => {
 			if (pointer !== null) {
-				history.replaceState(history.state, '', normalizedNip05);
+				replaceState(`/${normalizedNip05}`, {});
 				slug = normalizedNip05;
 			} else {
 				console.warn('[invalid NIP-05]', normalizedNip05);
