@@ -4,6 +4,7 @@
 	import { uniq, type LazyFilter, createRxBackwardReq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { Kind, type Relay } from 'nostr-tools';
+	import { goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { appName } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
@@ -75,6 +76,10 @@
 
 	onMount(async () => {
 		console.log('[home page]');
+
+		if ($followees.length === 0) {
+			await goto('/trend');
+		}
 
 		if (hasSubscribed) {
 			return;
