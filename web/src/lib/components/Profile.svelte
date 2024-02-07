@@ -177,11 +177,9 @@
 
 <style>
 	.banner {
-		position: absolute;
-		width: 100%;
-		left: 0;
-		top: 0;
-		z-index: 0;
+		width: calc(100% + 2rem);
+		height: 200px;
+		margin: -1rem;
 	}
 
 	.banner img,
@@ -200,7 +198,7 @@
 	}
 
 	.user-info {
-		margin-top: calc(100px + 1rem);
+		margin-top: calc(-100px + 2rem);
 	}
 
 	.profile img {
@@ -211,7 +209,6 @@
 		margin-right: 12px;
 		object-fit: cover;
 		position: relative;
-		z-index: 2;
 		background-color: var(--surface);
 	}
 
