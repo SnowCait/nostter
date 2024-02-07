@@ -15,12 +15,18 @@ rxNostr
 		uniq(),
 		filter(({ event }) => !isExpired(event))
 	)
-	.subscribe((packet) => {
-		console.debug('[user status]', packet, packet.event.pubkey, packet.event.content);
-		updateUserStatus(packet.event);
+	.subscribe({
+		next: (packet) => {
+			console.debug('[user status next]', packet, packet.event.pubkey, packet.event.content);
+			updateUserStatus(packet.event, false);
+		},
+		complete: () => {
+			console.debug('[user status complete]');
+			userStatusesMap.set(get(userStatusesMap));
+		}
 	});
 
-export function updateUserStatus(event: Event): void {
+export function updateUserStatus(event: Event, trigger = true): void {
 	const $userStatusesMap = get(userStatusesMap);
 	const statuses = $userStatusesMap.get(event.pubkey);
 	if (statuses === undefined) {
@@ -32,7 +38,9 @@ export function updateUserStatus(event: Event): void {
 			statuses.filter((status) => !isExpired(status))
 		);
 	}
-	userStatusesMap.set($userStatusesMap);
+	if (trigger) {
+		userStatusesMap.set($userStatusesMap);
+	}
 }
 
 export function userStatusReqEmit(pubkey: pubkey): void {
