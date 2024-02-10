@@ -289,11 +289,6 @@
 	}
 
 	async function postNote() {
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
-
 		if (posting) {
 			console.error('Posting');
 			return;
@@ -459,7 +454,7 @@
 			<button
 				class="button-small"
 				on:click={postNote}
-				disabled={$author === undefined || content === ''}
+				disabled={$author === undefined || content === '' || $rom}
 			>
 				{$_('editor.post')}
 			</button>
