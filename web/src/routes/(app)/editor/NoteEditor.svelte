@@ -289,11 +289,6 @@
 	}
 
 	async function postNote() {
-		if (content === '') {
-			console.log('Content is empty');
-			return;
-		}
-
 		if ($rom) {
 			console.error('Readonly');
 			return;
@@ -461,7 +456,11 @@
 			<ContentWarning bind:reason={contentWarningReason} />
 		</div>
 		<div>
-			<button class="button-small" on:click={postNote} disabled={$author === undefined}>
+			<button
+				class="button-small"
+				on:click={postNote}
+				disabled={$author === undefined || content === ''}
+			>
 				{$_('editor.post')}
 			</button>
 		</div>
