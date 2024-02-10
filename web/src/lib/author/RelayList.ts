@@ -1,8 +1,8 @@
 import { Kind, type Event } from 'nostr-tools';
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
-import { rxNostr } from './timelines/MainTimeline';
-import { parseRelayJson } from './EventHelper';
-import { WebStorage } from './WebStorage';
+import { rxNostr } from '../timelines/MainTimeline';
+import { parseRelayJson } from '../EventHelper';
+import { WebStorage } from '../WebStorage';
 
 export class RelayList {
 	public static async fetchEvents(pubkey: string): Promise<Map<Kind, Event>> {

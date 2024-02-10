@@ -11,7 +11,7 @@ import {
 	metadataEvent,
 	isMuteEvent
 } from '../stores/Author';
-import { RelayList } from './RelayList';
+import { RelayList } from './author/RelayList';
 import { filterEmojiTags, filterTags, findIdentifier, parseRelayJson } from './EventHelper';
 import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
 import type { User } from '../routes/types';
