@@ -1,70 +1,39 @@
-import { Kind, type Event } from 'nostr-tools';
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
+import type { Event } from 'nostr-typedef';
+import type { pubkey } from './Types';
 import { rxNostr } from './timelines/MainTimeline';
-import { parseRelayJson } from './EventHelper';
-import { WebStorage } from './WebStorage';
 
 export class RelayList {
-	public static async fetchEvents(pubkey: string): Promise<Map<Kind, Event>> {
-		const storage = new WebStorage(localStorage);
-
-		// Load from cache
-		const relayEventsMap = new Map(
-			[Kind.Contacts, Kind.RelayList]
-				.map((kind) => [kind, storage.getReplaceableEvent(kind)])
-				.filter((x): x is [Kind, Event] => x[1] !== undefined)
-		);
-
-		if (relayEventsMap.size > 0) {
-			console.debug('[relay list cache]', relayEventsMap);
-			return relayEventsMap;
+	static async fetchEvents(pubkeys: pubkey[]): Promise<Map<pubkey, Event>> {
+		const eventsMap = new Map<pubkey, Event>();
+		if (pubkeys.length === 0) {
+			return eventsMap;
 		}
 
-		await new Promise<void>((resolve, reject) => {
-			const relaysReq = createRxBackwardReq();
+		return new Promise((resolve) => {
+			const req = createRxBackwardReq();
 			rxNostr
-				.use(relaysReq)
+				.use(req)
 				.pipe(
 					uniq(),
-					latestEach(({ event }) => event.kind)
+					latestEach(({ event }) => event.pubkey)
 				)
 				.subscribe({
 					next: (packet) => {
-						console.debug('[relay list next]', packet);
-						relayEventsMap.set(packet.event.kind, packet.event);
+						console.debug('[rx-nostr kind 10002 next]', pubkeys, packet);
+						eventsMap.set(packet.event.pubkey, packet.event);
 					},
 					complete: () => {
-						console.debug('[relay list complete]');
-						resolve();
+						console.debug('[rx-nostr kind 10002 complete]', pubkeys);
+						resolve(eventsMap);
 					},
 					error: (error) => {
-						console.error('[relay list error]', error);
-						reject();
+						console.error('[rx-nostr kind 10002 error]', pubkeys, error);
+						resolve(eventsMap);
 					}
 				});
-			relaysReq.emit([
-				{
-					kinds: [Kind.Contacts, Kind.RelayList],
-					authors: [pubkey]
-				}
-			]);
-			relaysReq.over();
+			req.emit([{ kinds: [10002], authors: pubkeys }]);
+			req.over();
 		});
-
-		return relayEventsMap;
-	}
-
-	public static apply(eventsMap: Map<Kind, Event>) {
-		const kind10002 = eventsMap.get(10002);
-		const kind3 = eventsMap.get(3);
-		if (kind10002 !== undefined) {
-			rxNostr.setDefaultRelays(kind10002.tags);
-		} else if (kind3 !== undefined && kind3.content !== '') {
-			rxNostr.setDefaultRelays(
-				[...parseRelayJson(kind3.content)].map(([url, { read, write }]) => {
-					return { url, read, write };
-				})
-			);
-		}
 	}
 }
