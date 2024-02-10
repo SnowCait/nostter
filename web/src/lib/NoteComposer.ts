@@ -14,7 +14,6 @@ export class NoteComposer {
 	async compose(
 		kind: number,
 		content: string,
-		tags: string[][],
 		$replyTo: EventItem | undefined = undefined,
 		emojiTags: string[][] = [],
 		$channelIdStore: string | undefined = undefined,
@@ -22,6 +21,8 @@ export class NoteComposer {
 		selectedCustomEmojis: Map<string, string> = new Map(),
 		contentWarningReason: string | undefined = undefined
 	): Promise<Event> {
+		const tags: string[][] = [];
+
 		if ($channelIdStore) {
 			tags.push(['e', $channelIdStore, '', 'root']);
 			if ($replyTo !== undefined) {

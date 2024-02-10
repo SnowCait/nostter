@@ -291,15 +291,12 @@
 	async function postNote() {
 		posting = true;
 
-		let tags: string[][] = [];
-
 		const noteComposer = new NoteComposer();
 		const event = await noteComposer.compose(
 			$channelIdStore !== undefined || $replyTo?.event?.kind === Kind.ChannelMessage
 				? Kind.ChannelMessage
 				: Kind.Text,
 			Content.replaceNip19(content),
-			tags,
 			$replyTo,
 			emojiTags,
 			$channelIdStore,
