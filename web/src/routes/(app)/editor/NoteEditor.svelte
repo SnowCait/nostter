@@ -7,11 +7,13 @@
 	import { NoteComposer } from '$lib/NoteComposer';
 	import { channelIdStore, Channel } from '$lib/Channel';
 	import { Content } from '$lib/Content';
+	import { filterTags } from '$lib/EventHelper';
 	import { cachedEvents, channelMetadataEventsStore, metadataStore } from '$lib/cache/Events';
 	import { EventItem, Metadata } from '$lib/Items';
+	import { RelayList } from '$lib/RelayList';
 	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../../../stores/NoteDialog';
-	import { author, rom } from '../../../stores/Author';
+	import { author, pubkey, rom } from '../../../stores/Author';
 	import { customEmojiTags } from '../../../stores/CustomEmojis';
 	import Note from '../timeline/Note.svelte';
 	import ChannelTitle from '../parts/ChannelTitle.svelte';
@@ -332,6 +334,34 @@
 				);
 				posting = false;
 			}
+		});
+
+		if ($replyTo === undefined) {
+			return;
+		}
+
+		RelayList.fetchEvents(
+			filterTags('p', $replyTo.event.tags).filter((p) => p !== $pubkey)
+		).then((relayListEventsMap) => {
+			if (relayListEventsMap.size === 0) {
+				return;
+			}
+
+			const readRelays = [...relayListEventsMap]
+				.flatMap(([, relayListEvent]) => relayListEvent.tags)
+				.filter(
+					([tagName, , marker]) =>
+						tagName === 'r' && (marker === undefined || marker === 'read')
+				)
+				.map(([, url]) => url)
+				.filter((url) => !sendToRelays.includes(url));
+			console.log('[rx-nostr send addition]', readRelays, relayListEventsMap);
+			if (readRelays.length === 0) {
+				return;
+			}
+			rxNostr.send(event, { relays: [...new Set(readRelays)] }).subscribe((packet) => {
+				console.log('[rx-nostr send additional next]', packet);
+			});
 		});
 	}
 
