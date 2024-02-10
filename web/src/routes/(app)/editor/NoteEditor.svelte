@@ -289,11 +289,6 @@
 	}
 
 	async function postNote() {
-		if (posting) {
-			console.error('Posting');
-			return;
-		}
-
 		posting = true;
 
 		let tags: string[][] = [];
@@ -454,7 +449,7 @@
 			<button
 				class="button-small"
 				on:click={postNote}
-				disabled={$author === undefined || content === '' || $rom}
+				disabled={$author === undefined || content === '' || $rom || posting}
 			>
 				{$_('editor.post')}
 			</button>
