@@ -45,7 +45,10 @@
 		"saved": "Saved"
 	},
 	"editor": {
-		"post": "Post"
+		"post": {
+			"button": "Post",
+			"empty": "Do you post empty note?"
+		}
 	},
 	"gdpr": {
 		"heading": "Cookie",

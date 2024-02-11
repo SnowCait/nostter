@@ -116,16 +116,8 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 
 	const $eventItemStore = get(eventItemStore);
 	const ids = [
-		...new Set([
-			...event.tags
-				.filter(
-					([tagName, id]) =>
-						tagName === 'e' && id !== undefined && !$eventItemStore.has(id)
-				)
-				.map(([, id]) => id),
-			...Content.findNotesAndNeventsToIds(content)
-		])
-	];
+		...new Set([...filterTags('e', event.tags), ...Content.findNotesAndNeventsToIds(content)])
+	].filter((id) => !$eventItemStore.has(id));
 
 	if (ids.length > 0) {
 		eventsReq.emit({
@@ -136,13 +128,13 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 
 rxNostr
 	.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
-	.pipe(latestEach(({ event }: { event: Event }) => event.pubkey))
+	.pipe(latestEach(({ event }) => event.pubkey))
 	.subscribe(async (packet) => {
-		const cache = get(metadataStore).get(packet.event.pubkey);
+		const $metadataStore = get(metadataStore);
+		const cache = $metadataStore.get(packet.event.pubkey);
 		if (cache === undefined || cache.event.created_at < packet.event.created_at) {
 			const metadata = new Metadata(packet.event);
 			console.log('[rx-nostr metadata]', packet, metadata.content?.name);
-			const $metadataStore = get(metadataStore);
 			$metadataStore.set(metadata.event.pubkey, metadata);
 			metadataStore.set($metadataStore);
 
@@ -155,7 +147,7 @@ rxNostr
 	.use(eventsReq.pipe(bufferTime(1000, null, 10), batch()))
 	.pipe(
 		uniq(),
-		tap(({ event }: { event: Event }) => referencesReqEmit(event, true))
+		tap(({ event }) => referencesReqEmit(event, true))
 	)
 	.subscribe(async (packet) => {
 		console.log('[rx-nostr event]', packet);

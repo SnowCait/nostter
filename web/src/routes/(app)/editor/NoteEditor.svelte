@@ -291,6 +291,9 @@
 	}
 
 	async function postNote() {
+		if (content === '' && !confirm($_('editor.post.empty'))) {
+			return;
+		}
 		posting = true;
 
 		const noteComposer = new NoteComposer();
@@ -478,7 +481,7 @@
 				on:click={postNote}
 				disabled={$author === undefined || content === '' || $rom || posting}
 			>
-				{$_('editor.post')}
+				{$_('editor.post.button')}
 			</button>
 		</div>
 	</div>
