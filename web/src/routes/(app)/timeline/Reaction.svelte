@@ -37,7 +37,7 @@
 
 <article class="timeline-item">
 	<div>
-		{#if event.content === '+'}
+		{#if event.content === '+' || event.content === ''}
 			<IconHeart size={18} color={'lightpink'} />
 		{:else if event.content === '-'}
 			<IconHeartBroken size={18} color={'lightpink'} />

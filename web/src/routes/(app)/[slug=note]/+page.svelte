@@ -54,7 +54,9 @@
 
 	$: reactionMetadataMap = reactionEventItems.reduce((map, item) => {
 		let content = item.event.content;
-		if (item.event.content.startsWith(':')) {
+		if (content === '') {
+			content = '+';
+		} else if (content.startsWith(':')) {
 			const emojiTag = item.event.tags.find(
 				([tagName, shortcode, url]) =>
 					tagName === 'emoji' &&
