@@ -172,7 +172,7 @@
 				{/if}
 			</p>
 		{:else}
-			<div class="content">
+			<div class="content" class:shorten={!full}>
 				{#if Number(item.event.kind) === 1063}
 					<Nip94 event={item.event} />
 				{:else}
@@ -312,8 +312,11 @@
 
 	.content {
 		margin: 0.2rem 0 0 0;
-		max-height: 30em;
 		overflow: auto;
+	}
+
+	.content.shorten {
+		max-height: 30em;
 	}
 
 	.develop {
