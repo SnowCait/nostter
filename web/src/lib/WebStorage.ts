@@ -13,6 +13,10 @@ export class WebStorage {
 		this.storage.setItem(`nostter:${key}`, value);
 	}
 
+	public remove(key: string): void {
+		this.storage.removeItem(`nostter:${key}`);
+	}
+
 	public clear(): void {
 		this.storage.clear();
 	}

@@ -19,6 +19,7 @@
 	import RelayStates from './RelayStates.svelte';
 	import WalletConnect from './WalletConnect.svelte';
 	import Reload from './Reload.svelte';
+	import ClearEventCacheAndReload from './ClearEventCacheAndReload.svelte';
 </script>
 
 <svelte:head>
@@ -41,6 +42,7 @@
 		<div><WebStorage /></div>
 		<h3>{$_('preferences.trouble_shooting')}</h3>
 		<div><Reload /></div>
+		<div><ClearEventCacheAndReload /></div>
 		<div><ClearEmojiMartCache /></div>
 	{/if}
 	{#if $author !== undefined}
