@@ -44,7 +44,7 @@ See full list at [package.json](web/package.json)
 
 ## Contribution
 
-Welcome issues, pull requests and discussions after understanding above.
+Welcome issues, pull requests and discussions.
 
 ## Special Thanks
 
