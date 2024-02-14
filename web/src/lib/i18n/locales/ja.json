@@ -82,6 +82,7 @@
 		},
 		"trouble_shooting": "トラブルシューティング",
 		"clear_emoji_cache": "絵文字キャッシュクリア",
+		"clear_event_cache": "イベントキャッシュクリア＆再読み込み",
 		"reload": "再読み込み"
 	},
 	"content": {
