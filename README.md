@@ -42,16 +42,9 @@ javascript:window.open(`https://nostter.app/post?content=${document.title}%20${l
 
 See full list at [package.json](web/package.json)
 
-## License
-
-© 2023 SnowCait
-
-This is NOT a OSS.  
-You can refer to a piece of code, but you cannot provide this software as a service.
-
 ## Contribution
 
-Welcome issues, pull requests and discussions after understanding above.
+Welcome issues, pull requests and discussions.
 
 ## Special Thanks
 
