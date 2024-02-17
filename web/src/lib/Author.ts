@@ -213,9 +213,7 @@ export class Author {
 
 		if (muteEvent !== undefined) {
 			await new Mute().update(muteEvent);
-		}
-
-		if (legacyMuteEvent !== undefined) {
+		} else if (legacyMuteEvent !== undefined) {
 			await new Mute().migrate(legacyMuteEvent, muteEvent);
 		}
 
