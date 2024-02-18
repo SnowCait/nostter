@@ -28,7 +28,7 @@
 
 <h1>{$_('layout.header.preferences')}</h1>
 
-<div class="card">
+<section class="card">
 	<h2>Device</h2>
 	<div><Theme /></div>
 	<div><EnablePreview /></div>
@@ -45,7 +45,10 @@
 		<div><ClearEventCacheAndReload /></div>
 		<div><ClearEmojiMartCache /></div>
 	{/if}
-	{#if $author !== undefined}
+</section>
+
+{#if $author !== undefined}
+	<section class="card">
 		<h2>Shared</h2>
 		<div><ReactionEmoji /></div>
 		<div>
@@ -66,14 +69,16 @@
 			<summary>{$_('preferences.mute.words')}</summary>
 			<WordMute />
 		</details>
-	{/if}
+	</section>
+{/if}
 
+<section class="card">
 	<h2>{$_('logout.logout')}</h2>
 	<div><Logout /></div>
-</div>
+</section>
 
 <style>
-	.card > div {
+	div {
 		margin: 1em auto;
 	}
 </style>
