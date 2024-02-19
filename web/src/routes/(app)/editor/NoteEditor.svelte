@@ -307,12 +307,12 @@
 				? Kind.ChannelMessage
 				: Kind.Text,
 			Content.replaceNip19(content),
-			$replyTo,
-			emojiTags,
-			$channelIdStore,
-			pubkeys,
-			selectedCustomEmojis,
-			contentWarningReason
+			[
+				...noteComposer.replyTags(content, $replyTo, $channelIdStore, pubkeys),
+				...noteComposer.hashtags(content),
+				...(await noteComposer.emojiTags(content, emojiTags, selectedCustomEmojis)),
+				...noteComposer.contentWarningTags(contentWarningReason)
+			]
 		);
 
 		console.log('[rx-nostr send to]', rxNostr.getAllRelayState());
