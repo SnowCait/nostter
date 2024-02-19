@@ -63,6 +63,8 @@
 
 	let onDrag = false;
 
+	$: containsNsec = /nsec1\w{6,}/.test(content);
+
 	const dispatch = createEventDispatcher();
 
 	mediaFiles.subscribe(async (files: File[]) => {
@@ -294,6 +296,9 @@
 		if (content === '' && !confirm($_('editor.post.empty'))) {
 			return;
 		}
+		if (containsNsec && !confirm($_('editor.post.nsec'))) {
+			return;
+		}
 		posting = true;
 
 		const noteComposer = new NoteComposer();
@@ -468,7 +473,11 @@
 		on:paste={paste}
 		on:dragover|preventDefault={dragover}
 		on:drop|preventDefault={drop}
+		class:warning={containsNsec}
 	/>
+	{#if containsNsec}
+		<div class="warning">{$_('editor.warning.nsec')}</div>
+	{/if}
 	<div class="actions">
 		<div class="options">
 			<MediaPicker multiple={true} on:pick={mediaPicked} />
@@ -527,6 +536,15 @@
 	textarea {
 		width: 100%;
 		padding: 1rem;
+	}
+
+	textarea.warning {
+		border: 1px solid var(--red);
+	}
+
+	div.warning {
+		font-size: 0.75rem;
+		color: var(--red);
 	}
 
 	.dropzone {
