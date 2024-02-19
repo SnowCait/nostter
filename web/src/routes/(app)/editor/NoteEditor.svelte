@@ -458,7 +458,7 @@
 		<Note item={$replyTo} readonly={true} />
 	{/if}
 	<textarea
-		placeholder="What's happening?"
+		placeholder={$_('editor.content.placeholder')}
 		class:dropzone={onDrag}
 		bind:value={content}
 		bind:this={textarea}

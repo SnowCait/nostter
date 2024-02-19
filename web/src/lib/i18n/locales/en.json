@@ -45,6 +45,9 @@
 		"saved": "Saved"
 	},
 	"editor": {
+		"content": {
+			"placeholder": "What's happening?"
+		},
 		"post": {
 			"button": "Post",
 			"empty": "Do you post empty note?"
