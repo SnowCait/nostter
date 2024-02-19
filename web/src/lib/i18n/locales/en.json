@@ -48,9 +48,13 @@
 		"content": {
 			"placeholder": "What's happening?"
 		},
+		"warning": {
+			"nsec": "Contains private key (nsec). Never post your private key."
+		},
 		"post": {
 			"button": "Post",
-			"empty": "Do you post empty note?"
+			"empty": "Do you post empty note?",
+			"nsec": "Contains private key (nsec). Are you really going to post it?"
 		}
 	},
 	"gdpr": {
