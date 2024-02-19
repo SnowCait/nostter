@@ -45,6 +45,9 @@
 		"saved": "保存しました"
 	},
 	"editor": {
+		"content": {
+			"placeholder": "いまどうしてる？"
+		},
 		"post": {
 			"button": "ポストする",
 			"empty": "空のまま投稿しますか？"
