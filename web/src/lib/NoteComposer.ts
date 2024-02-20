@@ -9,6 +9,7 @@ import { pool } from '../stores/Pool';
 import { get } from 'svelte/store';
 import { readRelays } from '../stores/Author';
 import type { EventItem } from './Items';
+import { referTags } from './EventHelper';
 
 export class NoteComposer {
 	async compose(kind: number, content: string, tags: string[][]): Promise<Event> {
@@ -46,18 +47,12 @@ export class NoteComposer {
 				}
 			}
 		} else if ($replyTo !== undefined) {
-			if ($replyTo.event.tags.filter((x) => x[0] === 'e').length === 0) {
-				// root
+			const { root } = referTags($replyTo.event);
+			if (root === undefined) {
 				tags.push(['e', $replyTo.event.id, '', 'root']);
 			} else {
-				// reply
+				tags.push(root);
 				tags.push(['e', $replyTo.event.id, '', 'reply']);
-				const root = $replyTo.event.tags.find(
-					([tagName, , , marker]) => tagName === 'e' && marker === 'root'
-				);
-				if (root !== undefined) {
-					tags.push(['e', root[1], '', 'root']);
-				}
 			}
 			pubkeys = new Set([
 				$replyTo.event.pubkey,
