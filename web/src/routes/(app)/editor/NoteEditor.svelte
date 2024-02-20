@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount, tick } from 'svelte';
+	import { createEventDispatcher, tick } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
 	import { Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
@@ -14,7 +14,6 @@
 	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../../../stores/NoteDialog';
 	import { author, pubkey, rom } from '../../../stores/Author';
-	import { customEmojiTags } from '../../../stores/CustomEmojis';
 	import Note from '../timeline/Note.svelte';
 	import ChannelTitle from '../parts/ChannelTitle.svelte';
 	import MediaPicker from './MediaPicker.svelte';
@@ -59,7 +58,6 @@
 	let mediaFiles: Writable<File[]> = writable([]);
 
 	let textarea: HTMLTextAreaElement;
-	let article: HTMLElement;
 
 	let onDrag = false;
 
@@ -83,69 +81,6 @@
 		} catch (error) {
 			console.error('[media upload error]', error);
 		}
-	});
-
-	onMount(async () => {
-		console.log('[note editor on mount]', textarea, article);
-		const { default: Tribute } = await import('tributejs');
-
-		const tribute = new Tribute({
-			trigger: ':',
-			positionMenu: false,
-			values: $customEmojiTags.map(([, shortcode, imageUrl]) => {
-				return {
-					shortcode,
-					imageUrl
-				};
-			}),
-			lookup: 'shortcode',
-			fillAttr: 'shortcode',
-			menuContainer: article,
-			menuItemTemplate: (item) =>
-				`<img src="${item.original.imageUrl}" alt=":${item.original.shortcode}:"><span>:${item.original.shortcode}:</span>`,
-			selectTemplate: (item) => `:${item.original.shortcode}:`,
-			noMatchTemplate: () =>
-				'<a href="https://emojito.meme/" target="_blank" rel="noopener noreferrer">Add custom emojis</a>'
-		});
-		tribute.attach(textarea);
-		console.debug('[tribute]', tribute);
-
-		customEmojiTags.subscribe((tags) => {
-			console.debug('[custom emojis updated]', tags);
-			tribute.append(
-				0,
-				tags.map(([, shortcode, imageUrl]) => {
-					return {
-						shortcode,
-						imageUrl
-					};
-				})
-			);
-		});
-
-		textarea.addEventListener('tribute-replaced', (e: any) => {
-			console.debug('[tribute replaced]', e);
-			selectedCustomEmojis.set(
-				e.detail.item.original.shortcode,
-				e.detail.item.original.imageUrl
-			);
-			console.timeLog('tribute');
-		});
-
-		textarea.addEventListener('tribute-active-true', (e) => {
-			console.debug('[tribute active true]', e);
-			autocompleting = true;
-			console.time('tribute');
-		});
-
-		textarea.addEventListener('tribute-active-false', (e) => {
-			console.debug('[tribute active false]', e);
-			setTimeout(() => {
-				console.log('[tribute closeable]');
-				autocompleting = false;
-				console.timeEnd('tribute');
-			}, 200);
-		});
 	});
 
 	channelIdStore.subscribe((channelId) => {
@@ -455,7 +390,7 @@
 	}}
 />
 
-<article bind:this={article} class="note-editor">
+<article class="note-editor">
 	{#if channelEvent !== undefined}
 		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
 	{/if}
@@ -592,23 +527,5 @@
 
 	:global(.options > *) {
 		height: inherit;
-	}
-
-	:global(.tribute-container ul) {
-		list-style: none;
-		padding: 0;
-
-		background-color: white;
-		max-height: 10rem;
-		overflow: auto;
-	}
-
-	:global(.tribute-container li.highlight) {
-		background-color: lightgray;
-	}
-
-	:global(.tribute-container img) {
-		height: 1.5rem;
-		margin: 0 0.5rem;
 	}
 </style>
