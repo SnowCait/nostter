@@ -48,6 +48,9 @@
 
 	const viewDetail = async (clickEvent: MouseEvent, nostrEvent: Event) => {
 		let target: HTMLElement | null = clickEvent.target as HTMLElement;
+		if (target.closest('.svelteui-Menu-root') !== null) {
+			return;
+		}
 		if (target) {
 			while (target && !target.classList.contains('timeline')) {
 				if (

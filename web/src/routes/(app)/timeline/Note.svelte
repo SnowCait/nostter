@@ -3,13 +3,11 @@
 	import type { EventItem, Item } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
-	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
-	import type { User } from '../../types';
-	import { openNoteDialog, quotes, replyTo } from '../../../stores/NoteDialog';
+	import { openNoteDialog, replyTo } from '../../../stores/NoteDialog';
 	import { readRelays, writeRelays, pubkey, author } from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
 	import { rom } from '../../../stores/Author';
@@ -64,14 +62,6 @@
 
 	function reply(item: Item) {
 		$replyTo = item as EventItem;
-		$openNoteDialog = true;
-	}
-
-	function quote(event: Event) {
-		$quotes.push({
-			...event,
-			user: metadata?.content as User
-		});
 		$openNoteDialog = true;
 	}
 
@@ -202,16 +192,27 @@
 					<IconMessageCircle2 size={iconSize} />
 				</button>
 				<RepostButton event={item.event} {iconSize} />
-				<button
-					class:hidden={item.event.kind === Kind.EncryptedDirectMessage}
-					on:click={() => quote(item.event)}
-				>
-					<IconQuote size={iconSize} />
-				</button>
 				<ReactionButton event={item.event} {iconSize} />
 				<span class:hidden={item.event.kind === Kind.EncryptedDirectMessage}>
 					<EmojiPicker on:pick={({ detail }) => emojiReaction(item.event, detail)} />
 				</span>
+				<button
+					class="zap"
+					class:hidden={metadata?.content === undefined ||
+						(metadata?.content.lud16 === undefined &&
+							metadata?.content.lud06 === undefined) ||
+						item.event.kind === Kind.EncryptedDirectMessage}
+					disabled={zapped}
+					on:click={() => zapDialogComponent.openZapDialog()}
+				>
+					<IconBolt size={iconSize} />
+				</button>
+				<ZapDialog
+					pubkey={eventItem.event.pubkey}
+					event={eventItem.event}
+					bind:this={zapDialogComponent}
+					on:zapped={onZapped}
+				/>
 				<button class:hidden={full} on:click={() => (showMenu = !showMenu)}>
 					<IconDots size={iconSize} />
 				</button>
@@ -228,25 +229,11 @@
 					<button class:hidden={true} on:click={console.debug}>
 						<IconDots size={iconSize} />
 					</button>
+					<button class:hidden={true} on:click={console.debug}>
+						<IconDots size={iconSize} />
+					</button>
 					<!-- /instead of margin -->
 					<BookmarkButton event={item.event} {iconSize} />
-					<button
-						class="zap"
-						class:hidden={metadata?.content === undefined ||
-							(metadata?.content.lud16 === undefined &&
-								metadata?.content.lud06 === undefined) ||
-							item.event.kind === Kind.EncryptedDirectMessage}
-						disabled={zapped}
-						on:click={() => zapDialogComponent.openZapDialog()}
-					>
-						<IconBolt size={iconSize} />
-					</button>
-					<ZapDialog
-						pubkey={eventItem.event.pubkey}
-						event={eventItem.event}
-						bind:this={zapDialogComponent}
-						on:zapped={onZapped}
-					/>
 					<button on:click={toggleJsonDisplay}>
 						<IconCodeDots size={iconSize} />
 					</button>
