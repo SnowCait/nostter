@@ -198,9 +198,7 @@
 				</span>
 				<button
 					class="zap"
-					class:hidden={metadata?.content === undefined ||
-						(metadata?.content.lud16 === undefined &&
-							metadata?.content.lud06 === undefined) ||
+					class:hidden={!metadata?.canZap ||
 						item.event.kind === Kind.EncryptedDirectMessage}
 					disabled={zapped}
 					on:click={() => zapDialogComponent.openZapDialog()}
