@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { SvelteUIProvider } from '@svelteuidev/core';
 	import { page } from '$app/stores';
 	import { appName } from '$lib/Constants';
 	import '../app.css';
@@ -46,4 +47,6 @@
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-G1WMSV0PBP"></script>
 </svelte:head>
 
-<slot />
+<SvelteUIProvider>
+	<slot />
+</SvelteUIProvider>
