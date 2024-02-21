@@ -45,8 +45,8 @@ export function updateUserStatus(event: Event, trigger = true): void {
 
 export function userStatusReqEmit(pubkey: pubkey): void {
 	console.debug('[user status emit]', pubkey);
-	userStatusReq.emit({
-		kinds: [30315],
-		authors: [pubkey]
-	});
+	// userStatusReq.emit({
+	// 	kinds: [30315],
+	// 	authors: [pubkey]
+	// });
 }
