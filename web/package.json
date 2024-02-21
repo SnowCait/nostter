@@ -41,6 +41,8 @@
 	"dependencies": {
 		"@emoji-mart/data": "^1.1.2",
 		"@floating-ui/dom": "^1.5.3",
+		"@svelteuidev/composables": "^0.15.4",
+		"@svelteuidev/core": "^0.15.4",
 		"@tabler/icons-svelte": "^2.38.0",
 		"@vercel/speed-insights": "^1.0.9",
 		"emoji-kitchen-mart": "^6.0.4",
