@@ -118,7 +118,11 @@
 			"failed": "Failed to unbookmark"
 		},
 		"repost": {
+			"button": "Repost",
 			"again": "Repost again?"
+		},
+		"quote": {
+			"button": "Quote"
 		},
 		"reaction": {
 			"again": "Reaction again?"

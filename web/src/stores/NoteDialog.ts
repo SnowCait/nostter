@@ -1,5 +1,5 @@
 import { writable, type Writable } from 'svelte/store';
-import type { Event } from '../routes/types';
+import type { Event } from 'nostr-typedef';
 import type { EventItem } from '$lib/Items';
 
 console.log('[note dialog store]');
