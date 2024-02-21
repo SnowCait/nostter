@@ -8,8 +8,8 @@
 	import { channelIdStore, Channel } from '$lib/Channel';
 	import { Content } from '$lib/Content';
 	import { filterTags } from '$lib/EventHelper';
-	import { cachedEvents, channelMetadataEventsStore, metadataStore } from '$lib/cache/Events';
-	import { EventItem, Metadata } from '$lib/Items';
+	import { cachedEvents, channelMetadataEventsStore } from '$lib/cache/Events';
+	import { EventItem } from '$lib/Items';
 	import { RelayList } from '$lib/RelayList';
 	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../../../stores/NoteDialog';
@@ -31,28 +31,19 @@
 		pubkeys.clear();
 		$replyTo = undefined;
 		$quotes = [];
-		exitComplement();
 		emojiTags = [];
 		contentWarningReason = undefined;
 		emojiPickerSlide?.hide();
 		$mediaFiles = [];
 	}
 
-	export function isAutocompleting(): boolean {
-		return autocompleting;
-	}
-
 	export let afterPost: () => Promise<void> = async () => {};
 
 	let content = '';
 	let posting = false;
-	let complementStart = -1;
-	let complementEnd = -1;
-	let complementMetadataList: Metadata[] = [];
 	let selectedCustomEmojis = new Map<string, string>();
 	let channelEvent: NostrEvent | undefined;
 	let emojiTags: string[][] = [];
-	let autocompleting = false;
 	let pubkeys = new Set<string>();
 	let contentWarningReason: string | undefined;
 	let mediaFiles: Writable<File[]> = writable([]);
@@ -120,97 +111,6 @@
 		if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
 			await postNote();
 		}
-	}
-
-	async function onInput(inputEvent: Event) {
-		const { selectionStart, selectionEnd } = textarea;
-		console.debug(
-			'[complement input]',
-			inputEvent,
-			content,
-			complementStart,
-			selectionStart,
-			selectionEnd
-		);
-		if (!(inputEvent instanceof InputEvent)) {
-			console.warn('[complement input type]', typeof inputEvent);
-			return;
-		}
-
-		if (
-			selectionStart === selectionEnd &&
-			selectionStart > 0 &&
-			content.lastIndexOf('@', selectionStart) >= 0
-		) {
-			complementStart = content.lastIndexOf('@', selectionStart);
-		} else if (content.lastIndexOf('@', selectionStart) < 0) {
-			exitComplement();
-		}
-
-		if (complementStart >= 0) {
-			complementEnd = selectionEnd;
-			const complementName = content.slice(complementStart + 1, selectionStart).toLowerCase();
-			const max = 5;
-			complementMetadataList = [...$metadataStore]
-				.filter(
-					([, metadata]) =>
-						metadata.content?.name?.toLowerCase().startsWith(complementName) ||
-						metadata.content?.display_name?.toLowerCase().startsWith(complementName)
-				)
-				.map(([, metadata]) => metadata)
-				.slice(0, max);
-			if (complementMetadataList.length < max) {
-				complementMetadataList.push(
-					...[...$metadataStore]
-						.filter(
-							([, metadata]) =>
-								metadata.content?.name?.toLowerCase().includes(complementName) ||
-								metadata.content?.display_name
-									?.toLowerCase()
-									.includes(complementName) ||
-								metadata.normalizedNip05.includes(complementName) ||
-								nip19.npubEncode(metadata.event.pubkey).includes(complementName)
-						)
-						.filter(([p]) => !complementMetadataList.some((x) => x.event.pubkey === p))
-						.map(([, e]) => e)
-						.slice(0, max - complementMetadataList.length)
-				);
-			}
-			if (complementMetadataList.length < max) {
-				// TODO: fetch
-			}
-			console.debug(
-				'[complement]',
-				complementName,
-				complementMetadataList.map((x) => `@${x.content?.name}, ${x.event.pubkey}`)
-			);
-
-			// Exit if not found
-			if (complementMetadataList.length === 0) {
-				exitComplement();
-			}
-		}
-	}
-
-	async function replaceComplement(metadata: Metadata): Promise<void> {
-		console.debug('[replace complement]', content, complementStart, complementEnd);
-		const beforeCursor =
-			content.substring(0, complementStart) +
-			`nostr:${nip19.npubEncode(metadata.event.pubkey)} `;
-		const afterCursor = content.substring(complementEnd);
-		content = beforeCursor + afterCursor;
-		const cursor = beforeCursor.length;
-		console.debug('[replaced complement]', content, cursor);
-		exitComplement();
-		await tick();
-		textarea.setSelectionRange(cursor, cursor);
-		textarea.focus();
-	}
-
-	function exitComplement() {
-		complementStart = -1;
-		complementEnd = -1;
-		complementMetadataList = [];
 	}
 
 	function onEmojiPick({ detail: emoji }: { detail: any }) {
@@ -404,7 +304,6 @@
 		bind:this={textarea}
 		on:keydown={submitFromKeyboard}
 		on:keyup|stopPropagation={() => console.debug}
-		on:input={onInput}
 		on:paste={paste}
 		on:dragover|preventDefault={dragover}
 		on:drop|preventDefault={drop}
@@ -433,18 +332,6 @@
 		{#each $quotes as quote}
 			<Note item={new EventItem(quote)} readonly={true} />
 		{/each}
-	{/if}
-	{#if complementStart >= 0}
-		<ul>
-			{#each complementMetadataList as metadata}
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-				<li on:click|stopPropagation={async () => await replaceComplement(metadata)}>
-					<span>{metadata.content?.display_name ?? ''}</span>
-					<span>@{metadata.content?.name ?? metadata?.content?.display_name}</span>
-				</li>
-			{/each}
-		</ul>
 	{/if}
 	{#if emojiTags.length > 0}
 		<ul>

@@ -13,10 +13,6 @@
 	});
 
 	function closeDialog(event: MouseEvent) {
-		if (editor.isAutocompleting()) {
-			return;
-		}
-
 		let target: HTMLElement | null = event.target as HTMLElement;
 		if (target) {
 			while (target) {
