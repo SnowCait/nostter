@@ -111,7 +111,7 @@
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
 <ul class="card timeline">
-	{#each items as item (item.event.id)}
+	{#each $scrollY > 0 ? items : items.slice(0, 50) as item (item.event.id)}
 		{#if !isMuteEvent(item.event)}
 			<li
 				class={canTransition ? 'canTransition-post' : ''}
