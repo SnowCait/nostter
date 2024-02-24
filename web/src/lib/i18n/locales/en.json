@@ -140,5 +140,8 @@
 	"error": {
 		"title": "Error",
 		"message": "Not found or something wrong."
+	},
+	"badge": {
+		"accept": "Accept"
 	}
 }

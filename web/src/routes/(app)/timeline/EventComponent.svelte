@@ -11,6 +11,8 @@
 	import UserStatus from './UserStatus.svelte';
 	import LongFormContent from '../content/LongFormContent.svelte';
 	import { findIdentifier } from '$lib/EventHelper';
+	import BadgeAward from '$lib/components/items/BadgeAward.svelte';
+	import BadgeDefinition from '$lib/components/items/BadgeDefinition.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -24,6 +26,8 @@
 	<RepostedNote {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.Reaction}
 	<Reaction {item} {readonly} {createdAtFormat} />
+{:else if item.event.kind === Kind.BadgeAward}
+	<BadgeAward {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
 	<Channel {item} />
 {:else if item.event.kind === Kind.Article}
@@ -37,6 +41,8 @@
 	/>
 {:else if item.event.kind === Kind.Zap}
 	<Zap {item} {readonly} {createdAtFormat} />
+{:else if Number(item.event.kind) === 30009}
+	<BadgeDefinition event={item.event} />
 {:else if Number(item.event.kind) === 30030}
 	<CustomEmojiList tags={item.event.tags} />
 {:else if Number(item.event.kind) === 30315}
