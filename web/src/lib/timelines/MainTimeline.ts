@@ -7,13 +7,14 @@ import {
 	filterByType,
 	latestEach,
 	uniq,
-	type ConnectionState
+	type ConnectionState,
+	type LazyFilter
 } from 'rx-nostr';
 import { tap, bufferTime } from 'rxjs';
 import { timeout } from '$lib/Constants';
-import { filterTags } from '$lib/EventHelper';
+import { aTagContent, filterTags } from '$lib/EventHelper';
 import { EventItem, Metadata } from '$lib/Items';
-import { eventItemStore, metadataStore } from '../cache/Events';
+import { eventItemStore, metadataStore, replaceableEventsStore } from '../cache/Events';
 import { Content } from '$lib/Content';
 import { ToastNotification } from '$lib/ToastNotification';
 import { sleep } from '$lib/Helper';
@@ -82,6 +83,7 @@ observable.pipe(filterByType('CLOSED')).subscribe((packet) => {
 
 const metadataReq = createRxBackwardReq();
 const eventsReq = createRxBackwardReq();
+const replaceableEventsReq = createRxBackwardReq();
 
 export async function metadataReqEmit(pubkeys: string[]): Promise<void> {
 	for (const pubkey of pubkeys) {
@@ -124,12 +126,37 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 			ids
 		});
 	}
+
+	const $replaceableEventsStore = get(replaceableEventsStore);
+	const aTags = event.tags.filter(
+		([tagName, a]) => tagName === 'a' && a !== undefined && !$replaceableEventsStore.has(a)
+	);
+	if (aTags.length > 0) {
+		const filters: LazyFilter[] = aTags.map(([, a]) => {
+			const [kind, pubkey, identifier] = a.split(':');
+			return {
+				kinds: [Number(kind)],
+				authors: [pubkey],
+				'#d': [identifier]
+			};
+		});
+		replaceableEventsReq.emit(filters);
+		const relays = aTags
+			.map(([, , relayUrl]) => relayUrl)
+			.filter(
+				(relayUrl) =>
+					!Object.entries(rxNostr.getDefaultRelays()).some(([url]) => url === relayUrl)
+			);
+		if (relays.length > 0) {
+			replaceableEventsReq.emit(filters, { relays });
+		}
+	}
 }
 
 rxNostr
 	.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
 	.pipe(latestEach(({ event }) => event.pubkey))
-	.subscribe(async (packet) => {
+	.subscribe((packet) => {
 		const $metadataStore = get(metadataStore);
 		const cache = $metadataStore.get(packet.event.pubkey);
 		if (cache === undefined || cache.event.created_at < packet.event.created_at) {
@@ -149,10 +176,27 @@ rxNostr
 		uniq(),
 		tap(({ event }) => referencesReqEmit(event, true))
 	)
-	.subscribe(async (packet) => {
+	.subscribe((packet) => {
 		console.log('[rx-nostr event]', packet);
 		const eventItem = new EventItem(packet.event);
 		const $eventItemStore = get(eventItemStore);
 		$eventItemStore.set(eventItem.event.id, eventItem);
 		eventItemStore.set($eventItemStore);
+	});
+
+rxNostr
+	.use(replaceableEventsReq.pipe(bufferTime(1000, null, 10), batch()))
+	.pipe(
+		uniq(),
+		latestEach(({ event }) => aTagContent(event))
+	)
+	.subscribe((packet) => {
+		console.debug('[rx-nostr replaceable event]', packet);
+		const a = aTagContent(packet.event);
+		const $replaceableEventsStore = get(replaceableEventsStore);
+		const cache = $replaceableEventsStore.get(a);
+		if (cache === undefined || cache.created_at < packet.event.created_at) {
+			$replaceableEventsStore.set(a, packet.event);
+			replaceableEventsStore.set($replaceableEventsStore);
+		}
 	});

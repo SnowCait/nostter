@@ -136,3 +136,13 @@ export function referTags(event: Event): {
 
 	return { root, reply };
 }
+
+export function getTagContent(tagName: string, tags: string[][]): string {
+	const tagContent = tags.find(([n]) => n === tagName)?.at(1);
+	console.log('DEBUG tag', tagName, tagContent);
+	return tagContent ?? (tagName === 'd' ? '' : getTagContent('d', tags));
+}
+
+export function aTagContent(event: Event): string {
+	return `${event.kind}:${event.pubkey}:${findIdentifier(event.tags) ?? ''}`;
+}

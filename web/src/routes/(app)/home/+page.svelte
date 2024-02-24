@@ -125,6 +125,7 @@
 						Kind.EncryptedDirectMessage,
 						6,
 						Kind.Reaction,
+						Kind.BadgeAward,
 						Kind.ChannelMessage,
 						Kind.Zap
 					],
