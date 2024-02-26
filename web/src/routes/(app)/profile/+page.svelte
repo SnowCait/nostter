@@ -189,7 +189,8 @@
 	}
 
 	textarea {
-		height: 10rem;
+		height: 20rem;
+		border: var(--default-border);
 	}
 
 	img {
