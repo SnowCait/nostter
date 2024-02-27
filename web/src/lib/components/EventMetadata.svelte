@@ -33,9 +33,9 @@
 				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
 			</div>
 		</div>
-		<div>
+		<!-- <div>
 			<UserStatus pubkey={item.event.pubkey} />
-		</div>
+		</div> -->
 		<slot name="content" />
 	</div>
 </article>
