@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { now } from 'rx-nostr';
 	import { toEmoji } from '$lib/Emoji';
 	import { preferencesStore } from '$lib/Preferences';
@@ -35,7 +36,7 @@
 	}
 </script>
 
-<span>Like emoji:</span>
+<span>{$_('preferences.emoji.like')}:</span>
 <EmojiPicker on:pick={save}>
 	{#if $preferencesStore.reactionEmoji.content === '+'}
 		<IconHeart size={26} color={'lightpink'} />

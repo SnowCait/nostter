@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { autoRefresh } from '../../../stores/Preference';
 
 	let needRefresh = false;
@@ -6,8 +7,8 @@
 
 <label>
 	<input type="checkbox" bind:checked={$autoRefresh} on:change={() => (needRefresh = true)} />
-	<span>Auto refresh</span>
+	<span>{$_('preferences.auto_refresh')}</span>
 </label>
 {#if needRefresh}
-	<div>Please <a href="/" data-sveltekit-reload>refresh</a></div>
+	<div>Please <a href="/" data-sveltekit-reload>reload</a></div>
 {/if}

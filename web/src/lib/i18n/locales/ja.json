@@ -77,6 +77,20 @@
 	"following": "フォロー中",
 	"or": "または",
 	"preferences": {
+		"device": "端末",
+		"shared": "アカウント",
+		"theme": {
+			"theme": "テーマ",
+			"system": "システム",
+			"light": "ライト",
+			"dark": "ダーク"
+		},
+		"emoji": {
+			"like": "いいねの絵文字",
+			"custom": "カスタム絵文字を編集する"
+		},
+		"auto_refresh": "自動更新",
+		"media_preview": "メディアプレビュー",
 		"uri_scheme": "web+nostr: を nostter で開く",
 		"enable_uri_scheme": "有効化",
 		"developer_mode": "開発者モード",
