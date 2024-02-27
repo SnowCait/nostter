@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ObserverRender } from '@svelteuidev/core';
 	import { nip19 } from 'nostr-tools';
 	import { robohash, type EventItem, type Item, alternativeName } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
@@ -33,9 +34,13 @@
 				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
 			</div>
 		</div>
-		<div>
-			<UserStatus pubkey={item.event.pubkey} />
-		</div>
+		<ObserverRender let:visible>
+			{#if visible}
+				<div>
+					<UserStatus pubkey={item.event.pubkey} />
+				</div>
+			{/if}
+		</ObserverRender>
 		<slot name="content" />
 	</div>
 </article>
