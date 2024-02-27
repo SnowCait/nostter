@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { writable, type Writable } from 'svelte/store';
 	import { browser } from '$app/environment';
 	import { WebStorage } from '$lib/WebStorage';
@@ -38,11 +39,11 @@
 </script>
 
 <div>
-	<label for="theme-select">Theme:</label>
+	<label for="theme-select">{$_('preferences.theme.theme')}:</label>
 	<select bind:value={$theme} id="theme-select">
-		<option value="system">System</option>
-		<option value="light">Light</option>
-		<option value="dark">Dark</option>
+		<option value="system">{$_('preferences.theme.system')}</option>
+		<option value="light">{$_('preferences.theme.light')}</option>
+		<option value="dark">{$_('preferences.theme.dark')}</option>
 	</select>
 </div>
 

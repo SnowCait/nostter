@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 	import { WebStorage } from '$lib/WebStorage';
 	import { enablePreview } from '../../../stores/Preference';
@@ -13,5 +14,5 @@
 
 <label>
 	<input type="checkbox" bind:checked={$enablePreview} />
-	<span>Enable preview</span>
+	<span>{$_('preferences.media_preview')}</span>
 </label>

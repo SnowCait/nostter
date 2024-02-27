@@ -78,6 +78,20 @@
 	"cancel": "Cancel",
 	"or": "OR",
 	"preferences": {
+		"device": "Device",
+		"shared": "Shared",
+		"theme": {
+			"theme": "Theme",
+			"system": "System",
+			"light": "Light",
+			"dark": "Dark"
+		},
+		"emoji": {
+			"like": "Like emoji",
+			"custom": "Edit custome emoji"
+		},
+		"auto_refresh": "Auto refresh",
+		"media_preview": "Media preview",
 		"uri_scheme": "Open web+nostr: in nostter",
 		"enable_uri_scheme": "Enable",
 		"developer_mode": "Developer mode",
