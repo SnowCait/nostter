@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { Picker } from 'emoji-kitchen-mart';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
 	import { browser } from '$app/environment';
@@ -18,7 +17,7 @@
 		});
 	}
 
-	function updatePicker() {
+	async function updatePicker() {
 		if (emojiPicker === null) {
 			return;
 		}
@@ -41,6 +40,7 @@
 			};
 		});
 		console.log('[emoji picker slide]', customEmojis);
+		const { Picker } = await import('emoji-kitchen-mart');
 		const picker = new Picker({
 			data,
 			onEmojiSelect,

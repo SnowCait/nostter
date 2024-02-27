@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { Picker } from 'emoji-kitchen-mart';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
 	import { computePosition, flip, shift } from '@floating-ui/dom';
@@ -31,6 +30,7 @@
 				]
 			};
 		});
+		const { Picker } = await import('emoji-kitchen-mart');
 		const picker = new Picker({
 			data,
 			onEmojiSelect,
