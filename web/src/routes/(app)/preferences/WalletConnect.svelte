@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { WebStorage } from '$lib/WebStorage';
+	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import { parseConnectionString } from '$lib/nostr-tools/nip47';
 	import IconCheck from '@tabler/icons-svelte/dist/svelte/icons/IconCheck.svelte';
 
@@ -39,6 +40,12 @@
 
 <h3>Nostr Wallet Connect</h3>
 
+<p>
+	Generate with <ExternalLink link={new URL('https://nwc.getalby.com/')}>Alby</ExternalLink>, <ExternalLink
+		link={new URL('https://app.mutinywallet.com/')}>Munity</ExternalLink
+	> or other wallet.
+</p>
+
 <input
 	type="url"
 	placeholder="nostr+walletconnect:"
@@ -55,6 +62,14 @@
 {/if}
 
 <style>
+	p {
+		margin: 0.5rem auto;
+	}
+
+	input {
+		width: 100%;
+	}
+
 	.invalid {
 		border-color: var(--red);
 	}
