@@ -55,10 +55,9 @@
 		{#each badgeDefinitions as event}
 			<BadgeDefinition {event} />
 			{#if !readonly && !$rom}
-				<ExternalLink
-					link={new URL(`https://badges.page/p/${nip19.npubEncode($pubkey)}`)}
-					text={$_('badge.accept')}
-				/>
+				<ExternalLink link={new URL(`https://badges.page/p/${nip19.npubEncode($pubkey)}`)}>
+					{$_('badge.accept')}
+				</ExternalLink>
 			{/if}
 		{/each}
 	</main>

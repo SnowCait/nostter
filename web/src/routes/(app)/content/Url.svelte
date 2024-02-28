@@ -50,7 +50,7 @@
 				</blockquote>
 			</div>
 		{:else}
-			<ExternalLink {text} {link} />
+			<ExternalLink {link}>{text}</ExternalLink>
 			<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 		{/if}
 	</ObserverRender>
@@ -62,14 +62,14 @@
 			</a>
 		</div>
 	{:else}
-		<ExternalLink {text} {link} />
+		<ExternalLink {link}>{text}</ExternalLink>
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else if /\.(mp3|m4a|wav)$/i.test(link.pathname)}
 	{#if preview}
 		<audio src={link.href} controls />
 	{:else}
-		<ExternalLink {text} {link} />
+		<ExternalLink {link}>{text}</ExternalLink>
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else if /\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(link.pathname)}
@@ -79,11 +79,11 @@
 			<video src={link.href} controls />
 		</div>
 	{:else}
-		<ExternalLink {text} {link} />
+		<ExternalLink {link}>{text}</ExternalLink>
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else}
-	<ExternalLink {text} {link} />
+	<ExternalLink {link}>{text}</ExternalLink>
 {/if}
 
 <style>
