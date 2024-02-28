@@ -103,6 +103,7 @@
 
 	div {
 		position: absolute;
+		z-index: 1;
 	}
 
 	div.hidden {
