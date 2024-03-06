@@ -281,12 +281,7 @@
 
 <h1>{$_('pages.thread')}</h1>
 
-<TimelineView
-	items={replyToEventItems}
-	readonly={false}
-	load={async () => console.debug()}
-	showLoading={false}
-/>
+<TimelineView items={replyToEventItems} readonly={false} showLoading={false} />
 
 <div bind:this={focusedElement} class="card">
 	{#if item === undefined}
@@ -376,12 +371,7 @@
 	</nav>
 {/if}
 
-<TimelineView
-	items={repliedToEventItems}
-	readonly={false}
-	load={async () => console.debug()}
-	showLoading={false}
-/>
+<TimelineView items={repliedToEventItems} readonly={false} showLoading={false} />
 
 <style>
 	section {

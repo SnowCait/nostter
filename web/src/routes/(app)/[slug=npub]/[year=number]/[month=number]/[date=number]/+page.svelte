@@ -88,7 +88,7 @@
 </svelte:head>
 
 <DateNavigation slug={data.slug} date={data.date} />
-<TimelineView items={$items} load={async () => console.debug()} showLoading={false} />
+<TimelineView items={$items} showLoading={false} />
 {#if $items.length > 0}
 	<DateNavigation slug={data.slug} date={data.date} />
 {/if}

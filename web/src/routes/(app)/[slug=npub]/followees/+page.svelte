@@ -56,4 +56,4 @@
 
 <h1>{$_('pages.followees')} ({pubkeys.size})</h1>
 
-<TimelineView {items} load={async () => console.debug()} showLoading={false} />
+<TimelineView {items} showLoading={false} />

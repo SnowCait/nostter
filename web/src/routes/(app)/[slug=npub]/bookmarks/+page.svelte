@@ -91,18 +91,10 @@
 
 <h2>Public</h2>
 
-<TimelineView
-	items={publicBookmarkEventItems}
-	load={async () => console.debug()}
-	showLoading={false}
-/>
+<TimelineView items={publicBookmarkEventItems} showLoading={false} />
 
 {#if privateBookmarkEventItems.length > 0}
 	<h2>Private</h2>
 
-	<TimelineView
-		items={privateBookmarkEventItems}
-		load={async () => console.debug()}
-		showLoading={false}
-	/>
+	<TimelineView items={privateBookmarkEventItems} showLoading={false} />
 {/if}

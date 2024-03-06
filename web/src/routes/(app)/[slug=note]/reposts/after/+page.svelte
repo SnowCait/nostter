@@ -101,7 +101,7 @@
 </article>
 
 {#if items.length > 0}
-	<TimelineView {items} load={async () => console.debug()} showLoading={false} />
+	<TimelineView {items} showLoading={false} />
 {:else}
 	<NotFound />
 {/if}

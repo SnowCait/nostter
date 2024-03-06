@@ -79,4 +79,4 @@
 
 <h1>{$_('pages.pinned')}</h1>
 
-<TimelineView {items} load={async () => console.debug()} showLoading={false} />
+<TimelineView {items} showLoading={false} />
