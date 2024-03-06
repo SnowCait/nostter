@@ -8,8 +8,7 @@
 			"bookmarks": "ブックマーク",
 			"channels": "チャンネル",
 			"profile": "プロフィール",
-			"preferences": "設定",
-			"about": "nostter について"
+			"preferences": "設定"
 		}
 	},
 	"pages": {
@@ -156,5 +155,13 @@
 	},
 	"badge": {
 		"accept": "受け取る"
+	},
+	"replay": {
+		"title": "リプレイ",
+		"play": "再生"
+	},
+	"about": {
+		"title": "nostter について",
+		"others": "その他"
 	}
 }

@@ -106,7 +106,7 @@
 				<a href="/about">
 					<li>
 						<IconPaw size={30} />
-						<p>{$_('layout.header.about')}</p>
+						<p>{$_('about.title')}</p>
 					</li>
 				</a>
 			{/if}

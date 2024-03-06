@@ -8,8 +8,7 @@
 			"bookmarks": "Bookmarks",
 			"channels": "Channels",
 			"profile": "Profile",
-			"preferences": "Preferences",
-			"about": "About nostter"
+			"preferences": "Preferences"
 		}
 	},
 	"pages": {
@@ -157,5 +156,13 @@
 	},
 	"badge": {
 		"accept": "Accept"
+	},
+	"replay": {
+		"title": "Replay",
+		"play": "Play"
+	},
+	"about": {
+		"title": "About nostter",
+		"others": "Others"
 	}
 }
