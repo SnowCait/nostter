@@ -233,7 +233,6 @@ html [type='button'],
 /* Remove the default button styling in all browsers */
 button,
 input,
-select,
 textarea {
 	background-color: transparent;
 	border-style: none;
