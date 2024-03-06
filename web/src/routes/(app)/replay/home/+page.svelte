@@ -125,6 +125,11 @@
 			$eventTimeouts.push(timeout);
 		}
 
+		if (until > Math.floor(Date.now() / 1000)) {
+			console.log('[replay caught up]');
+			return;
+		}
+
 		const fetchOffset =
 			((until - $firstSince - 120) * 1000) / data.speed - (Date.now() - $startedAt);
 		console.debug('[replay next fetch]', fetchOffset, new Date(Date.now() + fetchOffset));
