@@ -1,3 +1,4 @@
+import { speeds } from '$lib/timelines/ReplayHomeTimeline';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad<{
@@ -9,6 +10,6 @@ export const load: PageLoad<{
 	console.log('[replay page load]', since);
 	return {
 		since: since === null ? null : new Date(since),
-		speed: 0 < speed && speed <= 10 ? speed : 1
+		speed: 0 < speed && speed <= 10 ? speed : speeds[0]
 	};
 };
