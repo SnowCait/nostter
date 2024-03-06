@@ -16,7 +16,7 @@
 		startedAt,
 		subscription
 	} from '$lib/timelines/ReplayHomeTimeline';
-	import { appName } from '$lib/Constants';
+	import { appName, reverseChronologicalItem } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Timeline } from '$lib/Timeline';
 	import type { PageData } from './$types';
@@ -107,12 +107,17 @@
 			$startedAt = Date.now();
 		}
 
+		$itemsPool.sort(reverseChronologicalItem);
+
 		while ($itemsPool.length > 0) {
 			const item = $itemsPool.pop();
 			if (item === undefined) {
 				break;
 			}
-			const offset = (item.event.created_at - $firstSince) * 1000 - (Date.now() - $startedAt);
+			const offset =
+				((item.event.created_at - $firstSince) * 1000) / data.speed -
+				(Date.now() - $startedAt);
+			console.debug('[replay event]', offset, new Date(Date.now() + offset));
 			const timeout = setTimeout(() => {
 				$items.unshift(item);
 				$items = $items;
@@ -120,7 +125,14 @@
 			$eventTimeouts.push(timeout);
 		}
 
-		const fetchOffset = (until - $firstSince - 60) * 1000 - (Date.now() - $startedAt);
+		if (until > Math.floor(Date.now() / 1000)) {
+			console.log('[replay caught up]');
+			return;
+		}
+
+		const fetchOffset =
+			((until - $firstSince - 120) * 1000) / data.speed - (Date.now() - $startedAt);
+		console.debug('[replay next fetch]', fetchOffset, new Date(Date.now() + fetchOffset));
 		$fetchTimeout = setTimeout(() => {
 			fetchNext(until);
 		}, fetchOffset);
@@ -135,6 +147,11 @@
 
 <form>
 	<input type="datetime-local" name="since" value={localDate?.toISOString().slice(0, -1)} />
+	<select name="speed">
+		{#each [1, 1.25, 1.5, 2, 3, 5, 10] as speed}
+			<option value={speed} selected={speed === data.speed}>x{speed}</option>
+		{/each}
+	</select>
 	<input type="submit" value={$_('replay.play')} />
 </form>
 
