@@ -12,7 +12,7 @@
 
 	export let items: Item[] = [];
 	export let readonly = false;
-	export let load: () => Promise<void>;
+	export let load: () => Promise<void> = async () => console.debug();
 	export let showLoading = true;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 	export let full = false;

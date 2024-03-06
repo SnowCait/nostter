@@ -101,7 +101,7 @@
 	</ExternalLink>
 </div>
 
-<TimelineView {items} load={async () => console.debug()} showLoading={false} />
+<TimelineView {items} showLoading={false} />
 
 <style>
 	form,

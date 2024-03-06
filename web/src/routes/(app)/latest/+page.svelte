@@ -28,4 +28,4 @@
 
 <h1>{$_('pages.latest')}</h1>
 
-<TimelineView {items} load={async () => console.debug()} showLoading={false} />
+<TimelineView {items} showLoading={false} />
