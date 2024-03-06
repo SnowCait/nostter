@@ -13,6 +13,8 @@
 		items,
 		itemsPool,
 		sinceDate,
+		speed,
+		speeds,
 		startedAt,
 		subscription
 	} from '$lib/timelines/ReplayHomeTimeline';
@@ -30,10 +32,11 @@
 	$: if (
 		data.since !== null &&
 		!Number.isNaN(data.since.getTime()) &&
-		data.since.getTime() !== $sinceDate?.getTime()
+		(data.since.getTime() !== $sinceDate?.getTime() || data.speed !== $speed)
 	) {
 		console.log('[replay page]', data.since);
 		$sinceDate = data.since;
+		$speed = data.speed;
 
 		clear();
 
@@ -148,7 +151,7 @@
 <form>
 	<input type="datetime-local" name="since" value={localDate?.toISOString().slice(0, -1)} />
 	<select name="speed">
-		{#each [1, 1.25, 1.5, 2, 3, 5, 10] as speed}
+		{#each speeds as speed}
 			<option value={speed} selected={speed === data.speed}>x{speed}</option>
 		{/each}
 	</select>
