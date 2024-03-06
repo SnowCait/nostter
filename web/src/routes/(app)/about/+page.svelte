@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
+	import { author, rom } from '../../../stores/Author';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 </script>
 
-<h1>{$_('layout.header.about')}</h1>
-<div class="card">
+<h1>{$_('about.title')}</h1>
+<section class="card">
 	<div>
 		<span>GitHub:</span>
 		<a href="https://github.com/SnowCait/nostter" target="_blank" rel="noopener noreferrer">
@@ -32,9 +33,25 @@
 		<ZapButton pubkey="cbcb0e0b602ec3a9adfc6956bfbe3e2bc12379ee13bf8505ce45f1c831d2e52a" />
 	</div>
 	<img src="/nostter-chan.jpg" alt="" />
-</div>
+</section>
+
+{#if $author !== undefined && !$rom}
+	<h2>{$_('about.others')}</h2>
+	<section class="card">
+		<div>
+			<a href="/latest">{$_('pages.latest')}</a>
+		</div>
+		<div>
+			<a href="/replay/home">{$_('replay.title')}</a>
+		</div>
+	</section>
+{/if}
 
 <style>
+	h2 {
+		margin-top: 1rem;
+	}
+
 	div {
 		margin-bottom: 1rem;
 	}
@@ -43,6 +60,10 @@
 		width: 50%;
 		border: 1px solid lightgray;
 		border-radius: 10px;
+	}
+
+	a {
+		text-decoration: underline;
 	}
 
 	.user {
