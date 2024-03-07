@@ -6,12 +6,12 @@ import { Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { bookmarkEvent } from '$lib/author/Bookmark';
 import { updateReactionedEvents, updateRepostedEvents } from '$lib/author/Action';
-import { authorChannelsEventStore, metadataStore } from '$lib/cache/Events';
+import { authorChannelsEventStore, storeMetadata } from '$lib/cache/Events';
 import { updateFolloweesStore } from '$lib/Contacts';
 import { findIdentifier } from '$lib/EventHelper';
 import { Preferences, preferencesStore } from '$lib/Preferences';
 import { followingHashtags, updateFollowingHashtags } from '$lib/Interest';
-import { EventItem, Metadata } from '$lib/Items';
+import { EventItem } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
 import { authorReplaceableKinds } from '$lib/Author';
 import { chunk } from '$lib/Array';
@@ -50,14 +50,7 @@ rxNostr
 				storage.setReplaceableEvent(event);
 			}
 
-			const cache = get(metadataStore).get(event.pubkey);
-			if (cache === undefined || cache.event.created_at < event.created_at) {
-				const metadata = new Metadata(packet.event);
-				console.log('[rx-nostr metadata]', packet, metadata.content?.name);
-				const $metadataStore = get(metadataStore);
-				$metadataStore.set(metadata.event.pubkey, metadata);
-				metadataStore.set($metadataStore);
-			}
+			storeMetadata(event);
 			return;
 		}
 
