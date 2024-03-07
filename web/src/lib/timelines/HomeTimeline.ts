@@ -1,4 +1,5 @@
-import { createRxForwardReq, now, uniq } from 'rx-nostr';
+import { createRxForwardReq, filterByKind, latestEach, now, uniq } from 'rx-nostr';
+import { filter, share, tap } from 'rxjs';
 import type { Filter } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
@@ -6,16 +7,16 @@ import { Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { bookmarkEvent } from '$lib/author/Bookmark';
 import { updateReactionedEvents, updateRepostedEvents } from '$lib/author/Action';
-import { authorChannelsEventStore, metadataStore } from '$lib/cache/Events';
+import { authorChannelsEventStore, storeMetadata } from '$lib/cache/Events';
 import { updateFolloweesStore } from '$lib/Contacts';
 import { findIdentifier } from '$lib/EventHelper';
 import { Preferences, preferencesStore } from '$lib/Preferences';
 import { followingHashtags, updateFollowingHashtags } from '$lib/Interest';
-import { EventItem, Metadata } from '$lib/Items';
+import { EventItem } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
 import { authorReplaceableKinds } from '$lib/Author';
 import { chunk } from '$lib/Array';
-import { filterLimitItems } from '$lib/Constants';
+import { filterLimitItems, parameterizedReplaceableKinds, replaceableKinds } from '$lib/Constants';
 import { Mute } from '$lib/Mute';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
 import { pubkey, author, updateRelays, followees } from '../../stores/Author';
@@ -30,43 +31,112 @@ const streamingSpeed = new Map<number, number>();
 let streamingSpeedNotifiedAt = now();
 
 const homeTimelineReq = createRxForwardReq();
-rxNostr
-	.use(homeTimelineReq)
-	.pipe(uniq())
+const observable = rxNostr.use(homeTimelineReq).pipe(uniq());
+
+// Author Replaceable Events
+const authorReplaceableObservable = observable.pipe(
+	filter(({ event }) => replaceableKinds.includes(event.kind)),
+	filter(({ event }) => event.pubkey === get(pubkey)), // Ensure
+	latestEach(({ event }) => event.kind),
+	filter(({ event }) => {
+		const storage = new WebStorage(localStorage);
+		const cache = storage.getReplaceableEvent(event.kind);
+		return cache === undefined || cache.created_at < event.created_at;
+	}),
+	tap(({ event }) => {
+		console.debug('[rx-nostr author replaceable event]', event.kind, event);
+		const storage = new WebStorage(localStorage);
+		storage.setReplaceableEvent(event);
+	}),
+	share()
+);
+authorReplaceableObservable
+	.pipe(filterByKind(Kind.Metadata))
+	.subscribe(({ event }) => storeMetadata(event));
+authorReplaceableObservable.pipe(filterByKind(Kind.Contacts)).subscribe(({ event }) => {
+	updateFolloweesStore(event.tags);
+	hometimelineReqEmit();
+});
+authorReplaceableObservable.pipe(filterByKind(10000)).subscribe(async ({ event }) => {
+	await new Mute().update(event);
+});
+authorReplaceableObservable
+	.pipe(filterByKind(10001))
+	.subscribe(({ event }) => authorChannelsEventStore.set(event));
+authorReplaceableObservable
+	.pipe(filterByKind(10005))
+	.subscribe(({ event }) => authorChannelsEventStore.set(event));
+authorReplaceableObservable
+	.pipe(filterByKind(Kind.RelayList))
+	.subscribe(({ event }) => updateRelays(event));
+authorReplaceableObservable.pipe(filterByKind(10015)).subscribe(() => {
+	updateFollowingHashtags();
+	hometimelineReqEmit();
+});
+authorReplaceableObservable
+	.pipe(filterByKind(10030))
+	.subscribe(({ event }) => get(author)?.storeCustomEmojis(event));
+
+// Author Parameterized Replaceable Events
+const authorParameterizedReplaceableObservable = observable.pipe(
+	filter(({ event }) => parameterizedReplaceableKinds.includes(event.kind)),
+	filter(({ event }) => event.pubkey === get(pubkey)), // Ensure
+	latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`),
+	filter(({ event }) => {
+		const storage = new WebStorage(localStorage);
+		const cache = storage.getParameterizedReplaceableEvent(
+			event.kind,
+			findIdentifier(event.tags) ?? ''
+		);
+		return cache === undefined || cache.created_at < event.created_at;
+	}),
+	tap(({ event }) => {
+		console.debug(
+			'[rx-nostr author parameterized replaceable event]',
+			event.kind,
+			findIdentifier(event.tags),
+			event
+		);
+		const storage = new WebStorage(localStorage);
+		storage.setParameterizedReplaceableEvent(event);
+	}),
+	share()
+);
+
+authorParameterizedReplaceableObservable.pipe(filterByKind(30001)).subscribe(({ event }) => {
+	if (findIdentifier(event.tags) === 'bookmark') {
+		bookmarkEvent.set(event);
+	}
+});
+authorParameterizedReplaceableObservable.pipe(filterByKind(30078)).subscribe(({ event }) => {
+	const identifier = findIdentifier(event.tags);
+	if (identifier === 'nostter-read') {
+		lastReadAt.set(event.created_at);
+		unreadEventItems.set([]);
+	} else if (identifier === 'nostter-preferences') {
+		const preferences = new Preferences(event.content);
+		preferencesStore.set(preferences);
+	}
+});
+
+// Other Events
+observable
+	.pipe(
+		filter(
+			({ event }) =>
+				!replaceableKinds.includes(event.kind) &&
+				!parameterizedReplaceableKinds.includes(event.kind)
+		)
+	)
 	.subscribe(async (packet) => {
 		console.log('[rx-nostr subscribe home timeline]', packet);
 
 		const { event } = packet;
 		const $pubkey = get(pubkey);
 		const $author = get(author);
-		const storage = new WebStorage(localStorage);
 
 		if ($author === undefined) {
 			throw new Error('Logic error');
-		}
-
-		if (event.kind === Kind.Metadata) {
-			if (event.pubkey === $pubkey) {
-				storage.setReplaceableEvent(event);
-			}
-
-			const cache = get(metadataStore).get(event.pubkey);
-			if (cache === undefined || cache.event.created_at < event.created_at) {
-				const metadata = new Metadata(packet.event);
-				console.log('[rx-nostr metadata]', packet, metadata.content?.name);
-				const $metadataStore = get(metadataStore);
-				$metadataStore.set(metadata.event.pubkey, metadata);
-				metadataStore.set($metadataStore);
-			}
-			return;
-		}
-
-		if (event.kind === Kind.Contacts) {
-			console.log('[contacts]', event, packet.from);
-			storage.setReplaceableEvent(event);
-			updateFolloweesStore(event.tags);
-			hometimelineReqEmit();
-			return;
 		}
 
 		if (event.kind === 6 && event.pubkey === $pubkey) {
@@ -75,80 +145,6 @@ rxNostr
 
 		if (event.kind === 7 && event.pubkey === $pubkey) {
 			updateReactionedEvents([event]);
-		}
-
-		if (event.kind === 10000) {
-			console.log('[mute list]', event, packet.from);
-			storage.setReplaceableEvent(event);
-			await new Mute().update(event);
-			return;
-		}
-
-		if (event.kind === 10001 || event.kind === 10005) {
-			storage.setReplaceableEvent(event);
-			authorChannelsEventStore.set(event);
-			return;
-		}
-
-		if (event.kind === Kind.RelayList) {
-			console.log('[relay list]', event, packet.from);
-			storage.setReplaceableEvent(event);
-			updateRelays(event);
-			return;
-		}
-
-		if (event.kind === 10015) {
-			console.log('[interest list]', event, packet.from);
-			storage.setReplaceableEvent(event);
-			updateFollowingHashtags();
-			hometimelineReqEmit();
-			return;
-		}
-
-		if (event.kind === 10030) {
-			storage.setReplaceableEvent(event);
-			$author?.storeCustomEmojis(event);
-			return;
-		}
-
-		if (event.kind === 30000) {
-			storage.setParameterizedReplaceableEvent(event);
-			const identifier = findIdentifier(event.tags);
-			if (identifier === 'notifications/lastOpened') {
-				console.log('[last read]', event);
-				lastReadAt.set(event.created_at);
-				unreadEventItems.set([]);
-			} else if (identifier !== undefined) {
-				console.log('[people list]', event);
-			}
-			return;
-		}
-
-		if (event.kind === 30001) {
-			console.debug('[list]', event, packet.from);
-			storage.setParameterizedReplaceableEvent(event);
-			if (findIdentifier(event.tags) === 'bookmark') {
-				console.log('[bookmark]', event, packet.from);
-				bookmarkEvent.set(event);
-			}
-			return;
-		}
-
-		if (event.kind === 30078) {
-			console.log('[app data]', event, packet.from);
-			storage.setParameterizedReplaceableEvent(event);
-
-			const identifier = findIdentifier(event.tags);
-			if (identifier === 'nostter-read') {
-				console.log('[last read]', event);
-				lastReadAt.set(event.created_at);
-				unreadEventItems.set([]);
-			} else if (identifier === 'nostter-preferences') {
-				const preferences = new Preferences(event.content);
-				preferencesStore.set(preferences);
-			}
-
-			return;
 		}
 
 		if (event.kind === 30315) {
@@ -272,14 +268,10 @@ export function hometimelineReqEmit() {
 		since
 	};
 
-	const storage = new WebStorage(localStorage);
-	const cachedAt = storage.getCachedAt();
-	const sinceOfCache = cachedAt ?? now();
 	const authorFilters: Filter[] = [
 		{
 			kinds: [...new Set(authorReplaceableKinds.map(({ kind }) => kind))],
-			authors: [$pubkey],
-			since: sinceOfCache
+			authors: [$pubkey]
 		},
 		{
 			kinds: [Kind.Reaction],
@@ -295,6 +287,6 @@ export function hometimelineReqEmit() {
 			since
 		});
 	}
-	console.log('[rx-nostr subscribe author filter]', authorFilters, new Date(sinceOfCache * 1000));
+	console.log('[rx-nostr subscribe author filter]', authorFilters);
 	homeTimelineReq.emit([...followeesFilter, relatesFilter, ...authorFilters]);
 }

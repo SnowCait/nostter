@@ -14,9 +14,13 @@ import { tap, bufferTime } from 'rxjs';
 import { timeout } from '$lib/Constants';
 import { aTagContent, filterTags } from '$lib/EventHelper';
 import { EventItem, Metadata } from '$lib/Items';
-import { eventItemStore, metadataStore, replaceableEventsStore } from '../cache/Events';
+import {
+	eventItemStore,
+	metadataStore,
+	replaceableEventsStore,
+	storeMetadata
+} from '../cache/Events';
 import { Content } from '$lib/Content';
-import { ToastNotification } from '$lib/ToastNotification';
 import { sleep } from '$lib/Helper';
 
 export const rxNostr = createRxNostr({
@@ -156,19 +160,7 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 rxNostr
 	.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
 	.pipe(latestEach(({ event }) => event.pubkey))
-	.subscribe((packet) => {
-		const $metadataStore = get(metadataStore);
-		const cache = $metadataStore.get(packet.event.pubkey);
-		if (cache === undefined || cache.event.created_at < packet.event.created_at) {
-			const metadata = new Metadata(packet.event);
-			console.log('[rx-nostr metadata]', packet, metadata.content?.name);
-			$metadataStore.set(metadata.event.pubkey, metadata);
-			metadataStore.set($metadataStore);
-
-			const toast = new ToastNotification();
-			toast.dequeue(metadata);
-		}
-	});
+	.subscribe(({ event }) => storeMetadata(event));
 
 rxNostr
 	.use(eventsReq.pipe(bufferTime(1000, null, 10), batch()))
