@@ -2,7 +2,6 @@ import { Kind, type Event, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { createRxBackwardReq, createRxOneshotReq, latest, latestEach, now, uniq } from 'rx-nostr';
 import { firstValueFrom, EmptyError } from 'rxjs';
-import { Api } from './Api';
 import {
 	readRelays,
 	writeRelays,
