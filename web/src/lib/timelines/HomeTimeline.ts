@@ -1,4 +1,5 @@
-import { createRxForwardReq, now, uniq } from 'rx-nostr';
+import { createRxForwardReq, filterByKind, latestEach, now, uniq } from 'rx-nostr';
+import { filter, share, tap } from 'rxjs';
 import type { Filter } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
@@ -15,7 +16,7 @@ import { EventItem } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
 import { authorReplaceableKinds } from '$lib/Author';
 import { chunk } from '$lib/Array';
-import { filterLimitItems } from '$lib/Constants';
+import { filterLimitItems, replaceableKinds } from '$lib/Constants';
 import { Mute } from '$lib/Mute';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
 import { pubkey, author, updateRelays, followees } from '../../stores/Author';
@@ -30,9 +31,51 @@ const streamingSpeed = new Map<number, number>();
 let streamingSpeedNotifiedAt = now();
 
 const homeTimelineReq = createRxForwardReq();
-rxNostr
-	.use(homeTimelineReq)
-	.pipe(uniq())
+const observable = rxNostr.use(homeTimelineReq).pipe(uniq());
+const authorReplaceableObservable = observable.pipe(
+	filter(({ event }) => replaceableKinds.includes(event.kind)),
+	filter(({ event }) => event.pubkey === get(pubkey)), // Ensure
+	latestEach(({ event }) => event.kind),
+	filter(({ event }) => {
+		const storage = new WebStorage(localStorage);
+		const cache = storage.getReplaceableEvent(event.kind);
+		return cache === undefined || cache.created_at < event.created_at;
+	}),
+	tap(({ event }) => {
+		console.debug('[rx-nostr author replaceable event]', event.kind, event);
+		const storage = new WebStorage(localStorage);
+		storage.setReplaceableEvent(event);
+	}),
+	share()
+);
+authorReplaceableObservable
+	.pipe(filterByKind(Kind.Metadata))
+	.subscribe(({ event }) => storeMetadata(event));
+authorReplaceableObservable.pipe(filterByKind(Kind.Contacts)).subscribe(({ event }) => {
+	updateFolloweesStore(event.tags);
+	hometimelineReqEmit();
+});
+authorReplaceableObservable.pipe(filterByKind(10000)).subscribe(async ({ event }) => {
+	await new Mute().update(event);
+});
+authorReplaceableObservable
+	.pipe(filterByKind(10001))
+	.subscribe(({ event }) => authorChannelsEventStore.set(event));
+authorReplaceableObservable
+	.pipe(filterByKind(10005))
+	.subscribe(({ event }) => authorChannelsEventStore.set(event));
+authorReplaceableObservable
+	.pipe(filterByKind(Kind.RelayList))
+	.subscribe(({ event }) => updateRelays(event));
+authorReplaceableObservable.pipe(filterByKind(10015)).subscribe(() => {
+	updateFollowingHashtags();
+	hometimelineReqEmit();
+});
+authorReplaceableObservable
+	.pipe(filterByKind(10030))
+	.subscribe(({ event }) => get(author)?.storeCustomEmojis(event));
+observable
+	.pipe(filter(({ event }) => !replaceableKinds.includes(event.kind)))
 	.subscribe(async (packet) => {
 		console.log('[rx-nostr subscribe home timeline]', packet);
 
@@ -45,63 +88,12 @@ rxNostr
 			throw new Error('Logic error');
 		}
 
-		if (event.kind === Kind.Metadata) {
-			if (event.pubkey === $pubkey) {
-				storage.setReplaceableEvent(event);
-			}
-
-			storeMetadata(event);
-			return;
-		}
-
-		if (event.kind === Kind.Contacts) {
-			console.log('[contacts]', event, packet.from);
-			storage.setReplaceableEvent(event);
-			updateFolloweesStore(event.tags);
-			hometimelineReqEmit();
-			return;
-		}
-
 		if (event.kind === 6 && event.pubkey === $pubkey) {
 			updateRepostedEvents([event]);
 		}
 
 		if (event.kind === 7 && event.pubkey === $pubkey) {
 			updateReactionedEvents([event]);
-		}
-
-		if (event.kind === 10000) {
-			console.log('[mute list]', event, packet.from);
-			storage.setReplaceableEvent(event);
-			await new Mute().update(event);
-			return;
-		}
-
-		if (event.kind === 10001 || event.kind === 10005) {
-			storage.setReplaceableEvent(event);
-			authorChannelsEventStore.set(event);
-			return;
-		}
-
-		if (event.kind === Kind.RelayList) {
-			console.log('[relay list]', event, packet.from);
-			storage.setReplaceableEvent(event);
-			updateRelays(event);
-			return;
-		}
-
-		if (event.kind === 10015) {
-			console.log('[interest list]', event, packet.from);
-			storage.setReplaceableEvent(event);
-			updateFollowingHashtags();
-			hometimelineReqEmit();
-			return;
-		}
-
-		if (event.kind === 10030) {
-			storage.setReplaceableEvent(event);
-			$author?.storeCustomEmojis(event);
-			return;
 		}
 
 		if (event.kind === 30000) {
