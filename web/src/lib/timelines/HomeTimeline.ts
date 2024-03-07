@@ -268,14 +268,10 @@ export function hometimelineReqEmit() {
 		since
 	};
 
-	const storage = new WebStorage(localStorage);
-	const cachedAt = storage.getCachedAt();
-	const sinceOfCache = cachedAt ?? now();
 	const authorFilters: Filter[] = [
 		{
 			kinds: [...new Set(authorReplaceableKinds.map(({ kind }) => kind))],
-			authors: [$pubkey],
-			since: sinceOfCache
+			authors: [$pubkey]
 		},
 		{
 			kinds: [Kind.Reaction],
@@ -291,6 +287,6 @@ export function hometimelineReqEmit() {
 			since
 		});
 	}
-	console.log('[rx-nostr subscribe author filter]', authorFilters, new Date(sinceOfCache * 1000));
+	console.log('[rx-nostr subscribe author filter]', authorFilters);
 	homeTimelineReq.emit([...followeesFilter, relatesFilter, ...authorFilters]);
 }
