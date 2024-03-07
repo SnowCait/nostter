@@ -16,7 +16,7 @@ import { EventItem } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
 import { authorReplaceableKinds } from '$lib/Author';
 import { chunk } from '$lib/Array';
-import { filterLimitItems, replaceableKinds } from '$lib/Constants';
+import { filterLimitItems, parameterizedReplaceableKinds, replaceableKinds } from '$lib/Constants';
 import { Mute } from '$lib/Mute';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
 import { pubkey, author, updateRelays, followees } from '../../stores/Author';
@@ -32,6 +32,8 @@ let streamingSpeedNotifiedAt = now();
 
 const homeTimelineReq = createRxForwardReq();
 const observable = rxNostr.use(homeTimelineReq).pipe(uniq());
+
+// Author Replaceable Events
 const authorReplaceableObservable = observable.pipe(
 	filter(({ event }) => replaceableKinds.includes(event.kind)),
 	filter(({ event }) => event.pubkey === get(pubkey)), // Ensure
@@ -74,15 +76,64 @@ authorReplaceableObservable.pipe(filterByKind(10015)).subscribe(() => {
 authorReplaceableObservable
 	.pipe(filterByKind(10030))
 	.subscribe(({ event }) => get(author)?.storeCustomEmojis(event));
+
+// Author Parameterized Replaceable Events
+const authorParameterizedReplaceableObservable = observable.pipe(
+	filter(({ event }) => parameterizedReplaceableKinds.includes(event.kind)),
+	filter(({ event }) => event.pubkey === get(pubkey)), // Ensure
+	latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`),
+	filter(({ event }) => {
+		const storage = new WebStorage(localStorage);
+		const cache = storage.getParameterizedReplaceableEvent(
+			event.kind,
+			findIdentifier(event.tags) ?? ''
+		);
+		return cache === undefined || cache.created_at < event.created_at;
+	}),
+	tap(({ event }) => {
+		console.debug(
+			'[rx-nostr author parameterized replaceable event]',
+			event.kind,
+			findIdentifier(event.tags),
+			event
+		);
+		const storage = new WebStorage(localStorage);
+		storage.setParameterizedReplaceableEvent(event);
+	}),
+	share()
+);
+
+authorParameterizedReplaceableObservable.pipe(filterByKind(30001)).subscribe(({ event }) => {
+	if (findIdentifier(event.tags) === 'bookmark') {
+		bookmarkEvent.set(event);
+	}
+});
+authorParameterizedReplaceableObservable.pipe(filterByKind(30078)).subscribe(({ event }) => {
+	const identifier = findIdentifier(event.tags);
+	if (identifier === 'nostter-read') {
+		lastReadAt.set(event.created_at);
+		unreadEventItems.set([]);
+	} else if (identifier === 'nostter-preferences') {
+		const preferences = new Preferences(event.content);
+		preferencesStore.set(preferences);
+	}
+});
+
+// Other Events
 observable
-	.pipe(filter(({ event }) => !replaceableKinds.includes(event.kind)))
+	.pipe(
+		filter(
+			({ event }) =>
+				!replaceableKinds.includes(event.kind) &&
+				!parameterizedReplaceableKinds.includes(event.kind)
+		)
+	)
 	.subscribe(async (packet) => {
 		console.log('[rx-nostr subscribe home timeline]', packet);
 
 		const { event } = packet;
 		const $pubkey = get(pubkey);
 		const $author = get(author);
-		const storage = new WebStorage(localStorage);
 
 		if ($author === undefined) {
 			throw new Error('Logic error');
@@ -94,46 +145,6 @@ observable
 
 		if (event.kind === 7 && event.pubkey === $pubkey) {
 			updateReactionedEvents([event]);
-		}
-
-		if (event.kind === 30000) {
-			storage.setParameterizedReplaceableEvent(event);
-			const identifier = findIdentifier(event.tags);
-			if (identifier === 'notifications/lastOpened') {
-				console.log('[last read]', event);
-				lastReadAt.set(event.created_at);
-				unreadEventItems.set([]);
-			} else if (identifier !== undefined) {
-				console.log('[people list]', event);
-			}
-			return;
-		}
-
-		if (event.kind === 30001) {
-			console.debug('[list]', event, packet.from);
-			storage.setParameterizedReplaceableEvent(event);
-			if (findIdentifier(event.tags) === 'bookmark') {
-				console.log('[bookmark]', event, packet.from);
-				bookmarkEvent.set(event);
-			}
-			return;
-		}
-
-		if (event.kind === 30078) {
-			console.log('[app data]', event, packet.from);
-			storage.setParameterizedReplaceableEvent(event);
-
-			const identifier = findIdentifier(event.tags);
-			if (identifier === 'nostter-read') {
-				console.log('[last read]', event);
-				lastReadAt.set(event.created_at);
-				unreadEventItems.set([]);
-			} else if (identifier === 'nostter-preferences') {
-				const preferences = new Preferences(event.content);
-				preferencesStore.set(preferences);
-			}
-
-			return;
 		}
 
 		if (event.kind === 30315) {
