@@ -14,19 +14,6 @@ import { referencesReqEmit } from './timelines/MainTimeline';
 import { sleep } from './Helper';
 
 export class Api {
-	public static readonly replaceableKinds = [
-		Kind.Metadata,
-		Kind.Contacts,
-		10000,
-		10001,
-		Kind.RelayList,
-		10005,
-		10015,
-		10030
-	];
-
-	public static readonly parameterizedReplaceableKinds = [30000, 30001, 30078];
-
 	constructor(private pool: SimplePool, private relays: string[]) {}
 
 	public async fetchRelayEvents(pubkey: string): Promise<Map<Kind, Event>> {

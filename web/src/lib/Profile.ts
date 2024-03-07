@@ -2,7 +2,7 @@ import { get, writable } from 'svelte/store';
 import type { id, pubkey } from './Types';
 import { createRxBackwardReq, type EventPacket } from 'rx-nostr';
 import { rxNostr } from './timelines/MainTimeline';
-import { Api } from './Api';
+import { replaceableKinds } from './Constants';
 
 export const replaceableEvents = writable(new Map<id, EventPacket[]>());
 
@@ -20,7 +20,7 @@ export function replaceableEventsReqEmit(pubkey: pubkey) {
 	});
 	replaceableEventsReq.emit([
 		{
-			kinds: Api.replaceableKinds,
+			kinds: replaceableKinds,
 			authors: [pubkey]
 		}
 	]);

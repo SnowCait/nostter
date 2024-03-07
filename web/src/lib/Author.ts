@@ -24,7 +24,7 @@ import { Signer } from './Signer';
 import { authorChannelsEventStore } from './cache/Events';
 import { updateFolloweesStore } from './Contacts';
 import { chunk } from './Array';
-import { maxFilters } from './Constants';
+import { maxFilters, parameterizedReplaceableKinds, replaceableKinds } from './Constants';
 import { bookmarkEvent } from './author/Bookmark';
 
 type AuthorReplaceableKind = {
@@ -33,7 +33,7 @@ type AuthorReplaceableKind = {
 };
 
 export const authorReplaceableKinds: AuthorReplaceableKind[] = [
-	...Api.replaceableKinds.map((kind) => {
+	...replaceableKinds.map((kind) => {
 		return { kind };
 	}),
 	{ kind: 30001, identifier: 'bookmark' },
@@ -290,9 +290,9 @@ export class Author {
 					next: (packet) => {
 						console.log('[rx-nostr author]', packet);
 						const { event } = packet;
-						if (Api.replaceableKinds.includes(event.kind)) {
+						if (replaceableKinds.includes(event.kind)) {
 							replaceableEvents.set(event.kind, event);
-						} else if (Api.parameterizedReplaceableKinds.includes(event.kind)) {
+						} else if (parameterizedReplaceableKinds.includes(event.kind)) {
 							parameterizedReplaceableEvents.set(
 								`${event.kind}:${findIdentifier(event.tags) ?? ''}`,
 								event
@@ -312,7 +312,7 @@ export class Author {
 				});
 			authorReq.emit([
 				{
-					kinds: [...Api.replaceableKinds, ...Api.parameterizedReplaceableKinds],
+					kinds: [...replaceableKinds, ...parameterizedReplaceableKinds],
 					authors: [pubkey]
 				}
 			]);

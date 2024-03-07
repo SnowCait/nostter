@@ -1,4 +1,4 @@
-import type { Event as NostrEvent } from 'nostr-tools';
+import { Kind, type Event as NostrEvent } from 'nostr-tools';
 
 export const appName = 'nostter';
 export const uriScheme = 'web+nostr';
@@ -12,6 +12,18 @@ export const timelineBufferMs = 1500;
 export const timeout = 5000;
 
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
+
+export const replaceableKinds = [
+	Kind.Metadata,
+	Kind.Contacts,
+	10000,
+	10001,
+	Kind.RelayList,
+	10005,
+	10015,
+	10030
+];
+export const parameterizedReplaceableKinds = [30000, 30001, 30078];
 
 export const defaultRelays = [
 	{
