@@ -121,9 +121,7 @@ authorParameterizedReplaceableObservable.pipe(filterByKind(30078)).subscribe(({ 
 
 // Other Events
 observable
-	.pipe(
-		filterByKinds([...replaceableKinds, ...parameterizedReplaceableKinds], { not: true })
-	)
+	.pipe(filterByKinds([...replaceableKinds, ...parameterizedReplaceableKinds], { not: true }))
 	.subscribe(async (packet) => {
 		console.log('[rx-nostr subscribe home timeline]', packet);
 
