@@ -1,4 +1,4 @@
-import { createRxForwardReq, filterByKind, latestEach, now, uniq } from 'rx-nostr';
+import { createRxForwardReq, filterByKind, filterByKinds, latestEach, now, uniq } from 'rx-nostr';
 import { filter, share, tap } from 'rxjs';
 import type { Filter } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr } from './MainTimeline';
@@ -35,7 +35,7 @@ const observable = rxNostr.use(homeTimelineReq).pipe(uniq());
 
 // Author Replaceable Events
 const authorReplaceableObservable = observable.pipe(
-	filter(({ event }) => replaceableKinds.includes(event.kind)),
+	filterByKinds(replaceableKinds),
 	filter(({ event }) => event.pubkey === get(pubkey)), // Ensure
 	latestEach(({ event }) => event.kind),
 	filter(({ event }) => {
@@ -79,7 +79,7 @@ authorReplaceableObservable
 
 // Author Parameterized Replaceable Events
 const authorParameterizedReplaceableObservable = observable.pipe(
-	filter(({ event }) => parameterizedReplaceableKinds.includes(event.kind)),
+	filterByKinds(parameterizedReplaceableKinds),
 	filter(({ event }) => event.pubkey === get(pubkey)), // Ensure
 	latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`),
 	filter(({ event }) => {
@@ -121,13 +121,7 @@ authorParameterizedReplaceableObservable.pipe(filterByKind(30078)).subscribe(({ 
 
 // Other Events
 observable
-	.pipe(
-		filter(
-			({ event }) =>
-				!replaceableKinds.includes(event.kind) &&
-				!parameterizedReplaceableKinds.includes(event.kind)
-		)
-	)
+	.pipe(filterByKinds([...replaceableKinds, ...parameterizedReplaceableKinds], { not: true }))
 	.subscribe(async (packet) => {
 		console.log('[rx-nostr subscribe home timeline]', packet);
 
