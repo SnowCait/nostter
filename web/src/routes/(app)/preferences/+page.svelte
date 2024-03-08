@@ -20,6 +20,7 @@
 	import WalletConnect from './WalletConnect.svelte';
 	import Reload from './Reload.svelte';
 	import ClearEventCacheAndReload from './ClearEventCacheAndReload.svelte';
+	import MediaUploader from './MediaUploader.svelte';
 </script>
 
 <svelte:head>
@@ -56,6 +57,7 @@
 				{$_('preferences.emoji.custom')}
 			</a>
 		</div>
+		<div><MediaUploader /></div>
 		<h3>{$_('preferences.mute.mute')}</h3>
 		<details>
 			<summary>{$_('preferences.mute.pubkeys')}</summary>

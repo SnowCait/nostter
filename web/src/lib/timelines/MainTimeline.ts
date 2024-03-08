@@ -25,6 +25,7 @@ import { sleep } from '$lib/Helper';
 
 export const rxNostr = createRxNostr({
 	eoseTimeout: timeout,
+	okTimeout: timeout,
 	retry: { strategy: 'immediately', maxCount: 1 },
 	authenticator: 'auto'
 }); // Based on NIP-65

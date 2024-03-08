@@ -1,10 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { now } from 'rx-nostr';
 	import { toEmoji } from '$lib/Emoji';
-	import { preferencesStore } from '$lib/Preferences';
-	import { Signer } from '$lib/Signer';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { preferencesStore, savePreferences } from '$lib/Preferences';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
@@ -22,17 +19,7 @@
 		}
 
 		$preferencesStore.reactionEmoji = emoji;
-
-		const event = await Signer.signEvent({
-			created_at: now(),
-			kind: 30078,
-			tags: [['d', 'nostter-preferences']],
-			content: $preferencesStore.toJson()
-		});
-		console.log('[reaction emoji]', event);
-		rxNostr.send(event).subscribe((packet) => {
-			console.log('[rx-nostr send]', packet);
-		});
+		savePreferences();
 	}
 </script>
 

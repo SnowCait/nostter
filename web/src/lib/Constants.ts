@@ -81,6 +81,13 @@ export const searchRelays = [
 
 export const trendRelays = ['wss://nostrbuzzs-relay.fly.dev/'];
 
+export const fileStorageServers = [
+	'https://nostrcheck.me',
+	'https://nostr.build',
+	'https://void.cat',
+	'https://files.sovbit.host'
+];
+
 export const chronological = (x: NostrEvent, y: NostrEvent) => x.created_at - y.created_at;
 export const reverseChronological = (x: NostrEvent, y: NostrEvent) => y.created_at - x.created_at;
 export const chronologicalItem = (x: { event: NostrEvent }, y: { event: NostrEvent }) =>

@@ -90,6 +90,9 @@
 		},
 		"auto_refresh": "自動更新",
 		"media_preview": "メディアプレビュー",
+		"media_uploader": {
+			"title": "メディアのアップロード先"
+		},
 		"uri_scheme": "web+nostr: を nostter で開く",
 		"enable_uri_scheme": "有効化",
 		"developer_mode": "開発者モード",
