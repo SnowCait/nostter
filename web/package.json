@@ -51,7 +51,7 @@
 		"nip07-awaiter": "^0.2.1",
 		"nostr-tools": "^1.10.1",
 		"qrcode": "^1.5.3",
-		"rx-nostr": "^2.4.1",
+		"rx-nostr": "^2.7.0",
 		"rxjs": "^7.8.1",
 		"svelte-i18n": "^4.0.0",
 		"tributejs": "^5.1.3"
