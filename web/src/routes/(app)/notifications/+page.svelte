@@ -7,7 +7,7 @@
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { NotificationTimeline, notificationKinds } from '$lib/NotificationTimeline';
+	import { notificationKinds } from '$lib/NotificationTimeline';
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
@@ -44,7 +44,6 @@
 
 	async function load() {
 		console.log('[rx-nostr notification timeline load]');
-		const timeline = new NotificationTimeline($pubkey);
 
 		let firstLength = $notifiedEventItems.length;
 		let count = 0;
@@ -134,9 +133,6 @@
 						}
 					});
 			});
-			const pastEventItems = await timeline.fetch(until, until - seconds);
-			$notifiedEventItems.push(...pastEventItems);
-			$notifiedEventItems = $notifiedEventItems;
 
 			until -= seconds;
 			seconds *= 2;
