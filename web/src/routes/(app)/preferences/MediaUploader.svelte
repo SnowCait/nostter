@@ -21,4 +21,13 @@
 </script>
 
 <span>{$_('preferences.media_uploader.title')}</span>
-<NativeSelect data={fileStorageServers} bind:value={server} on:change={save} />
+<NativeSelect
+	data={fileStorageServers.map((server) => {
+		return {
+			label: new URL(server).hostname,
+			value: server
+		};
+	})}
+	bind:value={server}
+	on:change={save}
+/>
