@@ -166,5 +166,10 @@
 	"about": {
 		"title": "nostter について",
 		"others": "その他"
+	},
+	"media": {
+		"upload": {
+			"failed": "アップロードに失敗しました。"
+		}
 	}
 }
