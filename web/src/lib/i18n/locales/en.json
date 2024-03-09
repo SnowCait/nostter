@@ -167,5 +167,10 @@
 	"about": {
 		"title": "About nostter",
 		"others": "Others"
+	},
+	"media": {
+		"upload": {
+			"failed": "Failed to upload."
+		}
 	}
 }

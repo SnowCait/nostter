@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { Kind, nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
+	import { goto } from '$app/navigation';
+	import { FileStorageServer } from '$lib/media/FileStorageServer';
+	import { getMediaUploader } from '$lib/media/Media';
 	import { appName } from '$lib/Constants';
 	import { Api } from '$lib/Api';
-	import { NostrcheckMe } from '$lib/media/NostrcheckMe';
 	import {
 		pubkey,
 		author,
@@ -12,7 +14,6 @@
 		writeRelays
 	} from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
-	import { goto } from '$app/navigation';
 	import MediaPicker from '../editor/MediaPicker.svelte';
 
 	async function picturePicked({ detail: files }: { detail: FileList }): Promise<void> {
@@ -23,13 +24,14 @@
 
 		const file = files[0];
 		try {
-			const media = new NostrcheckMe();
+			const media = new FileStorageServer(getMediaUploader());
 			const { url } = await media.upload(file);
 			if (url) {
 				$authorProfile.picture = url;
 			}
 		} catch (error) {
 			console.error('[media upload error]', error);
+			alert($_('media.upload.failed'));
 		}
 	}
 
@@ -41,13 +43,14 @@
 
 		const file = files[0];
 		try {
-			const media = new NostrcheckMe();
+			const media = new FileStorageServer(getMediaUploader());
 			const { url } = await media.upload(file);
 			if (url) {
 				$authorProfile.banner = url;
 			}
 		} catch (error) {
 			console.error('[media upload error]', error);
+			alert($_('media.upload.failed'));
 		}
 	}
 

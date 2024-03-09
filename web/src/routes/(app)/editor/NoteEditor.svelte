@@ -83,6 +83,7 @@
 			}
 		} catch (error) {
 			console.error('[media upload error]', error);
+			alert($_('media.upload.failed'));
 		}
 	});
 

@@ -18,15 +18,10 @@ export class FileStorageServer implements Media {
 	constructor(private readonly origin: string) {}
 
 	async upload(file: File): Promise<MediaResult> {
-		let nip96Json;
-		try {
-			nip96Json = await fetchNip96(this.origin);
-			console.debug('[media upload server]', nip96Json);
-			if (nip96Json.api_url !== undefined) {
-				throw new Error('Invalid NIP-96');
-			}
-		} catch {
-			alert(`${origin} is down.`);
+		const nip96Json = await fetchNip96(this.origin);
+		console.debug('[media upload server]', nip96Json);
+		if (nip96Json.api_url === undefined) {
+			throw new Error('Invalid NIP-96');
 		}
 
 		const method = 'POST';
