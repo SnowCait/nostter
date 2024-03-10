@@ -12,6 +12,7 @@
 	import { enablePreview } from '../../../stores/Preference';
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
+	import Ogp from './Ogp.svelte';
 
 	export let text: string;
 	export let url: string = text;
@@ -54,6 +55,8 @@
 			<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 		{/if}
 	</ObserverRender>
+{:else if link.hostname === 'youtu.be' || link.hostname === 'www.youtube.com'}
+	<ExternalLink {link} />
 {:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
 	{#if preview}
 		<div>
@@ -84,6 +87,7 @@
 	{/if}
 {:else}
 	<ExternalLink {link}>{text}</ExternalLink>
+	<Ogp url={link} />
 {/if}
 
 <style>
