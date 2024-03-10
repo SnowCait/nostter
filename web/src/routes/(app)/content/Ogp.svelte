@@ -52,7 +52,7 @@
 {#if ogp !== undefined && ogp['og:title'] !== undefined}
 	<a href={url.href} target="_blank" rel="noopener noreferrer">
 		<blockquote>
-			{#if ogp['og:image]'] !== undefined}
+			{#if ogp['og:image'] !== undefined}
 				<img src={ogp['og:image']} alt={url.href} />
 			{/if}
 			<h1>{ogp['og:title']}</h1>
