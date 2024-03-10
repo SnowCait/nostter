@@ -54,4 +54,4 @@ Logo by [@apco](https://nostter.app/npub1njty7prjt49kju6c3mjjlxvm0hjymf5s2qlfcyj
 
 Illustration by [@stok33](https://nostter.app/npub1e09suzmq9mp6nt0ud9ttl03790qjx70wzwlc2pwwghcusvwju54qs0c800)
 
-<img src="web/static/nostter-chan.jpg" width="25%">
+<img src="https://nostpic.com/media/83d52b4363d2d1bc5a098de7be67c120bfb7c0cee8efefd8eb6e42372af24689/2d4a1909792c29dbecb225735d9509161bb0eeae1ce943f10c56e0b27ae30829.webp" width="25%">
