@@ -87,7 +87,11 @@
 	{/if}
 {:else}
 	<ExternalLink {link}>{text}</ExternalLink>
-	<Ogp url={link} />
+	<ObserverRender let:visible options={{ unobserveOnEnter: true }}>
+		{#if preview && visible}
+			<Ogp url={link} />
+		{/if}
+	</ObserverRender>
 {/if}
 
 <style>
