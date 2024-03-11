@@ -21,18 +21,36 @@
 					300 <= response.status ||
 					!response.headers.get('Content-Type')?.includes('text/html')
 				) {
+					console.debug(
+						'[OGP error]',
+						url.href,
+						response.ok,
+						response.status,
+						...response.headers
+					);
 					return;
 				}
 				const html = await response.text();
 				const domParser = new DOMParser();
 				const dom = domParser.parseFromString(html, 'text/html');
+				const metaTags = [...dom.head.children].filter(
+					(element) => element.tagName === 'META'
+				);
+				if (
+					!metaTags.some(
+						(element) => element.getAttribute('charset')?.toLowerCase() === 'utf-8'
+					)
+				) {
+					console.debug(
+						'[OGP charset is not utf-8]',
+						url.href,
+						metaTags.find((element) => element.getAttribute('charset') !== null)
+					);
+					return;
+				}
 				ogp = Object.fromEntries(
-					[...dom.head.children]
-						.filter(
-							(element) =>
-								element.tagName === 'META' &&
-								element.getAttribute('property')?.startsWith('og:')
-						)
+					metaTags
+						.filter((element) => element.getAttribute('property')?.startsWith('og:'))
 						.map((element) => {
 							return [
 								element.getAttribute('property'),
@@ -44,7 +62,7 @@
 				cache.set(url.href, ogp);
 			})
 			.catch((error) => {
-				console.info('[OGP error]', error);
+				console.info('[OGP error]', url.href, error);
 			});
 	}
 </script>
