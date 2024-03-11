@@ -86,7 +86,8 @@ export const fileStorageServers = [
 	'https://nostr.build',
 	'https://void.cat',
 	'https://files.sovbit.host',
-	'https://nostpic.com'
+	'https://nostpic.com',
+	'https://yabu.me'
 ];
 
 export const corsAllowedHosts = ['www3.nhk.or.jp'];
