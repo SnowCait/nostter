@@ -151,6 +151,9 @@
 				"title": "Notes after reposts",
 				"none": "-"
 			}
+		},
+		"quotes": {
+			"title": "Quotes"
 		}
 	},
 	"error": {

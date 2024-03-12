@@ -61,7 +61,7 @@ export class NoteComposer {
 		}
 
 		const eventIds = Content.findNotesAndNeventsToIds(content);
-		tags.push(...Array.from(new Set(eventIds)).map((eventId) => ['e', eventId, '', 'mention']));
+		tags.push(...[...new Set(eventIds)].map((id) => ['q', id]));
 
 		for (const { type, data } of Content.findNpubsAndNprofiles(content).map((x) => {
 			try {
