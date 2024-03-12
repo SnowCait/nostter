@@ -357,6 +357,9 @@
 			<a href="/{$page.params.slug}/reposts/after">{$_('thread.reposts.after.title')}</a>
 		</div>
 	{/if}
+	<div>
+		<a href="/{$page.params.slug}/quotes">{$_('thread.quotes.title')}</a>
+	</div>
 </nav>
 {#if $author !== undefined && item !== undefined}
 	<nav class="card">
