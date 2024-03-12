@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { createRxBackwardReq, uniq } from 'rx-nostr';
+	import { afterNavigate } from '$app/navigation';
 	import { EventItem } from '$lib/Items';
 	import { chronologicalItem } from '$lib/Constants';
 	import type { pubkey } from '$lib/Types';
@@ -8,7 +9,6 @@
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import TimelineView from '../../TimelineView.svelte';
-	import { afterNavigate } from '$app/navigation';
 
 	export let data: LayoutData;
 
