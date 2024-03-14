@@ -13,16 +13,12 @@
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import Ogp from './Ogp.svelte';
+	import { newUrl } from '$lib/Helper';
 
 	export let text: string;
-	export let url: string = text;
+	export let url: string | undefined;
 
-	let link: URL | undefined;
-	try {
-		link = new URL(url);
-	} catch (error) {
-		console.log('[invalid url]', url, error);
-	}
+	$: link = newUrl(url ?? text);
 
 	let twitterWidget: HTMLDivElement | undefined;
 
