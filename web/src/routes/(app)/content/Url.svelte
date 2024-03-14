@@ -16,7 +16,7 @@
 	import { newUrl } from '$lib/Helper';
 
 	export let text: string;
-	export let url: string | undefined;
+	export let url: string | undefined = undefined;
 
 	$: link = newUrl(url ?? text);
 
