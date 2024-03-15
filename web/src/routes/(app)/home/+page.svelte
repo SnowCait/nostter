@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { uniq, type LazyFilter, createRxBackwardReq } from 'rx-nostr';
 	import { tap } from 'rxjs';
@@ -21,14 +21,6 @@
 	import { Timeline } from '$lib/Timeline';
 	import HomeTab from '$lib/components/HomeTab.svelte';
 	import TimelineView from '../TimelineView.svelte';
-
-	let y: number | undefined;
-
-	const unsubscriber = events.subscribe((value) => {
-		if (value.length > 250 && y === 0) {
-			$events = $events.splice(0, 250);
-		}
-	});
 
 	function logRelays() {
 		console.debug('_conn', $pool['_conn']);
@@ -95,10 +87,6 @@
 
 		hometimelineReqEmit();
 		logRelays();
-	});
-
-	onDestroy(() => {
-		unsubscriber();
 	});
 
 	async function load() {
@@ -245,8 +233,6 @@
 <svelte:head>
 	<title>{appName} - {$_('layout.header.home')}</title>
 </svelte:head>
-
-<svelte:window bind:scrollY={y} />
 
 <HomeTab selected="home" />
 
