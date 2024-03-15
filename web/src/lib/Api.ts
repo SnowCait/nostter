@@ -5,13 +5,11 @@ import type { UserEvent } from '../routes/types';
 import { events as timelineEvents } from '../stores/Events';
 import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
 import { EventItem } from './Items';
-import { Content } from './Content';
 import { Signer } from './Signer';
 import { channelMetadataEventsStore, eventItemStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
 import { referencesReqEmit } from './timelines/MainTimeline';
-import { sleep } from './Helper';
 
 export class Api {
 	constructor(private pool: SimplePool, private relays: string[]) {}
@@ -195,40 +193,6 @@ export class Api {
 
 	async fetchEvents(filters: Filter[]): Promise<Event[]> {
 		return this.pool.list(this.relays, filters);
-	}
-
-	// With metadata
-	async fetchEventItems(filters: Filter[]): Promise<EventItem[]> {
-		const events = await this.fetchEvents(filters);
-
-		const referencedEventIds = new Set(
-			events
-				.map((x) => [
-					...x.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
-					...Content.findNotesAndNeventsToIds(x.content)
-				])
-				.flat()
-		);
-		const referencedEvents = await this.fetchEventsByIds([...referencedEventIds]);
-		console.debug('[references events]', events.length, referencedEvents.length);
-
-		for (const event of [...events, ...referencedEvents]) {
-			referencesReqEmit(event);
-			authorActionReqEmit(event);
-			await sleep(0); // UI thread
-		}
-
-		events.sort(reverseChronological);
-		const eventItems = events.map((event) => new EventItem(event));
-		const referencedEventItems = referencedEvents.map((event) => new EventItem(event));
-
-		// Cache events
-		for (const item of [...eventItems, ...referencedEventItems]) {
-			newCachedEvents.set(item.event.id, item.event);
-		}
-		console.debug('[cache]', events.length, referencedEventIds, newCachedEvents);
-
-		return eventItems;
 	}
 
 	async fetchEventsByIds(ids: string[]): Promise<Event[]> {
