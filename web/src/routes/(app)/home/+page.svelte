@@ -234,6 +234,8 @@
 	<title>{appName} - {$_('layout.header.home')}</title>
 </svelte:head>
 
+<div>{$events.length}</div>
+
 <HomeTab selected="home" />
 
 {#if $eventsPool.length > 0}
