@@ -18,6 +18,7 @@
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { userStatusReqEmit, userStatusesMap } from '$lib/UserStatus';
 	import { hasSubscribed, hometimelineReqEmit } from '$lib/timelines/HomeTimeline';
+	import { fetchMinutes } from '$lib/Helper';
 	import { Timeline } from '$lib/Timeline';
 	import HomeTab from '$lib/components/HomeTab.svelte';
 	import TimelineView from '../TimelineView.svelte';
@@ -107,7 +108,7 @@
 			$events.length > 0
 				? Math.min(...$events.map((item) => item.event.created_at))
 				: Math.floor(Date.now() / 1000);
-		let seconds = $followees.length < 50 ? 60 * 60 : 15 * 60;
+		let seconds = fetchMinutes($followees.length) * 60;
 
 		while ($events.length - firstLength < minTimelineLength && count < 12) {
 			const since = until - seconds;

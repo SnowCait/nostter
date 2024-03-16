@@ -15,6 +15,7 @@
 	import { minTimelineLength } from '$lib/Constants';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { EventItem } from '$lib/Items';
+	import { fetchMinutes } from '$lib/Helper';
 
 	let pubkey: string | undefined;
 	let followees: string[] = [];
@@ -49,7 +50,7 @@
 		let count = 0;
 		let until =
 			$items.length > 0 ? Math.min(...$items.map((item) => item.event.created_at)) : now();
-		let seconds = 15 * 60;
+		let seconds = fetchMinutes(followees.length) * 60;
 
 		while ($items.length - firstLength < minTimelineLength && count < 12) {
 			const since = until - seconds;
