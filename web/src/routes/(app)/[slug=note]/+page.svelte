@@ -26,6 +26,7 @@
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import DateLink from '$lib/components/DateLink.svelte';
+	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import EventComponent from '../timeline/EventComponent.svelte';
 
 	export let data: LayoutData;
@@ -360,6 +361,20 @@
 	<div>
 		<a href="/{$page.params.slug}/quotes">{$_('thread.quotes.title')}</a>
 	</div>
+	{#if item !== undefined}
+		<div>
+			<ExternalLink
+				link={new URL(
+					$_('thread.translation.url').replace(
+						'{0}',
+						encodeURIComponent(item.event.content)
+					)
+				)}
+			>
+				{$_('thread.translation.title')}
+			</ExternalLink>
+		</div>
+	{/if}
 </nav>
 {#if $author !== undefined && item !== undefined}
 	<nav class="card">
@@ -415,6 +430,10 @@
 
 	nav div + div {
 		margin-top: 0.5rem;
+	}
+
+	a {
+		text-decoration: underline;
 	}
 
 	.mute {

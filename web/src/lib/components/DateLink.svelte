@@ -11,3 +11,9 @@
 >
 	<slot />
 </a>
+
+<style>
+	a {
+		text-decoration: underline;
+	}
+</style>

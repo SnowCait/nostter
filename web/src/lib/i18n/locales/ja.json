@@ -153,6 +153,10 @@
 		},
 		"quotes": {
 			"title": "引用"
+		},
+		"translation": {
+			"title": "Google 翻訳",
+			"url": "https://translate.google.co.jp/?text={0}&op=translate"
 		}
 	},
 	"error": {

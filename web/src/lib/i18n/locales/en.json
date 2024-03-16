@@ -154,6 +154,10 @@
 		},
 		"quotes": {
 			"title": "Quotes"
+		},
+		"translation": {
+			"title": "Google Translate",
+			"url": "https://translate.google.com/?text={0}&op=translate"
 		}
 	},
 	"error": {
