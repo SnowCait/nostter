@@ -9,11 +9,12 @@
 <script lang="ts">
 	import { ObserverRender } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
+	import { newUrl } from '$lib/Helper';
 	import { enablePreview } from '../../../stores/Preference';
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import Ogp from './Ogp.svelte';
-	import { newUrl } from '$lib/Helper';
+	import YouTube from '$lib/components/content/YouTube.svelte';
 
 	export let text: string;
 	export let url: string | undefined = undefined;
@@ -51,8 +52,8 @@
 			<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 		{/if}
 	</ObserverRender>
-{:else if link.hostname === 'youtu.be' || link.hostname === 'www.youtube.com'}
-	<ExternalLink {link} />
+{:else if link.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(link.hostname)}
+	<YouTube {link} />
 {:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
 	{#if preview}
 		<div>
