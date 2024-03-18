@@ -2,13 +2,14 @@
 	import { createEventDispatcher, onDestroy } from 'svelte';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
-	import { computePosition, flip, shift } from '@floating-ui/dom';
+	import { autoUpdate, computePosition, shift } from '@floating-ui/dom';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 	import { customEmojiTags } from '../author/CustomEmojis';
 
 	let button: HTMLButtonElement | undefined;
 	let emojiPicker: HTMLElement | undefined;
 	let hidden = true;
+	let stopAutoUpdate: (() => void) | undefined;
 
 	const dispatch = createEventDispatcher();
 
@@ -72,11 +73,17 @@
 			]
 		});
 		emojiPicker.appendChild(picker as any);
+		stopAutoUpdate = autoUpdate(button, emojiPicker, render);
+	}
 
-		// Position
+	async function render() {
+		if (button === undefined || emojiPicker === undefined) {
+			return;
+		}
+
 		const { x, y } = await computePosition(button, emojiPicker, {
 			placement: 'bottom',
-			middleware: [flip(), shift()]
+			middleware: [shift()]
 		});
 		emojiPicker.style.left = `${x}px`;
 		emojiPicker.style.top = `${y}px`;
@@ -100,6 +107,7 @@
 		if (emojiPicker?.firstChild) {
 			emojiPicker.removeChild(emojiPicker.firstChild);
 		}
+		stopAutoUpdate?.();
 	}
 </script>
 
