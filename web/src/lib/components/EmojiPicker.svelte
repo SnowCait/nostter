@@ -13,7 +13,15 @@
 
 	const dispatch = createEventDispatcher();
 
-	async function onClick() {
+	async function onClick(): Promise<void> {
+		console.debug(
+			'[emoji picker click]',
+			emojiPicker,
+			typeof ResizeObserver,
+			typeof IntersectionObserver,
+			button?.getBoundingClientRect(),
+			document.documentElement.ownerDocument
+		);
 		if (button === undefined || emojiPicker === undefined || !hidden) {
 			return;
 		}
@@ -65,7 +73,8 @@
 		stopAutoUpdate = autoUpdate(button, emojiPicker, render);
 	}
 
-	async function render() {
+	async function render(): Promise<void> {
+		console.debug('[emoji picker render]');
 		if (button === undefined || emojiPicker === undefined) {
 			return;
 		}
@@ -78,14 +87,14 @@
 		emojiPicker.style.top = `${y}px`;
 	}
 
-	function onClickOutside(event: PointerEvent) {
+	function onClickOutside(event: PointerEvent): void {
 		if ((event.target as HTMLElement).closest('.emoji-picker') === null) {
 			hidden = true;
 			clear();
 		}
 	}
 
-	function onEmojiSelect(emoji: BaseEmoji) {
+	function onEmojiSelect(emoji: BaseEmoji): void {
 		console.debug('[emoji picker selected]', emoji);
 		dispatch('pick', emoji);
 		hidden = true;
