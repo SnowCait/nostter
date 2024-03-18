@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onDestroy } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
 	import { autoUpdate, computePosition, shift } from '@floating-ui/dom';
@@ -12,17 +12,6 @@
 	let stopAutoUpdate: (() => void) | undefined;
 
 	const dispatch = createEventDispatcher();
-
-	const unsubscribeCustomEmojiTags = customEmojiTags.subscribe(() => {
-		if (!hidden && emojiPicker !== undefined && emojiPicker.children.length > 0) {
-			console.debug('[emoji picker reset]');
-			emojiPicker.removeChild(emojiPicker.children[0]);
-		}
-	});
-
-	onDestroy(() => {
-		unsubscribeCustomEmojiTags();
-	});
 
 	async function onClick() {
 		if (button === undefined || emojiPicker === undefined || !hidden) {
