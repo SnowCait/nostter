@@ -1,9 +1,7 @@
-import type { Event } from 'nostr-tools';
-import { writable, type Writable } from 'svelte/store';
-
-console.log('[custome emojis store]');
+import type { Event } from 'nostr-typedef';
+import { writable } from 'svelte/store';
 
 // kind 10030
-export const customEmojisEvent: Writable<Event | undefined> = writable();
+export const customEmojisEvent = writable<Event | undefined>();
 // kind 10030 + 30030
-export const customEmojiTags: Writable<string[][]> = writable([]);
+export const customEmojiTags = writable<string[][]>([]);
