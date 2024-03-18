@@ -10,7 +10,6 @@ import { saveMetadataEvent } from '../stores/UserEvents';
 import { userTimelineEvents } from '../stores/Events';
 import { chunk } from './Array';
 import { filterLimitItems } from './Constants';
-import { Content } from './Content';
 import { referencesReqEmit } from './timelines/MainTimeline';
 
 export class Timeline {
@@ -49,11 +48,6 @@ export class Timeline {
 				'#p': [this.pubkey],
 				since
 			}
-			// {
-			// 	kinds: [Kind.Reaction /*, Kind.RelayList, 10030*/],
-			// 	authors: [this.pubkey],
-			// 	since
-			// }
 		];
 		console.log('[new timeline filters]', filters);
 
@@ -73,28 +67,7 @@ export class Timeline {
 				return;
 			}
 
-			if (event.kind === 10030) {
-				$author?.storeCustomEmojis(event);
-				return;
-			}
-
 			referencesReqEmit(event);
-
-			// Cache note events
-			const eventIds = new Set([
-				...event.tags.filter(([tagName]) => tagName === 'e').map(([, id]) => id),
-				...Content.findNotesAndNeventsToIds(event.content)
-			]);
-			await this.api.fetchEventsByIds([...eventIds]);
-
-			// // Streaming speed (experimental)
-			// notifyStreamingSpeed(event.created_at);
-
-			// // Notification
-			// if ($author?.isNotified(event)) {
-			// 	console.log('[related]', event);
-			// 	notify(event);
-			// }
 
 			const events = get(userTimelineEvents);
 			events.unshift(new EventItem(event));
