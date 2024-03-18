@@ -94,7 +94,7 @@
 	}
 </script>
 
-<button on:click={onClick} bind:this={button} class="clear emoji-picker">
+<button on:click={onClick} bind:this={button} class="clear">
 	<slot>
 		<IconMoodSmile size={20} />
 	</slot>
