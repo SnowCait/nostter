@@ -7,6 +7,7 @@ import { Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { bookmarkEvent } from '$lib/author/Bookmark';
 import { updateReactionedEvents, updateRepostedEvents } from '$lib/author/Action';
+import { storeCustomEmojis } from '$lib/author/CustomEmojis';
 import { authorChannelsEventStore, storeMetadata } from '$lib/cache/Events';
 import { updateFolloweesStore } from '$lib/Contacts';
 import { findIdentifier } from '$lib/EventHelper';
@@ -75,7 +76,7 @@ authorReplaceableObservable.pipe(filterByKind(10015)).subscribe(() => {
 });
 authorReplaceableObservable
 	.pipe(filterByKind(10030))
-	.subscribe(({ event }) => get(author)?.storeCustomEmojis(event));
+	.subscribe(({ event }) => storeCustomEmojis(event));
 
 // Author Parameterized Replaceable Events
 const authorParameterizedReplaceableObservable = observable.pipe(
