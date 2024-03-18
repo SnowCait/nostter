@@ -15,7 +15,7 @@
 	import { RelayList } from '$lib/RelayList';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../../../stores/NoteDialog';
 	import { author, pubkey, rom } from '../../../stores/Author';
-	import { customEmojiTags } from '../../../stores/CustomEmojis';
+	import { customEmojiTags } from '$lib/author/CustomEmojis';
 	import Note from '../timeline/Note.svelte';
 	import ChannelTitle from '../parts/ChannelTitle.svelte';
 	import MediaPicker from './MediaPicker.svelte';

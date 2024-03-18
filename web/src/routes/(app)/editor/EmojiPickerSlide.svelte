@@ -3,7 +3,7 @@
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
 	import { browser } from '$app/environment';
-	import { customEmojiTags } from '../../../stores/CustomEmojis';
+	import { customEmojiTags } from '$lib/author/CustomEmojis';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 
 	let emojiPicker: HTMLElement | null = null;

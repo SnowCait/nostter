@@ -12,7 +12,7 @@ import {
 } from '../stores/Author';
 import { RelayList } from './author/RelayList';
 import { filterEmojiTags, filterTags, findIdentifier, parseRelayJson } from './EventHelper';
-import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
+import { customEmojiTags, customEmojisEvent } from './author/CustomEmojis';
 import type { User } from '../routes/types';
 import { lastReadAt } from '../stores/Notifications';
 import { Mute } from './Mute';

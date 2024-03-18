@@ -4,7 +4,7 @@
 	import data from '@emoji-mart/data';
 	import { computePosition, flip, shift } from '@floating-ui/dom';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
-	import { customEmojiTags } from '../../stores/CustomEmojis';
+	import { customEmojiTags } from '../author/CustomEmojis';
 
 	let button: HTMLButtonElement;
 	let emojiPicker: HTMLElement;
