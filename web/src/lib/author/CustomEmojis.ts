@@ -1,5 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, latestEach, uniq, type LazyFilter } from 'rx-nostr';
+import { filter } from 'rxjs';
 import type { Event } from 'nostr-typedef';
 import { chunk } from '$lib/Array';
 import { maxFilters } from '$lib/Constants';
@@ -24,6 +25,8 @@ export function storeCustomEmojis(event: Event): void {
 		return;
 	}
 
+	const customEmojiSetEventsMap = new Map<string, Event>();
+
 	const emojisReq = createRxBackwardReq();
 	rxNostr
 		.use(emojisReq)
@@ -31,12 +34,26 @@ export function storeCustomEmojis(event: Event): void {
 			uniq(),
 			latestEach(
 				({ event }) => `${event.kind}:${event.pubkey}:${findIdentifier(event.tags) ?? ''}`
-			)
+			),
+			filter(({ event }) => {
+				const cache = customEmojiSetEventsMap.get(
+					`${event.pubkey}:${findIdentifier(event.tags) ?? ''}`
+				);
+				return cache === undefined || cache.created_at < event.created_at;
+			})
 		)
 		.subscribe({
 			next: (packet) => {
 				console.debug('[custom emoji next]', packet);
-				$customEmojiTags.push(...filterEmojiTags(packet.event.tags));
+
+				const { event } = packet;
+
+				customEmojiSetEventsMap.set(
+					`${event.pubkey}:${findIdentifier(event.tags) ?? ''}`,
+					event
+				);
+
+				$customEmojiTags.push(...filterEmojiTags(event.tags));
 				customEmojiTags.set($customEmojiTags);
 			},
 			complete: () => {
