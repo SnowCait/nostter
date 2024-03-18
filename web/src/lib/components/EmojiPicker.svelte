@@ -1,20 +1,31 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onDestroy } from 'svelte';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
 	import { computePosition, flip, shift } from '@floating-ui/dom';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 	import { customEmojiTags } from '../author/CustomEmojis';
 
-	let button: HTMLButtonElement;
-	let emojiPicker: HTMLElement;
+	let button: HTMLButtonElement | undefined;
+	let emojiPicker: HTMLElement | undefined;
 	let hidden = true;
 
 	const dispatch = createEventDispatcher();
 
+	const unsubscribeCustomEmojiTags = customEmojiTags.subscribe(() => {
+		if (!hidden && emojiPicker !== undefined && emojiPicker.children.length > 0) {
+			console.debug('[emoji picker reset]');
+			emojiPicker.removeChild(emojiPicker.children[0]);
+		}
+	});
+
+	onDestroy(() => {
+		unsubscribeCustomEmojiTags();
+	});
+
 	async function onClick() {
 		hidden = !hidden;
-		if (emojiPicker.children.length > 0) {
+		if (button === undefined || emojiPicker === undefined || emojiPicker.children.length > 0) {
 			return;
 		}
 		const customEmojis = $customEmojiTags.map(([, shortcode, url]) => {
@@ -88,12 +99,8 @@
 		<IconMoodSmile size={20} />
 	</slot>
 </button>
-<div
-	bind:this={emojiPicker}
-	class:hidden
-	on:keyup|stopPropagation={console.debug}
-	class="emoji-picker"
-/>
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div bind:this={emojiPicker} class:hidden on:keyup|stopPropagation class="emoji-picker" />
 
 <style>
 	button {
