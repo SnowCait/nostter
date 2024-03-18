@@ -1,4 +1,4 @@
-import { Kind, type Event, type Filter } from 'nostr-tools';
+import { Kind, type Event } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { createRxBackwardReq, createRxOneshotReq, latest, latestEach, now, uniq } from 'rx-nostr';
 import { firstValueFrom, EmptyError } from 'rxjs';
@@ -11,8 +11,8 @@ import {
 	isMuteEvent
 } from '../stores/Author';
 import { RelayList } from './author/RelayList';
-import { filterEmojiTags, filterTags, findIdentifier, parseRelayJson } from './EventHelper';
-import { customEmojiTags, customEmojisEvent } from '../stores/CustomEmojis';
+import { filterTags, findIdentifier, parseRelayJson } from './EventHelper';
+import { customEmojisEvent, storeCustomEmojis } from './author/CustomEmojis';
 import type { User } from '../routes/types';
 import { lastReadAt } from '../stores/Notifications';
 import { Mute } from './Mute';
@@ -22,8 +22,7 @@ import { rxNostr } from './timelines/MainTimeline';
 import { Signer } from './Signer';
 import { authorChannelsEventStore } from './cache/Events';
 import { updateFolloweesStore } from './Contacts';
-import { chunk } from './Array';
-import { maxFilters, parameterizedReplaceableKinds, replaceableKinds } from './Constants';
+import { parameterizedReplaceableKinds, replaceableKinds } from './Constants';
 import { bookmarkEvent } from './author/Bookmark';
 
 type AuthorReplaceableKind = {
@@ -59,59 +58,6 @@ export class Author {
 		console.log('[relay events]', relayEvents);
 
 		RelayList.apply(relayEvents);
-	}
-
-	public storeCustomEmojis(event: Event): void {
-		console.log('[custom emoji 10030]', event);
-
-		// emoji tags
-		customEmojiTags.set(filterEmojiTags(event.tags));
-		const $customEmojiTags = get(customEmojiTags);
-
-		// a tags
-		const referenceTags = event.tags.filter(([tagName]) => tagName === 'a');
-		if (referenceTags.length === 0) {
-			return;
-		}
-
-		const emojisReq = createRxBackwardReq();
-		rxNostr
-			.use(emojisReq)
-			.pipe(
-				uniq(),
-				latestEach(
-					({ event }) =>
-						`${event.kind}:${event.pubkey}:${findIdentifier(event.tags) ?? ''}`
-				)
-			)
-			.subscribe({
-				next: (packet) => {
-					console.debug('[custom emoji next]', packet);
-					$customEmojiTags.push(...filterEmojiTags(packet.event.tags));
-					customEmojiTags.set($customEmojiTags);
-				},
-				complete: () => {
-					console.log('[custom emoji tags]', $customEmojiTags);
-				},
-				error: (error) => {
-					console.error('[custom emoji error]', error);
-				}
-			});
-
-		const filters: Filter[] = referenceTags
-			.map(([, reference]) => reference.split(':'))
-			.filter(([kind]) => kind === `${30030 as Kind}`)
-			.map(([kind, pubkey, identifier]) => {
-				return {
-					kinds: [Number(kind)],
-					authors: [pubkey],
-					'#d': [identifier]
-				};
-			});
-		console.debug('[custom emoji #a]', referenceTags, filters);
-		for (const chunkedFilters of chunk(filters, maxFilters)) {
-			emojisReq.emit(chunkedFilters);
-		}
 	}
 
 	// TODO: Ensure created_at
@@ -171,7 +117,7 @@ export class Author {
 		customEmojisEvent.set(replaceableEvents.get(10030 as Kind));
 		const $customEmojisEvent = get(customEmojisEvent);
 		if ($customEmojisEvent !== undefined) {
-			this.storeCustomEmojis($customEmojisEvent);
+			storeCustomEmojis($customEmojisEvent);
 		}
 
 		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`));

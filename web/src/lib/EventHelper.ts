@@ -139,7 +139,6 @@ export function referTags(event: Event): {
 
 export function getTagContent(tagName: string, tags: string[][]): string {
 	const tagContent = tags.find(([n]) => n === tagName)?.at(1);
-	console.log('DEBUG tag', tagName, tagContent);
 	return tagContent ?? (tagName === 'd' ? '' : getTagContent('d', tags));
 }
 

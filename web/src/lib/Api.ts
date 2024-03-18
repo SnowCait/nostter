@@ -195,14 +195,6 @@ export class Api {
 		return this.pool.list(this.relays, filters);
 	}
 
-	async fetchEventsByIds(ids: string[]): Promise<Event[]> {
-		if (ids.length === 0) {
-			return [];
-		}
-
-		return await this.fetchEvents([{ ids }]);
-	}
-
 	async fetchFollowees(pubkey: string): Promise<string[]> {
 		const event = await this.fetchContactsEvent(pubkey);
 		return Array.from(

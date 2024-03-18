@@ -1,22 +1,34 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onDestroy } from 'svelte';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
-	import { computePosition, flip, shift } from '@floating-ui/dom';
+	import { autoUpdate, computePosition, shift } from '@floating-ui/dom';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
-	import { customEmojiTags } from '../../stores/CustomEmojis';
+	import { customEmojiTags } from '../author/CustomEmojis';
 
-	let button: HTMLButtonElement;
-	let emojiPicker: HTMLElement;
+	let button: HTMLButtonElement | undefined;
+	let emojiPicker: HTMLElement | undefined;
 	let hidden = true;
+	let stopAutoUpdate: (() => void) | undefined;
 
 	const dispatch = createEventDispatcher();
 
+	const unsubscribeCustomEmojiTags = customEmojiTags.subscribe(() => {
+		if (!hidden && emojiPicker !== undefined && emojiPicker.children.length > 0) {
+			console.debug('[emoji picker reset]');
+			emojiPicker.removeChild(emojiPicker.children[0]);
+		}
+	});
+
+	onDestroy(() => {
+		unsubscribeCustomEmojiTags();
+	});
+
 	async function onClick() {
-		hidden = !hidden;
-		if (emojiPicker.children.length > 0) {
+		if (button === undefined || emojiPicker === undefined || !hidden) {
 			return;
 		}
+		hidden = false;
 		const customEmojis = $customEmojiTags.map(([, shortcode, url]) => {
 			return {
 				id: shortcode,
@@ -34,12 +46,7 @@
 		const picker = new Picker({
 			data,
 			onEmojiSelect,
-			onClickOutside: (event: PointerEvent) => {
-				console.debug('[emoji picker outside]', event.target);
-				if ((event.target as HTMLElement).closest('.emoji-picker') === null) {
-					hidden = true;
-				}
-			},
+			onClickOutside,
 			custom: [
 				{
 					id: 'default',
@@ -66,34 +73,51 @@
 			]
 		});
 		emojiPicker.appendChild(picker as any);
+		stopAutoUpdate = autoUpdate(button, emojiPicker, render);
+	}
 
-		// Position
+	async function render() {
+		if (button === undefined || emojiPicker === undefined) {
+			return;
+		}
+
 		const { x, y } = await computePosition(button, emojiPicker, {
 			placement: 'bottom',
-			middleware: [flip(), shift()]
+			middleware: [shift()]
 		});
 		emojiPicker.style.left = `${x}px`;
 		emojiPicker.style.top = `${y}px`;
+	}
+
+	function onClickOutside(event: PointerEvent) {
+		if ((event.target as HTMLElement).closest('.emoji-picker') === null) {
+			hidden = true;
+			clear();
+		}
 	}
 
 	function onEmojiSelect(emoji: BaseEmoji) {
 		console.debug('[emoji picker selected]', emoji);
 		dispatch('pick', emoji);
 		hidden = true;
+		clear();
+	}
+
+	function clear(): void {
+		if (emojiPicker?.firstChild) {
+			emojiPicker.removeChild(emojiPicker.firstChild);
+		}
+		stopAutoUpdate?.();
 	}
 </script>
 
-<button on:click={onClick} bind:this={button} class="clear emoji-picker">
+<button on:click={onClick} bind:this={button} class="clear">
 	<slot>
 		<IconMoodSmile size={20} />
 	</slot>
 </button>
-<div
-	bind:this={emojiPicker}
-	class:hidden
-	on:keyup|stopPropagation={console.debug}
-	class="emoji-picker"
-/>
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div bind:this={emojiPicker} class:hidden on:keyup|stopPropagation class="emoji-picker" />
 
 <style>
 	button {
