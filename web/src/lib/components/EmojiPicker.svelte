@@ -24,10 +24,10 @@
 	});
 
 	async function onClick() {
-		hidden = !hidden;
-		if (button === undefined || emojiPicker === undefined || emojiPicker.children.length > 0) {
+		if (button === undefined || emojiPicker === undefined || !hidden) {
 			return;
 		}
+		hidden = false;
 		const customEmojis = $customEmojiTags.map(([, shortcode, url]) => {
 			return {
 				id: shortcode,
@@ -45,12 +45,7 @@
 		const picker = new Picker({
 			data,
 			onEmojiSelect,
-			onClickOutside: (event: PointerEvent) => {
-				console.debug('[emoji picker outside]', event.target);
-				if ((event.target as HTMLElement).closest('.emoji-picker') === null) {
-					hidden = true;
-				}
-			},
+			onClickOutside,
 			custom: [
 				{
 					id: 'default',
@@ -87,10 +82,24 @@
 		emojiPicker.style.top = `${y}px`;
 	}
 
+	function onClickOutside(event: PointerEvent) {
+		if ((event.target as HTMLElement).closest('.emoji-picker') === null) {
+			hidden = true;
+			clear();
+		}
+	}
+
 	function onEmojiSelect(emoji: BaseEmoji) {
 		console.debug('[emoji picker selected]', emoji);
 		dispatch('pick', emoji);
 		hidden = true;
+		clear();
+	}
+
+	function clear(): void {
+		if (emojiPicker?.firstChild) {
+			emojiPicker.removeChild(emojiPicker.firstChild);
+		}
 	}
 </script>
 
