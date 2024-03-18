@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onDestroy } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
 	import { autoUpdate, computePosition, shift } from '@floating-ui/dom';
@@ -13,18 +13,15 @@
 
 	const dispatch = createEventDispatcher();
 
-	const unsubscribeCustomEmojiTags = customEmojiTags.subscribe(() => {
-		if (!hidden && emojiPicker !== undefined && emojiPicker.children.length > 0) {
-			console.debug('[emoji picker reset]');
-			emojiPicker.removeChild(emojiPicker.children[0]);
-		}
-	});
-
-	onDestroy(() => {
-		unsubscribeCustomEmojiTags();
-	});
-
-	async function onClick() {
+	async function onClick(): Promise<void> {
+		console.debug(
+			'[emoji picker click]',
+			emojiPicker,
+			typeof ResizeObserver,
+			typeof IntersectionObserver,
+			button?.getBoundingClientRect(),
+			document.documentElement.ownerDocument
+		);
 		if (button === undefined || emojiPicker === undefined || !hidden) {
 			return;
 		}
@@ -76,7 +73,8 @@
 		stopAutoUpdate = autoUpdate(button, emojiPicker, render);
 	}
 
-	async function render() {
+	async function render(): Promise<void> {
+		console.debug('[emoji picker render]');
 		if (button === undefined || emojiPicker === undefined) {
 			return;
 		}
@@ -89,14 +87,14 @@
 		emojiPicker.style.top = `${y}px`;
 	}
 
-	function onClickOutside(event: PointerEvent) {
+	function onClickOutside(event: PointerEvent): void {
 		if ((event.target as HTMLElement).closest('.emoji-picker') === null) {
 			hidden = true;
 			clear();
 		}
 	}
 
-	function onEmojiSelect(emoji: BaseEmoji) {
+	function onEmojiSelect(emoji: BaseEmoji): void {
 		console.debug('[emoji picker selected]', emoji);
 		dispatch('pick', emoji);
 		hidden = true;
