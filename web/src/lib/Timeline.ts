@@ -1,5 +1,5 @@
 import { Kind, SimplePool } from 'nostr-tools';
-import { readRelays, updateRelays, author } from '../stores/Author';
+import { readRelays, updateRelays } from '../stores/Author';
 import { pool } from '../stores/Pool';
 import { Api } from './Api';
 import { get } from 'svelte/store';
@@ -26,8 +26,6 @@ export class Timeline {
 	public async subscribe(): Promise<() => void> {
 		const now = Math.floor(Date.now() / 1000);
 		const since = now;
-
-		const $author = get(author);
 
 		const authorsFilter = chunk(this.authors, filterLimitItems).map((chunkedAuthors) => {
 			return {

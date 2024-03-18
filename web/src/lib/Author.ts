@@ -1,4 +1,4 @@
-import { Kind, type Event, type Filter } from 'nostr-tools';
+import { Kind, type Event } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { createRxBackwardReq, createRxOneshotReq, latest, latestEach, now, uniq } from 'rx-nostr';
 import { firstValueFrom, EmptyError } from 'rxjs';
@@ -11,8 +11,8 @@ import {
 	isMuteEvent
 } from '../stores/Author';
 import { RelayList } from './author/RelayList';
-import { filterEmojiTags, filterTags, findIdentifier, parseRelayJson } from './EventHelper';
-import { customEmojiTags, customEmojisEvent, storeCustomEmojis } from './author/CustomEmojis';
+import { filterTags, findIdentifier, parseRelayJson } from './EventHelper';
+import { customEmojisEvent, storeCustomEmojis } from './author/CustomEmojis';
 import type { User } from '../routes/types';
 import { lastReadAt } from '../stores/Notifications';
 import { Mute } from './Mute';
@@ -22,8 +22,7 @@ import { rxNostr } from './timelines/MainTimeline';
 import { Signer } from './Signer';
 import { authorChannelsEventStore } from './cache/Events';
 import { updateFolloweesStore } from './Contacts';
-import { chunk } from './Array';
-import { maxFilters, parameterizedReplaceableKinds, replaceableKinds } from './Constants';
+import { parameterizedReplaceableKinds, replaceableKinds } from './Constants';
 import { bookmarkEvent } from './author/Bookmark';
 
 type AuthorReplaceableKind = {
