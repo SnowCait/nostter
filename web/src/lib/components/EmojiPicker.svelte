@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, tick } from 'svelte';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
 	import { autoUpdate, computePosition, shift } from '@floating-ui/dom';
@@ -69,17 +69,18 @@
 				}
 			]
 		});
-		console.debug('[emoji picker element]', picker);
 		emojiPicker.appendChild(picker as any);
-		emojiPicker = emojiPicker;
+		console.debug('[emoji picker children]', emojiPicker.children);
 		stopAutoUpdate = autoUpdate(button, emojiPicker, render);
 	}
 
 	async function render(): Promise<void> {
-		console.debug('[emoji picker render]');
+		console.debug('[emoji picker render]', emojiPicker?.children);
 		if (button === undefined || emojiPicker === undefined) {
 			return;
 		}
+
+		await tick();
 
 		const { x, y } = await computePosition(button, emojiPicker, {
 			placement: 'bottom',
@@ -104,9 +105,7 @@
 	}
 
 	function clear(): void {
-		if (emojiPicker?.firstChild) {
-			emojiPicker.removeChild(emojiPicker.firstChild);
-		}
+		emojiPicker?.firstChild?.remove();
 		stopAutoUpdate?.();
 	}
 </script>
