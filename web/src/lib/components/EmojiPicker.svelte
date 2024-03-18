@@ -69,7 +69,9 @@
 				}
 			]
 		});
+		console.debug('[emoji picker element]', picker);
 		emojiPicker.appendChild(picker as any);
+		emojiPicker = emojiPicker;
 		stopAutoUpdate = autoUpdate(button, emojiPicker, render);
 	}
 
