@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { openNoteDialog } from '../../stores/NoteDialog';
+	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import NoteEditor from './editor/NoteEditor.svelte';
 
 	let dialog: HTMLDialogElement;
@@ -13,7 +14,7 @@
 	});
 
 	function closeDialog(event: MouseEvent) {
-		if (editor.isAutocompleting()) {
+		if (editor.isAutocompleting() || emojiPickerOpen) {
 			return;
 		}
 
@@ -61,6 +62,7 @@
 		margin: 0 auto;
 		z-index: 1;
 		width: 100%;
+		overflow: visible;
 	}
 
 	@media screen and (max-width: 600px) {

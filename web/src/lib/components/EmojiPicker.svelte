@@ -10,6 +10,9 @@
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 	import { customEmojiTags } from '../author/CustomEmojis';
 
+	export let containsDefaultEmoji = true;
+	export let autoClose = true;
+
 	let button: HTMLButtonElement | undefined;
 	let emojiPicker: HTMLElement | undefined;
 	let stopAutoUpdate: (() => void) | undefined;
@@ -21,8 +24,10 @@
 		if (button === undefined || emojiPicker === undefined || emojiPicker.firstChild !== null) {
 			return;
 		}
+
 		e.stopPropagation();
 		emojiPickerOpen = true;
+
 		const customEmojis = $customEmojiTags.map(([, shortcode, url]) => {
 			return {
 				id: shortcode,
@@ -36,35 +41,41 @@
 				]
 			};
 		});
+
+		const custom = [];
+		if (containsDefaultEmoji) {
+			custom.push({
+				id: 'default',
+				name: 'Default',
+				emojis: [
+					{
+						id: '+',
+						name: 'Heart',
+						keywords: ['+', 'heart', 'favorite', 'default'],
+						skins: [
+							{
+								native: '+',
+								src: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/72x72/2764.png'
+							}
+						]
+					}
+				]
+			});
+		}
+		if (customEmojis.length > 0) {
+			custom.push({
+				id: 'custom-emoji',
+				name: 'Custom Emojis',
+				emojis: customEmojis
+			});
+		}
+
 		const { Picker } = await import('emoji-kitchen-mart');
 		const picker = new Picker({
 			data,
 			onEmojiSelect,
 			onClickOutside,
-			custom: [
-				{
-					id: 'default',
-					name: 'Default',
-					emojis: [
-						{
-							id: '+',
-							name: 'Heart',
-							keywords: ['+', 'heart', 'favorite', 'default'],
-							skins: [
-								{
-									native: '+',
-									src: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/72x72/2764.png'
-								}
-							]
-						}
-					]
-				},
-				{
-					id: 'custom-emoji',
-					name: 'Custom Emojis',
-					emojis: customEmojis
-				}
-			]
+			custom
 		});
 		emojiPicker.appendChild(picker as any);
 		console.debug('[emoji picker child]', emojiPicker.firstChild);
@@ -93,7 +104,9 @@
 	function onEmojiSelect(emoji: BaseEmoji): void {
 		console.debug('[emoji picker selected]', emoji);
 		dispatch('pick', emoji);
-		clear();
+		if (autoClose) {
+			clear();
+		}
 	}
 
 	function clear(): void {
