@@ -19,11 +19,10 @@
 	import Note from '../timeline/Note.svelte';
 	import ChannelTitle from '../parts/ChannelTitle.svelte';
 	import MediaPicker from './MediaPicker.svelte';
-	import EmojiPickerSlide from './EmojiPickerSlide.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import ContentWarning from './ContentWarning.svelte';
-
-	let emojiPickerSlide: EmojiPickerSlide | undefined;
+	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
+	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 
 	export function clear(): void {
 		console.log('[note editor clear]');
@@ -36,7 +35,6 @@
 		exitComplement();
 		emojiTags = [];
 		contentWarningReason = undefined;
-		emojiPickerSlide?.hide();
 		$mediaFiles = [];
 	}
 
@@ -483,7 +481,11 @@
 	<div class="actions">
 		<div class="options">
 			<MediaPicker multiple={true} on:pick={mediaPicked} />
-			<EmojiPickerSlide bind:this={emojiPickerSlide} on:pick={onEmojiPick} />
+			<EmojiPicker containsDefaultEmoji={false} autoClose={false} on:pick={onEmojiPick}>
+				<span class="emoji-picker">
+					<IconMoodSmile size={30} />
+				</span>
+			</EmojiPicker>
 			<ContentWarning bind:reason={contentWarningReason} />
 		</div>
 		<div>
@@ -590,6 +592,10 @@
 	.options {
 		display: flex;
 		height: 30px;
+	}
+
+	.emoji-picker {
+		color: var(--accent);
 	}
 
 	:global(.options > *) {
