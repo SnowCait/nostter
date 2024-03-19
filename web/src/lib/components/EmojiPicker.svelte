@@ -1,3 +1,7 @@
+<script lang="ts" context="module">
+	export let emojiPickerOpen = false;
+</script>
+
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import type { BaseEmoji } from '@types/emoji-mart';
@@ -18,6 +22,7 @@
 			return;
 		}
 		e.stopPropagation();
+		emojiPickerOpen = true;
 		const customEmojis = $customEmojiTags.map(([, shortcode, url]) => {
 			return {
 				id: shortcode,
@@ -94,6 +99,7 @@
 	function clear(): void {
 		stopAutoUpdate?.();
 		emojiPicker?.firstChild?.remove();
+		emojiPickerOpen = false;
 	}
 </script>
 
