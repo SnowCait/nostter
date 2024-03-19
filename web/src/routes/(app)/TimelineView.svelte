@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
 	import { onMount } from 'svelte';
+	import { nip19, type Event } from 'nostr-tools';
+	import { goto } from '$app/navigation';
 	import type { Item } from '$lib/Items';
 	import { channelIdStore } from '$lib/Channel';
 	import { findChannelId } from '$lib/EventHelper';
 	import { author, isMuteEvent } from '../../stores/Author';
 	import Loading from '$lib/components/Loading.svelte';
+	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import EventComponent from './timeline/EventComponent.svelte';
-	import { nip19, type Event } from 'nostr-tools';
-	import { goto } from '$app/navigation';
 
 	export let items: Item[] = [];
 	export let readonly = false;
@@ -49,7 +50,7 @@
 
 	const viewDetail = async (clickEvent: MouseEvent, nostrEvent: Event) => {
 		let target: HTMLElement | null = clickEvent.target as HTMLElement;
-		if (target.closest('.svelteui-Menu-root') !== null) {
+		if (target.closest('.svelteui-Menu-root') !== null || emojiPickerOpen) {
 			return;
 		}
 		if (target) {

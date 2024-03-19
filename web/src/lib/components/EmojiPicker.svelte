@@ -1,5 +1,9 @@
+<script lang="ts" context="module">
+	export let emojiPickerOpen = false;
+</script>
+
 <script lang="ts">
-	import { createEventDispatcher, tick } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
 	import { autoUpdate, computePosition, shift } from '@floating-ui/dom';
@@ -8,17 +12,17 @@
 
 	let button: HTMLButtonElement | undefined;
 	let emojiPicker: HTMLElement | undefined;
-	let hidden = true;
 	let stopAutoUpdate: (() => void) | undefined;
 
 	const dispatch = createEventDispatcher();
 
-	async function onClick(): Promise<void> {
+	async function onClick(e: MouseEvent): Promise<void> {
 		console.debug('[emoji picker click]', emojiPicker);
-		if (button === undefined || emojiPicker === undefined || !hidden) {
+		if (button === undefined || emojiPicker === undefined || emojiPicker.firstChild !== null) {
 			return;
 		}
-		hidden = false;
+		e.stopPropagation();
+		emojiPickerOpen = true;
 		const customEmojis = $customEmojiTags.map(([, shortcode, url]) => {
 			return {
 				id: shortcode,
@@ -64,17 +68,14 @@
 		});
 		emojiPicker.appendChild(picker as any);
 		console.debug('[emoji picker child]', emojiPicker.firstChild);
-		await render();
 		stopAutoUpdate = autoUpdate(button, emojiPicker, render);
 	}
 
 	async function render(): Promise<void> {
 		console.debug('[emoji picker render]', emojiPicker?.firstChild);
-		if (button === undefined || emojiPicker === undefined) {
+		if (button === undefined || emojiPicker === undefined || emojiPicker.firstChild === null) {
 			return;
 		}
-
-		await tick();
 
 		const { x, y } = await computePosition(button, emojiPicker, {
 			placement: 'bottom',
@@ -84,23 +85,21 @@
 		emojiPicker.style.top = `${y}px`;
 	}
 
-	function onClickOutside(event: PointerEvent): void {
-		if ((event.target as HTMLElement).closest('.emoji-picker') === null) {
-			hidden = true;
-			clear();
-		}
+	function onClickOutside(event: PointerEvent) {
+		console.debug('[emoji picker outside]', event.target);
+		clear();
 	}
 
 	function onEmojiSelect(emoji: BaseEmoji): void {
 		console.debug('[emoji picker selected]', emoji);
 		dispatch('pick', emoji);
-		hidden = true;
 		clear();
 	}
 
 	function clear(): void {
-		emojiPicker?.firstChild?.remove();
 		stopAutoUpdate?.();
+		emojiPicker?.firstChild?.remove();
+		emojiPickerOpen = false;
 	}
 </script>
 
@@ -110,7 +109,7 @@
 	</slot>
 </button>
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div bind:this={emojiPicker} class:hidden on:keyup|stopPropagation class="emoji-picker" />
+<div bind:this={emojiPicker} on:keyup|stopPropagation class="emoji-picker" />
 
 <style>
 	button {
@@ -121,9 +120,5 @@
 	div {
 		position: absolute;
 		z-index: 1;
-	}
-
-	div.hidden {
-		visibility: hidden;
 	}
 </style>
