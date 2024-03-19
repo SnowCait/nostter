@@ -14,14 +14,7 @@
 	const dispatch = createEventDispatcher();
 
 	async function onClick(): Promise<void> {
-		console.debug(
-			'[emoji picker click]',
-			emojiPicker,
-			typeof ResizeObserver,
-			typeof IntersectionObserver,
-			button?.getBoundingClientRect(),
-			document.documentElement.ownerDocument
-		);
+		console.debug('[emoji picker click]', emojiPicker);
 		if (button === undefined || emojiPicker === undefined || !hidden) {
 			return;
 		}
@@ -70,12 +63,13 @@
 			]
 		});
 		emojiPicker.appendChild(picker as any);
-		console.debug('[emoji picker children]', emojiPicker.children);
+		console.debug('[emoji picker child]', emojiPicker.firstChild);
+		await render();
 		stopAutoUpdate = autoUpdate(button, emojiPicker, render);
 	}
 
 	async function render(): Promise<void> {
-		console.debug('[emoji picker render]', emojiPicker?.children);
+		console.debug('[emoji picker render]', emojiPicker?.firstChild);
 		if (button === undefined || emojiPicker === undefined) {
 			return;
 		}
