@@ -30,7 +30,7 @@
 			const scrollRate = Math.floor((100 * (y + innerHeight)) / maxHeight);
 			console.debug('[y]', y, innerHeight, maxHeight, scrollRate);
 
-			if (scrollRate > 90 && !loading) {
+			if (scrollRate > 80 && !loading) {
 				console.log('Load more timeline');
 				loading = true;
 				await load();
