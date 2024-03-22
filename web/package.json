@@ -40,7 +40,7 @@
 	"type": "module",
 	"dependencies": {
 		"@emoji-mart/data": "^1.1.2",
-		"@floating-ui/dom": "^1.5.3",
+		"@floating-ui/dom": "^1.6.3",
 		"@svelteuidev/composables": "^0.15.4",
 		"@svelteuidev/core": "^0.15.4",
 		"@tabler/icons-svelte": "^2.38.0",
