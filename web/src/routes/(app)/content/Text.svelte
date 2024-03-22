@@ -3,3 +3,9 @@
 </script>
 
 <span>{text}</span>
+
+<style>
+	span {
+		white-space: pre-wrap;
+	}
+</style>
