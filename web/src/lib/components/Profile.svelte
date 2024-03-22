@@ -12,6 +12,7 @@
 	import ZapButton from '$lib/components/ZapButton.svelte';
 	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
 	import Badges from './Badges.svelte';
+	import ExternalLink from './ExternalLink.svelte';
 	import FollowButton from './FollowButton.svelte';
 	import MuteButton from './MuteButton.svelte';
 	import NostrAddress from './NostrAddress.svelte';
@@ -167,7 +168,9 @@
 		<a href="/{slug}/reactions">{$_('pages.reactions')}</a>
 	</div>
 	<div>
-		<a href="https://rss.nostter.app/{nip19.npubEncode(pubkey)}">RSS</a>
+		<ExternalLink link={new URL(`https://njump.me/${nip19.npubEncode(pubkey)}.rss`)}>
+			RSS
+		</ExternalLink>
 	</div>
 
 	{#if $developerMode}
