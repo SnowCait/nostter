@@ -13,6 +13,10 @@ export class EventItem implements Item {
 	public get replyToPubkeys(): pubkey[] {
 		return [...new Set(filterTags('p', this.event.tags))];
 	}
+
+	public get id(): string {
+		return this.event.id;
+	}
 }
 
 export class ZapEventItem extends EventItem {

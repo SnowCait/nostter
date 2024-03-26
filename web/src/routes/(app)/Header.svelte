@@ -150,6 +150,7 @@
 
 	a {
 		align-self: flex-start;
+		text-decoration: none;
 	}
 
 	button {
