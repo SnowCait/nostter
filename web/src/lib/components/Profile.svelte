@@ -152,26 +152,28 @@
 			{$_('pages.followers')}: <a href={`/${slug}/followers`}>{$_('pages.followers_see')}</a>
 		</div>
 	</div>
-	<div>
-		<a href="/{slug}/relays">{$_('pages.relays')}</a>
-	</div>
-	<div>
-		<a href="/{slug}/media">{$_('pages.media')}</a>
-	</div>
-	<div>
-		<a href="/{slug}/timeline">{$_('pages.timeline')}</a>
-	</div>
-	<div>
-		<a href="/{slug}/pins">{$_('pages.pinned')}</a>
-	</div>
-	<div>
-		<a href="/{slug}/reactions">{$_('pages.reactions')}</a>
-	</div>
-	<div>
-		<ExternalLink link={new URL(`https://njump.me/${nip19.npubEncode(pubkey)}.rss`)}>
-			RSS
-		</ExternalLink>
-	</div>
+	<nav>
+		<div>
+			<a href="/{slug}/relays">{$_('pages.relays')}</a>
+		</div>
+		<div>
+			<a href="/{slug}/media">{$_('pages.media')}</a>
+		</div>
+		<div>
+			<a href="/{slug}/timeline">{$_('pages.timeline')}</a>
+		</div>
+		<div>
+			<a href="/{slug}/pins">{$_('pages.pinned')}</a>
+		</div>
+		<div>
+			<a href="/{slug}/reactions">{$_('pages.reactions')}</a>
+		</div>
+		<div>
+			<ExternalLink link={new URL(`https://njump.me/${nip19.npubEncode(pubkey)}.rss`)}>
+				RSS
+			</ExternalLink>
+		</div>
+	</nav>
 
 	{#if $developerMode}
 		<ReplaceableEventsJson />
@@ -276,5 +278,10 @@
 		display: flex;
 		gap: 2rem;
 		font-size: 0.95rem;
+		margin: 1rem 0;
+	}
+
+	nav div {
+		margin: 1rem 0;
 	}
 </style>

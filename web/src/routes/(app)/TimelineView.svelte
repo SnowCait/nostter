@@ -2,6 +2,7 @@
 	import { writable } from 'svelte/store';
 	import { onMount } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
+	import { VirtualScroll } from 'svelte-virtual-scroll-list';
 	import { goto } from '$app/navigation';
 	import type { Item } from '$lib/Items';
 	import { channelIdStore } from '$lib/Channel';
@@ -112,44 +113,37 @@
 
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
-<ul class="card timeline">
-	{#each $scrollY > 0 ? items : items.slice(0, 50) as item (item.event.id)}
-		{#if !isMuteEvent(item.event)}
-			<li
+<section class="card">
+	<VirtualScroll data={items} key="id" let:data pageMode={true} keeps={20}>
+		{#if !isMuteEvent(data.event)}
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<div
 				class={canTransition ? 'canTransition-post' : ''}
-				class:related={$author?.isNotified(item.event)}
-				on:mouseup={(e) => viewDetail(e, item.event)}
+				class:related={$author?.isNotified(data.event)}
+				on:mouseup={(e) => viewDetail(e, data.event)}
 			>
-				<EventComponent {item} {readonly} {createdAtFormat} {full} />
-			</li>
+				<EventComponent item={data} {readonly} {createdAtFormat} {full} />
+			</div>
 		{/if}
-	{/each}
-</ul>
+	</VirtualScroll>
+</section>
+
 {#if showLoading}
 	<div class="loading"><Loading /></div>
 {/if}
 
 <style>
-	ul {
-		list-style: none;
+	section {
 		margin: 0;
 		padding: 0;
-		border: var(--default-border);
-		border-bottom-style: none;
 	}
 
-	ul li:first-child {
-		border-radius: 0.45rem 0.45rem 0 0;
-	}
-
-	ul li:last-child {
-		border-radius: 0 0 0.45rem 0.45rem;
-	}
-
-	li {
+	section div {
 		border-bottom: var(--default-border);
+
 		animation-name: add;
 		animation-duration: 0.8s;
+
 		overflow-x: hidden;
 		text-overflow: ellipsis;
 	}
@@ -160,10 +154,6 @@
 
 	.canTransition-post:hover {
 		background: var(--accent-surface-low);
-	}
-
-	:global(.timeline a) {
-		text-decoration: underline;
 	}
 
 	:global(blockquote) {
@@ -178,12 +168,11 @@
 		background: var(--accent-surface-low);
 	}
 
-	li.related {
+	.related {
 		border-left: 2px solid lightcoral;
 	}
 
 	.loading {
-		width: 24px;
 		margin: 1rem auto;
 	}
 

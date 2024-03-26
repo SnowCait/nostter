@@ -47,6 +47,7 @@
 	a {
 		display: block;
 		padding: 0.5rem;
+		text-decoration: none;
 	}
 
 	li.selected {
