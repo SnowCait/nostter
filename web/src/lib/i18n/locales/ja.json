@@ -144,6 +144,9 @@
 		"reaction": {
 			"again": "もう一度リアクションしますか？"
 		},
+		"copy_id": {
+			"button": "ID をコピー"
+		},
 		"details": {
 			"button": "詳細"
 		}

@@ -1,16 +1,18 @@
 <script lang="ts">
 	import { Divider, Menu } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
-	import { Kind } from 'nostr-tools';
+	import { Kind, nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { isBookmarked } from '$lib/author/Bookmark';
 	import { Api } from '$lib/Api';
+	import { copy } from '$lib/Clipboard';
 	import { pubkey, rom, writeRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
 	import { developerMode } from '../../stores/Preference';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconBookmarkFilled from '@tabler/icons-svelte/dist/svelte/icons/IconBookmarkFilled.svelte';
+	import IconClipboard from '@tabler/icons-svelte/dist/svelte/icons/IconClipboard.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 
 	export let event: Event;
@@ -107,6 +109,10 @@
 			{$_('actions.bookmark.button')}
 		</Menu.Item>
 	{/if}
+
+	<Menu.Item icon={IconClipboard} on:click={() => copy(nip19.neventEncode({ id: event.id }))}>
+		{$_('actions.copy_id.button')}
+	</Menu.Item>
 
 	{#if $developerMode}
 		<Divider />
