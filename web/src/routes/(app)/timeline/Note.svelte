@@ -3,10 +3,8 @@
 	import type { EventItem, Item } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
-	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
-	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import { openNoteDialog, replyTo } from '../../../stores/NoteDialog';
 	import { readRelays, writeRelays, pubkey, author } from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
@@ -19,9 +17,9 @@
 	import { getCodePoints } from '$lib/String';
 	import { isReply } from '$lib/EventHelper';
 	import { Channel, channelIdStore } from '$lib/Channel';
-	import BookmarkButton from '$lib/components/BookmarkButton.svelte';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
+	import MenuButton from '$lib/components/MenuButton.svelte';
 	import ReactionButton from '$lib/components/ReactionButton.svelte';
 	import RepostButton from '$lib/components/RepostButton.svelte';
 	import ProxyLink from '../parts/ProxyLink.svelte';
@@ -53,12 +51,6 @@
 	const showWarningContent = () => {
 		showContent = true;
 	};
-
-	const toggleJsonDisplay = () => {
-		jsonDisplay = !jsonDisplay;
-	};
-
-	let showMenu = false;
 
 	function reply(item: Item) {
 		$replyTo = item as EventItem;
@@ -211,75 +203,51 @@
 					bind:this={zapDialogComponent}
 					on:zapped={onZapped}
 				/>
-				<button class:hidden={full} on:click={() => (showMenu = !showMenu)}>
-					<IconDots size={iconSize} />
-				</button>
+				<MenuButton event={item.event} {iconSize} bind:showDetails={jsonDisplay} />
 			</div>
-			{#if full || showMenu}
-				<div class="action-menu">
-					<!-- instead of margin -->
-					<button class:hidden={true} on:click={console.debug}>
-						<IconDots size={iconSize} />
-					</button>
-					<button class:hidden={true} on:click={console.debug}>
-						<IconDots size={iconSize} />
-					</button>
-					<button class:hidden={true} on:click={console.debug}>
-						<IconDots size={iconSize} />
-					</button>
-					<button class:hidden={true} on:click={console.debug}>
-						<IconDots size={iconSize} />
-					</button>
-					<!-- /instead of margin -->
-					<BookmarkButton event={item.event} {iconSize} />
-					<button on:click={toggleJsonDisplay}>
-						<IconCodeDots size={iconSize} />
-					</button>
-				</div>
-				{#if jsonDisplay}
-					<div class="develop">
-						<h5>Event ID</h5>
-						<div>{nip19.noteEncode(item.event.id)}</div>
-						<br />
-						<div>{nip19.neventEncode({ id: item.event.id })}</div>
-						<h5>Event JSON</h5>
-						<code>{JSON.stringify(item.event, null, 2)}</code>
-						<h5>User ID</h5>
-						<div>{nip19.npubEncode(item.event.pubkey)}</div>
-						<h5>User JSON</h5>
-						<code>{JSON.stringify(metadata?.content, null, 2)}</code>
-						<h5>Code Points</h5>
-						<h6>display name</h6>
-						<p>
-							{getCodePoints(metadata?.content?.display_name ?? '')
-								.map((codePoint) => `0x${codePoint.toString(16)}`)
-								.join(' ')}
-						</p>
-						<h6>@name</h6>
-						<p>
-							{getCodePoints(metadata?.content?.name ?? '')
-								.map((codePoint) => `0x${codePoint.toString(16)}`)
-								.join(' ')}
-						</p>
-						<h6>content</h6>
-						<p>
-							{getCodePoints(item.event.content)
-								.map((codePoint) => `0x${codePoint.toString(16)}`)
-								.join(' ')}
-						</p>
-						<div>
-							Open in <a
-								href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode(
-									{ id: item.event.id }
-								)}&kind={item.event.kind}"
-								target="_blank"
-								rel="noopener noreferrer"
-							>
-								nostr-post-checker
-							</a>
-						</div>
+			{#if jsonDisplay}
+				<div class="develop">
+					<h5>Event ID</h5>
+					<div>{nip19.noteEncode(item.event.id)}</div>
+					<br />
+					<div>{nip19.neventEncode({ id: item.event.id })}</div>
+					<h5>Event JSON</h5>
+					<code>{JSON.stringify(item.event, null, 2)}</code>
+					<h5>User ID</h5>
+					<div>{nip19.npubEncode(item.event.pubkey)}</div>
+					<h5>User JSON</h5>
+					<code>{JSON.stringify(metadata?.content, null, 2)}</code>
+					<h5>Code Points</h5>
+					<h6>display name</h6>
+					<p>
+						{getCodePoints(metadata?.content?.display_name ?? '')
+							.map((codePoint) => `0x${codePoint.toString(16)}`)
+							.join(' ')}
+					</p>
+					<h6>@name</h6>
+					<p>
+						{getCodePoints(metadata?.content?.name ?? '')
+							.map((codePoint) => `0x${codePoint.toString(16)}`)
+							.join(' ')}
+					</p>
+					<h6>content</h6>
+					<p>
+						{getCodePoints(item.event.content)
+							.map((codePoint) => `0x${codePoint.toString(16)}`)
+							.join(' ')}
+					</p>
+					<div>
+						Open in <a
+							href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode(
+								{ id: item.event.id }
+							)}&kind={item.event.kind}"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							nostr-post-checker
+						</a>
 					</div>
-				{/if}
+				</div>
 			{/if}
 		{/if}
 	</section>
@@ -319,10 +287,6 @@
 		justify-content: space-between;
 
 		margin-top: 8px;
-	}
-
-	.action-menu + .action-menu {
-		margin-top: 16px;
 	}
 
 	.action-menu button {

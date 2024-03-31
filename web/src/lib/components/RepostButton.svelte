@@ -76,9 +76,4 @@
 	.repost.reposted {
 		color: var(--green);
 	}
-
-	:global(.svelteui-Menu-body) {
-		padding: 0;
-		width: 8rem;
-	}
 </style>

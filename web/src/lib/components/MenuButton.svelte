@@ -1,26 +1,28 @@
 <script lang="ts">
+	import { Divider, Menu } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
+	import { Kind, nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
-	import { Kind } from 'nostr-tools';
 	import { isBookmarked } from '$lib/author/Bookmark';
+	import { Api } from '$lib/Api';
+	import { copy } from '$lib/Clipboard';
 	import { pubkey, rom, writeRelays } from '../../stores/Author';
 	import { pool } from '../../stores/Pool';
+	import { developerMode } from '../../stores/Preference';
+	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconBookmarkFilled from '@tabler/icons-svelte/dist/svelte/icons/IconBookmarkFilled.svelte';
-	import { Api } from '$lib/Api';
+	import IconClipboard from '@tabler/icons-svelte/dist/svelte/icons/IconClipboard.svelte';
+	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 
 	export let event: Event;
 	export let iconSize: number;
+	export let showDetails = false;
 
 	$: bookmarked = isBookmarked(event);
 
 	async function bookmark(note: Event) {
 		console.log('[bookmark]', note, $rom);
-
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
 
 		if (bookmarked) {
 			console.debug('[bookmark already]');
@@ -53,16 +55,6 @@
 	async function unbookmark(note: Event) {
 		console.log('[unbookmark]', note, $rom);
 
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
-
-		if (!bookmarked) {
-			console.debug('[not bookmarked]');
-			return;
-		}
-
 		if (!confirm($_('actions.unbookmark.confirm'))) {
 			return;
 		}
@@ -92,25 +84,47 @@
 	}
 </script>
 
-<button
-	class="clear"
-	class:hidden={!(event.kind === Kind.Text || event.kind === Kind.ChannelMessage)}
-	class:bookmarked
-	on:click={() => (bookmarked ? unbookmark(event) : bookmark(event))}
->
+<Menu placement="center">
+	<svelte:fragment slot="control">
+		<div class="icon">
+			<IconDots size={iconSize} />
+		</div>
+	</svelte:fragment>
+
 	{#if bookmarked}
-		<IconBookmarkFilled size={iconSize} />
+		<Menu.Item
+			icon={IconBookmarkFilled}
+			color="var(--red)"
+			disabled={$rom || event.kind === 42}
+			on:click={() => unbookmark(event)}
+		>
+			{$_('actions.unbookmark.button')}
+		</Menu.Item>
 	{:else}
-		<IconBookmark size={iconSize} />
+		<Menu.Item
+			icon={IconBookmark}
+			disabled={$rom || event.kind === 42}
+			on:click={() => bookmark(event)}
+		>
+			{$_('actions.bookmark.button')}
+		</Menu.Item>
 	{/if}
-</button>
+
+	<Menu.Item icon={IconClipboard} on:click={() => copy(nip19.neventEncode({ id: event.id }))}>
+		{$_('actions.copy_id.button')}
+	</Menu.Item>
+
+	{#if $developerMode}
+		<Divider />
+		<Menu.Label>Developer</Menu.Label>
+		<Menu.Item icon={IconCodeDots} on:click={() => (showDetails = !showDetails)}>
+			{$_('actions.details.button')}
+		</Menu.Item>
+	{/if}
+</Menu>
 
 <style>
-	button {
+	.icon {
 		color: var(--accent-gray);
-	}
-
-	button.bookmarked {
-		color: var(--red);
 	}
 </style>

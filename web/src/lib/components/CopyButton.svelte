@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { copy as copyText } from '$lib/Clipboard';
 	import IconClipboard from '@tabler/icons-svelte/dist/svelte/icons/IconClipboard.svelte';
 	import IconClipboardCheck from '@tabler/icons-svelte/dist/svelte/icons/IconClipboardCheck.svelte';
 
@@ -8,7 +9,7 @@
 	let copied = false;
 
 	const copy = async () => {
-		navigator.clipboard.writeText(text);
+		copyText(text);
 		copied = true;
 		await new Promise<void>((resolve) => {
 			setTimeout(() => {
