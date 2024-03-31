@@ -94,6 +94,10 @@ export class Metadata implements Item {
 		}
 	}
 
+	public get id(): string {
+		return this.event.id;
+	}
+
 	get name(): string {
 		if (this.content?.name !== undefined && this.content.name !== '') {
 			return this.content.name;
