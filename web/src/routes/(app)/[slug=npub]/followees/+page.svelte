@@ -12,13 +12,14 @@
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
 	import { lastNoteReqEmit } from '$lib/LastNotes';
+	import type { pubkey } from '$lib/Types';
 
 	export let data: LayoutData;
 
 	let pubkey: string | undefined;
-	let pubkeys = new Set<string>();
+	let pubkeys: pubkey[] = [];
 
-	$: items = [...pubkeys]
+	$: items = pubkeys
 		.map((pubkey) => $metadataStore.get(pubkey))
 		.filter((metadata): metadata is Metadata => metadata !== undefined);
 
@@ -40,12 +41,12 @@
 			.pipe(uniq(), latest())
 			.subscribe((packet) => {
 				console.log('[rx-nostr contacts]', packet);
-				pubkeys = new Set(filterTags('p', packet.event.tags).reverse());
-				metadataReqEmit([...pubkeys]);
+				pubkeys = [...new Set(filterTags('p', packet.event.tags).reverse())];
+				metadataReqEmit(pubkeys);
 				if ($author === undefined) {
 					return;
 				}
-				lastNoteReqEmit([...pubkeys]);
+				lastNoteReqEmit(pubkeys);
 			});
 	}
 </script>
@@ -54,6 +55,6 @@
 	<title>{appName} - {$_('pages.followees')}</title>
 </svelte:head>
 
-<h1>{$_('pages.followees')} ({pubkeys.size})</h1>
+<h1>{$_('pages.followees')} ({pubkeys.length})</h1>
 
 <TimelineView {items} showLoading={false} />
