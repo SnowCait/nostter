@@ -126,9 +126,11 @@
 	},
 	"actions": {
 		"bookmark": {
+			"button": "ブックマーク",
 			"failed": "ブックマークできませんでした"
 		},
 		"unbookmark": {
+			"button": "ブックマークを外す",
 			"confirm": "ブックマークを外しますか？",
 			"failed": "ブックマークを外せませんでした"
 		},
@@ -141,6 +143,9 @@
 		},
 		"reaction": {
 			"again": "もう一度リアクションしますか？"
+		},
+		"details": {
+			"button": "詳細"
 		}
 	},
 	"thread": {

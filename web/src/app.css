@@ -507,3 +507,8 @@ code {
 	overflow: auto;
 	padding: 0.8rem;
 }
+
+.svelteui-Menu-body {
+	padding: 0;
+	width: 12rem;
+}
