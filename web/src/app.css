@@ -470,6 +470,7 @@ button.clear {
 	padding: 1rem;
 	border-radius: 0.5rem;
 	border: var(--default-border);
+	overflow: hidden;
 }
 
 a {
