@@ -12,12 +12,12 @@
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
 	import { lastNoteReqEmit } from '$lib/LastNotes';
-	import type { pubkey } from '$lib/Types';
+	import type { pubkey as Pubkey } from '$lib/Types';
 
 	export let data: LayoutData;
 
 	let pubkey: string | undefined;
-	let pubkeys: pubkey[] = [];
+	let pubkeys: Pubkey[] = [];
 
 	$: items = pubkeys
 		.map((pubkey) => $metadataStore.get(pubkey))
