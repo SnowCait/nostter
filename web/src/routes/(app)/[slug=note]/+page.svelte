@@ -15,6 +15,7 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';
+	import { newUrl } from '$lib/Helper';
 	import { EventItem, Metadata, ZapEventItem } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { appName, chronologicalItem } from '$lib/Constants';
@@ -302,7 +303,7 @@
 		<span class="icon" class:heart={content === '+'}>
 			{#if content === '+'}
 				<IconHeart />
-			{:else if content.startsWith('https')}
+			{:else if newUrl(content) !== undefined}
 				<CustomEmoji url={content} text={customEmojiShortcode.get(content)} />
 			{:else}
 				<span>{content}</span>
