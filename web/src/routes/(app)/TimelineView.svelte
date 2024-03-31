@@ -114,7 +114,7 @@
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
 <section class="card">
-	<VirtualScroll data={items} key="id" let:data pageMode={true} keeps={20}>
+	<VirtualScroll data={items} key="id" let:data pageMode={true} keeps={50}>
 		{#if !isMuteEvent(data.event)}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div
