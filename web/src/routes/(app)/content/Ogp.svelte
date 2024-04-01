@@ -3,67 +3,78 @@
 </script>
 
 <script lang="ts">
-	import { corsAllowedHosts } from '$lib/Constants';
-
 	export let url: URL;
 
 	$: ogp = cache.get(url.href);
 
 	$: if (!cache.has(url.href)) {
-		const proxyUrl = corsAllowedHosts.includes(url.hostname)
-			? url
-			: `https://corsproxy.io/?${encodeURIComponent(url.href)}`;
-		fetch(proxyUrl)
-			.then(async (response) => {
-				if (
-					!response.ok ||
-					response.status < 200 ||
-					300 <= response.status ||
-					!response.headers.get('Content-Type')?.includes('text/html')
-				) {
-					console.debug(
-						'[OGP error]',
-						url.href,
-						response.ok,
-						response.status,
-						...response.headers
+		fetchOgp(url, true).then((success) => {
+			if (!success) {
+				fetchOgp(url, false);
+			}
+		});
+	}
+
+	async function fetchOgp(url: URL, proxy: boolean): Promise<boolean> {
+		console.debug('[OGP url]', url.href, proxy);
+		return await new Promise((resolve) => {
+			fetch(proxy ? `https://corsproxy.io/?${encodeURIComponent(url.href)}` : url)
+				.then(async (response) => {
+					if (
+						!response.ok ||
+						response.status < 200 ||
+						300 <= response.status ||
+						!response.headers.get('Content-Type')?.includes('text/html')
+					) {
+						console.debug(
+							'[OGP error]',
+							url.href,
+							response.ok,
+							response.status,
+							...response.headers
+						);
+						resolve(false);
+					}
+					const html = await response.text();
+					const domParser = new DOMParser();
+					const dom = domParser.parseFromString(html, 'text/html');
+					const metaTags = [...dom.head.children].filter(
+						(element) => element.tagName === 'META'
 					);
-					return;
-				}
-				const html = await response.text();
-				const domParser = new DOMParser();
-				const dom = domParser.parseFromString(html, 'text/html');
-				const metaTags = [...dom.head.children].filter(
-					(element) => element.tagName === 'META'
-				);
-				if (
-					!metaTags.some(
-						(element) => element.getAttribute('charset')?.toLowerCase() === 'utf-8'
-					)
-				) {
-					console.debug(
-						'[OGP charset is not utf-8]',
-						url.href,
-						metaTags.find((element) => element.getAttribute('charset') !== null)
+					if (
+						!metaTags.some(
+							(element) => element.getAttribute('charset')?.toLowerCase() === 'utf-8'
+						)
+					) {
+						console.debug(
+							'[OGP charset is not utf-8]',
+							url.href,
+							metaTags.find((element) => element.getAttribute('charset') !== null)
+						);
+						cache.set(url.href, undefined);
+						resolve(true);
+					}
+					ogp = Object.fromEntries(
+						metaTags
+							.filter((element) =>
+								element.getAttribute('property')?.startsWith('og:')
+							)
+							.map((element) => {
+								return [
+									element.getAttribute('property'),
+									element.getAttribute('content')
+								];
+							})
 					);
-					return;
-				}
-				ogp = Object.fromEntries(
-					metaTags
-						.filter((element) => element.getAttribute('property')?.startsWith('og:'))
-						.map((element) => {
-							return [
-								element.getAttribute('property'),
-								element.getAttribute('content')
-							];
-						})
-				);
-				console.debug('[OGP]', url.href, ogp);
-				cache.set(url.href, ogp);
-			})
-			.catch((error) => {
-				console.info('[OGP error]', url.href, error);
-			});
+					console.debug('[OGP]', url.href, ogp);
+					cache.set(url.href, ogp);
+					resolve(true);
+				})
+				.catch((error) => {
+					console.info('[OGP network/CORS error]', url.href, error);
+					resolve(false);
+				});
+		});
 	}
 </script>
 
