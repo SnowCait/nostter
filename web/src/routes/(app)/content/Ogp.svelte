@@ -51,6 +51,7 @@
 							url.href,
 							metaTags.find((element) => element.getAttribute('charset') !== null)
 						);
+						cache.set(url.href, undefined);
 						resolve(true);
 					}
 					ogp = Object.fromEntries(
