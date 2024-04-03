@@ -34,6 +34,7 @@
 							...response.headers
 						);
 						resolve(false);
+						return;
 					}
 					const html = await response.text();
 					const domParser = new DOMParser();
@@ -53,6 +54,7 @@
 						);
 						cache.set(url.href, undefined);
 						resolve(true);
+						return;
 					}
 					ogp = Object.fromEntries(
 						metaTags
