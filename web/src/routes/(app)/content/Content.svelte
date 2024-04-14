@@ -1,18 +1,29 @@
 <script lang="ts">
+	import { ObserverRender } from '@svelteuidev/core';
 	import { Content } from '$lib/Content';
+	import { newUrl } from '$lib/Helper';
 	import ReferenceNip27 from './ReferenceNip27.svelte';
 	import Reference from './Reference.svelte';
 	import Hashtag from './Hashtag.svelte';
 	import Url from './Url.svelte';
 	import Text from './Text.svelte';
 	import CustomEmoji from './CustomEmoji.svelte';
+	import Ogp from './Ogp.svelte';
+	import { enablePreview } from '../../../stores/Preference';
 
 	export let content: string;
 	export let tags: string[][];
+
+	$: tokens = Content.parse(content, tags);
+	$: urls = tokens
+		.filter((token) => token.name === 'url')
+		.map((token) => token.text)
+		.map((url) => newUrl(url))
+		.filter((url): url is URL => url !== undefined);
 </script>
 
 <p class="content">
-	{#each Content.parse(content, tags) as token}
+	{#each tokens as token}
 		{#if token.name === 'reference' && token.index === undefined}
 			<ReferenceNip27 text={token.text} />
 		{:else if token.name === 'reference' && token.index !== undefined && tags.at(token.index) !== undefined}
@@ -34,6 +45,21 @@
 			<Text text={token.text} />
 		{/if}
 	{/each}
+	<ObserverRender let:visible options={{ unobserveOnEnter: true }}>
+		{#each urls as url}
+			{#if $enablePreview && visible}
+				{#if url.origin === 'https://twitter.com' || url.origin === 'https://x.com'}
+					<!-- Twitter -->
+				{:else if url.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(url.hostname)}
+					<!-- YouTube -->
+				{:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp|mp3|m4a|wav|mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(url.pathname)}
+					<!-- Media -->
+				{:else}
+					<Ogp {url} />
+				{/if}
+			{/if}
+		{/each}
+	</ObserverRender>
 </p>
 
 <style>

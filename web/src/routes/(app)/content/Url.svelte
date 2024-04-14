@@ -13,7 +13,6 @@
 	import { enablePreview } from '../../../stores/Preference';
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
-	import Ogp from './Ogp.svelte';
 	import YouTube from '$lib/components/content/YouTube.svelte';
 
 	export let text: string;
@@ -84,11 +83,6 @@
 	{/if}
 {:else}
 	<ExternalLink {link}>{text}</ExternalLink>
-	<ObserverRender let:visible options={{ unobserveOnEnter: true }}>
-		{#if preview && visible}
-			<Ogp url={link} />
-		{/if}
-	</ObserverRender>
 {/if}
 
 <style>
