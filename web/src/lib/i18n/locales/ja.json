@@ -147,6 +147,9 @@
 		"copy_id": {
 			"button": "ID をコピー"
 		},
+		"copy_url": {
+			"button": "URL をコピー"
+		},
 		"details": {
 			"button": "詳細"
 		}

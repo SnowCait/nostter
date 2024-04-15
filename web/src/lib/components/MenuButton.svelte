@@ -3,6 +3,7 @@
 	import { _ } from 'svelte-i18n';
 	import { Kind, nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
+	import { page } from '$app/stores';
 	import { isBookmarked } from '$lib/author/Bookmark';
 	import { Api } from '$lib/Api';
 	import { copy } from '$lib/Clipboard';
@@ -13,6 +14,7 @@
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconBookmarkFilled from '@tabler/icons-svelte/dist/svelte/icons/IconBookmarkFilled.svelte';
 	import IconClipboard from '@tabler/icons-svelte/dist/svelte/icons/IconClipboard.svelte';
+	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 
 	export let event: Event;
@@ -112,6 +114,13 @@
 
 	<Menu.Item icon={IconClipboard} on:click={() => copy(nip19.neventEncode({ id: event.id }))}>
 		{$_('actions.copy_id.button')}
+	</Menu.Item>
+
+	<Menu.Item
+		icon={IconLink}
+		on:click={() => copy(`${$page.url.origin}/${nip19.neventEncode({ id: event.id })}`)}
+	>
+		{$_('actions.copy_url.button')}
 	</Menu.Item>
 
 	{#if $developerMode}
