@@ -148,6 +148,9 @@
 		"copy_id": {
 			"button": "Copy ID"
 		},
+		"copy_url": {
+			"button": "Copy URL"
+		},
 		"details": {
 			"button": "Details"
 		}
