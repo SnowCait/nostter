@@ -14,6 +14,10 @@
 			const v = link.searchParams.get('v');
 			if (v !== null) {
 				id = v;
+			} else if (link.pathname.includes('shorts')) {
+				console.log('[youtube shorts]', link.pathname);
+				const match = link.pathname.match(/\/shorts\/(?<id>\w+)/);
+				id = match?.groups?.id;
 			}
 		}
 	}
