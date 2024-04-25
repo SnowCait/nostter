@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { openNoteDialog } from '../../stores/NoteDialog';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
-	import NoteEditor from './editor/NoteEditor.svelte';
+	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
 
 	let dialog: HTMLDialogElement;
 	let editor: NoteEditor;

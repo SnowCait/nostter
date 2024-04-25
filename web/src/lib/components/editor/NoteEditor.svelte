@@ -16,10 +16,10 @@
 	import { openNoteDialog, replyTo, quotes, intentContent } from '../../../stores/NoteDialog';
 	import { author, pubkey, rom } from '../../../stores/Author';
 	import { customEmojiTags } from '$lib/author/CustomEmojis';
-	import Note from '../timeline/Note.svelte';
-	import ChannelTitle from '../parts/ChannelTitle.svelte';
-	import MediaPicker from './MediaPicker.svelte';
-	import CustomEmoji from '../content/CustomEmoji.svelte';
+	import Note from '../../../routes/(app)/timeline/Note.svelte';
+	import ChannelTitle from '../../../routes/(app)/parts/ChannelTitle.svelte';
+	import MediaPicker from '../MediaPicker.svelte';
+	import CustomEmoji from '../../../routes/(app)/content/CustomEmoji.svelte';
 	import ContentWarning from './ContentWarning.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
