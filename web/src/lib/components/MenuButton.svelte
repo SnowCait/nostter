@@ -1,14 +1,12 @@
 <script lang="ts">
 	import { Divider, Menu } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
-	import { Kind, nip19 } from 'nostr-tools';
+	import { nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { page } from '$app/stores';
-	import { isBookmarked } from '$lib/author/Bookmark';
-	import { Api } from '$lib/Api';
+	import { bookmark, unbookmark, isBookmarked } from '$lib/author/Bookmark';
 	import { copy } from '$lib/Clipboard';
-	import { pubkey, rom, writeRelays } from '../../stores/Author';
-	import { pool } from '../../stores/Pool';
+	import { rom } from '../../stores/Author';
 	import { developerMode } from '../../stores/Preference';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
@@ -23,7 +21,7 @@
 
 	$: bookmarked = isBookmarked(event);
 
-	async function bookmark(note: Event) {
+	async function onBookmark(note: Event) {
 		console.log('[bookmark]', note, $rom);
 
 		if (bookmarked) {
@@ -33,28 +31,16 @@
 
 		bookmarked = true;
 
-		const api = new Api($pool, $writeRelays);
-		const latestEvent = await api.fetchBookmarkEvent($pubkey);
-		console.log('[bookmark latest]', latestEvent);
-		if (
-			latestEvent !== undefined &&
-			latestEvent.tags.some(([tagName, id]) => tagName === 'e' && id === note.id)
-		) {
-			console.log('[bookmark already]', note);
-			return;
-		}
-
-		api.signAndPublish(30001 as Kind, latestEvent?.content ?? '', [
-			...(latestEvent?.tags ?? [['d', 'bookmark']]),
-			['e', note.id]
-		]).catch((error) => {
+		try {
+			await bookmark(['e', note.id]);
+		} catch (error) {
 			console.error('[bookmark failed]', error);
 			bookmarked = false;
 			alert($_('actions.bookmark.failed'));
-		});
+		}
 	}
 
-	async function unbookmark(note: Event) {
+	async function onUnbookmark(note: Event) {
 		console.log('[unbookmark]', note, $rom);
 
 		if (!confirm($_('actions.unbookmark.confirm'))) {
@@ -63,26 +49,13 @@
 
 		bookmarked = false;
 
-		const api = new Api($pool, $writeRelays);
-		const latestEvent = await api.fetchBookmarkEvent($pubkey);
-		console.log('[bookmark latest]', latestEvent);
-		if (
-			latestEvent === undefined ||
-			!latestEvent.tags.some(([tagName, id]) => tagName === 'e' && id === note.id)
-		) {
-			console.log('[bookmark removed already]', note);
-			return;
-		}
-
-		api.signAndPublish(
-			30001 as Kind,
-			latestEvent.content,
-			latestEvent.tags.filter(([tagName, id]) => !(tagName === 'e' && id === note.id))
-		).catch((error) => {
+		try {
+			unbookmark(['e', note.id]);
+		} catch (error) {
 			console.error('[remove bookmark failed]', error);
 			bookmarked = true;
 			alert($_('actions.unbookmark.failed'));
-		});
+		}
 	}
 </script>
 
@@ -98,7 +71,7 @@
 			icon={IconBookmarkFilled}
 			color="var(--red)"
 			disabled={$rom || event.kind === 42}
-			on:click={() => unbookmark(event)}
+			on:click={() => onUnbookmark(event)}
 		>
 			{$_('actions.unbookmark.button')}
 		</Menu.Item>
@@ -106,7 +79,7 @@
 		<Menu.Item
 			icon={IconBookmark}
 			disabled={$rom || event.kind === 42}
-			on:click={() => bookmark(event)}
+			on:click={() => onBookmark(event)}
 		>
 			{$_('actions.bookmark.button')}
 		</Menu.Item>
