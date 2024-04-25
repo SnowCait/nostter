@@ -50,7 +50,7 @@
 		bookmarked = false;
 
 		try {
-			unbookmark(['e', note.id]);
+			await unbookmark(['e', note.id]);
 		} catch (error) {
 			console.error('[remove bookmark failed]', error);
 			bookmarked = true;
