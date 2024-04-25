@@ -14,7 +14,7 @@
 		writeRelays
 	} from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
-	import MediaPicker from '../editor/MediaPicker.svelte';
+	import MediaPicker from '$lib/components/MediaPicker.svelte';
 
 	async function picturePicked({ detail: files }: { detail: FileList }): Promise<void> {
 		console.log('[profile picture]', files);

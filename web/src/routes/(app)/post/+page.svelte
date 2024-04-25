@@ -4,7 +4,7 @@
 	import { page } from '$app/stores';
 	import { appName } from '$lib/Constants';
 	import { intentContent } from '../../../stores/NoteDialog';
-	import NoteEditor from '../editor/NoteEditor.svelte';
+	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
 
 	const content = $page.url.searchParams.get('content');
 	if (content !== null) {
