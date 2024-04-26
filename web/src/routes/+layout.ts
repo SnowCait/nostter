@@ -1,6 +1,5 @@
 import { get } from 'svelte/store';
 import { locale, waitLocale } from 'svelte-i18n';
-import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
 import { browser } from '$app/environment';
 import { Login } from '$lib/Login';
 import { WebStorage } from '$lib/WebStorage';
@@ -9,8 +8,6 @@ import { rxNostr } from '$lib/timelines/MainTimeline';
 import { defaultRelays, localizedRelays } from '$lib/Constants';
 import type { LayoutLoad } from './$types';
 import { readRelays, writeRelays } from '../stores/Author';
-
-injectSpeedInsights();
 
 export const load: LayoutLoad = async () => {
 	console.debug('[layout load]');
