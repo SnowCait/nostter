@@ -37,7 +37,7 @@ const observable = rxNostr.use(homeTimelineReq).pipe(uniq());
 // Author Replaceable Events
 const authorReplaceableObservable = observable.pipe(
 	filterByKinds(replaceableKinds),
-	filter(({ event }) => event.pubkey === get(pubkey)), // Ensure
+	filter(({ event }) => event.pubkey === get(pubkey)),
 	latestEach(({ event }) => event.kind),
 	filter(({ event }) => {
 		const storage = new WebStorage(localStorage);
@@ -51,9 +51,6 @@ const authorReplaceableObservable = observable.pipe(
 	}),
 	share()
 );
-authorReplaceableObservable
-	.pipe(filterByKind(Kind.Metadata))
-	.subscribe(({ event }) => storeMetadata(event));
 authorReplaceableObservable.pipe(filterByKind(Kind.Contacts)).subscribe(({ event }) => {
 	updateFolloweesStore(event.tags);
 	hometimelineReqEmit();
@@ -119,6 +116,15 @@ authorParameterizedReplaceableObservable.pipe(filterByKind(30078)).subscribe(({ 
 		preferencesStore.set(preferences);
 	}
 });
+
+// Metadata
+observable
+	.pipe(
+		filterByKind(Kind.Metadata),
+		latestEach(({ event }) => event.pubkey),
+		tap(({ event }) => console.debug('[rx-nostr metadata event]', event.kind, event))
+	)
+	.subscribe(({ event }) => storeMetadata(event));
 
 // Other Events
 observable
