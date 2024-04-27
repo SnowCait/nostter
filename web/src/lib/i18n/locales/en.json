@@ -190,5 +190,10 @@
 		"upload": {
 			"failed": "Failed to upload."
 		}
+	},
+	"lists": {
+		"title": "Lists",
+		"particle": "'s ",
+		"none": "No lists."
 	}
 }
