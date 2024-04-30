@@ -169,6 +169,9 @@
 			<a href="/{slug}/reactions">{$_('pages.reactions')}</a>
 		</div>
 		<div>
+			<a href="/{slug}/lists">{$_('lists.title')}</a>
+		</div>
+		<div>
 			<ExternalLink link={new URL(`https://njump.me/${nip19.npubEncode(pubkey)}.rss`)}>
 				RSS
 			</ExternalLink>
