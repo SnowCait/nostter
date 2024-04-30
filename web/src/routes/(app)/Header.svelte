@@ -4,6 +4,7 @@
 	import IconBell from '@tabler/icons-svelte/dist/svelte/icons/IconBell.svelte';
 	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
 	import IconSettings from '@tabler/icons-svelte/dist/svelte/icons/IconSettings.svelte';
+	import IconList from '@tabler/icons-svelte/dist/svelte/icons/IconList.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
 	import IconPencilPlus from '@tabler/icons-svelte/dist/svelte/icons/IconPencilPlus.svelte';
@@ -82,6 +83,12 @@
 			{/if}
 			{#if !mobile || show || !$pubkey}
 				{#if $pubkey}
+					<a href="/{nip19.npubEncode($pubkey)}/lists">
+						<li>
+							<IconList size={30} />
+							<p>{$_('lists.title')}</p>
+						</li>
+					</a>
 					<a href="/{nip19.npubEncode($pubkey)}/bookmarks">
 						<li>
 							<IconBookmark size={30} />

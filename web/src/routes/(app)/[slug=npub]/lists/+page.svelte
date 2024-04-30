@@ -7,10 +7,11 @@
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { reverseChronological } from '$lib/Constants';
-	import { filterTags, findIdentifier } from '$lib/EventHelper';
+	import { appName, reverseChronological } from '$lib/Constants';
+	import { findIdentifier } from '$lib/EventHelper';
 	import type { LayoutData } from '../$types';
 	import Loading from '$lib/components/Loading.svelte';
+	import { getListTitle } from '$lib/List';
 
 	export let data: LayoutData;
 
@@ -70,7 +71,7 @@
 </script>
 
 <svelte:head>
-	<title>{title}</title>
+	<title>{appName} - {title}</title>
 </svelte:head>
 
 <h1>{title}</h1>
@@ -85,7 +86,7 @@
 					identifier: findIdentifier(event.tags) ?? ''
 				})}"
 			>
-				{filterTags('title', event.tags).at(0)?.at(1) ?? findIdentifier(event.tags) ?? '-'}
+				{getListTitle(event.tags)}
 			</a>
 		</li>
 	{:else}
