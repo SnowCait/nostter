@@ -24,6 +24,7 @@ import { Content } from '$lib/Content';
 import { sleep } from '$lib/Helper';
 
 export const rxNostr = createRxNostr({
+	connectionStrategy: 'lazy-keep',
 	eoseTimeout: timeout,
 	okTimeout: timeout,
 	retry: { strategy: 'immediately', maxCount: 1 },
