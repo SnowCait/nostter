@@ -43,7 +43,7 @@
 		"@emoji-mart/data": "^1.1.2",
 		"@floating-ui/dom": "^1.6.3",
 		"@svelteuidev/composables": "^0.15.4",
-		"@svelteuidev/core": "^0.15.4",
+		"@svelteuidev/core": "^0.15.6",
 		"@tabler/icons-svelte": "^2.38.0",
 		"emoji-kitchen-mart": "^6.0.4",
 		"escape-string-regexp": "^5.0.0",
