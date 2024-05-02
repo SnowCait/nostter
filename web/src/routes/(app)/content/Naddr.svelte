@@ -6,6 +6,7 @@
 	import { readRelays } from '../../../stores/Author';
 	import { pool } from '../../../stores/Pool';
 	import LongFormContent from './LongFormContent.svelte';
+	import List from '$lib/components/items/List.svelte';
 
 	export let naddr: string;
 
@@ -42,10 +43,24 @@
 	});
 </script>
 
-{#if event === undefined || event.kind !== Kind.Article}
+{#if event === undefined}
 	<a href="/{naddr}">{naddr.substring(0, 'naddr1'.length + 7)}</a>
-{:else}
+{:else if event.kind == Kind.Article}
 	<blockquote>
 		<LongFormContent {naddr} {event} />
 	</blockquote>
+{:else if Number(event.kind) === 30000}
+	<a href="/{nip19.npubEncode(event.pubkey)}/lists/{naddr}">
+		<blockquote>
+			<List {event} />
+		</blockquote>
+	</a>
+{:else}
+	<a href="/{naddr}">{naddr.substring(0, 'naddr1'.length + 7)}</a>
 {/if}
+
+<style>
+	a {
+		text-decoration: none;
+	}
+</style>
