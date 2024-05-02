@@ -46,9 +46,3 @@
 		<option value="dark">{$_('preferences.theme.dark')}</option>
 	</select>
 </div>
-
-<style>
-	select {
-		color: inherit;
-	}
-</style>

@@ -549,12 +549,9 @@
 		</ul>
 	{/if}
 	{#if content !== ''}
-		<hr />
-		<blockquote>
-			<section class="preview">
-				<ContentComponent {content} {tags} />
-			</section>
-		</blockquote>
+		<section class="preview card">
+			<ContentComponent {content} {tags} />
+		</section>
 	{/if}
 </article>
 

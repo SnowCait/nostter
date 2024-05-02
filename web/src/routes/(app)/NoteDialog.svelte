@@ -35,7 +35,7 @@
 			event.y <= dialog.offsetTop + dialog.offsetHeight;
 
 		if (!insideDialog) {
-			dialog.close();
+			close();
 		}
 	}
 
