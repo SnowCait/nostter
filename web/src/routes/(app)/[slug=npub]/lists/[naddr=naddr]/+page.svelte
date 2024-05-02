@@ -10,10 +10,10 @@
 		subscribeListTimeline
 	} from '$lib/timelines/ListTimeline';
 	import { appName } from '$lib/Constants';
-	import { filterTags, findIdentifier } from '$lib/EventHelper';
+	import { findIdentifier } from '$lib/EventHelper';
+	import { fetchListEvent, getListPubkeys, getListTitle } from '$lib/List';
 	import type { PageData } from './$types';
 	import TimelineView from '../../../TimelineView.svelte';
-	import { fetchListEvent, getListTitle } from '$lib/List';
 
 	export let data: PageData;
 
@@ -33,18 +33,19 @@
 		$ready = true;
 
 		$event = await fetchListEvent(data.kind, data.pubkey, data.identifier);
+
+		if ($event === undefined) {
+			return;
+		}
+
+		$pubkeys = await getListPubkeys($event);
+		subscribeListTimeline();
+		loadListTimeline();
 	});
 
 	beforeNavigate(() => {
 		$ready = false;
 	});
-
-	$: if ($event !== undefined) {
-		console.debug('[list event]', event);
-		$pubkeys = filterTags('p', $event.tags);
-		subscribeListTimeline();
-		loadListTimeline();
-	}
 
 	$: title = $event === undefined ? '' : getListTitle($event.tags);
 </script>
