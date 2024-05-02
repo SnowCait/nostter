@@ -13,6 +13,7 @@
 	import { findIdentifier } from '$lib/EventHelper';
 	import BadgeAward from '$lib/components/items/BadgeAward.svelte';
 	import BadgeDefinition from '$lib/components/items/BadgeDefinition.svelte';
+	import List from '$lib/components/items/List.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -41,6 +42,8 @@
 	/>
 {:else if item.event.kind === Kind.Zap}
 	<Zap {item} {readonly} {createdAtFormat} />
+{:else if Number(item.event.kind) === 30000}
+	<List event={item.event} />
 {:else if Number(item.event.kind) === 30009}
 	<BadgeDefinition event={item.event} />
 {:else if Number(item.event.kind) === 30030}
