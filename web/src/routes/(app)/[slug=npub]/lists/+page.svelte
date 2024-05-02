@@ -8,10 +8,12 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { appName, reverseChronological } from '$lib/Constants';
+	import { isDecodable } from '$lib/Encryption';
 	import { findIdentifier } from '$lib/EventHelper';
-	import type { LayoutData } from '../$types';
-	import Loading from '$lib/components/Loading.svelte';
 	import { getListTitle } from '$lib/List';
+	import type { LayoutData } from '../$types';
+	import { pubkey } from '../../../../stores/Author';
+	import Loading from '$lib/components/Loading.svelte';
 
 	export let data: LayoutData;
 
@@ -41,14 +43,28 @@
 					if (findIdentifier(event.tags) === 'mute') {
 						return false;
 					}
-					return event.tags.some(
-						([tagName, pubkey]) => tagName === 'p' && pubkey !== undefined
+					return (
+						event.tags.some(
+							([tagName, pubkey]) => tagName === 'p' && pubkey !== undefined
+						) ||
+						(event.pubkey === $pubkey && event.content !== '')
 					);
 				})
 			)
 			.subscribe({
-				next: ({ event }) => {
+				next: async ({ event }) => {
 					console.debug('[lists event]', event);
+
+					// For legacy clients
+					if (
+						!event.tags.some(
+							([tagName, pubkey]) => tagName === 'p' && pubkey !== undefined
+						) &&
+						!(await isDecodable(event.pubkey, event.content))
+					) {
+						return;
+					}
+
 					const identifier = findIdentifier(event.tags) ?? '';
 					const last = listEvents.get(identifier);
 					if (last === undefined || last.created_at < event.created_at) {

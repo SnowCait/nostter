@@ -25,10 +25,8 @@ export function clear(): void {
 }
 
 export function subscribeListTimeline(): void {
-	console.log('[list timeline subscribe]', pubkeys);
-
 	const $pubkeys = get(pubkeys);
-	const since = now();
+	console.log('[list timeline subscribe]', $pubkeys);
 
 	const req = createRxForwardReq();
 	subscription = rxNostr
@@ -52,6 +50,7 @@ export function subscribeListTimeline(): void {
 			items.set($items);
 		});
 
+	const since = now();
 	req.emit(
 		chunk($pubkeys, filterLimitItems).map((chunkedAuthors) => {
 			return {
