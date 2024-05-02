@@ -19,6 +19,7 @@
 	import Note from '../../../routes/(app)/timeline/Note.svelte';
 	import ChannelTitle from '../../../routes/(app)/parts/ChannelTitle.svelte';
 	import MediaPicker from '../MediaPicker.svelte';
+	import ContentComponent from '../../../routes/(app)/content/Content.svelte';
 	import CustomEmoji from '../../../routes/(app)/content/CustomEmoji.svelte';
 	import ContentWarning from './ContentWarning.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
@@ -45,6 +46,7 @@
 	export let afterPost: () => Promise<void> = async () => {};
 
 	let content = '';
+	let tags: string[][] = [];
 	let posting = false;
 	let complementStart = -1;
 	let complementEnd = -1;
@@ -63,6 +65,18 @@
 	let onDrag = false;
 
 	$: containsNsec = /nsec1\w{6,}/.test(content);
+
+	$: {
+		const noteComposer = new NoteComposer();
+		noteComposer.emojiTags(content, emojiTags, selectedCustomEmojis).then((emojiTags) => {
+			tags = [
+				...noteComposer.replyTags(content, $replyTo, $channelIdStore, pubkeys),
+				...noteComposer.hashtags(content),
+				...emojiTags,
+				...noteComposer.contentWarningTags(contentWarningReason)
+			];
+		});
+	}
 
 	const dispatch = createEventDispatcher();
 
@@ -534,6 +548,14 @@
 			{/each}
 		</ul>
 	{/if}
+	{#if content !== ''}
+		<hr />
+		<blockquote>
+			<section class="preview">
+				<ContentComponent {content} {tags} />
+			</section>
+		</blockquote>
+	{/if}
 </article>
 
 <style>
@@ -587,6 +609,10 @@
 
 	.media img {
 		max-height: 200px;
+	}
+
+	.preview {
+		margin: 1rem;
 	}
 
 	.options {
