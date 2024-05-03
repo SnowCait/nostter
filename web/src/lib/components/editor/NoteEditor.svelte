@@ -550,7 +550,7 @@
 	{/if}
 	{#if content !== ''}
 		<section class="preview card">
-			<ContentComponent {content} {tags} />
+			<ContentComponent content={Content.replaceNip19(content)} {tags} />
 		</section>
 	{/if}
 </article>
