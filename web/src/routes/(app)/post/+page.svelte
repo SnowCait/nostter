@@ -12,7 +12,9 @@
 	const title = $page.url.searchParams.get('title');
 	const text = $page.url.searchParams.get('text');
 	const url = $page.url.searchParams.get('url');
-	const sharedContent = [title ?? text, url].filter((param) => param !== null).join('\n');
+	const sharedContent = [title ?? text, url]
+		.filter((param) => param !== null && param !== '')
+		.join('\n');
 
 	if (content !== null) {
 		$intentContent = content;
