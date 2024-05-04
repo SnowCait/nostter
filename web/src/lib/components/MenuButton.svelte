@@ -6,6 +6,7 @@
 	import { page } from '$app/stores';
 	import { bookmark, unbookmark, isBookmarked } from '$lib/author/Bookmark';
 	import { copy } from '$lib/Clipboard';
+	import { shareUrl } from '$lib/Share';
 	import { rom } from '../../stores/Author';
 	import { developerMode } from '../../stores/Preference';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
@@ -20,6 +21,8 @@
 	export let showDetails = false;
 
 	$: bookmarked = isBookmarked(event);
+	$: nevent = nip19.neventEncode({ id: event.id });
+	$: url = `${$page.url.origin}/${nevent}`;
 
 	async function onBookmark(note: Event) {
 		console.log('[bookmark]', note, $rom);
@@ -85,16 +88,26 @@
 		</Menu.Item>
 	{/if}
 
-	<Menu.Item icon={IconClipboard} on:click={() => copy(nip19.neventEncode({ id: event.id }))}>
+	<Menu.Item icon={IconClipboard} on:click={() => copy(nevent)}>
 		{$_('actions.copy_id.button')}
 	</Menu.Item>
 
-	<Menu.Item
-		icon={IconLink}
-		on:click={() => copy(`${$page.url.origin}/${nip19.neventEncode({ id: event.id })}`)}
-	>
-		{$_('actions.copy_url.button')}
-	</Menu.Item>
+	{#if navigator.canShare !== undefined}
+		<Menu.Item
+			icon={IconLink}
+			on:click={async () => {
+				if (!(await shareUrl(url))) {
+					await copy(url);
+				}
+			}}
+		>
+			{$_('actions.share.button')}
+		</Menu.Item>
+	{:else}
+		<Menu.Item icon={IconLink} on:click={() => copy(url)}>
+			{$_('actions.copy_url.button')}
+		</Menu.Item>
+	{/if}
 
 	{#if $developerMode}
 		<Divider />

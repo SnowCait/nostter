@@ -148,7 +148,10 @@
 			"button": "ID をコピー"
 		},
 		"copy_url": {
-			"button": "URL をコピー"
+			"button": "リンクをコピー"
+		},
+		"share": {
+			"button": "リンクを共有"
 		},
 		"details": {
 			"button": "詳細"

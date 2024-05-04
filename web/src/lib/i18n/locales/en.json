@@ -149,7 +149,10 @@
 			"button": "Copy ID"
 		},
 		"copy_url": {
-			"button": "Copy URL"
+			"button": "Copy link"
+		},
+		"share": {
+			"button": "Share link"
 		},
 		"details": {
 			"button": "Details"
