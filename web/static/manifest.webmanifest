@@ -25,5 +25,14 @@
 			"protocol": "web+nostr",
 			"url": "/%s"
 		}
-	]
+	],
+	"share_target": {
+		"action": "/post",
+		"method": "GET",
+		"params": {
+			"title": "title",
+			"text": "text",
+			"url": "url"
+		}
+	}
 }

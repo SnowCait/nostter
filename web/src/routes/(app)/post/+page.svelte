@@ -7,8 +7,17 @@
 	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
 
 	const content = $page.url.searchParams.get('content');
+
+	// Web Share Target API
+	const title = $page.url.searchParams.get('title');
+	const text = $page.url.searchParams.get('text');
+	const url = $page.url.searchParams.get('url');
+	const sharedContent = [title ?? text, url].filter((param) => param !== null).join('\n');
+
 	if (content !== null) {
 		$intentContent = content;
+	} else {
+		$intentContent = sharedContent;
 	}
 
 	let editor: NoteEditor | undefined;
