@@ -6,7 +6,7 @@ import { rxNostr } from '$lib/timelines/MainTimeline';
 import { maxFilters } from '$lib/Constants';
 import { filterTags, findReactionToId } from '$lib/EventHelper';
 import type { id } from '$lib/Types';
-import { pubkey } from '../../stores/Author';
+import { pubkey } from '../stores/Author';
 
 export const repostedEventIds = writable(new Set<id>());
 export const reactionedEventIds = writable(new Set<id>());

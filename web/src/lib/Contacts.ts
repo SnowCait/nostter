@@ -2,7 +2,7 @@ import { get } from 'svelte/store';
 import { Kind, type SimplePool } from 'nostr-tools';
 import { Api } from './Api';
 import { filterTags } from './EventHelper';
-import { followees, pubkey } from '../stores/Author';
+import { followees, pubkey } from './stores/Author';
 
 export class Contacts {
 	private readonly api: Api;

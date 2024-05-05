@@ -5,7 +5,7 @@ import { browser } from '$app/environment';
 import { rxNostr } from './timelines/MainTimeline';
 import { WebStorage } from './WebStorage';
 import { Signer } from './Signer';
-import { pubkey } from '../stores/Author';
+import { pubkey } from './stores/Author';
 
 const interestKind = 10015;
 const followQueue: string[] = [];

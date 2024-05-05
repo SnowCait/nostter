@@ -7,8 +7,8 @@
 	import { bookmark, unbookmark, isBookmarked } from '$lib/author/Bookmark';
 	import { copy } from '$lib/Clipboard';
 	import { shareUrl } from '$lib/Share';
-	import { rom } from '../../stores/Author';
-	import { developerMode } from '../../stores/Preference';
+	import { rom } from '$lib/stores/Author';
+	import { developerMode } from '$lib/stores/Preference';
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
 	import IconBookmarkFilled from '@tabler/icons-svelte/dist/svelte/icons/IconBookmarkFilled.svelte';

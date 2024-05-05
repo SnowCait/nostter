@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import { pool } from '../stores/Pool';
+import { pool } from './stores/Pool';
 import { nip19, type Event } from 'nostr-tools';
 
 export class BadgeApi {

@@ -7,7 +7,7 @@ import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
-import { pubkey } from '../../stores/Author';
+import { pubkey } from '../stores/Author';
 
 type DataType = 'bookmark' | 'unbookmark';
 type Data = {

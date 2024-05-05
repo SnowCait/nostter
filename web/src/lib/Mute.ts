@@ -2,10 +2,10 @@ import { get } from 'svelte/store';
 import type { Event, Kind } from 'nostr-tools';
 import { Api } from './Api';
 import { Signer } from './Signer';
-import { muteEventIds, mutePubkeys, muteWords, pubkey, writeRelays } from '../stores/Author';
+import { muteEventIds, mutePubkeys, muteWords, pubkey, writeRelays } from './stores/Author';
 import { filterTags } from './EventHelper';
 import { WebStorage } from './WebStorage';
-import { pool } from '../stores/Pool';
+import { pool } from './stores/Pool';
 
 export class Mute {
 	private readonly authorPubkey = get(pubkey);

@@ -4,7 +4,7 @@
 	import type { Event } from 'nostr-typedef';
 	import { reactionedEventIds, updateReactionedEvents } from '$lib/author/Action';
 	import { preferencesStore } from '$lib/Preferences';
-	import { rom, writeRelays } from '../../stores/Author';
+	import { rom, writeRelays } from '$lib/stores/Author';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import IconHeartFilled from '@tabler/icons-svelte/dist/svelte/icons/IconHeartFilled.svelte';
 	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
@@ -12,7 +12,7 @@
 	import IconStar from '@tabler/icons-svelte/dist/svelte/icons/IconStar.svelte';
 	import IconStarFilled from '@tabler/icons-svelte/dist/svelte/icons/IconStarFilled.svelte';
 	import { Signer } from '$lib/Signer';
-	import { pool } from '../../stores/Pool';
+	import { pool } from '$lib/stores/Pool';
 
 	export let event: Event;
 	export let iconSize: number;

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { WebStorage } from '$lib/WebStorage';
-	import { loginType } from '../../stores/Author';
+	import { loginType } from '$lib/stores/Author';
 
 	let saved = false;
 	let showNsec = false;

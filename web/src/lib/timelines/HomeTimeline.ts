@@ -20,11 +20,11 @@ import { chunk } from '$lib/Array';
 import { filterLimitItems, parameterizedReplaceableKinds, replaceableKinds } from '$lib/Constants';
 import { Mute } from '$lib/Mute';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
-import { pubkey, author, updateRelays, followees } from '../../stores/Author';
-import { lastReadAt, notifiedEventItems, unreadEventItems } from '../../stores/Notifications';
-import { events, eventsPool } from '../../stores/Events';
-import { saveLastNote } from '../../stores/LastNotes';
-import { autoRefresh } from '../../stores/Preference';
+import { pubkey, author, updateRelays, followees } from '../stores/Author';
+import { lastReadAt, notifiedEventItems, unreadEventItems } from '../stores/Notifications';
+import { events, eventsPool } from '../stores/Events';
+import { saveLastNote } from '../stores/LastNotes';
+import { autoRefresh } from '../stores/Preference';
 
 export let hasSubscribed = false;
 

@@ -8,10 +8,10 @@
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { appName } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
-	import { events, eventsPool } from '../../../stores/Events';
-	import { pool } from '../../../stores/Pool';
-	import { pubkey, followees, rom } from '../../../stores/Author';
-	import { saveLastNote } from '../../../stores/LastNotes';
+	import { events, eventsPool } from '$lib/stores/Events';
+	import { pool } from '$lib/stores/Pool';
+	import { pubkey, followees, rom } from '$lib/stores/Author';
+	import { saveLastNote } from '$lib/stores/LastNotes';
 	import { Signer } from '$lib/Signer';
 	import { minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';

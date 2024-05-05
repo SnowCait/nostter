@@ -3,7 +3,7 @@
 	import { follow, unfollow } from '$lib/author/Follow';
 	import { metadataStore } from '$lib/cache/Events';
 	import { alternativeName } from '$lib/Items';
-	import { followees } from '../../stores/Author';
+	import { followees } from '$lib/stores/Author';
 
 	export let pubkey: string;
 

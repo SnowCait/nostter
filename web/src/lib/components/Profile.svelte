@@ -7,8 +7,8 @@
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
 	import { robohash, type Metadata, alternativeName } from '$lib/Items';
-	import { pubkey as authorPubkey, rom } from '../../stores/Author';
-	import { developerMode } from '../../stores/Preference';
+	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
+	import { developerMode } from '$lib/stores/Preference';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
 	import Badges from './Badges.svelte';

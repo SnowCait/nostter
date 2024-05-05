@@ -6,14 +6,8 @@
 	import { getMediaUploader } from '$lib/media/Media';
 	import { appName } from '$lib/Constants';
 	import { Api } from '$lib/Api';
-	import {
-		pubkey,
-		author,
-		authorProfile,
-		metadataEvent,
-		writeRelays
-	} from '../../../stores/Author';
-	import { pool } from '../../../stores/Pool';
+	import { pubkey, author, authorProfile, metadataEvent, writeRelays } from '$lib/stores/Author';
+	import { pool } from '$lib/stores/Pool';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
 
 	async function picturePicked({ detail: files }: { detail: FileList }): Promise<void> {

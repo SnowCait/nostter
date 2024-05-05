@@ -5,7 +5,7 @@ import type { Event } from 'nostr-typedef';
 import { rxNostr } from './timelines/MainTimeline';
 import { filterTags, findIdentifier } from './EventHelper';
 import { parsePrivateTags } from './Encryption';
-import { pubkey } from '../stores/Author';
+import { pubkey } from './stores/Author';
 
 export async function fetchListEvent(
 	kind: number,

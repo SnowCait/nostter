@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 	import { WebStorage } from '$lib/WebStorage';
-	import { enablePreview } from '../../../stores/Preference';
+	import { enablePreview } from '$lib/stores/Preference';
 
 	if (browser) {
 		enablePreview.subscribe((value) => {

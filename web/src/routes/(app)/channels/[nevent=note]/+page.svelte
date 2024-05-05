@@ -20,7 +20,7 @@
 	import { appName, timeout } from '$lib/Constants';
 	import type { ChannelMetadata } from '$lib/Types';
 	import { referencesReqEmit } from '$lib/timelines/MainTimeline';
-	import { author, readRelays } from '../../../../stores/Author';
+	import { author, readRelays } from '$lib/stores/Author';
 	import Content from '../../content/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
 	import { EventItem } from '$lib/Items';

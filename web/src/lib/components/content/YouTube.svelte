@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ObserverRender } from '@svelteuidev/core';
-	import { enablePreview } from '../../../stores/Preference';
+	import { enablePreview } from '$lib/stores/Preference';
 	import ExternalLink from '../ExternalLink.svelte';
 
 	export let link: URL;

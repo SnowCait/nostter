@@ -7,9 +7,9 @@
 	import { Api } from '$lib/Api';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { pubkey as authorPubkey, readRelays, writeRelays } from '../../../../stores/Author';
-	import { developerMode } from '../../../../stores/Preference';
-	import { pool } from '../../../../stores/Pool';
+	import { pubkey as authorPubkey, readRelays, writeRelays } from '$lib/stores/Author';
+	import { developerMode } from '$lib/stores/Preference';
+	import { pool } from '$lib/stores/Pool';
 	import { Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
 	import { filterRelayTags, parseRelayJson } from '$lib/EventHelper';

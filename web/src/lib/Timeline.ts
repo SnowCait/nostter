@@ -1,12 +1,12 @@
 import { Kind, SimplePool } from 'nostr-tools';
-import { readRelays, updateRelays } from '../stores/Author';
-import { pool } from '../stores/Pool';
+import { readRelays, updateRelays } from './stores/Author';
+import { pool } from './stores/Pool';
 import { get } from 'svelte/store';
 import { EventItem } from './Items';
 import type { Filter, Event as NostrEvent } from 'nostr-tools';
 import type { Event } from '../routes/types';
-import { saveMetadataEvent } from '../stores/UserEvents';
-import { userTimelineEvents } from '../stores/Events';
+import { saveMetadataEvent } from './stores/UserEvents';
+import { userTimelineEvents } from './stores/Events';
 import { chunk } from './Array';
 import { filterLimitItems } from './Constants';
 import { referencesReqEmit } from './timelines/MainTimeline';

@@ -12,12 +12,12 @@
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
 	import { nip19 } from 'nostr-tools';
-	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '../../stores/Notifications';
-	import { followees, pubkey, rom } from '../../stores/Author';
+	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '$lib/stores/Notifications';
+	import { followees, pubkey, rom } from '$lib/stores/Author';
 	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { openNoteDialog } from '../../stores/NoteDialog';
+	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import NostterLogo from './parts/NostterLogo.svelte';
 	import NostterLogoIcon from './parts/NostterLogoIcon.svelte';
 

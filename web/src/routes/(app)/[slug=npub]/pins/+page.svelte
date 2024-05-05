@@ -11,7 +11,7 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import { EventItem } from '$lib/Items';
 	import { filterTags } from '$lib/EventHelper';
-	import { pubkey as authorPubkey, readRelays } from '../../../../stores/Author';
+	import { pubkey as authorPubkey, readRelays } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
 
 	export let data: LayoutData;

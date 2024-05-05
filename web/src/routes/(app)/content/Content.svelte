@@ -9,7 +9,7 @@
 	import Text from './Text.svelte';
 	import CustomEmoji from './CustomEmoji.svelte';
 	import Ogp from './Ogp.svelte';
-	import { enablePreview } from '../../../stores/Preference';
+	import { enablePreview } from '$lib/stores/Preference';
 
 	export let content: string;
 	export let tags: string[][];

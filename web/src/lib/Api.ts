@@ -2,8 +2,8 @@ import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-too
 import { get } from 'svelte/store';
 import { authorActionReqEmit } from './author/Action';
 import type { UserEvent } from '../routes/types';
-import { events as timelineEvents } from '../stores/Events';
-import { saveMetadataEvent, userEvents } from '../stores/UserEvents';
+import { events as timelineEvents } from './stores/Events';
+import { saveMetadataEvent, userEvents } from './stores/UserEvents';
 import { EventItem } from './Items';
 import { Signer } from './Signer';
 import { channelMetadataEventsStore, eventItemStore } from './cache/Events';

@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { Mute } from '$lib/Mute';
 	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
-	import { muteWords } from '../../../stores/Author';
+	import { muteWords } from '$lib/stores/Author';
 
 	let word = '';
 

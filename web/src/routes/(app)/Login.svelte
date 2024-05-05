@@ -4,10 +4,10 @@
 	import type { Nip07 } from 'nostr-typedef';
 	import { generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
 	import { Login } from '$lib/Login';
-	import { loginType } from '../../stores/Author';
+	import { loginType } from '$lib/stores/Author';
 	import { page } from '$app/stores';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { authorProfile } from '../../stores/Author';
+	import { authorProfile } from '$lib/stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 	import NostterLogo from './parts/NostterLogo.svelte';

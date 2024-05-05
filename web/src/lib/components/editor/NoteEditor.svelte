@@ -13,8 +13,8 @@
 	import { cachedEvents, channelMetadataEventsStore, metadataStore } from '$lib/cache/Events';
 	import { EventItem, Metadata } from '$lib/Items';
 	import { RelayList } from '$lib/RelayList';
-	import { openNoteDialog, replyTo, quotes, intentContent } from '../../../stores/NoteDialog';
-	import { author, pubkey, rom } from '../../../stores/Author';
+	import { openNoteDialog, replyTo, quotes, intentContent } from '$lib/stores/NoteDialog';
+	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { customEmojiTags } from '$lib/author/CustomEmojis';
 	import Note from '../../../routes/(app)/timeline/Note.svelte';
 	import ChannelTitle from '../../../routes/(app)/parts/ChannelTitle.svelte';

@@ -5,9 +5,9 @@
 	import type { Event } from 'nostr-typedef';
 	import { repostedEventIds, updateRepostedEvents } from '$lib/author/Action';
 	import { Signer } from '$lib/Signer';
-	import { rom, writeRelays } from '../../stores/Author';
-	import { pool } from '../../stores/Pool';
-	import { openNoteDialog, quotes } from '../../stores/NoteDialog';
+	import { rom, writeRelays } from '$lib/stores/Author';
+	import { pool } from '$lib/stores/Pool';
+	import { openNoteDialog, quotes } from '$lib/stores/NoteDialog';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
 
