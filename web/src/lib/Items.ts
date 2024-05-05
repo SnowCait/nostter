@@ -120,7 +120,7 @@ export class Metadata implements Item {
 
 	get picture(): string {
 		return this.content?.picture !== undefined && this.content.picture !== ''
-			? this.content.picture
+			? this.getRedirectedUrlIfNostrBuild(this.content.picture)
 			: robohash(this.event.pubkey);
 	}
 
@@ -153,6 +153,17 @@ export class Metadata implements Item {
 			this._zapUrl = null;
 		}
 		return this._zapUrl;
+	}
+
+	// Workaround for iOS Safari
+	private getRedirectedUrlIfNostrBuild(url: string): string {
+		if (url.startsWith('https://nostr.build/i/')) {
+			return url.startsWith('https://nostr.build/i/p/')
+				? url.replace('https://nostr.build/i/p/', 'https://pfp.nostr.build/')
+				: url.replace('https://nostr.build/i/', 'https://image.nostr.build/');
+		} else {
+			return url;
+		}
 	}
 }
 
