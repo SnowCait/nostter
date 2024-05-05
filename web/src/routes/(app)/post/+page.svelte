@@ -13,7 +13,7 @@
 	const text = $page.url.searchParams.get('text');
 	const url = $page.url.searchParams.get('url');
 	const sharedContent = [title ?? text, url]
-		.filter((param) => param !== null && param !== '')
+		.filter((param) => param !== null && param.trim() !== '')
 		.join('\n');
 
 	if (content !== null) {
