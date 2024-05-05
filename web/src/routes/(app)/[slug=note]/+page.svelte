@@ -10,8 +10,8 @@
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { LayoutData } from './$types';
-	import { author, readRelays } from '../../../stores/Author';
-	import { pool } from '../../../stores/Pool';
+	import { author, readRelays } from '$lib/stores/Author';
+	import { pool } from '$lib/stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';

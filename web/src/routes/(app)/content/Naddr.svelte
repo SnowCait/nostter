@@ -3,8 +3,8 @@
 	import { nip19, type Event, Kind } from 'nostr-tools';
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
 	import { Api } from '$lib/Api';
-	import { readRelays } from '../../../stores/Author';
-	import { pool } from '../../../stores/Pool';
+	import { readRelays } from '$lib/stores/Author';
+	import { pool } from '$lib/stores/Pool';
 	import LongFormContent from './LongFormContent.svelte';
 	import List from '$lib/components/items/List.svelte';
 

@@ -2,10 +2,10 @@
 	import { Api } from '$lib/Api';
 	import { nip19 } from 'nostr-tools';
 	import { onMount } from 'svelte';
-	import { events } from '../../../stores/Events';
+	import { events } from '$lib/stores/Events';
 	import type { Event } from '../../types';
-	import { pool } from '../../../stores/Pool';
-	import { readRelays } from '../../../stores/Author';
+	import { pool } from '$lib/stores/Pool';
+	import { readRelays } from '$lib/stores/Author';
 	import Text from './Text.svelte';
 	import Nip94 from '../Nip94.svelte';
 	import Naddr from './Naddr.svelte';

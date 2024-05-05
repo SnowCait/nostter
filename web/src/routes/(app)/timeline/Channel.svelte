@@ -5,7 +5,7 @@
 	import type { Item } from '$lib/Items';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
-	import { intentContent, openNoteDialog } from '../../../stores/NoteDialog';
+	import { intentContent, openNoteDialog } from '$lib/stores/NoteDialog';
 	import { Channel } from '$lib/Channel';
 	import { findChannelId } from '$lib/EventHelper';
 

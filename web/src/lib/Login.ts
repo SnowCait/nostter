@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import { author, authorProfile, loginType, pubkey, rom } from '../stores/Author';
+import { author, authorProfile, loginType, pubkey, rom } from './stores/Author';
 import { Signer } from './Signer';
 import { Author } from './Author';
 import { getPublicKey, nip19 } from 'nostr-tools';

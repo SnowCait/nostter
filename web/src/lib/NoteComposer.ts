@@ -5,9 +5,9 @@ import { Content } from './Content';
 import type { ProfilePointer } from 'nostr-tools/lib/nip19';
 import type { User } from '../routes/types';
 import { Api } from './Api';
-import { pool } from '../stores/Pool';
+import { pool } from './stores/Pool';
 import { get } from 'svelte/store';
-import { readRelays } from '../stores/Author';
+import { readRelays } from './stores/Author';
 import type { EventItem } from './Items';
 import { referTags } from './EventHelper';
 

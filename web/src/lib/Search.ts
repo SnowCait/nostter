@@ -3,9 +3,9 @@ import { get } from 'svelte/store';
 import { authorActionReqEmit } from './author/Action';
 import { hashtagsRegexp, reverseChronological, searchRelays } from './Constants';
 import { EventItem } from './Items';
-import { pool } from '../stores/Pool';
+import { pool } from './stores/Pool';
 import { Api } from './Api';
-import { pubkey, readRelays } from '../stores/Author';
+import { pubkey, readRelays } from './stores/Author';
 import { referencesReqEmit } from './timelines/MainTimeline';
 
 export class Search {

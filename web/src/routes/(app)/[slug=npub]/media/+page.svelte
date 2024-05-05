@@ -8,7 +8,7 @@
 	import { EventItem } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import type { LayoutData } from '../$types';
-	import { pubkey as authorPubkey } from '../../../../stores/Author';
+	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 

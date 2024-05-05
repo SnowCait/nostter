@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 	import { WebStorage } from '$lib/WebStorage';
-	import { developerMode } from '../../../stores/Preference';
+	import { developerMode } from '$lib/stores/Preference';
 
 	if (browser) {
 		developerMode.subscribe((value) => {

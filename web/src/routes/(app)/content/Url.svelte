@@ -10,7 +10,7 @@
 	import { ObserverRender } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
 	import { newUrl } from '$lib/Helper';
-	import { enablePreview } from '../../../stores/Preference';
+	import { enablePreview } from '$lib/stores/Preference';
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import YouTube from '$lib/components/content/YouTube.svelte';

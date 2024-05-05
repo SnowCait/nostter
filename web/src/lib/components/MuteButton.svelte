@@ -7,7 +7,7 @@
 		mutePubkeys,
 		muteEventIds,
 		muteWords
-	} from '../../stores/Author';
+	} from '$lib/stores/Author';
 	import { Mute } from '$lib/Mute';
 
 	export let tagName: 'p' | 'e' | 'word';

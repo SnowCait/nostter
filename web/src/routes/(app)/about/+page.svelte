@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { author, rom } from '../../../stores/Author';
+	import { author, rom } from '$lib/stores/Author';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 </script>
 

@@ -5,8 +5,8 @@
 	import { lastNoteReqEmit } from '$lib/LastNotes';
 	import { hasSubscribed, hometimelineReqEmit } from '$lib/timelines/HomeTimeline';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
-	import { followees } from '../../../stores/Author';
-	import { lastNotesMap } from '../../../stores/LastNotes';
+	import { followees } from '$lib/stores/Author';
+	import { lastNotesMap } from '$lib/stores/LastNotes';
 	import TimelineView from '../TimelineView.svelte';
 
 	if ($followees.length > 0) {

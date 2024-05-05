@@ -5,7 +5,7 @@
 	import { replaceableEventsStore, metadataStore } from '$lib/cache/Events';
 	import { filterTags } from '$lib/EventHelper';
 	import { alternativeName, type Item } from '$lib/Items';
-	import { pubkey, rom } from '../../../stores/Author';
+	import { pubkey, rom } from '$lib/stores/Author';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconAward from '@tabler/icons-svelte/dist/svelte/icons/IconAward.svelte';
 	import BadgeDefinition from './BadgeDefinition.svelte';

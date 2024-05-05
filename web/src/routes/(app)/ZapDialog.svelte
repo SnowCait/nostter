@@ -2,7 +2,7 @@
 	import { nip57 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import QRCode from 'qrcode';
-	import { writeRelays } from '../../stores/Author';
+	import { writeRelays } from '$lib/stores/Author';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { WebStorage } from '$lib/WebStorage';
 	import { Signer } from '$lib/Signer';

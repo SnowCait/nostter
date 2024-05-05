@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
-	import { userEvents } from '../../../stores/UserEvents';
+	import { userEvents } from '$lib/stores/UserEvents';
 	import Note from '../timeline/Note.svelte';
 	import Hashtag from './Hashtag.svelte';
 	import Text from './Text.svelte';

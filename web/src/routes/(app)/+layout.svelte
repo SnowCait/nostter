@@ -6,9 +6,9 @@
 	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
-	import { openNoteDialog } from '../../stores/NoteDialog';
-	import { pubkey } from '../../stores/Author';
-	import { lastReadAt, lastNotifiedAt } from '../../stores/Notifications';
+	import { openNoteDialog } from '$lib/stores/NoteDialog';
+	import { pubkey } from '$lib/stores/Author';
+	import { lastReadAt, lastNotifiedAt } from '$lib/stores/Notifications';
 	import { onMount } from 'svelte';
 	import Gdpr from './parts/Gdpr.svelte';
 

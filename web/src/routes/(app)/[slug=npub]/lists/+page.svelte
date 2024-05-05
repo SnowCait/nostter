@@ -12,7 +12,7 @@
 	import { findIdentifier } from '$lib/EventHelper';
 	import { getListTitle } from '$lib/List';
 	import type { LayoutData } from '../$types';
-	import { pubkey } from '../../../../stores/Author';
+	import { pubkey } from '$lib/stores/Author';
 	import Loading from '$lib/components/Loading.svelte';
 
 	export let data: LayoutData;

@@ -1,5 +1,5 @@
 import { writable, type Writable } from 'svelte/store';
-import type { User, UserEvent } from '../routes/types';
+import type { User, UserEvent } from '../../routes/types';
 import { nip57, type Event } from 'nostr-tools';
 
 console.log('[user events store]');

@@ -7,13 +7,13 @@
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { pubkey as authorPubkey, readRelays } from '../../../stores/Author';
+	import { pubkey as authorPubkey, readRelays } from '$lib/stores/Author';
 	import { Timeline } from '$lib/Timeline';
 	import { EventItem } from '$lib/Items';
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import { replaceableEvents, replaceableEventsReqEmit } from '$lib/Profile';
 	import type { LayoutData } from './$types';
-	import { developerMode } from '../../../stores/Preference';
+	import { developerMode } from '$lib/stores/Preference';
 	import Profile from '$lib/components/Profile.svelte';
 	import TimelineView from '../TimelineView.svelte';
 

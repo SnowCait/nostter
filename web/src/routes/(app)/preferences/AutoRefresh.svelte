@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { autoRefresh } from '../../../stores/Preference';
+	import { autoRefresh } from '$lib/stores/Preference';
 
 	let needRefresh = false;
 </script>

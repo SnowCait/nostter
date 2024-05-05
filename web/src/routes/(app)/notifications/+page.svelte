@@ -11,9 +11,9 @@
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
-	import { notifiedEventItems, unreadEventItems } from '../../../stores/Notifications';
-	import { pubkey, author, writeRelays } from '../../../stores/Author';
-	import { pool } from '../../../stores/Pool';
+	import { notifiedEventItems, unreadEventItems } from '$lib/stores/Notifications';
+	import { pubkey, author, writeRelays } from '$lib/stores/Author';
+	import { pool } from '$lib/stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 
 	afterNavigate(async () => {

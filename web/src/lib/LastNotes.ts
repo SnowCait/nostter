@@ -4,7 +4,7 @@ import { bufferTime } from 'rxjs';
 import { rxNostr } from './timelines/MainTimeline';
 import { maxFilters } from './Constants';
 import { sleep } from './Helper';
-import { lastNotesMap, saveLastNote } from '../stores/LastNotes';
+import { lastNotesMap, saveLastNote } from './stores/LastNotes';
 
 const lastNoteReq = createRxBackwardReq();
 rxNostr

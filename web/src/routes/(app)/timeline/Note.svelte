@@ -5,10 +5,10 @@
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
-	import { openNoteDialog, replyTo } from '../../../stores/NoteDialog';
-	import { readRelays, writeRelays, pubkey, author } from '../../../stores/Author';
-	import { pool } from '../../../stores/Pool';
-	import { rom } from '../../../stores/Author';
+	import { openNoteDialog, replyTo } from '$lib/stores/NoteDialog';
+	import { readRelays, writeRelays, pubkey, author } from '$lib/stores/Author';
+	import { pool } from '$lib/stores/Pool';
+	import { rom } from '$lib/stores/Author';
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
 	import ZapDialog from '../ZapDialog.svelte';

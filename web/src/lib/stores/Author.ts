@@ -1,6 +1,6 @@
 import { get, writable, type Writable } from 'svelte/store';
 import escapeStringRegexp from 'escape-string-regexp';
-import type { User } from '../routes/types';
+import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
 import type { Author } from '$lib/Author';

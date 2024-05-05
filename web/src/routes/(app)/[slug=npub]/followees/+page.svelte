@@ -5,7 +5,7 @@
 	import { browser } from '$app/environment';
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
-	import { author } from '../../../../stores/Author';
+	import { author } from '$lib/stores/Author';
 	import { appName } from '$lib/Constants';
 	import type { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';

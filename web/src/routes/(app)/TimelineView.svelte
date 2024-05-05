@@ -7,7 +7,7 @@
 	import type { Item } from '$lib/Items';
 	import { channelIdStore } from '$lib/Channel';
 	import { findChannelId } from '$lib/EventHelper';
-	import { author, isMuteEvent } from '../../stores/Author';
+	import { author, isMuteEvent } from '$lib/stores/Author';
 	import Loading from '$lib/components/Loading.svelte';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import EventComponent from './timeline/EventComponent.svelte';

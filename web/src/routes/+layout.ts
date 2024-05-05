@@ -7,7 +7,7 @@ import '$lib/i18n';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { defaultRelays, localizedRelays } from '$lib/Constants';
 import type { LayoutLoad } from './$types';
-import { readRelays, writeRelays } from '../stores/Author';
+import { readRelays, writeRelays } from '$lib/stores/Author';
 
 export const load: LayoutLoad = async () => {
 	console.debug('[layout load]');

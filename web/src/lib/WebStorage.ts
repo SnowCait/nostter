@@ -1,7 +1,7 @@
 import type { Event } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { findIdentifier } from './EventHelper';
-import { pubkey } from '../stores/Author';
+import { pubkey } from './stores/Author';
 export class WebStorage {
 	public constructor(private readonly storage: Storage) {}
 

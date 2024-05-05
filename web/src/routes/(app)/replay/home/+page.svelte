@@ -22,7 +22,7 @@
 	import { EventItem } from '$lib/Items';
 	import { Timeline } from '$lib/Timeline';
 	import type { PageData } from './$types';
-	import { followees } from '../../../../stores/Author';
+	import { followees } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
 
 	export let data: PageData;

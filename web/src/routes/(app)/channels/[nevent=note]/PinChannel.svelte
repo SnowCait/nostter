@@ -5,7 +5,7 @@
 	import type { Kind, EventTemplate } from 'nostr-tools';
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { Signer } from '$lib/Signer';
-	import { pubkey, writeRelays } from '../../../../stores/Author';
+	import { pubkey, writeRelays } from '$lib/stores/Author';
 	import IconPin from '@tabler/icons-svelte/dist/svelte/icons/IconPin.svelte';
 	import IconPinnedFilled from '@tabler/icons-svelte/dist/svelte/icons/IconPinnedFilled.svelte';
 
