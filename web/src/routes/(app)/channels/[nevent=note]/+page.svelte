@@ -157,7 +157,7 @@
 			items.length > 0
 				? items[items.length - 1].event.created_at
 				: Math.floor(Date.now() / 1000);
-		let seconds = 24 * 60 * 60;
+		let seconds = 1 * 60 * 60;
 
 		while (items.length - firstLength < minTimelineLength && count < 10) {
 			const since = until - seconds;
