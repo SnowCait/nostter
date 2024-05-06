@@ -135,7 +135,6 @@
 <style>
 	.header {
 		/* min-width: 600px */
-		top: 2.25rem;
 		width: 100%;
 		display: flex;
 		flex-direction: column;
