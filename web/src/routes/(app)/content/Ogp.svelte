@@ -33,6 +33,7 @@
 							response.status,
 							...response.headers
 						);
+						cache.set(url.href, undefined);
 						resolve(false);
 						return;
 					}
