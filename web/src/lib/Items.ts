@@ -99,9 +99,9 @@ export class Metadata implements Item {
 	}
 
 	get name(): string {
-		if (this.content?.name !== undefined && this.content.name !== '') {
+		if (this.content?.name) {
 			return this.content.name;
-		} else if (this.content?.display_name !== undefined && this.content.display_name !== '') {
+		} else if (this.content?.display_name) {
 			return this.content.display_name;
 		} else {
 			return alternativeName(this.event.pubkey);
@@ -109,9 +109,9 @@ export class Metadata implements Item {
 	}
 
 	get displayName(): string {
-		if (this.content?.display_name !== undefined && this.content.display_name !== '') {
+		if (this.content?.display_name) {
 			return this.content.display_name;
-		} else if (this.content?.name !== undefined && this.content.name !== '') {
+		} else if (this.content?.name) {
 			return this.content.name;
 		} else {
 			return alternativeName(this.event.pubkey);
@@ -119,7 +119,7 @@ export class Metadata implements Item {
 	}
 
 	get picture(): string {
-		return this.content?.picture !== undefined && this.content.picture !== ''
+		return this.content?.picture
 			? this.getRedirectedUrlIfNostrBuild(this.content.picture)
 			: robohash(this.event.pubkey);
 	}
