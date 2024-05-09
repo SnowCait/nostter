@@ -2,7 +2,7 @@
 	import type { Event } from 'nostr-typedef';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
-	import ZapDialog from '../../routes/(app)/ZapDialog.svelte';
+	import ZapDialog from './ZapDialog.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 
 	export let pubkey: string;

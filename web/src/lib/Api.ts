@@ -1,7 +1,6 @@
 import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { authorActionReqEmit } from './author/Action';
-import type { UserEvent } from '../routes/types';
 import { events as timelineEvents } from './stores/Events';
 import { saveMetadataEvent, userEvents } from './stores/UserEvents';
 import { EventItem } from './Items';
@@ -24,67 +23,6 @@ export class Api {
 		events.sort(chronological); // Latest event is effective
 		console.debug('[relay events all]', events);
 		return new Map<Kind, Event>(events.map((e) => [e.kind, e]));
-	}
-
-	async fetchUserEvent(pubkey: string): Promise<UserEvent | undefined> {
-		// Load cache
-		const cachedUserEvents = get(userEvents);
-		let userEvent = cachedUserEvents.get(pubkey);
-		if (userEvent !== undefined) {
-			return userEvent;
-		}
-
-		// Fetch metadata
-		const event = await this.fetchEvent([
-			{
-				kinds: [Kind.Metadata],
-				authors: [pubkey]
-			}
-		]);
-
-		if (event === undefined) {
-			console.log('[pubkey not found]', pubkey, nip19.npubEncode(pubkey));
-			return undefined;
-		}
-
-		// Save cache
-		userEvent = await saveMetadataEvent(event);
-
-		return userEvent;
-	}
-
-	async fetchUserEventsMap(pubkeys: string[]): Promise<Map<string, UserEvent>> {
-		const eventsMap = new Map<string, UserEvent>();
-
-		if (pubkeys.length === 0) {
-			return eventsMap;
-		}
-
-		const $userEvents = get(userEvents);
-		for (const pubkey of pubkeys) {
-			const userEvent = $userEvents.get(pubkey);
-			if (userEvent !== undefined) {
-				eventsMap.set(pubkey, userEvent);
-			}
-		}
-
-		if (pubkeys.length === eventsMap.size) {
-			return eventsMap;
-		}
-
-		const events = await this.fetchMetadataEventsMap(
-			pubkeys.filter((pubkey) => !eventsMap.has(pubkey))
-		);
-
-		for (const [, event] of events) {
-			const cache = eventsMap.get(event.pubkey);
-			if (cache === undefined || cache.created_at < event.created_at) {
-				const userEvent = await saveMetadataEvent(event);
-				eventsMap.set(event.pubkey, userEvent);
-			}
-		}
-
-		return eventsMap;
 	}
 
 	async fetchMetadataEventsMap(pubkeys: string[]): Promise<Map<string, Event>> {
@@ -181,16 +119,6 @@ export class Api {
 		return events.at(0);
 	}
 
-	async fetchBookmarkEvent(pubkey: string): Promise<Event | undefined> {
-		return await this.fetchEvent([
-			{
-				authors: [pubkey],
-				kinds: [30001],
-				'#d': ['bookmark']
-			}
-		]);
-	}
-
 	async fetchEvents(filters: Filter[]): Promise<Event[]> {
 		return this.pool.list(this.relays, filters);
 	}
@@ -202,18 +130,6 @@ export class Api {
 				event?.tags.filter(([tagName]) => tagName === 'p').map(([, pubkey]) => pubkey) ?? []
 			)
 		);
-	}
-
-	async fetchFollowers(pubkey: string): Promise<string[]> {
-		const events = await this.pool.list(this.relays, [
-			{
-				kinds: [3],
-				'#p': [pubkey],
-				limit: 1000
-			}
-		]);
-		console.log('[followed contact list events]', events);
-		return Array.from(new Set(events.map((x) => x.pubkey)));
 	}
 
 	/**

@@ -10,7 +10,7 @@
 	import { author, isMuteEvent } from '$lib/stores/Author';
 	import Loading from '$lib/components/Loading.svelte';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
-	import EventComponent from './timeline/EventComponent.svelte';
+	import EventComponent from '$lib/components/items/EventComponent.svelte';
 
 	export let items: Item[] = [];
 	export let readonly = false;

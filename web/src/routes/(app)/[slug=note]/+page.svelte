@@ -21,14 +21,14 @@
 	import { appName, chronologicalItem } from '$lib/Constants';
 	import { tick } from 'svelte';
 	import MuteButton from '$lib/components/MuteButton.svelte';
-	import CustomEmoji from '../content/CustomEmoji.svelte';
+	import CustomEmoji from '$lib/components/content/CustomEmoji.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import DateLink from '$lib/components/DateLink.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
-	import EventComponent from '../timeline/EventComponent.svelte';
+	import EventComponent from '$lib/components/items/EventComponent.svelte';
 
 	export let data: LayoutData;
 

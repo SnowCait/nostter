@@ -2,13 +2,13 @@
 	import { ObserverRender } from '@svelteuidev/core';
 	import { Content } from '$lib/Content';
 	import { newUrl } from '$lib/Helper';
-	import ReferenceNip27 from './ReferenceNip27.svelte';
-	import Reference from './Reference.svelte';
-	import Hashtag from './Hashtag.svelte';
-	import Url from './Url.svelte';
-	import Text from './Text.svelte';
-	import CustomEmoji from './CustomEmoji.svelte';
-	import Ogp from './Ogp.svelte';
+	import ReferenceNip27 from './content/ReferenceNip27.svelte';
+	import Reference from './content/Reference.svelte';
+	import Hashtag from './content/Hashtag.svelte';
+	import Url from './content/Url.svelte';
+	import Text from './content/Text.svelte';
+	import CustomEmoji from './content/CustomEmoji.svelte';
+	import Ogp from './content/Ogp.svelte';
 	import { enablePreview } from '$lib/stores/Preference';
 
 	export let content: string;

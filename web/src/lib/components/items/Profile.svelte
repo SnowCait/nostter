@@ -3,7 +3,7 @@
 	import FollowButton from '$lib/components/FollowButton.svelte';
 	import { rom } from '$lib/stores/Author';
 	import { lastNotesMap } from '$lib/stores/LastNotes';
-	import Content from '../content/Content.svelte';
+	import Content from '$lib/components/Content.svelte';
 	import type { Metadata } from '$lib/Items';
 
 	export let metadata: Metadata;

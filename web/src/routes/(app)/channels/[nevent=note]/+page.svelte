@@ -21,12 +21,12 @@
 	import type { ChannelMetadata } from '$lib/Types';
 	import { referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { author, readRelays } from '$lib/stores/Author';
-	import Content from '../../content/Content.svelte';
+	import Content from '$lib/components/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
 	import { EventItem } from '$lib/Items';
 	import { minTimelineLength } from '$lib/Constants';
 	import PinChannel from './PinChannel.svelte';
-	import ChannelTitle from '../../parts/ChannelTitle.svelte';
+	import ChannelTitle from '$lib/components/ChannelTitle.svelte';
 	import MuteButton from '$lib/components/MuteButton.svelte';
 
 	let slug = $page.params.nevent;

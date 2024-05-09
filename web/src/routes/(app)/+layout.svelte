@@ -10,7 +10,7 @@
 	import { pubkey } from '$lib/stores/Author';
 	import { lastReadAt, lastNotifiedAt } from '$lib/stores/Notifications';
 	import { onMount } from 'svelte';
-	import Gdpr from './parts/Gdpr.svelte';
+	import Gdpr from '$lib/components/Gdpr.svelte';
 
 	const konamiCode = [
 		'ArrowUp',

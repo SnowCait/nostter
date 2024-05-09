@@ -18,7 +18,7 @@
 	import NostrAddress from './NostrAddress.svelte';
 	import UserStatus from './UserStatus.svelte';
 	import ReplaceableEventsJson from './ReplaceableEventsJson.svelte';
-	import Content from '../../routes/(app)/content/Content.svelte';
+	import Content from './Content.svelte';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 
 	export let slug: string;

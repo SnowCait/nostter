@@ -16,11 +16,11 @@
 	import { openNoteDialog, replyTo, quotes, intentContent } from '$lib/stores/NoteDialog';
 	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { customEmojiTags } from '$lib/author/CustomEmojis';
-	import Note from '../../../routes/(app)/timeline/Note.svelte';
-	import ChannelTitle from '../../../routes/(app)/parts/ChannelTitle.svelte';
+	import Note from '../items/Note.svelte';
+	import ChannelTitle from '../ChannelTitle.svelte';
 	import MediaPicker from '../MediaPicker.svelte';
-	import ContentComponent from '../../../routes/(app)/content/Content.svelte';
-	import CustomEmoji from '../../../routes/(app)/content/CustomEmoji.svelte';
+	import ContentComponent from '../Content.svelte';
+	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import ContentWarning from './ContentWarning.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';

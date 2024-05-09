@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Item } from '$lib/Items';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
-	import Content from '../content/Content.svelte';
+	import Content from '$lib/components/Content.svelte';
 	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
 	import IconMusic from '@tabler/icons-svelte/dist/svelte/icons/IconMusic.svelte';
 	import IconQuestionMark from '@tabler/icons-svelte/dist/svelte/icons/IconQuestionMark.svelte';

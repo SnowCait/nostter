@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { Api } from '$lib/Api';
 	import { nip19 } from 'nostr-tools';
+	import type { Event } from 'nostr-typedef';
 	import { onMount } from 'svelte';
 	import { events } from '$lib/stores/Events';
-	import type { Event } from '../../types';
 	import { pool } from '$lib/stores/Pool';
 	import { readRelays } from '$lib/stores/Author';
 	import Text from './Text.svelte';
 	import Nip94 from '../Nip94.svelte';
 	import Naddr from './Naddr.svelte';
-	import EventComponent from '../timeline/EventComponent.svelte';
+	import EventComponent from '../items/EventComponent.svelte';
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
 	import { EventItem, Metadata } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';

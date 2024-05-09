@@ -1,5 +1,5 @@
 <script>
-	import NostterLogo from './(app)/parts/NostterLogo.svelte';
+	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 </script>
 
 <main>

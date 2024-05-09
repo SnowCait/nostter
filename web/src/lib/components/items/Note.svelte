@@ -12,7 +12,7 @@
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
 	import ZapDialog from '../ZapDialog.svelte';
-	import Content from '../content/Content.svelte';
+	import Content from '$lib/components/Content.svelte';
 	import { Signer } from '$lib/Signer';
 	import { getCodePoints } from '$lib/String';
 	import { isReply } from '$lib/EventHelper';
@@ -22,8 +22,8 @@
 	import MenuButton from '$lib/components/MenuButton.svelte';
 	import ReactionButton from '$lib/components/ReactionButton.svelte';
 	import RepostButton from '$lib/components/RepostButton.svelte';
-	import ProxyLink from '../parts/ProxyLink.svelte';
-	import Nip94 from '../Nip94.svelte';
+	import ProxyLink from '../ProxyLink.svelte';
+	import Nip94 from '$lib/components/Nip94.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
