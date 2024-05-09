@@ -9,7 +9,7 @@
 	import Text from './Text.svelte';
 	import Nip94 from '../Nip94.svelte';
 	import Naddr from './Naddr.svelte';
-	import EventComponent from '../../../routes/(app)/timeline/EventComponent.svelte';
+	import EventComponent from '../items/EventComponent.svelte';
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
 	import { EventItem, Metadata } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';

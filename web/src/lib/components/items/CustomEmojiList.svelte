@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CustomEmoji from '$lib/components/content/CustomEmoji.svelte';
+	import CustomEmoji from '../content/CustomEmoji.svelte';
 
 	export let tags: string[][];
 </script>

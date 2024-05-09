@@ -16,7 +16,7 @@
 	import { openNoteDialog, replyTo, quotes, intentContent } from '$lib/stores/NoteDialog';
 	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { customEmojiTags } from '$lib/author/CustomEmojis';
-	import Note from '../../../routes/(app)/timeline/Note.svelte';
+	import Note from '../items/Note.svelte';
 	import ChannelTitle from '../../../routes/(app)/parts/ChannelTitle.svelte';
 	import MediaPicker from '../MediaPicker.svelte';
 	import ContentComponent from '../Content.svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
 	import { userEvents } from '$lib/stores/UserEvents';
-	import Note from '../../../routes/(app)/timeline/Note.svelte';
+	import Note from '../items/Note.svelte';
 	import Hashtag from './Hashtag.svelte';
 	import Text from './Text.svelte';
 	import Url from './Url.svelte';
