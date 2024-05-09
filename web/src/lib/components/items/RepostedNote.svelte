@@ -9,6 +9,7 @@
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
 	import MutedContent from './MutedContent.svelte';
+	import OnelineProfile from '../profile/OnelineProfile.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -49,10 +50,9 @@
 		<IconRepeat size={18} color={'lightgreen'} />
 	</div>
 	<div>by</div>
-	<div>
+	<div class="profile">
 		<a href="/{nip19.npubEncode(event.pubkey)}">
-			@{metadata?.content?.name ??
-				nip19.npubEncode(event.pubkey).substring(0, 'npub1'.length + 7)}
+			<OnelineProfile pubkey={event.pubkey} />
 		</a>
 	</div>
 	<div class="json-button">
@@ -123,5 +123,9 @@
 		padding: 0;
 		color: var(--accent-gray);
 		height: 20px;
+	}
+
+	.profile a {
+		text-decoration: none;
 	}
 </style>

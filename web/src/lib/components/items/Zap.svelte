@@ -9,6 +9,7 @@
 	import CreatedAt from '../CreatedAt.svelte';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
+	import OnelineProfile from '../profile/OnelineProfile.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -60,10 +61,10 @@
 		{#if zap === undefined}
 			<div>Unknown</div>
 		{:else}
-			<div>
+			<div class="profile">
 				{#if zapperMetadata !== undefined}
 					<a href="/{nip19.npubEncode(zapperMetadata.event.pubkey)}">
-						@{zapperMetadata.name}
+						<OnelineProfile pubkey={zapperMetadata.event.pubkey} />
 					</a>
 				{:else}
 					<span>-</span>
@@ -146,5 +147,9 @@
 		padding: 0;
 		color: var(--accent-gray);
 		height: 20px;
+	}
+
+	.profile a {
+		text-decoration: none;
 	}
 </style>
