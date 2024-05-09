@@ -5,7 +5,7 @@
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { isMuteEvent } from '$lib/stores/Author';
-	import CreatedAt from '../CreatedAt.svelte';
+	import CreatedAt from '$lib/components/CreatedAt.svelte';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
 	import MutedContent from './MutedContent.svelte';

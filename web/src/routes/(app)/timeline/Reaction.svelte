@@ -5,7 +5,7 @@
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import IconHeartBroken from '@tabler/icons-svelte/dist/svelte/icons/IconHeartBroken.svelte';
 	import { nip19 } from 'nostr-tools';
-	import CreatedAt from '../CreatedAt.svelte';
+	import CreatedAt from '$lib/components/CreatedAt.svelte';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
 	import Content from '../content/Content.svelte';

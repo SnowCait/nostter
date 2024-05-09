@@ -9,7 +9,7 @@
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconAward from '@tabler/icons-svelte/dist/svelte/icons/IconAward.svelte';
 	import BadgeDefinition from './BadgeDefinition.svelte';
-	import CreatedAt from '../../../routes/(app)/CreatedAt.svelte';
+	import CreatedAt from '../CreatedAt.svelte';
 	import ExternalLink from '../ExternalLink.svelte';
 
 	export let item: Item;

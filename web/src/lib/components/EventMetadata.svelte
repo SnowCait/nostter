@@ -3,7 +3,7 @@
 	import { robohash, type EventItem, type Item, alternativeName } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import UserStatus from './UserStatus.svelte';
-	import CreatedAt from '../../routes/(app)/CreatedAt.svelte';
+	import CreatedAt from './CreatedAt.svelte';
 
 	export let item: Item;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
