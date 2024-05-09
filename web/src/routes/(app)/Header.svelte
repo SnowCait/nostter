@@ -18,8 +18,8 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
-	import NostterLogo from './parts/NostterLogo.svelte';
-	import NostterLogoIcon from './parts/NostterLogoIcon.svelte';
+	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
+	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
 
 	async function onClickPostButton(): Promise<void> {
 		$openNoteDialog = !$openNoteDialog;

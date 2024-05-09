@@ -26,7 +26,7 @@
 	import { EventItem } from '$lib/Items';
 	import { minTimelineLength } from '$lib/Constants';
 	import PinChannel from './PinChannel.svelte';
-	import ChannelTitle from '../../parts/ChannelTitle.svelte';
+	import ChannelTitle from '$lib/components/ChannelTitle.svelte';
 	import MuteButton from '$lib/components/MuteButton.svelte';
 
 	let slug = $page.params.nevent;

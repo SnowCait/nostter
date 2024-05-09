@@ -17,7 +17,7 @@
 	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { customEmojiTags } from '$lib/author/CustomEmojis';
 	import Note from '../items/Note.svelte';
-	import ChannelTitle from '../../../routes/(app)/parts/ChannelTitle.svelte';
+	import ChannelTitle from '../ChannelTitle.svelte';
 	import MediaPicker from '../MediaPicker.svelte';
 	import ContentComponent from '../Content.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';

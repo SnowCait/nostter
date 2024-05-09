@@ -10,7 +10,7 @@
 	import { authorProfile } from '$lib/stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
-	import NostterLogo from './parts/NostterLogo.svelte';
+	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 
 	let nostr: Nip07.Nostr | undefined;
 	let key = '';
