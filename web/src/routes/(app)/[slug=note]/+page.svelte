@@ -28,7 +28,7 @@
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import DateLink from '$lib/components/DateLink.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
-	import EventComponent from '../timeline/EventComponent.svelte';
+	import EventComponent from '$lib/components/items/EventComponent.svelte';
 
 	export let data: LayoutData;
 

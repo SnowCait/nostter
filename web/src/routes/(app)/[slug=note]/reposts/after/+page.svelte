@@ -11,7 +11,7 @@
 	import type { LayoutData } from '../../$types';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import NotFound from '$lib/components/items/NotFound.svelte';
-	import EventComponent from '../../../timeline/EventComponent.svelte';
+	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import TimelineView from '../../../TimelineView.svelte';
 
 	export let data: LayoutData;
