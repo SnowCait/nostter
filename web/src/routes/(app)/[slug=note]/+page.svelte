@@ -21,7 +21,7 @@
 	import { appName, chronologicalItem } from '$lib/Constants';
 	import { tick } from 'svelte';
 	import MuteButton from '$lib/components/MuteButton.svelte';
-	import CustomEmoji from '../content/CustomEmoji.svelte';
+	import CustomEmoji from '$lib/components/content/CustomEmoji.svelte';
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';

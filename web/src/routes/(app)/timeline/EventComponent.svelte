@@ -9,7 +9,7 @@
 	import { Metadata, type Item } from '$lib/Items';
 	import CustomEmojiList from './CustomEmojiList.svelte';
 	import UserStatus from './UserStatus.svelte';
-	import LongFormContent from '../content/LongFormContent.svelte';
+	import LongFormContent from '$lib/components/content/LongFormContent.svelte';
 	import { findIdentifier } from '$lib/EventHelper';
 	import BadgeAward from '$lib/components/items/BadgeAward.svelte';
 	import BadgeDefinition from '$lib/components/items/BadgeDefinition.svelte';

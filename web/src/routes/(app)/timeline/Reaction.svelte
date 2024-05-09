@@ -8,7 +8,7 @@
 	import CreatedAt from '$lib/components/CreatedAt.svelte';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
-	import Content from '../content/Content.svelte';
+	import Content from '$lib/components/Content.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
