@@ -8,6 +8,7 @@
 	import { intentContent, openNoteDialog } from '$lib/stores/NoteDialog';
 	import { Channel } from '$lib/Channel';
 	import { findChannelId } from '$lib/EventHelper';
+	import OnelineProfile from '../profile/OnelineProfile.svelte';
 
 	export let item: Item;
 
@@ -62,6 +63,12 @@
 			{#if channelMetadata?.about !== undefined}
 				<p class="about">{channelMetadata.about}</p>
 			{/if}
+			<div class="profile">
+				<span>by</span>
+				<a href="/{nip19.npubEncode(item.event.pubkey)}">
+					<OnelineProfile pubkey={item.event.pubkey} />
+				</a>
+			</div>
 			<div class="action-menu">
 				<button on:click={() => quote(event)}>
 					<IconQuote size={iconSize} />
@@ -144,5 +151,13 @@
 		padding: 0;
 		color: lightgray;
 		height: 20px;
+	}
+
+	.profile {
+		margin: 0.5rem auto;
+	}
+
+	.profile a {
+		text-decoration: none;
 	}
 </style>
