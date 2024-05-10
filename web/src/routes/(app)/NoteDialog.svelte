@@ -52,7 +52,7 @@
 >
 	<div class="dialog-content">
 		<button class="clear close" on:click={closeIfNotEmpty}><IconX /></button>
-		<NoteEditor bind:this={editor} bind:content bind:autocompleting on:sent={close} />
+		<NoteEditor bind:this={editor} bind:content bind:autocompleting on:sent={closeIfNotEmpty} />
 	</div>
 </dialog>
 
