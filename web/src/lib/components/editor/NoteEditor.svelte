@@ -39,13 +39,11 @@
 		$mediaFiles = [];
 	}
 
-	export function isAutocompleting(): boolean {
-		return autocompleting;
-	}
-
 	export let afterPost: () => Promise<void> = async () => {};
 
-	let content = '';
+	export let content = '';
+	export let autocompleting = false;
+
 	let tags: string[][] = [];
 	let posting = false;
 	let complementStart = -1;
@@ -54,7 +52,6 @@
 	let selectedCustomEmojis = new Map<string, string>();
 	let channelEvent: NostrEvent | undefined;
 	let emojiTags: string[][] = [];
-	let autocompleting = false;
 	let pubkeys = new Set<string>();
 	let contentWarningReason: string | undefined;
 	let mediaFiles: Writable<File[]> = writable([]);
@@ -158,7 +155,7 @@
 				console.log('[tribute closeable]');
 				autocompleting = false;
 				console.timeEnd('tribute');
-			}, 200);
+			}, 1000);
 		});
 	});
 

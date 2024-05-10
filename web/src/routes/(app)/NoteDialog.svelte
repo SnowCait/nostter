@@ -1,57 +1,59 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
+	import IconX from '@tabler/icons-svelte/dist/svelte/icons/IconX.svelte';
 
-	let dialog: HTMLDialogElement;
+	let content: string;
+	let autocompleting: boolean;
+
+	let dialog: HTMLDialogElement | undefined;
 	let editor: NoteEditor;
 
 	openNoteDialog.subscribe(async (open) => {
 		console.log('[note dialog open]', open);
 		if (open) {
-			dialog.showModal();
+			dialog?.showModal();
 		}
 	});
 
-	function closeDialog(event: MouseEvent) {
-		if (editor.isAutocompleting() || emojiPickerOpen) {
+	function tryClose(e: MouseEvent): void {
+		if (autocompleting || emojiPickerOpen || !dialog?.open) {
 			return;
 		}
 
-		let target: HTMLElement | null = event.target as HTMLElement;
-		if (target) {
-			while (target) {
-				if (target?.classList.contains('note-editor')) {
-					return;
-				}
-				target = target.parentElement;
-			}
-		}
-
-		const insideDialog =
-			event.x >= dialog.offsetLeft &&
-			event.x <= dialog.offsetLeft + dialog.offsetWidth &&
-			event.y >= dialog.offsetTop &&
-			event.y <= dialog.offsetTop + dialog.offsetHeight;
-
-		if (!insideDialog) {
-			close();
+		const element = (e.target as Element).closest('.dialog-content');
+		console.debug('[dialog try close]', element, dialog);
+		if (element === null && dialog !== undefined) {
+			closeIfNotEmpty();
 		}
 	}
 
-	async function closed(event: Event) {
-		console.log(`[${event.type}]`);
+	function closed(): void {
+		console.log(`[note dialog close]`);
 		editor.clear();
 	}
 
-	function close() {
-		dialog.close();
+	function closeIfNotEmpty(): void {
+		if (content === '' || confirm($_('editor.close.confirm'))) {
+			dialog?.close();
+		}
 	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<dialog bind:this={dialog} on:click={closeDialog} on:close={closed}>
-	<NoteEditor bind:this={editor} on:sent={close} />
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<dialog
+	bind:this={dialog}
+	on:click={tryClose}
+	on:close={closed}
+	on:cancel|preventDefault={closeIfNotEmpty}
+>
+	<div class="dialog-content">
+		<button class="clear close" on:click={closeIfNotEmpty}><IconX /></button>
+		<NoteEditor bind:this={editor} bind:content bind:autocompleting on:sent={close} />
+	</div>
 </dialog>
 
 <style>
@@ -63,6 +65,13 @@
 		z-index: 1;
 		width: 100%;
 		overflow: visible;
+	}
+
+	button.close {
+		color: var(--foreground);
+		width: 24px;
+		height: 24px;
+		margin: 0.5rem;
 	}
 
 	@media screen and (max-width: 600px) {
