@@ -336,8 +336,9 @@
 			next: async (packet) => {
 				console.log('[rx-nostr send next]', packet);
 				sentRelays.set(packet.from, packet.ok);
-				if (packet.ok) {
+				if (packet.ok && posting) {
 					posting = false;
+					clear();
 					dispatch('sent');
 					await afterPost();
 				}
