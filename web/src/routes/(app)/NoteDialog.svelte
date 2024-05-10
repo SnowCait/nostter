@@ -7,38 +7,24 @@
 
 	let content: string;
 
-	let dialog: HTMLDialogElement;
+	let dialog: HTMLDialogElement | undefined;
 	let editor: NoteEditor;
 
 	openNoteDialog.subscribe(async (open) => {
 		console.log('[note dialog open]', open);
 		if (open) {
-			dialog.showModal();
+			dialog?.showModal();
 		}
 	});
 
-	function closeDialog(event: MouseEvent) {
-		if (emojiPickerOpen || !dialog.open) {
+	function tryClose(e: MouseEvent): void {
+		if (emojiPickerOpen || !dialog?.open) {
 			return;
 		}
 
-		let target: HTMLElement | null = event.target as HTMLElement;
-		if (target) {
-			while (target) {
-				if (target?.classList.contains('note-editor')) {
-					return;
-				}
-				target = target.parentElement;
-			}
-		}
-
-		const insideDialog =
-			event.x >= dialog.offsetLeft &&
-			event.x <= dialog.offsetLeft + dialog.offsetWidth &&
-			event.y >= dialog.offsetTop &&
-			event.y <= dialog.offsetTop + dialog.offsetHeight;
-
-		if (!insideDialog) {
+		const element = (e.target as Element).closest('.dialog-content');
+		console.debug('[dialog try close]', element, dialog);
+		if (element === null && dialog !== undefined) {
 			closeIfNotEmpty();
 		}
 	}
@@ -50,7 +36,7 @@
 
 	function closeIfNotEmpty(): void {
 		if (content === '' || confirm($_('editor.close.confirm'))) {
-			dialog.close();
+			dialog?.close();
 		}
 	}
 </script>
@@ -59,12 +45,14 @@
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <dialog
 	bind:this={dialog}
-	on:click={closeDialog}
+	on:click={tryClose}
 	on:close={closed}
 	on:cancel|preventDefault={closeIfNotEmpty}
 >
-	<button class="clear close" on:click={closeIfNotEmpty}><IconX /></button>
-	<NoteEditor bind:this={editor} bind:content on:sent={close} />
+	<div class="dialog-content">
+		<button class="clear close" on:click={closeIfNotEmpty}><IconX /></button>
+		<NoteEditor bind:this={editor} bind:content on:sent={close} />
+	</div>
 </dialog>
 
 <style>
