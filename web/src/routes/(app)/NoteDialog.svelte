@@ -6,6 +6,7 @@
 	import IconX from '@tabler/icons-svelte/dist/svelte/icons/IconX.svelte';
 
 	let content: string;
+	let autocompleting: boolean;
 
 	let dialog: HTMLDialogElement | undefined;
 	let editor: NoteEditor;
@@ -18,7 +19,7 @@
 	});
 
 	function tryClose(e: MouseEvent): void {
-		if (emojiPickerOpen || !dialog?.open) {
+		if (autocompleting || emojiPickerOpen || !dialog?.open) {
 			return;
 		}
 
@@ -51,7 +52,7 @@
 >
 	<div class="dialog-content">
 		<button class="clear close" on:click={closeIfNotEmpty}><IconX /></button>
-		<NoteEditor bind:this={editor} bind:content on:sent={close} />
+		<NoteEditor bind:this={editor} bind:content bind:autocompleting on:sent={close} />
 	</div>
 </dialog>
 
