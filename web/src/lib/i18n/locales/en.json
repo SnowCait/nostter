@@ -54,6 +54,9 @@
 			"button": "Post",
 			"empty": "Do you post empty note?",
 			"nsec": "Contains private key (nsec). Are you really going to post it?"
+		},
+		"close": {
+			"confirm": "Draft exists. Do you close?"
 		}
 	},
 	"gdpr": {

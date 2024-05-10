@@ -39,13 +39,10 @@
 		$mediaFiles = [];
 	}
 
-	export function isAutocompleting(): boolean {
-		return autocompleting;
-	}
-
 	export let afterPost: () => Promise<void> = async () => {};
 
-	let content = '';
+	export let content = '';
+
 	let tags: string[][] = [];
 	let posting = false;
 	let complementStart = -1;
