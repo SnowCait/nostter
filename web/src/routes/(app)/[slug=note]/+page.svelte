@@ -97,7 +97,10 @@
 		item = $eventItemStore.get(eventId);
 
 		// Event
-		if (item === undefined) {
+		if (item === undefined && data.event !== undefined) {
+			console.log('[thread ssr event]', data.event);
+			item = new EventItem(data.event);
+		} else if (item === undefined) {
 			const eventReq = createRxOneshotReq({
 				filters: [
 					{

@@ -1,9 +1,12 @@
 import { nip19 } from 'nostr-tools';
-import type { EventPointer } from 'nostr-tools/lib/nip19';
+import type { Event } from 'nostr-typedef';
 import { error } from '@sveltejs/kit';
 import type { LayoutLoad } from './$types';
 
-export const load: LayoutLoad<{ eventId: string; relays: string[] }> = async ({ params }) => {
+export const load: LayoutLoad<{ eventId: string; relays: string[]; event: Event }> = async ({
+	params,
+	data: serverData
+}) => {
 	console.log('[thread page load]', params.slug);
 	try {
 		const { type, data } = nip19.decode(params.slug);
@@ -13,16 +16,15 @@ export const load: LayoutLoad<{ eventId: string; relays: string[] }> = async ({ 
 			case 'note': {
 				return {
 					eventId: data as string,
-					relays: []
+					relays: [],
+					event: serverData.event
 				};
 			}
 			case 'nevent': {
-				const pointer = data as EventPointer;
-				const relays = pointer.relays ?? [];
-
 				return {
-					eventId: pointer.id,
-					relays
+					eventId: data.id,
+					relays: data.relays ?? [],
+					event: serverData.event
 				};
 			}
 			default: {
