@@ -34,7 +34,8 @@
 
 	let focusedElement: HTMLDivElement | undefined;
 
-	let item: EventItem | undefined;
+	let item: EventItem | undefined =
+		data.event !== undefined ? new EventItem(data.event) : undefined;
 	let items: EventItem[] = [];
 	let eventId: string | undefined;
 	let rootId: string | undefined;
@@ -97,10 +98,7 @@
 		item = $eventItemStore.get(eventId);
 
 		// Event
-		if (item === undefined && data.event !== undefined) {
-			console.log('[thread ssr event]', data.event);
-			item = new EventItem(data.event);
-		} else if (item === undefined) {
+		if (item === undefined) {
 			const eventReq = createRxOneshotReq({
 				filters: [
 					{
