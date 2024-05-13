@@ -161,6 +161,8 @@ export class Metadata implements Item {
 			return url.startsWith('https://nostr.build/i/p/')
 				? url.replace('https://nostr.build/i/p/', 'https://pfp.nostr.build/')
 				: url.replace('https://nostr.build/i/', 'https://image.nostr.build/');
+		} else if (url.startsWith('https://cdn.nostr.build/i/')) {
+			return url.replace('https://cdn.nostr.build/i/', 'https://image.nostr.build/');
 		} else {
 			return url;
 		}
