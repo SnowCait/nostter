@@ -64,8 +64,14 @@
 			console.error('[zap failed]', await response.text());
 			return;
 		}
-		const { pr: zapInvoice } = await response.json();
+		const payment = await response.json();
+		const { pr: zapInvoice } = payment;
 		console.log('[zap invoice]', zapInvoice);
+
+		if (zapInvoice === undefined) {
+			console.error('[zap failed]', payment);
+			return;
+		}
 
 		const storage = new WebStorage(localStorage);
 		storage.set('zap', sats.toString());
