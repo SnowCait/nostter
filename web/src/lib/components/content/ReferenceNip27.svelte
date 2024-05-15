@@ -106,7 +106,9 @@
 	{/if}
 {:else if dataType === 'addr'}
 	{#if item !== undefined && Number(item.event.kind) === 30030}
-		<EventComponent {item} readonly={true} />
+		<blockquote>
+			<EventComponent {item} readonly={true} />
+		</blockquote>
 	{:else}
 		<Naddr naddr={slug} />
 	{/if}

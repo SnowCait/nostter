@@ -153,6 +153,9 @@
 		"copy_url": {
 			"button": "リンクをコピー"
 		},
+		"open_url": {
+			"button": "%s で開く"
+		},
 		"share": {
 			"button": "リンクを共有"
 		},
