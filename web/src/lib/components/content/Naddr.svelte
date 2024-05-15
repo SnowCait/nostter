@@ -50,7 +50,7 @@
 		<LongFormContent {naddr} {event} />
 	</blockquote>
 {:else if Number(event.kind) === 30000}
-	<a href="/{nip19.npubEncode(event.pubkey)}/lists/{naddr}">
+	<a href="/{nip19.npubEncode(event.pubkey)}/lists/{naddr}" class="quote">
 		<blockquote>
 			<List {event} />
 		</blockquote>
@@ -60,7 +60,7 @@
 {/if}
 
 <style>
-	a {
+	a.quote {
 		text-decoration: none;
 	}
 </style>

@@ -47,7 +47,7 @@
 {:else if Number(item.event.kind) === 30009}
 	<BadgeDefinition event={item.event} />
 {:else if Number(item.event.kind) === 30030}
-	<CustomEmojiList tags={item.event.tags} />
+	<CustomEmojiList event={item.event} />
 {:else if Number(item.event.kind) === 30315}
 	<UserStatus {item} {createdAtFormat} />
 {:else}
