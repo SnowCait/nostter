@@ -162,7 +162,9 @@ export class Metadata implements Item {
 				? url.replace('https://nostr.build/i/p/', 'https://pfp.nostr.build/')
 				: url.replace('https://nostr.build/i/', 'https://image.nostr.build/');
 		} else if (url.startsWith('https://cdn.nostr.build/i/')) {
-			return url.replace('https://cdn.nostr.build/i/', 'https://image.nostr.build/');
+			return url.startsWith('https://cdn.nostr.build/i/p/')
+				? url.replace('https://cdn.nostr.build/i/p/', 'https://pfp.nostr.build/')
+				: url.replace('https://cdn.nostr.build/i/', 'https://image.nostr.build/');
 		} else {
 			return url;
 		}
