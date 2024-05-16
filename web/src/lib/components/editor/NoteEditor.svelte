@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount, tick } from 'svelte';
-	import { writable, type Writable } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
 	import { Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
-	import { FileStorageServer } from '$lib/media/FileStorageServer';
-	import { getMediaUploader } from '$lib/media/Media';
+	import { uploadFiles } from '$lib/media/FileStorageServer';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { NoteComposer } from '$lib/NoteComposer';
 	import { channelIdStore, Channel } from '$lib/Channel';
@@ -36,7 +34,6 @@
 		exitComplement();
 		emojiTags = [];
 		contentWarningReason = undefined;
-		$mediaFiles = [];
 	}
 
 	export let afterPost: () => Promise<void> = async () => {};
@@ -54,12 +51,15 @@
 	let emojiTags: string[][] = [];
 	let pubkeys = new Set<string>();
 	let contentWarningReason: string | undefined;
-	let mediaFiles: Writable<File[]> = writable([]);
 
 	let textarea: HTMLTextAreaElement;
 	let article: HTMLElement;
 
+	// Media
 	let onDrag = false;
+	let mediaUrls = new Map<File, string | undefined>();
+
+	$: uploading = [...mediaUrls].some(([, url]) => url === undefined);
 
 	$: containsNsec = /nsec1\w{6,}/.test(content);
 
@@ -76,25 +76,6 @@
 	}
 
 	const dispatch = createEventDispatcher();
-
-	mediaFiles.subscribe(async (files: File[]) => {
-		if (files.length === 0) {
-			return;
-		}
-
-		const file = files[files.length - 1];
-		console.log('[media file]', file);
-		try {
-			const media = new FileStorageServer(getMediaUploader());
-			const { url } = await media.upload(file);
-			if (url) {
-				content += (content === '' ? '' : '\n') + url;
-			}
-		} catch (error) {
-			console.error('[media upload error]', error);
-			alert($_('media.upload.failed'));
-		}
-	});
 
 	onMount(async () => {
 		console.log('[note editor on mount]', textarea, article);
@@ -392,20 +373,11 @@
 			return;
 		}
 
-		for (const item of event.clipboardData.items) {
-			console.log('[paste file]', item);
-			if (item.kind !== 'file' || !item.type.startsWith('image/')) {
-				continue;
-			}
-
-			const file = item.getAsFile();
-			if (file === null) {
-				continue;
-			}
-
-			$mediaFiles.push(file);
-			$mediaFiles = $mediaFiles;
-		}
+		const files = [...event.clipboardData.items]
+			.filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+			.map((item) => item.getAsFile())
+			.filter((file): file is File => file !== null);
+		await upload(files);
 	}
 
 	async function dragover() {
@@ -420,37 +392,53 @@
 			return;
 		}
 
-		for (const item of event.dataTransfer.items) {
-			console.log('[drop file]', item);
-			if (item.kind !== 'file' || !item.type.startsWith('image/')) {
-				continue;
-			}
-
-			const file = item.getAsFile();
-			if (file === null) {
-				continue;
-			}
-
-			$mediaFiles.push(file);
-			$mediaFiles = $mediaFiles;
-		}
+		const files = [...event.dataTransfer.items]
+			.filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+			.map((item) => item.getAsFile())
+			.filter((file): file is File => file !== null);
+		await upload(files);
 	}
 
 	async function mediaPicked({ detail: files }: { detail: FileList }): Promise<void> {
 		console.log('[media picked]', files);
+		await upload(files);
+	}
+
+	async function upload(files: FileList | File[]): Promise<void> {
 		if (files.length === 0) {
 			return;
 		}
 
 		for (const file of files) {
-			$mediaFiles.push(file);
-			$mediaFiles = $mediaFiles;
+			mediaUrls.set(file, undefined);
 		}
+		mediaUrls = mediaUrls;
+
+		const urls = await uploadFiles(files);
+
+		for (const [i, file] of Object.entries(files)) {
+			mediaUrls.set(file, urls[Number(i)]);
+		}
+		mediaUrls = mediaUrls;
+
+		addUrlsToContent(urls);
+
+		if (urls.some((url) => url === undefined)) {
+			alert($_('media.upload.failed'));
+		}
+	}
+
+	function addUrlsToContent(urlsWithUndefined: (string | undefined)[]): void {
+		const urls = urlsWithUndefined.filter((url): url is string => url !== undefined);
+		if (urls.length === 0) {
+			return;
+		}
+		content += (content === '' ? '' : '\n') + urls.join('\n');
 	}
 </script>
 
 <svelte:body
-	on:dragstart|preventDefault={() => console.debug}
+	on:dragstart|preventDefault
 	on:dragend|preventDefault={() => {
 		onDrag = false;
 	}}
@@ -504,7 +492,7 @@
 			<button
 				class="button-small"
 				on:click={postNote}
-				disabled={$author === undefined || content === '' || $rom || posting}
+				disabled={$author === undefined || content === '' || $rom || posting || uploading}
 			>
 				{$_('editor.post.button')}
 			</button>
@@ -537,14 +525,8 @@
 			{/each}
 		</ul>
 	{/if}
-	{#if $mediaFiles.length > 0}
-		<ul class="media">
-			{#each $mediaFiles as file}
-				<li>
-					<img src={URL.createObjectURL(file)} alt={file.name} />
-				</li>
-			{/each}
-		</ul>
+	{#if uploading}
+		<div>Uploading...</div>
 	{/if}
 	{#if content !== ''}
 		<section class="preview card">
@@ -608,6 +590,8 @@
 
 	.preview {
 		margin: 1rem;
+		max-height: 30rem;
+		overflow-y: auto;
 	}
 
 	.options {

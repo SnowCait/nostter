@@ -2,7 +2,7 @@ import { now } from 'rx-nostr';
 import type { Kind } from 'nostr-tools';
 import { Signer } from '$lib/Signer';
 import { filterTags } from '$lib/EventHelper';
-import type { Media, MediaResult } from './Media';
+import { getMediaUploader, type Media, type MediaResult } from './Media';
 
 export async function fetchNip96(origin: string): Promise<any> {
 	const nip96Url = new URL(origin);
@@ -66,4 +66,19 @@ export class FileStorageServer implements Media {
 			data
 		};
 	}
+}
+
+export async function uploadFiles(files: FileList | File[]): Promise<(string | undefined)[]> {
+	const media = new FileStorageServer(getMediaUploader());
+	return await Promise.all(
+		[...files].map(async (file) => {
+			try {
+				const { url } = await media.upload(file);
+				return url;
+			} catch (error) {
+				console.error('[media upload error]', error);
+				return undefined;
+			}
+		})
+	);
 }
