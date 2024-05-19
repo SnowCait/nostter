@@ -34,7 +34,7 @@ export class Contacts {
 }
 
 export function updateFolloweesStore(tags: string[][]): void {
-	const pubkeys = new Set(filterTags('p', tags));
+	const pubkeys = new Set(filterTags('p', tags).filter((pubkey) => /[0-9a-z]{64}/.test(pubkey)));
 	pubkeys.add(get(pubkey)); // Add myself
 	followees.set([...pubkeys]);
 	console.log('[contacts]', pubkeys.size);
