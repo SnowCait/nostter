@@ -590,10 +590,6 @@
 		color: var(--foreground);
 	}
 
-	.media img {
-		max-height: 200px;
-	}
-
 	.preview {
 		margin: 1rem;
 		max-height: 30rem;
