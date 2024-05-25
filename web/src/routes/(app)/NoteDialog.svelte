@@ -63,7 +63,7 @@
 		border: var(--border);
 		border-radius: var(--radius);
 		max-width: 600px;
-		margin: 0 auto;
+		margin: 1rem auto;
 		z-index: 1;
 		width: 100%;
 		overflow: visible;
