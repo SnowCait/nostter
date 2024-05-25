@@ -71,9 +71,15 @@
 
 	button.close {
 		color: var(--foreground);
-		width: 24px;
-		height: 24px;
-		margin: 0.5rem;
+		width: 36px;
+		height: 36px;
+		padding: 6px;
+		border-radius: 50%;
+		margin: 0.4rem;
+	}
+
+	button.close:hover {
+		background-color: var(--accent-surface);
 	}
 
 	@media screen and (max-width: 600px) {
