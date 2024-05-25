@@ -51,7 +51,9 @@
 	on:cancel|preventDefault={closeIfNotEmpty}
 >
 	<div class="dialog-content">
-		<button class="clear close" on:click={closeIfNotEmpty}><IconX /></button>
+		<button class="clear close" on:click={closeIfNotEmpty} title={$_('editor.close.button')}>
+			<IconX />
+		</button>
 		<NoteEditor bind:this={editor} bind:content bind:autocompleting on:sent={closeIfNotEmpty} />
 	</div>
 </dialog>
