@@ -51,7 +51,9 @@
 	on:cancel|preventDefault={closeIfNotEmpty}
 >
 	<div class="dialog-content">
-		<button class="clear close" on:click={closeIfNotEmpty}><IconX /></button>
+		<button class="clear close" on:click={closeIfNotEmpty} title={$_('editor.close.button')}>
+			<IconX />
+		</button>
 		<NoteEditor bind:this={editor} bind:content bind:autocompleting on:sent={closeIfNotEmpty} />
 	</div>
 </dialog>
@@ -61,7 +63,7 @@
 		border: var(--border);
 		border-radius: var(--radius);
 		max-width: 600px;
-		margin: 0 auto;
+		margin: 1rem auto;
 		z-index: 1;
 		width: 100%;
 		overflow: visible;
@@ -69,9 +71,15 @@
 
 	button.close {
 		color: var(--foreground);
-		width: 24px;
-		height: 24px;
-		margin: 0.5rem;
+		width: 36px;
+		height: 36px;
+		padding: 6px;
+		border-radius: 50%;
+		margin: 0.4rem;
+	}
+
+	button.close:hover {
+		background-color: var(--accent-surface);
 	}
 
 	@media screen and (max-width: 600px) {

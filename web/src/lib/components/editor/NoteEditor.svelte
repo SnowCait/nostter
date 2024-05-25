@@ -3,6 +3,7 @@
 	import { _ } from 'svelte-i18n';
 	import { Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
 	import { uploadFiles } from '$lib/media/FileStorageServer';
+	import { adjustHeight } from '$lib/styles/Textarea';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { NoteComposer } from '$lib/NoteComposer';
 	import { channelIdStore, Channel } from '$lib/Channel';
@@ -193,6 +194,8 @@
 			console.warn('[complement input type]', typeof inputEvent);
 			return;
 		}
+
+		adjustHeight(textarea);
 
 		if (
 			selectionStart === selectionEnd &&
@@ -538,7 +541,10 @@
 <style>
 	textarea {
 		width: 100%;
-		padding: 1rem;
+		padding: 0.25rem 1rem;
+		font-size: 1rem;
+		max-height: 20.5rem;
+		line-height: 1rem;
 	}
 
 	textarea.warning {
@@ -582,10 +588,6 @@
 		list-style: none;
 		padding: 0;
 		color: var(--foreground);
-	}
-
-	.media img {
-		max-height: 200px;
 	}
 
 	.preview {
