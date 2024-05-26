@@ -155,6 +155,25 @@ export class Metadata implements Item {
 		return this._zapUrl;
 	}
 
+	public startsWith(searchString: string, position?: number | undefined): boolean {
+		const lowerCaseSearchString = searchString.toLowerCase();
+		return (
+			this.name.toLocaleLowerCase().startsWith(lowerCaseSearchString, position) ||
+			this.displayName.toLocaleLowerCase().startsWith(lowerCaseSearchString, position) ||
+			this.normalizedNip05.toLocaleLowerCase().startsWith(lowerCaseSearchString, position)
+		);
+	}
+
+	public includes(searchString: string, position?: number | undefined): boolean {
+		const lowerCaseSearchString = searchString.toLowerCase();
+		return (
+			this.name.toLocaleLowerCase().includes(lowerCaseSearchString, position) ||
+			this.displayName.toLocaleLowerCase().includes(lowerCaseSearchString, position) ||
+			this.normalizedNip05.toLocaleLowerCase().includes(lowerCaseSearchString, position) ||
+			nip19.npubEncode(this.event.pubkey).includes(searchString)
+		);
+	}
+
 	// Workaround for iOS Safari
 	private getRedirectedUrlIfNostrBuild(url: string): string {
 		if (url.startsWith('https://nostr.build/i/')) {

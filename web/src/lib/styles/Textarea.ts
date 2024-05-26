@@ -8,6 +8,6 @@ export function adjustHeight(textarea: HTMLTextAreaElement): void {
 	textarea.style.height = `${linesCount + 2}rem`;
 }
 
-function countLines(text: string): number {
+export function countLines(text: string): number {
 	return (text.match(/\n/g)?.length ?? 0) + 1;
 }
