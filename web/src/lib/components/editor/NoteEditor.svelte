@@ -284,9 +284,12 @@
 	}
 
 	function onEmojiPick({ detail: emoji }: { detail: any }) {
-		console.log('[emoji pick]', emoji);
+		console.debug('[emoji pick]', emoji);
 		const shortcode = emoji.id.replaceAll('+', '_');
-		content += emoji.native ?? `:${shortcode}:`;
+		const { selectionStart, selectionEnd } = textarea;
+		const before = content.substring(0, selectionStart);
+		const after = content.substring(selectionEnd);
+		content = before + (emoji.native ?? `:${shortcode}:`) + after;
 		if (
 			emoji.native === undefined &&
 			emoji.src !== undefined &&
