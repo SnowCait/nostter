@@ -3,6 +3,7 @@
 	import { _ } from 'svelte-i18n';
 	import { Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
 	import { uploadFiles } from '$lib/media/FileStorageServer';
+	import { complementPosition } from '$lib/styles/Complement';
 	import { adjustHeight } from '$lib/styles/Textarea';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { NoteComposer } from '$lib/NoteComposer';
@@ -16,6 +17,7 @@
 	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { customEmojiTags } from '$lib/author/CustomEmojis';
 	import Note from '../items/Note.svelte';
+	import OnelineProfile from '../profile/OnelineProfile.svelte';
 	import ChannelTitle from '../ChannelTitle.svelte';
 	import MediaPicker from '../MediaPicker.svelte';
 	import ContentComponent from '../Content.svelte';
@@ -32,7 +34,7 @@
 		pubkeys.clear();
 		$replyTo = undefined;
 		$quotes = [];
-		exitComplement();
+		mention = undefined;
 		emojiTags = [];
 		contentWarningReason = undefined;
 	}
@@ -44,9 +46,6 @@
 
 	let tags: string[][] = [];
 	let posting = false;
-	let complementStart = -1;
-	let complementEnd = -1;
-	let complementMetadataList: Metadata[] = [];
 	let selectedCustomEmojis = new Map<string, string>();
 	let channelEvent: NostrEvent | undefined;
 	let emojiTags: string[][] = [];
@@ -56,11 +55,51 @@
 	let textarea: HTMLTextAreaElement;
 	let article: HTMLElement;
 
-	// Media
+	//#region Mention complement
+
+	let mention: string | undefined;
+	let mentionComplementList: Metadata[] = [];
+	let mentionComplementIndex = 0;
+
+	$: if (mention !== undefined) {
+		const displayMax = 10;
+		const list = [...$metadataStore]
+			.map(([, metadata]) => metadata)
+			.filter((metadata) => metadata.startsWith(mention ?? ''))
+			.slice(0, displayMax);
+		if (list.length < displayMax) {
+			list.push(
+				...[...$metadataStore]
+					.map(([, metadata]) => metadata)
+					.filter((metadata) => metadata.includes(mention ?? ''))
+					.filter(
+						(metadata) => !list.some((m) => m.event.pubkey === metadata.event.pubkey)
+					)
+					.slice(0, displayMax - list.length)
+			);
+		}
+		mentionComplementList = list;
+	}
+
+	$: if (mention === undefined) {
+		mentionComplementList = [];
+	}
+
+	$: {
+		console.debug('[complement mention list]', mentionComplementList); // Trigger. Don't delete this line.
+		mentionComplementIndex = 0;
+	}
+
+	//#endregion
+
+	//#region Media
+
 	let onDrag = false;
 	let mediaUrls = new Map<File, string | undefined>();
 
 	$: uploading = [...mediaUrls].some(([, url]) => url === undefined);
+
+	//#endregion
 
 	$: containsNsec = /nsec1\w{6,}/.test(content);
 
@@ -173,23 +212,46 @@
 		value = '';
 	});
 
-	async function submitFromKeyboard(event: KeyboardEvent) {
-		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
-		if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+	async function onKeydown(e: KeyboardEvent) {
+		console.debug(`[editor keydown]`, e.type, e.key, e.ctrlKey, e.metaKey);
+
+		// Submit
+		if (mention === undefined && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
 			await postNote();
+		}
+
+		// Complement
+		if (mention === undefined) {
+			return;
+		}
+
+		switch (e.key) {
+			case 'ArrowUp': {
+				e.preventDefault();
+				if (mentionComplementIndex > 0) {
+					mentionComplementIndex--;
+				}
+				break;
+			}
+			case 'ArrowDown': {
+				e.preventDefault();
+				if (mentionComplementIndex < mentionComplementList.length - 1) {
+					mentionComplementIndex++;
+				}
+				break;
+			}
+			case 'Tab':
+			case 'Enter': {
+				e.preventDefault();
+				replaceComplement(mentionComplementList[mentionComplementIndex]);
+				break;
+			}
 		}
 	}
 
 	async function onInput(inputEvent: Event) {
 		const { selectionStart, selectionEnd } = textarea;
-		console.debug(
-			'[complement input]',
-			inputEvent,
-			content,
-			complementStart,
-			selectionStart,
-			selectionEnd
-		);
+		console.debug('[complement input]', inputEvent, content, selectionStart, selectionEnd);
 		if (!(inputEvent instanceof InputEvent)) {
 			console.warn('[complement input type]', typeof inputEvent);
 			return;
@@ -197,80 +259,28 @@
 
 		adjustHeight(textarea);
 
-		if (
-			selectionStart === selectionEnd &&
-			selectionStart > 0 &&
-			content.lastIndexOf('@', selectionStart) >= 0
-		) {
-			complementStart = content.lastIndexOf('@', selectionStart);
-		} else if (content.lastIndexOf('@', selectionStart) < 0) {
-			exitComplement();
-		}
-
-		if (complementStart >= 0) {
-			complementEnd = selectionEnd;
-			const complementName = content.slice(complementStart + 1, selectionStart).toLowerCase();
-			const max = 5;
-			complementMetadataList = [...$metadataStore]
-				.filter(
-					([, metadata]) =>
-						metadata.content?.name?.toLowerCase().startsWith(complementName) ||
-						metadata.content?.display_name?.toLowerCase().startsWith(complementName)
-				)
-				.map(([, metadata]) => metadata)
-				.slice(0, max);
-			if (complementMetadataList.length < max) {
-				complementMetadataList.push(
-					...[...$metadataStore]
-						.filter(
-							([, metadata]) =>
-								metadata.content?.name?.toLowerCase().includes(complementName) ||
-								metadata.content?.display_name
-									?.toLowerCase()
-									.includes(complementName) ||
-								metadata.normalizedNip05.includes(complementName) ||
-								nip19.npubEncode(metadata.event.pubkey).includes(complementName)
-						)
-						.filter(([p]) => !complementMetadataList.some((x) => x.event.pubkey === p))
-						.map(([, e]) => e)
-						.slice(0, max - complementMetadataList.length)
-				);
-			}
-			if (complementMetadataList.length < max) {
-				// TODO: fetch
-			}
-			console.debug(
-				'[complement]',
-				complementName,
-				complementMetadataList.map((x) => `@${x.content?.name}, ${x.event.pubkey}`)
-			);
-
-			// Exit if not found
-			if (complementMetadataList.length === 0) {
-				exitComplement();
-			}
-		}
+		// Mention complement
+		const mentionMatches = textarea.value.matchAll(/(?<=@)\S+/g);
+		mention = [...mentionMatches].find(
+			({ index, 0: mention }) =>
+				index <= selectionStart && selectionStart <= index + mention.length
+		)?.[0];
 	}
 
-	async function replaceComplement(metadata: Metadata): Promise<void> {
-		console.debug('[replace complement]', content, complementStart, complementEnd);
-		const beforeCursor =
-			content.substring(0, complementStart) +
-			`nostr:${nip19.npubEncode(metadata.event.pubkey)} `;
-		const afterCursor = content.substring(complementEnd);
-		content = beforeCursor + afterCursor;
-		const cursor = beforeCursor.length;
-		console.debug('[replaced complement]', content, cursor);
-		exitComplement();
-		await tick();
+	function replaceComplement(metadata: Metadata): void {
+		if (mention === undefined) {
+			return;
+		}
+
+		console.debug('[complement mention replace]', metadata);
+		const { selectionStart } = textarea;
+		const before = content.substring(0, selectionStart - '@'.length - mention.length);
+		const after = content.substring(selectionStart);
+		content = before + 'nostr:' + nip19.npubEncode(metadata.event.pubkey) + ' ' + after;
+		const cursor = content.length - after.length;
 		textarea.setSelectionRange(cursor, cursor);
 		textarea.focus();
-	}
-
-	function exitComplement() {
-		complementStart = -1;
-		complementEnd = -1;
-		complementMetadataList = [];
+		mention = undefined;
 	}
 
 	function onEmojiPick({ detail: emoji }: { detail: any }) {
@@ -470,7 +480,7 @@
 		class:dropzone={onDrag}
 		bind:value={content}
 		bind:this={textarea}
-		on:keydown={submitFromKeyboard}
+		on:keydown={onKeydown}
 		on:keyup|stopPropagation={() => console.debug}
 		on:input={onInput}
 		on:paste={paste}
@@ -481,6 +491,22 @@
 	{#if containsNsec}
 		<div class="warning">{$_('editor.warning.nsec')}</div>
 	{/if}
+
+	{#if mentionComplementList.length > 0 && textarea !== undefined}
+		<ul class="complement card" use:complementPosition={textarea}>
+			{#each mentionComplementList as metadata, i}
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+				<li
+					class:selected={i === mentionComplementIndex}
+					on:click|stopPropagation={() => replaceComplement(mentionComplementList[i])}
+				>
+					<OnelineProfile pubkey={metadata.event.pubkey} />
+				</li>
+			{/each}
+		</ul>
+	{/if}
+
 	<div class="actions">
 		<div class="options">
 			<MediaPicker multiple={true} on:pick={mediaPicked} />
@@ -505,18 +531,6 @@
 		{#each $quotes as quote}
 			<Note item={new EventItem(quote)} readonly={true} />
 		{/each}
-	{/if}
-	{#if complementStart >= 0}
-		<ul>
-			{#each complementMetadataList as metadata}
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-				<li on:click|stopPropagation={async () => await replaceComplement(metadata)}>
-					<span>{metadata.content?.display_name ?? ''}</span>
-					<span>@{metadata.content?.name ?? metadata?.content?.display_name}</span>
-				</li>
-			{/each}
-		</ul>
 	{/if}
 	{#if emojiTags.length > 0}
 		<ul>
@@ -603,6 +617,22 @@
 
 	.emoji-picker {
 		color: var(--accent);
+	}
+
+	ul.complement {
+		list-style: none;
+		margin: 0.5rem 1rem;
+		padding: 0.5rem 0;
+		position: fixed;
+	}
+
+	ul.complement li {
+		padding: 0.3rem;
+	}
+
+	ul.complement li.selected {
+		border: solid 1px var(--accent-surface);
+		background-color: var(--accent-foreground);
 	}
 
 	:global(.options > *) {
