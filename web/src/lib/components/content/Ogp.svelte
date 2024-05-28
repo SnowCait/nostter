@@ -85,7 +85,11 @@
 	<a href={url.href} target="_blank" rel="noopener noreferrer">
 		<blockquote>
 			{#if ogp['og:image']}
-				<img src={ogp['og:image']} alt={url.href} />
+				{#if ogp['og:image'].startsWith('https://')}
+					<img src={ogp['og:image']} alt={url.href} />
+				{:else}
+					<img src={new URL(url.href).origin + ogp['og:image']} alt={url.href} />
+				{/if}
 			{/if}
 			<h1>{ogp['og:title']}</h1>
 			<div>{url.hostname}</div>
