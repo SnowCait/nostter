@@ -43,7 +43,9 @@
 				.subscribe((packet) => {
 					console.log('[rx-nostr public bookmark packet]', packet);
 					publicBookmarkEventItems.push(new EventItem(packet.event));
-					publicBookmarkEventItems = publicBookmarkEventItems;
+					publicBookmarkEventItems = publicBookmarkEventItems.toSorted(
+						(a, b) => b.event.created_at - a.event.created_at
+					);
 				});
 		}
 
@@ -72,7 +74,9 @@
 							.subscribe((packet) => {
 								console.log('[rx-nostr private bookmark packet]', packet);
 								privateBookmarkEventItems.push(new EventItem(packet.event));
-								privateBookmarkEventItems = privateBookmarkEventItems;
+								privateBookmarkEventItems = privateBookmarkEventItems.toSorted(
+									(a, b) => b.event.created_at - a.event.created_at
+								);
 							});
 					}
 				})
