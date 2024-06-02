@@ -31,7 +31,9 @@
 	$: mobile = browser && window.matchMedia('(max-width: 600px)').matches;
 	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
 	$: metadata = $metadataStore.get($pubkey);
-	$: profile = metadata?.normalizedNip05 ? metadata.normalizedNip05 : nip19.npubEncode($pubkey);
+	$: profile = metadata?.normalizedNip05
+		? metadata.normalizedNip05
+		: nip19.nprofileEncode({ pubkey: $pubkey });
 </script>
 
 <div class="header">
