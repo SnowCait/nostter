@@ -12,12 +12,13 @@
 	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
 	import { nip19 } from 'nostr-tools';
-	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '$lib/stores/Notifications';
-	import { followees, pubkey, rom } from '$lib/stores/Author';
 	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { metadataStore } from '$lib/cache/Events';
+	import { followees, pubkey, rom } from '$lib/stores/Author';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
+	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '$lib/stores/Notifications';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
 
@@ -29,6 +30,8 @@
 
 	$: mobile = browser && window.matchMedia('(max-width: 600px)').matches;
 	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
+	$: metadata = $metadataStore.get($pubkey);
+	$: profile = metadata?.normalizedNip05 ? metadata.normalizedNip05 : nip19.npubEncode($pubkey);
 </script>
 
 <div class="header">
@@ -66,7 +69,7 @@
 						<p>{$_('layout.header.notifications')}</p>
 					</li>
 				</a>
-				<a href="/{nip19.npubEncode($pubkey)}">
+				<a href="/{profile}">
 					<li>
 						<IconUser size={30} />
 						<p>{$_('layout.header.profile')}</p>
@@ -83,13 +86,13 @@
 			{/if}
 			{#if !mobile || show || !$pubkey}
 				{#if $pubkey}
-					<a href="/{nip19.npubEncode($pubkey)}/lists">
+					<a href="/{profile}/lists">
 						<li>
 							<IconList size={30} />
 							<p>{$_('lists.title')}</p>
 						</li>
 					</a>
-					<a href="/{nip19.npubEncode($pubkey)}/bookmarks">
+					<a href="/{profile}/bookmarks">
 						<li>
 							<IconBookmark size={30} />
 							<p>{$_('layout.header.bookmarks')}</p>
