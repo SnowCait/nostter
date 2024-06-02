@@ -11,7 +11,7 @@
 	import Naddr from './Naddr.svelte';
 	import EventComponent from '../items/EventComponent.svelte';
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
-	import { EventItem, Metadata } from '$lib/Items';
+	import { EventItem, Metadata, alternativeName } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 
 	export let text: string;
@@ -19,6 +19,7 @@
 	let dataType: 'user' | 'event' | 'addr';
 	let pubkey: string | undefined;
 	let metadata: Metadata | undefined;
+	let profile: string | undefined;
 	let eventId: string | undefined;
 	let item: EventItem | undefined;
 	let addressPointer: AddressPointer;
@@ -65,6 +66,12 @@
 		metadata = $metadataStore.get(pubkey);
 	}
 
+	$: if (metadata !== undefined && pubkey !== undefined) {
+		profile = metadata?.normalizedNip05
+			? metadata.normalizedNip05
+			: nip19.nprofileEncode({ pubkey });
+	}
+
 	$: if (dataType === 'event' && item === undefined && eventId !== undefined) {
 		item = $eventItemStore.get(eventId);
 	}
@@ -87,10 +94,8 @@
 </script>
 
 {#if dataType === 'user' && pubkey !== undefined}
-	<a href="/{nip19.npubEncode(pubkey)}">
-		@{metadata !== undefined
-			? metadata.content?.name
-			: nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7)}
+	<a href="/{profile ?? nip19.nprofileEncode({ pubkey })}">
+		@{metadata !== undefined ? metadata.displayName : alternativeName(pubkey)}
 	</a>
 {:else if dataType === 'event' && eventId !== undefined}
 	{#if item !== undefined}
