@@ -5,6 +5,7 @@
 	import type { Event } from 'nostr-typedef';
 	import { page } from '$app/stores';
 	import { bookmark, unbookmark, isBookmarked } from '$lib/author/Bookmark';
+	import { broadcast } from '$lib/Broadcast';
 	import { copy } from '$lib/Clipboard';
 	import { shareUrl } from '$lib/Share';
 	import { rom } from '$lib/stores/Author';
@@ -15,6 +16,7 @@
 	import IconClipboard from '@tabler/icons-svelte/dist/svelte/icons/IconClipboard.svelte';
 	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
+	import IconBroadcast from '@tabler/icons-svelte/dist/svelte/icons/IconBroadcast.svelte';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -114,6 +116,9 @@
 		<Menu.Label>Developer</Menu.Label>
 		<Menu.Item icon={IconCodeDots} on:click={() => (showDetails = !showDetails)}>
 			{$_('actions.details.button')}
+		</Menu.Item>
+		<Menu.Item icon={IconBroadcast} on:click={() => broadcast(event)}>
+			{$_('actions.broadcast.button')}
 		</Menu.Item>
 	{/if}
 </Menu>

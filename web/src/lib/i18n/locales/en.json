@@ -163,6 +163,9 @@
 		},
 		"details": {
 			"button": "Details"
+		},
+		"broadcast": {
+			"button": "Broadcast"
 		}
 	},
 	"thread": {
