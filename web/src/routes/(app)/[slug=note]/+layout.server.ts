@@ -1,12 +1,7 @@
-import { createRxBackwardReq, createRxNostr, uniq } from 'rx-nostr';
-import { firstValueFrom } from 'rxjs';
 import type { Event } from 'nostr-typedef';
 import { nip19 } from 'nostr-tools';
-import WebSocket from 'ws';
 import type { LayoutServerLoad } from './$types';
 import { defaultRelays } from '$lib/Constants';
-
-const rxNostr = createRxNostr({ websocketCtor: WebSocket });
 
 export const load: LayoutServerLoad<{ event: Event | undefined }> = async ({ params }) => {
 	const slug = params.slug;
@@ -42,18 +37,14 @@ export const load: LayoutServerLoad<{ event: Event | undefined }> = async ({ par
 
 	console.log('[nevent server load data]', id, relays);
 
-	try {
-		const req = createRxBackwardReq();
-		const promise = firstValueFrom(rxNostr.use(req).pipe(uniq()));
-		req.emit([{ ids: [id] }], { relays });
-		req.over();
-		const { event } = await promise;
-		console.log('[nevent server load event]', event);
-		return { event };
-	} catch (error) {
-		console.warn('[nevent server load event not found]', error);
+	const response = await fetch(`https://api.nostter.app/${nip19.neventEncode({ id, relays })}`);
+	if (!response.ok) {
+		console.warn('[nevent server load event not found]', await response.text());
 		return {
 			event: undefined
 		};
 	}
+	const event = await response.json() as Event;
+	console.log('[nevent server load event]', event);
+	return { event };
 };
