@@ -27,6 +27,7 @@ export const load: LayoutServerLoad<{ event: Event | undefined }> = async ({ par
 				if (data.relays !== undefined && data.relays.length > 0) {
 					relays = data.relays;
 				}
+				break;
 			}
 			default: {
 				throw new Error('Logic error');
