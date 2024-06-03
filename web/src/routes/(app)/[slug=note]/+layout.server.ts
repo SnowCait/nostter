@@ -9,9 +9,8 @@ import { defaultRelays } from '$lib/Constants';
 const rxNostr = createRxNostr({ websocketCtor: WebSocket });
 
 export const load: LayoutServerLoad<{ event: Event | undefined }> = async ({ params }) => {
-	console.log('[nevent server load]');
-
 	const slug = params.slug;
+	console.log('[nevent server load]', slug);
 
 	let id: string;
 	let relays: string[] = defaultRelays.map(({ url }) => url);
