@@ -34,12 +34,13 @@ export const load: LayoutServerLoad<{ event: Event | undefined }> = async ({ par
 			}
 		}
 	} catch (error) {
+		console.warn('[nevent server load decode error]', error);
 		return {
 			event: undefined
 		};
 	}
 
-	console.log('[nevent server load id]', id);
+	console.log('[nevent server load data]', id, relays);
 
 	try {
 		const req = createRxBackwardReq();
@@ -48,7 +49,8 @@ export const load: LayoutServerLoad<{ event: Event | undefined }> = async ({ par
 		req.over();
 		const { event } = await promise;
 		return { event };
-	} catch (e) {
+	} catch (error) {
+		console.warn('[nevent server load event not found]', error);
 		return {
 			event: undefined
 		};
