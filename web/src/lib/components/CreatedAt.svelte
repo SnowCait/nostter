@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
+
 	export let createdAt: number;
 	export let format: 'auto' | 'time' = 'auto';
 
-	const lang = navigator.language;
+	const lang = browser ? navigator.language : 'en';
 	const date = new Date(createdAt * 1000);
 	const elapsedTime = Date.now() - date.getTime();
 	const oneDay = 24 * 60 * 60 * 1000;

@@ -39,8 +39,20 @@
 	let eventId: string | undefined;
 	let rootId: string | undefined;
 	let relays: string[] = [];
+	let canonicalUrl: string | undefined;
 
 	$: metadata = item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined;
+
+	$: if (!browser && data.event !== undefined) {
+		item = new EventItem(data.event);
+	}
+
+	$: if (item !== undefined) {
+		canonicalUrl = `${$page.url.origin}/${nip19.neventEncode({
+			id: item.event.id,
+			author: item.event.pubkey
+		})}`;
+	}
 
 	let replyToEventItems: EventItem[] = [];
 	let repliedToEventItems: EventItem[] = [];
@@ -279,6 +291,12 @@
 			? `${metadata?.displayName}: ${item.event.content}`
 			: $_('pages.thread')}
 	</title>
+	{#if item !== undefined}
+		<meta property="og:title" content={item.event.content} />
+	{/if}
+	{#if canonicalUrl !== undefined}
+		<link href={canonicalUrl} rel="canonical" />
+	{/if}
 </svelte:head>
 
 <h1>{$_('pages.thread')}</h1>
