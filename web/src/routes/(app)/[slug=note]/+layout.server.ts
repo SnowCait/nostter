@@ -48,6 +48,7 @@ export const load: LayoutServerLoad<{ event: Event | undefined }> = async ({ par
 		req.emit([{ ids: [id] }], { relays });
 		req.over();
 		const { event } = await promise;
+		console.log('[nevent server load event]', event);
 		return { event };
 	} catch (error) {
 		console.warn('[nevent server load event not found]', error);
