@@ -42,6 +42,10 @@
 
 	$: metadata = item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined;
 
+	$: if (!browser && data.event !== undefined) {
+		item = new EventItem(data.event);
+	}
+
 	let replyToEventItems: EventItem[] = [];
 	let repliedToEventItems: EventItem[] = [];
 	let repostEventItems: EventItem[] = [];
@@ -279,6 +283,9 @@
 			? `${metadata?.displayName}: ${item.event.content}`
 			: $_('pages.thread')}
 	</title>
+	{#if item !== undefined}
+		<meta property="og:title" content={item.event.content} />
+	{/if}
 </svelte:head>
 
 <h1>{$_('pages.thread')}</h1>
