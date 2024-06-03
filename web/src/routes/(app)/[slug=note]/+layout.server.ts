@@ -44,7 +44,7 @@ export const load: LayoutServerLoad<{ event: Event | undefined }> = async ({ par
 			event: undefined
 		};
 	}
-	const event = await response.json() as Event;
+	const event = (await response.json()) as Event;
 	console.log('[nevent server load event]', event);
 	return { event };
 };
