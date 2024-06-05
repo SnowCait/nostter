@@ -13,6 +13,7 @@
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
 	import { EventItem, Metadata, alternativeName } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
+	import NoteLink from '../items/NoteLink.svelte';
 
 	export let text: string;
 
@@ -105,9 +106,7 @@
 			<blockquote><EventComponent {item} readonly={true} /></blockquote>
 		{/if}
 	{:else}
-		<a href="/{nip19.noteEncode(eventId)}">
-			{nip19.noteEncode(eventId).substring(0, 'note1'.length + 7)}
-		</a>
+		<blockquote><NoteLink {eventId} /></blockquote>
 	{/if}
 {:else if dataType === 'addr'}
 	{#if item !== undefined && Number(item.event.kind) === 30030}
