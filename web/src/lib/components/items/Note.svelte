@@ -65,9 +65,7 @@
 			return;
 		}
 
-		const tags = note.tags.filter(
-			([tagName, p]) => tagName === 'e' || (tagName === 'p' && p !== note.pubkey)
-		);
+		const tags = [];
 		tags.push(['e', note.id]);
 		tags.push(['p', note.pubkey]);
 		tags.push(['k', String(note.kind)]);
