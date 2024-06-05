@@ -17,6 +17,8 @@
 
 	async function fetchOgp(url: URL, proxy: boolean): Promise<boolean> {
 		console.debug('[OGP url]', url.href, proxy);
+		cache.set(url.href, undefined);
+
 		return await new Promise((resolve) => {
 			fetch(proxy ? `https://corsproxy.io/?${encodeURIComponent(url.href)}` : url)
 				.then(async (response) => {
@@ -33,7 +35,6 @@
 							response.status,
 							...response.headers
 						);
-						cache.set(url.href, undefined);
 						resolve(false);
 						return;
 					}
@@ -53,7 +54,6 @@
 							url.href,
 							metaTags.find((element) => element.getAttribute('charset') !== null)
 						);
-						cache.set(url.href, undefined);
 						resolve(true);
 						return;
 					}
