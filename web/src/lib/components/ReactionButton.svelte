@@ -2,17 +2,16 @@
 	import { _ } from 'svelte-i18n';
 	import { Kind } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
-	import { reactionedEventIds, updateReactionedEvents } from '$lib/author/Action';
+	import { reactionedEventIds } from '$lib/author/Action';
+	import { sendReaction } from '$lib/author/Reaction';
 	import { preferencesStore } from '$lib/Preferences';
-	import { rom, writeRelays } from '$lib/stores/Author';
+	import { rom } from '$lib/stores/Author';
 	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
 	import IconHeartFilled from '@tabler/icons-svelte/dist/svelte/icons/IconHeartFilled.svelte';
 	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
 	import IconPawFilled from '@tabler/icons-svelte/dist/svelte/icons/IconPawFilled.svelte';
 	import IconStar from '@tabler/icons-svelte/dist/svelte/icons/IconStar.svelte';
 	import IconStarFilled from '@tabler/icons-svelte/dist/svelte/icons/IconStarFilled.svelte';
-	import { Signer } from '$lib/Signer';
-	import { pool } from '$lib/stores/Pool';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -33,25 +32,11 @@
 			}
 		}
 
-		const content = $preferencesStore.reactionEmoji.content;
-		const tags = [];
-		tags.push(['e', note.id]);
-		tags.push(['p', note.pubkey]);
-		tags.push(['k', String(note.kind)]);
-		if ($preferencesStore.reactionEmoji.url !== undefined) {
-			tags.push(['emoji', content.replaceAll(':', ''), $preferencesStore.reactionEmoji.url]);
-		}
-
-		const event = await Signer.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: 7,
-			tags,
-			content
-		});
-		console.log(event);
-
-		$pool.publish($writeRelays, event);
-		updateReactionedEvents([event]);
+		sendReaction(
+			note,
+			$preferencesStore.reactionEmoji.content,
+			$preferencesStore.reactionEmoji.url
+		);
 	}
 </script>
 
