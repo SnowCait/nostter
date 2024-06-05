@@ -22,11 +22,13 @@
 		return await new Promise((resolve) => {
 			fetch(proxy ? `https://corsproxy.io/?${encodeURIComponent(url.href)}` : url)
 				.then(async (response) => {
+					const contentType = response.headers.get('Content-Type');
 					if (
 						!response.ok ||
 						response.status < 200 ||
 						300 <= response.status ||
-						!response.headers.get('Content-Type')?.includes('text/html')
+						contentType === null ||
+						!contentType.includes('text/html')
 					) {
 						console.debug(
 							'[OGP error]',
@@ -45,6 +47,7 @@
 						(element) => element.tagName === 'META'
 					);
 					if (
+						!/charset=utf-8/i.test(contentType) &&
 						!metaTags.some(
 							(element) => element.getAttribute('charset')?.toLowerCase() === 'utf-8'
 						)
