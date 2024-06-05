@@ -6,6 +6,7 @@
 	import Text from './Text.svelte';
 	import Url from './Url.svelte';
 	import { eventItemStore } from '$lib/cache/Events';
+	import NoteLink from '../items/NoteLink.svelte';
 
 	export let text: string;
 	export let tag: string[];
@@ -27,9 +28,9 @@
 			<Note {item} readonly={true} />
 		</blockquote>
 	{:else}
-		<a href="/{nip19.noteEncode(tag[1])}">
-			{nip19.noteEncode(tag[1]).substring(0, 'note1'.length + 7)}
-		</a>
+		<blockquote>
+			<NoteLink eventId={tag[1]} />
+		</blockquote>
 	{/if}
 {:else if tag.at(0) === 'r' && tag.at(1) !== undefined}
 	<Url text={tag[1]} />

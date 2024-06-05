@@ -195,7 +195,10 @@
 		if (open) {
 			if ($quotes.length > 0) {
 				content =
-					'\n' + $quotes.map((event) => `nostr:${nip19.noteEncode(event.id)}`).join('\n');
+					'\n' +
+					$quotes
+						.map((event) => `nostr:${nip19.neventEncode({ id: event.id })}`)
+						.join('\n');
 			}
 
 			await tick();

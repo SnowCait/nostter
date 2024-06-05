@@ -5,7 +5,7 @@
 </script>
 
 <article class="timeline-item">
-	<a href="/{nip19.noteEncode(eventId)}">
-		{nip19.noteEncode(eventId).substring(0, 'note1'.length + 7)}
+	<a href="/{nip19.neventEncode({ id: eventId })}">
+		{nip19.neventEncode({ id: eventId }).substring(0, 'nevent1'.length + 7)}
 	</a>
 </article>
