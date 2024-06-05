@@ -53,6 +53,8 @@
 	</ObserverRender>
 {:else if link.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(link.hostname)}
 	<YouTube {link} />
+{:else if link.hostname === 'amzn.to' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
+	<ExternalLink {link}>{text}</ExternalLink>
 {:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
 	{#if preview}
 		<div>

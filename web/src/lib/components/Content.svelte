@@ -52,6 +52,8 @@
 					<!-- Twitter -->
 				{:else if url.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(url.hostname)}
 					<!-- YouTube -->
+				{:else if url.hostname === 'amzn.to' || /^(.+\.)*amazon\.co\.jp$/s.test(url.hostname)}
+					<!-- Amazon -->
 				{:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp|mp3|m4a|wav|mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(url.pathname)}
 					<!-- Media -->
 				{:else}
