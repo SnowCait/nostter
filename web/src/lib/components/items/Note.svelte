@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { Kind, nip19, type Event } from 'nostr-tools';
 	import type { EventItem, Item } from '$lib/Items';
+	import { sendReaction } from '$lib/author/Reaction';
 	import { metadataStore } from '$lib/cache/Events';
 	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
 	import { openNoteDialog, replyTo } from '$lib/stores/NoteDialog';
-	import { readRelays, writeRelays, pubkey, author } from '$lib/stores/Author';
+	import { readRelays, pubkey, author } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
 	import { rom } from '$lib/stores/Author';
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
 	import ZapDialog from '../ZapDialog.svelte';
 	import Content from '$lib/components/Content.svelte';
-	import { Signer } from '$lib/Signer';
 	import { getCodePoints } from '$lib/String';
 	import { isReply } from '$lib/EventHelper';
 	import { Channel, channelIdStore } from '$lib/Channel';
@@ -58,32 +58,19 @@
 	}
 
 	async function emojiReaction(note: Event, emoji: any) {
-		console.log('[emoji reaction]', note, emoji);
+		console.log('[reaction with emoji]', note, emoji);
 
 		if ($rom) {
 			console.error('Readonly');
 			return;
 		}
 
-		const tags = [];
-		tags.push(['e', note.id]);
-		tags.push(['p', note.pubkey]);
-		tags.push(['k', String(note.kind)]);
-		if (emoji.native === undefined && emoji.src !== undefined) {
-			tags.push(['emoji', emoji.id.replaceAll('+', '_'), emoji.src]);
-		}
-
-		const event = await Signer.signEvent({
-			created_at: Math.round(Date.now() / 1000),
-			kind: 7,
-			tags,
-			content:
-				emoji.native ??
-				(emoji.shortcodes ? emoji.shortcodes : `:${emoji.id.replaceAll('+', '_')}:`)
-		});
-		console.log(event);
-
-		$pool.publish($writeRelays, event);
+		const content =
+			emoji.native ??
+			(emoji.shortcodes ? emoji.shortcodes : `:${emoji.id.replaceAll('+', '_')}:`);
+		const emojiUrl =
+			emoji.native === undefined && emoji.src !== undefined ? emoji.src : undefined;
+		sendReaction(note, content, emojiUrl);
 	}
 
 	function onZapped() {
