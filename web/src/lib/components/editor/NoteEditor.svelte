@@ -16,6 +16,7 @@
 	import { openNoteDialog, replyTo, quotes, intentContent } from '$lib/stores/NoteDialog';
 	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { customEmojiTags } from '$lib/author/CustomEmojis';
+	import { fetchFolloweesMetadata } from '$lib/author/Follow';
 	import Note from '../items/Note.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 	import ChannelTitle from '../ChannelTitle.svelte';
@@ -58,6 +59,7 @@
 	//#region Mention complement
 
 	let mention: string | undefined;
+	let mentionPrevious = mention;
 	let mentionComplementList: Metadata[] = [];
 	let mentionComplementIndex = 0;
 
@@ -78,15 +80,19 @@
 					.slice(0, displayMax - list.length)
 			);
 		}
+		if (list.length < displayMax) {
+			fetchFolloweesMetadata();
+		}
 		mentionComplementList = list;
+		console.debug('[complement mention list]', mention, mentionComplementList);
 	}
 
 	$: if (mention === undefined) {
 		mentionComplementList = [];
 	}
 
-	$: {
-		console.debug('[complement mention list]', mentionComplementList); // Trigger. Don't delete this line.
+	$: if (mention !== mentionPrevious) {
+		mentionPrevious = mention;
 		mentionComplementIndex = 0;
 	}
 
@@ -224,7 +230,7 @@
 		}
 
 		// Complement
-		if (mention === undefined) {
+		if (mention === undefined || mentionComplementList.length === 0) {
 			return;
 		}
 
