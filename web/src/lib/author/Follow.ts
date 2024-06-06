@@ -2,13 +2,14 @@ import { get } from 'svelte/store';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type { Event } from 'nostr-typedef';
-import { rxNostr } from '$lib/timelines/MainTimeline';
+import { metadataStore } from '$lib/cache/Events';
+import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 import { updateFolloweesStore } from '$lib/Contacts';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
-import { pubkey } from '../stores/Author';
+import { followees, pubkey } from '../stores/Author';
 
 type DataType = 'follow' | 'unfollow';
 type Data = {
@@ -104,3 +105,23 @@ async function validate(event: Event | undefined): Promise<boolean> {
 
 	return true;
 }
+
+//#region Metadata
+
+let metadataFetched = false;
+
+export function fetchFolloweesMetadata(): void {
+	if (metadataFetched) {
+		return;
+	}
+
+	const $followees = get(followees);
+	const $metadataStore = get(metadataStore);
+	const pubkeys = $followees.filter((pubkey) => !$metadataStore.has(pubkey));
+	if (pubkeys.length > 0) {
+		metadataReqEmit(pubkeys);
+	}
+	metadataFetched = true;
+}
+
+//#endregion

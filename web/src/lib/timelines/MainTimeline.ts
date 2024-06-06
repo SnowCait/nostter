@@ -93,12 +93,15 @@ const eventsReq = createRxBackwardReq();
 const replaceableEventsReq = createRxBackwardReq();
 
 export async function metadataReqEmit(pubkeys: string[]): Promise<void> {
-	const groupedPubkeys = chunk(pubkeys.filter(pubkey => !get(metadataStore).has(pubkey)), filterLimitItems)
+	const groupedPubkeys = chunk(
+		pubkeys.filter((pubkey) => !get(metadataStore).has(pubkey)),
+		filterLimitItems
+	);
 	for (const pubkeys of groupedPubkeys) {
 		console.debug('[rx-nostr metadata REQ emit]', pubkeys);
 		metadataReq.emit({
 			kinds: [0],
-			authors: pubkeys,
+			authors: pubkeys
 		});
 		await sleep(0); // UI thread
 	}
@@ -158,7 +161,10 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 
 rxNostr
 	.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
-	.pipe(uniq(), latestEach(({ event }) => event.pubkey))
+	.pipe(
+		uniq(),
+		latestEach(({ event }) => event.pubkey)
+	)
 	.subscribe(({ event }) => storeMetadata(event));
 
 rxNostr
