@@ -230,7 +230,7 @@
 		}
 
 		// Complement
-		if (mention === undefined) {
+		if (mention === undefined || mentionComplementList.length === 0) {
 			return;
 		}
 
