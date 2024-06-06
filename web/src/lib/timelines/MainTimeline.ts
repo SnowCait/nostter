@@ -11,7 +11,7 @@ import {
 	type LazyFilter
 } from 'rx-nostr';
 import { tap, bufferTime } from 'rxjs';
-import { timeout } from '$lib/Constants';
+import { filterLimitItems, timeout } from '$lib/Constants';
 import { aTagContent, filterTags } from '$lib/EventHelper';
 import { EventItem, Metadata } from '$lib/Items';
 import {
@@ -20,6 +20,7 @@ import {
 	replaceableEventsStore,
 	storeMetadata
 } from '../cache/Events';
+import { chunk } from '$lib/Array';
 import { Content } from '$lib/Content';
 import { sleep } from '$lib/Helper';
 
@@ -92,16 +93,12 @@ const eventsReq = createRxBackwardReq();
 const replaceableEventsReq = createRxBackwardReq();
 
 export async function metadataReqEmit(pubkeys: string[]): Promise<void> {
-	for (const pubkey of pubkeys) {
-		if (get(metadataStore).has(pubkey)) {
-			console.debug('[rx-nostr metadata REQ skipped]', pubkey);
-			continue;
-		}
-		console.debug('[rx-nostr metadata REQ emit]', pubkey);
+	const groupedPubkeys = chunk(pubkeys.filter(pubkey => !get(metadataStore).has(pubkey)), filterLimitItems)
+	for (const pubkeys of groupedPubkeys) {
+		console.debug('[rx-nostr metadata REQ emit]', pubkeys);
 		metadataReq.emit({
 			kinds: [0],
-			authors: [pubkey],
-			limit: 1
+			authors: pubkeys,
 		});
 		await sleep(0); // UI thread
 	}
@@ -161,7 +158,7 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 
 rxNostr
 	.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
-	.pipe(latestEach(({ event }) => event.pubkey))
+	.pipe(uniq(), latestEach(({ event }) => event.pubkey))
 	.subscribe(({ event }) => storeMetadata(event));
 
 rxNostr
