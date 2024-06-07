@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { ObserverRender } from '@svelteuidev/core';
 	import { Content } from '$lib/Content';
 	import { newUrl } from '$lib/Helper';
 	import ReferenceNip27 from './content/ReferenceNip27.svelte';
@@ -45,23 +44,21 @@
 			<Text text={token.text} />
 		{/if}
 	{/each}
-	<ObserverRender let:visible options={{ unobserveOnEnter: true }}>
+	{#if $enablePreview}
 		{#each urls as url}
-			{#if $enablePreview && visible}
-				{#if url.origin === 'https://twitter.com' || url.origin === 'https://x.com'}
-					<!-- Twitter -->
-				{:else if url.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(url.hostname)}
-					<!-- YouTube -->
-				{:else if url.hostname === 'amzn.to' || /^(.+\.)*amazon\.co\.jp$/s.test(url.hostname)}
-					<!-- Amazon -->
-				{:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp|mp3|m4a|wav|mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(url.pathname)}
-					<!-- Media -->
-				{:else}
-					<Ogp {url} />
-				{/if}
+			{#if url.origin === 'https://twitter.com' || url.origin === 'https://x.com'}
+				<!-- Twitter -->
+			{:else if url.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(url.hostname)}
+				<!-- YouTube -->
+			{:else if url.hostname === 'amzn.to' || url.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(url.hostname)}
+				<!-- Amazon -->
+			{:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp|mp3|m4a|wav|mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(url.pathname)}
+				<!-- Media -->
+			{:else}
+				<Ogp {url} />
 			{/if}
 		{/each}
-	</ObserverRender>
+	{/if}
 </p>
 
 <style>

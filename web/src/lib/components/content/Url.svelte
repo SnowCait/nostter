@@ -7,7 +7,6 @@
 </script>
 
 <script lang="ts">
-	import { ObserverRender } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
 	import { newUrl } from '$lib/Helper';
 	import { enablePreview } from '$lib/stores/Preference';
@@ -33,27 +32,25 @@
 {#if link === undefined}
 	<Text {text} />
 {:else if link.origin === 'https://twitter.com' || link.origin === 'https://x.com'}
-	<ObserverRender let:visible options={{ unobserveOnEnter: true }}>
-		{#if preview && visible}
-			<div bind:this={twitterWidget}>
-				<blockquote class="twitter-tweet">
-					<a
-						href={link.href.replace('x.com', 'twitter.com')}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						{link.href}
-					</a>
-				</blockquote>
-			</div>
-		{:else}
-			<ExternalLink {link}>{text}</ExternalLink>
-			<button on:click={() => (preview = true)}>{$_('content.show')}</button>
-		{/if}
-	</ObserverRender>
+	{#if preview}
+		<div bind:this={twitterWidget}>
+			<blockquote class="twitter-tweet">
+				<a
+					href={link.href.replace('x.com', 'twitter.com')}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					{link.href}
+				</a>
+			</blockquote>
+		</div>
+	{:else}
+		<ExternalLink {link}>{text}</ExternalLink>
+		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+	{/if}
 {:else if link.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(link.hostname)}
 	<YouTube {link} />
-{:else if link.hostname === 'amzn.to' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
+{:else if link.hostname === 'amzn.to' || link.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
 	<ExternalLink {link}>{text}</ExternalLink>
 {:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
 	{#if preview}

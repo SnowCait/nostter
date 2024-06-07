@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { ObserverRender } from '@svelteuidev/core';
 	import { enablePreview } from '$lib/stores/Preference';
 	import ExternalLink from '../ExternalLink.svelte';
 
@@ -15,7 +14,6 @@
 			if (v !== null) {
 				id = v;
 			} else if (link.pathname.includes('shorts')) {
-				console.log('[youtube shorts]', link.pathname);
 				const match = link.pathname.match(/\/shorts\/(?<id>\w+)/);
 				id = match?.groups?.id;
 			}
@@ -23,18 +21,16 @@
 	}
 </script>
 
-<ObserverRender let:visible options={{ unobserveOnEnter: true }}>
-	{#if id !== undefined && visible && $enablePreview}
-		<iframe
-			id="ytplayer"
-			src="https://www.youtube.com/embed/{id}?origin={location.origin}"
-			frameborder="0"
-			title=""
-		/>
-	{:else}
-		<ExternalLink {link} />
-	{/if}
-</ObserverRender>
+{#if id !== undefined && $enablePreview}
+	<iframe
+		id="ytplayer"
+		src="https://www.youtube.com/embed/{id}?origin={location.origin}"
+		frameborder="0"
+		title=""
+	/>
+{:else}
+	<ExternalLink {link} />
+{/if}
 
 <style>
 	iframe {
