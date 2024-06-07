@@ -80,7 +80,12 @@
 			const eventItems = await search.fetch(filter);
 			items.push(
 				...eventItems.filter(
-					(item) => proxy || !item.event.tags.some(([tagName]) => tagName === 'proxy')
+					(item) =>
+						proxy ||
+						!item.event.tags.some(
+							([tagName, , protocol]) =>
+								tagName === 'proxy' && !['rss', 'web'].includes(protocol)
+						)
 				)
 			);
 			items = items;
