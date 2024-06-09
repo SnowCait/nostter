@@ -44,7 +44,6 @@
 	}
 </script>
 
-<div>{pubkey}</div>
 <section>
 	{#if generalEvent !== undefined && generalEvent.content !== ''}
 		<div>
