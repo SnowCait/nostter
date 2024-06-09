@@ -12,15 +12,13 @@
 	export let pubkey: string;
 	export let showLink = false;
 
-	const p = pubkey;
-
 	let generalEvent: Event | undefined;
 	let musicEvent: Event | undefined;
 	let generalLink: URL | undefined;
 	let musicLink: URL | undefined;
 
 	$: {
-		const statuses = $userStatusesMap.get(p) ?? [];
+		const statuses = $userStatusesMap.get(pubkey) ?? [];
 		statuses.sort(chronological);
 		generalEvent = statuses.findLast((event) => findIdentifier(event.tags) === 'general');
 		musicEvent = statuses.findLast((event) => findIdentifier(event.tags) === 'music');
@@ -46,6 +44,7 @@
 	}
 </script>
 
+<div>{pubkey}</div>
 <section>
 	{#if generalEvent !== undefined && generalEvent.content !== ''}
 		<div>
@@ -57,7 +56,7 @@
 						<IconLink size="14" />
 					</a>
 				{/if}
-				{#if p === $authorPubkey}
+				{#if pubkey === $authorPubkey}
 					<a
 						href="https://nostatus.vercel.app/"
 						target="_blank"
