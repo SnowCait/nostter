@@ -1,4 +1,5 @@
 # Temporarily
+User-agent: Bingbot
 User-agent: Googlebot
 Disallow: /npub
 Disallow: /nprofile
