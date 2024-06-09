@@ -16,7 +16,7 @@
 {#if showReplaceableEvents}
 	{#each [...$replaceableEvents]
 		.map(([, packets]) => packets)
-		.toSorted((x, y) => x[0].event.kind - y[0].event.kind) as packets}
+		.sort((x, y) => x[0].event.kind - y[0].event.kind) as packets}
 		<pre>{packets.map((packet) => packet.from).join('\n')}</pre>
 		<Json object={packets[0].event} />
 	{:else}
