@@ -1,0 +1,6 @@
+# Temporarily
+User-agent: Googlebot
+Disallow: /npub
+Disallow: /nprofile
+Disallow: /note
+Disallow: /nevent
