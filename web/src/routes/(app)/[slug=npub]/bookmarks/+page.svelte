@@ -7,7 +7,7 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import { bookmarkEvent } from '$lib/author/Bookmark';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { appName } from '$lib/Constants';
+	import { appName, reverseChronologicalItem } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
 	import { Signer } from '$lib/Signer';
 	import { EventItem } from '$lib/Items';
@@ -43,9 +43,8 @@
 				.subscribe((packet) => {
 					console.log('[rx-nostr public bookmark packet]', packet);
 					publicBookmarkEventItems.push(new EventItem(packet.event));
-					publicBookmarkEventItems = publicBookmarkEventItems.toSorted(
-						(a, b) => b.event.created_at - a.event.created_at
-					);
+					publicBookmarkEventItems =
+						publicBookmarkEventItems.sort(reverseChronologicalItem);
 				});
 		}
 

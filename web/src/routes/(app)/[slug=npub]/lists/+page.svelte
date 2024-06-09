@@ -93,7 +93,7 @@
 <h1>{title}</h1>
 
 <ul>
-	{#each [...listEvents].map(([, event]) => event).toSorted(reverseChronological) as event}
+	{#each [...listEvents].map(([, event]) => event).sort(reverseChronological) as event}
 		<li class="card">
 			<a
 				href="/{nip19.npubEncode(data.pubkey)}/lists/{nip19.naddrEncode({
