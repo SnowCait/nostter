@@ -30,13 +30,13 @@
 			<img src={image} alt="" />
 		{/if}
 		<div class="content">
-			<h1><a href="/{naddr}">{title}</a></h1>
-			<p>{summary}</p>
+			<h1>{title ?? '-'}</h1>
+			<p>{summary ?? ''}</p>
 			<div class="action-menu">
-				<button on:click={quote}>
+				<button on:click|stopPropagation={quote}>
 					<IconQuote size={iconSize} />
 				</button>
-				<button on:click={toggleJsonDisplay}>
+				<button on:click|stopPropagation={toggleJsonDisplay}>
 					<IconCodeDots size={iconSize} />
 				</button>
 			</div>

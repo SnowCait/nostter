@@ -46,11 +46,13 @@
 {#if event === undefined}
 	<a href="/{naddr}">{naddr.substring(0, 'naddr1'.length + 7)}</a>
 {:else if event.kind == Kind.Article}
-	<blockquote>
-		<LongFormContent {naddr} {event} />
-	</blockquote>
+	<a href="/{naddr}">
+		<blockquote>
+			<LongFormContent {naddr} {event} />
+		</blockquote>
+	</a>
 {:else if Number(event.kind) === 30000}
-	<a href="/{nip19.npubEncode(event.pubkey)}/lists/{naddr}" class="quote">
+	<a href="/{nip19.npubEncode(event.pubkey)}/lists/{naddr}">
 		<blockquote>
 			<List {event} />
 		</blockquote>
@@ -60,7 +62,7 @@
 {/if}
 
 <style>
-	a.quote {
+	a:has(blockquote) {
 		text-decoration: none;
 	}
 </style>
