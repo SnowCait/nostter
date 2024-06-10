@@ -24,9 +24,11 @@
 	</a>
 {:else if tag.at(0) === 'e' && tag.at(1) !== undefined}
 	{#if item !== undefined}
-		<blockquote>
-			<Note {item} readonly={true} />
-		</blockquote>
+		<a href="/{nip19.neventEncode({ id: item.event.id, author: item.event.pubkey })}">
+			<blockquote>
+				<Note {item} readonly={true} />
+			</blockquote>
+		</a>
 	{:else}
 		<blockquote>
 			<NoteLink eventId={tag[1]} />
@@ -39,3 +41,9 @@
 {:else}
 	<Text {text} />
 {/if}
+
+<style>
+	a:has(blockquote) {
+		text-decoration: none;
+	}
+</style>

@@ -51,7 +51,7 @@
 
 	const viewDetail = async (clickEvent: MouseEvent, nostrEvent: Event) => {
 		let target: HTMLElement | null = clickEvent.target as HTMLElement;
-		if (target.closest('.svelteui-Menu-root') !== null || emojiPickerOpen) {
+		if (target.closest('.svelteui-Menu-root') || target.closest('a') || emojiPickerOpen) {
 			return;
 		}
 		if (target) {
@@ -64,7 +64,6 @@
 				}
 				const tagName = target.tagName.toLocaleLowerCase();
 				if (
-					tagName === 'a' ||
 					tagName === 'button' ||
 					tagName === 'video' ||
 					tagName === 'audio' ||
@@ -73,15 +72,6 @@
 					return;
 				}
 				if (tagName === 'p' && String(document.getSelection()).length) {
-					return;
-				}
-				if (tagName === 'blockquote') {
-					const refEventId = getTargetETag(nostrEvent.tags);
-					if (!refEventId) {
-						return;
-					}
-					const noteId = nip19.neventEncode({ id: refEventId });
-					await goto(`/${noteId}`);
 					return;
 				}
 				target = target.parentElement;
