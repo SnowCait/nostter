@@ -7,8 +7,7 @@
 	import { User } from '$lib/User';
 	import UserFollowingTimeline from './UserFollowingTimeline.svelte';
 
-	let pubkey: string;
-	let timeline: UserFollowingTimeline;
+	let pubkey: string | undefined;
 
 	afterNavigate(async () => {
 		const slug = $page.params.slug;
@@ -26,8 +25,6 @@
 		}
 
 		pubkey = data.pubkey;
-
-		await timeline.initialize(pubkey);
 	});
 </script>
 
@@ -35,4 +32,6 @@
 	<title>{appName} - {$_('pages.timeline')}</title>
 </svelte:head>
 
-<UserFollowingTimeline bind:this={timeline} />
+{#if pubkey !== undefined}
+	<UserFollowingTimeline {pubkey} />
+{/if}

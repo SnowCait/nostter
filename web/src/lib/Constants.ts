@@ -6,6 +6,7 @@ export const japaneseBotNpub = 'npub1pp79ruvjd7xned8lgh6n4rhz4pg3els3x5n6kr58l8z
 export const trendingPeopleBotNpub =
 	'npub1qsytpsj0pk8pfyk2msyx8ymmvkavn2lg2pxdxsdxufeu83ax5ymsgd4t3w';
 export const minTimelineLength = 25;
+export const timelineLoadSince = Math.floor(new Date(2022, 0, 1).getTime() / 1000);
 export const filterLimitItems = 1000;
 export const maxFilters = 10;
 export const timelineBufferMs = 1500;
@@ -24,6 +25,9 @@ export const replaceableKinds = [
 	10030
 ];
 export const parameterizedReplaceableKinds = [30000, 30001, 30078];
+
+export const followeesKinds = [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage];
+export const relatesKinds = [Kind.Text, 6, Kind.ChannelMessage];
 
 export const defaultRelays = [
 	{
