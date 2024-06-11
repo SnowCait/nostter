@@ -1,6 +1,13 @@
 import { get, writable } from 'svelte/store';
-import { createRxBackwardReq, createRxForwardReq, now, uniq } from 'rx-nostr';
-import { filter, tap, type Subscription } from 'rxjs';
+import {
+	createRxBackwardReq,
+	createRxForwardReq,
+	filterByKind,
+	latestEach,
+	now,
+	uniq
+} from 'rx-nostr';
+import { filter, share, tap, type Subscription } from 'rxjs';
 import type { Timeline } from './Timeline';
 import { referencesReqEmit, rxNostr } from './MainTimeline';
 import { authorActionReqEmit } from '$lib/author/Action';
@@ -15,6 +22,7 @@ import {
 import { Timeline as TL } from '$lib/Timeline';
 import { fetchMinutes } from '$lib/Helper';
 import { EventItem } from '$lib/Items';
+import { storeMetadata } from '$lib/cache/Events';
 
 export const timelinesMap = new Map<string, UserFollowingTimeline>();
 export const currentPubkey = writable<string | undefined>();
@@ -43,9 +51,22 @@ export class UserFollowingTimeline implements Timeline {
 		);
 		const since = this.#newest;
 		const req = createRxForwardReq();
-		this.#subscription = rxNostr
-			.use(req)
-			.pipe(uniq())
+		const observable$ = rxNostr.use(req).pipe(uniq(), share());
+		observable$
+			.pipe(
+				filterByKind(0),
+				latestEach(({ event }) => event.pubkey),
+				tap(({ event }) => console.debug('[rx-nostr metadata event]', event))
+			)
+			.subscribe(({ event }) => storeMetadata(event));
+		this.#subscription = observable$
+			.pipe(
+				filterByKind(0, { not: true }),
+				tap(({ event }) => {
+					referencesReqEmit(event);
+					authorActionReqEmit(event);
+				})
+			)
 			.subscribe(({ event }) => {
 				console.debug('[user following timeline subscribe event]', event);
 				const item = new EventItem(event);
