@@ -5,9 +5,9 @@ import type { Event } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr } from './MainTimeline';
 import { authorActionReqEmit } from '../author/Action';
 import { chunk } from '../Array';
-import { filterLimitItems, minTimelineLength } from '../Constants';
+import { filterLimitItems, followeesKinds, minTimelineLength } from '../Constants';
 import { EventItem } from '../Items';
-import { Timeline, timelineKinds } from '../Timeline';
+import { Timeline } from '../Timeline';
 
 let subscription: Subscription | undefined;
 
@@ -54,7 +54,7 @@ export function subscribeListTimeline(): void {
 	req.emit(
 		chunk($pubkeys, filterLimitItems).map((chunkedAuthors) => {
 			return {
-				kinds: timelineKinds,
+				kinds: followeesKinds,
 				authors: chunkedAuthors,
 				since
 			};

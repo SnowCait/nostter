@@ -6,12 +6,11 @@
 	import HomeTab from '$lib/components/HomeTab.svelte';
 	import UserFollowingTimeline from '../[slug=npub]/timeline/UserFollowingTimeline.svelte';
 
-	let userFollowingTimeline: UserFollowingTimeline | undefined;
+	let pubkey: string | undefined;
 
 	onMount(async () => {
 		const npub = navigator.language.startsWith('ja') ? japaneseBotNpub : trendingPeopleBotNpub;
-		const pubkey = nip19.decode(npub).data as string;
-		await userFollowingTimeline?.initialize(pubkey);
+		pubkey = nip19.decode(npub).data as string;
 	});
 </script>
 
@@ -21,9 +20,11 @@
 
 <HomeTab selected="trend" />
 
-<div class="timeline">
-	<UserFollowingTimeline bind:this={userFollowingTimeline} />
-</div>
+{#if pubkey !== undefined}
+	<div class="timeline">
+		<UserFollowingTimeline {pubkey} />
+	</div>
+{/if}
 
 <style>
 	@media screen and (min-width: 601px) {

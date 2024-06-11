@@ -29,7 +29,6 @@
 		scrollY.subscribe(async (y) => {
 			const maxHeight = document.documentElement.scrollHeight;
 			const scrollRate = Math.floor((100 * (y + innerHeight)) / maxHeight);
-			console.debug('[y]', y, innerHeight, maxHeight, scrollRate);
 
 			if (scrollRate > 80 && !loading) {
 				console.log('Load more timeline');
