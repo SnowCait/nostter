@@ -507,7 +507,6 @@
 				on:paste={paste}
 				on:dragover|preventDefault={dragover}
 				on:drop|preventDefault={drop}
-		class:warning={containsNsec}
 			/>
 			{#if containsNsec}
 				<div class="warning">{$_('editor.warning.nsec')}</div>
@@ -599,10 +598,6 @@
 		min-height: 5.5rem;
 		max-height: 20.5rem;
 		line-height: 1rem;
-	}
-
-	textarea.warning {
-		border: 1px solid var(--red);
 	}
 
 	div.warning {
