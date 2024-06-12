@@ -10,7 +10,7 @@
 </script>
 
 {#if metadata !== undefined}
-	<ProfileIcon {metadata} />
+	<ProfileIcon {metadata} width="1.2rem" height="1.2rem" />
 	<ProfileName {metadata} />
 {:else}
 	<span>{alternativeName(pubkey)}</span>
