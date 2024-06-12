@@ -9,7 +9,7 @@
 <img
 	src={metadata.picture ?? robohash(metadata.event.pubkey)}
 	alt=""
-	style="width: {width}; heigt: {height};"
+	style="width: {width}; height: {height};"
 />
 
 <style>
