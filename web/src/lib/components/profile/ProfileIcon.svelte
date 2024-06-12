@@ -2,14 +2,18 @@
 	import { robohash, type Metadata } from '$lib/Items';
 
 	export let metadata: Metadata;
+	export let width = '100%';
+	export let height = '100%';
 </script>
 
-<img src={metadata.picture ?? robohash(metadata.event.pubkey)} alt="" />
+<img
+	src={metadata.picture ?? robohash(metadata.event.pubkey)}
+	alt=""
+	style="width: {width}; heigt: {height};"
+/>
 
 <style>
 	img {
-		width: 1.2rem;
-		height: 1.2rem;
 		border-radius: 50%;
 		object-fit: cover;
 		vertical-align: middle;

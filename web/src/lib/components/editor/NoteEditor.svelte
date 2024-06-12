@@ -25,6 +25,7 @@
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import ContentWarning from './ContentWarning.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
+	import ProfileIcon from '../profile/ProfileIcon.svelte';
 	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
 
 	export function clear(): void {
@@ -107,6 +108,7 @@
 
 	//#endregion
 
+	$: metadata = $metadataStore.get($pubkey);
 	$: containsNsec = /nsec1\w{6,}/.test(content);
 
 	$: {
@@ -487,37 +489,46 @@
 	{#if $replyTo}
 		<Note item={$replyTo} readonly={true} />
 	{/if}
-	<textarea
-		placeholder={$_('editor.content.placeholder')}
-		class:dropzone={onDrag}
-		bind:value={content}
-		bind:this={textarea}
-		on:keydown={onKeydown}
-		on:keyup|stopPropagation={() => console.debug}
-		on:input={onInput}
-		on:paste={paste}
-		on:dragover|preventDefault={dragover}
-		on:drop|preventDefault={drop}
-		class:warning={containsNsec}
-	/>
-	{#if containsNsec}
-		<div class="warning">{$_('editor.warning.nsec')}</div>
-	{/if}
+	<div class="content">
+		{#if metadata !== undefined}
+			<div class="author">
+				<ProfileIcon {metadata} />
+			</div>
+		{/if}
+		<div class="input">
+			<textarea
+				placeholder={$_('editor.content.placeholder')}
+				class:dropzone={onDrag}
+				bind:value={content}
+				bind:this={textarea}
+				on:keydown={onKeydown}
+				on:keyup|stopPropagation={() => console.debug}
+				on:input={onInput}
+				on:paste={paste}
+				on:dragover|preventDefault={dragover}
+				on:drop|preventDefault={drop}
+			/>
+			{#if containsNsec}
+				<div class="warning">{$_('editor.warning.nsec')}</div>
+			{/if}
 
-	{#if mentionComplementList.length > 0 && textarea !== undefined}
-		<ul class="complement card" use:complementPosition={textarea}>
-			{#each mentionComplementList as metadata, i}
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-				<li
-					class:selected={i === mentionComplementIndex}
-					on:click|stopPropagation={() => replaceComplement(mentionComplementList[i])}
-				>
-					<OnelineProfile pubkey={metadata.event.pubkey} />
-				</li>
-			{/each}
-		</ul>
-	{/if}
+			{#if mentionComplementList.length > 0 && textarea !== undefined}
+				<ul class="complement card" use:complementPosition={textarea}>
+					{#each mentionComplementList as metadata, i}
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+						<li
+							class:selected={i === mentionComplementIndex}
+							on:click|stopPropagation={() =>
+								replaceComplement(mentionComplementList[i])}
+						>
+							<OnelineProfile pubkey={metadata.event.pubkey} />
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
+	</div>
 
 	<div class="actions">
 		<div class="options">
@@ -565,21 +576,34 @@
 </article>
 
 <style>
-	textarea {
-		width: 100%;
-		padding: 0.25rem 1rem;
-		font-size: 1rem;
-		max-height: 20.5rem;
-		line-height: 1rem;
+	.content {
+		display: flex;
+		flex-direction: row;
 	}
 
-	textarea.warning {
-		border: 1px solid var(--red);
+	.author {
+		width: 3rem;
+		height: 3rem;
+		margin: 0 0.5rem;
+	}
+
+	.input {
+		width: 100%;
+	}
+
+	textarea {
+		width: 100%;
+		padding: 0.25rem 0.5rem;
+		font-size: 1rem;
+		min-height: 5.5rem;
+		max-height: 20.5rem;
+		line-height: 1rem;
 	}
 
 	div.warning {
 		font-size: 0.75rem;
 		color: var(--red);
+		margin: 0.25rem auto;
 	}
 
 	.dropzone {
