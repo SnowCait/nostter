@@ -6,7 +6,7 @@
 	import { Kind, type Relay } from 'nostr-tools';
 	import { goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { appName } from '$lib/Constants';
+	import { appName, relatesKinds } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
 	import { events, eventsPool } from '$lib/stores/Events';
 	import { pool } from '$lib/stores/Pool';
@@ -122,13 +122,8 @@
 			const authorFilters: LazyFilter[] = [
 				{
 					kinds: [
-						Kind.Text,
-						Kind.EncryptedDirectMessage,
-						6,
-						Kind.Reaction,
-						Kind.BadgeAward,
-						Kind.ChannelMessage,
-						Kind.Zap
+						...relatesKinds,
+						...[Kind.EncryptedDirectMessage, Kind.Reaction, Kind.BadgeAward, Kind.Zap]
 					],
 					'#p': [$pubkey],
 					until,
