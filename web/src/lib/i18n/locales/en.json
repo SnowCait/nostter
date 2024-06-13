@@ -258,6 +258,10 @@
 		"create": "Create",
 		"edit": "Add/Remove from lists"
 	},
+	"notifications": {
+		"all": "all",
+		"others": "etc"
+	},
 	"menu": {
 		"developer": "Developer",
 		"caution": "Caution"
