@@ -7,8 +7,7 @@
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { notificationKinds } from '$lib/NotificationTimeline';
-	import { appName, minTimelineLength } from '$lib/Constants';
+	import { appName, minTimelineLength, notificationKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
 	import { notifiedEventItems, unreadEventItems } from '$lib/stores/Notifications';
