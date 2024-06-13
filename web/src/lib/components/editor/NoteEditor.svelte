@@ -554,16 +554,6 @@
 			<Note item={new EventItem(quote)} readonly={true} />
 		{/each}
 	{/if}
-	{#if emojiTags.length > 0}
-		<ul>
-			{#each emojiTags as tag}
-				<li>
-					<span>:{tag[1]}:</span>
-					<CustomEmoji text={tag[1]} url={tag[2]} />
-				</li>
-			{/each}
-		</ul>
-	{/if}
 	{#if uploading}
 		<div>Uploading...</div>
 	{/if}
