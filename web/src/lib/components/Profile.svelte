@@ -6,6 +6,7 @@
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
+	import { newUrl } from '$lib/Helper';
 	import { robohash, type Metadata, alternativeName } from '$lib/Items';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
@@ -20,6 +21,7 @@
 	import ReplaceableEventsJson from './ReplaceableEventsJson.svelte';
 	import Content from './Content.svelte';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
+	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
 
 	export let slug: string;
 	export let pubkey: string;
@@ -32,6 +34,7 @@
 	let badges: Badge[] = []; // NIP-58 Badges
 
 	$: user = metadata?.content;
+	$: url = user?.website ? newUrl(user.website) : undefined;
 
 	$: if (p !== pubkey && browser) {
 		console.log('[npub profile]', nip19.npubEncode(pubkey), relays);
@@ -130,7 +133,12 @@
 
 		{#if user?.website}
 			<div>
-				<a href={user.website} target="_blank" rel="noreferrer">{user.website}</a>
+				<IconLink size="1rem" />
+				{#if url}
+					<ExternalLink link={url} />
+				{:else}
+					<span>{user.website}</span>
+				{/if}
 			</div>
 		{/if}
 		{#if user?.about}
