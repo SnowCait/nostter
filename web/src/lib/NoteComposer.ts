@@ -90,11 +90,7 @@ export class NoteComposer {
 		return Array.from(hashtags).map((hashtag) => ['t', hashtag]);
 	}
 
-	async emojiTags(
-		content: string,
-		emojiTags: string[][] = [],
-		selectedCustomEmojis: Map<string, string> = new Map()
-	): Promise<string[][]> {
+	async emojiTags(content: string, emojiTags: string[][] = []): Promise<string[][]> {
 		const tags: string[][] = [];
 
 		// Custom emojis
@@ -141,26 +137,22 @@ export class NoteComposer {
 			...shortcodes
 				.filter(([, shortcode]) => !emojiTags.some(([, s]) => s === shortcode))
 				.map((shortcode) => {
-					const imageUrl = selectedCustomEmojis.get(shortcode);
-					if (imageUrl === undefined) {
-						const pubkey = customEmojiPubkeysMap.get(shortcode);
-						if (pubkey === undefined) {
-							return null;
-						}
-						const metadataEvent = customEmojiMetadataEventsMap.get(pubkey);
-						if (metadataEvent === undefined) {
-							return null;
-						}
-						try {
-							const metadata = JSON.parse(metadataEvent.content) as User;
-							const picture = new URL(metadata.picture);
-							return ['emoji', shortcode, picture.href];
-						} catch (error) {
-							console.warn('[invalid metadata]', metadataEvent, error);
-							return null;
-						}
+					const pubkey = customEmojiPubkeysMap.get(shortcode);
+					if (pubkey === undefined) {
+						return null;
 					}
-					return ['emoji', shortcode, imageUrl];
+					const metadataEvent = customEmojiMetadataEventsMap.get(pubkey);
+					if (metadataEvent === undefined) {
+						return null;
+					}
+					try {
+						const metadata = JSON.parse(metadataEvent.content) as User;
+						const picture = new URL(metadata.picture);
+						return ['emoji', shortcode, picture.href];
+					} catch (error) {
+						console.warn('[invalid metadata]', metadataEvent, error);
+						return null;
+					}
 				})
 				.filter((x): x is string[] => x !== null)
 		);

@@ -44,11 +44,9 @@
 	export let afterPost: () => Promise<void> = async () => {};
 
 	export let content = '';
-	export let autocompleting = false;
 
 	let tags: string[][] = [];
 	let posting = false;
-	let selectedCustomEmojis = new Map<string, string>();
 	let channelEvent: NostrEvent | undefined;
 	let emojiTags: string[][] = [];
 	let pubkeys = new Set<string>();
@@ -98,6 +96,56 @@
 
 	//#endregion
 
+	//#region Custom Emoji
+
+	type Emoji = { shortcode: string; url: string };
+	let shortcode: string | undefined;
+	let shortcodePrevious = shortcode;
+	let shortcodeComplementList: Emoji[] = [];
+	let shortcodeComplementIndex = 0;
+
+	$: if (shortcode !== undefined) {
+		const customEmojiList = $customEmojiTags.map(([, shortcode, url]) => ({ shortcode, url }));
+		const list = customEmojiList.filter(({ shortcode: s }) =>
+			s.toLowerCase().startsWith((shortcode ?? '').toLowerCase())
+		);
+		list.push(
+			...customEmojiList.filter(({ shortcode: s }) =>
+				s.toLowerCase().includes((shortcode ?? '').toLowerCase())
+			)
+		);
+		shortcodeComplementList = list;
+		console.debug('[complement shortcode list]', shortcode, shortcodeComplementList);
+	}
+
+	$: if (shortcode === undefined) {
+		shortcodeComplementList = [];
+	}
+
+	$: if (shortcode !== shortcodePrevious) {
+		shortcodePrevious = shortcode;
+		shortcodeComplementIndex = 0;
+	}
+
+	function replaceShortcodeComplement(emoji: Emoji) {
+		if (shortcode === undefined || emojiTags.some(([, s]) => s === emoji.shortcode)) {
+			return;
+		}
+
+		console.debug('[complement shortcode replace]', emoji);
+		const { selectionStart } = textarea;
+		const before = content.substring(0, selectionStart - ':'.length - shortcode.length);
+		const after = content.substring(selectionStart);
+		content = before + ':' + emoji.shortcode + ':' + after;
+		const cursor = content.length - after.length;
+		textarea.setSelectionRange(cursor, cursor);
+		textarea.focus();
+		shortcode = undefined;
+		emojiTags.push(['emoji', emoji.shortcode, emoji.url]);
+	}
+
+	//#endregion
+
 	//#region Media
 
 	let onDrag = false;
@@ -112,7 +160,7 @@
 
 	$: {
 		const noteComposer = new NoteComposer();
-		noteComposer.emojiTags(content, emojiTags, selectedCustomEmojis).then((emojiTags) => {
+		noteComposer.emojiTags(content, emojiTags).then((emojiTags) => {
 			tags = [
 				...noteComposer.replyTags(content, $replyTo, $channelIdStore, pubkeys),
 				...noteComposer.hashtags(content),
@@ -123,69 +171,6 @@
 	}
 
 	const dispatch = createEventDispatcher();
-
-	onMount(async () => {
-		console.log('[note editor on mount]', textarea, article);
-		const { default: Tribute } = await import('tributejs');
-
-		const tribute = new Tribute({
-			trigger: ':',
-			positionMenu: false,
-			values: $customEmojiTags.map(([, shortcode, imageUrl]) => {
-				return {
-					shortcode,
-					imageUrl
-				};
-			}),
-			lookup: 'shortcode',
-			fillAttr: 'shortcode',
-			menuContainer: article,
-			menuItemTemplate: (item) =>
-				`<img src="${item.original.imageUrl}" alt=":${item.original.shortcode}:"><span>:${item.original.shortcode}:</span>`,
-			selectTemplate: (item) => `:${item.original.shortcode}:`,
-			noMatchTemplate: () =>
-				'<a href="https://emojito.meme/" target="_blank" rel="noopener noreferrer">Add custom emojis</a>'
-		});
-		tribute.attach(textarea);
-		console.debug('[tribute]', tribute);
-
-		customEmojiTags.subscribe((tags) => {
-			console.debug('[custom emojis updated]', tags);
-			tribute.append(
-				0,
-				tags.map(([, shortcode, imageUrl]) => {
-					return {
-						shortcode,
-						imageUrl
-					};
-				})
-			);
-		});
-
-		textarea.addEventListener('tribute-replaced', (e: any) => {
-			console.debug('[tribute replaced]', e);
-			selectedCustomEmojis.set(
-				e.detail.item.original.shortcode,
-				e.detail.item.original.imageUrl
-			);
-			console.timeLog('tribute');
-		});
-
-		textarea.addEventListener('tribute-active-true', (e) => {
-			console.debug('[tribute active true]', e);
-			autocompleting = true;
-			console.time('tribute');
-		});
-
-		textarea.addEventListener('tribute-active-false', (e) => {
-			console.debug('[tribute active false]', e);
-			setTimeout(() => {
-				console.log('[tribute closeable]');
-				autocompleting = false;
-				console.timeEnd('tribute');
-			}, 1000);
-		});
-	});
 
 	channelIdStore.subscribe((channelId) => {
 		if (channelId !== undefined) {
@@ -231,29 +216,49 @@
 		}
 
 		// Complement
-		if (mention === undefined || mentionComplementList.length === 0) {
+		if (
+			!(mention !== undefined && mentionComplementList.length > 0) &&
+			!(shortcode !== undefined && shortcodeComplementList.length > 0)
+		) {
 			return;
 		}
 
 		switch (e.key) {
 			case 'ArrowUp': {
 				e.preventDefault();
-				if (mentionComplementIndex > 0) {
+				if (mention !== undefined && mentionComplementIndex > 0) {
 					mentionComplementIndex--;
+				}
+				if (shortcode !== undefined && shortcodeComplementIndex > 0) {
+					shortcodeComplementIndex--;
 				}
 				break;
 			}
 			case 'ArrowDown': {
 				e.preventDefault();
-				if (mentionComplementIndex < mentionComplementList.length - 1) {
+				if (
+					mention !== undefined &&
+					mentionComplementIndex < mentionComplementList.length - 1
+				) {
 					mentionComplementIndex++;
+				}
+				if (
+					shortcode !== undefined &&
+					shortcodeComplementIndex < shortcodeComplementList.length - 1
+				) {
+					shortcodeComplementIndex++;
 				}
 				break;
 			}
 			case 'Tab':
 			case 'Enter': {
 				e.preventDefault();
-				replaceComplement(mentionComplementList[mentionComplementIndex]);
+				if (mention !== undefined) {
+					replaceComplement(mentionComplementList[mentionComplementIndex]);
+				}
+				if (shortcode !== undefined) {
+					replaceShortcodeComplement(shortcodeComplementList[shortcodeComplementIndex]);
+				}
 				break;
 			}
 		}
@@ -272,6 +277,13 @@
 		// Mention complement
 		const mentionMatches = textarea.value.matchAll(/(?<=@)\S+/g);
 		mention = [...mentionMatches].find(
+			({ index, 0: mention }) =>
+				index <= selectionStart && selectionStart <= index + mention.length
+		)?.[0];
+
+		// Mention complement
+		const shortcodeMatches = textarea.value.matchAll(/(?<=:)[^\s:]+/g);
+		shortcode = [...shortcodeMatches].find(
 			({ index, 0: mention }) =>
 				index <= selectionStart && selectionStart <= index + mention.length
 		)?.[0];
@@ -328,7 +340,7 @@
 			[
 				...noteComposer.replyTags(content, $replyTo, $channelIdStore, pubkeys),
 				...noteComposer.hashtags(content),
-				...(await noteComposer.emojiTags(content, emojiTags, selectedCustomEmojis)),
+				...(await noteComposer.emojiTags(content, emojiTags)),
 				...noteComposer.contentWarningTags(contentWarningReason)
 			]
 		);
@@ -526,6 +538,28 @@
 					{/each}
 				</ul>
 			{/if}
+
+			{#if shortcodeComplementList.length > 0 && textarea !== undefined}
+				<ul class="complement card" use:complementPosition={textarea}>
+					{#each shortcodeComplementList as emoji, i}
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+						<li
+							class:selected={i === shortcodeComplementIndex}
+							on:click|stopPropagation={() =>
+								replaceComplement(mentionComplementList[i])}
+						>
+							<CustomEmoji text={emoji.shortcode} url={emoji.url} />
+							<span>:{emoji.shortcode}:</span>
+						</li>
+					{/each}
+					<li class="add-custom-emojis">
+						<a href="https://emojito.meme/" target="_blank" rel="noopener noreferrer">
+							Add custom emojis
+						</a>
+					</li>
+				</ul>
+			{/if}
 		</div>
 	</div>
 
@@ -660,25 +694,11 @@
 		background-color: var(--accent-foreground);
 	}
 
+	ul.complement li.add-custom-emojis {
+		text-align: center;
+	}
+
 	:global(.options > *) {
 		height: inherit;
-	}
-
-	:global(.tribute-container ul) {
-		list-style: none;
-		padding: 0;
-
-		background-color: white;
-		max-height: 10rem;
-		overflow: auto;
-	}
-
-	:global(.tribute-container li.highlight) {
-		background-color: lightgray;
-	}
-
-	:global(.tribute-container img) {
-		height: 1.5rem;
-		margin: 0 0.5rem;
 	}
 </style>
