@@ -30,7 +30,7 @@ export const followeesKinds = [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelM
 export const relatesKinds = [Kind.Text, 6, Kind.ChannelMessage];
 export const notificationKinds = [
 	...relatesKinds,
-	...[Kind.EncryptedDirectMessage, Kind.Reaction, Kind.Zap]
+	...[Kind.EncryptedDirectMessage, Kind.Reaction, Kind.BadgeAward, Kind.Zap]
 ];
 
 export const defaultRelays = [
