@@ -66,14 +66,13 @@
 
 	$: if (mention !== undefined) {
 		const displayMax = 10;
-		const list = [...$metadataStore]
-			.map(([, metadata]) => metadata)
+		const metadataList = [...$metadataStore].map(([, metadata]) => metadata);
+		const list = metadataList
 			.filter((metadata) => metadata.startsWith(mention ?? ''))
 			.slice(0, displayMax);
 		if (list.length < displayMax) {
 			list.push(
-				...[...$metadataStore]
-					.map(([, metadata]) => metadata)
+				...metadataList
 					.filter((metadata) => metadata.includes(mention ?? ''))
 					.filter(
 						(metadata) => !list.some((m) => m.event.pubkey === metadata.event.pubkey)
