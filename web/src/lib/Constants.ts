@@ -28,6 +28,10 @@ export const parameterizedReplaceableKinds = [30000, 30001, 30078];
 
 export const followeesKinds = [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage];
 export const relatesKinds = [Kind.Text, 6, Kind.ChannelMessage];
+export const notificationKinds = [
+	...relatesKinds,
+	...[Kind.EncryptedDirectMessage, Kind.Reaction, Kind.BadgeAward, Kind.Zap]
+];
 
 export const defaultRelays = [
 	{

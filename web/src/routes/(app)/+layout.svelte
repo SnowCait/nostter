@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createRxOneshotReq, latest } from 'rx-nostr';
+	import { notificationKinds } from '$lib/Constants';
 	import { WebStorage } from '$lib/WebStorage';
-	import { notificationKinds } from '$lib/NotificationTimeline';
 	import { reconnectIfConnectionsAreUnstable, rxNostr } from '$lib/timelines/MainTimeline';
 	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
