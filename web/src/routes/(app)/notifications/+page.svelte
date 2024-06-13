@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Tabs } from '@svelteuidev/core';
 	import type { Kind } from 'nostr-tools';
 	import type { Filter } from 'nostr-typedef';
 	import { createRxOneshotReq, uniq } from 'rx-nostr';
@@ -7,13 +8,17 @@
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { appName, minTimelineLength, notificationKinds } from '$lib/Constants';
+	import { appName, minTimelineLength, notificationKinds, relatesKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
 	import { notifiedEventItems, unreadEventItems } from '$lib/stores/Notifications';
 	import { pubkey, author, writeRelays } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
+	import IconAt from '@tabler/icons-svelte/dist/svelte/icons/IconAt.svelte';
+	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
+	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
+	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 
 	afterNavigate(async () => {
 		console.log('[notifications page]');
@@ -153,4 +158,61 @@
 
 <h1>{$_('layout.header.notifications')}</h1>
 
-<TimelineView items={$notifiedEventItems} {load} />
+<Tabs grow>
+	<Tabs.Tab>
+		<svelte:fragment slot="label">
+			<div>{$_('notifications.all')}</div>
+		</svelte:fragment>
+		<TimelineView items={$notifiedEventItems} {load} />
+	</Tabs.Tab>
+	<Tabs.Tab>
+		<svelte:fragment slot="icon">
+			<IconAt color="var(--orange)" size={20} />
+		</svelte:fragment>
+		<TimelineView
+			items={$notifiedEventItems.filter((item) => relatesKinds.includes(item.event.kind))}
+			{load}
+		/>
+	</Tabs.Tab>
+	<Tabs.Tab>
+		<svelte:fragment slot="icon">
+			<IconRepeat color="var(--green)" size={20} />
+		</svelte:fragment>
+		<TimelineView
+			items={$notifiedEventItems.filter((item) => [6, 16].includes(item.event.kind))}
+			{load}
+		/>
+	</Tabs.Tab>
+	<Tabs.Tab>
+		<svelte:fragment slot="icon">
+			<IconHeart color="var(--pink)" size={20} />
+		</svelte:fragment>
+		<TimelineView items={$notifiedEventItems.filter((item) => item.event.kind === 7)} {load} />
+	</Tabs.Tab>
+	<Tabs.Tab>
+		<svelte:fragment slot="icon">
+			<IconBolt color="var(--yellow)" size={20} />
+		</svelte:fragment>
+		<TimelineView
+			items={$notifiedEventItems.filter((item) => item.event.kind === 9735)}
+			{load}
+		/>
+	</Tabs.Tab>
+	<Tabs.Tab>
+		<svelte:fragment slot="label">
+			<div>{$_('notifications.others')}</div>
+		</svelte:fragment>
+		<TimelineView
+			items={$notifiedEventItems.filter(
+				(item) => ![...relatesKinds, 6, 16, 7, 9735].includes(item.event.kind)
+			)}
+			{load}
+		/>
+	</Tabs.Tab>
+</Tabs>
+
+<style>
+	div {
+		color: var(--accent);
+	}
+</style>
