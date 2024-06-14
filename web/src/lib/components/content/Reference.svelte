@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
+	import { isMuteEvent } from '$lib/stores/Author';
 	import { userEvents } from '$lib/stores/UserEvents';
 	import Note from '../items/Note.svelte';
 	import Hashtag from './Hashtag.svelte';
@@ -7,6 +8,7 @@
 	import Url from './Url.svelte';
 	import { eventItemStore } from '$lib/cache/Events';
 	import NoteLink from '../items/NoteLink.svelte';
+	import MutedContent from '../items/MutedContent.svelte';
 
 	export let text: string;
 	export let tag: string[];
@@ -24,11 +26,17 @@
 	</a>
 {:else if tag.at(0) === 'e' && tag.at(1) !== undefined}
 	{#if item !== undefined}
-		<a href="/{nip19.neventEncode({ id: item.event.id, author: item.event.pubkey })}">
+		{#if isMuteEvent(item.event)}
 			<blockquote>
-				<Note {item} readonly={true} />
+				<MutedContent />
 			</blockquote>
-		</a>
+		{:else}
+			<a href="/{nip19.neventEncode({ id: item.event.id, author: item.event.pubkey })}">
+				<blockquote>
+					<Note {item} readonly={true} />
+				</blockquote>
+			</a>
+		{/if}
 	{:else}
 		<blockquote>
 			<NoteLink eventId={tag[1]} />

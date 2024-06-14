@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import { events } from '$lib/stores/Events';
 	import { pool } from '$lib/stores/Pool';
-	import { readRelays } from '$lib/stores/Author';
+	import { isMuteEvent, readRelays } from '$lib/stores/Author';
 	import Text from './Text.svelte';
 	import Nip94 from '../Nip94.svelte';
 	import Naddr from './Naddr.svelte';
@@ -14,6 +14,7 @@
 	import { EventItem, Metadata, alternativeName } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import NoteLink from '../items/NoteLink.svelte';
+	import MutedContent from '../items/MutedContent.svelte';
 
 	export let text: string;
 
@@ -100,7 +101,11 @@
 	</a>
 {:else if dataType === 'event' && eventId !== undefined}
 	{#if item !== undefined}
-		{#if Number(item.event.kind) === 1063}
+		{#if isMuteEvent(item.event)}
+			<blockquote>
+				<MutedContent />
+			</blockquote>
+		{:else if Number(item.event.kind) === 1063}
 			<Nip94 event={item.event} />
 		{:else}
 			<a href="/{nip19.neventEncode({ id: item.event.id, author: item.event.pubkey })}">
@@ -112,9 +117,15 @@
 	{/if}
 {:else if dataType === 'addr'}
 	{#if item !== undefined && Number(item.event.kind) === 30030}
-		<blockquote>
-			<EventComponent {item} readonly={true} />
-		</blockquote>
+		{#if isMuteEvent(item.event)}
+			<blockquote>
+				<MutedContent />
+			</blockquote>
+		{:else}
+			<blockquote>
+				<EventComponent {item} readonly={true} />
+			</blockquote>
+		{/if}
 	{:else}
 		<Naddr naddr={slug} />
 	{/if}
