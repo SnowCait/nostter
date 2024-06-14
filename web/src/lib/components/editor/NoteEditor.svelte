@@ -498,12 +498,14 @@
 		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
 	{/if}
 	{#if $replyTo}
-		<Note item={$replyTo} readonly={true} />
+		<article class="reply-to">
+			<Note item={$replyTo} readonly={true} full={true} />
+		</article>
 	{/if}
 	<div class="content">
 		{#if metadata !== undefined}
-			<div class="author">
-				<ProfileIcon {metadata} />
+			<div>
+				<ProfileIcon {metadata} width="40px" height="40px" />
 			</div>
 		{/if}
 		<div class="input">
@@ -599,15 +601,16 @@
 </article>
 
 <style>
+	.reply-to {
+		max-height: 10rem;
+		overflow-y: auto;
+	}
+
 	.content {
 		display: flex;
 		flex-direction: row;
-	}
-
-	.author {
-		width: 3rem;
-		height: 3rem;
-		margin: 0 0.5rem;
+		gap: 0.5rem;
+		margin: 0.5rem 1rem;
 	}
 
 	.input {
@@ -621,6 +624,7 @@
 		min-height: 5.5rem;
 		max-height: 20.5rem;
 		line-height: 1rem;
+		resize: none;
 	}
 
 	div.warning {
