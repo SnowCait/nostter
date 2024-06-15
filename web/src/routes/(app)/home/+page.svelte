@@ -15,7 +15,7 @@
 	import { Signer } from '$lib/Signer';
 	import { minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
 	import { userStatusReqEmit, userStatusesMap } from '$lib/UserStatus';
 	import { hasSubscribed, hometimelineReqEmit } from '$lib/timelines/HomeTimeline';
 	import { fetchMinutes } from '$lib/Helper';
@@ -151,13 +151,14 @@
 					.use(loadTimelineReq)
 					.pipe(
 						uniq(),
-						tap(({ event }) => {
+						tap(({ event, from }) => {
 							referencesReqEmit(event);
 							authorActionReqEmit(event);
 							if (!userStatusPubkeys.has(event.pubkey)) {
 								userStatusPubkeys.add(event.pubkey);
 								userStatusReqEmit(event.pubkey);
 							}
+							storeSeenOn(event.id, from);
 						})
 					)
 					.subscribe({

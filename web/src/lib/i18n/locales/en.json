@@ -189,7 +189,8 @@
 		"message": "Not found or something wrong."
 	},
 	"badge": {
-		"accept": "Accept"
+		"accept": "Accept",
+		"accepted": "Accepted"
 	},
 	"replay": {
 		"title": "Replay",

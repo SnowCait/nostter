@@ -9,6 +9,9 @@ export const eventItemStore = writable(new Map<id, EventItem>());
 export const replaceableEventsStore = writable(new Map<string, Event>());
 export const channelMetadataEventsStore = writable(new Map<id, Event>());
 
+// <id | a, [url]>
+export const seenOnStore = writable(new Map<string, Set<string>>());
+
 export const authorChannelsEventStore: Writable<Event | undefined> = writable();
 
 // <event.id, event>
