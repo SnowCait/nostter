@@ -387,6 +387,7 @@ ul.clear {
 }
 
 button,
+button.round,
 input[type='button'],
 input[type='submit'] {
 	padding: 0.6rem 1.5rem;

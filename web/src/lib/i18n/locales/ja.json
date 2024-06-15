@@ -188,7 +188,8 @@
 		"message": "ページが見つからなかったかエラーが発生しました。"
 	},
 	"badge": {
-		"accept": "受け取る"
+		"accept": "受け取る",
+		"accepted": "受取り済"
 	},
 	"replay": {
 		"title": "リプレイ",

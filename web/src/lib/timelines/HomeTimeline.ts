@@ -1,13 +1,14 @@
 import { createRxForwardReq, filterByKind, filterByKinds, latestEach, now, uniq } from 'rx-nostr';
 import { filter, share, tap } from 'rxjs';
 import type { Filter } from 'nostr-typedef';
-import { referencesReqEmit, rxNostr } from './MainTimeline';
+import { referencesReqEmit, rxNostr, storeSeenOn } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
 import { Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { bookmarkEvent } from '$lib/author/Bookmark';
 import { updateReactionedEvents, updateRepostedEvents } from '$lib/author/Action';
 import { storeCustomEmojis } from '$lib/author/CustomEmojis';
+import { profileBadgesEvent } from '$lib/author/ProfileBadges';
 import { authorChannelsEventStore, storeMetadata } from '$lib/cache/Events';
 import { updateFolloweesStore } from '$lib/Contacts';
 import { findIdentifier } from '$lib/EventHelper';
@@ -106,6 +107,10 @@ authorParameterizedReplaceableObservable.pipe(filterByKind(30001)).subscribe(({ 
 		bookmarkEvent.set(event);
 	}
 });
+authorParameterizedReplaceableObservable.pipe(filterByKind(30008)).subscribe(({ event }) => {
+	console.debug('[badge profile]', event);
+	profileBadgesEvent.set(event);
+});
 authorParameterizedReplaceableObservable.pipe(filterByKind(30078)).subscribe(({ event }) => {
 	const identifier = findIdentifier(event.tags);
 	if (identifier === 'nostter-read') {
@@ -128,7 +133,10 @@ observable
 
 // Other Events
 observable
-	.pipe(filterByKinds([...replaceableKinds, ...parameterizedReplaceableKinds], { not: true }))
+	.pipe(
+		filterByKinds([...replaceableKinds, ...parameterizedReplaceableKinds], { not: true }),
+		tap(({ event, from }) => storeSeenOn(event.id, from))
+	)
 	.subscribe(async (packet) => {
 		console.log('[rx-nostr subscribe home timeline]', packet);
 

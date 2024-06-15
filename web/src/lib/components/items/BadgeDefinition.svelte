@@ -14,6 +14,7 @@
 	<main>
 		<h2>{name}</h2>
 		<p>{description}</p>
+		<slot />
 	</main>
 </article>
 
@@ -32,7 +33,7 @@
 		margin-left: 1rem;
 	}
 
-	h2 {
-		margin-bottom: 1rem;
+	p {
+		margin: 1rem auto;
 	}
 </style>

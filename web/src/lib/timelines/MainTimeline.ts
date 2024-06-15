@@ -18,6 +18,7 @@ import {
 	eventItemStore,
 	metadataStore,
 	replaceableEventsStore,
+	seenOnStore,
 	storeMetadata
 } from '../cache/Events';
 import { chunk } from '$lib/Array';
@@ -195,5 +196,19 @@ rxNostr
 		if (cache === undefined || cache.created_at < packet.event.created_at) {
 			$replaceableEventsStore.set(a, packet.event);
 			replaceableEventsStore.set($replaceableEventsStore);
+			storeSeenOn(a, packet.from);
 		}
 	});
+
+// key = id | a
+export function storeSeenOn(key: string, relay: string): void {
+	const $seenOnStore = get(seenOnStore);
+	const relays = $seenOnStore.get(key);
+	if (relays === undefined) {
+		$seenOnStore.set(key, new Set<string>([relay]));
+	} else {
+		relays.add(relay);
+		$seenOnStore.set(key, relays);
+	}
+	seenOnStore.set($seenOnStore);
+}

@@ -6,7 +6,7 @@
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
 	import { appName, minTimelineLength, notificationKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
@@ -80,9 +80,10 @@
 					.use(pastEventsReq)
 					.pipe(
 						uniq(),
-						tap(({ event }) => {
+						tap(({ event, from }) => {
 							referencesReqEmit(event);
 							authorActionReqEmit(event);
+							storeSeenOn(event.id, from);
 						})
 					)
 					.subscribe({

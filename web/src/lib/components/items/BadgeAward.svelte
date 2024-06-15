@@ -2,15 +2,17 @@
 	import { _ } from 'svelte-i18n';
 	import type { Event } from 'nostr-typedef';
 	import { nip19 } from 'nostr-tools';
+	import { acceptBadge, profileBadgesEvent } from '$lib/author/ProfileBadges';
 	import { replaceableEventsStore, metadataStore } from '$lib/cache/Events';
-	import { filterTags } from '$lib/EventHelper';
-	import { alternativeName, type Item } from '$lib/Items';
-	import { pubkey, rom } from '$lib/stores/Author';
+	import { aTagContent, filterTags } from '$lib/EventHelper';
+	import { type Item } from '$lib/Items';
+	import { rom } from '$lib/stores/Author';
+	import { developerMode } from '$lib/stores/Preference';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import IconAward from '@tabler/icons-svelte/dist/svelte/icons/IconAward.svelte';
 	import BadgeDefinition from './BadgeDefinition.svelte';
 	import CreatedAt from '../CreatedAt.svelte';
-	import ExternalLink from '../ExternalLink.svelte';
+	import OnelineProfile from '../profile/OnelineProfile.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -23,12 +25,20 @@
 	$: badgeDefinitions = aTagContents
 		.map((a) => $replaceableEventsStore.get(a))
 		.filter((event): event is Event => event !== undefined);
+	$: myBadgeDefinitionsA = filterTags('a', $profileBadgesEvent?.tags ?? []);
 
 	let jsonDisplay = false;
 
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
 	};
+
+	function accept(badgeDefinitionEvent: Event): void {
+		console.log('[badge accept]', badgeDefinitionEvent, event);
+
+		const a = aTagContent(badgeDefinitionEvent);
+		acceptBadge(a, event.id);
+	}
 </script>
 
 <article class="timeline-item">
@@ -37,28 +47,36 @@
 			<IconAward size={18} color={'orange'} />
 		</div>
 		<div>by</div>
-		<div>
+		<div class="profile">
 			<a href="/{nip19.npubEncode(event.pubkey)}">
-				@{metadata?.name ?? alternativeName(event.pubkey)}
+				<OnelineProfile pubkey={event.pubkey} />
 			</a>
 		</div>
-		<div class="json-button">
-			<button on:click={toggleJsonDisplay} class="clear">
-				<IconCodeDots size={18} />
-			</button>
-		</div>
+		{#if $developerMode}
+			<div class="json-button">
+				<button on:click={toggleJsonDisplay} class="clear">
+					<IconCodeDots size={18} />
+				</button>
+			</div>
+		{/if}
 		<div class="created-at">
 			<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 		</div>
 	</header>
 	<main>
 		{#each badgeDefinitions as event}
-			<BadgeDefinition {event} />
-			{#if !readonly && !$rom}
-				<ExternalLink link={new URL(`https://badges.page/p/${nip19.npubEncode($pubkey)}`)}>
-					{$_('badge.accept')}
-				</ExternalLink>
-			{/if}
+			<BadgeDefinition {event}>
+				{#if !readonly && !$rom}
+					{@const own = myBadgeDefinitionsA.includes(aTagContent(event))}
+					<button class="round" disabled={own} on:click={() => accept(event)}>
+						{#if own}
+							{$_('badge.accepted')}
+						{:else}
+							{$_('badge.accept')}
+						{/if}
+					</button>
+				{/if}
+			</BadgeDefinition>
 		{/each}
 	</main>
 </article>
@@ -100,12 +118,17 @@
 		margin-right: 0.2em;
 	}
 
-	.json-button {
+	.json-button,
+	.created-at {
 		margin-left: auto;
 	}
 
-	button {
+	.json-button button {
 		color: lightgray;
 		height: 20px;
+	}
+
+	.profile a {
+		text-decoration: none;
 	}
 </style>

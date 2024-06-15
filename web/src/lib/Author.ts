@@ -24,6 +24,7 @@ import { authorChannelsEventStore } from './cache/Events';
 import { updateFolloweesStore } from './Contacts';
 import { parameterizedReplaceableKinds, replaceableKinds } from './Constants';
 import { bookmarkEvent } from './author/Bookmark';
+import { profileBadgesEvent, profileBadgesKey } from './author/ProfileBadges';
 
 type AuthorReplaceableKind = {
 	kind: number;
@@ -35,6 +36,7 @@ export const authorReplaceableKinds: AuthorReplaceableKind[] = [
 		return { kind };
 	}),
 	{ kind: 30001, identifier: 'bookmark' },
+	{ kind: 30008, identifier: 'profile_badges' },
 	{ kind: 30078, identifier: 'nostter-preferences' },
 	{ kind: 30078, identifier: 'nostter-reaction-emoji' },
 	{ kind: 30078, identifier: 'nostter-read' }
@@ -121,6 +123,7 @@ export class Author {
 		}
 
 		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`));
+		profileBadgesEvent.set(parameterizedReplaceableEvents.get(profileBadgesKey));
 
 		const preferencesEvent = parameterizedReplaceableEvents.get(
 			`${30078 as Kind}:nostter-preferences`
