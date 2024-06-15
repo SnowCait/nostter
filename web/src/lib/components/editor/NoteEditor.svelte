@@ -127,21 +127,27 @@
 		shortcodeComplementIndex = 0;
 	}
 
-	function replaceShortcodeComplement(emoji: Emoji) {
-		if (shortcode === undefined || emojiTags.some(([, s]) => s === emoji.shortcode)) {
+	async function replaceShortcodeComplement(emoji: Emoji): Promise<void> {
+		if (shortcode === undefined) {
 			return;
 		}
 
 		console.debug('[complement shortcode replace]', emoji);
+
+		if (!emojiTags.some(([, s]) => s === emoji.shortcode)) {
+			emojiTags.push(['emoji', emoji.shortcode, emoji.url]);
+		}
+
 		const { selectionStart } = textarea;
-		const before = content.substring(0, selectionStart - ':'.length - shortcode.length);
-		const after = content.substring(selectionStart);
+		const index = content.substring(0, selectionStart).lastIndexOf(':');
+		const before = content.substring(0, index);
+		const after = content.substring(index + ':'.length + shortcode.length);
 		content = before + ':' + emoji.shortcode + ':' + after;
 		const cursor = content.length - after.length;
+		await tick();
 		textarea.setSelectionRange(cursor, cursor);
 		textarea.focus();
 		shortcode = undefined;
-		emojiTags.push(['emoji', emoji.shortcode, emoji.url]);
 	}
 
 	//#endregion
@@ -254,7 +260,7 @@
 			case 'Enter': {
 				e.preventDefault();
 				if (mention !== undefined) {
-					replaceComplement(mentionComplementList[mentionComplementIndex]);
+					replaceMentionComplement(mentionComplementList[mentionComplementIndex]);
 				}
 				if (shortcode !== undefined) {
 					replaceShortcodeComplement(shortcodeComplementList[shortcodeComplementIndex]);
@@ -289,17 +295,26 @@
 		)?.[0];
 	}
 
-	function replaceComplement(metadata: Metadata): void {
+	async function replaceMentionComplement(metadata: Metadata): Promise<void> {
 		if (mention === undefined) {
 			return;
 		}
 
 		console.debug('[complement mention replace]', metadata);
 		const { selectionStart } = textarea;
-		const before = content.substring(0, selectionStart - '@'.length - mention.length);
-		const after = content.substring(selectionStart);
-		content = before + 'nostr:' + nip19.npubEncode(metadata.event.pubkey) + ' ' + after;
-		const cursor = content.length - after.length;
+		const index = content.substring(0, selectionStart).lastIndexOf('@');
+		const before = content.substring(0, index);
+		const after = content.substring(index + '@'.length + mention.length);
+		content =
+			before +
+			(before === '' || before.endsWith(' ') ? '' : ' ') +
+			'nostr:' +
+			nip19.npubEncode(metadata.event.pubkey) +
+			(after.startsWith(' ') ? '' : ' ') +
+			after;
+		const cursor = content.length - after.length + (after.startsWith(' ') ? 1 : 0);
+		console.debug('[complement]', after, content.length, cursor);
+		await tick();
 		textarea.setSelectionRange(cursor, cursor);
 		textarea.focus();
 		mention = undefined;
@@ -532,8 +547,8 @@
 						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 						<li
 							class:selected={i === mentionComplementIndex}
-							on:click|stopPropagation={() =>
-								replaceComplement(mentionComplementList[i])}
+							on:click|stopPropagation={async () =>
+								await replaceMentionComplement(mentionComplementList[i])}
 						>
 							<OnelineProfile pubkey={metadata.event.pubkey} />
 						</li>
@@ -548,8 +563,8 @@
 						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 						<li
 							class:selected={i === shortcodeComplementIndex}
-							on:click|stopPropagation={() =>
-								replaceComplement(mentionComplementList[i])}
+							on:click|stopPropagation={async () =>
+								await replaceMentionComplement(mentionComplementList[i])}
 						>
 							<CustomEmoji text={emoji.shortcode} url={emoji.url} />
 							<span>:{emoji.shortcode}:</span>
