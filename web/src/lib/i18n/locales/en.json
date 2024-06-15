@@ -208,5 +208,9 @@
 		"title": "Lists",
 		"particle": "'s ",
 		"none": "No lists."
+	},
+	"notifications": {
+		"all": "All",
+		"others": "Others"
 	}
 }
