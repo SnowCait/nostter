@@ -320,7 +320,7 @@
 		mention = undefined;
 	}
 
-	function onEmojiPick({ detail: emoji }: { detail: any }) {
+	async function onEmojiPick({ detail: emoji }: { detail: any }): Promise<void> {
 		console.debug('[emoji pick]', emoji);
 		const shortcode = emoji.id.replaceAll('+', '_');
 		const { selectionStart, selectionEnd } = textarea;
@@ -335,6 +335,9 @@
 			emojiTags.push(['emoji', shortcode, emoji.src]);
 			emojiTags = emojiTags;
 		}
+		await tick();
+		const cursor = content.length - after.length;
+		textarea.setSelectionRange(cursor, cursor);
 	}
 
 	async function postNote() {
