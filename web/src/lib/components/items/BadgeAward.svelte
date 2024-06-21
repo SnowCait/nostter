@@ -53,13 +53,13 @@
 			</a>
 		</div>
 		{#if $developerMode}
-			<div class="json-button">
+			<div class="json-button right">
 				<button on:click={toggleJsonDisplay} class="clear">
 					<IconCodeDots size={18} />
 				</button>
 			</div>
 		{/if}
-		<div class="created-at">
+		<div class="created-at" class:right={!$developerMode}>
 			<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 		</div>
 	</header>
@@ -112,23 +112,29 @@
 	header {
 		display: flex;
 		flex-direction: row;
+		gap: 0.2rem;
 	}
 
-	header div {
-		margin-right: 0.2em;
-	}
-
-	.json-button,
-	.created-at {
-		margin-left: auto;
+	.json-button {
+		margin: auto 0;
 	}
 
 	.json-button button {
-		color: lightgray;
-		height: 20px;
+		color: var(--accent-gray);
+		display: flex;
+	}
+
+	.profile {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		text-wrap: nowrap;
 	}
 
 	.profile a {
 		text-decoration: none;
+	}
+
+	.right {
+		margin-left: auto;
 	}
 </style>

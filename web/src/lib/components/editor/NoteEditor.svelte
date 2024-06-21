@@ -567,7 +567,7 @@
 						<li
 							class:selected={i === shortcodeComplementIndex}
 							on:click|stopPropagation={async () =>
-								await replaceMentionComplement(mentionComplementList[i])}
+								await replaceShortcodeComplement(shortcodeComplementList[i])}
 						>
 							<CustomEmoji text={emoji.shortcode} url={emoji.url} />
 							<span>:{emoji.shortcode}:</span>

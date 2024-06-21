@@ -46,9 +46,9 @@
 
 <section>
 	{#if generalEvent !== undefined && generalEvent.content !== ''}
-		<div>
-			<IconUser size="14" />
-			<span>{generalEvent.content}</span>
+		<div class="general">
+			<span><IconUser size="14" /></span>
+			<span class="content">{generalEvent.content}</span>
 			{#if showLink}
 				{#if generalLink !== undefined}
 					<a href={generalLink.href} target="_blank" rel="noopener noreferrer">
@@ -68,9 +68,9 @@
 		</div>
 	{/if}
 	{#if musicEvent !== undefined && musicEvent.content !== ''}
-		<div>
-			<IconMusic size="14" />
-			<span>{musicEvent.content}</span>
+		<div class="music">
+			<span><IconMusic size="14" /></span>
+			<span class="content">{musicEvent.content}</span>
 			{#if showLink && musicLink !== undefined}
 				<a href={musicLink.href} target="_blank" rel="noopener noreferrer">
 					<IconLink size="14" />
@@ -82,21 +82,41 @@
 
 <style>
 	section {
-		/* Workaround for unnecessary space */
 		display: flex;
-		flex-direction: column;
+		flex-direction: row;
+		gap: 0.5rem;
 	}
 
 	div {
-		color: gray;
+		color: var(--accent-gray);
 		font-size: 0.7rem;
 
 		text-overflow: ellipsis;
 		overflow: hidden;
-		white-space: nowrap;
 
 		display: flex;
 		flex-direction: row;
+	}
+
+	.general {
+		flex-shrink: 1;
+	}
+
+	.music {
+		flex-shrink: 2;
+	}
+
+	span,
+	a {
+		flex-shrink: 0;
+	}
+
+	span.content {
+		flex-shrink: 1;
+
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
 	}
 
 	a {

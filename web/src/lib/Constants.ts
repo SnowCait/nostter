@@ -24,7 +24,7 @@ export const replaceableKinds = [
 	10015,
 	10030
 ];
-export const parameterizedReplaceableKinds = [30000, 30001, 30008, 30078];
+export const parameterizedReplaceableKinds = [30000, 30001, 30007, 30008, 30078];
 
 export const followeesKinds = [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage];
 export const relatesKinds = [Kind.Text, 6, Kind.ChannelMessage];
@@ -97,6 +97,8 @@ export const fileStorageServers = [
 	'https://nostpic.com',
 	'https://yabu.me'
 ];
+
+export const imageOptimazerUrl = 'https://nostr-image-optimizer.ocknamo.com/image/';
 
 export const chronological = (x: NostrEvent, y: NostrEvent) => x.created_at - y.created_at;
 export const reverseChronological = (x: NostrEvent, y: NostrEvent) => y.created_at - x.created_at;

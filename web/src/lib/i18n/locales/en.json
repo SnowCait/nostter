@@ -20,6 +20,7 @@
 		"pinned": "Pinned",
 		"reactions": "Reactions",
 		"relays": "Relays",
+		"relays_edit": "Edit relays",
 		"timeline": "Timeline",
 		"media": "Media",
 		"latest": "Latest notes"
@@ -91,7 +92,7 @@
 		},
 		"emoji": {
 			"like": "Like emoji",
-			"custom": "Edit custome emoji"
+			"custom": "Add emojis"
 		},
 		"auto_refresh": "Auto refresh",
 		"media_preview": "Media preview",

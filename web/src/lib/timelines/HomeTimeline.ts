@@ -21,7 +21,7 @@ import { chunk } from '$lib/Array';
 import { filterLimitItems, parameterizedReplaceableKinds, replaceableKinds } from '$lib/Constants';
 import { Mute } from '$lib/Mute';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
-import { pubkey, author, updateRelays, followees } from '../stores/Author';
+import { pubkey, author, updateRelays, followees, storeMutedPubkeysByKind } from '../stores/Author';
 import { lastReadAt, notifiedEventItems, unreadEventItems } from '../stores/Notifications';
 import { events, eventsPool } from '../stores/Events';
 import { saveLastNote } from '../stores/LastNotes';
@@ -106,6 +106,10 @@ authorParameterizedReplaceableObservable.pipe(filterByKind(30001)).subscribe(({ 
 	if (findIdentifier(event.tags) === 'bookmark') {
 		bookmarkEvent.set(event);
 	}
+});
+authorParameterizedReplaceableObservable.pipe(filterByKind(30007)).subscribe(({ event }) => {
+	console.debug('[mute by kind event]', event);
+	storeMutedPubkeysByKind([event]);
 });
 authorParameterizedReplaceableObservable.pipe(filterByKind(30008)).subscribe(({ event }) => {
 	console.debug('[badge profile]', event);
