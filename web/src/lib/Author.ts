@@ -8,7 +8,9 @@ import {
 	updateRelays,
 	authorProfile,
 	metadataEvent,
-	isMuteEvent
+	isMuteEvent,
+	mutedPubkeysByKindMap,
+	storeMutedPubkeysByKind
 } from './stores/Author';
 import { RelayList } from './author/RelayList';
 import { filterTags, findIdentifier, parseRelayJson } from './EventHelper';
@@ -36,6 +38,9 @@ export const authorReplaceableKinds: AuthorReplaceableKind[] = [
 		return { kind };
 	}),
 	{ kind: 30001, identifier: 'bookmark' },
+	{ kind: 30007, identifier: '6' },
+	{ kind: 30007, identifier: '7' },
+	{ kind: 30007, identifier: '9735' },
 	{ kind: 30008, identifier: 'profile_badges' },
 	{ kind: 30078, identifier: 'nostter-preferences' },
 	{ kind: 30078, identifier: 'nostter-reaction-emoji' },
@@ -164,6 +169,11 @@ export class Author {
 		} else if (legacyMuteEvent !== undefined) {
 			await new Mute().migrate(legacyMuteEvent, muteEvent);
 		}
+
+		const mutedByKindEvents = [...parameterizedReplaceableEvents]
+			.map(([, event]) => event)
+			.filter((event) => Number(event.kind) === 30007);
+		storeMutedPubkeysByKind(mutedByKindEvents);
 
 		// Channels
 		const pinEvent = replaceableEvents.get(10001 as Kind);

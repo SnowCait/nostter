@@ -24,7 +24,7 @@ export const replaceableKinds = [
 	10015,
 	10030
 ];
-export const parameterizedReplaceableKinds = [30000, 30001, 30008, 30078];
+export const parameterizedReplaceableKinds = [30000, 30001, 30007, 30008, 30078];
 
 export const followeesKinds = [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage];
 export const relatesKinds = [Kind.Text, 6, Kind.ChannelMessage];

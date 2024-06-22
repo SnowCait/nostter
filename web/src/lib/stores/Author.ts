@@ -4,7 +4,8 @@ import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
 import type { Author } from '$lib/Author';
-import { filterRelayTags } from '$lib/EventHelper';
+import { filterRelayTags, filterTags, findIdentifier } from '$lib/EventHelper';
+import { Signer } from '$lib/Signer';
 
 console.log('[author store]');
 
@@ -15,6 +16,7 @@ export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
 export const followees: Writable<string[]> = writable([]);
 export const mutePubkeys: Writable<string[]> = writable([]);
+export const mutedPubkeysByKindMap = writable(new Map<number, Set<string>>());
 export const muteEventIds: Writable<string[]> = writable([]);
 export const muteWords: Writable<string[]> = writable([]);
 export const pinNotes: Writable<string[]> = writable([]);
@@ -36,6 +38,11 @@ export const isMuteEvent = (event: Event) => {
 		isMutePubkey(event.pubkey) ||
 		event.tags.some(([tagName, pubkey]) => tagName === 'p' && isMutePubkey(pubkey))
 	) {
+		return true;
+	}
+	const $mutedPubkeysByKindMap = get(mutedPubkeysByKindMap);
+	const mutedPubkeysByKind = $mutedPubkeysByKindMap.get(event.kind);
+	if (mutedPubkeysByKind !== undefined && mutedPubkeysByKind.has(event.pubkey)) {
 		return true;
 	}
 	if (
@@ -78,4 +85,28 @@ export const updateRelays = (event: Event) => {
 		)
 	);
 	console.debug('[relays after]', get(readRelays), get(writeRelays));
+};
+
+export const storeMutedPubkeysByKind = async (events: Event[]): Promise<void> => {
+	const $mutedPubkeysByKindMap = get(mutedPubkeysByKindMap);
+	for (const event of events) {
+		const kind = findIdentifier(event.tags);
+		if (!kind || isNaN(Number(kind))) {
+			continue;
+		}
+		const privateTags: string[][] = [];
+		if (event.content !== '') {
+			try {
+				const content = await Signer.decrypt(event.pubkey, event.content);
+				const tags = JSON.parse(content) as string[][];
+				privateTags.push(...tags);
+			} catch (error) {
+				console.warn('[kind 30007 content parse error]', event);
+			}
+		}
+		const pubkeys = filterTags('p', [...event.tags, ...privateTags]);
+		$mutedPubkeysByKindMap.set(Number(kind), new Set(pubkeys));
+	}
+	mutedPubkeysByKindMap.set($mutedPubkeysByKindMap);
+	console.log('[mute by kind]', $mutedPubkeysByKindMap);
 };
