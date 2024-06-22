@@ -9,7 +9,6 @@ import {
 	authorProfile,
 	metadataEvent,
 	isMuteEvent,
-	mutedPubkeysByKindMap,
 	storeMutedPubkeysByKind
 } from './stores/Author';
 import { RelayList } from './author/RelayList';
