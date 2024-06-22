@@ -29,25 +29,6 @@
 
 <h1>{$_('layout.header.preferences')}</h1>
 
-<section class="card">
-	<h2>{$_('preferences.device')}</h2>
-	<div><Theme /></div>
-	<div><AutoRefresh /></div>
-	<div><EnablePreview /></div>
-	<div><Notification /></div>
-	<div><UriScheme /></div>
-	<div><WalletConnect /></div>
-	<div><DeveloperMode /></div>
-	{#if $developerMode}
-		<div><RelayStates /></div>
-		<div><WebStorage /></div>
-		<h3>{$_('preferences.trouble_shooting')}</h3>
-		<div><Reload /></div>
-		<div><ClearEventCacheAndReload /></div>
-		<div><ClearEmojiMartCache /></div>
-	{/if}
-</section>
-
 {#if $author !== undefined}
 	<section class="card">
 		<h2>{$_('preferences.shared')}</h2>
@@ -73,6 +54,25 @@
 		</details>
 	</section>
 {/if}
+
+<section class="card">
+	<h2>{$_('preferences.device')}</h2>
+	<div><Theme /></div>
+	<div><AutoRefresh /></div>
+	<div><EnablePreview /></div>
+	<div><Notification /></div>
+	<div><UriScheme /></div>
+	<div><WalletConnect /></div>
+	<div><DeveloperMode /></div>
+	{#if $developerMode}
+		<div><RelayStates /></div>
+		<div><WebStorage /></div>
+		<h3>{$_('preferences.trouble_shooting')}</h3>
+		<div><Reload /></div>
+		<div><ClearEventCacheAndReload /></div>
+		<div><ClearEmojiMartCache /></div>
+	{/if}
+</section>
 
 <section class="card">
 	<h2>{$_('logout.logout')}</h2>
