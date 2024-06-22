@@ -12,7 +12,7 @@
 		}
 	},
 	"pages": {
-		"profile_edit": "プロフィール編集",
+		"profile_edit": "プロフィールを編集",
 		"thread": "スレッド",
 		"followees": "フォロー中",
 		"followers": "フォロワー",
@@ -20,6 +20,7 @@
 		"pinned": "ピン留め",
 		"reactions": "リアクション",
 		"relays": "リレー",
+		"relays_edit": "リレーを編集",
 		"timeline": "タイムライン",
 		"media": "メディア",
 		"latest": "最新の投稿"
@@ -90,7 +91,7 @@
 		},
 		"emoji": {
 			"like": "いいねの絵文字",
-			"custom": "カスタム絵文字を編集する"
+			"custom": "絵文字を追加"
 		},
 		"auto_refresh": "自動更新",
 		"media_preview": "メディアプレビュー",
