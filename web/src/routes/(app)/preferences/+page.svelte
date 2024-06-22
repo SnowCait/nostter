@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
+	import { nip19 } from 'nostr-tools';
 	import { appName } from '$lib/Constants';
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
-	import { author } from '$lib/stores/Author';
+	import { author, pubkey } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import WordMute from './WordMute.svelte';
 	import AutoRefresh from './AutoRefresh.svelte';
@@ -29,28 +30,12 @@
 
 <h1>{$_('layout.header.preferences')}</h1>
 
-<section class="card">
-	<h2>{$_('preferences.device')}</h2>
-	<div><Theme /></div>
-	<div><AutoRefresh /></div>
-	<div><EnablePreview /></div>
-	<div><Notification /></div>
-	<div><UriScheme /></div>
-	<div><WalletConnect /></div>
-	<div><DeveloperMode /></div>
-	{#if $developerMode}
-		<div><RelayStates /></div>
-		<div><WebStorage /></div>
-		<h3>{$_('preferences.trouble_shooting')}</h3>
-		<div><Reload /></div>
-		<div><ClearEventCacheAndReload /></div>
-		<div><ClearEmojiMartCache /></div>
-	{/if}
-</section>
-
 {#if $author !== undefined}
 	<section class="card">
 		<h2>{$_('preferences.shared')}</h2>
+		<div>
+			<a href="/profile">{$_('pages.profile_edit')}</a>
+		</div>
 		<div><ReactionEmoji /></div>
 		<div>
 			<a href="https://emojito.meme/" target="_blank" rel="noopener noreferrer">
@@ -71,8 +56,32 @@
 			<summary>{$_('preferences.mute.words')}</summary>
 			<WordMute />
 		</details>
+		<div>
+			<a href="/{nip19.nprofileEncode({ pubkey: $pubkey })}/relays">
+				{$_('pages.relays_edit')}
+			</a>
+		</div>
 	</section>
 {/if}
+
+<section class="card">
+	<h2>{$_('preferences.device')}</h2>
+	<div><Theme /></div>
+	<div><AutoRefresh /></div>
+	<div><EnablePreview /></div>
+	<div><Notification /></div>
+	<div><UriScheme /></div>
+	<div><WalletConnect /></div>
+	<div><DeveloperMode /></div>
+	{#if $developerMode}
+		<div><RelayStates /></div>
+		<div><WebStorage /></div>
+		<h3>{$_('preferences.trouble_shooting')}</h3>
+		<div><Reload /></div>
+		<div><ClearEventCacheAndReload /></div>
+		<div><ClearEmojiMartCache /></div>
+	{/if}
+</section>
 
 <section class="card">
 	<h2>{$_('logout.logout')}</h2>
