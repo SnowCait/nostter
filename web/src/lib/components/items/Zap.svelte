@@ -4,6 +4,7 @@
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { ZapEventItem, type EventItem, type Item, type Metadata } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
+	import { developerMode } from '$lib/stores/Preference';
 	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
 	import CreatedAt from '../CreatedAt.svelte';
@@ -71,12 +72,14 @@
 				{/if}
 			</div>
 		{/if}
-		<div class="json-button">
-			<button class="clear" on:click={toggleJsonDisplay}>
-				<IconCodeDots size={15} />
-			</button>
-		</div>
-		<div class="created-at">
+		{#if $developerMode}
+			<div class="json-button right">
+				<button class="clear" on:click={toggleJsonDisplay}>
+					<IconCodeDots size={15} />
+				</button>
+			</div>
+		{/if}
+		<div class="created-at" class:right={!$developerMode}>
 			<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 		</div>
 	</div>
@@ -133,9 +136,7 @@
 	}
 
 	.json-button {
-		margin-left: auto;
-		margin-top: auto;
-		margin-bottom: auto;
+		margin: auto 0;
 	}
 
 	button {
@@ -151,5 +152,9 @@
 
 	.profile a {
 		text-decoration: none;
+	}
+
+	.right {
+		margin-left: auto;
 	}
 </style>

@@ -5,6 +5,7 @@
 	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { isMuteEvent } from '$lib/stores/Author';
+	import { developerMode } from '$lib/stores/Preference';
 	import CreatedAt from '$lib/components/CreatedAt.svelte';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
@@ -55,12 +56,14 @@
 			<OnelineProfile pubkey={event.pubkey} />
 		</a>
 	</div>
-	<div class="json-button">
-		<button class="clear" on:click={toggleJsonDisplay}>
-			<IconCodeDots size={18} />
-		</button>
-	</div>
-	<div class="created-at">
+	{#if $developerMode}
+		<div class="json-button right">
+			<button class="clear" on:click={toggleJsonDisplay}>
+				<IconCodeDots size={18} />
+			</button>
+		</div>
+	{/if}
+	<div class="created-at" class:right={!$developerMode}>
 		<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 	</div>
 </article>
@@ -109,9 +112,7 @@
 	}
 
 	.json-button {
-		margin-left: auto;
-		margin-top: auto;
-		margin-bottom: auto;
+		margin: auto 0;
 	}
 
 	button {
@@ -127,5 +128,9 @@
 
 	.profile a {
 		text-decoration: none;
+	}
+
+	.right {
+		margin-left: auto;
 	}
 </style>

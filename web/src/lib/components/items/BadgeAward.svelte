@@ -53,13 +53,13 @@
 			</a>
 		</div>
 		{#if $developerMode}
-			<div class="json-button">
+			<div class="json-button right">
 				<button on:click={toggleJsonDisplay} class="clear">
 					<IconCodeDots size={18} />
 				</button>
 			</div>
 		{/if}
-		<div class="created-at">
+		<div class="created-at" class:right={!$developerMode}>
 			<CreatedAt createdAt={event.created_at} format={createdAtFormat} />
 		</div>
 	</header>
@@ -116,13 +116,7 @@
 	}
 
 	.json-button {
-		margin-left: auto;
-		margin-top: auto;
-		margin-bottom: auto;
-	}
-
-	.created-at {
-		margin-left: auto;
+		margin: auto 0;
 	}
 
 	.json-button button {
@@ -138,5 +132,9 @@
 
 	.profile a {
 		text-decoration: none;
+	}
+
+	.right {
+		margin-left: auto;
 	}
 </style>
