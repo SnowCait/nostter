@@ -56,7 +56,7 @@
 		</a>
 	</div>
 	<div class="json-button">
-		<button on:click={toggleJsonDisplay}>
+		<button class="clear" on:click={toggleJsonDisplay}>
 			<IconCodeDots size={18} />
 		</button>
 	</div>
@@ -105,24 +105,24 @@
 	article {
 		display: flex;
 		flex-direction: row;
-	}
-
-	article div {
-		margin-right: 0.2em;
+		gap: 0.2rem;
 	}
 
 	.json-button {
 		margin-left: auto;
+		margin-top: auto;
+		margin-bottom: auto;
 	}
 
 	button {
-		border: none;
-		background-color: inherit;
-		cursor: pointer;
-		outline: none;
-		padding: 0;
 		color: var(--accent-gray);
-		height: 20px;
+		display: flex;
+	}
+
+	.profile {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		text-wrap: nowrap;
 	}
 
 	.profile a {

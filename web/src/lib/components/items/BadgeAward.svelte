@@ -112,20 +112,28 @@
 	header {
 		display: flex;
 		flex-direction: row;
+		gap: 0.2rem;
 	}
 
-	header div {
-		margin-right: 0.2em;
+	.json-button {
+		margin-left: auto;
+		margin-top: auto;
+		margin-bottom: auto;
 	}
 
-	.json-button,
 	.created-at {
 		margin-left: auto;
 	}
 
 	.json-button button {
-		color: lightgray;
-		height: 20px;
+		color: var(--accent-gray);
+		display: flex;
+	}
+
+	.profile {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		text-wrap: nowrap;
 	}
 
 	.profile a {
