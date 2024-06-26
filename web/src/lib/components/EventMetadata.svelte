@@ -26,9 +26,11 @@
 			<div class="display_name">
 				{metadata?.displayName ?? alternativeName(item.event.pubkey)}
 			</div>
-			<div class="name">
-				@{metadata?.name ?? alternativeName(item.event.pubkey)}
-			</div>
+			{#if metadata !== undefined && metadata.displayName !== metadata.name}
+				<div class="name">
+					@{metadata.name ?? alternativeName(item.event.pubkey)}
+				</div>
+			{/if}
 			<div class="created_at">
 				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
 			</div>
@@ -77,17 +79,18 @@
 	.user {
 		display: flex;
 		flex-direction: row;
-		flex-wrap: wrap;
+		gap: 0.3rem;
 	}
 
 	.display_name {
-		margin-right: 4px;
 		font-weight: 700;
+		flex-shrink: 1;
 	}
 
 	.name {
 		color: var(--accent-gray);
 		font-size: 15px;
+		flex-shrink: 2;
 	}
 
 	.display_name,
@@ -99,5 +102,6 @@
 
 	.created_at {
 		margin-left: auto;
+		flex-shrink: 0;
 	}
 </style>
