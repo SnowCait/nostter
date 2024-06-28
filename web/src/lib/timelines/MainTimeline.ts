@@ -1,6 +1,7 @@
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-typedef';
 import {
+	Nip11Registry,
 	batch,
 	createRxBackwardReq,
 	createRxNostr,
@@ -24,6 +25,12 @@ import {
 import { chunk } from '$lib/Array';
 import { Content } from '$lib/Content';
 import { sleep } from '$lib/Helper';
+
+Nip11Registry.setDefault({
+	limitation: {
+		max_subscriptions: 20
+	}
+});
 
 export const rxNostr = createRxNostr({
 	connectionStrategy: 'lazy-keep',
