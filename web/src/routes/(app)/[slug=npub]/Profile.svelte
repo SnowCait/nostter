@@ -22,6 +22,7 @@
 	import Content from '$lib/components/Content.svelte';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
+	import ProfileMenuButton from '$lib/components/ProfileMenuButton.svelte';
 
 	export let slug: string;
 	export let pubkey: string;
@@ -106,6 +107,11 @@
 					<div class="mute">
 						<ZapButton {pubkey} />
 					</div>
+					{#if metadata !== undefined}
+						<div>
+							<ProfileMenuButton event={metadata.event} />
+						</div>
+					{/if}
 					<FollowButton {pubkey} />
 				{/if}
 			</div>
