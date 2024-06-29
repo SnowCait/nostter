@@ -14,7 +14,7 @@
 	import { replaceableEvents, replaceableEventsReqEmit } from '$lib/Profile';
 	import type { LayoutData } from './$types';
 	import { developerMode } from '$lib/stores/Preference';
-	import Profile from '$lib/components/Profile.svelte';
+	import Profile from './Profile.svelte';
 	import TimelineView from '../TimelineView.svelte';
 
 	export let data: LayoutData;

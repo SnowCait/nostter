@@ -12,14 +12,14 @@
 	import { developerMode } from '$lib/stores/Preference';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
-	import Badges from './Badges.svelte';
-	import ExternalLink from './ExternalLink.svelte';
-	import FollowButton from './FollowButton.svelte';
-	import MuteButton from './MuteButton.svelte';
-	import NostrAddress from './NostrAddress.svelte';
-	import UserStatus from './UserStatus.svelte';
-	import ReplaceableEventsJson from './ReplaceableEventsJson.svelte';
-	import Content from './Content.svelte';
+	import Badges from '$lib/components/Badges.svelte';
+	import ExternalLink from '$lib/components/ExternalLink.svelte';
+	import FollowButton from '$lib/components/FollowButton.svelte';
+	import MuteButton from '$lib/components/MuteButton.svelte';
+	import NostrAddress from '$lib/components/NostrAddress.svelte';
+	import UserStatus from '$lib/components/UserStatus.svelte';
+	import ReplaceableEventsJson from '$lib/components/ReplaceableEventsJson.svelte';
+	import Content from '$lib/components/Content.svelte';
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
 
