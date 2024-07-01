@@ -54,6 +54,7 @@
 		"qrcode": "^1.5.3",
 		"rx-nostr": "^2.7.3",
 		"rxjs": "^7.8.1",
-		"svelte-i18n": "^4.0.0"
+		"svelte-i18n": "^4.0.0",
+		"svelte-remote-image": "^0.1.2"
 	}
 }
