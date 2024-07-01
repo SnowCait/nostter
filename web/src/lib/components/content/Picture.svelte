@@ -23,10 +23,7 @@
 				],
 				failback: src,
 				alt: '',
-				blur: true,
-				placeholder: {
-					color: '#c5c5c5'
-				}
+				blur: false
 		  } as ImageSrc);
 </script>
 
