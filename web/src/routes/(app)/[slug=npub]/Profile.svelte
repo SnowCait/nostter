@@ -108,9 +108,9 @@
 					<div class="mute">
 						<ZapButton {pubkey} />
 					</div>
-						<div>
+					<div>
 						<ProfileMenuButton {pubkey} />
-						</div>
+					</div>
 					<FollowButton {pubkey} />
 				{/if}
 			</div>
@@ -166,9 +166,6 @@
 		</div>
 	</div>
 	<nav>
-		<div>
-			<a href="/{slug}/relays">{$_('pages.relays')}</a>
-		</div>
 		<div>
 			<a href="/{slug}/media">{$_('pages.media')}</a>
 		</div>
