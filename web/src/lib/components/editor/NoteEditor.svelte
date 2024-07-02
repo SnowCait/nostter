@@ -161,7 +161,6 @@
 
 	//#endregion
 
-	$: metadata = $metadataStore.get($pubkey);
 	$: containsNsec = /nsec1\w{6,}/.test(content);
 
 	$: {
@@ -521,11 +520,9 @@
 		</article>
 	{/if}
 	<div class="content">
-		{#if metadata !== undefined}
-			<div>
-				<ProfileIcon {metadata} width="40px" height="40px" />
-			</div>
-		{/if}
+		<div>
+			<ProfileIcon pubkey={$pubkey} width="40px" height="40px" />
+		</div>
 		<div class="input">
 			<textarea
 				placeholder={$_('editor.content.placeholder')}

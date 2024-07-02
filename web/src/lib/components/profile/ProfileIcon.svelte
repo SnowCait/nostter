@@ -1,15 +1,27 @@
 <script lang="ts">
-	import { robohash, type Metadata } from '$lib/Items';
+	import { metadataStore } from '$lib/cache/Events';
+	import { robohash } from '$lib/Items';
 
-	export let metadata: Metadata;
+	export let pubkey: string;
 	export let width = '100%';
 	export let height = '100%';
+	export let tooltip = true;
+
+	$: metadata = $metadataStore.get(pubkey);
+	$: name = metadata?.displayName ?? '';
+
+	const onError = (event: Event) => {
+		const img = event.target as HTMLImageElement;
+		img.src = robohash(pubkey);
+	};
 </script>
 
 <img
-	src={metadata.picture ?? robohash(metadata.event.pubkey)}
-	alt=""
+	src={metadata?.picture ?? robohash(pubkey)}
+	alt={name}
+	title={tooltip ? name : ''}
 	style="width: {width}; height: {height};"
+	on:error={onError}
 />
 
 <style>

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
-	import { robohash, type EventItem, type Item, alternativeName } from '$lib/Items';
+	import { type EventItem, type Item, alternativeName } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import UserStatus from './UserStatus.svelte';
 	import CreatedAt from './CreatedAt.svelte';
+	import ProfileIcon from './profile/ProfileIcon.svelte';
 
 	export let item: Item;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
@@ -15,7 +16,7 @@
 <article class="timeline-item">
 	<div>
 		<a href="/{nip19.npubEncode(item.event.pubkey)}">
-			<img class="picture" src={metadata?.picture ?? robohash(item.event.pubkey)} alt="" />
+			<ProfileIcon pubkey={item.event.pubkey} width="48px" height="48px" />
 		</a>
 		<div class="icon">
 			<slot name="icon" />
@@ -46,14 +47,7 @@
 	article {
 		display: flex;
 		flex-direction: row;
-	}
-
-	.picture {
-		width: 48px;
-		height: 48px;
-		border-radius: 50%;
-		margin-right: 12px;
-		object-fit: cover;
+		gap: 12px;
 	}
 
 	.icon {
