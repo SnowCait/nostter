@@ -7,7 +7,7 @@
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
 	import { newUrl } from '$lib/Helper';
-	import { robohash, type Metadata, alternativeName } from '$lib/Items';
+	import { type Metadata, alternativeName } from '$lib/Items';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import ZapButton from '$lib/components/ZapButton.svelte';
@@ -23,6 +23,7 @@
 	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
 	import ProfileMenuButton from '$lib/components/ProfileMenuButton.svelte';
+	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
 
 	export let slug: string;
 	export let pubkey: string;
@@ -89,8 +90,8 @@
 <div class="user-info">
 	<div class="profile">
 		<div class="actions">
-			<div class="picture-wrapper">
-				<img src={metadata?.picture ?? robohash(pubkey)} alt="" />
+			<div class="picture">
+				<ProfileIcon {pubkey} />
 			</div>
 			<div class="buttons">
 				{#if !$rom && pubkey !== undefined}
@@ -223,14 +224,13 @@
 		margin-top: calc(-100px + 2rem);
 	}
 
-	.profile img {
+	.picture {
 		width: 128px;
 		height: 128px;
+		object-fit: cover;
+
 		border: 4px solid var(--surface);
 		border-radius: 50%;
-		margin-right: 12px;
-		object-fit: cover;
-		position: relative;
 		background-color: var(--surface);
 	}
 

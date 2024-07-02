@@ -1,6 +1,7 @@
 <script lang="ts">
+	import { nip19 } from 'nostr-tools';
 	import type { Metadata } from '$lib/Items';
-	import ProfileIcon from './ProfileIcon.svelte';
+	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
 
 	export let metadataList: (Metadata | undefined)[];
 </script>
@@ -9,7 +10,9 @@
 	{#each metadataList as metadata}
 		<li>
 			{#if metadata !== undefined}
-				<ProfileIcon {metadata} />
+				<a href="/{nip19.nprofileEncode({ pubkey: metadata.event.pubkey })}">
+					<ProfileIcon pubkey={metadata.event.pubkey} width="30px" height="30px" />
+				</a>
 			{/if}
 		</li>
 	{/each}

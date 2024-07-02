@@ -1,10 +1,13 @@
 <script lang="ts">
-	import { alternativeName, type Metadata } from '$lib/Items';
+	import { metadataStore } from '$lib/cache/Events';
+	import { alternativeName } from '$lib/Items';
 
-	export let metadata: Metadata;
+	export let pubkey: string;
+
+	$: metadata = $metadataStore.get(pubkey);
 </script>
 
-<span>{metadata.displayName ?? alternativeName(metadata.event.pubkey)}</span>
-{#if metadata.displayName !== metadata.name}
+<span>{metadata?.displayName ?? alternativeName(pubkey)}</span>
+{#if metadata !== undefined && metadata.displayName !== metadata.name}
 	<span>@{metadata.name}</span>
 {/if}

@@ -5,6 +5,7 @@
 	import { lastNotesMap } from '$lib/stores/LastNotes';
 	import Content from '$lib/components/Content.svelte';
 	import type { Metadata } from '$lib/Items';
+	import ProfileIcon from '../profile/ProfileIcon.svelte';
 
 	export let metadata: Metadata;
 
@@ -14,7 +15,7 @@
 <article class="timeline-item">
 	<div>
 		<a href="/{nip19.npubEncode(metadata.event.pubkey)}">
-			<img class="picture" src={metadata.content?.picture} alt="" />
+			<ProfileIcon pubkey={metadata.event.pubkey} width="48px" height="48px" />
 		</a>
 	</div>
 	<div class="text">
@@ -42,15 +43,7 @@
 	article {
 		display: flex;
 		flex-direction: row;
-	}
-
-	img {
-		width: 48px;
-		height: 48px;
-		border-radius: 50%;
-		object-fit: cover;
-
-		margin-right: 12px;
+		gap: 12px;
 	}
 
 	.text {
