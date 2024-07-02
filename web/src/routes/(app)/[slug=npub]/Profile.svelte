@@ -108,11 +108,9 @@
 					<div class="mute">
 						<ZapButton {pubkey} />
 					</div>
-					{#if metadata !== undefined}
 						<div>
-							<ProfileMenuButton event={metadata.event} />
+						<ProfileMenuButton {pubkey} />
 						</div>
-					{/if}
 					<FollowButton {pubkey} />
 				{/if}
 			</div>
