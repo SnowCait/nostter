@@ -98,7 +98,7 @@
 					<div class="mute">
 						<MuteButton tagName="p" tagContent={pubkey} />
 					</div>
-					<div class="mute">
+					<div class="zap">
 						<ZapButton {pubkey} />
 					</div>
 					<div>
@@ -219,6 +219,7 @@
 	}
 
 	.picture {
+		min-width: 128px;
 		width: 128px;
 		height: 128px;
 		object-fit: cover;
@@ -256,9 +257,18 @@
 
 	.actions .buttons {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
-		justify-content: start;
+		justify-content: flex-end;
 		gap: 1rem;
+	}
+
+	.actions .buttons div {
+		background-color: var(--surface);
+		border: 1px solid var(--accent-surface);
+		border-radius: 50%;
+		width: 36px;
+		height: 36px;
 	}
 
 	.profile .actions {

@@ -10,6 +10,7 @@
 	import { copy } from '$lib/Clipboard';
 	import { alternativeName } from '$lib/Items';
 	import { shareUrl } from '$lib/Share';
+	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
 	import IconClipboard from '@tabler/icons-svelte/dist/svelte/icons/IconClipboard.svelte';
 	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
 	import IconAffiliate from '@tabler/icons-svelte/dist/svelte/icons/IconAffiliate.svelte';
@@ -52,6 +53,12 @@
 </script>
 
 <Menu placement="center">
+	<svelte:fragment slot="control">
+		<div class="icon">
+			<IconDots />
+		</div>
+	</svelte:fragment>
+
 	<Menu.Item icon={IconClipboard} on:click={() => copy(nprofile)}>
 		{$_('actions.copy_id.button')}
 	</Menu.Item>
@@ -89,3 +96,12 @@
 		{/if}
 	{/if}
 </Menu>
+
+<style>
+	.icon {
+		color: var(--accent-gray);
+		width: 34px;
+		height: 34px;
+		padding: 8px;
+	}
+</style>
