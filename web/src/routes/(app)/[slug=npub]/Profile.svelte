@@ -20,10 +20,10 @@
 	import UserStatus from '$lib/components/UserStatus.svelte';
 	import ReplaceableEventsJson from '$lib/components/ReplaceableEventsJson.svelte';
 	import Content from '$lib/components/Content.svelte';
-	import IconTool from '@tabler/icons-svelte/dist/svelte/icons/IconTool.svelte';
 	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
 	import ProfileMenuButton from '$lib/components/ProfileMenuButton.svelte';
 	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
+	import { goto } from '$app/navigation';
 
 	export let slug: string;
 	export let pubkey: string;
@@ -95,13 +95,6 @@
 			</div>
 			<div class="buttons">
 				{#if !$rom && pubkey !== undefined}
-					{#if pubkey === $authorPubkey}
-						<div class="profile-editor">
-							<a href="/profile">
-								<IconTool />
-							</a>
-						</div>
-					{/if}
 					<div class="mute">
 						<MuteButton tagName="p" tagContent={pubkey} />
 					</div>
@@ -111,7 +104,13 @@
 					<div>
 						<ProfileMenuButton {pubkey} />
 					</div>
-					<FollowButton {pubkey} />
+					{#if pubkey === $authorPubkey}
+						<button on:click={async () => await goto('/profile')}>
+							{$_('pages.profile_edit')}
+						</button>
+					{:else}
+						<FollowButton {pubkey} />
+					{/if}
 				{/if}
 			</div>
 		</div>

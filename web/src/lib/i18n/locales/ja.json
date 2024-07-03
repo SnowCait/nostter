@@ -166,6 +166,12 @@
 		},
 		"broadcast": {
 			"button": "ブロードキャスト"
+		},
+		"follow": {
+			"myself": "自分自身をフォローする"
+		},
+		"unfollow": {
+			"myself": "自分自身のフォローを外す"
 		}
 	},
 	"thread": {
