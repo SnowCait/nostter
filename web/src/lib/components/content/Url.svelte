@@ -45,13 +45,13 @@
 			</blockquote>
 		</div>
 	{:else}
-		<ExternalLink {link}>{text}</ExternalLink>
+		<ExternalLink {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else if link.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(link.hostname)}
 	<YouTube {link} />
 {:else if link.hostname === 'amzn.to' || link.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
-	<ExternalLink {link}>{text}</ExternalLink>
+	<ExternalLink {link} />
 {:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
 	{#if preview}
 		<div>
@@ -60,14 +60,14 @@
 			</a>
 		</div>
 	{:else}
-		<ExternalLink {link}>{text}</ExternalLink>
+		<ExternalLink {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else if /\.(mp3|m4a|wav)$/i.test(link.pathname)}
 	{#if preview}
 		<audio src={link.href} controls />
 	{:else}
-		<ExternalLink {link}>{text}</ExternalLink>
+		<ExternalLink {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else if /\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(link.pathname)}
@@ -77,11 +77,13 @@
 			<video src={link.href} controls />
 		</div>
 	{:else}
-		<ExternalLink {link}>{text}</ExternalLink>
+		<ExternalLink {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else}
-	<ExternalLink {link}>{text}</ExternalLink>
+	<ExternalLink {link}>
+		{#if text !== url}{text}{/if}
+	</ExternalLink>
 {/if}
 
 <style>
