@@ -15,6 +15,7 @@ export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
 export const followees: Writable<string[]> = writable([]);
+export const originalFollowees = writable<string[]>([]);
 export const mutePubkeys: Writable<string[]> = writable([]);
 export const mutedPubkeysByKindMap = writable(new Map<number, Set<string>>());
 export const muteEventIds: Writable<string[]> = writable([]);

@@ -3,7 +3,7 @@
 	import { follow, unfollow } from '$lib/author/Follow';
 	import { metadataStore } from '$lib/cache/Events';
 	import { alternativeName } from '$lib/Items';
-	import { followees } from '$lib/stores/Author';
+	import { originalFollowees } from '$lib/stores/Author';
 
 	export let pubkey: string;
 
@@ -47,7 +47,7 @@
 	}
 </script>
 
-{#if $followees.includes(pubkey)}
+{#if $originalFollowees.includes(pubkey)}
 	<button on:click={onUnfollow} class="button-small button-outlined" disabled={processing}>
 		{$_('following')}
 	</button>

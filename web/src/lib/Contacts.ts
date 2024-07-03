@@ -2,7 +2,7 @@ import { get } from 'svelte/store';
 import { Kind, type SimplePool } from 'nostr-tools';
 import { Api } from './Api';
 import { filterTags } from './EventHelper';
-import { followees, pubkey } from './stores/Author';
+import { followees, originalFollowees, pubkey } from './stores/Author';
 
 export class Contacts {
 	private readonly api: Api;
@@ -35,6 +35,7 @@ export class Contacts {
 
 export function updateFolloweesStore(tags: string[][]): void {
 	const pubkeys = new Set(filterTags('p', tags).filter((pubkey) => /[0-9a-z]{64}/.test(pubkey)));
+	originalFollowees.set([...pubkeys]);
 	pubkeys.add(get(pubkey)); // Add myself
 	followees.set([...pubkeys]);
 	console.log('[contacts]', pubkeys.size);
