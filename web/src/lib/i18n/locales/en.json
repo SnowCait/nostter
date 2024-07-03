@@ -167,6 +167,12 @@
 		},
 		"broadcast": {
 			"button": "Broadcast"
+		},
+		"follow": {
+			"myself": "Follow myself"
+		},
+		"unfollow": {
+			"myself": "Unfollow myself"
 		}
 	},
 	"thread": {
