@@ -8,6 +8,8 @@
 	export let pubkey: string;
 	export let event: Event | undefined = undefined;
 	export let size: number = 24;
+	export let width = '34px';
+	export let height = '34px';
 
 	$: metadata = $metadataStore.get(pubkey);
 	$: if (metadata === undefined) {
@@ -22,6 +24,7 @@
 	class="clear"
 	disabled={!metadata?.canZap}
 	on:click={() => zapDialogComponent?.openZapDialog()}
+	style="width: {width}; height: {height}"
 >
 	<IconBolt {size} />
 </button>
@@ -30,6 +33,7 @@
 <style>
 	button {
 		color: var(--orange);
+		padding: 5px;
 	}
 
 	button:disabled {
