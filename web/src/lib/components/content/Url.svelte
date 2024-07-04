@@ -80,10 +80,10 @@
 		<ExternalLink {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
+{:else if url !== undefined && text !== url}
+	<ExternalLink {link}>{text}</ExternalLink>
 {:else}
-	<ExternalLink {link}>
-		{#if text !== url}{text}{/if}
-	</ExternalLink>
+	<ExternalLink {link} />
 {/if}
 
 <style>
