@@ -25,43 +25,46 @@
 	let eventId: string | undefined;
 	let item: EventItem | undefined;
 	let addressPointer: AddressPointer;
-	let slug = text.substring('nostr:'.length);
 
-	try {
-		const { type, data } = nip19.decode(slug);
-		switch (type) {
-			case 'npub': {
-				dataType = 'user';
-				pubkey = data as string;
-				break;
+	$: slug = text.substring('nostr:'.length);
+
+	$: {
+		try {
+			const { type, data } = nip19.decode(slug);
+			switch (type) {
+				case 'npub': {
+					dataType = 'user';
+					pubkey = data as string;
+					break;
+				}
+				case 'note': {
+					dataType = 'event';
+					eventId = data as string;
+					item = $events.find((x) => x.event.id === eventId);
+					break;
+				}
+				case 'nprofile': {
+					dataType = 'user';
+					const profile = data as nip19.ProfilePointer;
+					pubkey = profile.pubkey;
+					break;
+				}
+				case 'nevent': {
+					dataType = 'event';
+					const e = data as nip19.EventPointer;
+					eventId = e.id;
+					item = $events.find((x) => x.event.id === eventId);
+					break;
+				}
+				case 'naddr': {
+					dataType = 'addr';
+					addressPointer = data;
+					break;
+				}
 			}
-			case 'note': {
-				dataType = 'event';
-				eventId = data as string;
-				item = $events.find((x) => x.event.id === eventId);
-				break;
-			}
-			case 'nprofile': {
-				dataType = 'user';
-				const profile = data as nip19.ProfilePointer;
-				pubkey = profile.pubkey;
-				break;
-			}
-			case 'nevent': {
-				dataType = 'event';
-				const e = data as nip19.EventPointer;
-				eventId = e.id;
-				item = $events.find((x) => x.event.id === eventId);
-				break;
-			}
-			case 'naddr': {
-				dataType = 'addr';
-				addressPointer = data;
-				break;
-			}
+		} catch (e) {
+			console.warn('[decode failed]', text, e);
 		}
-	} catch (e) {
-		console.warn('[decode failed]', text, e);
 	}
 
 	$: if (dataType === 'user' && pubkey !== undefined) {
