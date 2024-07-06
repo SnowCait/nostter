@@ -1,21 +1,19 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
-	import { Mute } from '$lib/Mute';
+	import { unmute } from '$lib/author/Mute';
 	import { muteEventIds } from '$lib/stores/Author';
 	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
 
 	let unmuting = false;
 
-	const mute = new Mute();
-
-	async function unmute(eventId: string) {
+	async function onUnmute(eventId: string) {
 		console.log('[unmute event]', eventId);
 
 		unmuting = true;
 
 		try {
-			await mute.unmutePrivate('e', eventId);
+			await unmute('e', eventId);
 		} catch (error) {
 			alert('Failed to unmute.');
 		}
@@ -30,7 +28,7 @@
 			<a href="/{nip19.neventEncode({ id: eventId })}">
 				<span>{nip19.neventEncode({ id: eventId }).slice(0, 'nevent1'.length + 7)}</span>
 			</a>
-			<button class="clear" disabled={unmuting} on:click={() => unmute(eventId)}>
+			<button class="clear" disabled={unmuting} on:click={() => onUnmute(eventId)}>
 				<IconTrash size={18} />
 			</button>
 		</li>

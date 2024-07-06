@@ -19,9 +19,15 @@ import { ToastNotification } from '$lib/ToastNotification';
 import { authorReplaceableKinds } from '$lib/Author';
 import { chunk } from '$lib/Array';
 import { filterLimitItems, parameterizedReplaceableKinds, replaceableKinds } from '$lib/Constants';
-import { Mute } from '$lib/Mute';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
-import { pubkey, author, updateRelays, followees, storeMutedPubkeysByKind } from '../stores/Author';
+import {
+	pubkey,
+	author,
+	updateRelays,
+	followees,
+	storeMutedPubkeysByKind,
+	storeMutedTagsByEvent
+} from '../stores/Author';
 import { lastReadAt, notifiedEventItems, unreadEventItems } from '../stores/Notifications';
 import { events, eventsPool } from '../stores/Events';
 import { saveLastNote } from '../stores/LastNotes';
@@ -57,7 +63,7 @@ authorReplaceableObservable.pipe(filterByKind(Kind.Contacts)).subscribe(({ event
 	hometimelineReqEmit();
 });
 authorReplaceableObservable.pipe(filterByKind(10000)).subscribe(async ({ event }) => {
-	await new Mute().update(event);
+	await storeMutedTagsByEvent(event);
 });
 authorReplaceableObservable
 	.pipe(filterByKind(10001))

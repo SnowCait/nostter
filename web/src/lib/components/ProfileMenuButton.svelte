@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { Menu } from '@svelteuidev/core';
+	import { Divider, Menu } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { follow, unfollow } from '$lib/author/Follow';
+	import { mute, unmute } from '$lib/author/Mute';
 	import { metadataStore } from '$lib/cache/Events';
-	import { pubkey as authorPubkey, originalFollowees } from '$lib/stores/Author';
+	import { pubkey as authorPubkey, mutePubkeys, originalFollowees } from '$lib/stores/Author';
 	import { copy } from '$lib/Clipboard';
 	import { alternativeName } from '$lib/Items';
 	import { shareUrl } from '$lib/Share';
@@ -16,6 +17,7 @@
 	import IconAffiliate from '@tabler/icons-svelte/dist/svelte/icons/IconAffiliate.svelte';
 	import IconUserPlus from '@tabler/icons-svelte/dist/svelte/icons/IconUserPlus.svelte';
 	import IconUserMinus from '@tabler/icons-svelte/dist/svelte/icons/IconUserMinus.svelte';
+	import IconVolumeOff from '@tabler/icons-svelte/dist/svelte/icons/IconVolumeOff.svelte';
 
 	export let pubkey: string;
 
@@ -48,6 +50,35 @@
 		} catch (error) {
 			console.error('[unfollow failed]', error);
 			alert('Failed to unfollow.');
+		}
+	}
+
+	async function onMute(): Promise<void> {
+		console.log('[mute pubkey]');
+
+		try {
+			await mute('p', pubkey);
+		} catch (error) {
+			console.error('[mute failed]', error);
+			alert('Failed to mute.');
+		}
+	}
+
+	async function onUnmute(): Promise<void> {
+		console.log('[unmute pubkey]');
+
+		const metadata = $metadataStore.get(pubkey);
+
+		if (!confirm(`Unmute @${metadata?.displayName ?? alternativeName(pubkey)}?`)) {
+			console.log('[unmute cancelled]');
+			return;
+		}
+
+		try {
+			await unmute('p', pubkey);
+		} catch (error) {
+			console.error('[unmute failed]', error);
+			alert('Failed to unmute.');
 		}
 	}
 </script>
@@ -94,6 +125,20 @@
 				{$_('actions.follow.myself')}
 			</Menu.Item>
 		{/if}
+	{/if}
+
+	<Divider />
+
+	<Menu.Label>{$_('preferences.mute.mute')}</Menu.Label>
+
+	{#if $mutePubkeys.includes(pubkey)}
+		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={onUnmute}>
+			{$_('actions.unmute.button')}
+		</Menu.Item>
+	{:else}
+		<Menu.Item icon={IconVolumeOff} on:click={onMute}>
+			{$_('actions.mute.button')}
+		</Menu.Item>
 	{/if}
 </Menu>
 

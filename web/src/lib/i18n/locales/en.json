@@ -173,6 +173,12 @@
 		},
 		"unfollow": {
 			"myself": "Unfollow myself"
+		},
+		"mute": {
+			"button": "Mute"
+		},
+		"unmute": {
+			"button": "Unmute"
 		}
 	},
 	"thread": {

@@ -1,27 +1,27 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { Mute } from '$lib/Mute';
 	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
+	import { mute, unmute } from '$lib/author/Mute';
 	import { muteWords } from '$lib/stores/Author';
 
 	let word = '';
 
-	async function mute() {
+	async function onMute(): Promise<void> {
 		console.log('[mute word]', word);
 
 		try {
-			await new Mute().mutePrivate('word', word);
+			await mute('word', word);
 			word = '';
 		} catch (error) {
 			alert('Failed to mute.');
 		}
 	}
 
-	async function unmute(word: string) {
+	async function onUnmute(word: string): Promise<void> {
 		console.log('[unmute word]', word);
 
 		try {
-			await new Mute().unmutePrivate('word', word);
+			await unmute('word', word);
 		} catch (error) {
 			alert('Failed to unmute.');
 		}
@@ -32,14 +32,14 @@
 	{#each $muteWords as word}
 		<li>
 			<span>{word}</span>
-			<button class="clear" on:click={() => unmute(word)}><IconTrash size={18} /></button>
+			<button class="clear" on:click={() => onUnmute(word)}><IconTrash size={18} /></button>
 		</li>
 	{:else}
 		<li>{$_('preferences.mute.none')}</li>
 	{/each}
 </ul>
 
-<form on:submit|preventDefault={mute}>
+<form on:submit|preventDefault={onMute}>
 	<input type="text" required bind:value={word} on:keyup|stopPropagation={console.debug} />
 	<input type="submit" value="Mute" />
 </form>

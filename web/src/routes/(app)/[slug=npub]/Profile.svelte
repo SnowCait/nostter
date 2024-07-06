@@ -15,7 +15,6 @@
 	import Badges from '$lib/components/Badges.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import FollowButton from '$lib/components/FollowButton.svelte';
-	import MuteButton from '$lib/components/MuteButton.svelte';
 	import NostrAddress from '$lib/components/NostrAddress.svelte';
 	import UserStatus from '$lib/components/UserStatus.svelte';
 	import ReplaceableEventsJson from '$lib/components/ReplaceableEventsJson.svelte';
@@ -95,9 +94,6 @@
 			</div>
 			<div class="buttons">
 				{#if !$rom && pubkey !== undefined}
-					<div class="mute">
-						<MuteButton tagName="p" tagContent={pubkey} />
-					</div>
 					<div class="zap">
 						<ZapButton {pubkey} />
 					</div>

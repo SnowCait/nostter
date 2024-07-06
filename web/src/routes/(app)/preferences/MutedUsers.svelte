@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { nip19, type Event } from 'nostr-tools';
-	import { Mute } from '$lib/Mute';
+	import { unmute } from '$lib/author/Mute';
 	import { Api } from '$lib/Api';
 	import { Metadata } from '$lib/Items';
 	import { mutePubkeys, writeRelays } from '$lib/stores/Author';
@@ -12,21 +12,20 @@
 	let metadataEvents = new Map<string, Event>();
 	let unmuting = false;
 
-	const mute = new Mute();
-
 	onMount(async () => {
 		const api = new Api($pool, $writeRelays);
 		metadataEvents = await api.fetchMetadataEventsMap($mutePubkeys);
 	});
 
-	async function unmute(pubkey: string) {
+	async function onUnmute(pubkey: string): Promise<void> {
 		console.log('[unmute pubkey]', pubkey);
 
 		unmuting = true;
 
 		try {
-			await mute.unmutePrivate('p', pubkey);
+			await unmute('p', pubkey);
 		} catch (error) {
+			console.error('[unmute failed]', error);
 			alert('Failed to unmute.');
 		}
 
@@ -46,7 +45,7 @@
 						nip19.npubEncode(pubkey).slice(0, 'npub1'.length + 7)}
 				</span>
 			</a>
-			<button class="clear" disabled={unmuting} on:click={() => unmute(pubkey)}>
+			<button class="clear" disabled={unmuting} on:click={() => onUnmute(pubkey)}>
 				<IconTrash size={18} />
 			</button>
 		</li>

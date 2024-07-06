@@ -8,7 +8,7 @@
 		muteEventIds,
 		muteWords
 	} from '$lib/stores/Author';
-	import { Mute } from '$lib/Mute';
+	import { mute, unmute } from '$lib/author/Mute';
 
 	export let tagName: 'p' | 'e' | 'word';
 	export let tagContent: string;
@@ -28,7 +28,7 @@
 		word: tagContent
 	};
 
-	async function mute() {
+	async function onMute(): Promise<void> {
 		console.log('[mute]', logTexts[tagName]);
 
 		if (!confirm(`Mute this ${text ?? texts[tagName]}?`)) {
@@ -39,7 +39,7 @@
 		executing = true;
 
 		try {
-			await new Mute().mutePrivate(tagName, tagContent);
+			await mute(tagName, tagContent);
 		} catch (error) {
 			alert('Failed to mute.');
 		}
@@ -47,7 +47,7 @@
 		executing = false;
 	}
 
-	async function unmute() {
+	async function onUnmute(): Promise<void> {
 		console.log('[unmute]', logTexts[tagName]);
 
 		if (!confirm(`Unmute this ${text ?? texts[tagName]}?`)) {
@@ -58,7 +58,7 @@
 		executing = true;
 
 		try {
-			await new Mute().unmutePrivate(tagName, tagContent);
+			await unmute(tagName, tagContent);
 		} catch (error) {
 			alert('Failed to unmute.');
 		}
@@ -70,10 +70,10 @@
 {#if (tagName === 'p' ? $mutePubkeys : tagName === 'e' ? $muteEventIds : $muteWords).some((c) => c === tagContent)}
 	<div class="muting">
 		<span>Muting</span>
-		<button on:click={unmute} disabled={executing}><IconTrash /></button>
+		<button on:click={onUnmute} disabled={executing}><IconTrash /></button>
 	</div>
 {:else if $authorPubkey !== ''}
-	<button on:click={mute} disabled={executing}><IconVolumeOff /></button>
+	<button on:click={onMute} disabled={executing}><IconVolumeOff /></button>
 {/if}
 
 <style>

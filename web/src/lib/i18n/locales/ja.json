@@ -172,6 +172,12 @@
 		},
 		"unfollow": {
 			"myself": "自分自身のフォローを外す"
+		},
+		"mute": {
+			"button": "ミュートする"
+		},
+		"unmute": {
+			"button": "ミュートを外す"
 		}
 	},
 	"thread": {
