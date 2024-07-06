@@ -9,7 +9,8 @@ import {
 	authorProfile,
 	metadataEvent,
 	isMuteEvent,
-	storeMutedPubkeysByKind
+	storeMutedPubkeysByKind,
+	storeMutedTagsByEvent
 } from './stores/Author';
 import { RelayList } from './author/RelayList';
 import { filterTags, findIdentifier, parseRelayJson } from './EventHelper';
@@ -164,7 +165,7 @@ export class Author {
 		const legacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);
 
 		if (muteEvent !== undefined) {
-			await new Mute().update(muteEvent);
+			await storeMutedTagsByEvent(muteEvent);
 		} else if (legacyMuteEvent !== undefined) {
 			await new Mute().migrate(legacyMuteEvent, muteEvent);
 		}

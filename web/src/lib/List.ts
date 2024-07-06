@@ -6,6 +6,7 @@ import { rxNostr } from './timelines/MainTimeline';
 import { filterTags, findIdentifier } from './EventHelper';
 import { parsePrivateTags } from './Encryption';
 import { pubkey } from './stores/Author';
+import { Signer } from './Signer';
 
 export async function fetchListEvent(
 	kind: number,
@@ -39,4 +40,25 @@ export async function getListPubkeys(event: Event): Promise<string[]> {
 
 	const pubkeys = filterTags('p', tags);
 	return [...new Set(pubkeys)];
+}
+
+export async function decryptListContent(content: string): Promise<string[][]> {
+	if (content === '') {
+		return [];
+	}
+
+	const $pubkey = get(pubkey);
+
+	try {
+		const json = await Signer.decrypt($pubkey, content);
+		return JSON.parse(json);
+	} catch (error) {
+		console.warn('[list parse error]', error);
+		return [];
+	}
+}
+
+export async function encryptListContent(tags: string[][]): Promise<string> {
+	const $pubkey = get(pubkey);
+	return Signer.encrypt($pubkey, JSON.stringify(tags));
 }

@@ -6,6 +6,7 @@ import { defaultRelays } from '$lib/Constants';
 import type { Author } from '$lib/Author';
 import { filterRelayTags, filterTags, findIdentifier } from '$lib/EventHelper';
 import { Signer } from '$lib/Signer';
+import { decryptListContent } from '$lib/List';
 
 console.log('[author store]');
 
@@ -86,6 +87,26 @@ export const updateRelays = (event: Event) => {
 		)
 	);
 	console.debug('[relays after]', get(readRelays), get(writeRelays));
+};
+
+export const storeMutedTagsByEvent = async (event: Event): Promise<void> => {
+	const privateTags = await decryptListContent(event.content);
+	await storeMutedTags([...event.tags, ...privateTags]);
+};
+
+export const storeMutedTags = async (tags: string[][]): Promise<void> => {
+	mutePubkeys.set([...new Set(filterTags('p', tags))]);
+	muteEventIds.set([...new Set(filterTags('e', tags))]);
+	muteWords.set([...new Set(filterTags('word', tags))]);
+	console.log(
+		'[mute lists]',
+		'p',
+		get(mutePubkeys),
+		'e',
+		get(muteEventIds),
+		'word',
+		get(muteWords)
+	);
 };
 
 export const storeMutedPubkeysByKind = async (events: Event[]): Promise<void> => {
