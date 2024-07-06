@@ -9,6 +9,8 @@
 	$: {
 		if (link.hostname === 'youtu.be') {
 			id = link.pathname.replace('/', '');
+		} else if (link.pathname.startsWith('/live/')) {
+			id = link.pathname.replace('/live/', '');
 		} else {
 			const v = link.searchParams.get('v');
 			if (v !== null) {
