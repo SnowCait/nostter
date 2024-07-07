@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Menu } from '@svelteuidev/core';
 	import IconHome from '@tabler/icons-svelte/dist/svelte/icons/IconHome.svelte';
 	import IconSearch from '@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte';
 	import IconBell from '@tabler/icons-svelte/dist/svelte/icons/IconBell.svelte';
@@ -140,42 +141,48 @@
 						<p>{$_('layout.header.profile')}</p>
 					</li>
 				</a>
-			{/if}
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-			<li on:click={() => (show = !show)}>
-				<IconDots size={30} />
-				<p>...</p>
-			</li>
-			{#if show || !$pubkey}
-				{#if $pubkey}
-					<a href="/{profile}/lists">
-						<li>
-							<IconList size={30} />
-							<p>{$_('lists.title')}</p>
-						</li>
-					</a>
-					<a href="/{profile}/bookmarks">
-						<li>
-							<IconBookmark size={30} />
-							<p>{$_('layout.header.bookmarks')}</p>
-						</li>
-					</a>
-				{/if}
+				<li>
+					<Menu placement="center">
+						<svelte:fragment slot="control">
+							<IconDots size={30} />
+						</svelte:fragment>
+
+						<Menu.Item
+							icon={IconList}
+							on:click={async () => await goto(`/${profile}/lists`)}
+						>
+							{$_('lists.title')}
+						</Menu.Item>
+						<Menu.Item
+							icon={IconBookmark}
+							on:click={async () => await goto(`/${profile}/bookmarks`)}
+						>
+							{$_('layout.header.bookmarks')}
+						</Menu.Item>
+						<Menu.Item
+							icon={IconMessages}
+							on:click={async () => await goto('/channels')}
+						>
+							{$_('layout.header.channels')}
+						</Menu.Item>
+						<Menu.Item
+							icon={IconSettings}
+							on:click={async () => await goto('/preferences')}
+						>
+							{$_('layout.header.preferences')}
+						</Menu.Item>
+						<Menu.Item icon={IconPaw} on:click={async () => await goto('/about')}>
+							{$_('about.title')}
+						</Menu.Item>
+					</Menu>
+				</li>
+			{:else}
 				<a href="/channels">
 					<li>
 						<IconMessages size={30} />
 						<p>{$_('layout.header.channels')}</p>
 					</li>
 				</a>
-				{#if $pubkey}
-					<a href="/preferences">
-						<li>
-							<IconSettings size={30} />
-							<p>{$_('layout.header.preferences')}</p>
-						</li>
-					</a>
-				{/if}
 				<a href="/about">
 					<li>
 						<IconPaw size={30} />
