@@ -26,7 +26,7 @@ export async function fetchListEvent(
 }
 
 export function getListTitle(tags: string[][]): string {
-	return filterTags('title', tags).at(0)?.at(1) ?? findIdentifier(tags) ?? '-';
+	return filterTags('title', tags).at(0) ?? findIdentifier(tags) ?? '-';
 }
 
 export async function getListPubkeys(event: Event): Promise<string[]> {
