@@ -13,7 +13,6 @@
 	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
-	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { metadataStore } from '$lib/cache/Events';
 	import { followees, pubkey, rom } from '$lib/stores/Author';
@@ -28,7 +27,6 @@
 
 	let show = false;
 
-	$: mobile = browser && window.matchMedia('(max-width: 600px)').matches;
 	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
 	$: metadata = $metadataStore.get($pubkey);
 	$: profile = metadata?.normalizedNip05
@@ -48,7 +46,7 @@
 		</a>
 	</div>
 	<nav>
-		<ul>
+		<ul class="full">
 			<a href={homeLink}>
 				<li>
 					<IconHome size={30} />
@@ -78,15 +76,78 @@
 					</li>
 				</a>
 			{/if}
-			{#if mobile && $pubkey}
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-				<li on:click={() => (show = !show)}>
-					<IconDots size={30} />
-					<p>...</p>
-				</li>
+			{#if $pubkey}
+				<a href="/{profile}/lists">
+					<li>
+						<IconList size={30} />
+						<p>{$_('lists.title')}</p>
+					</li>
+				</a>
+				<a href="/{profile}/bookmarks">
+					<li>
+						<IconBookmark size={30} />
+						<p>{$_('layout.header.bookmarks')}</p>
+					</li>
+				</a>
 			{/if}
-			{#if !mobile || show || !$pubkey}
+			<a href="/channels">
+				<li>
+					<IconMessages size={30} />
+					<p>{$_('layout.header.channels')}</p>
+				</li>
+			</a>
+			{#if $pubkey}
+				<a href="/preferences">
+					<li>
+						<IconSettings size={30} />
+						<p>{$_('layout.header.preferences')}</p>
+					</li>
+				</a>
+			{/if}
+			<a href="/about">
+				<li>
+					<IconPaw size={30} />
+					<p>{$_('about.title')}</p>
+				</li>
+			</a>
+		</ul>
+		<ul class="fold">
+			<a href={homeLink}>
+				<li>
+					<IconHome size={30} />
+					<p>{$_('layout.header.home')}</p>
+				</li>
+			</a>
+			<a href="/search">
+				<li>
+					<IconSearch size={30} />
+					<p>{$_('layout.header.search')}</p>
+				</li>
+			</a>
+			{#if $pubkey}
+				<a href="/notifications">
+					<li class="notifications-icon">
+						<IconBell size={30} />
+						{#if $unreadEventItems.length > 0 || $lastNotifiedAt > $lastReadAt}
+							<span class="notifications-icon-badge" />
+						{/if}
+						<p>{$_('layout.header.notifications')}</p>
+					</li>
+				</a>
+				<a href="/{profile}">
+					<li>
+						<IconUser size={30} />
+						<p>{$_('layout.header.profile')}</p>
+					</li>
+				</a>
+			{/if}
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+			<li on:click={() => (show = !show)}>
+				<IconDots size={30} />
+				<p>...</p>
+			</li>
+			{#if show || !$pubkey}
 				{#if $pubkey}
 					<a href="/{profile}/lists">
 						<li>
@@ -176,10 +237,17 @@
 	ul {
 		list-style: none;
 		padding: 0;
-		display: flex;
 		flex-flow: column;
 		justify-content: left;
 		gap: 1.5rem;
+	}
+
+	ul.full {
+		display: flex;
+	}
+
+	ul.fold {
+		display: none;
 	}
 
 	li {
@@ -303,6 +371,14 @@
 			justify-content: space-around;
 			margin: 0;
 			align-items: center;
+		}
+
+		ul.full {
+			display: none;
+		}
+
+		ul.fold {
+			display: flex;
 		}
 
 		li p {
