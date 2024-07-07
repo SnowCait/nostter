@@ -26,8 +26,6 @@
 		$openNoteDialog = !$openNoteDialog;
 	}
 
-	let show = false;
-
 	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
 	$: metadata = $metadataStore.get($pubkey);
 	$: profile = metadata?.normalizedNip05
