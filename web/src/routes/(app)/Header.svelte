@@ -69,12 +69,6 @@
 						<p>{$_('layout.header.notifications')}</p>
 					</li>
 				</a>
-				<a href="/{profile}">
-					<li>
-						<IconUser size={30} />
-						<p>{$_('layout.header.profile')}</p>
-					</li>
-				</a>
 			{/if}
 			{#if $pubkey}
 				<a href="/{profile}/lists">
@@ -97,6 +91,12 @@
 				</li>
 			</a>
 			{#if $pubkey}
+				<a href="/{profile}">
+					<li>
+						<IconUser size={30} />
+						<p>{$_('layout.header.profile')}</p>
+					</li>
+				</a>
 				<a href="/preferences">
 					<li>
 						<IconSettings size={30} />
