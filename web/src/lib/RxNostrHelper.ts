@@ -17,6 +17,10 @@ export async function fetchLastEvent(filter: LazyFilter): Promise<Event | undefi
 				complete: () => {
 					console.debug('[rx-nostr last complete]', lastEvent);
 					resolve(lastEvent);
+				},
+				error: (error) => {
+					console.warn('[rx-nostr last error]', error);
+					resolve(lastEvent);
 				}
 			});
 		req.emit([filter]);
