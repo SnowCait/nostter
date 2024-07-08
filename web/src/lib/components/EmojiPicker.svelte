@@ -14,14 +14,14 @@
 	export let autoClose = true;
 
 	let button: HTMLButtonElement | undefined;
-	let emojiPicker: HTMLElement | undefined;
+	let emojiPicker: HTMLElement | undefined | null;
 	let stopAutoUpdate: (() => void) | undefined;
 
 	const dispatch = createEventDispatcher();
 
 	async function onClick(e: MouseEvent): Promise<void> {
 		console.debug('[emoji picker click]', emojiPicker);
-		if (button === undefined || emojiPicker === undefined || emojiPicker.firstChild !== null) {
+		if (button === undefined || !emojiPicker || emojiPicker.firstChild !== null) {
 			return;
 		}
 
@@ -84,7 +84,7 @@
 
 	async function render(): Promise<void> {
 		console.debug('[emoji picker render]', emojiPicker?.firstChild);
-		if (button === undefined || emojiPicker === undefined || emojiPicker.firstChild === null) {
+		if (button === undefined || !emojiPicker || emojiPicker.firstChild === null) {
 			return;
 		}
 
