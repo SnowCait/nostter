@@ -64,7 +64,7 @@
 		} else {
 			console.warn('[relay events not found]');
 			if (pubkey === $authorPubkey) {
-				relays = rxNostr.getRelays();
+				relays = Object.entries(rxNostr.getDefaultRelays()).map(([, config]) => config);
 			}
 		}
 	});

@@ -362,11 +362,10 @@
 			]
 		);
 
-		console.log('[rx-nostr send to]', rxNostr.getAllRelayState());
-		const sendToRelays = rxNostr
-			.getRelays()
-			.filter(({ write }) => write)
-			.map(({ url }) => url);
+		console.log('[rx-nostr send to]', rxNostr.getAllRelayStatus());
+		const sendToRelays = Object.entries(rxNostr.getDefaultRelays())
+			.filter(([, { write }]) => write)
+			.map(([url]) => url);
 		const sentRelays = new Map<string, boolean>();
 		rxNostr.send(event).subscribe({
 			next: async (packet) => {

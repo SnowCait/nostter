@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { createRxNostr, createRxOneshotReq } from 'rx-nostr';
+	import { verifier } from 'rx-nostr-crypto';
 	import { trendRelays } from '$lib/Constants';
 
 	let phrases: Phrase[] = [];
@@ -8,7 +9,7 @@
 	onMount(() => {
 		console.log('[trend]', trendRelays);
 
-		const rxNostr = createRxNostr();
+		const rxNostr = createRxNostr({ verifier });
 		rxNostr.setDefaultRelays(trendRelays);
 
 		const lang = navigator.language.startsWith('ja') ? 'ja' : 'en';

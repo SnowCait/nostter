@@ -34,7 +34,7 @@ export class Login {
 		const relayListEvent = await Signer.signEvent({
 			kind: 10002,
 			content: '',
-			tags: rxNostr.getRelays().map(({ url, read, write }) => {
+			tags: Object.entries(rxNostr.getDefaultRelays()).map(([, { url, read, write }]) => {
 				const tag = ['r', url];
 				if (read && !write) {
 					tag.push('read');
