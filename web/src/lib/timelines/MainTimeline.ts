@@ -11,8 +11,9 @@ import {
 	type ConnectionState,
 	type LazyFilter
 } from 'rx-nostr';
-import { verifier } from 'rx-nostr-crypto';
+import { createVerificationServiceClient, verifier } from 'rx-nostr-crypto';
 import { tap, bufferTime } from 'rxjs';
+import { browser } from '$app/environment';
 import { filterLimitItems, timeout } from '$lib/Constants';
 import { aTagContent, filterTags } from '$lib/EventHelper';
 import { EventItem, Metadata } from '$lib/Items';
@@ -34,7 +35,7 @@ Nip11Registry.setDefault({
 });
 
 export const rxNostr = createRxNostr({
-	verifier,
+	verifier: browser ? createVerificationServiceClient().verify : verifier,
 	connectionStrategy: 'lazy-keep',
 	eoseTimeout: timeout,
 	okTimeout: timeout,
