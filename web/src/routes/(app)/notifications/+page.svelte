@@ -72,7 +72,7 @@
 			console.debug(
 				'[rx-nostr notification timeline REQ]',
 				filters,
-				rxNostr.getAllRelayState()
+				rxNostr.getAllRelayStatus()
 			);
 			const pastEventsReq = createRxOneshotReq({ filters });
 			await new Promise<void>((resolve, reject) => {

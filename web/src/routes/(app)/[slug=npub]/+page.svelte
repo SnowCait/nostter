@@ -83,13 +83,9 @@
 			);
 
 			const filters = Timeline.createChunkedFilters([data.pubkey], since, until);
-			console.log('[rx-nostr user timeline REQ]', filters, rxNostr.getAllRelayState());
+			console.log('[rx-nostr user timeline REQ]', filters, rxNostr.getAllRelayStatus());
 			const pastEventsReq = createRxOneshotReq({ filters });
-			console.log(
-				'[rx-nostr user timeline req ID]',
-				pastEventsReq.strategy,
-				pastEventsReq.rxReqId
-			);
+			console.log('[rx-nostr user timeline req ID]', pastEventsReq);
 			await new Promise<void>((resolve, reject) => {
 				rxNostr
 					.use(pastEventsReq)

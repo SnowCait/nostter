@@ -21,9 +21,11 @@
 		console.log('[naddr page]', data);
 
 		await Promise.allSettled(
-			data.relays.map((relay) => rxNostr.addRelay({ url: relay, write: false, read: true }))
+			data.relays.map((relay) =>
+				rxNostr.addDefaultRelays([{ url: relay, write: false, read: true }])
+			)
 		);
-		console.log('[naddr relays]', rxNostr.getAllRelayState());
+		console.log('[naddr relays]', rxNostr.getAllRelayStatus());
 
 		const naddrReq = createRxOneshotReq({
 			filters: [

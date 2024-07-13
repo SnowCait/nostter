@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createRxNostr, createRxOneshotReq, latest, now } from 'rx-nostr';
+	import { verifier } from 'rx-nostr-crypto';
 	import { every, firstValueFrom, EmptyError } from 'rxjs';
 	import { onDestroy } from 'svelte';
 	import type { Kind, EventTemplate } from 'nostr-tools';
@@ -16,7 +17,7 @@
 			([tagName, id]) => tagName === 'e' && id === channelId
 		) ?? false;
 
-	const rxNostr = createRxNostr();
+	const rxNostr = createRxNostr({ verifier });
 
 	async function pin() {
 		console.log('[channel pin]', channelId);

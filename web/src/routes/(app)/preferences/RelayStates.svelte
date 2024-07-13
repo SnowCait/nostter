@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 
-	let states = rxNostr.getAllRelayState();
+	let states = rxNostr.getAllRelayStatus();
 
 	function refresh() {
-		states = rxNostr.getAllRelayState();
+		states = rxNostr.getAllRelayStatus();
 	}
 </script>
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import { verifier } from 'rx-nostr-crypto';
 	import { firstValueFrom, EmptyError } from 'rxjs';
 	import type { Event } from 'nostr-typedef';
 	import { _ } from 'svelte-i18n';
@@ -18,7 +19,7 @@
 
 	let items: EventItem[] = [];
 
-	const rxNostr = createRxNostr();
+	const rxNostr = createRxNostr({ verifier });
 
 	afterNavigate(async () => {
 		const slug = $page.params.slug;

@@ -7,6 +7,7 @@
 		now,
 		uniq
 	} from 'rx-nostr';
+	import { verifier } from 'rx-nostr-crypto';
 	import { tap, type Subscription } from 'rxjs';
 	import { onDestroy } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
@@ -75,7 +76,7 @@
 		}
 	}
 
-	const rxNostr = createRxNostr({ eoseTimeout: timeout });
+	const rxNostr = createRxNostr({ verifier, eoseTimeout: timeout });
 
 	let items: EventItem[] = [];
 

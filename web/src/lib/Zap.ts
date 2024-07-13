@@ -2,6 +2,7 @@ import { get } from 'svelte/store';
 import { _ } from 'svelte-i18n';
 import { nip04 } from 'nostr-tools';
 import { createRxForwardReq, createRxNostr } from 'rx-nostr';
+import { verifier } from 'rx-nostr-crypto';
 import type { Event } from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
 
@@ -13,7 +14,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 	} = parseConnectionString(uri);
 	const event = await makeNwcRequestEvent(walletPubkey, walletSeckey, invoice);
 
-	const nwcRxNostr = createRxNostr();
+	const nwcRxNostr = createRxNostr({ verifier });
 	nwcRxNostr.setDefaultRelays([walletRelay]);
 
 	try {

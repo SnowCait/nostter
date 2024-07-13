@@ -44,13 +44,9 @@
 					since
 				}
 			];
-			console.log('[rx-nostr user media timeline REQ]', filters, rxNostr.getAllRelayState());
+			console.log('[rx-nostr user media timeline REQ]', filters, rxNostr.getAllRelayStatus());
 			const pastEventsReq = createRxOneshotReq({ filters });
-			console.log(
-				'[rx-nostr user media timeline req ID]',
-				pastEventsReq.strategy,
-				pastEventsReq.rxReqId
-			);
+			console.log('[rx-nostr user media timeline req ID]', pastEventsReq);
 			await new Promise<void>((resolve, reject) => {
 				rxNostr
 					.use(pastEventsReq)

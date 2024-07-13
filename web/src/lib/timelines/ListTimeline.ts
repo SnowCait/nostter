@@ -84,9 +84,9 @@ export async function loadListTimeline(): Promise<void> {
 		console.debug('[list timeline period]', new Date(since * 1000), new Date(until * 1000));
 
 		const filters = Timeline.createChunkedFilters($pubkeys, since, until);
-		console.debug('[list timeline REQ]', filters, rxNostr.getAllRelayState());
+		console.debug('[list timeline REQ]', filters, rxNostr.getAllRelayStatus());
 		const pastEventsReq = createRxOneshotReq({ filters });
-		console.debug('[list timeline req ID]', pastEventsReq.strategy, pastEventsReq.rxReqId);
+		console.debug('[list timeline req ID]', pastEventsReq);
 		await new Promise<void>((resolve, reject) => {
 			rxNostr
 				.use(pastEventsReq)

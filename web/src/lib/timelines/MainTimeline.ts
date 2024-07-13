@@ -11,6 +11,7 @@ import {
 	type ConnectionState,
 	type LazyFilter
 } from 'rx-nostr';
+import { verifier } from 'rx-nostr-crypto';
 import { tap, bufferTime } from 'rxjs';
 import { filterLimitItems, timeout } from '$lib/Constants';
 import { aTagContent, filterTags } from '$lib/EventHelper';
@@ -33,6 +34,7 @@ Nip11Registry.setDefault({
 });
 
 export const rxNostr = createRxNostr({
+	verifier,
 	connectionStrategy: 'lazy-keep',
 	eoseTimeout: timeout,
 	okTimeout: timeout,
@@ -74,7 +76,9 @@ const recconectableStates: ConnectionState[] = [
 ];
 
 export function reconnectIfConnectionsAreUnstable(): void {
-	const states = Object.entries(rxNostr.getAllRelayState());
+	const states: [string, ConnectionState][] = Object.entries(rxNostr.getAllRelayStatus()).map(
+		([relay, status]) => [relay, status.connection]
+	);
 	console.log('[relay states]', states);
 	if (
 		states.filter(([, state]) => recconectableStates.includes(state)).length * 2 <

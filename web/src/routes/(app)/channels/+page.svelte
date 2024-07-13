@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createRxOneshotReq, filterKind, latestEach, uniq } from 'rx-nostr';
+	import { createRxOneshotReq, filterByKind, latestEach, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
 	import {
@@ -45,7 +45,7 @@
 			]
 		});
 		const observable = rxNostr.use(channelsMetadataReq).pipe(uniq());
-		observable.pipe(filterKind(40)).subscribe((packet) => {
+		observable.pipe(filterByKind(40)).subscribe((packet) => {
 			console.log('[channel definition packet]', packet);
 			const channelId = packet.event.id;
 			cachedEvents.set(channelId, packet.event);
@@ -54,7 +54,7 @@
 		});
 		observable
 			.pipe(
-				filterKind(41),
+				filterByKind(41),
 				latestEach(({ event }) => findChannelId(event.tags))
 			)
 			.subscribe((packet) => {
