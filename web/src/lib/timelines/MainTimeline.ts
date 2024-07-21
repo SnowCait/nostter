@@ -11,8 +11,8 @@ import {
 	type ConnectionState,
 	type LazyFilter
 } from 'rx-nostr';
-import { verifier } from 'rx-nostr-crypto';
 import { tap, bufferTime } from 'rxjs';
+import { initNostrWasm } from 'nostr-wasm';
 import { filterLimitItems, timeout } from '$lib/Constants';
 import { aTagContent, filterTags } from '$lib/EventHelper';
 import { EventItem, Metadata } from '$lib/Items';
@@ -32,6 +32,17 @@ Nip11Registry.setDefault({
 		max_subscriptions: 20
 	}
 });
+
+const nostr = await initNostrWasm();
+
+export const verifier = async (event: Event): Promise<boolean> => {
+	try {
+		nostr.verifyEvent(event);
+		return true;
+	} catch (error) {
+		return false;
+	}
+};
 
 export const rxNostr = createRxNostr({
 	verifier,

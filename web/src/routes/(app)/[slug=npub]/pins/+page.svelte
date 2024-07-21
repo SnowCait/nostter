@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
-	import { verifier } from 'rx-nostr-crypto';
 	import { firstValueFrom, EmptyError } from 'rxjs';
 	import type { Event } from 'nostr-typedef';
 	import { _ } from 'svelte-i18n';
@@ -13,6 +12,7 @@
 	import { EventItem } from '$lib/Items';
 	import { filterTags } from '$lib/EventHelper';
 	import { pubkey as authorPubkey, readRelays } from '$lib/stores/Author';
+	import { verifier } from '$lib/timelines/MainTimeline';
 	import TimelineView from '../../TimelineView.svelte';
 
 	export let data: LayoutData;

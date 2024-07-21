@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { createRxNostr, createRxOneshotReq } from 'rx-nostr';
-	import { verifier } from 'rx-nostr-crypto';
 	import { trendRelays } from '$lib/Constants';
+	import { verifier } from '$lib/timelines/MainTimeline';
 
 	let phrases: Phrase[] = [];
 

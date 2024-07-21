@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { createRxNostr, createRxOneshotReq, latest, now } from 'rx-nostr';
-	import { verifier } from 'rx-nostr-crypto';
 	import { every, firstValueFrom, EmptyError } from 'rxjs';
 	import { onDestroy } from 'svelte';
 	import type { Kind, EventTemplate } from 'nostr-tools';
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { Signer } from '$lib/Signer';
 	import { pubkey, writeRelays } from '$lib/stores/Author';
+	import { verifier } from '$lib/timelines/MainTimeline';
 	import IconPin from '@tabler/icons-svelte/dist/svelte/icons/IconPin.svelte';
 	import IconPinnedFilled from '@tabler/icons-svelte/dist/svelte/icons/IconPinnedFilled.svelte';
 
