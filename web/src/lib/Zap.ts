@@ -2,9 +2,9 @@ import { get } from 'svelte/store';
 import { _ } from 'svelte-i18n';
 import { nip04 } from 'nostr-tools';
 import { createRxForwardReq, createRxNostr } from 'rx-nostr';
-import { verifier } from 'rx-nostr-crypto';
 import type { Event } from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
+import { verifier } from './timelines/MainTimeline';
 
 export async function zapWithWalletConnect(uri: string, invoice: string): Promise<boolean> {
 	const {

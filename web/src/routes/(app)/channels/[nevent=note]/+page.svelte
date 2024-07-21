@@ -7,7 +7,6 @@
 		now,
 		uniq
 	} from 'rx-nostr';
-	import { verifier } from 'rx-nostr-crypto';
 	import { tap, type Subscription } from 'rxjs';
 	import { onDestroy } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
@@ -20,7 +19,7 @@
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import { appName, timeout } from '$lib/Constants';
 	import type { ChannelMetadata } from '$lib/Types';
-	import { referencesReqEmit } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, verifier } from '$lib/timelines/MainTimeline';
 	import { author, readRelays } from '$lib/stores/Author';
 	import Content from '$lib/components/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
