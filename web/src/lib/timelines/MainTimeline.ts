@@ -12,7 +12,7 @@ import {
 	type LazyFilter
 } from 'rx-nostr';
 import { tap, bufferTime } from 'rxjs';
-import { initNostrWasm } from 'nostr-wasm';
+import { initNostrWasm, type Nostr } from 'nostr-wasm';
 import { filterLimitItems, timeout } from '$lib/Constants';
 import { aTagContent, filterTags } from '$lib/EventHelper';
 import { EventItem, Metadata } from '$lib/Items';
@@ -33,9 +33,13 @@ Nip11Registry.setDefault({
 	}
 });
 
-const nostr = await initNostrWasm();
+let nostr: Nostr | undefined;
 
 export const verifier = async (event: Event): Promise<boolean> => {
+	if (nostr === undefined) {
+		nostr = await initNostrWasm();
+	}
+
 	try {
 		nostr.verifyEvent(event);
 		return true;
