@@ -15,7 +15,7 @@
 		processing = true;
 
 		try {
-			await follow(pubkey);
+			await follow([pubkey]);
 		} catch (error) {
 			console.error('[follow failed]', error);
 			alert('Failed to follow.');
@@ -37,7 +37,7 @@
 		processing = true;
 
 		try {
-			await unfollow(pubkey);
+			await unfollow([pubkey]);
 		} catch (error) {
 			console.error('[unfollow failed]', error);
 			alert('Failed to unfollow.');

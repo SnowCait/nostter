@@ -10,6 +10,7 @@
 	import type { LayoutData } from '../$types';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
+	import FollowAllButton from '$lib/components/actions/FollowAllButton.svelte';
 
 	export let data: LayoutData;
 
@@ -56,6 +57,17 @@
 	<title>{appName} - {$_('pages.followers')}</title>
 </svelte:head>
 
-<h1>{$_('pages.followers')} ({pubkeys.size}+)</h1>
+<div>
+	<h1>{$_('pages.followers')} ({pubkeys.size}+)</h1>
+	<FollowAllButton pubkeys={[...pubkeys]} />
+</div>
 
 <TimelineView {items} showLoading={false} />
+
+<style>
+	div {
+		display: flex;
+		justify-content: space-between;
+		margin: 0.5rem auto;
+	}
+</style>
