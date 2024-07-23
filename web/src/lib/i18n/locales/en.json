@@ -169,7 +169,11 @@
 			"button": "Broadcast"
 		},
 		"follow": {
-			"myself": "Follow myself"
+			"myself": "Follow myself",
+			"all": {
+				"button": "Follow all",
+				"confirm": "Do you really follow %d users?"
+			}
 		},
 		"unfollow": {
 			"myself": "Unfollow myself"

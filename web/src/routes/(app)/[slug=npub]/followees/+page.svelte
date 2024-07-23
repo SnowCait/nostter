@@ -5,7 +5,7 @@
 	import { browser } from '$app/environment';
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
-	import { author } from '$lib/stores/Author';
+	import { author, pubkey as authorPubkey } from '$lib/stores/Author';
 	import { appName } from '$lib/Constants';
 	import type { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
@@ -13,6 +13,7 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { lastNoteReqEmit } from '$lib/LastNotes';
 	import type { pubkey as Pubkey } from '$lib/Types';
+	import FollowAllButton from '$lib/components/actions/FollowAllButton.svelte';
 
 	export let data: LayoutData;
 
@@ -55,6 +56,19 @@
 	<title>{appName} - {$_('pages.followees')}</title>
 </svelte:head>
 
-<h1>{$_('pages.followees')} ({pubkeys.length})</h1>
+<div>
+	<h1>{$_('pages.followees')} ({pubkeys.length})</h1>
+	{#if pubkey !== $authorPubkey}
+		<FollowAllButton {pubkeys} />
+	{/if}
+</div>
 
 <TimelineView {items} showLoading={false} />
+
+<style>
+	div {
+		display: flex;
+		justify-content: space-between;
+		margin: 0.5rem auto;
+	}
+</style>

@@ -22,21 +22,23 @@ const queue = new Queue<Data>();
 
 let processing = false;
 
-export async function follow(pubkey: string): Promise<void> {
-	console.log('[follow]', pubkey, queue.dump());
-	await save('follow', pubkey);
+export async function follow(pubkeys: string[]): Promise<void> {
+	console.debug('[follow]', pubkeys, queue.dump());
+	await save('follow', pubkeys);
 }
 
-export async function unfollow(pubkey: string): Promise<void> {
-	console.log('[unfollow]', pubkey, queue.dump());
-	await save('unfollow', pubkey);
+export async function unfollow(pubkeys: string[]): Promise<void> {
+	console.debug('[unfollow]', pubkeys, queue.dump());
+	await save('unfollow', pubkeys);
 }
 
-async function save(type: DataType, pubkey: string): Promise<void> {
-	queue.enqueue({
-		type,
-		pubkey
-	});
+async function save(type: DataType, pubkeys: string[]): Promise<void> {
+	for (const pubkey of pubkeys) {
+		queue.enqueue({
+			type,
+			pubkey
+		});
+	}
 
 	if (!processing) {
 		processing = true;
