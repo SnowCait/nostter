@@ -19,7 +19,7 @@
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import { appName, timeout } from '$lib/Constants';
 	import type { ChannelMetadata } from '$lib/Types';
-	import { referencesReqEmit, verifier } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, verificationClient } from '$lib/timelines/MainTimeline';
 	import { author, readRelays } from '$lib/stores/Author';
 	import Content from '$lib/components/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
@@ -75,7 +75,7 @@
 		}
 	}
 
-	const rxNostr = createRxNostr({ verifier, eoseTimeout: timeout });
+	const rxNostr = createRxNostr({ verifier: verificationClient.verifier, eoseTimeout: timeout });
 
 	let items: EventItem[] = [];
 

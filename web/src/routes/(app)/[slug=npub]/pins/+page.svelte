@@ -12,14 +12,14 @@
 	import { EventItem } from '$lib/Items';
 	import { filterTags } from '$lib/EventHelper';
 	import { pubkey as authorPubkey, readRelays } from '$lib/stores/Author';
-	import { verifier } from '$lib/timelines/MainTimeline';
+	import { verificationClient } from '$lib/timelines/MainTimeline';
 	import TimelineView from '../../TimelineView.svelte';
 
 	export let data: LayoutData;
 
 	let items: EventItem[] = [];
 
-	const rxNostr = createRxNostr({ verifier });
+	const rxNostr = createRxNostr({ verifier: verificationClient.verifier });
 
 	afterNavigate(async () => {
 		const slug = $page.params.slug;

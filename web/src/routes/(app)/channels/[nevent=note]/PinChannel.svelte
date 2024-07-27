@@ -6,7 +6,7 @@
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { Signer } from '$lib/Signer';
 	import { pubkey, writeRelays } from '$lib/stores/Author';
-	import { verifier } from '$lib/timelines/MainTimeline';
+	import { verificationClient } from '$lib/timelines/MainTimeline';
 	import IconPin from '@tabler/icons-svelte/dist/svelte/icons/IconPin.svelte';
 	import IconPinnedFilled from '@tabler/icons-svelte/dist/svelte/icons/IconPinnedFilled.svelte';
 
@@ -17,7 +17,7 @@
 			([tagName, id]) => tagName === 'e' && id === channelId
 		) ?? false;
 
-	const rxNostr = createRxNostr({ verifier });
+	const rxNostr = createRxNostr({ verifier: verificationClient.verifier });
 
 	async function pin() {
 		console.log('[channel pin]', channelId);

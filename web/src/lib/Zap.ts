@@ -4,7 +4,7 @@ import { nip04 } from 'nostr-tools';
 import { createRxForwardReq, createRxNostr } from 'rx-nostr';
 import type { Event } from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
-import { verifier } from './timelines/MainTimeline';
+import { verificationClient } from './timelines/MainTimeline';
 
 export async function zapWithWalletConnect(uri: string, invoice: string): Promise<boolean> {
 	const {
@@ -14,7 +14,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 	} = parseConnectionString(uri);
 	const event = await makeNwcRequestEvent(walletPubkey, walletSeckey, invoice);
 
-	const nwcRxNostr = createRxNostr({ verifier });
+	const nwcRxNostr = createRxNostr({ verifier: verificationClient.verifier });
 	nwcRxNostr.setDefaultRelays([walletRelay]);
 
 	try {

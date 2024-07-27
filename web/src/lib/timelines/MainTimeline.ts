@@ -11,8 +11,9 @@ import {
 	type ConnectionState,
 	type LazyFilter
 } from 'rx-nostr';
+import { createNoopClient, createVerificationServiceClient } from 'rx-nostr-crypto';
 import { tap, bufferTime } from 'rxjs';
-import { initNostrWasm, type Nostr } from 'nostr-wasm';
+import { browser } from '$app/environment';
 import { filterLimitItems, timeout } from '$lib/Constants';
 import { aTagContent, filterTags } from '$lib/EventHelper';
 import { EventItem, Metadata } from '$lib/Items';
@@ -26,6 +27,7 @@ import {
 import { chunk } from '$lib/Array';
 import { Content } from '$lib/Content';
 import { sleep } from '$lib/Helper';
+import workerUrl from '$lib/Worker?worker&url';
 
 Nip11Registry.setDefault({
 	limitation: {
@@ -33,23 +35,16 @@ Nip11Registry.setDefault({
 	}
 });
 
-let nostr: Nostr | undefined;
-
-export const verifier = async (event: Event): Promise<boolean> => {
-	if (nostr === undefined) {
-		nostr = await initNostrWasm();
-	}
-
-	try {
-		nostr.verifyEvent(event);
-		return true;
-	} catch (error) {
-		return false;
-	}
-};
+export const verificationClient = browser
+	? createVerificationServiceClient({
+			worker: new Worker(workerUrl, { type: 'module' }),
+			timeout: 600000
+	  })
+	: createNoopClient();
+verificationClient.start();
 
 export const rxNostr = createRxNostr({
-	verifier,
+	verifier: verificationClient.verifier,
 	connectionStrategy: 'lazy-keep',
 	eoseTimeout: timeout,
 	okTimeout: timeout,
