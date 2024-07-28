@@ -53,10 +53,9 @@
 		"light-bolt11-decoder": "^3.1.1",
 		"nip07-awaiter": "^0.2.1",
 		"nostr-tools": "^1.10.1",
-		"nostr-wasm": "^0.1.0",
 		"qrcode": "^1.5.3",
-		"rx-nostr": "^3.1.0",
-		"rx-nostr-crypto": "^3.0.1",
+		"rx-nostr": "^3.3.1",
+		"rx-nostr-crypto": "^3.1.1",
 		"rxjs": "^7.8.1",
 		"svelte-i18n": "^4.0.0"
 	}

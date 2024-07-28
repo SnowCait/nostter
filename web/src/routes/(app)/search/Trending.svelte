@@ -2,14 +2,14 @@
 	import { onMount } from 'svelte';
 	import { createRxNostr, createRxOneshotReq } from 'rx-nostr';
 	import { trendRelays } from '$lib/Constants';
-	import { verifier } from '$lib/timelines/MainTimeline';
+	import { verificationClient } from '$lib/timelines/MainTimeline';
 
 	let phrases: Phrase[] = [];
 
 	onMount(() => {
 		console.log('[trend]', trendRelays);
 
-		const rxNostr = createRxNostr({ verifier });
+		const rxNostr = createRxNostr({ verifier: verificationClient.verifier });
 		rxNostr.setDefaultRelays(trendRelays);
 
 		const lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
