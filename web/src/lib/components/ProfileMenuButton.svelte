@@ -6,8 +6,14 @@
 	import { page } from '$app/stores';
 	import { follow, unfollow } from '$lib/author/Follow';
 	import { mute, unmute } from '$lib/author/Mute';
+	import { muteByKind, unmuteByKind } from '$lib/author/MuteKind';
 	import { metadataStore } from '$lib/cache/Events';
-	import { pubkey as authorPubkey, mutePubkeys, originalFollowees } from '$lib/stores/Author';
+	import {
+		pubkey as authorPubkey,
+		mutedPubkeysByKindMap,
+		mutePubkeys,
+		originalFollowees
+	} from '$lib/stores/Author';
 	import { copy } from '$lib/Clipboard';
 	import { alternativeName } from '$lib/Items';
 	import { shareUrl } from '$lib/Share';
@@ -67,18 +73,77 @@
 	async function onUnmute(): Promise<void> {
 		console.log('[unmute pubkey]');
 
-		const metadata = $metadataStore.get(pubkey);
-
-		if (!confirm(`Unmute @${metadata?.displayName ?? alternativeName(pubkey)}?`)) {
-			console.log('[unmute cancelled]');
-			return;
-		}
-
 		try {
 			await unmute('p', pubkey);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert('Failed to unmute.');
+		}
+	}
+
+	async function muteReposts(): Promise<void> {
+		console.log('[mute reposts]', pubkey);
+
+		try {
+			await Promise.allSettled([6, 16].map((kind) => muteByKind(kind, pubkey)));
+		} catch (error) {
+			console.error('[mute reposts failed]', error);
+			alert('Failed to mute reposts.');
+		}
+	}
+
+	async function unmuteReposts(): Promise<void> {
+		console.log('[unmute reposts]', pubkey);
+
+		try {
+			await Promise.allSettled([6, 16].map((kind) => unmuteByKind(kind, pubkey)));
+		} catch (error) {
+			console.error('[unmute reposts failed]', error);
+			alert('Failed to unmute reposts.');
+		}
+	}
+
+	async function muteReactions(): Promise<void> {
+		console.log('[mute reactions]', pubkey);
+
+		try {
+			await muteByKind(7, pubkey);
+		} catch (error) {
+			console.error('[mute reactions failed]', error);
+			alert('Failed to mute reactions.');
+		}
+	}
+
+	async function unmuteReactions(): Promise<void> {
+		console.log('[unmute reactions]', pubkey);
+
+		try {
+			await unmuteByKind(7, pubkey);
+		} catch (error) {
+			console.error('[unmute reactions failed]', error);
+			alert('Failed to unmute reactions.');
+		}
+	}
+
+	async function muteZaps(): Promise<void> {
+		console.log('[mute zaps]', pubkey);
+
+		try {
+			await muteByKind(2735, pubkey);
+		} catch (error) {
+			console.error('[mute zaps failed]', error);
+			alert('Failed to mute zaps.');
+		}
+	}
+
+	async function unmuteZaps(): Promise<void> {
+		console.log('[unmute zaps]', pubkey);
+
+		try {
+			await unmuteByKind(2735, pubkey);
+		} catch (error) {
+			console.error('[unmute zaps failed]', error);
+			alert('Failed to unmute zaps.');
 		}
 	}
 </script>
@@ -138,6 +203,36 @@
 	{:else}
 		<Menu.Item icon={IconVolumeOff} on:click={onMute}>
 			{$_('actions.mute.button')}
+		</Menu.Item>
+	{/if}
+
+	{#if $mutedPubkeysByKindMap.get(6)?.has(pubkey)}
+		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={() => unmuteReposts()}>
+			{$_('actions.unmute.reposts')}
+		</Menu.Item>
+	{:else}
+		<Menu.Item icon={IconVolumeOff} on:click={() => muteReposts()}>
+			{$_('actions.mute.reposts')}
+		</Menu.Item>
+	{/if}
+
+	{#if $mutedPubkeysByKindMap.get(7)?.has(pubkey)}
+		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={() => unmuteReactions()}>
+			{$_('actions.unmute.reactions')}
+		</Menu.Item>
+	{:else}
+		<Menu.Item icon={IconVolumeOff} on:click={() => muteReactions()}>
+			{$_('actions.mute.reactions')}
+		</Menu.Item>
+	{/if}
+
+	{#if $mutedPubkeysByKindMap.get(2735)?.has(pubkey)}
+		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={() => unmuteZaps()}>
+			{$_('actions.unmute.zaps')}
+		</Menu.Item>
+	{:else}
+		<Menu.Item icon={IconVolumeOff} on:click={() => muteZaps()}>
+			{$_('actions.mute.zaps')}
 		</Menu.Item>
 	{/if}
 </Menu>
