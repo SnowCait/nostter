@@ -1,7 +1,7 @@
 <script lang="ts">
 	import DateLink from '$lib/components/DateLink.svelte';
-	import IconChevronLeft from '@tabler/icons-svelte/dist/svelte/icons/IconChevronLeft.svelte';
-	import IconChevronRight from '@tabler/icons-svelte/dist/svelte/icons/IconChevronRight.svelte';
+	import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left';
+	import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right';
 
 	export let slug: string;
 	export let date: Date;

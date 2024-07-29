@@ -3,7 +3,7 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import ZapDialog from './ZapDialog.svelte';
-	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
+	import IconBolt from '@tabler/icons-svelte/icons/bolt';
 
 	export let pubkey: string;
 	export let event: Event | undefined = undefined;

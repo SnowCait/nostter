@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
+	import IconTrash from '@tabler/icons-svelte/icons/trash';
 	import { mute, unmute } from '$lib/author/Mute';
 	import { muteWords } from '$lib/stores/Author';
 

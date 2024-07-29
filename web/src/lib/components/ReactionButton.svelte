@@ -6,12 +6,12 @@
 	import { sendReaction } from '$lib/author/Reaction';
 	import { preferencesStore } from '$lib/Preferences';
 	import { rom } from '$lib/stores/Author';
-	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
-	import IconHeartFilled from '@tabler/icons-svelte/dist/svelte/icons/IconHeartFilled.svelte';
-	import IconPaw from '@tabler/icons-svelte/dist/svelte/icons/IconPaw.svelte';
-	import IconPawFilled from '@tabler/icons-svelte/dist/svelte/icons/IconPawFilled.svelte';
-	import IconStar from '@tabler/icons-svelte/dist/svelte/icons/IconStar.svelte';
-	import IconStarFilled from '@tabler/icons-svelte/dist/svelte/icons/IconStarFilled.svelte';
+	import IconHeart from '@tabler/icons-svelte/icons/heart';
+	import IconHeartFilled from '@tabler/icons-svelte/icons/heart-filled';
+	import IconPaw from '@tabler/icons-svelte/icons/paw';
+	import IconPawFilled from '@tabler/icons-svelte/icons/paw-filled';
+	import IconStar from '@tabler/icons-svelte/icons/star';
+	import IconStarFilled from '@tabler/icons-svelte/icons/star-filled';
 
 	export let event: Event;
 	export let iconSize: number;

@@ -2,10 +2,10 @@
 	import type { Item } from '$lib/Items';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
 	import Content from '$lib/components/Content.svelte';
-	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
-	import IconMusic from '@tabler/icons-svelte/dist/svelte/icons/IconMusic.svelte';
-	import IconQuestionMark from '@tabler/icons-svelte/dist/svelte/icons/IconQuestionMark.svelte';
-	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
+	import IconUser from '@tabler/icons-svelte/icons/user';
+	import IconMusic from '@tabler/icons-svelte/icons/music';
+	import IconQuestionMark from '@tabler/icons-svelte/icons/question-mark';
+	import IconLink from '@tabler/icons-svelte/icons/link';
 
 	export let item: Item;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';

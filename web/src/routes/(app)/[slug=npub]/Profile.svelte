@@ -19,7 +19,7 @@
 	import UserStatus from '$lib/components/UserStatus.svelte';
 	import ReplaceableEventsJson from '$lib/components/ReplaceableEventsJson.svelte';
 	import Content from '$lib/components/Content.svelte';
-	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
+	import IconLink from '@tabler/icons-svelte/icons/link';
 	import ProfileMenuButton from '$lib/components/ProfileMenuButton.svelte';
 	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
 	import { goto } from '$app/navigation';

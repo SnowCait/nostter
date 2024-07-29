@@ -1,5 +1,5 @@
 <script lang="ts">
-	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
+	import IconLink from '@tabler/icons-svelte/icons/link';
 
 	export let tag: string[];
 

@@ -7,8 +7,8 @@
 	import { Signer } from '$lib/Signer';
 	import { pubkey, writeRelays } from '$lib/stores/Author';
 	import { verificationClient } from '$lib/timelines/MainTimeline';
-	import IconPin from '@tabler/icons-svelte/dist/svelte/icons/IconPin.svelte';
-	import IconPinnedFilled from '@tabler/icons-svelte/dist/svelte/icons/IconPinnedFilled.svelte';
+	import IconPin from '@tabler/icons-svelte/icons/pin';
+	import IconPinnedFilled from '@tabler/icons-svelte/icons/pinned-filled';
 
 	export let channelId: string;
 

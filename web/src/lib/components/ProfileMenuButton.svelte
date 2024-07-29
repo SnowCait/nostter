@@ -11,13 +11,13 @@
 	import { copy } from '$lib/Clipboard';
 	import { alternativeName } from '$lib/Items';
 	import { shareUrl } from '$lib/Share';
-	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
-	import IconClipboard from '@tabler/icons-svelte/dist/svelte/icons/IconClipboard.svelte';
-	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
-	import IconAffiliate from '@tabler/icons-svelte/dist/svelte/icons/IconAffiliate.svelte';
-	import IconUserPlus from '@tabler/icons-svelte/dist/svelte/icons/IconUserPlus.svelte';
-	import IconUserMinus from '@tabler/icons-svelte/dist/svelte/icons/IconUserMinus.svelte';
-	import IconVolumeOff from '@tabler/icons-svelte/dist/svelte/icons/IconVolumeOff.svelte';
+	import IconDots from '@tabler/icons-svelte/icons/dots';
+	import IconClipboard from '@tabler/icons-svelte/icons/clipboard';
+	import IconLink from '@tabler/icons-svelte/icons/link';
+	import IconAffiliate from '@tabler/icons-svelte/icons/affiliate';
+	import IconUserPlus from '@tabler/icons-svelte/icons/user-plus';
+	import IconUserMinus from '@tabler/icons-svelte/icons/user-minus';
+	import IconVolumeOff from '@tabler/icons-svelte/icons/volume-off';
 
 	export let pubkey: string;
 

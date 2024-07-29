@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { toEmoji } from '$lib/Emoji';
 	import { preferencesStore, savePreferences } from '$lib/Preferences';
-	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
+	import IconHeart from '@tabler/icons-svelte/icons/heart';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import CustomEmoji from '$lib/components/content/CustomEmoji.svelte';
 

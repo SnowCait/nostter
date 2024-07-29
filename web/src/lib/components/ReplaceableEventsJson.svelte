@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { replaceableEvents } from '$lib/Profile';
 	import Json from './Json.svelte';
-	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
+	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
 
 	let showReplaceableEvents = false;
 

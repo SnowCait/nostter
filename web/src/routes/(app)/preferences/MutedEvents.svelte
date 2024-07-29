@@ -3,7 +3,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { unmute } from '$lib/author/Mute';
 	import { muteEventIds } from '$lib/stores/Author';
-	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
+	import IconTrash from '@tabler/icons-svelte/icons/trash';
 
 	let unmuting = false;
 

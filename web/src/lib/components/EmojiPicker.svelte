@@ -7,7 +7,7 @@
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
 	import { autoUpdate, computePosition, shift } from '@floating-ui/dom';
-	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
+	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
 	import { customEmojiTags } from '../author/CustomEmojis';
 
 	export let containsDefaultEmoji = true;

@@ -2,8 +2,8 @@
 	import { nip05, nip19 } from 'nostr-tools';
 	import type { Metadata } from '$lib/Items';
 	import CopyButton from './CopyButton.svelte';
-	import IconDiscountCheck from '@tabler/icons-svelte/dist/svelte/icons/IconDiscountCheck.svelte';
-	import IconAlertTriangle from '@tabler/icons-svelte/dist/svelte/icons/IconAlertTriangle.svelte';
+	import IconRosetteDiscountCheck from '@tabler/icons-svelte/icons/rosette-discount-check';
+	import IconAlertTriangle from '@tabler/icons-svelte/icons/alert-triangle';
 
 	export let metadata: Metadata;
 
@@ -18,7 +18,7 @@
 				<span>{metadata.normalizedNip05}</span>
 				{#await nip05.queryProfile(metadata.normalizedNip05) then pointer}
 					{#if pointer !== null && pointer.pubkey === metadata.event.pubkey}
-						<IconDiscountCheck color="skyblue" />
+						<IconRosetteDiscountCheck color="skyblue" />
 					{:else}
 						<IconAlertTriangle color="orange" />
 					{/if}

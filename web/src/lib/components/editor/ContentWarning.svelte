@@ -1,5 +1,5 @@
 <script lang="ts">
-	import IconEyeOff from '@tabler/icons-svelte/dist/svelte/icons/IconEyeOff.svelte';
+	import IconEyeOff from '@tabler/icons-svelte/icons/eye-off';
 
 	export let reason: string | undefined = undefined;
 
