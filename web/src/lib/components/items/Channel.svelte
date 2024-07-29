@@ -3,8 +3,8 @@
 	import { cachedEvents, channelMetadataEventsStore, eventItemStore } from '$lib/cache/Events';
 	import type { ChannelMetadata } from '$lib/Types';
 	import type { Item } from '$lib/Items';
-	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
-	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
+	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
+	import IconQuote from '@tabler/icons-svelte/icons/quote';
 	import { intentContent, openNoteDialog } from '$lib/stores/NoteDialog';
 	import { Channel } from '$lib/Channel';
 	import { findChannelId } from '$lib/EventHelper';

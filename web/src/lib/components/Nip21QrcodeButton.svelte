@@ -1,6 +1,6 @@
 <script lang="ts">
 	import QRCode from 'qrcode';
-	import IconQrcode from '@tabler/icons-svelte/dist/svelte/icons/IconQrcode.svelte';
+	import IconQrcode from '@tabler/icons-svelte/icons/qrcode';
 	import ModalDialog from './ModalDialog.svelte';
 
 	export let identifier: string;

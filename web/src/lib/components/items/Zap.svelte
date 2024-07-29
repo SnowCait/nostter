@@ -5,8 +5,8 @@
 	import { ZapEventItem, type EventItem, type Item, type Metadata } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import { developerMode } from '$lib/stores/Preference';
-	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
-	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
+	import IconBolt from '@tabler/icons-svelte/icons/bolt';
+	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
 	import CreatedAt from '../CreatedAt.svelte';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';

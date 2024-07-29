@@ -22,9 +22,9 @@
 	import { tick } from 'svelte';
 	import MuteButton from '$lib/components/MuteButton.svelte';
 	import CustomEmoji from '$lib/components/content/CustomEmoji.svelte';
-	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
-	import IconHeart from '@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte';
-	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
+	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
+	import IconHeart from '@tabler/icons-svelte/icons/heart';
+	import IconBolt from '@tabler/icons-svelte/icons/bolt';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import DateLink from '$lib/components/DateLink.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import IconPhoto from '@tabler/icons-svelte/dist/svelte/icons/IconPhoto.svelte';
+	import IconPhoto from '@tabler/icons-svelte/icons/photo';
 
 	export let multiple = false;
 

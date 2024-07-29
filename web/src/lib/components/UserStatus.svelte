@@ -4,10 +4,10 @@
 	import { findIdentifier } from '$lib/EventHelper';
 	import { userStatusesMap } from '$lib/UserStatus';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
-	import IconUser from '@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte';
-	import IconMusic from '@tabler/icons-svelte/dist/svelte/icons/IconMusic.svelte';
-	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
-	import IconPencil from '@tabler/icons-svelte/dist/svelte/icons/IconPencil.svelte';
+	import IconUser from '@tabler/icons-svelte/icons/user';
+	import IconMusic from '@tabler/icons-svelte/icons/music';
+	import IconLink from '@tabler/icons-svelte/icons/link';
+	import IconPencil from '@tabler/icons-svelte/icons/pencil';
 
 	export let pubkey: string;
 	export let showLink = false;

@@ -14,8 +14,8 @@
 	import Relay from './Relay.svelte';
 	import { filterRelayTags, parseRelayJson } from '$lib/EventHelper';
 	import { Contacts } from '$lib/Contacts';
-	import IconPencil from '@tabler/icons-svelte/dist/svelte/icons/IconPencil.svelte';
-	import IconDeviceFloppy from '@tabler/icons-svelte/dist/svelte/icons/IconDeviceFloppy.svelte';
+	import IconPencil from '@tabler/icons-svelte/icons/pencil';
+	import IconDeviceFloppy from '@tabler/icons-svelte/icons/device-floppy';
 	import Loading from '$lib/components/Loading.svelte';
 
 	export let data: LayoutData;

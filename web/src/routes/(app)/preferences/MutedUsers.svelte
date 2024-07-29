@@ -7,7 +7,7 @@
 	import { Metadata } from '$lib/Items';
 	import { mutePubkeys, writeRelays } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
-	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
+	import IconTrash from '@tabler/icons-svelte/icons/trash';
 
 	let metadataEvents = new Map<string, Event>();
 	let unmuting = false;

@@ -4,8 +4,8 @@
 	import { nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { findIdentifier } from '$lib/EventHelper';
-	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
-	import IconExternalLink from '@tabler/icons-svelte/dist/svelte/icons/IconExternalLink.svelte';
+	import IconDots from '@tabler/icons-svelte/icons/dots';
+	import IconExternalLink from '@tabler/icons-svelte/icons/external-link';
 
 	export let event: Event;
 

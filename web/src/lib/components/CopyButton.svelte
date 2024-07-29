@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { copy as copyText } from '$lib/Clipboard';
-	import IconClipboard from '@tabler/icons-svelte/dist/svelte/icons/IconClipboard.svelte';
-	import IconClipboardCheck from '@tabler/icons-svelte/dist/svelte/icons/IconClipboardCheck.svelte';
+	import IconClipboard from '@tabler/icons-svelte/icons/clipboard';
+	import IconClipboardCheck from '@tabler/icons-svelte/icons/clipboard-check';
 
 	export let text: string;
 	export let size = 18;

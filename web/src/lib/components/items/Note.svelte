@@ -3,9 +3,9 @@
 	import type { EventItem, Item } from '$lib/Items';
 	import { sendReaction } from '$lib/author/Reaction';
 	import { metadataStore } from '$lib/cache/Events';
-	import IconMessageCircle2 from '@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte';
-	import IconBolt from '@tabler/icons-svelte/dist/svelte/icons/IconBolt.svelte';
-	import IconMessages from '@tabler/icons-svelte/dist/svelte/icons/IconMessages.svelte';
+	import IconMessageCircle from '@tabler/icons-svelte/icons/message-circle';
+	import IconBolt from '@tabler/icons-svelte/icons/bolt';
+	import IconMessages from '@tabler/icons-svelte/icons/messages';
 	import { openNoteDialog, replyTo } from '$lib/stores/NoteDialog';
 	import { readRelays, pubkey, author } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
@@ -166,7 +166,7 @@
 					class:hidden={item.event.kind === Kind.EncryptedDirectMessage}
 					on:click={() => reply(item)}
 				>
-					<IconMessageCircle2 size={iconSize} />
+					<IconMessageCircle size={iconSize} />
 				</button>
 				<RepostButton event={item.event} {iconSize} />
 				<ReactionButton event={item.event} {iconSize} />

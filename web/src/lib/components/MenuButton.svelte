@@ -10,13 +10,13 @@
 	import { shareUrl } from '$lib/Share';
 	import { rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
-	import IconDots from '@tabler/icons-svelte/dist/svelte/icons/IconDots.svelte';
-	import IconBookmark from '@tabler/icons-svelte/dist/svelte/icons/IconBookmark.svelte';
-	import IconBookmarkFilled from '@tabler/icons-svelte/dist/svelte/icons/IconBookmarkFilled.svelte';
-	import IconClipboard from '@tabler/icons-svelte/dist/svelte/icons/IconClipboard.svelte';
-	import IconLink from '@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte';
-	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
-	import IconBroadcast from '@tabler/icons-svelte/dist/svelte/icons/IconBroadcast.svelte';
+	import IconDots from '@tabler/icons-svelte/icons/dots';
+	import IconBookmark from '@tabler/icons-svelte/icons/bookmark';
+	import IconBookmarkFilled from '@tabler/icons-svelte/icons/bookmark-filled';
+	import IconClipboard from '@tabler/icons-svelte/icons/clipboard';
+	import IconLink from '@tabler/icons-svelte/icons/link';
+	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
+	import IconBroadcast from '@tabler/icons-svelte/icons/broadcast';
 
 	export let event: Event;
 	export let iconSize: number;

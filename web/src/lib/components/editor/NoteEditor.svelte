@@ -26,7 +26,7 @@
 	import ContentWarning from './ContentWarning.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
-	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
+	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
 
 	export function clear(): void {
 		console.log('[note editor clear]');

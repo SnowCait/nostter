@@ -3,7 +3,7 @@
 	import type { Event } from 'nostr-typedef';
 	import CustomEmojiMenuButton from '../actions/CustomEmojiMenuButton.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
-	import IconMoodSmile from '@tabler/icons-svelte/dist/svelte/icons/IconMoodSmile.svelte';
+	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
 
 	export let event: Event;
 

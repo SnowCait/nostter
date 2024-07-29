@@ -8,8 +8,8 @@
 	import { rom, writeRelays } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
 	import { openNoteDialog, quotes } from '$lib/stores/NoteDialog';
-	import IconRepeat from '@tabler/icons-svelte/dist/svelte/icons/IconRepeat.svelte';
-	import IconQuote from '@tabler/icons-svelte/dist/svelte/icons/IconQuote.svelte';
+	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
+	import IconQuote from '@tabler/icons-svelte/icons/quote';
 
 	export let event: Event;
 	export let iconSize: number;

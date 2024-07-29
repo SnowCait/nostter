@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import IconTrash from '@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte';
+	import IconTrash from '@tabler/icons-svelte/icons/trash';
 
 	export let relay: { url: string; read: boolean; write: boolean };
 	export let readonly: boolean;

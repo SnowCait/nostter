@@ -8,8 +8,8 @@
 	import { type Item } from '$lib/Items';
 	import { rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
-	import IconCodeDots from '@tabler/icons-svelte/dist/svelte/icons/IconCodeDots.svelte';
-	import IconAward from '@tabler/icons-svelte/dist/svelte/icons/IconAward.svelte';
+	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
+	import IconAward from '@tabler/icons-svelte/icons/award';
 	import BadgeDefinition from './BadgeDefinition.svelte';
 	import CreatedAt from '../CreatedAt.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
