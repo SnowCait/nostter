@@ -179,10 +179,16 @@
 			"myself": "Unfollow myself"
 		},
 		"mute": {
-			"button": "Mute"
+			"button": "Mute",
+			"reposts": "Mute reposts",
+			"reactions": "Mute reactions (likes)",
+			"zaps": "Mute zaps"
 		},
 		"unmute": {
-			"button": "Unmute"
+			"button": "Unmute",
+			"reposts": "Unmute this user's reposts",
+			"reactions": "Unmute this user's reactions",
+			"zaps": "Unmute this user's zaps"
 		}
 	},
 	"thread": {

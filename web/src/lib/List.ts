@@ -59,6 +59,10 @@ export async function decryptListContent(content: string): Promise<string[][]> {
 }
 
 export async function encryptListContent(tags: string[][]): Promise<string> {
+	if (tags.length === 0) {
+		return '';
+	}
+
 	const $pubkey = get(pubkey);
 	return Signer.encrypt($pubkey, JSON.stringify(tags));
 }
