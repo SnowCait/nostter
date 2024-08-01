@@ -12,7 +12,7 @@
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
 	import { appName } from '$lib/Constants';
-	import ExternalLink from '$lib/components/ExternalLink.svelte';
+	import CreateChannelButton from '$lib/components/actions/CreateChannelButton.svelte';
 
 	let channelIds = new Set<string>();
 	let keyword = '';
@@ -96,9 +96,7 @@
 </form>
 
 <div>
-	<ExternalLink link={new URL('https://unyu-house.vercel.app/')}>
-		{$_('public_chat.create_channel')}
-	</ExternalLink>
+	<CreateChannelButton />
 </div>
 
 <TimelineView {items} showLoading={false} />
