@@ -26,11 +26,12 @@
 	}
 </script>
 
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <dialog
 	bind:this={dialog}
 	class="card"
 	on:click={tryClose}
-	on:keyup|stopPropagation={console.debug}
+	on:keyup|stopPropagation
 	on:close={onClose}
 >
 	<div class="dialog-content">
