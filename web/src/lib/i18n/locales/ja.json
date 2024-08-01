@@ -127,7 +127,13 @@
 		"proxy": "外部 SNS の投稿を含める"
 	},
 	"public_chat": {
-		"create_channel": "チャンネルを作成"
+		"create_channel": "チャンネルを作成",
+		"create": "作成",
+		"channel": {
+			"name": "チャンネル名（必須）",
+			"about": "説明",
+			"picture": "画像 URL"
+		}
 	},
 	"actions": {
 		"bookmark": {

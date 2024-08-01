@@ -128,7 +128,13 @@
 		"proxy": "Include external SNS notes"
 	},
 	"public_chat": {
-		"create_channel": "Create channel"
+		"create_channel": "Create channel",
+		"create": "Create",
+		"channel": {
+			"name": "Channel Name (required)",
+			"about": "Description",
+			"picture": "Picture URL"
+		}
 	},
 	"actions": {
 		"bookmark": {

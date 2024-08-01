@@ -13,3 +13,9 @@ export class Channel {
 		}
 	}
 }
+
+export interface ChannelContent {
+	name?: string;
+	about?: string;
+	picture?: string;
+}
