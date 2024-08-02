@@ -45,7 +45,7 @@
 		"@floating-ui/dom": "^1.6.3",
 		"@sentry/sveltekit": "^8.22.0",
 		"@svelteuidev/composables": "^0.15.4",
-		"@svelteuidev/core": "^0.15.4",
+		"@svelteuidev/core": "^0.15.7",
 		"@tabler/icons-svelte": "^3.11.0",
 		"@tabler/icons-webfont": "^3.8.0",
 		"emoji-kitchen-mart": "^6.0.4",
