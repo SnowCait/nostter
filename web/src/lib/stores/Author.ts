@@ -4,7 +4,7 @@ import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
 import type { Author } from '$lib/Author';
-import { filterRelayTags, filterTags, findIdentifier } from '$lib/EventHelper';
+import { filterRelayTags, filterTags, findIdentifier, getZapperPubkey } from '$lib/EventHelper';
 import { Signer } from '$lib/Signer';
 import { decryptListContent } from '$lib/List';
 
@@ -35,40 +35,35 @@ export const isMuteEvent = (event: Event) => {
 	if (event.pubkey === get(pubkey)) {
 		return false;
 	}
-	const $muteWords = get(muteWords);
-	if (
-		isMutePubkey(event.pubkey) ||
-		event.tags.some(([tagName, pubkey]) => tagName === 'p' && isMutePubkey(pubkey))
-	) {
-		return true;
+
+	if (event.kind === 9735) {
+		const zapperPubkey = getZapperPubkey(event);
+		if (zapperPubkey !== undefined && isMutePubkey(zapperPubkey)) {
+			return true;
+		}
+	} else {
+		if (
+			isMutePubkey(event.pubkey) ||
+			event.tags.some(([tagName, pubkey]) => tagName === 'p' && isMutePubkey(pubkey))
+		) {
+			return true;
+		}
 	}
+
 	const $mutedPubkeysByKindMap = get(mutedPubkeysByKindMap);
 	const mutedPubkeysByKind = $mutedPubkeysByKindMap.get(event.kind);
 	if (mutedPubkeysByKind !== undefined) {
 		if (event.kind === 9735) {
-			if (
-				event.tags.some(
-					([tagName, pubkey]) => tagName === 'P' && mutedPubkeysByKind.has(pubkey)
-				)
-			) {
+			const zapperPubkey = getZapperPubkey(event);
+			if (zapperPubkey !== undefined && mutedPubkeysByKind.has(zapperPubkey)) {
 				return true;
-			} else {
-				const description = filterTags('description', event.tags).at(0);
-				if (description !== undefined) {
-					try {
-						const event9734 = JSON.parse(description) as Event;
-						if (mutedPubkeysByKind.has(event9734.pubkey)) {
-							return true;
-						}
-					} catch (error) {
-						console.warn('[kind 9735 description decode error]', event);
-					}
-				}
 			}
 		} else if (mutedPubkeysByKind.has(event.pubkey)) {
 			return true;
 		}
 	}
+
+	const $muteWords = get(muteWords);
 	if (
 		$muteWords.length > 0 &&
 		new RegExp(`(${$muteWords.map((word) => escapeStringRegexp(word)).join('|')})`, 'i').test(
