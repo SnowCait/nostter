@@ -22,18 +22,18 @@ const queues = new Map([
 	[6, new Queue<Data>()],
 	[7, new Queue<Data>()],
 	[16, new Queue<Data>()],
-	[2735, new Queue<Data>()]
+	[9735, new Queue<Data>()]
 ]);
 
 let processing = false;
 
 export async function muteByKind(muteKind: number, pubkey: string): Promise<void> {
-	console.log('[mute kind]', muteKind, pubkey, queues.get(muteKind)?.dump());
+	console.debug('[mute kind]', muteKind, pubkey, queues.get(muteKind)?.dump());
 	await save('mute', muteKind, pubkey);
 }
 
 export async function unmuteByKind(muteKind: number, pubkey: string): Promise<void> {
-	console.log('[unmute kind]', muteKind, pubkey, queues.get(muteKind)?.dump());
+	console.debug('[unmute kind]', muteKind, pubkey, queues.get(muteKind)?.dump());
 	await save('unmute', muteKind, pubkey);
 }
 

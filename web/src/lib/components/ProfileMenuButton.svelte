@@ -129,7 +129,7 @@
 		console.log('[mute zaps]', pubkey);
 
 		try {
-			await muteByKind(2735, pubkey);
+			await muteByKind(9735, pubkey);
 		} catch (error) {
 			console.error('[mute zaps failed]', error);
 			alert('Failed to mute zaps.');
@@ -140,7 +140,7 @@
 		console.log('[unmute zaps]', pubkey);
 
 		try {
-			await unmuteByKind(2735, pubkey);
+			await unmuteByKind(9735, pubkey);
 		} catch (error) {
 			console.error('[unmute zaps failed]', error);
 			alert('Failed to unmute zaps.');
@@ -226,7 +226,7 @@
 		</Menu.Item>
 	{/if}
 
-	{#if $mutedPubkeysByKindMap.get(2735)?.has(pubkey)}
+	{#if $mutedPubkeysByKindMap.get(9735)?.has(pubkey)}
 		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={() => unmuteZaps()}>
 			{$_('actions.unmute.zaps')}
 		</Menu.Item>

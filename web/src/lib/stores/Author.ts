@@ -44,8 +44,30 @@ export const isMuteEvent = (event: Event) => {
 	}
 	const $mutedPubkeysByKindMap = get(mutedPubkeysByKindMap);
 	const mutedPubkeysByKind = $mutedPubkeysByKindMap.get(event.kind);
-	if (mutedPubkeysByKind !== undefined && mutedPubkeysByKind.has(event.pubkey)) {
-		return true;
+	if (mutedPubkeysByKind !== undefined) {
+		if (event.kind === 9735) {
+			if (
+				event.tags.some(
+					([tagName, pubkey]) => tagName === 'P' && mutedPubkeysByKind.has(pubkey)
+				)
+			) {
+				return true;
+			} else {
+				const description = filterTags('description', event.tags).at(0);
+				if (description !== undefined) {
+					try {
+						const event9734 = JSON.parse(description) as Event;
+						if (mutedPubkeysByKind.has(event9734.pubkey)) {
+							return true;
+						}
+					} catch (error) {
+						console.warn('[kind 9735 description decode error]', event);
+					}
+				}
+			}
+		} else if (mutedPubkeysByKind.has(event.pubkey)) {
+			return true;
+		}
 	}
 	if (
 		$muteWords.length > 0 &&
