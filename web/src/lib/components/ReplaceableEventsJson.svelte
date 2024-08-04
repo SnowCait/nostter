@@ -16,8 +16,14 @@
 {#if showReplaceableEvents}
 	{#each [...$replaceableEvents]
 		.map(([, packets]) => packets)
-		.sort((x, y) => x[0].event.kind - y[0].event.kind) as packets}
+		.sort(([{ event: x }], [{ event: y }]) => {
+			if (x.kind === y.kind) {
+				return y.created_at - x.created_at;
+			}
+			return x.kind - y.kind;
+		}) as packets}
 		<pre>{packets.map((packet) => packet.from).join('\n')}</pre>
+		<div>{new Date(packets[0].event.created_at * 1000).toLocaleString()}</div>
 		<Json object={packets[0].event} />
 	{:else}
 		<div>Fetching...</div>
