@@ -116,7 +116,7 @@
 							try {
 								return nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7);
 							} catch (error) {
-								console.error('[npub encode error]', pubkey);
+								console.error('[npub encode error]', pubkey, error);
 								return '-';
 							}
 						})

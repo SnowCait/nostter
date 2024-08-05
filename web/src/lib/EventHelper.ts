@@ -165,7 +165,7 @@ export function getZapperPubkey(event: Event): string | undefined {
 		const event9734 = JSON.parse(description) as Event;
 		return event9734.pubkey;
 	} catch (error) {
-		console.warn('[kind 9735 description decode error]', event);
+		console.warn('[kind 9735 description decode error]', event, error);
 		return undefined;
 	}
 }

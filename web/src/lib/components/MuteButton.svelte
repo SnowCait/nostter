@@ -41,6 +41,7 @@
 		try {
 			await mute(tagName, tagContent);
 		} catch (error) {
+			console.error('[mute failed]', error);
 			alert('Failed to mute.');
 		}
 
@@ -60,6 +61,7 @@
 		try {
 			await unmute(tagName, tagContent);
 		} catch (error) {
+			console.error('[unmute failed]', error);
 			alert('Failed to unmute.');
 		}
 

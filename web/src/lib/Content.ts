@@ -129,6 +129,7 @@ export class Content {
 							return undefined;
 					}
 				} catch (error) {
+					console.warn('[nip19 decode error]', x, error);
 					return undefined;
 				}
 			})

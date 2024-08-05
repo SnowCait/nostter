@@ -67,7 +67,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 			return false;
 		}
 	} catch (error) {
-		console.error('[NWC failed]');
+		console.error('[NWC failed]', error);
 		return false;
 	} finally {
 		nwcRxNostr.dispose();

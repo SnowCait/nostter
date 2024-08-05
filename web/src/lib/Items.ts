@@ -51,7 +51,7 @@ export class ZapEventItem extends EventItem {
 		try {
 			return decode(bolt11);
 		} catch (error) {
-			console.warn('[zap invalid bolt11]', bolt11);
+			console.warn('[zap invalid bolt11]', bolt11, error);
 			return undefined;
 		}
 	}
@@ -76,7 +76,7 @@ export class ZapEventItem extends EventItem {
 				return this._amount;
 			}
 		} catch (error) {
-			console.warn('[zap invalid invoice]', this.invoice);
+			console.warn('[zap invalid invoice]', this.invoice, error);
 			this._amount = null;
 			return undefined;
 		}
@@ -146,7 +146,7 @@ export class Metadata implements Item {
 			try {
 				this._zapUrl = new URL(url);
 			} catch (error) {
-				console.warn('[invalid zap url]', url);
+				console.warn('[invalid zap url]', url, error);
 				this._zapUrl = null;
 			}
 		} else {

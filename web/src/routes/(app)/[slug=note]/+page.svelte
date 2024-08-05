@@ -87,7 +87,7 @@
 						customEmojiShortcode.set(url, shortcode);
 					}
 				} catch (error) {
-					console.error('[custom emoji invalid]', item);
+					console.error('[custom emoji invalid]', item, error);
 				}
 			}
 		}
@@ -206,7 +206,7 @@
 					event = JSON.parse(description) as Event;
 					referencesReqEmit(event, true);
 				} catch (error) {
-					console.log('[zap description parse error]', description);
+					console.log('[zap description parse error]', description, error);
 				}
 			}
 

@@ -25,7 +25,7 @@ export class Preferences {
 				}
 			}
 		} catch (error) {
-			console.error('[invalid preferences]', content);
+			console.error('[invalid preferences]', content, error);
 		}
 	}
 

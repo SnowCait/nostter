@@ -15,6 +15,7 @@
 		try {
 			await unmute('e', eventId);
 		} catch (error) {
+			console.error('[unmute failed]', error);
 			alert('Failed to unmute.');
 		}
 

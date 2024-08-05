@@ -140,7 +140,7 @@ export const storeMutedPubkeysByKind = async (events: Event[]): Promise<void> =>
 				const tags = JSON.parse(content) as string[][];
 				privateTags.push(...tags);
 			} catch (error) {
-				console.warn('[kind 30007 content parse error]', event);
+				console.warn('[kind 30007 content parse error]', event, error);
 			}
 		}
 		const pubkeys = filterTags('p', [...event.tags, ...privateTags]);
