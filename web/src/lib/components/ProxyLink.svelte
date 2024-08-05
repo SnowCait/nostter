@@ -9,7 +9,7 @@
 		try {
 			url = new URL(tag[1]);
 		} catch (error) {
-			console.error('[proxy error]', tag);
+			console.error('[proxy error]', tag, error);
 		}
 	}
 </script>

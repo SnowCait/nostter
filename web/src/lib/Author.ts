@@ -221,9 +221,8 @@ export class Author {
 
 		console.log('[cached at]', cachedAt);
 
-		const { replaceableEvents, parameterizedReplaceableEvents } = await this.fetchAuthorEvents(
-			pubkey
-		);
+		const { replaceableEvents, parameterizedReplaceableEvents } =
+			await this.fetchAuthorEvents(pubkey);
 		for (const [, event] of [...replaceableEvents]) {
 			storage.setReplaceableEvent(event);
 		}

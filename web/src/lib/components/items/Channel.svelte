@@ -54,7 +54,7 @@
 			<h1>
 				<a
 					href="/channels/{nip19.neventEncode({
-						id: event.kind === 40 ? event.id : findChannelId(event.tags) ?? ''
+						id: event.kind === 40 ? event.id : (findChannelId(event.tags) ?? '')
 					})}"
 				>
 					{channelMetadata?.name ?? ''}

@@ -4,7 +4,7 @@ export async function isDecodable(pubkey: string, content: string): Promise<bool
 	try {
 		await Signer.decrypt(pubkey, content);
 		return true;
-	} catch (error) {
+	} catch {
 		return false;
 	}
 }
@@ -18,7 +18,7 @@ export async function parsePrivateTags(pubkey: string, content: string): Promise
 		const tags = await Signer.decrypt(pubkey, content);
 		return JSON.parse(tags);
 	} catch (error) {
-		console.warn('[private content parse error]', pubkey, content);
+		console.warn('[private content parse error]', pubkey, content, error);
 		return [];
 	}
 }

@@ -11,7 +11,10 @@ import { chronological, reverseChronological } from './Constants';
 import { referencesReqEmit } from './timelines/MainTimeline';
 
 export class Api {
-	constructor(private pool: SimplePool, private relays: string[]) {}
+	constructor(
+		private pool: SimplePool,
+		private relays: string[]
+	) {}
 
 	public async fetchRelayEvents(pubkey: string): Promise<Map<Kind, Event>> {
 		const events = await this.pool.list(this.relays, [

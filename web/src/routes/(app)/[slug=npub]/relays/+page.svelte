@@ -123,7 +123,7 @@
 			// Completed
 			editable = false;
 		} catch (error) {
-			console.error('[save relays failed]');
+			console.error('[save relays failed]', error);
 			alert('Failed to save relays.');
 		}
 	}

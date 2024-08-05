@@ -15,7 +15,7 @@ if (browser) {
 		try {
 			autoRefresh.set(JSON.parse(autoRefreshString));
 		} catch (error) {
-			console.error('[failed to parse auto-refresh]', autoRefreshString);
+			console.error('[failed to parse auto-refresh]', autoRefreshString, error);
 		}
 	}
 	autoRefresh.subscribe((value) => {

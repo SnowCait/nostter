@@ -13,6 +13,7 @@
 			await mute('word', word);
 			word = '';
 		} catch (error) {
+			console.error('[mute failed]', error);
 			alert('Failed to mute.');
 		}
 	}
@@ -23,6 +24,7 @@
 		try {
 			await unmute('word', word);
 		} catch (error) {
+			console.error('[unmute failed]', error);
 			alert('Failed to unmute.');
 		}
 	}

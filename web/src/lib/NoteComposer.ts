@@ -103,18 +103,6 @@ export class NoteComposer {
 					.filter((x): x is string => x !== undefined)
 			)
 		);
-		new Map(
-			['npub']
-				.filter((x) => x.startsWith('npub'))
-				.map((x) => {
-					try {
-						// throw new Error();
-						return [x, (x + 1) as string];
-					} catch (e) {
-						return [x, ''];
-					}
-				})
-		);
 		const customEmojiPubkeysMap = new Map(
 			shortcodes
 				.filter((shortcode) => shortcode.startsWith('npub1'))

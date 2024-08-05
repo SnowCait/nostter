@@ -658,8 +658,16 @@
 			linear-gradient(to bottom, #000, #000 3px, transparent 3px, transparent 8px),
 			linear-gradient(to left, #000, #000 3px, transparent 3px, transparent 8px),
 			linear-gradient(to top, #000, #000 3px, transparent 3px, transparent 8px);
-		background-size: 8px 2px, 2px 8px, 8px 2px, 2px 8px;
-		background-position: left top, right top, right bottom, left bottom;
+		background-size:
+			8px 2px,
+			2px 8px,
+			8px 2px,
+			2px 8px;
+		background-position:
+			left top,
+			right top,
+			right bottom,
+			left bottom;
 		background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
 	}
 
