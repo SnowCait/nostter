@@ -30,7 +30,7 @@ export class Content {
 				...(hashtags.length > 0
 					? content.matchAll(
 							new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'g')
-					  )
+						)
 					: []),
 				...(emojis.size > 0
 					? content.matchAll(
@@ -40,7 +40,7 @@ export class Content {
 									.join('|')}):`,
 								'g'
 							)
-					  )
+						)
 					: []),
 				...content.matchAll(
 					/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[\d+\]/g

@@ -39,7 +39,7 @@ export const verificationClient = browser
 	? createVerificationServiceClient({
 			worker: new Worker(workerUrl, { type: 'module' }),
 			timeout: 600000
-	  })
+		})
 	: createNoopClient();
 verificationClient.start();
 
@@ -131,7 +131,7 @@ export async function metadataReqEmit(pubkeys: string[]): Promise<void> {
 
 export function referencesReqEmit(event: Event, metadataOnly: boolean = false): void {
 	console.debug('[rx-nostr references REQ emit]', event);
-	const content = event.kind > 0 ? event.content : new Metadata(event).content?.about ?? '';
+	const content = event.kind > 0 ? event.content : (new Metadata(event).content?.about ?? '');
 	metadataReqEmit([
 		...new Set([
 			event.pubkey,
