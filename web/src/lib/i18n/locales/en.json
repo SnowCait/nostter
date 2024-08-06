@@ -237,6 +237,8 @@
 	"lists": {
 		"title": "Lists",
 		"particle": "'s ",
-		"none": "No lists."
+		"none": "No lists.",
+		"create": "Create",
+		"edit": "Add/Remove from lists"
 	}
 }

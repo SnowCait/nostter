@@ -8,6 +8,7 @@ import { chunk } from '../Array';
 import { filterLimitItems, followeesKinds, minTimelineLength } from '../Constants';
 import { EventItem } from '../Items';
 import { Timeline } from '../Timeline';
+import { findIdentifier } from '$lib/EventHelper';
 
 let subscription: Subscription | undefined;
 
@@ -22,6 +23,19 @@ export function clear(): void {
 	pubkeys.set([]);
 	items.set([]);
 	subscription?.unsubscribe();
+}
+
+export function clearListTimelineIfActive(newEvent: Event): void {
+	const $event = get(event);
+	if ($event === undefined) {
+		return;
+	} else if (
+		$event.kind === newEvent.kind &&
+		$event.pubkey === newEvent.pubkey &&
+		findIdentifier($event.tags) === findIdentifier(newEvent.tags)
+	) {
+		clear();
+	}
 }
 
 export function subscribeListTimeline(): void {

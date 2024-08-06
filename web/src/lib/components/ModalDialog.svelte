@@ -1,7 +1,11 @@
 <script lang="ts">
+	import { createEventDispatcher } from 'svelte';
+
 	export let open = false;
 
 	let dialog: HTMLDialogElement | undefined;
+
+	const dispatch = createEventDispatcher();
 
 	$: {
 		if (open) {
@@ -23,6 +27,7 @@
 	function onClose(): void {
 		console.debug('[dialog on close]');
 		open = false;
+		dispatch('close');
 	}
 </script>
 
