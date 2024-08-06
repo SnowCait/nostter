@@ -18,17 +18,25 @@
 	import { alternativeName } from '$lib/Items';
 	import { shareUrl } from '$lib/Share';
 	import IconDots from '@tabler/icons-svelte/icons/dots';
+	import IconList from '@tabler/icons-svelte/icons/list';
 	import IconClipboard from '@tabler/icons-svelte/icons/clipboard';
 	import IconLink from '@tabler/icons-svelte/icons/link';
 	import IconAffiliate from '@tabler/icons-svelte/icons/affiliate';
 	import IconUserPlus from '@tabler/icons-svelte/icons/user-plus';
 	import IconUserMinus from '@tabler/icons-svelte/icons/user-minus';
 	import IconVolumeOff from '@tabler/icons-svelte/icons/volume-off';
+	import ListDialog from './actions/ListDialog.svelte';
 
 	export let pubkey: string;
 
 	$: nprofile = nip19.nprofileEncode({ pubkey });
 	$: url = `${$page.url.origin}/${nprofile}`;
+
+	let listDialogOpen = false;
+
+	function editLists(): void {
+		listDialogOpen = true;
+	}
 
 	async function onFollow(): Promise<void> {
 		console.log('[follow]');
@@ -155,6 +163,10 @@
 		</div>
 	</svelte:fragment>
 
+	<Menu.Item icon={IconList} on:click={editLists}>
+		{$_('lists.edit')}
+	</Menu.Item>
+
 	<Menu.Item icon={IconClipboard} on:click={() => copy(nprofile)}>
 		{$_('actions.copy_id.button')}
 	</Menu.Item>
@@ -236,6 +248,8 @@
 		</Menu.Item>
 	{/if}
 </Menu>
+
+<ListDialog {pubkey} bind:open={listDialogOpen} />
 
 <style>
 	.icon {

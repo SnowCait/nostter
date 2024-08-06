@@ -1,4 +1,12 @@
-import { createRxForwardReq, filterByKind, filterByKinds, latestEach, now, uniq } from 'rx-nostr';
+import {
+	createRxForwardReq,
+	filterAsync,
+	filterByKind,
+	filterByKinds,
+	latestEach,
+	now,
+	uniq
+} from 'rx-nostr';
 import { filter, share, tap } from 'rxjs';
 import type { Filter } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, storeSeenOn } from './MainTimeline';
@@ -32,6 +40,7 @@ import { lastReadAt, notifiedEventItems, unreadEventItems } from '../stores/Noti
 import { events, eventsPool } from '../stores/Events';
 import { saveLastNote } from '../stores/LastNotes';
 import { autoRefresh } from '../stores/Preference';
+import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';
 
 export let hasSubscribed = false;
 
@@ -108,6 +117,14 @@ const authorParameterizedReplaceableObservable = observable.pipe(
 	share()
 );
 
+authorParameterizedReplaceableObservable
+	.pipe(
+		filterByKind(30000),
+		filterAsync(({ event }) => isPeopleList(event))
+	)
+	.subscribe(async ({ event }) => {
+		storePeopleList(event);
+	});
 authorParameterizedReplaceableObservable.pipe(filterByKind(30001)).subscribe(({ event }) => {
 	if (findIdentifier(event.tags) === 'bookmark') {
 		bookmarkEvent.set(event);
