@@ -68,6 +68,10 @@ export async function contains(pubkey: string, event: Event): Promise<boolean> {
 		return true;
 	}
 
+	if (event.content === '') {
+		return false;
+	}
+
 	const $authorPubkey = get(authorPubkey);
 
 	try {
