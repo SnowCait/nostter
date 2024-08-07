@@ -178,7 +178,7 @@
 			"myself": "Follow myself",
 			"all": {
 				"button": "Follow all",
-				"confirm": "Do you really follow %d users?"
+				"confirm": "Are you sure you want to follow %d users?"
 			}
 		},
 		"unfollow": {
@@ -195,6 +195,10 @@
 			"reposts": "Unmute this user's reposts",
 			"reactions": "Unmute this user's reactions",
 			"zaps": "Unmute this user's zaps"
+		},
+		"delete": {
+			"button": "Delete",
+			"confirm": "Are you sure you want to delete this note?"
 		}
 	},
 	"thread": {
@@ -240,5 +244,9 @@
 		"none": "No lists.",
 		"create": "Create",
 		"edit": "Add/Remove from lists"
+	},
+	"menu": {
+		"developer": "Developer",
+		"caution": "Caution"
 	}
 }
