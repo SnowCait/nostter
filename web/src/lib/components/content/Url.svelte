@@ -13,6 +13,7 @@
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import YouTube from '$lib/components/content/YouTube.svelte';
+	import Img from '$lib/components/content/Img.svelte';
 
 	export let text: string;
 	export let url: string | undefined = undefined;
@@ -56,7 +57,7 @@
 	{#if preview}
 		<div>
 			<a href={link.href} target="_blank" rel="noopener noreferrer">
-				<img src={link.href} alt={link.href} />
+				<Img src={link.href} pathname={link.pathname} />
 			</a>
 		</div>
 	{:else}
@@ -87,16 +88,9 @@
 {/if}
 
 <style>
-	img,
 	video {
 		max-width: calc(100% - 1.5em);
 		max-height: 20em;
 		margin: 0.5em;
-	}
-
-	img {
-		border: 1px solid lightgray;
-		border-radius: 5px;
-		vertical-align: middle;
 	}
 </style>
