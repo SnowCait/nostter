@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { imageOptimazerUrl } from '$lib/Constants';
+	import { imageOptimization } from '$lib/stores/Preference';
 	import { formatStyleFromObject } from '$lib/styles/FormatStyleFromObject';
 	import { Img, type ImgSrc } from 'svelte-remote-image';
 	export let src: string;
@@ -22,10 +23,12 @@
 		],
 		fallback: [src]
 	};
+
+	let optimize = $imageOptimization;
 </script>
 
-{#if /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname)}
+{#if optimize && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname)}
 	<Img src={imageSrc} alt={src} style={formatStyleFromObject(imgStyleObj)} />
-{:else if /\.(apng|gif|bmp)$/i.test(pathname)}
+{:else}
 	<img style={formatStyleFromObject(imgStyleObj)} {src} alt={src} />
 {/if}

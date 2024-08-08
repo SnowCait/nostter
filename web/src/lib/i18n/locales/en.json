@@ -96,6 +96,7 @@
 		},
 		"auto_refresh": "Auto refresh",
 		"media_preview": "Media preview",
+		"image_optimization": "Image Optimization",
 		"media_uploader": {
 			"title": "Media uploader"
 		},

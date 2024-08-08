@@ -22,6 +22,7 @@
 	import Reload from './Reload.svelte';
 	import ClearEventCacheAndReload from './ClearEventCacheAndReload.svelte';
 	import MediaUploader from './MediaUploader.svelte';
+	import ImageOptimization from './ImageOptimization.svelte';
 </script>
 
 <svelte:head>
@@ -69,6 +70,7 @@
 	<div><Theme /></div>
 	<div><AutoRefresh /></div>
 	<div><EnablePreview /></div>
+	<div><ImageOptimization /></div>
 	<div><Notification /></div>
 	<div><UriScheme /></div>
 	<div><WalletConnect /></div>

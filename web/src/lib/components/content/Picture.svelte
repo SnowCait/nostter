@@ -2,6 +2,7 @@
 	import { imageOptimazerUrl } from '$lib/Constants';
 	import { newUrl } from '$lib/Helper';
 	import { robohash } from '$lib/Items';
+	import { imageOptimization } from '$lib/stores/Preference';
 	import { Img, type ImgSrc } from 'svelte-remote-image';
 	export let src: string | undefined = undefined;
 	export let pubkey: string;
@@ -18,6 +19,7 @@
 
 	const sizeNum = pictureSizeMap[size] ?? pictureSizeMap['m'];
 
+	let optimize = $imageOptimization;
 	$: imgSrc = getImageSrc(src);
 
 	function getImageSrc(src: string | undefined): ImgSrc {
@@ -28,17 +30,16 @@
 				img: robohash(pubkey),
 				fallback: [robohash(pubkey)]
 			} as ImgSrc;
-		} else if (/\.(avif|jpg|jpeg|png|webp)$/i.test(url.pathname)) {
+		} else if (optimize && /\.(avif|jpg|jpeg|png|webp)$/i.test(url.pathname)) {
 			return {
 				img: `${imageOptimazerUrl}width=${sizeNum},quality=60,format=jpeg/${src}`,
-				srssets: [
+				srcsets: [
 					{
 						src: `${imageOptimazerUrl}width=${sizeNum},quality=60,format=webp/${src}`,
 						w: sizeNum
 					}
 				],
-				fallback: [src, robohash(pubkey)],
-				blur: false
+				fallback: [src, robohash(pubkey)]
 			} as ImgSrc;
 		} else {
 			return {
