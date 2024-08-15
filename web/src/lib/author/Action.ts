@@ -7,6 +7,7 @@ import { maxFilters } from '$lib/Constants';
 import { filterTags, findReactionToId } from '$lib/EventHelper';
 import type { id } from '$lib/Types';
 import { pubkey } from '../stores/Author';
+import { storeDeletedEvents } from './Delete';
 
 export const repostedEventIds = writable(new Set<id>());
 export const reactionedEventIds = writable(new Set<id>());
@@ -33,8 +34,12 @@ export function updateReactionedEvents(events: Event[]): void {
 
 const authorActionReq = createRxBackwardReq();
 const observable = rxNostr
-	.use(authorActionReq.pipe(bufferTime(500, null, maxFilters), batch()))
+	.use(authorActionReq.pipe(bufferTime(500, null, maxFilters / 2), batch()))
 	.pipe(uniq());
+observable.pipe(filterByKind(5)).subscribe(({ event }) => {
+	console.debug('[deleted]', event);
+	storeDeletedEvents(event);
+});
 observable
 	.pipe(
 		filterByKind(6),
@@ -64,6 +69,12 @@ export function authorActionReqEmit(event: Event): void {
 			kinds: [6, 7],
 			authors: [$pubkey],
 			'#e': ids
+		},
+		// TODO: Move file because this is not author action
+		{
+			kinds: [5],
+			authors: [event.pubkey],
+			'#e': [event.id]
 		}
 	]);
 }
