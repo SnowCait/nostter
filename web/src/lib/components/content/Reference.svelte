@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
+	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
 	import { isMuteEvent } from '$lib/stores/Author';
 	import { userEvents } from '$lib/stores/UserEvents';
 	import Note from '../items/Note.svelte';
@@ -8,6 +9,7 @@
 	import Url from './Url.svelte';
 	import { eventItemStore } from '$lib/cache/Events';
 	import NoteLink from '../items/NoteLink.svelte';
+	import DeletedContent from '../items/DeletedContent.svelte';
 	import MutedContent from '../items/MutedContent.svelte';
 
 	export let text: string;
@@ -26,7 +28,11 @@
 	</a>
 {:else if tag.at(0) === 'e' && tag.at(1) !== undefined}
 	{#if item !== undefined}
-		{#if isMuteEvent(item.event)}
+		{#if $deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id)}
+			<blockquote>
+				<DeletedContent />
+			</blockquote>
+		{:else if isMuteEvent(item.event)}
 			<blockquote>
 				<MutedContent />
 			</blockquote>

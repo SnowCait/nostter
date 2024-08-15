@@ -4,11 +4,13 @@
 	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import { nip19 } from 'nostr-tools';
+	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
 	import { isMuteEvent } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import CreatedAt from '$lib/components/CreatedAt.svelte';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
+	import DeletedContent from './DeletedContent.svelte';
 	import MutedContent from './MutedContent.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 
@@ -95,7 +97,9 @@
 	</div>
 {/if}
 {#if originalEvent !== undefined}
-	{#if isMuteEvent(originalEvent.event)}
+	{#if $deletedEventIdsByPubkey.get(item.event.pubkey)?.has(originalEvent.id)}
+		<DeletedContent />
+	{:else if isMuteEvent(originalEvent.event)}
 		<MutedContent />
 	{:else}
 		<EventComponent item={originalEvent} {readonly} {createdAtFormat} />

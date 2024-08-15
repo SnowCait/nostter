@@ -116,7 +116,8 @@
 	},
 	"content": {
 		"show": "Show",
-		"muted": "Muted content"
+		"muted": "Muted content",
+		"deleted": "Deleted content"
 	},
 	"wallet": {
 		"unknown": "Unknown wallet state. Please check your wallet."

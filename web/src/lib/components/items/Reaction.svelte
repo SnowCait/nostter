@@ -5,12 +5,16 @@
 	import IconHeart from '@tabler/icons-svelte/icons/heart';
 	import IconHeartBroken from '@tabler/icons-svelte/icons/heart-broken';
 	import { nip19 } from 'nostr-tools';
+	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
+	import { isMuteEvent } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import CreatedAt from '$lib/components/CreatedAt.svelte';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
 	import Content from '$lib/components/Content.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
+	import DeletedContent from './DeletedContent.svelte';
+	import MutedContent from './MutedContent.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -92,7 +96,13 @@
 	</div>
 {/if}
 {#if originalEvent !== undefined}
-	<EventComponent item={originalEvent} {readonly} {createdAtFormat} />
+	{#if $deletedEventIdsByPubkey.get(item.event.pubkey)?.has(originalEvent.id)}
+		<DeletedContent />
+	{:else if isMuteEvent(originalEvent.event)}
+		<MutedContent />
+	{:else}
+		<EventComponent item={originalEvent} {readonly} {createdAtFormat} />
+	{/if}
 {:else if originalTag !== undefined}
 	<NoteLink eventId={originalTag[1]} />
 {/if}
