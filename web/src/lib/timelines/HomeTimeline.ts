@@ -41,6 +41,7 @@ import { events, eventsPool } from '../stores/Events';
 import { saveLastNote } from '../stores/LastNotes';
 import { autoRefresh } from '../stores/Preference';
 import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';
+import { storeDeletedEvents } from '$lib/author/Delete';
 
 export let hasSubscribed = false;
 
@@ -159,9 +160,13 @@ observable
 	.subscribe(({ event }) => storeMetadata(event));
 
 // Other Events
+observable.pipe(filterByKind(5)).subscribe(({ event }) => {
+	console.debug('[deleted]', event);
+	storeDeletedEvents(event);
+});
 observable
 	.pipe(
-		filterByKinds([...replaceableKinds, ...parameterizedReplaceableKinds], { not: true }),
+		filterByKinds([...replaceableKinds, ...parameterizedReplaceableKinds, 5], { not: true }),
 		tap(({ event, from }) => storeSeenOn(event.id, from))
 	)
 	.subscribe(async (packet) => {
@@ -283,7 +288,15 @@ export function hometimelineReqEmit() {
 
 	const followeesFilter: Filter[] = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
 		return {
-			kinds: [Kind.Metadata, Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage, 30315],
+			kinds: [
+				Kind.Metadata,
+				Kind.Text,
+				5,
+				6,
+				Kind.ChannelCreation,
+				Kind.ChannelMessage,
+				30315
+			],
 			authors: chunkedAuthors,
 			since
 		};
@@ -310,7 +323,7 @@ export function hometimelineReqEmit() {
 			authors: [$pubkey]
 		},
 		{
-			kinds: [Kind.Reaction],
+			kinds: [5, Kind.Reaction],
 			authors: [$pubkey],
 			since
 		}

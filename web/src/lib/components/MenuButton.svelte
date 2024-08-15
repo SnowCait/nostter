@@ -8,7 +8,7 @@
 	import { broadcast } from '$lib/Broadcast';
 	import { copy } from '$lib/Clipboard';
 	import { shareUrl } from '$lib/Share';
-	import { rom } from '$lib/stores/Author';
+	import { rom, pubkey as authorPubkey } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import IconDots from '@tabler/icons-svelte/icons/dots';
 	import IconBookmark from '@tabler/icons-svelte/icons/bookmark';
@@ -17,6 +17,8 @@
 	import IconLink from '@tabler/icons-svelte/icons/link';
 	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
 	import IconBroadcast from '@tabler/icons-svelte/icons/broadcast';
+	import IconTrash from '@tabler/icons-svelte/icons/trash';
+	import { deleteEvent } from '$lib/author/Delete';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -61,6 +63,15 @@
 			bookmarked = true;
 			alert($_('actions.unbookmark.failed'));
 		}
+	}
+
+	async function onDelete(): Promise<void> {
+		if (!confirm($_('actions.delete.confirm'))) {
+			return;
+		}
+
+		console.log('[delete]', event);
+		await deleteEvent([event]);
 	}
 </script>
 
@@ -111,9 +122,17 @@
 		</Menu.Item>
 	{/if}
 
+	{#if event.pubkey === $authorPubkey}
+		<Divider />
+		<Menu.Label>{$_('menu.caution')}</Menu.Label>
+		<Menu.Item icon={IconTrash} on:click={onDelete}>
+			{$_('actions.delete.button')}
+		</Menu.Item>
+	{/if}
+
 	{#if $developerMode}
 		<Divider />
-		<Menu.Label>Developer</Menu.Label>
+		<Menu.Label>{$_('menu.developer')}</Menu.Label>
 		<Menu.Item icon={IconCodeDots} on:click={() => (showDetails = !showDetails)}>
 			{$_('actions.details.button')}
 		</Menu.Item>
