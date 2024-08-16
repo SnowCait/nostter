@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { nip19 } from 'nostr-tools';
+	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { ZapEventItem, type EventItem, type Item, type Metadata } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
+	import { isMuteEvent } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import IconBolt from '@tabler/icons-svelte/icons/bolt';
 	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
@@ -11,6 +13,8 @@
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
+	import DeletedContent from './DeletedContent.svelte';
+	import MutedContent from './MutedContent.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -119,7 +123,13 @@
 	</div>
 {/if}
 {#if originalEvent !== undefined}
-	<EventComponent item={originalEvent} {readonly} {createdAtFormat} />
+	{#if $deletedEventIdsByPubkey.get(item.event.pubkey)?.has(originalEvent.id)}
+		<DeletedContent />
+	{:else if isMuteEvent(originalEvent.event)}
+		<MutedContent />
+	{:else}
+		<EventComponent item={originalEvent} {readonly} {createdAtFormat} />
+	{/if}
 {:else if originalTag !== undefined}
 	<NoteLink eventId={originalTag[1]} />
 {/if}

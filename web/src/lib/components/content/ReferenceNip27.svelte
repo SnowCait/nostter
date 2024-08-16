@@ -3,6 +3,7 @@
 	import { nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { onMount } from 'svelte';
+	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
 	import { events } from '$lib/stores/Events';
 	import { pool } from '$lib/stores/Pool';
 	import { isMuteEvent, readRelays } from '$lib/stores/Author';
@@ -14,6 +15,7 @@
 	import { EventItem, Metadata, alternativeName } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import NoteLink from '../items/NoteLink.svelte';
+	import DeletedContent from '../items/DeletedContent.svelte';
 	import MutedContent from '../items/MutedContent.svelte';
 
 	export let text: string;
@@ -104,7 +106,11 @@
 	</a>
 {:else if dataType === 'event' && eventId !== undefined}
 	{#if item !== undefined}
-		{#if isMuteEvent(item.event)}
+		{#if $deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id)}
+			<blockquote>
+				<DeletedContent />
+			</blockquote>
+		{:else if isMuteEvent(item.event)}
 			<blockquote>
 				<MutedContent />
 			</blockquote>
@@ -120,7 +126,11 @@
 	{/if}
 {:else if dataType === 'addr'}
 	{#if item !== undefined && Number(item.event.kind) === 30030}
-		{#if isMuteEvent(item.event)}
+		{#if $deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id)}
+			<blockquote>
+				<DeletedContent />
+			</blockquote>
+		{:else if isMuteEvent(item.event)}
 			<blockquote>
 				<MutedContent />
 			</blockquote>

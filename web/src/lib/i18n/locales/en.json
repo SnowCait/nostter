@@ -117,7 +117,8 @@
 	},
 	"content": {
 		"show": "Show",
-		"muted": "Muted content"
+		"muted": "Muted content",
+		"deleted": "Deleted content"
 	},
 	"wallet": {
 		"unknown": "Unknown wallet state. Please check your wallet."
@@ -179,7 +180,7 @@
 			"myself": "Follow myself",
 			"all": {
 				"button": "Follow all",
-				"confirm": "Do you really follow %d users?"
+				"confirm": "Are you sure you want to follow %d users?"
 			}
 		},
 		"unfollow": {
@@ -196,6 +197,10 @@
 			"reposts": "Unmute this user's reposts",
 			"reactions": "Unmute this user's reactions",
 			"zaps": "Unmute this user's zaps"
+		},
+		"delete": {
+			"button": "Delete",
+			"confirm": "Are you sure you want to delete this note?"
 		}
 	},
 	"thread": {
@@ -238,6 +243,12 @@
 	"lists": {
 		"title": "Lists",
 		"particle": "'s ",
-		"none": "No lists."
+		"none": "No lists.",
+		"create": "Create",
+		"edit": "Add/Remove from lists"
+	},
+	"menu": {
+		"developer": "Developer",
+		"caution": "Caution"
 	}
 }
