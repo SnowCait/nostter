@@ -24,9 +24,17 @@ import { Preferences, preferencesStore } from '$lib/Preferences';
 import { followingHashtags, updateFollowingHashtags } from '$lib/Interest';
 import { EventItem } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
-import { authorReplaceableKinds } from '$lib/Author';
 import { chunk } from '$lib/Array';
-import { filterLimitItems, parameterizedReplaceableKinds, replaceableKinds } from '$lib/Constants';
+import {
+	homeFolloweesFilterKinds,
+	filterLimitItems,
+	parameterizedReplaceableKinds,
+	replaceableKinds,
+	authorFilterReplaceableKinds,
+	authorFilterKinds,
+	authorHashtagsFilterKinds,
+	notificationsFilterKinds
+} from '$lib/Constants';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
 import {
 	pubkey,
@@ -288,42 +296,26 @@ export function hometimelineReqEmit() {
 
 	const followeesFilter: Filter[] = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
 		return {
-			kinds: [
-				Kind.Metadata,
-				Kind.Text,
-				5,
-				6,
-				Kind.ChannelCreation,
-				Kind.ChannelMessage,
-				30315
-			],
+			kinds: homeFolloweesFilterKinds,
 			authors: chunkedAuthors,
 			since
 		};
 	});
 	console.log('[rx-nostr subscribe followees filter]', followeesFilter);
 
-	const relatesFilter: Filter = {
-		kinds: [
-			Kind.Text,
-			Kind.EncryptedDirectMessage,
-			6,
-			Kind.Reaction,
-			Kind.BadgeAward,
-			Kind.ChannelMessage,
-			Kind.Zap
-		],
+	const notificationsFilter: Filter = {
+		kinds: notificationsFilterKinds,
 		'#p': [$pubkey],
 		since
 	};
 
 	const authorFilters: Filter[] = [
 		{
-			kinds: [...new Set(authorReplaceableKinds.map(({ kind }) => kind))],
+			kinds: authorFilterReplaceableKinds,
 			authors: [$pubkey]
 		},
 		{
-			kinds: [5, Kind.Reaction],
+			kinds: authorFilterKinds,
 			authors: [$pubkey],
 			since
 		}
@@ -331,11 +323,11 @@ export function hometimelineReqEmit() {
 	const $followingHashtags = get(followingHashtags);
 	if ($followingHashtags.length > 0) {
 		authorFilters.push({
-			kinds: [Kind.Text],
+			kinds: authorHashtagsFilterKinds,
 			'#t': $followingHashtags,
 			since
 		});
 	}
 	console.log('[rx-nostr subscribe author filter]', authorFilters);
-	homeTimelineReq.emit([...followeesFilter, relatesFilter, ...authorFilters]);
+	homeTimelineReq.emit([...followeesFilter, notificationsFilter, ...authorFilters]);
 }

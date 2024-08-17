@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createRxOneshotReq, latest } from 'rx-nostr';
-	import { notificationKinds } from '$lib/Constants';
+	import { notificationsFilterKinds } from '$lib/Constants';
 	import { WebStorage } from '$lib/WebStorage';
 	import { reconnectIfConnectionsAreUnstable, rxNostr } from '$lib/timelines/MainTimeline';
 	import Notice from '$lib/components/Notice.svelte';
@@ -32,7 +32,7 @@
 		const notificationExistsReq = createRxOneshotReq({
 			filters: [
 				{
-					kinds: notificationKinds,
+					kinds: notificationsFilterKinds,
 					'#p': [$pubkey],
 					since: $lastReadAt,
 					limit: 1

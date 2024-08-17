@@ -1,4 +1,5 @@
 import { Kind, type Event as NostrEvent } from 'nostr-tools';
+import { unique } from './Array';
 
 export const appName = 'nostter';
 export const uriScheme = 'web+nostr';
@@ -26,12 +27,42 @@ export const replaceableKinds = [
 ];
 export const parameterizedReplaceableKinds = [30000, 30001, 30007, 30008, 30078];
 
-export const followeesKinds = [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage];
-export const relatesKinds = [Kind.Text, 6, Kind.ChannelMessage];
-export const notificationKinds = [
-	...relatesKinds,
-	...[Kind.EncryptedDirectMessage, Kind.Reaction, Kind.BadgeAward, Kind.Zap]
+export const followeesFilterKinds = [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage];
+export const relatesFilterKinds = [Kind.Text, 6, Kind.ChannelMessage];
+export const notificationsFilterKinds = [
+	...relatesFilterKinds,
+	Kind.EncryptedDirectMessage,
+	Kind.Reaction,
+	Kind.BadgeAward,
+	Kind.Zap
 ];
+
+export const homeFolloweesFilterKinds = [...followeesFilterKinds, Kind.Metadata, 5, 30315];
+
+type AuthorReplaceableKind = {
+	kind: number;
+	identifier?: string;
+};
+
+export const authorReplaceableKinds: AuthorReplaceableKind[] = [
+	...replaceableKinds.map((kind) => {
+		return { kind };
+	}),
+	{ kind: 30001, identifier: 'bookmark' },
+	{ kind: 30007, identifier: '6' },
+	{ kind: 30007, identifier: '7' },
+	{ kind: 30007, identifier: '9735' },
+	{ kind: 30008, identifier: 'profile_badges' },
+	{ kind: 30078, identifier: 'nostter-preferences' },
+	{ kind: 30078, identifier: 'nostter-reaction-emoji' },
+	{ kind: 30078, identifier: 'nostter-read' }
+];
+
+export const authorFilterReplaceableKinds = unique(authorReplaceableKinds.map(({ kind }) => kind));
+
+export const authorFilterKinds = [5, Kind.Reaction];
+
+export const authorHashtagsFilterKinds = [Kind.Text];
 
 export const defaultRelays = [
 	{
