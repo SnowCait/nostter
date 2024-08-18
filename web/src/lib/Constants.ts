@@ -64,6 +64,16 @@ export const authorFilterKinds = [5, Kind.Reaction];
 
 export const authorHashtagsFilterKinds = [Kind.Text];
 
+export const categoriesKinds = {
+	notes: [1],
+	reposts: [6, 16],
+	reactions: [7],
+	channels: [40, 41, 42],
+	zaps: [9735]
+};
+
+export const categories = Object.keys(categoriesKinds);
+
 export const defaultRelays = [
 	{
 		url: 'wss://relay.nostr.band/',

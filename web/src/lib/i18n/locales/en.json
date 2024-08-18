@@ -112,7 +112,18 @@
 		"trouble_shooting": "Trouble Shooting",
 		"clear_emoji_cache": "Clear emoji cache",
 		"clear_event_cache": "Clear event cache and reload",
-		"reload": "Reload"
+		"reload": "Reload",
+		"timeline_filter": {
+			"title": "Timeline filter",
+			"categories": {
+				"notes": "Notes",
+				"dms": "DMs",
+				"reposts": "Reposts",
+				"reactions": "Reactions",
+				"channels": "Channels",
+				"zaps": "Zaps"
+			}
+		}
 	},
 	"content": {
 		"show": "Show",
