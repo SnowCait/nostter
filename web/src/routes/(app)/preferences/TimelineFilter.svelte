@@ -3,24 +3,18 @@
 	import { browser } from '$app/environment';
 	import { diff } from '$lib/Array';
 	import { categories } from '$lib/Constants';
-	import type { TimelinePreferences } from '$lib/TimelineFilter';
-	import { WebStorage } from '$lib/WebStorage';
+	import {
+		defaultTimelineFilter,
+		getTimelineFilter,
+		setTimelineFilter
+	} from '$lib/TimelineFilter';
 
-	let preferences: TimelinePreferences = browser ? getPreferences() : {};
-	let excludeCategories = preferences.excludeCategories ?? [];
+	let filter = browser ? getTimelineFilter() : defaultTimelineFilter;
+	let excludeCategories = filter.excludeCategories;
 	let includeCategories = categories.filter((category) => !excludeCategories.includes(category));
 
 	$: if (browser) {
-		console.debug('[timeline filter]', includeCategories);
-		preferences.excludeCategories = diff(categories, includeCategories);
-		const storage = new WebStorage(localStorage);
-		storage.set('preference:timeline-filter:home', JSON.stringify(preferences));
-	}
-
-	function getPreferences(): TimelinePreferences {
-		const storage = new WebStorage(localStorage);
-		const json = storage.get('preference:timeline-filter:home');
-		return json !== null ? JSON.parse(json) : {};
+		setTimelineFilter(diff(categories, includeCategories));
 	}
 </script>
 

@@ -7,6 +7,7 @@
 	import type { Item } from '$lib/Items';
 	import { channelIdStore } from '$lib/Channel';
 	import { findChannelId } from '$lib/EventHelper';
+	import { excludeKinds } from '$lib/TimelineFilter';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
 	import { author, isMuteEvent } from '$lib/stores/Author';
 	import Loading from '$lib/components/Loading.svelte';
@@ -105,7 +106,7 @@
 
 <section class="card">
 	<VirtualScroll data={items} key="id" let:data pageMode={true} keeps={50}>
-		{#if !isMuteEvent(data.event) && !$deletedEventIdsByPubkey
+		{#if !$excludeKinds.includes(data.event.kind) && !isMuteEvent(data.event) && !$deletedEventIdsByPubkey
 				.get(data.event.pubkey)
 				?.has(data.event.id)}
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
