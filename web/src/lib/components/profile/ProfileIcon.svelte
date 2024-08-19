@@ -12,11 +12,14 @@
 	$: name = metadata?.displayName ?? '';
 </script>
 
-<Picture
-	src={metadata?.picture}
-	{pubkey}
-	style="width: {width}; height: {height};border-radius: 50%;object-fit: cover;vertical-align: text-bottom;"
-	alt={name}
-	title={tooltip ? name : ''}
-	{size}
-/>
+<!-- To fix layout shift issues for safari. -->
+<div style="width: {width}; height: {height};">
+	<Picture
+		src={metadata?.picture}
+		{pubkey}
+		style="width: {width}; height: {height};border-radius: 50%;object-fit: cover;vertical-align: text-bottom;"
+		alt={name}
+		title={tooltip ? name : ''}
+		{size}
+	/>
+</div>
