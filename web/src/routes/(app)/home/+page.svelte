@@ -13,6 +13,7 @@
 	import { pubkey, followees, rom } from '$lib/stores/Author';
 	import { saveLastNote } from '$lib/stores/LastNotes';
 	import { Signer } from '$lib/Signer';
+	import { excludeKinds } from '$lib/TimelineFilter';
 	import { minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
@@ -239,7 +240,10 @@
 {/if}
 
 <div class="timeline">
-	<TimelineView items={$events} {load} />
+	<TimelineView
+		items={$events.filter((item) => !$excludeKinds.includes(item.event.kind))}
+		{load}
+	/>
 </div>
 
 <style>
