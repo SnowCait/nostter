@@ -5,7 +5,7 @@ import type { Event } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr } from './MainTimeline';
 import { authorActionReqEmit } from '../author/Action';
 import { chunk } from '../Array';
-import { filterLimitItems, followeesKinds, minTimelineLength } from '../Constants';
+import { filterLimitItems, followeesFilterKinds, minTimelineLength } from '../Constants';
 import { EventItem } from '../Items';
 import { Timeline } from '../Timeline';
 import { findIdentifier } from '$lib/EventHelper';
@@ -68,7 +68,7 @@ export function subscribeListTimeline(): void {
 	req.emit(
 		chunk($pubkeys, filterLimitItems).map((chunkedAuthors) => {
 			return {
-				kinds: followeesKinds,
+				kinds: followeesFilterKinds,
 				authors: chunkedAuthors,
 				since
 			};

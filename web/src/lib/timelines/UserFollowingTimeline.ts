@@ -15,9 +15,9 @@ import { chunk } from '$lib/Array';
 import {
 	filterLimitItems,
 	minTimelineLength,
-	followeesKinds,
+	followeesFilterKinds,
 	timelineLoadSince,
-	relatesKinds
+	relatesFilterKinds
 } from '$lib/Constants';
 import { Timeline as TL } from '$lib/Timeline';
 import { fetchMinutes } from '$lib/Helper';
@@ -75,12 +75,12 @@ export class UserFollowingTimeline implements Timeline {
 				this.items.set($items);
 			});
 		const followeesFilters = chunk(this.#followees, filterLimitItems).map((followees) => ({
-			kinds: [0, ...followeesKinds],
+			kinds: [0, ...followeesFilterKinds],
 			authors: followees,
 			since
 		}));
 		const relatesFilter = {
-			kinds: relatesKinds,
+			kinds: relatesFilterKinds,
 			'#p': [this.#pubkey],
 			since
 		};
@@ -117,7 +117,7 @@ export class UserFollowingTimeline implements Timeline {
 
 			const followeesFilters = TL.createChunkedFilters(this.#followees, since, until);
 			const relatedFilter = {
-				kinds: relatesKinds,
+				kinds: relatesFilterKinds,
 				'#p': [this.#pubkey],
 				until,
 				since

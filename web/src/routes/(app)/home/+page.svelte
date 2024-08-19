@@ -6,7 +6,7 @@
 	import { Kind, type Relay } from 'nostr-tools';
 	import { goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { appName, notificationKinds } from '$lib/Constants';
+	import { appName, notificationsFilterKinds } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
 	import { events, eventsPool } from '$lib/stores/Events';
 	import { pool } from '$lib/stores/Pool';
@@ -121,7 +121,7 @@
 			const followeesFilters = Timeline.createChunkedFilters($followees, since, until);
 			const authorFilters: LazyFilter[] = [
 				{
-					kinds: notificationKinds,
+					kinds: notificationsFilterKinds,
 					'#p': [$pubkey],
 					until,
 					since

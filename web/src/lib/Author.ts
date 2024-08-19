@@ -24,28 +24,13 @@ import { rxNostr } from './timelines/MainTimeline';
 import { Signer } from './Signer';
 import { authorChannelsEventStore } from './cache/Events';
 import { updateFolloweesStore } from './Contacts';
-import { parameterizedReplaceableKinds, replaceableKinds } from './Constants';
+import {
+	authorReplaceableKinds,
+	parameterizedReplaceableKinds,
+	replaceableKinds
+} from './Constants';
 import { bookmarkEvent } from './author/Bookmark';
 import { profileBadgesEvent, profileBadgesKey } from './author/ProfileBadges';
-
-type AuthorReplaceableKind = {
-	kind: number;
-	identifier?: string;
-};
-
-export const authorReplaceableKinds: AuthorReplaceableKind[] = [
-	...replaceableKinds.map((kind) => {
-		return { kind };
-	}),
-	{ kind: 30001, identifier: 'bookmark' },
-	{ kind: 30007, identifier: '6' },
-	{ kind: 30007, identifier: '7' },
-	{ kind: 30007, identifier: '9735' },
-	{ kind: 30008, identifier: 'profile_badges' },
-	{ kind: 30078, identifier: 'nostter-preferences' },
-	{ kind: 30078, identifier: 'nostter-reaction-emoji' },
-	{ kind: 30078, identifier: 'nostter-read' }
-];
 
 export class Author {
 	constructor(private pubkey: string) {}
