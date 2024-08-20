@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Kind, nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
+	import Cropper from 'svelte-easy-crop';
 	import { goto } from '$app/navigation';
 	import { FileStorageServer } from '$lib/media/FileStorageServer';
 	import { getMediaUploader } from '$lib/media/Media';
@@ -9,6 +10,71 @@
 	import { pubkey, author, authorProfile, metadataEvent, writeRelays } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
+	import ModalDialog from '$lib/components/ModalDialog.svelte';
+
+	//#region Cropper
+
+	type Pixels = { height: number; width: number; x: number; y: number };
+
+	let open = false;
+	let url = '';
+	let pixels: Pixels | undefined;
+	let complete: (value: File | PromiseLike<File | undefined> | undefined) => void;
+
+	async function crop(file: File): Promise<File | undefined> {
+		console.debug('[profile picture crop]', file);
+		return new Promise((resolve) => {
+			complete = resolve;
+			const reader = new FileReader();
+			reader.addEventListener('load', () => {
+				console.debug('[profile picture data url]', reader.result);
+				if (typeof reader.result === 'string') {
+					url = reader.result;
+					open = true;
+				}
+			});
+			reader.readAsDataURL(file);
+		});
+	}
+
+	function onCropComplete({ detail }: { detail: { pixels: Pixels } }): void {
+		pixels = detail.pixels;
+	}
+
+	function applyCrop() {
+		console.debug('[profile picture apply]', pixels);
+		const image = new Image();
+		image.addEventListener('load', () => {
+			console.debug('[profile picture apply load]', image);
+			const canvas = document.createElement('canvas');
+			const ctx = canvas.getContext('2d');
+			if (ctx === null || pixels === undefined) {
+				complete(undefined);
+				return;
+			}
+			canvas.width = image.width;
+			canvas.height = image.height;
+			ctx.drawImage(image, 0, 0);
+			const data = ctx.getImageData(pixels.x, pixels.y, pixels.width, pixels.height);
+			canvas.width = pixels.width;
+			canvas.height = pixels.height;
+			ctx.putImageData(data, 0, 0);
+			ctx.canvas.toBlob((file) => {
+				complete(file as File);
+				open = false;
+			});
+		});
+		image.src = url;
+	}
+
+	function close(): void {
+		console.debug('[profile picture crop close]');
+		complete(undefined);
+		url = '';
+		pixels = undefined;
+	}
+
+	//#endregion
 
 	async function picturePicked({ detail: files }: { detail: FileList }): Promise<void> {
 		console.log('[profile picture]', files);
@@ -17,9 +83,17 @@
 		}
 
 		const file = files[0];
+		const croppedFile = await crop(file);
+		if (croppedFile === undefined) {
+			// Cancelled
+			return;
+		}
+
+		console.debug('[profile picture cropped file]', croppedFile);
+
 		try {
 			const media = new FileStorageServer(getMediaUploader());
-			const { url } = await media.upload(file);
+			const { url } = await media.upload(croppedFile);
 			if (url) {
 				$authorProfile.picture = url;
 			}
@@ -76,6 +150,16 @@
 </svelte:head>
 
 <h1>{$_('pages.profile_edit')}</h1>
+
+<ModalDialog bind:open on:close={close}>
+	<div class="crop">
+		<Cropper image={url} aspect={1} maxZoom={10} on:cropcomplete={onCropComplete} />
+	</div>
+
+	<form on:submit|preventDefault={applyCrop}>
+		<input type="submit" value={$_('media.upload.apply')} />
+	</form>
+</ModalDialog>
 
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <form class="card" on:submit|preventDefault={save} on:keyup|stopPropagation={console.debug}>
@@ -193,5 +277,11 @@
 	img {
 		max-width: 100%;
 		max-height: 10rem;
+	}
+
+	.crop {
+		position: relative;
+		width: 300px;
+		height: 300px;
 	}
 </style>

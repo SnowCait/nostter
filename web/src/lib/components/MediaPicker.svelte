@@ -8,6 +8,13 @@
 	let files: FileList;
 
 	const dispatch = createEventDispatcher();
+
+	function onChange(): void {
+		dispatch('pick', files);
+		if (input !== undefined) {
+			input.value = '';
+		}
+	}
 </script>
 
 <button on:click|preventDefault={() => input?.click()} class="clear">
@@ -18,7 +25,7 @@
 	{multiple}
 	bind:this={input}
 	bind:files
-	on:change={() => dispatch('pick', files)}
+	on:change={onChange}
 	accept="image/*,video/*,audio/*"
 	hidden
 />
