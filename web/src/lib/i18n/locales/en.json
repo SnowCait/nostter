@@ -247,7 +247,8 @@
 	},
 	"media": {
 		"upload": {
-			"failed": "Failed to upload."
+			"failed": "Failed to upload.",
+			"apply": "Apply"
 		}
 	},
 	"lists": {

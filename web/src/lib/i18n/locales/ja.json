@@ -246,7 +246,8 @@
 	},
 	"media": {
 		"upload": {
-			"failed": "アップロードに失敗しました。"
+			"failed": "アップロードに失敗しました。",
+			"apply": "Apply"
 		}
 	},
 	"lists": {
