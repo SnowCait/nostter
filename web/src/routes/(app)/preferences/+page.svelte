@@ -23,6 +23,7 @@
 	import ClearEventCacheAndReload from './ClearEventCacheAndReload.svelte';
 	import MediaUploader from './MediaUploader.svelte';
 	import ImageOptimization from './ImageOptimization.svelte';
+	import TimelineFilter from './TimelineFilter.svelte';
 </script>
 
 <svelte:head>
@@ -73,6 +74,8 @@
 	<div><ImageOptimization /></div>
 	<div><Notification /></div>
 	<div><UriScheme /></div>
+	<h3>{$_('preferences.timeline_filter.title')}</h3>
+	<div><TimelineFilter /></div>
 	<div><WalletConnect /></div>
 	<div><DeveloperMode /></div>
 	{#if $developerMode}

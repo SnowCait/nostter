@@ -6,13 +6,14 @@
 	import { Kind, type Relay } from 'nostr-tools';
 	import { goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { appName, notificationKinds } from '$lib/Constants';
+	import { appName, notificationsFilterKinds } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
 	import { events, eventsPool } from '$lib/stores/Events';
 	import { pool } from '$lib/stores/Pool';
 	import { pubkey, followees, rom } from '$lib/stores/Author';
 	import { saveLastNote } from '$lib/stores/LastNotes';
 	import { Signer } from '$lib/Signer';
+	import { excludeKinds } from '$lib/TimelineFilter';
 	import { minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
@@ -121,7 +122,7 @@
 			const followeesFilters = Timeline.createChunkedFilters($followees, since, until);
 			const authorFilters: LazyFilter[] = [
 				{
-					kinds: notificationKinds,
+					kinds: notificationsFilterKinds,
 					'#p': [$pubkey],
 					until,
 					since
@@ -239,7 +240,10 @@
 {/if}
 
 <div class="timeline">
-	<TimelineView items={$events} {load} />
+	<TimelineView
+		items={$events.filter((item) => !$excludeKinds.includes(item.event.kind))}
+		{load}
+	/>
 </div>
 
 <style>

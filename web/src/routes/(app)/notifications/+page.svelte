@@ -7,7 +7,7 @@
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
-	import { appName, minTimelineLength, notificationKinds } from '$lib/Constants';
+	import { appName, minTimelineLength, notificationsFilterKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
 	import { notifiedEventItems, unreadEventItems } from '$lib/stores/Notifications';
@@ -62,7 +62,7 @@
 
 			const filters: Filter[] = [
 				{
-					kinds: notificationKinds,
+					kinds: notificationsFilterKinds,
 					'#p': [$pubkey],
 					until,
 					since
