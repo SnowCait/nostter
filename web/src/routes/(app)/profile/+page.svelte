@@ -156,7 +156,7 @@
 		<Cropper image={url} aspect={1} maxZoom={10} on:cropcomplete={onCropComplete} />
 	</div>
 
-	<form on:submit|preventDefault={applyCrop}>
+	<form class="apply" on:submit|preventDefault={applyCrop}>
 		<input type="submit" value={$_('media.upload.apply')} />
 	</form>
 </ModalDialog>
@@ -283,5 +283,9 @@
 		position: relative;
 		width: 300px;
 		height: 300px;
+	}
+
+	.apply {
+		text-align: center;
 	}
 </style>
