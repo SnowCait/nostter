@@ -12,6 +12,7 @@
 	import Trending from './Trending.svelte';
 	import FollowHashtagButton from '$lib/components/FollowHashtagButton.svelte';
 	import UnfollowHashtagButton from '$lib/components/UnfollowHashtagButton.svelte';
+	import { unique } from '$lib/Array';
 
 	let query = '';
 	let mine = false;
@@ -55,7 +56,10 @@
 			filter['#p'] = toPubkeys;
 		}
 		if (hashtags.length > 0) {
-			filter['#t'] = hashtags;
+			filter['#t'] = unique([
+				...hashtags,
+				...hashtags.map((hashtag) => hashtag.toLowerCase())
+			]);
 		}
 		console.log('[filter]', filter);
 
