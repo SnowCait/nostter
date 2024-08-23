@@ -51,7 +51,7 @@
 		"emoji-kitchen-mart": "^6.0.4",
 		"escape-string-regexp": "^5.0.0",
 		"light-bolt11-decoder": "^3.1.1",
-		"nip07-awaiter": "^0.3.0",
+		"nip07-awaiter": "^1.0.0",
 		"nostr-tools": "^1.10.1",
 		"qrcode": "^1.5.3",
 		"rx-nostr": "^3.3.4",
