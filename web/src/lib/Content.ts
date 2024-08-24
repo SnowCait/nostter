@@ -1,5 +1,6 @@
 import { nip19 } from 'nostr-tools';
 import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
+import { unique } from './Array';
 
 export class Token {
 	constructor(
@@ -29,7 +30,7 @@ export class Content {
 			matches = [
 				...(hashtags.length > 0
 					? content.matchAll(
-							new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'g')
+							new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'gi')
 						)
 					: []),
 				...(emojis.size > 0
@@ -168,7 +169,7 @@ export class Content {
 		const hashtags = [...matches]
 			.map((match) => match.groups?.hashtag)
 			.filter((x): x is string => x !== undefined);
-		return Array.from(new Set(hashtags));
+		return unique(hashtags);
 	}
 
 	static replaceNip19(content: string): string {

@@ -43,6 +43,7 @@
 	"dependencies": {
 		"@emoji-mart/data": "^1.2.1",
 		"@floating-ui/dom": "^1.6.8",
+		"@rust-nostr/nostr": "^0.34.0",
 		"@sentry/sveltekit": "^8.22.0",
 		"@svelteuidev/composables": "^0.15.4",
 		"@svelteuidev/core": "^0.15.7",
@@ -51,13 +52,14 @@
 		"emoji-kitchen-mart": "^6.0.4",
 		"escape-string-regexp": "^5.0.0",
 		"light-bolt11-decoder": "^3.1.1",
-		"nip07-awaiter": "^0.3.0",
+		"nip07-awaiter": "^1.0.0",
 		"nostr-tools": "^1.10.1",
 		"qrcode": "^1.5.3",
-		"rx-nostr": "^3.3.1",
+		"rx-nostr": "^3.3.4",
 		"rx-nostr-crypto": "^3.1.1",
 		"rxjs": "^7.8.1",
 		"svelte-i18n": "^4.0.0",
-		"svelte-remote-image": "0.4.1"
+		"svelte-remote-image": "0.4.1",
+		"svelte-easy-crop": "^3.0.0"
 	}
 }

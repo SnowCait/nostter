@@ -87,7 +87,7 @@ export class NoteComposer {
 
 	hashtags(content: string): string[][] {
 		const hashtags = Content.findHashtags(content);
-		return Array.from(hashtags).map((hashtag) => ['t', hashtag]);
+		return hashtags.map((hashtag) => ['t', hashtag.toLowerCase()]);
 	}
 
 	async emojiTags(content: string, emojiTags: string[][] = []): Promise<string[][]> {
