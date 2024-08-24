@@ -5,5 +5,5 @@
 	export let pubkey: string;
 </script>
 
-<ProfileIcon {pubkey} width="1.2rem" height="1.2rem" size="s" />
+<ProfileIcon {pubkey} width="1.2rem" height="1.2rem" />
 <ProfileName {pubkey} />

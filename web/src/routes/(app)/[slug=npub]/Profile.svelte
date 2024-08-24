@@ -90,7 +90,7 @@
 	<div class="profile">
 		<div class="actions">
 			<div class="picture">
-				<ProfileIcon {pubkey} size="l" />
+				<ProfileIcon {pubkey} />
 			</div>
 			<div class="buttons">
 				{#if !$rom && pubkey !== undefined}
