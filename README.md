@@ -34,9 +34,9 @@ javascript:window.open(`https://nostter.app/post?content=${document.title}%20${l
 
 | Category | Names |
 | - | - |
-| Nostr | [Nostr](https://github.com/nostr-protocol/nostr), [nostr-tools](https://github.com/nbd-wtf/nostr-tools), [rx-nostr](https://github.com/penpenpng/rx-nostr), [nip07-awaiter](https://github.com/penpenpng/nip07-awaiter) |
+| Nostr | [Nostr](https://github.com/nostr-protocol/nostr), [nostr-tools](https://github.com/nbd-wtf/nostr-tools), [rx-nostr](https://github.com/penpenpng/rx-nostr), [@rust-nostr/nostr](https://github.com/rust-nostr/nostr), [nip07-awaiter](https://github.com/penpenpng/nip07-awaiter) |
 | Frameworks | Svelte, SvelteKit, Vite |
-| Languages | TypeScript, JavaScript, Node.js |
+| Languages | TypeScript, Node.js |
 | Tests | Vitest, Playwright |
 | UI | [Tabler Icons for Svelte](https://tabler.io/docs/icons/svelte), [emoji-kitchen-mart](https://www.npmjs.com/package/emoji-kitchen-mart) |
 
