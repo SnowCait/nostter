@@ -25,6 +25,12 @@
 	let innerHeight: number;
 	let scrollY = writable(0);
 
+	$: visibleItems = items.filter(
+		(item) =>
+			!isMuteEvent(item.event) &&
+			!$deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id)
+	);
+
 	onMount(() => {
 		console.log('Timeline.onMount');
 		scrollY.subscribe(async (y) => {
@@ -104,19 +110,15 @@
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
 <section class="card">
-	<VirtualScroll data={items} key="id" let:data pageMode={true} keeps={50}>
-		{#if !isMuteEvent(data.event) && !$deletedEventIdsByPubkey
-				.get(data.event.pubkey)
-				?.has(data.event.id)}
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div
-				class={canTransition ? 'canTransition-post' : ''}
-				class:related={$author?.isNotified(data.event)}
-				on:mouseup={(e) => viewDetail(e, data.event)}
-			>
-				<EventComponent item={data} {readonly} {createdAtFormat} {full} />
-			</div>
-		{/if}
+	<VirtualScroll data={visibleItems} key="id" let:data pageMode={true} keeps={50}>
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<div
+			class={canTransition ? 'canTransition-post' : ''}
+			class:related={$author?.isNotified(data.event)}
+			on:mouseup={(e) => viewDetail(e, data.event)}
+		>
+			<EventComponent item={data} {readonly} {createdAtFormat} {full} />
+		</div>
 	</VirtualScroll>
 </section>
 
