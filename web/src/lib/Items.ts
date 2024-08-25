@@ -202,8 +202,8 @@ export interface MetadataContent {
 	lud16: string;
 }
 
-export function robohash(pubkey: string): string {
-	return `https://robohash.org/${nip19.npubEncode(pubkey)}?set=set4`;
+export function robohash(pubkey: string, size = 120): string {
+	return `https://robohash.org/${nip19.npubEncode(pubkey)}?set=set4&size=${size}x${size}`;
 }
 
 export function alternativeName(pubkey: string): string {
