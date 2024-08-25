@@ -30,8 +30,7 @@
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 	export let full = false;
 
-	const eventItem = item as EventItem;
-
+	$: eventItem = item as EventItem;
 	$: metadata = $metadataStore.get(eventItem.event.pubkey);
 
 	if ($rom) {
