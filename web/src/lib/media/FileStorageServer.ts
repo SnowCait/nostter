@@ -68,16 +68,18 @@ export class FileStorageServer implements Media {
 	}
 }
 
-export async function uploadFiles(files: FileList | File[]): Promise<(string | undefined)[]> {
+export async function uploadFiles(
+	files: FileList | File[]
+): Promise<{ file: File; url: string | undefined }[]> {
 	const media = new FileStorageServer(getMediaUploader());
 	return await Promise.all(
 		[...files].map(async (file) => {
 			try {
 				const { url } = await media.upload(file);
-				return url;
+				return { file, url };
 			} catch (error) {
 				console.error('[media upload error]', error);
-				return undefined;
+				return { file, url: undefined };
 			}
 		})
 	);
