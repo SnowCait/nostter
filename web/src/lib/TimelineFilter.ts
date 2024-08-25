@@ -12,6 +12,11 @@ export function storeExcludeKinds(excludeCategories: string[]): void {
 	);
 }
 
+export function applyTimelieFilter(): void {
+	const timelineFilter = getTimelineFilter();
+	storeExcludeKinds(timelineFilter.excludeCategories);
+}
+
 export interface TimelineFilter {
 	excludeCategories: string[];
 }

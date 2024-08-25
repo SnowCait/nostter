@@ -13,7 +13,7 @@
 	import { pubkey, followees, rom } from '$lib/stores/Author';
 	import { saveLastNote } from '$lib/stores/LastNotes';
 	import { Signer } from '$lib/Signer';
-	import { excludeKinds } from '$lib/TimelineFilter';
+	import { applyTimelieFilter, excludeKinds } from '$lib/TimelineFilter';
 	import { minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
@@ -87,6 +87,7 @@
 			return;
 		}
 
+		applyTimelieFilter();
 		hometimelineReqEmit();
 		logRelays();
 	});
