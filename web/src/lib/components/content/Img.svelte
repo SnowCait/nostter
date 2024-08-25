@@ -16,11 +16,7 @@
 	};
 
 	let imageSrc: ImgSrc = {
-		img: `${imageOptimazerUrl}width=800,quality=60,format=jpeg/${src}`,
-		srcsets: [
-			{ src: `${imageOptimazerUrl}width=800,quality=60,format=webp/${src}`, w: 800 },
-			{ src: `${imageOptimazerUrl}width=400,quality=60,format=webp/${src}`, w: 400 }
-		],
+		img: `${imageOptimazerUrl}width=800,quality=60,format=webp/${src}`,
 		fallback: [src]
 	};
 
