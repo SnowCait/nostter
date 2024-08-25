@@ -470,12 +470,12 @@
 
 		const urls = await uploadFiles(files);
 
-		for (const [i, file] of Object.entries(files)) {
-			mediaUrls.set(file, urls[Number(i)]);
+		for (const { file, url } of urls) {
+			mediaUrls.set(file, url);
 		}
 		mediaUrls = mediaUrls;
 
-		addUrlsToContent(urls);
+		addUrlsToContent(urls.map(({ url }) => url));
 
 		if (urls.some((url) => url === undefined)) {
 			alert($_('media.upload.failed'));
