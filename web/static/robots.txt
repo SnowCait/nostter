@@ -3,3 +3,12 @@ User-agent: Bingbot
 User-agent: Googlebot
 Disallow: /npub
 Disallow: /nprofile
+
+# https://developers.facebook.com/docs/sharing/webmasters/web-crawlers/
+User-agent: facebookexternalhit
+User-agent: meta-externalagent
+Disallow: /npub
+Disallow: /nprofile
+Disallow: /note
+Disallow: /nevent
+Disallow: /naddr
