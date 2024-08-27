@@ -202,7 +202,7 @@
 		</svelte:fragment>
 		<TimelineView
 			items={$notifiedEventItems.filter(
-				(item) => ![...notificationsFilterKinds, 6, 16, 7, 9735].includes(item.event.kind)
+				(item) => ![1, 6, 16, 7, 9735].includes(item.event.kind)
 			)}
 			{load}
 		/>
