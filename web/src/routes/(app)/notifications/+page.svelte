@@ -170,7 +170,10 @@
 		<svelte:fragment slot="icon">
 			<IconAt color="var(--orange)" size={20} />
 		</svelte:fragment>
-		<TimelineView items={$notifiedEventItems.filter((item) => item.event.kind === 1)} {load} />
+		<TimelineView
+			items={$notifiedEventItems.filter((item) => item.event.kind === 1)}
+			showLoading={false}
+		/>
 	</Tabs.Tab>
 	<Tabs.Tab>
 		<svelte:fragment slot="icon">
@@ -178,14 +181,17 @@
 		</svelte:fragment>
 		<TimelineView
 			items={$notifiedEventItems.filter((item) => [6, 16].includes(item.event.kind))}
-			{load}
+			showLoading={false}
 		/>
 	</Tabs.Tab>
 	<Tabs.Tab>
 		<svelte:fragment slot="icon">
 			<IconHeart color="var(--pink)" size={20} />
 		</svelte:fragment>
-		<TimelineView items={$notifiedEventItems.filter((item) => item.event.kind === 7)} {load} />
+		<TimelineView
+			items={$notifiedEventItems.filter((item) => item.event.kind === 7)}
+			showLoading={false}
+		/>
 	</Tabs.Tab>
 	<Tabs.Tab>
 		<svelte:fragment slot="icon">
@@ -193,7 +199,7 @@
 		</svelte:fragment>
 		<TimelineView
 			items={$notifiedEventItems.filter((item) => item.event.kind === 9735)}
-			{load}
+			showLoading={false}
 		/>
 	</Tabs.Tab>
 	<Tabs.Tab>
@@ -204,7 +210,7 @@
 			items={$notifiedEventItems.filter(
 				(item) => ![1, 6, 16, 7, 9735].includes(item.event.kind)
 			)}
-			{load}
+			showLoading={false}
 		/>
 	</Tabs.Tab>
 </Tabs>
