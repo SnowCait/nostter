@@ -7,6 +7,8 @@ Disallow: /nprofile
 # https://developers.facebook.com/docs/sharing/webmasters/web-crawlers/
 User-agent: facebookexternalhit
 User-agent: meta-externalagent
+# https://imagesift.com/about
+User-agent: ImagesiftBot
 Disallow: /npub
 Disallow: /nprofile
 Disallow: /note
