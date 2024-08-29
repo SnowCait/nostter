@@ -258,6 +258,10 @@
 		"create": "作成",
 		"edit": "リストへ追加/削除"
 	},
+	"notifications": {
+		"all": "すべて",
+		"others": "他"
+	},
 	"menu": {
 		"developer": "開発者",
 		"caution": "注意"

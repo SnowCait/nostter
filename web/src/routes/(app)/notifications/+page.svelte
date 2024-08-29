@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Tabs } from '@svelteuidev/core';
 	import type { Kind } from 'nostr-tools';
 	import type { Filter } from 'nostr-typedef';
 	import { createRxOneshotReq, uniq } from 'rx-nostr';
@@ -14,6 +15,10 @@
 	import { pubkey, author, writeRelays } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
+	import IconAt from '@tabler/icons-svelte/icons/at';
+	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
+	import IconHeart from '@tabler/icons-svelte/icons/heart';
+	import IconBolt from '@tabler/icons-svelte/icons/bolt';
 
 	afterNavigate(async () => {
 		console.log('[notifications page]');
@@ -154,4 +159,68 @@
 
 <h1>{$_('layout.header.notifications')}</h1>
 
-<TimelineView items={$notifiedEventItems} {load} />
+<Tabs grow>
+	<Tabs.Tab>
+		<svelte:fragment slot="label">
+			<div>{$_('notifications.all')}</div>
+		</svelte:fragment>
+		<TimelineView items={$notifiedEventItems} {load} />
+	</Tabs.Tab>
+	<Tabs.Tab>
+		<svelte:fragment slot="icon">
+			<IconAt color="var(--orange)" size={20} />
+		</svelte:fragment>
+		<TimelineView
+			items={$notifiedEventItems.filter((item) => item.event.kind === 1)}
+			showLoading={false}
+		/>
+	</Tabs.Tab>
+	<Tabs.Tab>
+		<svelte:fragment slot="icon">
+			<IconRepeat color="var(--green)" size={20} />
+		</svelte:fragment>
+		<TimelineView
+			items={$notifiedEventItems.filter((item) => [6, 16].includes(item.event.kind))}
+			showLoading={false}
+		/>
+	</Tabs.Tab>
+	<Tabs.Tab>
+		<svelte:fragment slot="icon">
+			<IconHeart color="var(--pink)" size={20} />
+		</svelte:fragment>
+		<TimelineView
+			items={$notifiedEventItems.filter((item) => item.event.kind === 7)}
+			showLoading={false}
+		/>
+	</Tabs.Tab>
+	<Tabs.Tab>
+		<svelte:fragment slot="icon">
+			<IconBolt color="var(--yellow)" size={20} />
+		</svelte:fragment>
+		<TimelineView
+			items={$notifiedEventItems.filter((item) => item.event.kind === 9735)}
+			showLoading={false}
+		/>
+	</Tabs.Tab>
+	<Tabs.Tab>
+		<svelte:fragment slot="label">
+			<div>{$_('notifications.others')}</div>
+		</svelte:fragment>
+		<TimelineView
+			items={$notifiedEventItems.filter(
+				(item) => ![1, 6, 16, 7, 9735].includes(item.event.kind)
+			)}
+			showLoading={false}
+		/>
+	</Tabs.Tab>
+</Tabs>
+
+<style>
+	div {
+		color: var(--accent);
+	}
+
+	:global(button.svelteui-Tab) {
+		border-radius: 0;
+	}
+</style>
