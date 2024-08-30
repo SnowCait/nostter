@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { enablePreview } from '$lib/stores/Preference';
 	import ExternalLink from '../ExternalLink.svelte';
 
@@ -26,7 +27,7 @@
 {#if id !== undefined && $enablePreview}
 	<iframe
 		id="ytplayer"
-		src="https://www.youtube.com/embed/{id}?origin={location.origin}"
+		src="https://www.youtube.com/embed/{id}?origin={$page.url.origin}"
 		frameborder="0"
 		title=""
 	/>
