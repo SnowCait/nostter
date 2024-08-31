@@ -23,7 +23,7 @@
 	let optimize = $imageOptimization;
 </script>
 
-{#if optimize && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname)}
+{#if optimize && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith(imageOptimazerUrl)}
 	<Img src={imageSrc} alt={src} style={formatStyleFromObject(imgStyleObj)} />
 {:else}
 	<img style={formatStyleFromObject(imgStyleObj)} {src} alt={src} />
