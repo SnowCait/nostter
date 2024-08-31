@@ -5,6 +5,8 @@ User-agent: meta-externalagent
 User-agent: ImagesiftBot
 # https://platform.openai.com/docs/bots
 User-agent: GPTBot
+# https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers
+User-agent: GoogleOther
 Disallow: /npub
 Disallow: /nprofile
 Disallow: /note
