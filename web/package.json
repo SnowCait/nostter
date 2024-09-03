@@ -16,7 +16,7 @@
 	"devDependencies": {
 		"@beyonk/gdpr-cookie-consent-banner": "^11.0.0",
 		"@playwright/test": "^1.45.3",
-		"@sveltejs/adapter-auto": "^3.2.2",
+		"@sveltejs/adapter-auto": "^3.2.4",
 		"@sveltejs/kit": "^2.5.25",
 		"@sveltejs/vite-plugin-svelte": "^3.1.1",
 		"@types/beyonk__gdpr-cookie-consent-banner": "^9.0.2",
