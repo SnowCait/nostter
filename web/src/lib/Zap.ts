@@ -13,7 +13,9 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 		relay: walletRelay,
 		secret: walletSeckey
 	} = parseConnectionString(uri);
+	console.debug('[NWC info]', walletRelay, walletPubkey);
 	const event = await makeNwcRequestEvent(walletPubkey, walletSeckey, invoice);
+	console.debug('[NWC event]', event);
 
 	const nwcRxNostr = createRxNostr({
 		verifier: verificationClient.verifier,
@@ -26,7 +28,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 			const nwcRxReq = createRxForwardReq();
 			nwcRxNostr.use(nwcRxReq).subscribe({
 				next: (packet) => {
-					console.log('[NWC]', packet);
+					console.log('[NWC success]', packet);
 					resolve(packet.event);
 				},
 				complete: () => {
