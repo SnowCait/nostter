@@ -2,6 +2,7 @@ import { get } from 'svelte/store';
 import { _ } from 'svelte-i18n';
 import { nip04 } from 'nostr-tools';
 import { createRxForwardReq, createRxNostr } from 'rx-nostr';
+import { seckeySigner } from 'rx-nostr-crypto';
 import type { Event } from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
 import { verificationClient } from './timelines/MainTimeline';
@@ -12,9 +13,14 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 		relay: walletRelay,
 		secret: walletSeckey
 	} = parseConnectionString(uri);
+	console.debug('[NWC info]', walletRelay, walletPubkey);
 	const event = await makeNwcRequestEvent(walletPubkey, walletSeckey, invoice);
+	console.debug('[NWC event]', event);
 
-	const nwcRxNostr = createRxNostr({ verifier: verificationClient.verifier });
+	const nwcRxNostr = createRxNostr({
+		verifier: verificationClient.verifier,
+		signer: seckeySigner(walletSeckey)
+	});
 	nwcRxNostr.setDefaultRelays([walletRelay]);
 
 	try {
@@ -22,7 +28,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 			const nwcRxReq = createRxForwardReq();
 			nwcRxNostr.use(nwcRxReq).subscribe({
 				next: (packet) => {
-					console.log('[NWC]', packet);
+					console.log('[NWC success]', packet);
 					resolve(packet.event);
 				},
 				complete: () => {
