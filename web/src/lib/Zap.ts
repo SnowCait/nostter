@@ -1,7 +1,7 @@
 import { get } from 'svelte/store';
 import { _ } from 'svelte-i18n';
 import { nip04 } from 'nostr-tools';
-import { createRxForwardReq, createRxNostr } from 'rx-nostr';
+import { createRxForwardReq, createRxNostr, noopSigner } from 'rx-nostr';
 import { seckeySigner } from 'rx-nostr-crypto';
 import type { Event } from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
@@ -19,7 +19,10 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 
 	const nwcRxNostr = createRxNostr({
 		verifier: verificationClient.verifier,
-		signer: seckeySigner(walletSeckey)
+		signer: noopSigner(),
+		authenticator: {
+			signer: seckeySigner(walletSeckey)
+		}
 	});
 	nwcRxNostr.setDefaultRelays([walletRelay]);
 
