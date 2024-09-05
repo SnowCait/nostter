@@ -259,7 +259,8 @@
 	},
 	"notifications": {
 		"all": "すべて",
-		"others": "他"
+		"others": "他",
+		"followees_only": "フォローのみ"
 	},
 	"menu": {
 		"developer": "開発者",

@@ -260,7 +260,8 @@
 	},
 	"notifications": {
 		"all": "all",
-		"others": "etc"
+		"others": "etc",
+		"followees_only": "followees only"
 	},
 	"menu": {
 		"developer": "Developer",
