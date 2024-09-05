@@ -166,8 +166,10 @@
 <h1>
 	<span>{$_('layout.header.notifications')}</span>
 	<span>
-		<input type="checkbox" bind:checked={followeesOnly} />
-		{$_('notifications.followees_only')}
+		<label>
+			<input type="checkbox" bind:checked={followeesOnly} />
+			{$_('notifications.followees_only')}
+		</label>
 	</span>
 </h1>
 
