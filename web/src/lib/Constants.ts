@@ -100,11 +100,6 @@ export const localizedRelays = {
 			write: true
 		},
 		{
-			url: 'wss://nostr-relay.nokotaro.com/',
-			read: true,
-			write: true
-		},
-		{
 			url: 'wss://yabu.me/',
 			read: true,
 			write: true
