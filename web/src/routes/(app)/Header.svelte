@@ -15,7 +15,6 @@
 	import { nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import { metadataStore } from '$lib/cache/Events';
 	import { followees, pubkey, rom } from '$lib/stores/Author';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '$lib/stores/Notifications';
@@ -27,10 +26,7 @@
 	}
 
 	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
-	$: metadata = $metadataStore.get($pubkey);
-	$: profile = metadata?.normalizedNip05
-		? metadata.normalizedNip05
-		: nip19.nprofileEncode({ pubkey: $pubkey });
+	$: profile = nip19.nprofileEncode({ pubkey: $pubkey });
 </script>
 
 <div class="header">
