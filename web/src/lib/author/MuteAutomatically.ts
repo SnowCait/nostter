@@ -39,7 +39,13 @@ rxNostr
 	});
 
 export function contactsOfFolloweesReqEmit(): void {
+	const $contactsOfFollowees = get(contactsOfFollowees);
+	if ($contactsOfFollowees.size > 0) {
+		return; // Already fetched
+	}
+
 	const $followees = get(followees);
+	followeesOfFollowees.set(new Set($followees)); // For UX
 	const filters = chunk($followees, filterLimit).map((authors) => ({ kinds: [3], authors }));
 	for (const chunkedFilters of chunk(filters, maxFilters)) {
 		req.emit(chunkedFilters);

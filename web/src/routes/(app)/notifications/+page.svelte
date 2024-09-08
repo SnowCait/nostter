@@ -12,18 +12,19 @@
 	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
 	import { notifiedEventItems, unreadEventItems } from '$lib/stores/Notifications';
-	import { pubkey, author, writeRelays, followees } from '$lib/stores/Author';
+	import { pubkey, author, writeRelays } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import IconAt from '@tabler/icons-svelte/icons/at';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import IconHeart from '@tabler/icons-svelte/icons/heart';
 	import IconBolt from '@tabler/icons-svelte/icons/bolt';
-
-	let followeesOnly = false;
+	import { preferencesStore } from '$lib/Preferences';
+	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 
 	$: items = $notifiedEventItems.filter(
-		(item) => !followeesOnly || $followees.includes(item.event.pubkey)
+		(item) =>
+			!$preferencesStore.muteAutomatically || $followeesOfFollowees.has(item.event.pubkey)
 	);
 
 	afterNavigate(async () => {
@@ -163,15 +164,7 @@
 	<title>{appName} - {$_('layout.header.notifications')}</title>
 </svelte:head>
 
-<h1>
-	<span>{$_('layout.header.notifications')}</span>
-	<span>
-		<label>
-			<input type="checkbox" bind:checked={followeesOnly} />
-			{$_('notifications.followees_only')}
-		</label>
-	</span>
-</h1>
+<h1>{$_('layout.header.notifications')}</h1>
 
 <Tabs grow>
 	<Tabs.Tab>
@@ -225,11 +218,6 @@
 	h1 {
 		display: flex;
 		justify-content: space-between;
-	}
-
-	h1 span:last-child {
-		font-size: 1rem;
-		margin: auto 0;
 	}
 
 	div {
