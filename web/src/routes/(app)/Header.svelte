@@ -15,6 +15,8 @@
 	import { nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
+	import { preferencesStore } from '$lib/Preferences';
+	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { followees, pubkey, rom } from '$lib/stores/Author';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '$lib/stores/Notifications';
@@ -58,7 +60,7 @@
 				<a href="/notifications">
 					<li class="notifications-icon">
 						<IconBell size={30} />
-						{#if $unreadEventItems.length > 0 || $lastNotifiedAt > $lastReadAt}
+						{#if $unreadEventItems.filter((item) => !$preferencesStore.muteAutomatically || $followeesOfFollowees.has(item.event.pubkey)).length > 0 || $lastNotifiedAt > $lastReadAt}
 							<span class="notifications-icon-badge" />
 						{/if}
 						<p>{$_('layout.header.notifications')}</p>

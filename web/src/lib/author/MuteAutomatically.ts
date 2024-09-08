@@ -10,6 +10,10 @@ export const followeesOfFollowees = writable<Set<string>>(new Set());
 
 const contactsOfFollowees = writable<Map<string, Event>>(new Map());
 contactsOfFollowees.subscribe((events) => {
+	if (events.size === 0) {
+		return;
+	}
+
 	const $followees = get(followees);
 	const pubkeys = [...events]
 		.flatMap(([, event]) =>
@@ -20,29 +24,28 @@ contactsOfFollowees.subscribe((events) => {
 	console.debug('[followees followees]', get(followeesOfFollowees));
 });
 
-const req = createRxBackwardReq();
-const $contactsOfFollowees = get(contactsOfFollowees);
-rxNostr
-	.use(req)
-	.pipe(
-		uniq(),
-		latestEach(({ event }) => event.pubkey)
-	)
-	.subscribe({
-		next: ({ event }) => {
-			console.debug('[followees contacts]', event);
-			$contactsOfFollowees.set(event.pubkey, event);
-		},
-		complete: () => {
-			contactsOfFollowees.set($contactsOfFollowees);
-		}
-	});
-
 export function contactsOfFolloweesReqEmit(): void {
 	const $contactsOfFollowees = get(contactsOfFollowees);
 	if ($contactsOfFollowees.size > 0) {
 		return; // Already fetched
 	}
+
+	const req = createRxBackwardReq();
+	rxNostr
+		.use(req)
+		.pipe(
+			uniq(),
+			latestEach(({ event }) => event.pubkey)
+		)
+		.subscribe({
+			next: ({ event }) => {
+				console.debug('[followees contacts]', event);
+				$contactsOfFollowees.set(event.pubkey, event);
+			},
+			complete: () => {
+				contactsOfFollowees.set($contactsOfFollowees);
+			}
+		});
 
 	const $followees = get(followees);
 	followeesOfFollowees.set(new Set($followees)); // For UX
