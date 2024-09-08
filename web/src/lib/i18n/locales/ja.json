@@ -106,7 +106,8 @@
 			"pubkeys": "ユーザー",
 			"events": "スレッド / チャンネル",
 			"words": "単語",
-			"none": "-"
+			"none": "-",
+			"automatically": "フォローしてる人がフォローしてる人以外のユーザーからの返信を自動的にミュート"
 		},
 		"trouble_shooting": "トラブルシューティング",
 		"clear_emoji_cache": "絵文字キャッシュクリア",

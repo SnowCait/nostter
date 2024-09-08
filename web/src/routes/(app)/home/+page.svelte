@@ -23,6 +23,8 @@
 	import { Timeline } from '$lib/Timeline';
 	import HomeTab from '$lib/components/HomeTab.svelte';
 	import TimelineView from '../TimelineView.svelte';
+	import { preferencesStore } from '$lib/Preferences';
+	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 
 	function logRelays() {
 		console.debug('_conn', $pool['_conn']);
@@ -242,7 +244,12 @@
 
 <div class="timeline">
 	<TimelineView
-		items={$events.filter((item) => !$excludeKinds.includes(item.event.kind))}
+		items={$events.filter(
+			(item) =>
+				!$excludeKinds.includes(item.event.kind) &&
+				(!$preferencesStore.muteAutomatically ||
+					$followeesOfFollowees.has(item.event.pubkey))
+		)}
 		{load}
 	/>
 </div>

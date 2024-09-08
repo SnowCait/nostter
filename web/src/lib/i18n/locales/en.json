@@ -107,7 +107,8 @@
 			"pubkeys": "Users",
 			"events": "Threads and Channels",
 			"words": "Words",
-			"none": "-"
+			"none": "-",
+			"automatically": "Mute replies from someone who is not a followee's followee automatically"
 		},
 		"trouble_shooting": "Trouble Shooting",
 		"clear_emoji_cache": "Clear emoji cache",

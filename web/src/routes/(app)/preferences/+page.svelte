@@ -5,7 +5,7 @@
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
-	import { author, pubkey } from '$lib/stores/Author';
+	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import WordMute from './WordMute.svelte';
 	import AutoRefresh from './AutoRefresh.svelte';
@@ -23,6 +23,7 @@
 	import ClearEventCacheAndReload from './ClearEventCacheAndReload.svelte';
 	import MediaUploader from './MediaUploader.svelte';
 	import TimelineFilter from './TimelineFilter.svelte';
+	import MuteAutomatically from './MuteAutomatically.svelte';
 </script>
 
 <svelte:head>
@@ -31,7 +32,7 @@
 
 <h1>{$_('layout.header.preferences')}</h1>
 
-{#if $author !== undefined}
+{#if $author !== undefined && !$rom}
 	<section class="card">
 		<h2>{$_('preferences.shared')}</h2>
 		<div>
@@ -57,6 +58,7 @@
 			<summary>{$_('preferences.mute.words')}</summary>
 			<WordMute />
 		</details>
+		<div><MuteAutomatically /></div>
 		<div>
 			<a href="/{nip19.nprofileEncode({ pubkey: $pubkey })}/relays">
 				{$_('pages.relays_edit')}
