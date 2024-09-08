@@ -31,6 +31,7 @@ import {
 } from './Constants';
 import { bookmarkEvent } from './author/Bookmark';
 import { profileBadgesEvent, profileBadgesKey } from './author/ProfileBadges';
+import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
 
 export class Author {
 	constructor(private pubkey: string) {}
@@ -121,6 +122,10 @@ export class Author {
 		if (preferencesEvent !== undefined) {
 			const preferences = new Preferences(preferencesEvent.content);
 			preferencesStore.set(preferences);
+
+			if (preferences.muteAutomatically) {
+				contactsOfFolloweesReqEmit();
+			}
 		} else {
 			const regacyReactionEmojiEvent = parameterizedReplaceableEvents.get(
 				`${30078 as Kind}:nostter-reaction-emoji`
