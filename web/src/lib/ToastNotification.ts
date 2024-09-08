@@ -3,6 +3,10 @@ import type { Event } from 'nostr-typedef';
 import type { pubkey } from './Types';
 import type { Metadata } from './Items';
 import { metadataStore } from './cache/Events';
+import { isMuteEvent } from './stores/Author';
+import { deletedEventIdsByPubkey } from './author/Delete';
+import { preferencesStore } from './Preferences';
+import { followeesOfFollowees } from './author/MuteAutomatically';
 
 export const unsentToastNotifications = new Map<pubkey, Event[]>();
 
@@ -19,6 +23,18 @@ export class ToastNotification {
 
 	private send(event: Event) {
 		if (window.Notification === undefined || Notification.permission !== 'granted') {
+			return;
+		}
+
+		// Mute, Delete
+		const $deletedEventIdsByPubkey = get(deletedEventIdsByPubkey);
+		const $preferencesStore = get(preferencesStore);
+		const $followeesOfFollowees = get(followeesOfFollowees);
+		if (
+			isMuteEvent(event) ||
+			$deletedEventIdsByPubkey.get(event.pubkey)?.has(event.id) ||
+			($preferencesStore.muteAutomatically && !$followeesOfFollowees.has(event.pubkey))
+		) {
 			return;
 		}
 
