@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { Tabs } from '@svelteuidev/core';
-	import type { Kind } from 'nostr-tools';
 	import type { Filter } from 'nostr-typedef';
-	import { createRxOneshotReq, uniq } from 'rx-nostr';
+	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
@@ -10,10 +9,8 @@
 	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
 	import { appName, minTimelineLength, notificationsFilterKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
-	import { Api } from '$lib/Api';
 	import { notifiedEventItems } from '$lib/author/Notifications';
-	import { pubkey, author, writeRelays } from '$lib/stores/Author';
-	import { pool } from '$lib/stores/Pool';
+	import { pubkey, author } from '$lib/stores/Author';
 	import TimelineView from '../TimelineView.svelte';
 	import IconAt from '@tabler/icons-svelte/icons/at';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
@@ -21,6 +18,7 @@
 	import IconBolt from '@tabler/icons-svelte/icons/bolt';
 	import { preferencesStore } from '$lib/Preferences';
 	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
+	import { Signer } from '$lib/Signer';
 
 	$: items = $notifiedEventItems.filter(
 		(item) =>
@@ -28,7 +26,7 @@
 	);
 
 	afterNavigate(async () => {
-		console.log('[notifications page]');
+		console.debug('[notifications page]');
 
 		if ($author === undefined) {
 			await goto('/');
@@ -36,14 +34,15 @@
 	});
 
 	beforeNavigate(async () => {
-		console.log('[notifications page leave]');
+		console.debug('[notifications page leave]');
 
-		const api = new Api($pool, $writeRelays);
-		try {
-			await api.signAndPublish(30078 as Kind, '', [['d', 'nostter-read']]);
-		} catch (error) {
-			console.warn('[last read failed]', error);
-		}
+		const event = await Signer.signEvent({
+			kind: 30078,
+			content: '',
+			tags: [['d', 'nostter-read']],
+			created_at: now()
+		});
+		rxNostr.send(event);
 	});
 
 	async function load() {
