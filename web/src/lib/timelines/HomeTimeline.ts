@@ -44,7 +44,7 @@ import {
 	storeMutedPubkeysByKind,
 	storeMutedTagsByEvent
 } from '../stores/Author';
-import { lastReadAt, notifiedEventItems, unreadEventItems } from '../stores/Notifications';
+import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { events, eventsPool } from '../stores/Events';
 import { saveLastNote } from '../stores/LastNotes';
 import { autoRefresh } from '../stores/Preference';
@@ -147,8 +147,8 @@ authorParameterizedReplaceableObservable.pipe(filterByKind(30008)).subscribe(({ 
 authorParameterizedReplaceableObservable.pipe(filterByKind(30078)).subscribe(({ event }) => {
 	const identifier = findIdentifier(event.tags);
 	if (identifier === 'nostter-read') {
+		console.debug('[last read at]', new Date(event.created_at * 1000));
 		lastReadAt.set(event.created_at);
-		unreadEventItems.set([]);
 	} else if (identifier === 'nostter-preferences') {
 		const preferences = new Preferences(event.content);
 		preferencesStore.set(preferences);
@@ -212,15 +212,12 @@ observable
 		if ($author?.isNotified(event)) {
 			console.log('[related]', event);
 
-			const $unreadEventItems = get(unreadEventItems);
 			const $notifiedEventItems = get(notifiedEventItems);
 
 			if ($notifiedEventItems.some((x) => x.event.id === event.id)) {
 				console.warn('[rx-nostr notification timeline duplicate (home)]', event);
 			} else {
-				$unreadEventItems.unshift(eventItem);
 				$notifiedEventItems.unshift(eventItem);
-				unreadEventItems.set($unreadEventItems);
 				notifiedEventItems.set($notifiedEventItems);
 
 				const toast = new ToastNotification();

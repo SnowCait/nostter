@@ -16,7 +16,7 @@ import { RelayList } from './author/RelayList';
 import { filterTags, findIdentifier, parseRelayJson } from './EventHelper';
 import { customEmojisEvent, storeCustomEmojis } from './author/CustomEmojis';
 import type { User } from '../routes/types';
-import { lastReadAt } from './stores/Notifications';
+import { lastReadAt } from './author/Notifications';
 import { Mute } from './Mute';
 import { WebStorage } from './WebStorage';
 import { Preferences, preferencesStore } from './Preferences';
@@ -146,10 +146,8 @@ export class Author {
 			lastReadAt.set(lastReadEvent.created_at);
 		} else if (regacyLastReadEvent !== undefined) {
 			lastReadAt.set(regacyLastReadEvent.created_at);
-		} else {
-			lastReadAt.set(now() - 12 * 60 * 60);
 		}
-		console.log('[last read at]', new Date(get(lastReadAt) * 1000));
+		console.debug('[last read at]', new Date(get(lastReadAt) * 1000));
 
 		const muteEvent = replaceableEvents.get(10000 as Kind);
 		const legacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);
