@@ -1,16 +1,11 @@
 <script lang="ts">
-	import { createRxOneshotReq } from 'rx-nostr';
-	import { lastValueFrom } from 'rxjs';
-	import { notificationsFilterKinds } from '$lib/Constants';
-	import { EventItem } from '$lib/Items';
 	import { WebStorage } from '$lib/WebStorage';
-	import { reconnectIfConnectionsAreUnstable, rxNostr } from '$lib/timelines/MainTimeline';
+	import { reconnectIfConnectionsAreUnstable } from '$lib/timelines/MainTimeline';
 	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
-	import { pubkey } from '$lib/stores/Author';
-	import { notifiedEventItems } from '$lib/author/Notifications';
+	import { fetchLastNotification } from '$lib/author/Notifications';
 	import { onMount } from 'svelte';
 	import Gdpr from '$lib/components/Gdpr.svelte';
 
@@ -29,27 +24,6 @@
 	let konamiIndex = 0;
 
 	fetchLastNotification();
-
-	async function fetchLastNotification(): Promise<void> {
-		const notificationExistsReq = createRxOneshotReq({
-			filters: [
-				{
-					kinds: notificationsFilterKinds,
-					'#p': [$pubkey],
-					limit: 1
-				}
-			]
-		});
-		try {
-			const { event } = await lastValueFrom(rxNostr.use(notificationExistsReq));
-			console.debug('[rx-nostr last notification]', event, new Date(event.created_at * 1000));
-			if (!$notifiedEventItems.some((item) => item.event.id === event.id)) {
-				$notifiedEventItems.unshift(new EventItem(event));
-			}
-		} catch (error) {
-			console.debug('[rx-nostr last notification not found]', error);
-		}
-	}
 
 	function keyboardShortcut(event: KeyboardEvent) {
 		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
