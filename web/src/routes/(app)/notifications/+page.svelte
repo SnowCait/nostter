@@ -11,7 +11,7 @@
 	import { appName, minTimelineLength, notificationsFilterKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
-	import { notifiedEventItems } from '$lib/stores/Notifications';
+	import { notifiedEventItems } from '$lib/author/Notifications';
 	import { pubkey, author, writeRelays } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
 	import TimelineView from '../TimelineView.svelte';

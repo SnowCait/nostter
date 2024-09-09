@@ -10,7 +10,7 @@
 	import NoteDialog from './NoteDialog.svelte';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { pubkey } from '$lib/stores/Author';
-	import { notifiedEventItems } from '$lib/stores/Notifications';
+	import { notifiedEventItems } from '$lib/author/Notifications';
 	import { onMount } from 'svelte';
 	import Gdpr from '$lib/components/Gdpr.svelte';
 

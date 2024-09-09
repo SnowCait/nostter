@@ -19,7 +19,7 @@
 	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { followees, pubkey, rom } from '$lib/stores/Author';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
-	import { lastReadAt, notifiedEventItems } from '$lib/stores/Notifications';
+	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
 

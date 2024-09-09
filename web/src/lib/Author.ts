@@ -16,7 +16,7 @@ import { RelayList } from './author/RelayList';
 import { filterTags, findIdentifier, parseRelayJson } from './EventHelper';
 import { customEmojisEvent, storeCustomEmojis } from './author/CustomEmojis';
 import type { User } from '../routes/types';
-import { lastReadAt } from './stores/Notifications';
+import { lastReadAt } from './author/Notifications';
 import { Mute } from './Mute';
 import { WebStorage } from './WebStorage';
 import { Preferences, preferencesStore } from './Preferences';

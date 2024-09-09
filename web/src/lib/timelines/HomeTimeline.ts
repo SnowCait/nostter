@@ -44,7 +44,7 @@ import {
 	storeMutedPubkeysByKind,
 	storeMutedTagsByEvent
 } from '../stores/Author';
-import { lastReadAt, notifiedEventItems } from '../stores/Notifications';
+import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { events, eventsPool } from '../stores/Events';
 import { saveLastNote } from '../stores/LastNotes';
 import { autoRefresh } from '../stores/Preference';
