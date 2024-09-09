@@ -53,9 +53,6 @@ import { storeDeletedEvents } from '$lib/author/Delete';
 
 export let hasSubscribed = false;
 
-const streamingSpeed = new Map<number, number>();
-let streamingSpeedNotifiedAt = now();
-
 const homeTimelineReq = createRxForwardReq();
 const observable = rxNostr.use(homeTimelineReq).pipe(uniq());
 
@@ -204,9 +201,6 @@ observable
 
 		referencesReqEmit(event);
 
-		// Streaming speed (experimental)
-		notifyStreamingSpeed(event.created_at);
-
 		if (get(events).some((x) => x.event.id === packet.event.id)) {
 			console.warn('[rx-nostr home timeline duplicate]', packet.event);
 			return;
@@ -254,36 +248,6 @@ observable
 			userStatusReqEmit(event.pubkey);
 		}
 	});
-
-function notifyStreamingSpeed(createdAt: number): void {
-	if (window.Notification === undefined || Notification.permission !== 'granted') {
-		return;
-	}
-
-	const time = Math.floor(createdAt / 60);
-	let count = streamingSpeed.get(time);
-	count = (count ?? 0) + 1;
-	streamingSpeed.set(time, count);
-
-	const last5minutes = [
-		streamingSpeed.get(time - 1) ?? 0,
-		streamingSpeed.get(time - 2) ?? 0,
-		streamingSpeed.get(time - 3) ?? 0,
-		streamingSpeed.get(time - 4) ?? 0,
-		streamingSpeed.get(time - 5) ?? 0
-	];
-	const average = last5minutes.reduce((x, y) => x + y) / last5minutes.length;
-	console.debug('[speed]', time, count, average, streamingSpeed, last5minutes);
-
-	if (
-		count > average * 2 &&
-		count > 10 &&
-		createdAt > streamingSpeedNotifiedAt + last5minutes.length * 60
-	) {
-		streamingSpeedNotifiedAt = createdAt;
-		new Notification('Hot timeline!');
-	}
-}
 
 export function hometimelineReqEmit() {
 	console.log('[home timeline subscribe]');
