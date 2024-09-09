@@ -11,7 +11,7 @@
 	import { appName, minTimelineLength, notificationsFilterKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Api } from '$lib/Api';
-	import { notifiedEventItems, unreadEventItems } from '$lib/stores/Notifications';
+	import { notifiedEventItems } from '$lib/stores/Notifications';
 	import { pubkey, author, writeRelays } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
@@ -33,13 +33,10 @@
 		if ($author === undefined) {
 			await goto('/');
 		}
-
-		clear();
 	});
 
 	beforeNavigate(async () => {
 		console.log('[notifications page leave]');
-		clear();
 
 		const api = new Api($pool, $writeRelays);
 		try {
@@ -48,10 +45,6 @@
 			console.warn('[last read failed]', error);
 		}
 	});
-
-	function clear(): void {
-		$unreadEventItems = [];
-	}
 
 	async function load() {
 		console.log('[rx-nostr notification timeline load]');
