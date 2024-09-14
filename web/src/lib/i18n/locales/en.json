@@ -267,5 +267,8 @@
 	"menu": {
 		"developer": "Developer",
 		"caution": "Caution"
+	},
+	"qrcode": {
+		"scan": "Load profile from QR code"
 	}
 }
