@@ -23,7 +23,6 @@
 	let dataType: 'user' | 'event' | 'addr';
 	let pubkey: string | undefined;
 	let metadata: Metadata | undefined;
-	let profile: string | undefined;
 	let eventId: string | undefined;
 	let item: EventItem | undefined;
 	let addressPointer: AddressPointer;
@@ -73,12 +72,6 @@
 		metadata = $metadataStore.get(pubkey);
 	}
 
-	$: if (metadata !== undefined && pubkey !== undefined) {
-		profile = metadata?.normalizedNip05
-			? metadata.normalizedNip05
-			: nip19.nprofileEncode({ pubkey });
-	}
-
 	$: if (dataType === 'event' && item === undefined && eventId !== undefined) {
 		item = $eventItemStore.get(eventId);
 	}
@@ -101,7 +94,7 @@
 </script>
 
 {#if dataType === 'user' && pubkey !== undefined}
-	<a href="/{profile ?? nip19.nprofileEncode({ pubkey })}">
+	<a href="/{nip19.nprofileEncode({ pubkey })}">
 		@{metadata !== undefined ? metadata.displayName : alternativeName(pubkey)}
 	</a>
 {:else if dataType === 'event' && eventId !== undefined}

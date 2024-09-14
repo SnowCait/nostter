@@ -6,11 +6,12 @@ import { WebStorage } from '../WebStorage';
 
 export class RelayList {
 	public static async fetchEvents(pubkey: string): Promise<Map<Kind, Event>> {
+		const kinds = [Kind.Contacts, Kind.RelayList];
 		const storage = new WebStorage(localStorage);
 
 		// Load from cache
 		const relayEventsMap = new Map(
-			[Kind.Contacts, Kind.RelayList]
+			kinds
 				.map((kind) => [kind, storage.getReplaceableEvent(kind)])
 				.filter((x): x is [Kind, Event] => x[1] !== undefined)
 		);
@@ -44,7 +45,7 @@ export class RelayList {
 				});
 			relaysReq.emit([
 				{
-					kinds: [Kind.Contacts, Kind.RelayList],
+					kinds,
 					authors: [pubkey]
 				}
 			]);

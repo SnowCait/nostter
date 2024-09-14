@@ -107,7 +107,8 @@
 			"pubkeys": "ユーザー",
 			"events": "スレッド / チャンネル",
 			"words": "単語",
-			"none": "-"
+			"none": "-",
+			"automatically": "フォロー中のユーザーがフォローしていないユーザーからの通知を表示しない"
 		},
 		"trouble_shooting": "トラブルシューティング",
 		"clear_emoji_cache": "絵文字キャッシュクリア",
@@ -260,7 +261,8 @@
 	},
 	"notifications": {
 		"all": "すべて",
-		"others": "他"
+		"others": "他",
+		"followees_only": "フォローのみ"
 	},
 	"menu": {
 		"developer": "開発者",

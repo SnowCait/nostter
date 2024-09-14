@@ -1,14 +1,11 @@
 <script lang="ts">
-	import { createRxOneshotReq, latest } from 'rx-nostr';
-	import { notificationsFilterKinds } from '$lib/Constants';
 	import { WebStorage } from '$lib/WebStorage';
-	import { reconnectIfConnectionsAreUnstable, rxNostr } from '$lib/timelines/MainTimeline';
+	import { reconnectIfConnectionsAreUnstable } from '$lib/timelines/MainTimeline';
 	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
-	import { pubkey } from '$lib/stores/Author';
-	import { lastReadAt, lastNotifiedAt } from '$lib/stores/Notifications';
+	import { fetchLastNotification } from '$lib/author/Notifications';
 	import { onMount } from 'svelte';
 	import Gdpr from '$lib/components/Gdpr.svelte';
 
@@ -26,27 +23,7 @@
 	];
 	let konamiIndex = 0;
 
-	checkNotifications();
-
-	function checkNotifications(): void {
-		const notificationExistsReq = createRxOneshotReq({
-			filters: [
-				{
-					kinds: notificationsFilterKinds,
-					'#p': [$pubkey],
-					since: $lastReadAt,
-					limit: 1
-				}
-			]
-		});
-		rxNostr
-			.use(notificationExistsReq)
-			.pipe(latest())
-			.subscribe((packet) => {
-				console.log('[rx-nostr notification packet]', packet);
-				$lastNotifiedAt = packet.event.created_at;
-			});
-	}
+	fetchLastNotification();
 
 	function keyboardShortcut(event: KeyboardEvent) {
 		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);

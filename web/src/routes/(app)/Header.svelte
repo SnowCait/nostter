@@ -15,10 +15,11 @@
 	import { nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import { metadataStore } from '$lib/cache/Events';
+	import { preferencesStore } from '$lib/Preferences';
+	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { followees, pubkey, rom } from '$lib/stores/Author';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
-	import { lastReadAt, lastNotifiedAt, unreadEventItems } from '$lib/stores/Notifications';
+	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
 
@@ -27,10 +28,14 @@
 	}
 
 	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
-	$: metadata = $metadataStore.get($pubkey);
-	$: profile = metadata?.normalizedNip05
-		? metadata.normalizedNip05
-		: nip19.nprofileEncode({ pubkey: $pubkey });
+	$: profile = nip19.nprofileEncode({ pubkey: $pubkey });
+	$: notificationsBadge =
+		$notifiedEventItems.filter(
+			(item) =>
+				item.event.created_at > $lastReadAt &&
+				(!$preferencesStore.muteAutomatically ||
+					$followeesOfFollowees.has(item.event.pubkey))
+		).length > 0;
 </script>
 
 <div class="header">
@@ -62,7 +67,7 @@
 				<a href="/notifications">
 					<li class="notifications-icon">
 						<IconBell size={30} />
-						{#if $unreadEventItems.length > 0 || $lastNotifiedAt > $lastReadAt}
+						{#if notificationsBadge}
 							<span class="notifications-icon-badge" />
 						{/if}
 						<p>{$_('layout.header.notifications')}</p>
@@ -127,7 +132,7 @@
 				<a href="/notifications">
 					<li class="notifications-icon">
 						<IconBell size={30} />
-						{#if $unreadEventItems.length > 0 || $lastNotifiedAt > $lastReadAt}
+						{#if notificationsBadge}
 							<span class="notifications-icon-badge" />
 						{/if}
 						<p>{$_('layout.header.notifications')}</p>

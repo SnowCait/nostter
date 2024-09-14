@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { Tabs } from '@svelteuidev/core';
-	import type { Kind } from 'nostr-tools';
 	import type { Filter } from 'nostr-typedef';
-	import { createRxOneshotReq, uniq } from 'rx-nostr';
+	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
@@ -10,41 +9,41 @@
 	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
 	import { appName, minTimelineLength, notificationsFilterKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
-	import { Api } from '$lib/Api';
-	import { notifiedEventItems, unreadEventItems } from '$lib/stores/Notifications';
-	import { pubkey, author, writeRelays } from '$lib/stores/Author';
-	import { pool } from '$lib/stores/Pool';
+	import { notifiedEventItems } from '$lib/author/Notifications';
+	import { pubkey, author } from '$lib/stores/Author';
 	import TimelineView from '../TimelineView.svelte';
 	import IconAt from '@tabler/icons-svelte/icons/at';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import IconHeart from '@tabler/icons-svelte/icons/heart';
 	import IconBolt from '@tabler/icons-svelte/icons/bolt';
+	import { preferencesStore } from '$lib/Preferences';
+	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
+	import { Signer } from '$lib/Signer';
+
+	$: items = $notifiedEventItems.filter(
+		(item) =>
+			!$preferencesStore.muteAutomatically || $followeesOfFollowees.has(item.event.pubkey)
+	);
 
 	afterNavigate(async () => {
-		console.log('[notifications page]');
+		console.debug('[notifications page]');
 
 		if ($author === undefined) {
 			await goto('/');
 		}
-
-		clear();
 	});
 
 	beforeNavigate(async () => {
-		console.log('[notifications page leave]');
-		clear();
+		console.debug('[notifications page leave]');
 
-		const api = new Api($pool, $writeRelays);
-		try {
-			await api.signAndPublish(30078 as Kind, '', [['d', 'nostter-read']]);
-		} catch (error) {
-			console.warn('[last read failed]', error);
-		}
+		const event = await Signer.signEvent({
+			kind: 30078,
+			content: '',
+			tags: [['d', 'nostter-read']],
+			created_at: now()
+		});
+		rxNostr.send(event);
 	});
-
-	function clear(): void {
-		$unreadEventItems = [];
-	}
 
 	async function load() {
 		console.log('[rx-nostr notification timeline load]');
@@ -164,23 +163,20 @@
 		<svelte:fragment slot="label">
 			<div>{$_('notifications.all')}</div>
 		</svelte:fragment>
-		<TimelineView items={$notifiedEventItems} {load} />
+		<TimelineView {items} {load} />
 	</Tabs.Tab>
 	<Tabs.Tab>
 		<svelte:fragment slot="icon">
 			<IconAt color="var(--orange)" size={20} />
 		</svelte:fragment>
-		<TimelineView
-			items={$notifiedEventItems.filter((item) => item.event.kind === 1)}
-			showLoading={false}
-		/>
+		<TimelineView items={items.filter((item) => item.event.kind === 1)} showLoading={false} />
 	</Tabs.Tab>
 	<Tabs.Tab>
 		<svelte:fragment slot="icon">
 			<IconRepeat color="var(--green)" size={20} />
 		</svelte:fragment>
 		<TimelineView
-			items={$notifiedEventItems.filter((item) => [6, 16].includes(item.event.kind))}
+			items={items.filter((item) => [6, 16].includes(item.event.kind))}
 			showLoading={false}
 		/>
 	</Tabs.Tab>
@@ -188,17 +184,14 @@
 		<svelte:fragment slot="icon">
 			<IconHeart color="var(--pink)" size={20} />
 		</svelte:fragment>
-		<TimelineView
-			items={$notifiedEventItems.filter((item) => item.event.kind === 7)}
-			showLoading={false}
-		/>
+		<TimelineView items={items.filter((item) => item.event.kind === 7)} showLoading={false} />
 	</Tabs.Tab>
 	<Tabs.Tab>
 		<svelte:fragment slot="icon">
 			<IconBolt color="var(--yellow)" size={20} />
 		</svelte:fragment>
 		<TimelineView
-			items={$notifiedEventItems.filter((item) => item.event.kind === 9735)}
+			items={items.filter((item) => item.event.kind === 9735)}
 			showLoading={false}
 		/>
 	</Tabs.Tab>
@@ -207,15 +200,18 @@
 			<div>{$_('notifications.others')}</div>
 		</svelte:fragment>
 		<TimelineView
-			items={$notifiedEventItems.filter(
-				(item) => ![1, 6, 16, 7, 9735].includes(item.event.kind)
-			)}
+			items={items.filter((item) => ![1, 6, 16, 7, 9735].includes(item.event.kind))}
 			showLoading={false}
 		/>
 	</Tabs.Tab>
 </Tabs>
 
 <style>
+	h1 {
+		display: flex;
+		justify-content: space-between;
+	}
+
 	div {
 		color: var(--accent);
 	}

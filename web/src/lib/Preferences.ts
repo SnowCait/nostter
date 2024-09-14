@@ -11,6 +11,7 @@ let unsaved = false;
 export class Preferences {
 	public reactionEmoji: Emoji = { content: '+' };
 	public mediaUploader: string | undefined;
+	public muteAutomatically = false;
 
 	constructor(content: string) {
 		try {
@@ -24,6 +25,9 @@ export class Preferences {
 					this.mediaUploader = server;
 				}
 			}
+			if (preferences.muteAutomatically !== undefined) {
+				this.muteAutomatically = preferences.muteAutomatically;
+			}
 		} catch (error) {
 			console.error('[invalid preferences]', content, error);
 		}
@@ -34,7 +38,8 @@ export class Preferences {
 			reactionEmoji: this.reactionEmoji,
 			media: {
 				uploader: this.mediaUploader
-			}
+			},
+			muteAutomatically: this.muteAutomatically
 		});
 	}
 }
@@ -45,7 +50,7 @@ preferencesStore.subscribe((value) => {
 });
 
 export async function savePreferences(): Promise<void> {
-	console.log('[preferences try save]', saving, unsaved);
+	console.debug('[preferences try save]', saving, unsaved);
 	if (saving) {
 		unsaved = true;
 		return;
@@ -60,9 +65,10 @@ export async function savePreferences(): Promise<void> {
 		tags: [['d', 'nostter-preferences']],
 		created_at: now()
 	});
-	console.log('[preferences save]', event);
+	console.debug('[preferences save]', event);
 
 	const complete = () => {
+		console.log('[preferences saved]', event);
 		saving = false;
 		if (unsaved) {
 			savePreferences();

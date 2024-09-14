@@ -9,6 +9,7 @@ export const trendingPeopleBotNpub =
 export const minTimelineLength = 25;
 export const timelineLoadSince = Math.floor(new Date(2022, 0, 1).getTime() / 1000);
 export const filterLimitItems = 1000;
+export const filterLimit = 500;
 export const maxFilters = 10;
 export const timelineBufferMs = 1500;
 export const timeout = 5000;
@@ -96,11 +97,6 @@ export const localizedRelays = {
 	ja: [
 		{
 			url: 'wss://relay-jp.nostr.wirednet.jp/',
-			read: true,
-			write: true
-		},
-		{
-			url: 'wss://nostr-relay.nokotaro.com/',
 			read: true,
 			write: true
 		},
