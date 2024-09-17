@@ -23,8 +23,6 @@
 	];
 	let konamiIndex = 0;
 
-	fetchLastNotification();
-
 	function keyboardShortcut(event: KeyboardEvent) {
 		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
 
@@ -77,6 +75,7 @@
 
 	onMount(() => {
 		subscribeSystemTheme();
+		fetchLastNotification();
 	});
 
 	function subscribeSystemTheme(): void {

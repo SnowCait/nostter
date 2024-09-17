@@ -267,5 +267,8 @@
 	"menu": {
 		"developer": "開発者",
 		"caution": "注意"
+	},
+	"qrcode": {
+		"scan": "QR コードからプロフィールを読み込む"
 	}
 }
