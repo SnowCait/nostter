@@ -9,7 +9,7 @@
 	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
 	import { appName, minTimelineLength, notificationsFilterKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
-	import { notifiedEventItems } from '$lib/author/Notifications';
+	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import { pubkey, author } from '$lib/stores/Author';
 	import TimelineView from '../TimelineView.svelte';
 	import IconAt from '@tabler/icons-svelte/icons/at';
@@ -43,6 +43,7 @@
 			created_at: now()
 		});
 		rxNostr.send(event);
+		lastReadAt.set(event.created_at);
 	});
 
 	async function load() {
