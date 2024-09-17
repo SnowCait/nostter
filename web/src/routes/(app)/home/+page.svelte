@@ -6,25 +6,35 @@
 	import { Kind, type Relay } from 'nostr-tools';
 	import { goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { appName, notificationsFilterKinds } from '$lib/Constants';
-	import { followingHashtags } from '$lib/Interest';
+	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { events, eventsPool } from '$lib/stores/Events';
 	import { pool } from '$lib/stores/Pool';
 	import { pubkey, followees, rom } from '$lib/stores/Author';
 	import { saveLastNote } from '$lib/stores/LastNotes';
-	import { Signer } from '$lib/Signer';
-	import { applyTimelieFilter, excludeKinds } from '$lib/TimelineFilter';
-	import { minTimelineLength, reverseChronologicalItem } from '$lib/Constants';
-	import { EventItem } from '$lib/Items';
 	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
-	import { userStatusReqEmit, userStatusesMap } from '$lib/UserStatus';
 	import { hasSubscribed, hometimelineReqEmit } from '$lib/timelines/HomeTimeline';
+	import {
+		appName,
+		notificationsFilterKinds,
+		minTimelineLength,
+		reverseChronologicalItem
+	} from '$lib/Constants';
 	import { fetchMinutes } from '$lib/Helper';
+	import { followingHashtags } from '$lib/Interest';
+	import { EventItem } from '$lib/Items';
+	import { preferencesStore } from '$lib/Preferences';
+	import { Signer } from '$lib/Signer';
 	import { Timeline } from '$lib/Timeline';
+	import { applyTimelieFilter, excludeKinds } from '$lib/TimelineFilter';
+	import { userStatusReqEmit, userStatusesMap } from '$lib/UserStatus';
 	import HomeTab from '$lib/components/HomeTab.svelte';
 	import TimelineView from '../TimelineView.svelte';
-	import { preferencesStore } from '$lib/Preferences';
-	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
+
+	$: items = $events.filter(
+		(item) =>
+			!$excludeKinds.includes(item.event.kind) &&
+			(!$preferencesStore.muteAutomatically || $followeesOfFollowees.has(item.event.pubkey))
+	);
 
 	function logRelays() {
 		console.debug('_conn', $pool['_conn']);
@@ -243,15 +253,7 @@
 {/if}
 
 <div class="timeline">
-	<TimelineView
-		items={$events.filter(
-			(item) =>
-				!$excludeKinds.includes(item.event.kind) &&
-				(!$preferencesStore.muteAutomatically ||
-					$followeesOfFollowees.has(item.event.pubkey))
-		)}
-		{load}
-	/>
+	<TimelineView {items} {load} />
 </div>
 
 <style>
