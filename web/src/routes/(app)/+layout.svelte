@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { now } from 'rx-nostr';
 	import { WebStorage } from '$lib/WebStorage';
+	import { activeAt } from '$lib/timelines/HomeTimeline';
 	import { reconnectIfConnectionsAreUnstable } from '$lib/timelines/MainTimeline';
 	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
@@ -62,6 +64,7 @@
 
 	function onVisibilityChange() {
 		console.log('[visibilitychange]', document.visibilityState);
+		activeAt.set(now());
 		switch (document.visibilityState) {
 			case 'hidden': {
 				break;
