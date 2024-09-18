@@ -64,12 +64,12 @@
 
 	function onVisibilityChange() {
 		console.log('[visibilitychange]', document.visibilityState);
-		activeAt.set(now());
 		switch (document.visibilityState) {
 			case 'hidden': {
 				break;
 			}
 			case 'visible': {
+				activeAt.set(now());
 				setTimeout(() => reconnectIfConnectionsAreUnstable(), 1000);
 				break;
 			}
