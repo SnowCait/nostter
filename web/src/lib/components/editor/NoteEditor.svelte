@@ -27,6 +27,7 @@
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
 	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
+	import Loading from '$lib/components/Loading.svelte';
 
 	export function clear(): void {
 		console.log('[note editor clear]');
@@ -605,7 +606,10 @@
 		{/each}
 	{/if}
 	{#if uploading}
-		<div>Uploading...</div>
+		<div class="uploading">
+			<p>Uploading...</p>
+			<Loading/>
+		</div>	
 	{/if}
 	{#if content !== ''}
 		<section class="preview card">
@@ -693,11 +697,21 @@
 		margin: 1rem;
 		max-height: 30rem;
 		overflow-y: auto;
+		text-align: center;
 	}
 
 	.options {
 		display: flex;
 		height: 30px;
+	}
+
+	.uploading {
+		text-align: center;
+		padding-bottom: 0.7em;
+	}
+
+	.uploading p {
+		padding-bottom: 0.6em;
 	}
 
 	.emoji-picker {
