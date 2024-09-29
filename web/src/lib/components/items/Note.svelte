@@ -24,6 +24,8 @@
 	import RepostButton from '$lib/components/RepostButton.svelte';
 	import ProxyLink from '../ProxyLink.svelte';
 	import Nip94 from '$lib/components/Nip94.svelte';
+	import Via from '../Via.svelte';
+	import CreatedAt from '../CreatedAt.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -234,6 +236,12 @@
 				</div>
 			{/if}
 		{/if}
+		{#if full}
+			<footer>
+				<CreatedAt createdAt={item.event.created_at} format="full" />
+				<Via tags={item.event.tags} />
+			</footer>
+		{/if}
 	</section>
 </EventMetadata>
 
@@ -296,5 +304,9 @@
 		width: 100%;
 		height: 5em;
 		background-color: lightgray;
+	}
+
+	footer {
+		margin-top: 0.2rem;
 	}
 </style>
