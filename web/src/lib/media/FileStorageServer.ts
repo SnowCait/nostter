@@ -39,7 +39,7 @@ export class FileStorageServer implements Media {
 				['method', method]
 			]
 		});
-		console.debug('[media uplaod auth]', event);
+		console.debug('[media upload auth]', event);
 
 		const response = await fetch(apiUrl, {
 			method,
@@ -56,6 +56,46 @@ export class FileStorageServer implements Media {
 		const data = await response.json();
 
 		console.log('[media upload result]', data);
+
+		// If the media provider uses delayed processing, we need to wait for the processing to be done
+		const startTime = now();
+		while (data.processing_url) {
+			const processingEvent = await Signer.signEvent({
+				kind: 27235 as Kind,
+				content: '',
+				created_at: now(),
+				tags: [
+					['u', data.processing_url],
+					['method', 'GET']
+				]
+			});
+
+			console.debug('[media upload processing auth]', event);
+
+			const processing = await fetch(data.processing_url, {
+				headers: {
+					Authorization: `Nostr ${btoa(JSON.stringify(processingEvent))}`
+				}
+			});
+
+			if (!processing.ok) {
+				throw new Error(await processing.text());
+			}
+
+			const processingData = await processing.json();
+
+			console.log('[media upload processing result]', processingData);
+
+			if (processingData.status === 'success') {
+				break;
+			}
+
+			if (now() - startTime > 60) {
+				throw new Error('Failed to upload (timeout)'); // 60 seconds timeout
+			}
+
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+		}
 
 		const url = filterTags('url', data.nip94_event.tags).at(0);
 		if (url === undefined) {
