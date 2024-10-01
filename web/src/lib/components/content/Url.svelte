@@ -57,7 +57,7 @@
 	{#if preview}
 		<div>
 			<a href={link.href} target="_blank" rel="noopener noreferrer">
-				<Img src={link.href} pathname={link.pathname} />
+				<Img url={link} />
 			</a>
 		</div>
 	{:else}

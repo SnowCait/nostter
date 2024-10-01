@@ -2,8 +2,10 @@
 	import { imageOptimazerUrl } from '$lib/Constants';
 	import { imageOptimization } from '$lib/stores/Preference';
 	import { Img, type ImgSrc } from 'svelte-remote-image';
-	export let src: string;
-	export let pathname: string;
+
+	export let url: URL;
+
+	const { href: src, pathname } = url;
 
 	let imageSrc: ImgSrc = {
 		img: `${imageOptimazerUrl}width=800,quality=60,format=webp/${src}`,
