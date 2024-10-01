@@ -43,7 +43,7 @@
 	"type": "module",
 	"dependencies": {
 		"@emoji-mart/data": "^1.2.1",
-		"@floating-ui/dom": "^1.6.8",
+		"@floating-ui/dom": "^1.6.11",
 		"@rust-nostr/nostr": "^0.34.0",
 		"@sentry/sveltekit": "^8.22.0",
 		"@svelteuidev/composables": "^0.15.4",
