@@ -60,7 +60,6 @@ export class FileStorageServer implements Media {
 		// If the media provider uses delayed processing, we need to wait for the processing to be done
 		const startTime = now();
 		while (data.processing_url) {
-
 			const processingEvent = await Signer.signEvent({
 				kind: 27235 as Kind,
 				content: '',
@@ -78,7 +77,7 @@ export class FileStorageServer implements Media {
 					Authorization: `Nostr ${btoa(JSON.stringify(processingEvent))}`
 				}
 			});
-	
+
 			if (!processing.ok) {
 				throw new Error(await processing.text());
 			}
@@ -86,9 +85,9 @@ export class FileStorageServer implements Media {
 			const processingData = await processing.json();
 
 			console.log('[media upload processing result]', processingData);
-		
-			if (processingData.status === "success") {
-				break
+
+			if (processingData.status === 'success') {
+				break;
 			}
 
 			if (now() - startTime > 60) {

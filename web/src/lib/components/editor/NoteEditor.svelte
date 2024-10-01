@@ -608,8 +608,8 @@
 	{#if uploading}
 		<div class="uploading">
 			<p>Uploading...</p>
-			<Loading/>
-		</div>	
+			<Loading />
+		</div>
 	{/if}
 	{#if content !== ''}
 		<section class="preview card">
