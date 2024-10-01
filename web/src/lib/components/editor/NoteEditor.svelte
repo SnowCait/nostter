@@ -697,7 +697,6 @@
 		margin: 1rem;
 		max-height: 30rem;
 		overflow-y: auto;
-		text-align: center;
 	}
 
 	.options {
