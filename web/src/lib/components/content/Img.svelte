@@ -11,12 +11,10 @@
 		img: `${imageOptimazerUrl}width=800,quality=60,format=webp/${src}`,
 		fallback: [src]
 	};
-
-	let optimize = $imageOptimization;
 </script>
 
 <div class="img-wrapper">
-	{#if optimize && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith(imageOptimazerUrl)}
+	{#if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith(imageOptimazerUrl)}
 	<Img src={imageSrc} alt={src} />
 	{:else}
 	<img {src} alt={src} />
