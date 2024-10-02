@@ -4,22 +4,23 @@
 
 	export let link: URL;
 
+	const threshold = 64;
+
 	$: isInternal = link.origin === $page.url.origin; // Exception
 	$: content = link.hostname + link.pathname + link.search + link.hash;
-
-	const threshold = 64;
+	$: shortenedContent =
+		content.length < threshold ? content : content.substring(0, threshold) + '...';
 </script>
 
-<a
-	href={link.href}
-	target={isInternal ? '_self' : '_blank'}
-	rel={isInternal ? '' : 'noopener noreferrer'}
-	class:external={!isInternal}
->
-	<slot>
-		{content.length < threshold ? content : content.substring(0, threshold) + '...'}
-	</slot>
-</a>
+{#if isInternal}
+	<a href={link.href.substring(link.origin.length)}>
+		<slot>{shortenedContent}</slot>
+	</a>
+{:else}
+	<a href={link.href} target="_blank" rel="noopener noreferrer" class="external">
+		<slot>{shortenedContent}</slot>
+	</a>
+{/if}
 
 <style>
 	a.external::after {
