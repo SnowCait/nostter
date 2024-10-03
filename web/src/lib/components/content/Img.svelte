@@ -15,19 +15,19 @@
 
 <div class="img-wrapper">
 	{#if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith(imageOptimazerUrl)}
-	<Img src={imageSrc} alt={src} />
+		<Img src={imageSrc} alt={src} />
 	{:else}
-	<img {src} alt={src} />
+		<img {src} alt={src} />
 	{/if}
 </div>
 
 <style>
-	.img-wrapper :global(img){
-			max-width: calc(100% - 1.5em);
-			max-height: 20em;
-			margin:  0.5em;
-			border: 1px solid lightgray;
-			border-radius: 5px;
-			vertical-align: middle;
+	.img-wrapper img {
+		max-width: calc(100% - 1.5em);
+		max-height: 20em;
+		margin: 0.5em;
+		border: 1px solid lightgray;
+		border-radius: 5px;
+		vertical-align: middle;
 	}
 </style>
