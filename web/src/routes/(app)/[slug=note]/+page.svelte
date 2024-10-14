@@ -300,11 +300,16 @@
 	{/if}
 </svelte:head>
 
-<div class="back">
+<div class="back mobile">
 	<BackButton />
 </div>
 
-<h1>{$_('pages.thread')}</h1>
+<header>
+	<div class="back">
+		<BackButton />
+	</div>
+	<h1>{$_('pages.thread')}</h1>
+</header>
 
 <TimelineView items={replyToEventItems} readonly={false} showLoading={false} />
 
@@ -469,16 +474,34 @@
 		margin-left: 0.5rem;
 	}
 
-	.back {
+	header {
+		display: flex;
+	}
+
+	.mobile {
 		display: none;
 	}
 
+	.back {
+		width: 36px;
+		height: 36px;
+	}
+
+	.back:not(.mobile) {
+		margin: auto 0.5rem;
+	}
+
 	@media screen and (max-width: 600px) {
-		.back {
+		.mobile {
 			display: initial;
+		}
+
+		.back:not(.mobile) {
+			display: none;
+		}
+
+		.back {
 			position: fixed;
-			width: 36px;
-			height: 36px;
 			top: calc((50px - 36px) / 2);
 			left: calc((50px - 36px) / 2);
 			z-index: 4;
