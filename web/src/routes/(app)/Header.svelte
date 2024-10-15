@@ -284,8 +284,8 @@
 
 	.notifications-icon .notifications-icon-badge {
 		position: absolute;
-		top: 0.05rem;
-		left: 1rem;
+		top: 0.55rem;
+		left: 2rem;
 		width: 0.72rem;
 		height: 0.72rem;
 		border-radius: 9999px;
