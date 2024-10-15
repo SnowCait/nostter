@@ -322,10 +322,15 @@
 			width: 3.125rem;
 			height: 3.125rem;
 			border-radius: 50%;
+			margin: 0;
 		}
 
 		button p {
 			display: none;
+		}
+
+		li {
+			padding: 0.5rem;
 		}
 
 		li p {
