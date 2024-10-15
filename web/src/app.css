@@ -520,3 +520,12 @@ code {
 	padding: 0;
 	width: 12rem;
 }
+
+.clickable {
+	color: var(--foreground);
+	border-radius: calc(infinity * 1px);
+}
+
+.clickable:hover {
+	background-color: var(--accent-surface);
+}

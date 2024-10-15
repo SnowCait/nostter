@@ -6,18 +6,12 @@
 	}
 </script>
 
-<button on:click={back} class="clear">
+<button on:click={back} class="clear clickable">
 	<IconArrowLeft />
 </button>
 
 <style>
 	button {
-		color: var(--foreground);
 		padding: 6px;
-		border-radius: 50%;
-	}
-
-	button:hover {
-		background-color: var(--accent-surface);
 	}
 </style>
