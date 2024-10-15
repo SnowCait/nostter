@@ -338,6 +338,11 @@
 			margin-left: 0.5rem;
 			font-size: 1.15rem;
 		}
+
+		.notifications-icon .notifications-icon-badge {
+			top: 0.55rem;
+			left: 1.5rem;
+		}
 	}
 
 	@media screen and (max-width: 600px) {
