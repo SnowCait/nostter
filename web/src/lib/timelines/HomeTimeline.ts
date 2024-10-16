@@ -12,7 +12,7 @@ import type { Filter } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, storeSeenOn } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
 import { Kind } from 'nostr-tools';
-import { get } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { bookmarkEvent } from '$lib/author/Bookmark';
 import { updateReactionedEvents, updateRepostedEvents } from '$lib/author/Action';
 import { storeCustomEmojis } from '$lib/author/CustomEmojis';
@@ -52,6 +52,7 @@ import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';
 import { storeDeletedEvents } from '$lib/author/Delete';
 
 export let hasSubscribed = false;
+export const activeAt = writable(now());
 
 const homeTimelineReq = createRxForwardReq();
 const observable = rxNostr.use(homeTimelineReq).pipe(uniq());
@@ -227,7 +228,19 @@ observable
 
 		if (get(autoRefresh)) {
 			const $events = get(events);
-			$events.unshift(eventItem);
+			const $activeAt = get(activeAt);
+			if (eventItem.event.created_at > $activeAt) {
+				$events.unshift(eventItem);
+			} else {
+				const index = $events.findIndex(
+					(x) => x.event.created_at < eventItem.event.created_at
+				);
+				if (index < 0) {
+					$events.unshift(eventItem);
+				} else {
+					$events.splice(index, 0, eventItem);
+				}
+			}
 			events.set($events);
 		} else {
 			const $eventsPool = get(eventsPool);

@@ -3,11 +3,13 @@
 		createRxForwardReq,
 		createRxNostr,
 		createRxOneshotReq,
+		createRxBackwardReq,
 		latest,
 		now,
-		uniq
+		uniq,
+		type LazyFilter
 	} from 'rx-nostr';
-	import { tap, type Subscription } from 'rxjs';
+	import { tap, type Subscription, filter } from 'rxjs';
 	import { onDestroy } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
@@ -18,6 +20,7 @@
 	import { cachedEvents, channelMetadataEventsStore, metadataStore } from '$lib/cache/Events';
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import { appName, timeout } from '$lib/Constants';
+	import { fetchEvents } from '$lib/RxNostrHelper';
 	import type { ChannelMetadata } from '$lib/Types';
 	import { referencesReqEmit, verificationClient } from '$lib/timelines/MainTimeline';
 	import { author, readRelays } from '$lib/stores/Author';
@@ -145,6 +148,9 @@
 		$channelIdStore = undefined;
 	});
 
+	const oldestCreatedAt = (): number =>
+		items.length > 0 ? items[items.length - 1].event.created_at : Math.floor(Date.now() / 1000);
+
 	async function load() {
 		console.log('[channel page load]', slug, channelId);
 		if (channelId === undefined) {
@@ -152,78 +158,56 @@
 		}
 
 		const firstLength = items.length;
-		let count = 0;
-		let until =
-			items.length > 0
-				? items[items.length - 1].event.created_at
-				: Math.floor(Date.now() / 1000);
-		let seconds = 1 * 60 * 60;
+		const filterBase: LazyFilter = { kinds: [42], '#e': [channelId] };
+		console.debug('[rx-nostr channel messages REQ]', filterBase);
 
-		while (items.length - firstLength < minTimelineLength && count < 10) {
-			const since = until - seconds;
-			const filter = { kinds: [42], '#e': [channelId], until, since };
-			console.debug('[rx-nostr channel messages REQ]', filter);
-			const pastChannelMessageReq = createRxOneshotReq({ filters: filter });
-			await new Promise<void>((resolve, reject) => {
-				rxNostr
-					.use(pastChannelMessageReq)
-					.pipe(
-						uniq(),
-						tap(({ event }: { event: Event }) => referencesReqEmit(event))
-					)
-					.subscribe({
-						next: async (packet) => {
-							console.debug('[rx-nostr channel message packet]', packet);
-							if (
-								!(
-									since <= packet.event.created_at &&
-									packet.event.created_at < until
-								)
-							) {
-								console.warn(
-									'[rx-nostr channel message out of period]',
-									packet,
-									since,
-									until
-								);
-								return;
-							}
-							if (items.some((x) => x.event.id === packet.event.id)) {
-								console.warn('[rx-nostr channel message duplicate]', packet.event);
-								return;
-							}
-							const item = new EventItem(packet.event);
-							const index = items.findIndex(
-								(x) => x.event.created_at < item.event.created_at
-							);
-							if (index < 0) {
-								items.push(item);
-							} else {
-								items.splice(index, 0, item);
-							}
-							items = items;
-						},
-						complete: () => {
-							console.log('[rx-nostr channel message complete]');
-							resolve();
-						},
-						error: (error) => {
-							reject(error);
-						}
-					});
+		const { promise, resolve } = Promise.withResolvers<void>();
+		const req = createRxBackwardReq();
+		rxNostr
+			.use(req)
+			.pipe(
+				uniq(),
+				filter(({ event }) => !items.some((item) => item.event.id === event.id)),
+				tap(({ event }) => referencesReqEmit(event))
+			)
+			.subscribe({
+				next: ({ event }) => {
+					console.debug('[rx-nostr channel message next]', event);
+					const item = new EventItem(event);
+					const index = items.findIndex(
+						(x) => x.event.created_at < item.event.created_at
+					);
+					if (index < 0) {
+						items.push(item);
+					} else {
+						items.splice(index, 0, item);
+					}
+					items = items;
+				},
+				complete: () => {
+					console.debug('[rx-nostr channel message complete]', firstLength, items.length);
+					resolve();
+				}
 			});
+		const until = oldestCreatedAt();
+		req.emit([{ ...filterBase, until, since: until - 15 * 60 }]);
+		req.over();
+		await promise;
 
-			until -= seconds;
-			seconds *= 2;
-			count++;
-			console.log(
-				'[rx-nostr channel message loaded]',
-				count,
-				until,
-				seconds / 3600,
-				items.length
+		const length = items.length - firstLength;
+		if (length < minTimelineLength) {
+			const limit = minTimelineLength - length;
+			const events = await fetchEvents([{ ...filterBase, until: oldestCreatedAt(), limit }]);
+			items.push(
+				...events
+					.filter((event) => !items.some((item) => item.event.id === event.id))
+					.splice(0, limit)
+					.map((event) => new EventItem(event))
 			);
+			items = items;
 		}
+
+		console.log('[rx-nostr channel message loaded]', firstLength, items.length);
 	}
 </script>
 

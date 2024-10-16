@@ -52,20 +52,20 @@
 	<nav>
 		<ul class="full">
 			<a href={homeLink}>
-				<li>
+				<li class="clickable">
 					<IconHome size={30} />
 					<p>{$_('layout.header.home')}</p>
 				</li>
 			</a>
 			<a href="/search">
-				<li>
+				<li class="clickable">
 					<IconSearch size={30} />
 					<p>{$_('layout.header.search')}</p>
 				</li>
 			</a>
 			{#if $pubkey}
 				<a href="/notifications">
-					<li class="notifications-icon">
+					<li class="clickable notifications-icon">
 						<IconBell size={30} />
 						{#if notificationsBadge}
 							<span class="notifications-icon-badge" />
@@ -76,40 +76,40 @@
 			{/if}
 			{#if $pubkey}
 				<a href="/{profile}/lists">
-					<li>
+					<li class="clickable">
 						<IconList size={30} />
 						<p>{$_('lists.title')}</p>
 					</li>
 				</a>
 				<a href="/{profile}/bookmarks">
-					<li>
+					<li class="clickable">
 						<IconBookmark size={30} />
 						<p>{$_('layout.header.bookmarks')}</p>
 					</li>
 				</a>
 			{/if}
 			<a href="/channels">
-				<li>
+				<li class="clickable">
 					<IconMessages size={30} />
 					<p>{$_('layout.header.channels')}</p>
 				</li>
 			</a>
 			{#if $pubkey}
 				<a href="/{profile}">
-					<li>
+					<li class="clickable">
 						<IconUser size={30} />
 						<p>{$_('layout.header.profile')}</p>
 					</li>
 				</a>
 				<a href="/preferences">
-					<li>
+					<li class="clickable">
 						<IconSettings size={30} />
 						<p>{$_('layout.header.preferences')}</p>
 					</li>
 				</a>
 			{/if}
 			<a href="/about">
-				<li>
+				<li class="clickable">
 					<IconPaw size={30} />
 					<p>{$_('about.title')}</p>
 				</li>
@@ -223,11 +223,12 @@
 	.logo-for-desktop {
 		width: 127.5px;
 		height: 32px;
+		margin: 0 1rem;
 	}
 
 	nav {
-		margin-top: 1.5rem;
-		margin-bottom: 2rem;
+		margin-top: 1rem;
+		margin-bottom: 1.5rem;
 	}
 
 	a {
@@ -236,12 +237,13 @@
 	}
 
 	button {
-		width: inherit;
+		width: calc(100% - 1rem);
 		height: inherit;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		gap: 0.5rem;
+		margin-left: 1rem;
 	}
 
 	ul {
@@ -249,7 +251,7 @@
 		padding: 0;
 		flex-flow: column;
 		justify-content: left;
-		gap: 1.5rem;
+		gap: 0.5rem;
 	}
 
 	ul.full {
@@ -264,6 +266,7 @@
 		display: flex;
 		align-items: center;
 		color: var(--accent);
+		padding: 0.5rem 1rem;
 	}
 
 	li p {
@@ -281,8 +284,8 @@
 
 	.notifications-icon .notifications-icon-badge {
 		position: absolute;
-		top: 0.05rem;
-		left: 1rem;
+		top: 0.55rem;
+		left: 2rem;
 		width: 0.72rem;
 		height: 0.72rem;
 		border-radius: 9999px;
@@ -319,16 +322,26 @@
 			width: 3.125rem;
 			height: 3.125rem;
 			border-radius: 50%;
+			margin: 0;
 		}
 
 		button p {
 			display: none;
 		}
 
+		li {
+			padding: 0.5rem;
+		}
+
 		li p {
 			display: none;
 			margin-left: 0.5rem;
 			font-size: 1.15rem;
+		}
+
+		.notifications-icon .notifications-icon-badge {
+			top: 0.55rem;
+			left: 1.5rem;
 		}
 	}
 

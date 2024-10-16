@@ -18,14 +18,20 @@ export class Search {
 		hashtags: string[];
 		kinds: number[];
 		keyword: string;
+		since: number | undefined;
+		until: number | undefined;
 	} {
 		const fromRegexp = /from:(nostr:)?(npub1[a-z0-9]{6,})/g;
 		const toRegexp = /to:(nostr:)?(npub1[a-z0-9]{6,})/g;
 		const kindRegexp = /kind:(\d+)/g;
+		const sinceRegexp = /since:([0-9-]+)/;
+		const untilRegexp = /until:([0-9-]+)/;
 		const fromMatches = query.matchAll(fromRegexp);
 		const toMatches = query.matchAll(toRegexp);
 		const hashtagsMatches = query.matchAll(hashtagsRegexp);
 		const kindMatches = query.matchAll(kindRegexp);
+		const sinceMatch = query.match(sinceRegexp);
+		const untilMatch = query.match(untilRegexp);
 
 		const fromPubkeys = [...fromMatches]
 			.map((match) => match[2])
@@ -38,7 +44,21 @@ export class Search {
 			.filter((t): t is string => t !== undefined);
 		hashtags.sort((x, y) => y.length - x.length);
 		const kinds = [...kindMatches].map((match) => Number(match[1]));
-		console.log('[matches]', fromPubkeys, toPubkeys, hashtags, kinds);
+		let since: number | undefined = undefined;
+		if (sinceMatch !== null) {
+			const date = new Date(sinceMatch[1]);
+			if (!Number.isNaN(date.getTime())) {
+				since = Math.floor(date.getTime() / 1000) + date.getTimezoneOffset() * 60;
+			}
+		}
+		let until: number | undefined = undefined;
+		if (untilMatch !== null) {
+			const date = new Date(untilMatch[1]);
+			if (!Number.isNaN(date.getTime())) {
+				until = Math.floor(date.getTime() / 1000) + date.getTimezoneOffset() * 60;
+			}
+		}
+		console.debug('[search matches]', fromPubkeys, toPubkeys, hashtags, kinds, since, until);
 
 		if (kinds.length === 0) {
 			kinds.push(Kind.Text);
@@ -54,6 +74,8 @@ export class Search {
 			.replaceAll(toRegexp, '')
 			.replaceAll(kindRegexp, '')
 			.replaceAll(hashtagsRegexp, '')
+			.replace(sinceRegexp, '')
+			.replace(untilRegexp, '')
 			.trim();
 
 		return {
@@ -61,12 +83,14 @@ export class Search {
 			toPubkeys,
 			hashtags,
 			kinds,
-			keyword
+			keyword,
+			since,
+			until
 		};
 	}
 
 	async fetch(filter: Filter): Promise<EventItem[]> {
-		console.log(
+		console.debug(
 			'[search filter]',
 			filter,
 			new Date((filter.until ?? 0) * 1000),
@@ -75,7 +99,7 @@ export class Search {
 		const $pool = get(pool);
 		const api = new Api($pool, filter.search !== undefined ? searchRelays : get(readRelays));
 		const events = await api.fetchEvents([filter]);
-		console.log('[search events]', events);
+		console.debug('[search events]', events);
 		for (const event of events) {
 			referencesReqEmit(event);
 			authorActionReqEmit(event);

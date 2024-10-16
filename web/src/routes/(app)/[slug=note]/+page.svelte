@@ -29,6 +29,7 @@
 	import DateLink from '$lib/components/DateLink.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
+	import BackButton from '$lib/components/BackButton.svelte';
 
 	export let data: LayoutData;
 
@@ -299,7 +300,16 @@
 	{/if}
 </svelte:head>
 
-<h1>{$_('pages.thread')}</h1>
+<div class="back mobile">
+	<BackButton />
+</div>
+
+<header>
+	<div class="back">
+		<BackButton />
+	</div>
+	<h1>{$_('pages.thread')}</h1>
+</header>
 
 <TimelineView items={replyToEventItems} readonly={false} showLoading={false} />
 
@@ -462,5 +472,39 @@
 
 	.mute span {
 		margin-left: 0.5rem;
+	}
+
+	header {
+		display: flex;
+	}
+
+	.mobile {
+		display: none;
+	}
+
+	.back {
+		width: 36px;
+		height: 36px;
+	}
+
+	.back:not(.mobile) {
+		margin: auto 0.5rem;
+	}
+
+	@media screen and (max-width: 600px) {
+		.mobile {
+			display: initial;
+		}
+
+		.back:not(.mobile) {
+			display: none;
+		}
+
+		.back {
+			position: fixed;
+			top: calc((50px - 36px) / 2);
+			left: calc((50px - 36px) / 2);
+			z-index: 4;
+		}
 	}
 </style>

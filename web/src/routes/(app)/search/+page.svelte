@@ -18,8 +18,11 @@
 	let mine = false;
 	let proxy = false;
 	let filter: Filter;
+	let sinceFilter: number | undefined;
+	let untilFilter: number | undefined;
 	let hashtags: string[] = [];
 	let items: EventItem[] = [];
+	let completed = false;
 	let showLoading = false;
 
 	const search = new Search();
@@ -33,15 +36,22 @@
 		) {
 			return;
 		}
-		console.log('[search params]', params.toString());
+		console.debug('[search params]', params.toString());
+
+		// `q` contains Filter parameters which is filtered by relays.
+		// Other parameters are filtered by client.
 		query = params.get('q') ?? '';
 		mine = params.has('mine');
 		proxy = params.has('proxy');
+
 		items = [];
+		completed = false;
 
 		const parsedQuery = search.parseQuery(query, mine);
-		const { fromPubkeys, toPubkeys, kinds, keyword } = parsedQuery;
+		const { fromPubkeys, toPubkeys, kinds, keyword, since, until } = parsedQuery;
 		hashtags = parsedQuery.hashtags;
+		sinceFilter = since;
+		untilFilter = until;
 
 		filter = {
 			kinds
@@ -61,13 +71,13 @@
 				...hashtags.map((hashtag) => hashtag.toLowerCase())
 			]);
 		}
-		console.log('[filter]', filter);
+		console.debug('[search filter base]', filter);
 
 		await load();
 	});
 
 	async function load() {
-		if (query === '' || filter === undefined) {
+		if (query === '' || filter === undefined || completed) {
 			return;
 		}
 
@@ -75,12 +85,23 @@
 
 		let firstLength = items.length;
 		let count = 0;
-		let until = items.at(items.length - 1)?.event.created_at ?? Math.floor(Date.now() / 1000);
+		let until =
+			items.at(items.length - 1)?.event.created_at ??
+			untilFilter ??
+			Math.floor(Date.now() / 1000);
 		let seconds = 24 * 60 * 60;
 
-		while (items.length - firstLength < minTimelineLength && count < 10) {
+		while (
+			items.length - firstLength < minTimelineLength &&
+			count < 10 &&
+			(sinceFilter === undefined || until >= sinceFilter)
+		) {
 			filter.until = until;
 			filter.since = until - seconds;
+			if (sinceFilter !== undefined && sinceFilter > filter.since) {
+				filter.since = sinceFilter;
+				completed = true;
+			}
 			const eventItems = await search.fetch(filter);
 			items.push(
 				...eventItems.filter(
@@ -97,7 +118,7 @@
 			until -= seconds;
 			seconds *= 2;
 			count++;
-			console.log('[load]', count, until, seconds / 3600, items.length);
+			console.debug('[load]', count, until, seconds / 3600, items.length);
 		}
 
 		showLoading = false;

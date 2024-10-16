@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { now } from 'rx-nostr';
 	import { WebStorage } from '$lib/WebStorage';
+	import { activeAt } from '$lib/timelines/HomeTimeline';
 	import { reconnectIfConnectionsAreUnstable } from '$lib/timelines/MainTimeline';
 	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
@@ -67,6 +69,7 @@
 				break;
 			}
 			case 'visible': {
+				activeAt.set(now());
 				setTimeout(() => reconnectIfConnectionsAreUnstable(), 1000);
 				break;
 			}
