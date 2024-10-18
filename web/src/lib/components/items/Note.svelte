@@ -7,7 +7,7 @@
 	import IconBolt from '@tabler/icons-svelte/icons/bolt';
 	import IconMessages from '@tabler/icons-svelte/icons/messages';
 	import { openNoteDialog, replyTo } from '$lib/stores/NoteDialog';
-	import { readRelays, pubkey, author } from '$lib/stores/Author';
+	import { readRelays } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
 	import { rom } from '$lib/stores/Author';
 	import { Api } from '$lib/Api';
@@ -130,15 +130,6 @@
 				<div>{contentWarningTag?.at(1) ?? ''}</div>
 				<button on:click={showWarningContent}>Show</button>
 			</div>
-		{:else if item.event.kind === Kind.EncryptedDirectMessage}
-			<p class="direct-message">
-				<span>Direct Message.</span>
-				{#if $author?.isRelated(item.event) || item.event.pubkey === $pubkey}
-					<span>Please open in another app.</span>
-				{:else}
-					<span>This message is not for you.</span>
-				{/if}
-			</p>
 		{:else}
 			<div class="content" class:shorten={!full}>
 				{#if Number(item.event.kind) === 1063}
@@ -163,21 +154,17 @@
 		{/each}
 		{#if !readonly}
 			<div class="action-menu">
-				<button
-					class:hidden={item.event.kind === Kind.EncryptedDirectMessage}
-					on:click={() => reply(item)}
-				>
+				<button on:click={() => reply(item)}>
 					<IconMessageCircle size={iconSize} />
 				</button>
 				<RepostButton event={item.event} {iconSize} />
 				<ReactionButton event={item.event} {iconSize} />
-				<span class:hidden={item.event.kind === Kind.EncryptedDirectMessage}>
+				<span>
 					<EmojiPicker on:pick={({ detail }) => emojiReaction(item.event, detail)} />
 				</span>
 				<button
 					class="zap"
-					class:hidden={!metadata?.canZap ||
-						item.event.kind === Kind.EncryptedDirectMessage}
+					class:hidden={!metadata?.canZap}
 					disabled={zapped}
 					on:click={() => zapDialogComponent.openZapDialog()}
 				>
@@ -249,10 +236,6 @@
 	.reply {
 		font-size: 0.8em;
 		color: gray;
-	}
-
-	.direct-message {
-		margin: 0.1rem 0;
 	}
 
 	.content {

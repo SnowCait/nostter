@@ -14,6 +14,7 @@
 	import BadgeAward from './BadgeAward.svelte';
 	import BadgeDefinition from './BadgeDefinition.svelte';
 	import List from './List.svelte';
+	import LegacyDirectMessage from './LegacyDirectMessage.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -23,6 +24,8 @@
 
 {#if item.event.kind === Kind.Metadata}
 	<Profile metadata={new Metadata(item.event)} />
+{:else if Number(item.event.kind) === 4}
+	<LegacyDirectMessage event={item.event} />
 {:else if Number(item.event.kind) === 6}
 	<RepostedNote {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.Reaction}

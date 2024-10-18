@@ -178,6 +178,9 @@
 		"open_url": {
 			"button": "Open in %s"
 		},
+		"open_in_other_apps": {
+			"button": "Open in another app"
+		},
 		"share": {
 			"button": "Share link"
 		},
