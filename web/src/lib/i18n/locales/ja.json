@@ -177,6 +177,9 @@
 		"open_url": {
 			"button": "%s で開く"
 		},
+		"open_in_other_apps": {
+			"button": "他のアプリで開く"
+		},
 		"share": {
 			"button": "リンクを共有"
 		},
