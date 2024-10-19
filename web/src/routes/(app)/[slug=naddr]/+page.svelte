@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { error } from '@sveltejs/kit';
 	import type { Event } from 'nostr-tools';
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
@@ -9,6 +10,7 @@
 	import type { PageData } from './$types';
 	import Content from '$lib/components/Content.svelte';
 	import Loading from '$lib/components/Loading.svelte';
+	import ExternalLink from '$lib/components/ExternalLink.svelte';
 
 	export let data: PageData;
 
@@ -16,6 +18,7 @@
 
 	$: title = event?.tags.find(([t]) => t === 'title')?.at(1);
 	$: summary = event?.tags.find(([t]) => t === 'summary')?.at(1) ?? '';
+	$: link = new URL(`https://nostrapp.link/kind/${data.kind}`);
 
 	afterNavigate(async () => {
 		console.log('[naddr page]', data);
@@ -70,6 +73,11 @@
 	<header>
 		<h1>{title}</h1>
 		<p>{summary}</p>
+		<div>
+			<ExternalLink {link}>
+				{$_('actions.open_in_other_apps.button')}
+			</ExternalLink>
+		</div>
 	</header>
 
 	<section class="card">
