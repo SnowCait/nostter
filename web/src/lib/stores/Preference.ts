@@ -28,6 +28,10 @@ export const enablePreview = writable(
 	browser ? new WebStorage(localStorage).get('preference:preview') !== 'false' : true
 );
 
+export const imageOptimization = writable(
+	browser ? new WebStorage(localStorage).get('preference:image-optimization') !== 'false' : true
+);
+
 // Temporary
 export const developerMode = writable(
 	browser ? new WebStorage(localStorage).get('preference:developer-mode') === 'true' : false

@@ -22,6 +22,7 @@
 	import Reload from './Reload.svelte';
 	import ClearEventCacheAndReload from './ClearEventCacheAndReload.svelte';
 	import MediaUploader from './MediaUploader.svelte';
+	import ImageOptimization from './ImageOptimization.svelte';
 	import TimelineFilter from './TimelineFilter.svelte';
 	import MuteAutomatically from './MuteAutomatically.svelte';
 </script>
@@ -72,6 +73,7 @@
 	<div><Theme /></div>
 	<div><AutoRefresh /></div>
 	<div><EnablePreview /></div>
+	<div><ImageOptimization /></div>
 	<div><Notification /></div>
 	<div><UriScheme /></div>
 	<h3>{$_('preferences.timeline_filter.title')}</h3>
