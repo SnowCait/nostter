@@ -4,6 +4,7 @@ import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad<{
+	slug: string;
 	kind: number;
 	pubkey: string;
 	identifier: string;
@@ -15,6 +16,7 @@ export const load: PageLoad<{
 		console.log('[naddr decode]', data);
 		const pointer = data as AddressPointer;
 		return {
+			slug: params.slug,
 			kind: pointer.kind,
 			pubkey: pointer.pubkey,
 			identifier: pointer.identifier,
