@@ -161,6 +161,7 @@
 	{#if metadata !== undefined}
 		<title>{appName} - {metadata.displayName} (@{metadata.name})</title>
 		<meta property="og:title" content={metadata.displayName} />
+		<meta property="og:description" content={metadata.about} />
 		<meta property="og:image" content={metadata.picture} />
 	{:else}
 		<title>{appName} - ghost</title>
