@@ -29,8 +29,9 @@
 
 	export let pubkey: string;
 
+	$: metadata = $metadataStore.get(pubkey);
 	$: nprofile = nip19.nprofileEncode({ pubkey });
-	$: url = `${$page.url.origin}/${nprofile}`;
+	$: url = `${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`;
 
 	let listDialogOpen = false;
 
@@ -51,8 +52,6 @@
 
 	async function onUnfollow(): Promise<void> {
 		console.log('[unfollow]');
-
-		const metadata = $metadataStore.get(pubkey);
 
 		if (!confirm(`Unfollow @${metadata?.displayName ?? alternativeName(pubkey)}?`)) {
 			console.log('[unfollow cancelled]');
