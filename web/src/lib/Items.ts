@@ -132,6 +132,10 @@ export class Metadata implements Item {
 		return this.content.nip05.replace(/^_@/, '');
 	}
 
+	get about(): string {
+		return this.content?.about ?? '';
+	}
+
 	get canZap(): boolean {
 		return !(!this.content?.lud16 && !this.content?.lud06);
 	}
