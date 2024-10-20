@@ -221,10 +221,27 @@ export class Api {
 }
 
 export const fetchEvent = async (id: string, relays: string[]): Promise<Event | undefined> => {
-	console.debug('[api request]', id, relays);
+	console.debug('[api request id]', id, relays);
 	const response = await fetch(`https://api.nostter.app/${nip19.neventEncode({ id, relays })}`);
 	if (!response.ok) {
 		console.warn('[api event not found]', await response.text());
+		return undefined;
+	}
+	const event = (await response.json()) as Event;
+	console.debug('[api response]', event);
+	return event;
+};
+
+export const fetchMetadata = async (
+	pubkey: string,
+	relays: string[]
+): Promise<Event | undefined> => {
+	console.debug('[api request pubkey]', pubkey, relays);
+	const response = await fetch(
+		`https://api.nostter.app/${nip19.nprofileEncode({ pubkey, relays })}`
+	);
+	if (!response.ok) {
+		console.warn('[api metadata not found]', await response.text());
 		return undefined;
 	}
 	const event = (await response.json()) as Event;

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { nip05, nip19 } from 'nostr-tools';
+	import { nip05 } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { afterNavigate, replaceState } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { metadataStore } from '$lib/cache/Events';
+	import { metadataStore, storeMetadata } from '$lib/cache/Events';
 	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { pubkey as authorPubkey, readRelays } from '$lib/stores/Author';
 	import { Timeline } from '$lib/Timeline';
@@ -26,13 +26,17 @@
 	let slug = $page.params.slug;
 
 	afterNavigate(() => {
-		console.log('[npub page after navigate]', nip19.npubEncode(data.pubkey));
+		console.debug('[npub page]', data.pubkey);
 
 		events = [];
 		relays = [...new Set([...$readRelays, ...data.relays])];
 
 		if (metadata === undefined) {
-			metadataReqEmit([data.pubkey]);
+			if (data.metadataEvent !== undefined) {
+				storeMetadata(data.metadataEvent);
+			} else {
+				metadataReqEmit([data.pubkey]);
+			}
 		} else {
 			referencesReqEmit(metadata.event);
 			overwriteSlug();
@@ -156,6 +160,7 @@
 <svelte:head>
 	{#if metadata !== undefined}
 		<title>{appName} - {metadata.displayName} (@{metadata.name})</title>
+		<meta property="og:title" content={metadata.displayName} />
 		<meta property="og:image" content={metadata.picture} />
 	{:else}
 		<title>{appName} - ghost</title>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { Content } from '$lib/Content';
 	import { newUrl } from '$lib/Helper';
 	import ReferenceNip27 from './content/ReferenceNip27.svelte';
@@ -44,7 +45,7 @@
 			<Text text={token.text} />
 		{/if}
 	{/each}
-	{#if $enablePreview}
+	{#if $enablePreview && browser}
 		{#each urls as url}
 			{#if url.origin === 'https://twitter.com' || url.origin === 'https://x.com'}
 				<!-- Twitter -->
