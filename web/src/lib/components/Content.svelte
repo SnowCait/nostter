@@ -10,6 +10,7 @@
 	import CustomEmoji from './content/CustomEmoji.svelte';
 	import Ogp from './content/Ogp.svelte';
 	import { enablePreview } from '$lib/stores/Preference';
+	import Relay from './items/Relay.svelte';
 
 	export let content: string;
 	export let tags: string[][];
@@ -34,6 +35,10 @@
 			<CustomEmoji text={token.text} url={token.url} />
 		{:else if token.name === 'url'}
 			<Url text={token.text} />
+		{:else if token.name === 'relay'}
+			<a href="/relay/{token.text}">
+				{token.text}
+			</a>
 		{:else if token.name === 'nip'}
 			<Url
 				text={token.text}
