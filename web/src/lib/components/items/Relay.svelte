@@ -59,8 +59,4 @@
 		overflow: hidden;
 		white-space: nowrap;
 	}
-
-	.follow {
-		margin-left: auto;
-	}
 </style>

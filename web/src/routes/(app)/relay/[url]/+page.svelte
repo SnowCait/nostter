@@ -32,7 +32,7 @@
 		while (events.length - firstLength < minTimelineLength && count < 10) {
 			const since = until - seconds;
 			console.log(
-				'[rx-nostr user timeline period]',
+				'[rx-nostr relay timeline period]',
 				new Date(since * 1000),
 				new Date(until * 1000)
 			);
@@ -55,7 +55,7 @@
 					)
 					.subscribe({
 						next: (packet) => {
-							console.log('[rx-nostr user timeline packet]', packet);
+							console.log('[rx-nostr relay timeline packet]', packet);
 							if (
 								!(
 									since <= packet.event.created_at &&
@@ -63,7 +63,7 @@
 								)
 							) {
 								console.warn(
-									'[rx-nostr user timeline out of period]',
+									'[rx-nostr relay timeline out of period]',
 									packet,
 									since,
 									until
@@ -71,7 +71,7 @@
 								return;
 							}
 							if (events.some((x) => x.event.id === packet.event.id)) {
-								console.warn('[rx-nostr user timeline duplicate]', packet.event);
+								console.warn('[rx-nostr relay timeline duplicate]', packet.event);
 								return;
 							}
 							const item = new EventItem(packet.event);
@@ -86,7 +86,10 @@
 							events = events;
 						},
 						complete: () => {
-							console.log('[rx-nostr user timeline complete]', pastEventsReq.rxReqId);
+							console.log(
+								'[rx-nostr relay timeline complete]',
+								pastEventsReq.rxReqId
+							);
 							resolve();
 						},
 						error: (error) => {
