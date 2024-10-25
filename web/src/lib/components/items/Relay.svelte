@@ -21,7 +21,7 @@
 			</div>
 		</div>
 		<div class="name">@{hostname}</div>
-		{#if typeof description !== undefined}
+		{#if description !== undefined}
 			<Content content={description || ''} tags={[]} />
 		{/if}
 	</div>

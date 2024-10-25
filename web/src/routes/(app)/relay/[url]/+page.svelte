@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
+	import { createRxOneshotReq, now } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { afterNavigate } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';

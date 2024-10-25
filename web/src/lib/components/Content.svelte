@@ -10,7 +10,6 @@
 	import CustomEmoji from './content/CustomEmoji.svelte';
 	import Ogp from './content/Ogp.svelte';
 	import { enablePreview } from '$lib/stores/Preference';
-	import Relay from './items/Relay.svelte';
 
 	export let content: string;
 	export let tags: string[][];
