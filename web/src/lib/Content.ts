@@ -96,9 +96,7 @@ export class Content {
 			} else if (text.startsWith('NIP-')) {
 				tokens.push(new Token('nip', text));
 			} else if (text.startsWith('wss://') || text.startsWith('ws://')) {
-				tokens.push(
-					new Token('relay', text.substring(text[2] === 's' ? 6 : 5, text.length - 1))
-				);
+				tokens.push(new Token('relay', text));
 			} else {
 				tokens.push(new Token('url', text));
 			}
