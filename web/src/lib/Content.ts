@@ -4,7 +4,7 @@ import { unique } from './Array';
 
 export class Token {
 	constructor(
-		readonly name: 'text' | 'reference' | 'hashtag' | 'emoji' | 'url' | 'nip',
+		readonly name: 'text' | 'reference' | 'hashtag' | 'emoji' | 'url' | 'relay' | 'nip',
 		readonly text: string,
 		readonly index?: number,
 		readonly url?: string
@@ -46,7 +46,7 @@ export class Content {
 				...content.matchAll(
 					/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[\d+\]/g
 				),
-				...content.matchAll(/https?:\/\/\S+/g),
+				...content.matchAll(/(http|ws)s?:\/\/\S+/g),
 				...content.matchAll(/NIP-[0-9]{2,}/g)
 			].sort((x, y) => {
 				if (x.index === undefined || y.index === undefined) {
@@ -95,6 +95,8 @@ export class Content {
 				tokens.push(new Token('reference', text));
 			} else if (text.startsWith('NIP-')) {
 				tokens.push(new Token('nip', text));
+			} else if (text.startsWith('wss://') || text.startsWith('ws://')) {
+				tokens.push(new Token('relay', text));
 			} else {
 				tokens.push(new Token('url', text));
 			}
