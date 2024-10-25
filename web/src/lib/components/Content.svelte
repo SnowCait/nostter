@@ -35,7 +35,7 @@
 		{:else if token.name === 'url'}
 			<Url text={token.text} />
 		{:else if token.name === 'relay'}
-			<a href="/relay/{encodeURIComponent(token.text)}">
+			<a href="/relays/{encodeURIComponent(token.text)}">
 				{token.text}
 			</a>
 		{:else if token.name === 'nip'}
