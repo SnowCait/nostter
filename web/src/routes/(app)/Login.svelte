@@ -104,13 +104,13 @@
 		</div>
 		<div class="messages-and-actions">
 			<p class="hero-message">
-				{$_('login.hero-message')}<img
+				{$_('login.hero-message')}
+			</p>
+			<p class="hero-message-sub">
+				{$_('login.hero-message-sub')}<img
 					src="https://www.gstatic.com/android/keyboard/emojikitchen/20201001/u1f431/u1f431_u1f383.png"
 					alt="cute pumpkin cat emoji"
 				/>
-			</p>
-			<p class="hero-message-sub">
-				{$_('login.hero-message-sub')}
 			</p>
 
 			<div class="actions">
@@ -299,10 +299,10 @@
 		line-height: 1.05;
 	}
 
-	.hero-message > img {
+	img {
 		vertical-align: bottom;
-		width: 4.5rem;
-		height: 4.5rem;
+		width: 1.5rem;
+		height: 1.5rem;
 	}
 
 	.hero-message-sub {
