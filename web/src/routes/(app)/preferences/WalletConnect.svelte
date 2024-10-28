@@ -41,8 +41,9 @@
 <h3>Nostr Wallet Connect</h3>
 
 <p>
-	Generate with <ExternalLink link={new URL('https://nwc.getalby.com/')}>Alby</ExternalLink> or other
-	wallet.
+	Generate with <ExternalLink link={new URL('https://coinos.io/')}>Coinos</ExternalLink>, <ExternalLink
+		link={new URL('https://nwc.getalby.com/')}>Alby</ExternalLink
+	> or other wallet.
 </p>
 
 <input
