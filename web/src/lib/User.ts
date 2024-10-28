@@ -40,10 +40,17 @@ export class User {
 					console.error('[invalid NIP-05]', await response.text());
 					throw new Error('fetch failed');
 				}
-				const data = await response.json();
+				const data = (await response.json()) as {
+					names: Record<string, string>;
+					relays?: Record<string, string[]>;
+				};
 				console.log('[NIP-05]', data);
-				pubkey = data.names[name];
-				relays = data.relays?.[name] ?? [];
+				pubkey = Object.entries(data.names).find(
+					([key]) => key.toLowerCase() === name.toLowerCase()
+				)?.[1];
+				if (pubkey !== undefined) {
+					relays = data.relays?.[pubkey] ?? [];
+				}
 			}
 		} catch (error) {
 			console.error('[decode failed]', slug, error);
