@@ -38,7 +38,7 @@
 	$: url = user?.website ? newUrl(user.website) : undefined;
 
 	$: if (p !== pubkey && browser) {
-		console.log('[npub profile]', nip19.npubEncode(pubkey), relays);
+		console.debug('[npub profile]', nip19.npubEncode(pubkey), relays);
 
 		p = pubkey;
 		followees = undefined;
@@ -58,11 +58,11 @@
 			.pipe(uniq(), latest())
 			.subscribe({
 				next: (packet) => {
-					console.log('[rx-nostr npub contacts]', packet);
+					console.debug('[rx-nostr npub contacts]', packet);
 					followees = [...new Set(filterTags('p', packet.event.tags))];
 				},
 				complete: () => {
-					console.log('[rx-nostr npub contacts complete]', followees);
+					console.debug('[rx-nostr npub contacts complete]', followees);
 					if (followees === undefined) {
 						followees = [];
 					}
@@ -175,11 +175,6 @@
 		</div>
 		<div>
 			<a href="/{slug}/lists">{$_('lists.title')}</a>
-		</div>
-		<div>
-			<ExternalLink link={new URL(`https://njump.me/${nip19.npubEncode(pubkey)}.rss`)}>
-				RSS
-			</ExternalLink>
 		</div>
 	</nav>
 
