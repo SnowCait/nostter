@@ -21,7 +21,13 @@ describe('decode test', () => {
 		});
 	});
 	it('NIP-05', async () => {
-		expect(await User.decode('test01@iris.to')).toStrictEqual({
+		expect(await User.decode('test@snowcait.github.io')).toStrictEqual({
+			pubkey: '28d37e1b489437c78d64ccdbf1f44c20e3f013dba3f4c2573b25599ba6308c22',
+			relays: []
+		});
+	});
+	it('NIP-05 case-insensitive', async () => {
+		expect(await User.decode('TEST@snowcait.github.io')).toStrictEqual({
 			pubkey: '28d37e1b489437c78d64ccdbf1f44c20e3f013dba3f4c2573b25599ba6308c22',
 			relays: []
 		});
