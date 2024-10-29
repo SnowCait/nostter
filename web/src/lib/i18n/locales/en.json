@@ -274,5 +274,11 @@
 	},
 	"qrcode": {
 		"scan": "Load profile from QR code"
+	},
+	"profile": {
+		"nip05": {
+			"unknown": "Unknown",
+			"impersonation": "Impersonation"
+		}
 	}
 }

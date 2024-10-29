@@ -273,5 +273,11 @@
 	},
 	"qrcode": {
 		"scan": "QR コードからプロフィールを読み込む"
+	},
+	"profile": {
+		"nip05": {
+			"unknown": "不明",
+			"impersonation": "なりすまし"
+		}
 	}
 }
