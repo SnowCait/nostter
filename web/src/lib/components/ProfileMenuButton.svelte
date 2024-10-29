@@ -14,6 +14,7 @@
 		mutePubkeys,
 		originalFollowees
 	} from '$lib/stores/Author';
+	import { developerMode } from '$lib/stores/Preference';
 	import { copy } from '$lib/Clipboard';
 	import { alternativeName } from '$lib/Items';
 	import { shareUrl } from '$lib/Share';
@@ -203,18 +204,6 @@
 		RSS
 	</Menu.Item>
 
-	{#if pubkey === $authorPubkey}
-		{#if $originalFollowees.includes(pubkey)}
-			<Menu.Item icon={IconUserMinus} color="var(--red)" on:click={onUnfollow}>
-				{$_('actions.unfollow.myself')}
-			</Menu.Item>
-		{:else}
-			<Menu.Item icon={IconUserPlus} on:click={onFollow}>
-				{$_('actions.follow.myself')}
-			</Menu.Item>
-		{/if}
-	{/if}
-
 	<Divider />
 
 	<Menu.Label>{$_('preferences.mute.mute')}</Menu.Label>
@@ -257,6 +246,22 @@
 		<Menu.Item icon={IconVolumeOff} on:click={() => muteZaps()}>
 			{$_('actions.mute.zaps')}
 		</Menu.Item>
+	{/if}
+
+	{#if $developerMode && pubkey === $authorPubkey}
+		<Divider />
+
+		<Menu.Label>{$_('menu.developer')}</Menu.Label>
+
+		{#if $originalFollowees.includes(pubkey)}
+			<Menu.Item icon={IconUserMinus} color="var(--red)" on:click={onUnfollow}>
+				{$_('actions.unfollow.myself')}
+			</Menu.Item>
+		{:else}
+			<Menu.Item icon={IconUserPlus} on:click={onFollow}>
+				{$_('actions.follow.myself')}
+			</Menu.Item>
+		{/if}
 	{/if}
 </Menu>
 
