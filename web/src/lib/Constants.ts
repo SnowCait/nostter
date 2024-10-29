@@ -28,8 +28,13 @@ export const replaceableKinds = [
 ];
 export const parameterizedReplaceableKinds = [30000, 30001, 30007, 30008, 30078];
 
-export const followeesFilterKinds = [Kind.Text, 6, Kind.ChannelCreation, Kind.ChannelMessage];
-export const relatesFilterKinds = [Kind.Text, 6, Kind.ChannelMessage];
+export const notesFilterKinds = [1, 6];
+export const followeesFilterKinds = [
+	...notesFilterKinds,
+	Kind.ChannelCreation,
+	Kind.ChannelMessage
+];
+export const relatesFilterKinds = [...notesFilterKinds, Kind.ChannelMessage];
 export const notificationsFilterKinds = [
 	...relatesFilterKinds,
 	Kind.EncryptedDirectMessage,
