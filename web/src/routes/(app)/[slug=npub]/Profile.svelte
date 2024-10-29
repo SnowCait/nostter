@@ -284,6 +284,8 @@
 
 	.about {
 		margin: 1rem 0;
+		max-height: 20rem;
+		overflow-y: auto;
 	}
 
 	.relationships {
