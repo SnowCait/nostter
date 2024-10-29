@@ -7,7 +7,7 @@
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { metadataStore } from '$lib/cache/Events';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { appName } from '$lib/Constants';
+	import { appName, notesFilterKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { items, pubkey, since } from '$lib/timelines/DateTimeline';
 	import DateNavigation from './DateNavigation.svelte';
@@ -60,7 +60,7 @@
 		const filters: LazyFilter[] = Array.from({ length: splitNumber }, (_, i) => {
 			const hours = (i: number): number => i * 60 * 60;
 			return {
-				kinds: [1],
+				kinds: notesFilterKinds,
 				authors: [data.pubkey],
 				since: $since + hours(i * (24 / splitNumber)),
 				until: $since + hours((i + 1) * (24 / splitNumber))
