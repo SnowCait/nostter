@@ -1,5 +1,6 @@
 import { nip19 } from 'nostr-tools';
 import type { ProfilePointer } from 'nostr-tools/lib/nip19';
+import type { Nip05 } from 'nostr-typedef';
 
 export class User {
 	static async decode(slug: string): Promise<{ pubkey: string | undefined; relays: string[] }> {
@@ -28,23 +29,20 @@ export class User {
 				}
 			} else {
 				const match = slug.match(/^(?:([\w-.]+)@)?([\w-.]+)$/);
-				console.log('[NIP-05 match]', match);
+				console.debug('[NIP-05 match]', match);
 				if (match === null) {
 					throw new Error(`${slug} doesn't match NIP-05`);
 				}
 				const [, name = '_', domain] = match;
-				const response = await fetch(
-					`https://${domain}/.well-known/nostr.json?name=${name}`
-				);
+				const url = `https://${domain}/.well-known/nostr.json?name=${name}`;
+				console.debug('[NIP-05 url]', url);
+				const response = await fetch(url);
 				if (!response.ok) {
 					console.error('[invalid NIP-05]', await response.text());
 					throw new Error('fetch failed');
 				}
-				const data = (await response.json()) as {
-					names: Record<string, string>;
-					relays?: Record<string, string[]>;
-				};
-				console.log('[NIP-05]', data);
+				const data = (await response.json()) as Nip05.NostrAddress;
+				console.debug('[NIP-05]', data);
 				pubkey = Object.entries(data.names).find(
 					([key]) => key.toLowerCase() === name.toLowerCase()
 				)?.[1];
