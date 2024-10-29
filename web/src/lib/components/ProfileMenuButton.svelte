@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Divider, Menu } from '@svelteuidev/core';
+	import { Divider, Menu, Text } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { goto } from '$app/navigation';
@@ -25,6 +25,8 @@
 	import IconUserPlus from '@tabler/icons-svelte/icons/user-plus';
 	import IconUserMinus from '@tabler/icons-svelte/icons/user-minus';
 	import IconVolumeOff from '@tabler/icons-svelte/icons/volume-off';
+	import IconRSS from '@tabler/icons-svelte/icons/rss';
+	import IconExternalLink from '@tabler/icons-svelte/icons/external-link';
 	import ListDialog from './actions/ListDialog.svelte';
 
 	export let pubkey: string;
@@ -189,6 +191,16 @@
 
 	<Menu.Item icon={IconAffiliate} on:click={async () => await goto(`/${nprofile}/relays`)}>
 		{$_('pages.relays')}
+	</Menu.Item>
+
+	<Menu.Item
+		icon={IconRSS}
+		on:click={() => open(`https://njump.me/${nprofile}.rss`, '_blank', 'noopener,noreferrer')}
+	>
+		<svelte:fragment slot="rightSection">
+			<Text><IconExternalLink size={16} /></Text>
+		</svelte:fragment>
+		RSS
 	</Menu.Item>
 
 	{#if pubkey === $authorPubkey}
