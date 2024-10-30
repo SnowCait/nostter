@@ -130,7 +130,8 @@
 	"content": {
 		"show": "Show",
 		"muted": "Muted content",
-		"deleted": "Deleted content"
+		"deleted": "Deleted content",
+		"not_found": "Not found"
 	},
 	"wallet": {
 		"unknown": "Unknown wallet state. Please check your wallet."

@@ -174,3 +174,7 @@ export function getZapperPubkey(event: Event): string | undefined {
 		return undefined;
 	}
 }
+
+export function isNostrHex(hex: string): boolean {
+	return /[0-9a-f]{64}/.test(hex);
+}
