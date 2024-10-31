@@ -136,14 +136,8 @@ export const fileStorageServers = [
 ];
 
 export const imageOptimizerServers = [
-	{
-		name: 'ocknamo Image Optimizer',
-		endpoint: 'https://nostr-image-optimizer.ocknamo.com/image/'
-	},
-	{
-		name: 'やぶみAPI',
-		endpoint: 'https://api.yabu.me/v0/images/optimize/'
-	}
+	'https://nostr-image-optimizer.ocknamo.com/image/',
+	'https://api.yabu.me/v0/images/optimize/'
 ];
 
 export const chronological = (x: NostrEvent, y: NostrEvent) => x.created_at - y.created_at;

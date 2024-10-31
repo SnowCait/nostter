@@ -29,16 +29,21 @@ export const enablePreview = writable(
 	browser ? new WebStorage(localStorage).get('preference:preview') !== 'false' : true
 );
 
-export const imageOptimization = writable(
-	browser ? new WebStorage(localStorage).get('preference:image-optimization') !== 'false' : true
-);
+export const imageOptimization = writable(browser ? getImageOptimization() : '');
 
-export const imageOptimizationEndpoint = writable(
-	browser
-		? (new WebStorage(localStorage).get('preference:image-optimization:endpoint') ??
-				imageOptimizerServers[0].endpoint)
-		: ''
-);
+function getImageOptimization(): string {
+	const value =
+		new WebStorage(localStorage).get('preference:image-optimization') ??
+		imageOptimizerServers[0];
+
+	if (value === 'true') {
+		return imageOptimizerServers[0];
+	} else if (['', 'false'].includes(value)) {
+		return '';
+	} else {
+		return value;
+	}
+}
 
 // Temporary
 export const developerMode = writable(
