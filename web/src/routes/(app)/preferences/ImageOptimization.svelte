@@ -16,10 +16,12 @@
 
 <div>{$_('preferences.image_optimization')}</div>
 <NativeSelect
-	data={['', ...imageOptimizerServers].map((server) => {
-		return {
+	data={[
+		{ label: 'None', value: '' },
+		...imageOptimizerServers.map((server) => ({
+			label: server,
 			value: server
-		};
-	})}
+		}))
+	]}
 	bind:value={$imageOptimization}
 />
