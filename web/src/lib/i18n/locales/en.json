@@ -97,6 +97,7 @@
 		"auto_refresh": "Auto refresh",
 		"media_preview": "Media preview",
 		"image_optimization": "Image optimization",
+		"image_optimization_none": "None",
 		"media_uploader": {
 			"title": "Media uploader"
 		},

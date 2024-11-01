@@ -17,7 +17,7 @@
 <div>{$_('preferences.image_optimization')}</div>
 <NativeSelect
 	data={[
-		{ label: 'None', value: '' },
+		{ label: $_('preferences.image_optimization_none'), value: '' },
 		...imageOptimizerServers.map((server) => ({
 			label: server,
 			value: server
