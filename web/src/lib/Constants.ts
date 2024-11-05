@@ -136,8 +136,8 @@ export const fileStorageServers = [
 ];
 
 export const imageOptimizerServers = [
-	'https://nostr-image-optimizer.ocknamo.com/image/',
-	'https://api.yabu.me/v0/images/optimize/'
+	'https://api.yabu.me/v0/images/optimize/',
+	'https://nostr-image-optimizer.ocknamo.com/image/'
 ];
 
 export const chronological = (x: NostrEvent, y: NostrEvent) => x.created_at - y.created_at;
