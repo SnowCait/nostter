@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import type { Event } from 'nostr-typedef';
+import type { Event, EventParameters } from 'nostr-typedef';
 import {
 	Nip11Registry,
 	batch,
@@ -7,6 +7,7 @@ import {
 	createRxNostr,
 	filterByType,
 	latestEach,
+	now,
 	uniq,
 	type ConnectionState,
 	type LazyFilter
@@ -28,6 +29,7 @@ import { chunk } from '$lib/Array';
 import { Content } from '$lib/Content';
 import { sleep } from '$lib/Helper';
 import workerUrl from '$lib/Worker?worker&url';
+import { Signer } from '$lib/Signer';
 
 Nip11Registry.setDefault({
 	limitation: {
@@ -49,7 +51,25 @@ export const rxNostr = createRxNostr({
 	eoseTimeout: timeout,
 	okTimeout: timeout,
 	retry: { strategy: 'immediately', maxCount: 1 },
-	authenticator: 'auto'
+	authenticator: {
+		signer: {
+			getPublicKey: () => Signer.getPublicKey(),
+			signEvent: async <K extends number>(
+				unsignedEvent: EventParameters<K>
+			): Promise<Event<K>> => {
+				console.debug('[AUTH]', unsignedEvent);
+				const event = await Signer.signEvent({
+					...unsignedEvent,
+					tags: unsignedEvent.tags ?? [],
+					created_at: unsignedEvent.created_at ?? now()
+				});
+				return {
+					...event,
+					ots: unsignedEvent.ots
+				} as Event<K>;
+			}
+		}
+	}
 }); // Based on NIP-65
 
 rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
