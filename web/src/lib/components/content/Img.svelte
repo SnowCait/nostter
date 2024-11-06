@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { imageOptimazerUrl } from '$lib/Constants';
 	import { imageOptimization } from '$lib/stores/Preference';
 	import { Img, type ImgSrc } from 'svelte-remote-image';
 
@@ -8,13 +7,13 @@
 	const { href: src, pathname } = url;
 
 	let imageSrc: ImgSrc = {
-		img: `${imageOptimazerUrl}width=800,quality=60,format=webp/${src}`,
+		img: `${$imageOptimization}width=800,quality=60,format=webp/${src}`,
 		fallback: [src]
 	};
 </script>
 
 <div class="img-wrapper">
-	{#if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith(imageOptimazerUrl)}
+	{#if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith($imageOptimization)}
 		<Img class="global-content-image" src={imageSrc} alt={src} />
 	{:else}
 		<img class="global-content-image" {src} alt={src} />

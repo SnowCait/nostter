@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { WebStorage } from '$lib/WebStorage';
 import { writable, type Writable } from 'svelte/store';
+import { imageOptimizerServers } from '$lib/Constants';
 
 console.log('[preference store]');
 
@@ -28,9 +29,21 @@ export const enablePreview = writable(
 	browser ? new WebStorage(localStorage).get('preference:preview') !== 'false' : true
 );
 
-export const imageOptimization = writable(
-	browser ? new WebStorage(localStorage).get('preference:image-optimization') !== 'false' : true
-);
+export const imageOptimization = writable(browser ? getImageOptimization() : '');
+
+function getImageOptimization(): string {
+	const value =
+		new WebStorage(localStorage).get('preference:image-optimization') ??
+		imageOptimizerServers[0];
+
+	if (value === 'true') {
+		return imageOptimizerServers[0];
+	} else if (['', 'false'].includes(value)) {
+		return '';
+	} else {
+		return value;
+	}
+}
 
 // Temporary
 export const developerMode = writable(
