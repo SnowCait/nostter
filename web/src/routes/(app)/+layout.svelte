@@ -3,7 +3,6 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import { activeAt } from '$lib/timelines/HomeTimeline';
 	import { reconnectIfConnectionsAreUnstable } from '$lib/timelines/MainTimeline';
-	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
@@ -109,8 +108,6 @@
 <svelte:head>
 	<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 </svelte:head>
-
-<Notice />
 
 <div class="app">
 	<NoteDialog />
