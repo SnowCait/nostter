@@ -9,6 +9,8 @@ User-agent: GPTBot
 User-agent: GoogleOther
 # https://www.mj12bot.com/
 User-agent: MJ12bot
+# https://support.anthropic.com/en/articles/10023637-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler
+User-agent: ClaudeBot
 Disallow: /npub
 Disallow: /nprofile
 Disallow: /note
