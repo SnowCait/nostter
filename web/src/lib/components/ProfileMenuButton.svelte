@@ -76,7 +76,7 @@
 			await mute('p', pubkey);
 		} catch (error) {
 			console.error('[mute failed]', error);
-			alert('Failed to mute.');
+			alert($_('actions.mute.failed'));
 		}
 	}
 
@@ -87,7 +87,7 @@
 			await unmute('p', pubkey);
 		} catch (error) {
 			console.error('[unmute failed]', error);
-			alert('Failed to unmute.');
+			alert($_('actions.unmute.failed'));
 		}
 	}
 
