@@ -10,7 +10,7 @@
 	import { pubkey as authorPubkey, readRelays } from '$lib/stores/Author';
 	import { Timeline } from '$lib/Timeline';
 	import { EventItem } from '$lib/Items';
-	import { appName, minTimelineLength } from '$lib/Constants';
+	import { minTimelineLength } from '$lib/Constants';
 	import { replaceableEvents, replaceableEventsReqEmit } from '$lib/Profile';
 	import type { LayoutData } from './$types';
 	import { developerMode } from '$lib/stores/Preference';
@@ -156,17 +156,6 @@
 		}
 	}
 </script>
-
-<svelte:head>
-	{#if metadata !== undefined}
-		<title>{appName} - {metadata.displayName} (@{metadata.name})</title>
-		<meta property="og:title" content={metadata.displayName} />
-		<meta property="og:description" content={metadata.about} />
-		<meta property="og:image" content={metadata.picture} />
-	{:else}
-		<title>{appName} - ghost</title>
-	{/if}
-</svelte:head>
 
 <section class="card profile-wrapper">
 	<Profile {slug} pubkey={data.pubkey} {metadata} {relays} />
