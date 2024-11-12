@@ -222,7 +222,11 @@ export class Api {
 
 export const fetchEvent = async (id: string, relays: string[]): Promise<Event | undefined> => {
 	console.debug('[api request id]', id, relays);
-	const response = await fetch(`https://api.nostter.app/${nip19.neventEncode({ id, relays })}`);
+	const response = await fetch(`https://api.nostter.app/${nip19.neventEncode({ id, relays })}`, {
+		headers: {
+			'User-Agent': 'nostter'
+		}
+	});
 	if (!response.ok) {
 		console.warn('[api event not found]', await response.text());
 		return undefined;
@@ -238,7 +242,12 @@ export const fetchMetadata = async (
 ): Promise<Event | undefined> => {
 	console.debug('[api request pubkey]', pubkey, relays);
 	const response = await fetch(
-		`https://api.nostter.app/${nip19.nprofileEncode({ pubkey, relays })}`
+		`https://api.nostter.app/${nip19.nprofileEncode({ pubkey, relays })}`,
+		{
+			headers: {
+				'User-Agent': 'nostter'
+			}
+		}
 	);
 	if (!response.ok) {
 		console.warn('[api metadata not found]', await response.text());
