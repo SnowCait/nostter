@@ -47,7 +47,7 @@ export const load: LayoutServerLoad<Data> = async ({ params }) => {
 		relays,
 		metadataEvent,
 		title: `${appName} - ${metadata?.displayName ?? 'ghost'}`,
-		description: metadata?.about ?? ''
+		description: metadata?.about.replaceAll('\n', ' ') ?? ''
 	};
 	if (metadata?.picture) {
 		data.image = metadata.picture;
