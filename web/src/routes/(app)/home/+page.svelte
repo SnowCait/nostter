@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { _ } from 'svelte-i18n';
 	import { uniq, type LazyFilter, createRxBackwardReq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { Kind, type Relay } from 'nostr-tools';
@@ -14,7 +13,6 @@
 	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
 	import { hasSubscribed, hometimelineReqEmit } from '$lib/timelines/HomeTimeline';
 	import {
-		appName,
 		notificationsFilterKinds,
 		minTimelineLength,
 		reverseChronologicalItem
@@ -237,10 +235,6 @@
 		}
 	}
 </script>
-
-<svelte:head>
-	<title>{appName} - {$_('layout.header.home')}</title>
-</svelte:head>
 
 <HomeTab selected="home" />
 

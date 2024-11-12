@@ -1,17 +1,23 @@
 import { error } from '@sveltejs/kit';
+import { get } from 'svelte/store';
 import type { Event } from 'nostr-typedef';
 import type { LayoutServerLoad } from './$types';
-import { storeMetadata } from '$lib/cache/Events';
+import { metadataStore, storeMetadata } from '$lib/cache/Events';
 import { checkRestriction } from '$lib/server/Restriction';
 import { fetchMetadata } from '$lib/Api';
-import { defaultRelays } from '$lib/Constants';
+import { appName, defaultRelays } from '$lib/Constants';
 import { User } from '$lib/User';
 
-export const load: LayoutServerLoad<{
+type Data = {
 	pubkey: string;
 	relays: string[];
 	metadataEvent: Event | undefined;
-}> = async ({ params }) => {
+	title: string;
+	description: string;
+	image?: string;
+};
+
+export const load: LayoutServerLoad<Data> = async ({ params }) => {
 	console.log('[npub page load]', params.slug);
 	console.time('[npub decode]');
 	const { pubkey, relays } = await User.decode(params.slug);
@@ -33,5 +39,18 @@ export const load: LayoutServerLoad<{
 		storeMetadata(metadataEvent);
 	}
 
-	return { pubkey, relays, metadataEvent };
+	const $metadataStore = get(metadataStore);
+	const metadata = $metadataStore.get(pubkey);
+
+	const data: Data = {
+		pubkey,
+		relays,
+		metadataEvent,
+		title: `${appName} - ${metadata?.displayName ?? 'ghost'}`,
+		description: metadata?.about ?? ''
+	};
+	if (metadata?.picture) {
+		data.image = metadata.picture;
+	}
+	return data;
 };

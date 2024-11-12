@@ -1,4 +1,7 @@
 {
+	"app": {
+		"description": "Web 向け Nostr クライアント。"
+	},
 	"layout": {
 		"header": {
 			"home": "ホーム",

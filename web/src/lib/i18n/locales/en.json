@@ -1,4 +1,7 @@
 {
+	"app": {
+		"description": "Nostr client for web."
+	},
 	"layout": {
 		"header": {
 			"home": "Home",
