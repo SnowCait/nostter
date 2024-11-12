@@ -8,7 +8,7 @@
 	import { broadcast } from '$lib/Broadcast';
 	import { copy } from '$lib/Clipboard';
 	import { shareUrl } from '$lib/Share';
-	import { rom, pubkey as authorPubkey } from '$lib/stores/Author';
+	import { rom, pubkey as authorPubkey, mutePubkeys, muteEventIds } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import IconDots from '@tabler/icons-svelte/icons/dots';
 	import IconBookmark from '@tabler/icons-svelte/icons/bookmark';
@@ -18,7 +18,10 @@
 	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
 	import IconBroadcast from '@tabler/icons-svelte/icons/broadcast';
 	import IconTrash from '@tabler/icons-svelte/icons/trash';
+	import IconVolumeOff from '@tabler/icons-svelte/icons/volume-off';
 	import { deleteEvent } from '$lib/author/Delete';
+	import { mute, unmute } from '$lib/author/Mute';
+	import { referTags } from '$lib/EventHelper';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -27,6 +30,7 @@
 	$: bookmarked = isBookmarked(event);
 	$: nevent = nip19.neventEncode({ id: event.id });
 	$: url = `${$page.url.origin}/${nevent}`;
+	$: rootId = referTags(event).root?.at(1) ?? event.id;
 
 	async function onBookmark(note: Event) {
 		console.log('[bookmark]', note, $rom);
@@ -72,6 +76,50 @@
 
 		console.log('[delete]', event);
 		await deleteEvent([event]);
+	}
+
+	async function onMute(): Promise<void> {
+		console.debug('[mute pubkey]', event.pubkey);
+
+		try {
+			await mute('p', event.pubkey);
+		} catch (error) {
+			console.error('[mute failed]', error);
+			alert($_('actions.mute.failed'));
+		}
+	}
+
+	async function onUnmute(): Promise<void> {
+		console.debug('[unmute pubkey]', event.pubkey);
+
+		try {
+			await unmute('p', event.pubkey);
+		} catch (error) {
+			console.error('[unmute failed]', error);
+			alert($_('actions.unmute.failed'));
+		}
+	}
+
+	async function onMuteThread(): Promise<void> {
+		console.debug('[mute thread]', rootId);
+
+		try {
+			await mute('e', rootId);
+		} catch (error) {
+			console.error('[mute failed]', error);
+			alert($_('actions.mute.failed'));
+		}
+	}
+
+	async function onUnmuteThread(): Promise<void> {
+		console.debug('[unmute thread]', rootId);
+
+		try {
+			await unmute('e', rootId);
+		} catch (error) {
+			console.error('[unmute failed]', error);
+			alert($_('actions.unmute.failed'));
+		}
 	}
 </script>
 
@@ -127,6 +175,30 @@
 		<Menu.Label>{$_('menu.caution')}</Menu.Label>
 		<Menu.Item icon={IconTrash} on:click={onDelete}>
 			{$_('actions.delete.button')}
+		</Menu.Item>
+	{/if}
+
+	<Divider />
+
+	<Menu.Label>{$_('preferences.mute.mute')}</Menu.Label>
+
+	{#if $mutePubkeys.includes(event.pubkey)}
+		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={onUnmute}>
+			{$_('actions.unmute.user')}
+		</Menu.Item>
+	{:else}
+		<Menu.Item icon={IconVolumeOff} on:click={onMute}>
+			{$_('actions.mute.user')}
+		</Menu.Item>
+	{/if}
+
+	{#if $muteEventIds.includes(rootId)}
+		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={onUnmuteThread}>
+			{$_('actions.unmute.thread')}
+		</Menu.Item>
+	{:else}
+		<Menu.Item icon={IconVolumeOff} on:click={onMuteThread}>
+			{$_('actions.mute.thread')}
 		</Menu.Item>
 	{/if}
 

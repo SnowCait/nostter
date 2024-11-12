@@ -10,7 +10,7 @@
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { LayoutData } from './$types';
-	import { author, readRelays } from '$lib/stores/Author';
+	import { readRelays } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
 	import { Api } from '$lib/Api';
@@ -20,7 +20,6 @@
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { appName, chronologicalItem } from '$lib/Constants';
 	import { tick } from 'svelte';
-	import MuteButton from '$lib/components/MuteButton.svelte';
 	import CustomEmoji from '$lib/components/content/CustomEmoji.svelte';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import IconHeart from '@tabler/icons-svelte/icons/heart';
@@ -405,18 +404,6 @@
 		</div>
 	{/if}
 </nav>
-{#if $author !== undefined && item !== undefined}
-	<nav class="card">
-		<div class="mute">
-			<MuteButton tagName="e" tagContent={rootId === undefined ? item.event.id : rootId} />
-			<span>Mute this thread</span>
-		</div>
-		<div class="mute">
-			<MuteButton tagName="p" tagContent={item.event.pubkey} />
-			<span>Mute @{metadata?.content?.name}</span>
-		</div>
-	</nav>
-{/if}
 
 <TimelineView items={repliedToEventItems} readonly={false} showLoading={false} />
 
@@ -463,15 +450,6 @@
 
 	a {
 		text-decoration: underline;
-	}
-
-	.mute {
-		display: flex;
-		flex-direction: row;
-	}
-
-	.mute span {
-		margin-left: 0.5rem;
 	}
 
 	header {
