@@ -7,10 +7,10 @@
 	import Logout from '../Logout.svelte';
 	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
-	import WordMute from './WordMute.svelte';
 	import AutoRefresh from './AutoRefresh.svelte';
 	import MutedUsers from './MutedUsers.svelte';
 	import MutedEvents from './MutedEvents.svelte';
+	import MutedWords from './MutedWords.svelte';
 	import ClearEmojiMartCache from './ClearEmojiMartCache.svelte';
 	import Theme from './Theme.svelte';
 	import UriScheme from './UriScheme.svelte';
@@ -57,7 +57,7 @@
 		</details>
 		<details>
 			<summary>{$_('preferences.mute.words')}</summary>
-			<WordMute />
+			<MutedWords />
 		</details>
 		<div><MuteAutomatically /></div>
 		<div>
