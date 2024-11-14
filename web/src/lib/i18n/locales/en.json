@@ -1,4 +1,7 @@
 {
+	"app": {
+		"description": "Nostr client for web."
+	},
 	"layout": {
 		"header": {
 			"home": "Home",
@@ -205,15 +208,21 @@
 		},
 		"mute": {
 			"button": "Mute",
+			"user": "Mute this user",
 			"reposts": "Mute reposts",
 			"reactions": "Mute reactions (likes)",
-			"zaps": "Mute zaps"
+			"zaps": "Mute zaps",
+			"thread": "Mute this thread",
+			"failed": "Failed to mute."
 		},
 		"unmute": {
 			"button": "Unmute",
+			"user": "Unmute this user",
 			"reposts": "Unmute this user's reposts",
 			"reactions": "Unmute this user's reactions",
-			"zaps": "Unmute this user's zaps"
+			"zaps": "Unmute this user's zaps",
+			"thread": "Unmute this thread",
+			"failed": "Failed to unmute."
 		},
 		"delete": {
 			"button": "Delete",

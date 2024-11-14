@@ -1,15 +1,15 @@
 import { get } from 'svelte/store';
-import { locale, waitLocale } from 'svelte-i18n';
+import { _, locale, waitLocale } from 'svelte-i18n';
 import { browser } from '$app/environment';
 import { Login } from '$lib/Login';
 import { WebStorage } from '$lib/WebStorage';
 import '$lib/i18n';
 import { rxNostr } from '$lib/timelines/MainTimeline';
-import { defaultRelays, localizedRelays } from '$lib/Constants';
+import { appName, defaultRelays, localizedRelays } from '$lib/Constants';
 import type { LayoutLoad } from './$types';
 import { readRelays, writeRelays } from '$lib/stores/Author';
 
-export const load: LayoutLoad = async () => {
+export const load: LayoutLoad = async ({ url }) => {
 	console.debug('[layout load]');
 	let authenticated = false;
 	if (browser) {
@@ -32,9 +32,13 @@ export const load: LayoutLoad = async () => {
 		authenticated = await tryLogin();
 	}
 	await waitLocale();
+	const $_ = get(_);
 	return {
 		splash: !browser || authenticated,
-		authenticated
+		authenticated,
+		title: appName,
+		description: $_('app.description'),
+		image: `${url.origin}/logo.png`
 	};
 };
 
