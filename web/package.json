@@ -44,6 +44,7 @@
 	"dependencies": {
 		"@emoji-mart/data": "^1.2.1",
 		"@floating-ui/dom": "^1.6.8",
+		"@nostr/tools": "npm:@jsr/nostr__tools@^2.10.1",
 		"@rust-nostr/nostr": "^0.34.0",
 		"@svelteuidev/composables": "^0.15.4",
 		"@svelteuidev/core": "^0.15.7",

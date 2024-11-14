@@ -10,7 +10,7 @@ import { decryptListContent } from '$lib/List';
 
 console.log('[author store]');
 
-export const loginType: Writable<'NIP-07' | 'nsec' | 'npub'> = writable();
+export const loginType: Writable<'NIP-07' | 'NIP-46' | 'nsec' | 'npub'> = writable();
 export const pubkey = writable('');
 export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
