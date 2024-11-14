@@ -2,11 +2,11 @@
 	import { page } from '$app/stores';
 </script>
 
-<article>
-	{#if $page.url.hostname === 'nostter.vercel.app'}
+{#if $page.url.hostname === 'nostter.vercel.app'}
+	<article>
 		<p>Moved to <a href="https://nostter.app/">https://nostter.app/</a></p>
-	{/if}
-</article>
+	</article>
+{/if}
 
 <style>
 	p {
