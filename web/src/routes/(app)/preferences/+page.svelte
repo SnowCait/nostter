@@ -2,10 +2,11 @@
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { appName } from '$lib/Constants';
+	import { decryptListContent } from '$lib/List';
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
-	import { author, pubkey, rom } from '$lib/stores/Author';
+	import { author, muteEvent, pubkey, rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import AutoRefresh from './AutoRefresh.svelte';
 	import MutedUsers from './MutedUsers.svelte';
@@ -25,6 +26,7 @@
 	import ImageOptimization from './ImageOptimization.svelte';
 	import TimelineFilter from './TimelineFilter.svelte';
 	import MuteAutomatically from './MuteAutomatically.svelte';
+	import Json from '$lib/components/Json.svelte';
 </script>
 
 <svelte:head>
@@ -59,6 +61,19 @@
 			<summary>{$_('preferences.mute.words')}</summary>
 			<MutedWords />
 		</details>
+		{#if $developerMode}
+			<details>
+				<summary>JSON</summary>
+				<div>public</div>
+				<Json object={$muteEvent?.tags ?? []} />
+				<div>private</div>
+				{#await decryptListContent($muteEvent?.content ?? '')}
+					<Json object={[]} />
+				{:then tags}
+					<Json object={tags} />
+				{/await}
+			</details>
+		{/if}
 		<div><MuteAutomatically /></div>
 		<div>
 			<a href="/{nip19.nprofileEncode({ pubkey: $pubkey })}/relays">
