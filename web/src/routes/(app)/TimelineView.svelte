@@ -2,6 +2,7 @@
 	import { writable } from 'svelte/store';
 	import { onMount } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
+	import { VirtualScroll } from 'svelte-virtual-scroll-list';
 	import { goto } from '$app/navigation';
 	import type { Item } from '$lib/Items';
 	import { channelIdStore } from '$lib/Channel';
@@ -109,16 +110,16 @@
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
 <section class="card">
-	{#each visibleItems as item}
+	<VirtualScroll data={visibleItems} key="id" let:data pageMode={true} keeps={50}>
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
 			class={canTransition ? 'canTransition-post' : ''}
-			class:related={$author?.isNotified(item.event)}
-			on:mouseup={(e) => viewDetail(e, item.event)}
+			class:related={$author?.isNotified(data.event)}
+			on:mouseup={(e) => viewDetail(e, data.event)}
 		>
-			<EventComponent {item} {readonly} {createdAtFormat} {full} />
+			<EventComponent item={data} {readonly} {createdAtFormat} {full} />
 		</div>
-	{/each}
+	</VirtualScroll>
 </section>
 
 {#if showLoading}
@@ -139,8 +140,6 @@
 
 		overflow-x: hidden;
 		text-overflow: ellipsis;
-
-		content-visibility: auto;
 	}
 
 	.canTransition-post {
