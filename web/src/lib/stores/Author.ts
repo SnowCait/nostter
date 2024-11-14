@@ -8,8 +8,6 @@ import { filterRelayTags, filterTags, findIdentifier, getZapperPubkey } from '$l
 import { Signer } from '$lib/Signer';
 import { decryptListContent } from '$lib/List';
 
-console.log('[author store]');
-
 export const loginType: Writable<'NIP-07' | 'nsec' | 'npub'> = writable();
 export const pubkey = writable('');
 export const author: Writable<Author | undefined> = writable();
@@ -17,6 +15,7 @@ export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
 export const followees: Writable<string[]> = writable([]);
 export const originalFollowees = writable<string[]>([]);
+export const muteEvent = writable<Event | undefined>();
 export const mutePubkeys: Writable<string[]> = writable([]);
 export const mutedPubkeysByKindMap = writable(new Map<number, Set<string>>());
 export const muteEventIds: Writable<string[]> = writable([]);
@@ -107,6 +106,11 @@ export const updateRelays = (event: Event) => {
 };
 
 export const storeMutedTagsByEvent = async (event: Event): Promise<void> => {
+	const $muteEvent = get(muteEvent);
+	if ($muteEvent !== undefined && event.created_at <= $muteEvent.created_at) {
+		return;
+	}
+	muteEvent.set(event);
 	const privateTags = await decryptListContent(event.content);
 	await storeMutedTags([...event.tags, ...privateTags]);
 };
