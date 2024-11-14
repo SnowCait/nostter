@@ -109,7 +109,7 @@
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
 <section class="card">
-	{#each visibleItems as item}
+	{#each visibleItems as item (item.event.id)}
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
 			class={canTransition ? 'canTransition-post' : ''}
