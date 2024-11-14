@@ -212,7 +212,7 @@
 		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={onUnmute}>
 			{$_('actions.unmute.button')}
 		</Menu.Item>
-	{:else}
+	{:else if pubkey !== $authorPubkey}
 		<Menu.Item icon={IconVolumeOff} on:click={onMute}>
 			{$_('actions.mute.button')}
 		</Menu.Item>
