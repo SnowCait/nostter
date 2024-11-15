@@ -17,7 +17,6 @@
 	import { developerMode } from '$lib/stores/Preference';
 	import { copy } from '$lib/Clipboard';
 	import { alternativeName } from '$lib/Items';
-	import { shareUrl } from '$lib/Share';
 	import IconDots from '@tabler/icons-svelte/icons/dots';
 	import IconList from '@tabler/icons-svelte/icons/list';
 	import IconClipboard from '@tabler/icons-svelte/icons/clipboard';
@@ -173,22 +172,9 @@
 		{$_('actions.copy_id.button')}
 	</Menu.Item>
 
-	{#if navigator.canShare !== undefined}
-		<Menu.Item
-			icon={IconLink}
-			on:click={async () => {
-				if (!(await shareUrl(url))) {
-					await copy(url);
-				}
-			}}
-		>
-			{$_('actions.share.button')}
-		</Menu.Item>
-	{:else}
-		<Menu.Item icon={IconLink} on:click={() => copy(url)}>
-			{$_('actions.copy_url.button')}
-		</Menu.Item>
-	{/if}
+	<Menu.Item icon={IconLink} on:click={() => copy(url)}>
+		{$_('actions.copy_url.button')}
+	</Menu.Item>
 
 	<Menu.Item icon={IconAffiliate} on:click={async () => await goto(`/${nprofile}/relays`)}>
 		{$_('pages.relays')}
