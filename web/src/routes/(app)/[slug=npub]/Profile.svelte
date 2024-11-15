@@ -3,6 +3,7 @@
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { BadgeApi, type Badge } from '$lib/BadgeApi';
@@ -22,7 +23,7 @@
 	import IconLink from '@tabler/icons-svelte/icons/link';
 	import ProfileMenuButton from '$lib/components/ProfileMenuButton.svelte';
 	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
-	import { goto } from '$app/navigation';
+	import ShareButton from '$lib/components/ShareButton.svelte';
 
 	export let slug: string;
 	export let pubkey: string;
@@ -93,6 +94,9 @@
 				<ProfileIcon {pubkey} />
 			</div>
 			<div class="buttons">
+				<div>
+					<ShareButton {pubkey} />
+				</div>
 				{#if !$rom && pubkey !== undefined}
 					<div class="zap">
 						<ZapButton {pubkey} />
