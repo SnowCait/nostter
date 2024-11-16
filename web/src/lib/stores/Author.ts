@@ -31,6 +31,7 @@ export const rom = writable(false);
 
 export const isMutePubkey = (pubkey: string) => get(mutePubkeys).includes(pubkey);
 export const isMuteEvent = (event: Event) => {
+	// Avoid being muted if content contains muted words
 	if (event.pubkey === get(pubkey)) {
 		return false;
 	}
@@ -116,7 +117,8 @@ export const storeMutedTagsByEvent = async (event: Event): Promise<void> => {
 };
 
 export const storeMutedTags = async (tags: string[][]): Promise<void> => {
-	mutePubkeys.set([...new Set(filterTags('p', tags))]);
+	const $pubkey = get(pubkey);
+	mutePubkeys.set([...new Set(filterTags('p', tags).filter((p) => p !== $pubkey))]);
 	muteEventIds.set([...new Set(filterTags('e', tags))]);
 	muteWords.set([...new Set(filterTags('word', tags))]);
 	console.log(
