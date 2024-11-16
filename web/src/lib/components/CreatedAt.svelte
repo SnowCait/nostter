@@ -10,7 +10,7 @@
 	const oneDay = 24 * 60 * 60 * 1000;
 	let createdAtDisplay: string;
 	if (format === 'full') {
-		createdAtDisplay = date.toLocaleString();
+		createdAtDisplay = date.toLocaleString(lang);
 	} else if (elapsedTime < oneDay || format === 'time') {
 		createdAtDisplay = date.toLocaleTimeString(lang, {
 			hour: 'numeric',
@@ -29,7 +29,7 @@
 	}
 </script>
 
-<span title={date.toLocaleString()} class:full={format === 'full'}>
+<span title={date.toLocaleString(lang)} class:full={format === 'full'}>
 	{createdAtDisplay}
 </span>
 
