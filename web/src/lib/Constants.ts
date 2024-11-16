@@ -125,6 +125,8 @@ export const localizedRelays = {
 
 export const searchRelays = [
 	'wss://relay.nostr.band',
+	'wss://relay.noswhere.com',
+	'wss://nostr.wine',
 	'wss://search.nos.today',
 	'wss://nostrja-kari-nip50.heguro.com'
 ];
