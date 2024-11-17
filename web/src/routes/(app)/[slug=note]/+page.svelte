@@ -222,13 +222,11 @@
 		});
 	}
 
-	$: if (item !== undefined && rootId === undefined) {
-		console.log('[thread item]', item);
-
+	$: if (item !== undefined) {
 		const { root, reply } = referTags(item.event);
 		rootId = root?.at(1);
 		let replyId = reply?.at(1);
-		console.log('[thread root, reply]', rootId, replyId);
+		console.debug('[thread item (root, reply)]', item, rootId, replyId);
 
 		fetchReplies(replyId);
 	}
