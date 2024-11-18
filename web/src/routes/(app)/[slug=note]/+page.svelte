@@ -219,13 +219,14 @@
 		});
 	}
 
-	$: if (item !== undefined) {
+	let id: string | undefined;
+
+	$: if (item !== undefined && item.id !== id && browser) {
+		console.debug('[thread item]', item);
+		id = item.id;
 		const { root, reply } = referTags(item.event);
 		rootId = root?.at(1);
-		let replyId = reply?.at(1);
-		console.debug('[thread item (root, reply)]', item, rootId, replyId);
-
-		fetchReplies(replyId);
+		fetchReplies(reply?.at(1));
 	}
 
 	async function fetchReplies(originalReplyId: string | undefined): Promise<void> {
