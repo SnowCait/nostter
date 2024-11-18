@@ -17,12 +17,13 @@ import { tap, bufferTime } from 'rxjs';
 import { browser } from '$app/environment';
 import { filterLimitItems, timeout } from '$lib/Constants';
 import { aTagContent, filterTags } from '$lib/EventHelper';
-import { EventItem, Metadata } from '$lib/Items';
+import { Metadata } from '$lib/Items';
 import {
 	eventItemStore,
 	metadataStore,
 	replaceableEventsStore,
 	seenOnStore,
+	storeEventItem,
 	storeMetadata
 } from '../cache/Events';
 import { chunk } from '$lib/Array';
@@ -215,13 +216,7 @@ rxNostr
 		uniq(),
 		tap(({ event }) => referencesReqEmit(event, true))
 	)
-	.subscribe((packet) => {
-		console.log('[rx-nostr event]', packet);
-		const eventItem = new EventItem(packet.event);
-		const $eventItemStore = get(eventItemStore);
-		$eventItemStore.set(eventItem.event.id, eventItem);
-		eventItemStore.set($eventItemStore);
-	});
+	.subscribe(({ event }) => storeEventItem(event));
 
 rxNostr
 	.use(replaceableEventsReq.pipe(bufferTime(1000, null, 10), batch()))
