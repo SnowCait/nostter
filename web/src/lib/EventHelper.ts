@@ -126,7 +126,6 @@ export function referTags(event: Event): {
 	let reply = event.tags.findLast(
 		([tagName, , , marker]) => tagName === 'e' && marker === 'reply'
 	);
-	console.log(root, reply);
 
 	// Deprecated NIP-10
 	if (root === undefined && reply === undefined) {

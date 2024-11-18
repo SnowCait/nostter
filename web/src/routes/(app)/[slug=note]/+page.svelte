@@ -10,12 +10,10 @@
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { LayoutData } from './$types';
-	import { readRelays } from '$lib/stores/Author';
-	import { pool } from '$lib/stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
-	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';
 	import { newUrl } from '$lib/Helper';
+	import { fetchEvent } from '$lib/Thread';
 	import { EventItem, Metadata, ZapEventItem } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { appName, chronologicalItem } from '$lib/Constants';
@@ -38,7 +36,6 @@
 	let items: EventItem[] = [];
 	let eventId: string | undefined;
 	let rootId: string | undefined;
-	let relays: string[] = [];
 	let canonicalUrl: string | undefined;
 
 	$: metadata = item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined;
@@ -222,23 +219,22 @@
 		});
 	}
 
-	$: if (item !== undefined) {
+	let id: string | undefined;
+
+	$: if (item !== undefined && item.id !== id && browser) {
+		console.debug('[thread item]', item);
+		id = item.id;
 		const { root, reply } = referTags(item.event);
 		rootId = root?.at(1);
-		let replyId = reply?.at(1);
-		console.debug('[thread item (root, reply)]', item, rootId, replyId);
-
-		fetchReplies(replyId);
+		fetchReplies(reply?.at(1));
 	}
 
 	async function fetchReplies(originalReplyId: string | undefined): Promise<void> {
-		const api = new Api($pool, [...new Set([...$readRelays, ...relays])]);
-
 		let replyId = originalReplyId;
 		let i = 0;
 		while (replyId !== undefined) {
-			const replyToEventItem = await api.fetchEventItemById(replyId);
-			console.log('[thread reply]', replyToEventItem);
+			const replyToEventItem = await fetchEvent(replyId);
+			console.debug('[thread reply]', replyToEventItem);
 			if (replyToEventItem !== undefined) {
 				replyToEventItems.unshift(replyToEventItem);
 				replyToEventItems = replyToEventItems;
@@ -259,8 +255,8 @@
 			!replyToEventItems.some((x) => x.event.id === rootId) &&
 			i <= 20
 		) {
-			const rootEventItem = await api.fetchEventItemById(rootId);
-			console.log('[thread root]', rootEventItem);
+			const rootEventItem = await fetchEvent(rootId);
+			console.debug('[thread root]', rootEventItem);
 			if (rootEventItem !== undefined) {
 				replyToEventItems.unshift(rootEventItem);
 				replyToEventItems = replyToEventItems;
