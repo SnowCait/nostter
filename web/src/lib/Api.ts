@@ -1,14 +1,10 @@
 import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { authorActionReqEmit } from './author/Action';
-import { events as timelineEvents } from './stores/Events';
 import { saveMetadataEvent, userEvents } from './stores/UserEvents';
-import { EventItem } from './Items';
 import { Signer } from './Signer';
-import { channelMetadataEventsStore, eventItemStore } from './cache/Events';
+import { channelMetadataEventsStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
-import { referencesReqEmit } from './timelines/MainTimeline';
 
 export class Api {
 	constructor(
@@ -72,41 +68,6 @@ export class Api {
 		// Latest (return multi events except id filter)
 		events.sort(reverseChronological);
 		return events.at(0);
-	}
-
-	async fetchEventItemById(id: string): Promise<EventItem | undefined> {
-		// If exists in store
-		const $events = get(timelineEvents);
-		const storedEventItem1 = $events.find((x) => x.event.id === id);
-		if (storedEventItem1 !== undefined) {
-			return storedEventItem1;
-		}
-		const $eventItemStore = get(eventItemStore);
-		const storedEventItem2 = $eventItemStore.get(id);
-		if (storedEventItem2 !== undefined) {
-			return storedEventItem2;
-		}
-
-		// Fetch event
-		const event = await this.pool.get(this.relays, {
-			ids: [id]
-		});
-
-		if (event === null) {
-			console.warn('[id not found]', id, nip19.noteEncode(id), nip19.neventEncode({ id }));
-			return undefined;
-		}
-
-		referencesReqEmit(event);
-		authorActionReqEmit(event);
-
-		const eventItem = new EventItem(event);
-
-		// Cache
-		$eventItemStore.set(eventItem.event.id, eventItem);
-		eventItemStore.set($eventItemStore);
-
-		return eventItem;
 	}
 
 	async fetchContactsEvent(pubkey: string): Promise<Event | undefined> {
