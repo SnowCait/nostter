@@ -128,13 +128,14 @@ export function referTags(event: Event): {
 	);
 
 	// Deprecated NIP-10
-	if (root === undefined && reply === undefined) {
-		const eTags = event.tags.filter((tag) => tag.at(0) === 'e' && tag.length < 4);
+	if (root === undefined || reply === undefined) {
+		const eTags = event.tags.filter((tag) => tag.at(0) === 'e');
 		if (eTags.length === 1) {
-			root = eTags[0];
+			root = root ?? eTags[0];
+			reply = undefined;
 		} else if (eTags.length > 1) {
-			root = eTags[0];
-			reply = eTags[eTags.length - 1];
+			root = root ?? eTags[0];
+			reply = reply ?? eTags[eTags.length - 1];
 		}
 	}
 

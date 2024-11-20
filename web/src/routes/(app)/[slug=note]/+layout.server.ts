@@ -1,12 +1,11 @@
 import { nip19 } from 'nostr-tools';
 import type { Event } from 'nostr-typedef';
 import { error } from '@sveltejs/kit';
-import type { LayoutLoad } from './$types';
-import { browser } from '$app/environment';
+import type { LayoutServerLoad } from './$types';
 import { defaultRelays } from '$lib/Constants';
 import { fetchEvent } from '$lib/Api';
 
-export const load: LayoutLoad<{
+export const load: LayoutServerLoad<{
 	eventId: string;
 	relays: string[];
 	event: Event | undefined;
@@ -36,15 +35,15 @@ export const load: LayoutLoad<{
 			}
 		}
 
+		const event = await fetchEvent(
+			id,
+			relays.length > 0 ? relays : defaultRelays.map(({ url }) => url)
+		);
+
 		return {
 			eventId: id,
 			relays,
-			event: browser
-				? undefined
-				: await fetchEvent(
-						id,
-						relays.length > 0 ? relays : defaultRelays.map(({ url }) => url)
-					)
+			event
 		};
 	} catch (e) {
 		console.error('[thread page decode error]', e);
