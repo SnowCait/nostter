@@ -2,7 +2,6 @@ import { nip19 } from 'nostr-tools';
 import type { Event } from 'nostr-typedef';
 import { error } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
-import { browser } from '$app/environment';
 import { defaultRelays } from '$lib/Constants';
 import { fetchEvent } from '$lib/Api';
 
