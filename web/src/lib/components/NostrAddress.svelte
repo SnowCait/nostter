@@ -11,14 +11,15 @@
 
 	$: npub = nip19.npubEncode(metadata.event.pubkey);
 	$: nprofile = nip19.nprofileEncode({ pubkey: metadata.event.pubkey });
+	$: normalizedNip05 = metadata.normalizedNip05;
 </script>
 
 <details>
 	<summary>
-		{#if metadata.normalizedNip05}
+		{#if normalizedNip05}
 			<div class="nip05">
-				<span>{metadata.normalizedNip05}</span>
-				{#await nip05.queryProfile(metadata.normalizedNip05) then pointer}
+				<span>{normalizedNip05}</span>
+				{#await nip05.queryProfile(normalizedNip05) then pointer}
 					{#if pointer === null}
 						<IconAlertTriangle color="orange" />
 						<Badge color="gray">{$_('profile.nip05.unknown')}</Badge>
