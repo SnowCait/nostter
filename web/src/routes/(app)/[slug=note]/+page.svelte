@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
-	import { createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
+	import { createRxBackwardReq, createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
 	import { tap, merge, filter } from 'rxjs';
 	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
+	import { insertIntoAscendingTimeline } from '$lib/timelines/TimelineHelper';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { LayoutData } from './$types';
 	import TimelineView from '../TimelineView.svelte';
@@ -16,7 +17,7 @@
 	import { fetchEvent } from '$lib/Thread';
 	import { EventItem, Metadata, ZapEventItem } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';
-	import { appName, chronologicalItem } from '$lib/Constants';
+	import { appName, chronological, chronologicalItem } from '$lib/Constants';
 	import { tick } from 'svelte';
 	import CustomEmoji from '$lib/components/content/CustomEmoji.svelte';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
@@ -53,6 +54,7 @@
 
 	let replyToEventItems: EventItem[] = [];
 	let repliedToEventItems: EventItem[] = [];
+	let repliedToEventsMap = new Map<string, Event>();
 	let repostEventItems: EventItem[] = [];
 	let reactionEventItems: EventItem[] = [];
 	let zapEventItemsMap = new Map<number | undefined, ZapEventItem[]>();
@@ -147,23 +149,17 @@
 		);
 
 		// Replies
-		merge(observable.pipe(filterByKind(1)), observable.pipe(filterByKind(42))).subscribe(
-			(packet) => {
-				console.log('[thread kind 1]', packet);
-				const eventItem = new EventItem(packet.event);
-				if (repliedToEventItems.some((x) => x.event.id === eventItem.event.id)) {
-					console.warn('[thread duplicate event]', packet);
-					return;
-				}
-				repliedToEventItems.push(eventItem);
-				repliedToEventItems.sort(chronologicalItem);
+		merge(observable.pipe(filterByKind(1)), observable.pipe(filterByKind(42)))
+			.pipe(filter(({ event }) => !repliedToEventItems.some((x) => x.event.id === event.id)))
+			.subscribe((packet) => {
+				console.debug('[thread kind 1]', packet);
+				insertIntoAscendingTimeline(packet.event, repliedToEventItems);
 				repliedToEventItems = repliedToEventItems;
-			}
-		);
+			});
 
 		// Repost
 		observable.pipe(filterByKind(6)).subscribe((packet) => {
-			console.log('[thread kind 6]', packet);
+			console.debug('[thread kind 6]', packet);
 			const eventItem = new EventItem(packet.event);
 			repostEventItems.sort(chronologicalItem);
 			repostEventItems.push(eventItem);
@@ -180,7 +176,7 @@
 				)
 			)
 			.subscribe((packet) => {
-				console.log('[thread kind 7]', packet);
+				console.debug('[thread kind 7]', packet);
 				const eventItem = new EventItem(packet.event);
 				reactionEventItems.sort(chronologicalItem);
 				reactionEventItems.push(eventItem);
@@ -189,7 +185,7 @@
 
 		// Zap
 		observable.pipe(filterByKind(9735)).subscribe((packet) => {
-			console.log('[thread kind 9735]', packet);
+			console.debug('[thread kind 9735]', packet);
 
 			let event: Event | undefined;
 			const description = packet.event.tags
@@ -198,7 +194,7 @@
 				)
 				?.at(1);
 			if (description !== undefined) {
-				console.log('[thread kind 9734]', description);
+				console.debug('[thread kind 9734]', description);
 				try {
 					event = JSON.parse(description) as Event;
 					referencesReqEmit(event, true);
@@ -227,6 +223,7 @@
 		const { root, reply } = referTags(item.event);
 		rootId = root?.at(1);
 		fetchReplies(reply?.at(1));
+		fetchThreads(rootId, item.event);
 	}
 
 	async function fetchReplies(originalReplyId: string | undefined): Promise<void> {
@@ -265,6 +262,48 @@
 
 		await tick();
 		focusedElement?.scrollIntoView();
+	}
+
+	function fetchThreads(rootId: string | undefined, original: Event): void {
+		if (rootId === undefined) {
+			return;
+		}
+
+		const req = createRxBackwardReq();
+		rxNostr
+			.use(req)
+			.pipe(uniq())
+			.subscribe({
+				next: ({ event }) => {
+					console.debug('[thread events next]', event.id);
+					const { root, reply } = referTags(event);
+					if (root?.at(1) === original.id || reply?.at(1) === original.id) {
+						if (!repliedToEventItems.some((item) => item.id === event.id)) {
+							insertIntoAscendingTimeline(event, repliedToEventItems);
+							repliedToEventItems = repliedToEventItems;
+						}
+					} else {
+						repliedToEventsMap.set(event.id, event);
+					}
+				},
+				complete: () => {
+					console.debug('[thread events complete]', repliedToEventsMap);
+					for (const event of [...repliedToEventsMap]
+						.map(([, event]) => event)
+						.toSorted(chronological)) {
+						const { reply } = referTags(event);
+						if (
+							repliedToEventItems.some((item) => item.id === reply?.at(1)) &&
+							!repliedToEventItems.some((item) => item.id === event.id)
+						) {
+							insertIntoAscendingTimeline(event, repliedToEventItems);
+						}
+					}
+					repliedToEventItems = repliedToEventItems;
+				}
+			});
+		req.emit([{ kinds: [1], '#e': [rootId, original.id], since: original.created_at }]);
+		req.over();
 	}
 
 	function clear() {
