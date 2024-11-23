@@ -26,6 +26,7 @@
 	import Nip94 from '$lib/components/Nip94.svelte';
 	import Via from '../Via.svelte';
 	import CreatedAt from '../CreatedAt.svelte';
+	import { notesKinds } from '$lib/Constants';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -154,7 +155,10 @@
 		{/each}
 		{#if !readonly}
 			<div class="action-menu">
-				<button on:click={() => reply(item)}>
+				<button
+					class:hidden={!notesKinds.includes(item.event.kind)}
+					on:click={() => reply(item)}
+				>
 					<IconMessageCircle size={iconSize} />
 				</button>
 				<RepostButton event={item.event} {iconSize} />

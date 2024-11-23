@@ -28,6 +28,7 @@ export const replaceableKinds = [
 ];
 export const parameterizedReplaceableKinds = [30000, 30001, 30007, 30008, 30078];
 
+export const notesKinds = [1, 42];
 export const notesFilterKinds = [1, 6];
 export const followeesFilterKinds = [
 	...notesFilterKinds,
