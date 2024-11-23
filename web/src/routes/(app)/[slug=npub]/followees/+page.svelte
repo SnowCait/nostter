@@ -14,6 +14,7 @@
 	import { lastNoteReqEmit } from '$lib/LastNotes';
 	import type { pubkey as Pubkey } from '$lib/Types';
 	import FollowAllButton from '$lib/components/actions/FollowAllButton.svelte';
+	import '@tabler/icons-webfont/dist/tabler-icons.min.css';
 
 	export let data: LayoutData;
 
@@ -58,7 +59,14 @@
 
 <div>
 	<h1>{$_('pages.followees')} ({pubkeys.length})</h1>
-	{#if pubkey !== $authorPubkey}
+	{#if pubkey === $authorPubkey}
+		<button
+			on:click={() =>
+				open('https://tsukemonogit.github.io/NFO/', '_blank', 'noopener,noreferrer')}
+		>
+			{$_('follow.organize')}
+		</button>
+	{:else}
 		<FollowAllButton {pubkeys} />
 	{/if}
 </div>
@@ -70,5 +78,10 @@
 		display: flex;
 		justify-content: space-between;
 		margin: 0.5rem auto;
+	}
+
+	button::after {
+		font-family: 'tabler-icons';
+		content: '\ea99';
 	}
 </style>

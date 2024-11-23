@@ -80,8 +80,11 @@
 		}
 	},
 	"post": "投稿",
-	"follow": "フォロー",
-	"following": "フォロー中",
+	"follow": {
+		"follow": "フォロー",
+		"following": "フォロー中",
+		"organize": "フォロー整理"
+	},
 	"or": "または",
 	"preferences": {
 		"device": "端末",
