@@ -60,7 +60,7 @@
 		</div>
 	</svelte:fragment>
 
-	<Menu.Item icon={IconRepeat} on:click={() => repost(event)} disabled={event.kind === 42}>
+	<Menu.Item icon={IconRepeat} on:click={() => repost(event)} disabled={event.kind !== 1}>
 		{$_('actions.repost.button')}
 	</Menu.Item>
 	<Menu.Item icon={IconQuote} on:click={() => quote(event)}>
