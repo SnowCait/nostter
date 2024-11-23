@@ -80,8 +80,11 @@
 		}
 	},
 	"post": "Post",
-	"follow": "Follow",
-	"following": "Following",
+	"follow": {
+		"follow": "Follow",
+		"following": "Following",
+		"organize": "Organize followees"
+	},
 	"cancel": "Cancel",
 	"or": "OR",
 	"preferences": {
