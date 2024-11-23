@@ -104,14 +104,16 @@
 			}
 			const eventItems = await search.fetch(filter);
 			items.push(
-				...eventItems.filter(
-					(item) =>
-						proxy ||
-						!item.event.tags.some(
-							([tagName, , protocol]) =>
-								tagName === 'proxy' && !['rss', 'web'].includes(protocol)
-						)
-				)
+				...eventItems
+					.filter(
+						(item) =>
+							proxy ||
+							!item.event.tags.some(
+								([tagName, , protocol]) =>
+									tagName === 'proxy' && !['rss', 'web'].includes(protocol)
+							)
+					)
+					.filter((item) => !items.some((i) => i.id === item.id))
 			);
 			items = items;
 
