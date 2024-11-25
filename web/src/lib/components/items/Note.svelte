@@ -104,6 +104,7 @@
 				<span>To</span>
 				<span>
 					@{eventItem.replyToPubkeys
+						.slice(0, full ? Infinity : 10)
 						.map((pubkey) => {
 							const metadata = $metadataStore.get(pubkey);
 							const name = metadata?.content?.name;
@@ -124,6 +125,9 @@
 						})
 						.join(' @')}
 				</span>
+				{#if !full && eventItem.replyToPubkeys.length > 10}
+					<span>...</span>
+				{/if}
 			</div>
 		{/if}
 		{#if !showContent}
