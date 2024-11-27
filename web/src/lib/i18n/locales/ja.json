@@ -146,7 +146,9 @@
 		"search": "検索",
 		"options": "検索オプション",
 		"mine": "自分の投稿",
-		"proxy": "外部 SNS の投稿を含める"
+		"proxy": "外部 SNS の投稿を含める",
+		"notes": "投稿",
+		"users": "ユーザー"
 	},
 	"public_chat": {
 		"create_channel": "チャンネルを作成",

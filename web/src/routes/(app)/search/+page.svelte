@@ -1,18 +1,21 @@
 <script lang="ts">
+	import { Tabs } from '@svelteuidev/core';
 	import type { Filter } from 'nostr-tools';
+	import type { Unsubscriber } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Search } from '$lib/Search';
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
-	import type { EventItem } from '$lib/Items';
+	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
 	import SearchForm from './SearchForm.svelte';
 	import Trending from './Trending.svelte';
 	import FollowHashtagButton from '$lib/components/FollowHashtagButton.svelte';
 	import UnfollowHashtagButton from '$lib/components/UnfollowHashtagButton.svelte';
 	import { unique } from '$lib/Array';
+	import { SearchTimeline } from '$lib/timelines/SearchTimeline';
 
 	let query = '';
 	let mine = false;
@@ -24,6 +27,11 @@
 	let items: EventItem[] = [];
 	let completed = false;
 	let showLoading = false;
+	let showUsersLoading = false;
+	let usersSearch: SearchTimeline | undefined;
+	let unsubscribe: Unsubscriber | undefined;
+	let metadataItems: EventItem[] = [];
+	let tabKey = 'notes';
 
 	const search = new Search();
 
@@ -47,9 +55,16 @@
 		items = [];
 		completed = false;
 
-		const parsedQuery = search.parseQuery(query, mine);
-		const { fromPubkeys, toPubkeys, kinds, keyword, since, until } = parsedQuery;
-		hashtags = parsedQuery.hashtags;
+		const {
+			fromPubkeys,
+			toPubkeys,
+			hashtags: _hashtags,
+			kinds,
+			keyword,
+			since,
+			until
+		} = search.parseQuery(query, mine);
+		hashtags = _hashtags;
 		sinceFilter = since;
 		untilFilter = until;
 
@@ -77,11 +92,20 @@
 		}
 		console.debug('[search filter base]', filter);
 
-		await load();
+		switch (tabKey) {
+			case 'notes': {
+				await load();
+				break;
+			}
+			case 'users': {
+				initializeUsersSearch();
+				break;
+			}
+		}
 	});
 
 	async function load() {
-		if (query === '' || filter === undefined || completed) {
+		if (query === '' || filter === undefined || completed || tabKey !== 'notes') {
 			return;
 		}
 
@@ -129,6 +153,56 @@
 
 		showLoading = false;
 	}
+
+	async function loadUsers(): Promise<void> {
+		if (usersSearch === undefined || tabKey !== 'users') {
+			return;
+		}
+
+		showUsersLoading = true;
+		await usersSearch.load();
+		showUsersLoading = false;
+	}
+
+	async function tabChanged(event: CustomEvent): Promise<void> {
+		const { key } = event.detail as { key: string };
+		tabKey = key;
+
+		switch (key) {
+			case 'notes': {
+				console.debug('[search notes]', filter);
+				if (items.length === 0) {
+					await load();
+				}
+				break;
+			}
+			case 'users': {
+				console.debug('[search users]', filter.search, usersSearch?.items);
+				if (filter.search) {
+					await initializeUsersSearch();
+				}
+				break;
+			}
+		}
+	}
+
+	async function initializeUsersSearch() {
+		if (usersSearch === undefined) {
+			usersSearch = new SearchTimeline({ kinds: [0], search: filter.search });
+			unsubscribe = usersSearch.items.subscribe((value) => {
+				metadataItems = value;
+			});
+			await loadUsers();
+		} else if (usersSearch.filter.search !== filter.search) {
+			unsubscribe?.();
+			usersSearch.unsubscribe();
+			usersSearch = new SearchTimeline({ kinds: [0], search: filter.search });
+			unsubscribe = usersSearch.items.subscribe((value) => {
+				metadataItems = value;
+			});
+			await loadUsers();
+		}
+	}
 </script>
 
 <svelte:head>
@@ -143,12 +217,6 @@
 	<SearchForm {query} {mine} />
 </section>
 
-{#if query === ''}
-	<section>
-		<Trending />
-	</section>
-{/if}
-
 {#if hashtags.length > 0}
 	<section>
 		{#each hashtags as hashtag}
@@ -161,9 +229,30 @@
 	</section>
 {/if}
 
-<section>
-	<TimelineView {items} {load} {showLoading} />
-</section>
+{#if query === ''}
+	<section>
+		<Trending />
+	</section>
+{:else}
+	<Tabs on:change={tabChanged}>
+		<Tabs.Tab label={$_('search.notes')} tabKey="notes">
+			<section>
+				<TimelineView {items} {load} {showLoading} />
+			</section>
+		</Tabs.Tab>
+		{#if filter.search}
+			<Tabs.Tab label={$_('search.users')} tabKey="users">
+				<section>
+					<TimelineView
+						items={metadataItems}
+						load={loadUsers}
+						showLoading={showUsersLoading}
+					/>
+				</section>
+			</Tabs.Tab>
+		{/if}
+	</Tabs>
+{/if}
 
 <style>
 	h1 a {
@@ -173,6 +262,10 @@
 
 	section + section {
 		margin-top: 1rem;
+	}
+
+	:global(button.svelteui-Tab) {
+		border-radius: 0;
 	}
 
 	@media screen and (max-width: 600px) {
