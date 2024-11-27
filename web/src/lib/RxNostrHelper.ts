@@ -44,7 +44,10 @@ export async function fetchLastEvent(filter: LazyFilter): Promise<Event | undefi
 	});
 }
 
-export async function fetchEvents(filters: LazyFilter[]): Promise<Event[]> {
+export async function fetchEvents(
+	filters: LazyFilter[],
+	relays: string[] | undefined = undefined
+): Promise<Event[]> {
 	const { promise, resolve } = Promise.withResolvers<Event[]>();
 	const events: Event[] = [];
 	const req = createRxBackwardReq();
@@ -68,7 +71,11 @@ export async function fetchEvents(filters: LazyFilter[]): Promise<Event[]> {
 				resolve(events);
 			}
 		});
-	req.emit(filters);
+	if (relays !== undefined && relays.length > 0) {
+		req.emit(filters, { relays });
+	} else {
+		req.emit(filters);
+	}
 	req.over();
 	return await promise;
 }

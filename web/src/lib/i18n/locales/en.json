@@ -147,7 +147,9 @@
 		"search": "Search",
 		"options": "Search options",
 		"mine": "My notes",
-		"proxy": "Include external SNS notes"
+		"proxy": "Include external SNS notes",
+		"notes": "Notes",
+		"users": "Users"
 	},
 	"public_chat": {
 		"create_channel": "Create channel",

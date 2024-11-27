@@ -31,6 +31,7 @@
 	import PinChannel from './PinChannel.svelte';
 	import ChannelTitle from '$lib/components/ChannelTitle.svelte';
 	import MuteButton from '$lib/components/MuteButton.svelte';
+	import { oldestCreatedAt } from '$lib/timelines/TimelineHelper';
 
 	let slug = $page.params.nevent;
 	let channelId: string;
@@ -148,9 +149,6 @@
 		$channelIdStore = undefined;
 	});
 
-	const oldestCreatedAt = (): number =>
-		items.length > 0 ? items[items.length - 1].event.created_at : Math.floor(Date.now() / 1000);
-
 	async function load() {
 		console.log('[channel page load]', slug, channelId);
 		if (channelId === undefined) {
@@ -189,7 +187,7 @@
 					resolve();
 				}
 			});
-		const until = oldestCreatedAt();
+		const until = oldestCreatedAt(items);
 		req.emit([{ ...filterBase, until, since: until - 15 * 60 }]);
 		req.over();
 		await promise;
@@ -197,7 +195,9 @@
 		const length = items.length - firstLength;
 		if (length < minTimelineLength) {
 			const limit = minTimelineLength - length;
-			const events = await fetchEvents([{ ...filterBase, until: oldestCreatedAt(), limit }]);
+			const events = await fetchEvents([
+				{ ...filterBase, until: oldestCreatedAt(items), limit }
+			]);
 			items.push(
 				...events
 					.filter((event) => !items.some((item) => item.event.id === event.id))
