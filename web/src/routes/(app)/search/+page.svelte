@@ -235,13 +235,19 @@
 	</section>
 {:else}
 	<Tabs on:change={tabChanged}>
-		<Tabs.Tab label={$_('search.notes')} tabKey="notes">
+		<Tabs.Tab tabKey="notes">
+			<svelte:fragment slot="label">
+				<div>{$_('search.notes')}</div>
+			</svelte:fragment>
 			<section>
 				<TimelineView {items} {load} {showLoading} />
 			</section>
 		</Tabs.Tab>
 		{#if filter.search}
-			<Tabs.Tab label={$_('search.users')} tabKey="users">
+			<Tabs.Tab tabKey="users">
+				<svelte:fragment slot="label">
+					<div>{$_('search.users')}</div>
+				</svelte:fragment>
 				<section>
 					<TimelineView
 						items={metadataItems}
@@ -262,6 +268,10 @@
 
 	section + section {
 		margin-top: 1rem;
+	}
+
+	div {
+		color: var(--accent);
 	}
 
 	:global(button.svelteui-Tab) {
