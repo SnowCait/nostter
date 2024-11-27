@@ -53,6 +53,10 @@
 		sinceFilter = since;
 		untilFilter = until;
 
+		if (kinds.length === 0) {
+			kinds.push(1);
+		}
+
 		filter = {
 			kinds
 		};

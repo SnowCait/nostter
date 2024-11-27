@@ -1,4 +1,4 @@
-import { nip19, type Filter, Kind } from 'nostr-tools';
+import { nip19, type Filter } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { authorActionReqEmit } from './author/Action';
 import { hashtagsRegexp, reverseChronological, searchRelays } from './Constants';
@@ -59,10 +59,6 @@ export class Search {
 			}
 		}
 		console.debug('[search matches]', fromPubkeys, toPubkeys, hashtags, kinds, since, until);
-
-		if (kinds.length === 0) {
-			kinds.push(Kind.Text);
-		}
 
 		const $pubkey = get(pubkey);
 		if (mine && !fromPubkeys.includes($pubkey)) {
