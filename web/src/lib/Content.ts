@@ -1,6 +1,7 @@
 import { nip19 } from 'nostr-tools';
 import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
 import { unique } from './Array';
+import { hashtagsRegexp } from './Constants';
 
 export class Token {
 	constructor(
@@ -167,7 +168,7 @@ export class Content {
 	}
 
 	static findHashtags(content: string): string[] {
-		const matches = content.matchAll(/(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu);
+		const matches = content.matchAll(hashtagsRegexp);
 		const hashtags = [...matches]
 			.map((match) => match.groups?.hashtag)
 			.filter((x): x is string => x !== undefined);
