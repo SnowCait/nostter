@@ -1,5 +1,10 @@
-import { newUrl } from '$lib/Helper';
-
 if (!URL.canParse) {
-	URL.canParse = (url: string) => newUrl(url) !== undefined;
+	URL.canParse = (url: string | URL, base?: string | URL): boolean => {
+		try {
+			new URL(url, base);
+			return true;
+		} catch {
+			return false;
+		}
+	};
 }
