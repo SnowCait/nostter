@@ -178,3 +178,7 @@ export function getZapperPubkey(event: Event): string | undefined {
 export function isNostrHex(hex: string): boolean {
 	return /[0-9a-f]{64}/.test(hex);
 }
+
+export function getTitle(tags: string[][]): string | undefined {
+	return filterTags('title', tags).at(0);
+}
