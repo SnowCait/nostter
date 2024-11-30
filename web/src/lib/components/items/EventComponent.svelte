@@ -15,6 +15,7 @@
 	import BadgeDefinition from './BadgeDefinition.svelte';
 	import List from './List.svelte';
 	import LegacyDirectMessage from './LegacyDirectMessage.svelte';
+	import Picture from './Picture.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -32,6 +33,8 @@
 	<Reaction {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.BadgeAward}
 	<BadgeAward {item} {readonly} {createdAtFormat} />
+{:else if Number(item.event.kind) === 20}
+	<Picture {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
 	<Channel {item} />
 {:else if item.event.kind === Kind.Article}
