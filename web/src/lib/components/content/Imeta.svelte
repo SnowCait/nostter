@@ -3,7 +3,7 @@
 
 	export let tag: string[];
 
-	$: url = tag.at(1)?.split(' ').at(1) ?? '';
+	$: url = tag.find((entry) => entry.startsWith('url '))?.substring('url '.length) ?? '';
 </script>
 
 {#if URL.canParse(url)}
