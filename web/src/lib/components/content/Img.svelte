@@ -12,13 +12,13 @@
 	};
 </script>
 
-<div class="img-wrapper">
+<span class="img-wrapper">
 	{#if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith($imageOptimization)}
 		<Img class="global-content-image" src={imageSrc} alt={src} />
 	{:else}
 		<img class="global-content-image" {src} alt={src} />
 	{/if}
-</div>
+</span>
 
 <style>
 	.img-wrapper :global(.global-content-image) {
