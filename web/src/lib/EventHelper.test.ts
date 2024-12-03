@@ -31,6 +31,19 @@ describe('referTags', () => {
 		expect(root?.at(1)).toBe('root-id');
 		expect(reply?.at(1)).toBe('reply-id');
 	});
+	it('mention', () => {
+		const { root, reply } = referTags({
+			kind: 1,
+			pubkey: '',
+			content: '',
+			tags: [['e', 'mention-id', '', 'mention']],
+			created_at: 0,
+			id: '',
+			sig: ''
+		});
+		expect(root?.at(1)).toBe(undefined);
+		expect(reply?.at(1)).toBe(undefined);
+	});
 	it('deprecated', () => {
 		const { root, reply } = referTags({
 			kind: 1,

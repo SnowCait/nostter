@@ -129,7 +129,9 @@ export function referTags(event: Event): {
 
 	// Deprecated NIP-10
 	if (root === undefined || reply === undefined) {
-		const eTags = event.tags.filter((tag) => tag.at(0) === 'e');
+		const eTags = event.tags.filter(
+			([tagName, , , marker]) => tagName === 'e' && marker !== 'mention'
+		);
 		if (eTags.length === 1) {
 			root = root ?? eTags[0];
 			reply = undefined;
