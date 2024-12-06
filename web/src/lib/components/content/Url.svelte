@@ -9,6 +9,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { newUrl } from '$lib/Helper';
+	import { Twitter } from '$lib/Twitter';
 	import { enablePreview } from '$lib/stores/Preference';
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
@@ -32,7 +33,7 @@
 
 {#if link === undefined}
 	<Text {text} />
-{:else if link.origin === 'https://twitter.com' || link.origin === 'https://x.com'}
+{:else if Twitter.isTweetUrl(link)}
 	{#if preview}
 		<div bind:this={twitterWidget}>
 			<blockquote class="twitter-tweet">

@@ -10,6 +10,7 @@
 	import CustomEmoji from './content/CustomEmoji.svelte';
 	import Ogp from './content/Ogp.svelte';
 	import { enablePreview } from '$lib/stores/Preference';
+	import { Twitter } from '$lib/Twitter';
 
 	export let content: string;
 	export let tags: string[][];
@@ -51,7 +52,7 @@
 	{/each}
 	{#if $enablePreview && browser}
 		{#each urls as url}
-			{#if url.origin === 'https://twitter.com' || url.origin === 'https://x.com'}
+			{#if Twitter.isTweetUrl(url)}
 				<!-- Twitter -->
 			{:else if url.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(url.hostname)}
 				<!-- YouTube -->
