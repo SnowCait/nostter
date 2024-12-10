@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { Kind, nip19 } from 'nostr-tools';
 	import type { EventItem, Item } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
@@ -37,6 +38,21 @@
 	const showWarningContent = () => {
 		showContent = true;
 	};
+
+	//#region Fold
+
+	let height: number | undefined;
+	let fold = false;
+	let first = true;
+
+	$: folded = !full && fold;
+
+	$: if (height !== undefined && height > 500 && first) {
+		fold = true;
+		first = false;
+	}
+
+	//#endregion
 
 	onMount(async () => {
 		if (item.event.kind === Kind.ChannelMessage) {
@@ -95,11 +111,16 @@
 				<button on:click={showWarningContent}>Show</button>
 			</div>
 		{:else}
-			<div class="content" class:shorten={!full}>
+			<div class="content" class:folded bind:clientHeight={height}>
 				{#if Number(item.event.kind) === 1063}
 					<Nip94 event={item.event} />
 				{:else}
 					<Content content={item.event.content} tags={item.event.tags} />
+				{/if}
+				{#if folded}
+					<button class="open" on:click={() => (fold = false)}>
+						<span>{$_('fold.view')}</span>
+					</button>
 				{/if}
 			</div>
 		{/if}
@@ -136,11 +157,38 @@
 
 	.content {
 		margin: 0.2rem 0 0 0;
-		overflow: auto;
 	}
 
-	.content.shorten {
-		max-height: 30em;
+	.folded {
+		max-height: 500px;
+		overflow: hidden;
+	}
+
+	.open {
+		position: absolute;
+		bottom: 0;
+
+		width: 100%;
+		height: 2rem;
+		padding: 0;
+		border-radius: 0;
+		background: linear-gradient(transparent, var(--surface));
+	}
+
+	.open span {
+		display: inline-block;
+		color: var(--accent);
+		background-color: var(--accent-surface-high);
+		padding: 0.3rem 1.5rem;
+		border-radius: calc(infinity * 1px);
+	}
+
+	.open:hover {
+		opacity: 1;
+	}
+
+	.open:hover span {
+		background-color: var(--accent-surface);
 	}
 
 	.channel,
