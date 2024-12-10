@@ -296,5 +296,8 @@
 			"unknown": "Unknown",
 			"impersonation": "Impersonation"
 		}
+	},
+	"fold": {
+		"view": "View more"
 	}
 }
