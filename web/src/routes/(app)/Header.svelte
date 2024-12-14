@@ -196,7 +196,7 @@
 		</ul>
 	</nav>
 	{#if $pubkey && !$rom}
-		<button on:click={onClickPostButton}>
+		<button title="{$_('post')} (N)" on:click={onClickPostButton}>
 			<IconPencilPlus size={30} />
 			<p>{$_('post')}</p>
 		</button>

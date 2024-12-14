@@ -592,6 +592,7 @@
 		</div>
 		<div>
 			<button
+				title="{$_('editor.post.button')} (Ctrl + Enter)"
 				class="button-small"
 				on:click={postNote}
 				disabled={$author === undefined || content === '' || $rom || posting || uploading}
