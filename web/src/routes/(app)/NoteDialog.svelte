@@ -53,7 +53,7 @@
 		<button
 			class="clear close clickable"
 			on:click={closeIfNotEmpty}
-			title={$_('editor.close.button')}
+			title="{$_('editor.close.button')} (Esc)"
 		>
 			<IconX />
 		</button>
