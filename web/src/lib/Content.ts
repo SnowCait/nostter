@@ -46,7 +46,7 @@ export class Content {
 				...content.matchAll(
 					/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[\d+\]/g
 				),
-				...content.matchAll(/(http|ws)s?:\/\/\S+/g),
+				...content.matchAll(/(https|wss|ws):\/\/\S+/g),
 				...content.matchAll(/NIP-[0-9]{2,}/g)
 			].sort((x, y) => {
 				if (x.index === undefined || y.index === undefined) {
