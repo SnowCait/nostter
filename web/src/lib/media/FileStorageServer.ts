@@ -60,19 +60,28 @@ export class FileStorageServer implements Media {
 		// If the media provider uses delayed processing, we need to wait for the processing to be done
 		const startTime = now();
 		while (data.processing_url) {
+			// Workaround for error
+			const processingUrl: string = /^https:\/\/cdn\.nostrcheck\.me\/\d+$/.test(
+				data.processing_url
+			)
+				? data.processing_url.replace(
+						'https://cdn.nostrcheck.me/',
+						'https://nostrcheck.me/api/v2/media/'
+					)
+				: data.processing_url;
 			const processingEvent = await Signer.signEvent({
 				kind: 27235 as Kind,
 				content: '',
 				created_at: now(),
 				tags: [
-					['u', data.processing_url],
+					['u', processingUrl],
 					['method', 'GET']
 				]
 			});
 
 			console.debug('[media upload processing auth]', event);
 
-			const processing = await fetch(data.processing_url, {
+			const processing = await fetch(processingUrl, {
 				headers: {
 					Authorization: `Nostr ${btoa(JSON.stringify(processingEvent))}`
 				}
