@@ -22,7 +22,7 @@
 		"@types/beyonk__gdpr-cookie-consent-banner": "^9.0.2",
 		"@types/emoji-mart": "^3.0.14",
 		"@types/qrcode": "^1.5.5",
-		"@typescript-eslint/eslint-plugin": "^8.3.0",
+		"@typescript-eslint/eslint-plugin": "^8.19.0",
 		"@typescript-eslint/parser": "^8.3.0",
 		"eslint": "^9.9.1",
 		"eslint-config-prettier": "^9.1.0",
