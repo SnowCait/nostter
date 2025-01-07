@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { createRxOneshotReq, latest, now } from 'rx-nostr';
 	import { every, firstValueFrom, EmptyError } from 'rxjs';
-	import { onDestroy } from 'svelte';
 	import type { Kind, EventTemplate } from 'nostr-tools';
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { Signer } from '$lib/Signer';
