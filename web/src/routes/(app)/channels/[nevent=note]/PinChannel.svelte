@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { createRxNostr, createRxOneshotReq, latest, now } from 'rx-nostr';
+	import { createRxOneshotReq, latest, now } from 'rx-nostr';
 	import { every, firstValueFrom, EmptyError } from 'rxjs';
 	import { onDestroy } from 'svelte';
 	import type { Kind, EventTemplate } from 'nostr-tools';
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { Signer } from '$lib/Signer';
-	import { pubkey, writeRelays } from '$lib/stores/Author';
-	import { verificationClient } from '$lib/timelines/MainTimeline';
+	import { pubkey } from '$lib/stores/Author';
+	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import IconPin from '@tabler/icons-svelte/icons/pin';
 	import IconPinnedFilled from '@tabler/icons-svelte/icons/pinned-filled';
 
@@ -17,14 +17,11 @@
 			([tagName, id]) => tagName === 'e' && id === channelId
 		) ?? false;
 
-	const rxNostr = createRxNostr({ verifier: verificationClient.verifier });
-
 	async function pin() {
 		console.log('[channel pin]', channelId);
 
 		pinned = true;
 
-		rxNostr.setDefaultRelays($writeRelays);
 		const pinReq = createRxOneshotReq({
 			filters: { kinds: [10005], authors: [$pubkey], limit: 1 }
 		});
@@ -83,7 +80,6 @@
 
 		pinned = false;
 
-		rxNostr.setDefaultRelays($writeRelays);
 		const pinReq = createRxOneshotReq({
 			filters: { kinds: [10005], authors: [$pubkey], limit: 1 }
 		});
@@ -134,11 +130,6 @@
 			}
 		});
 	}
-
-	onDestroy(async () => {
-		console.log('[channel pin on destroy]');
-		rxNostr.dispose();
-	});
 </script>
 
 {#if pinned}
