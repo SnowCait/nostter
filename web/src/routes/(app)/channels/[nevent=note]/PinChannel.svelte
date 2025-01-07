@@ -28,10 +28,10 @@
 		let unsignedEvent: EventTemplate;
 		try {
 			const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(latest()));
-			console.log('[channel pin latest]', packet);
+			console.debug('[channel pin latest]', packet);
 
 			if (packet.event.tags.some(([tagName, id]) => tagName === 'e' && id === channelId)) {
-				console.log('[channel pin already]', packet.event);
+				console.debug('[channel pin already]', packet.event);
 				return;
 			}
 
@@ -43,7 +43,7 @@
 			};
 		} catch (error) {
 			if (error instanceof EmptyError) {
-				console.log('[channel pin not found]', error);
+				console.debug('[channel pin not found]', error);
 				unsignedEvent = {
 					kind: 10005 as Kind,
 					content: '',
@@ -57,10 +57,10 @@
 		}
 
 		const event = await Signer.signEvent(unsignedEvent);
-		console.log('[channel pin event]', event);
+		console.debug('[channel pin event]', event);
 		const observable = rxNostr.send(event);
 		observable.subscribe((packet) => {
-			console.log('[send]', packet);
+			console.debug('[channel pin send]', packet);
 			if (packet.ok && $authorChannelsEventStore?.id !== event.id) {
 				$authorChannelsEventStore = event;
 			}
@@ -86,10 +86,10 @@
 		let unsignedEvent: EventTemplate;
 		try {
 			const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(latest()));
-			console.log('[channel pin latest]', packet);
+			console.debug('[channel pin latest]', packet);
 
 			if (!packet.event.tags.some(([tagName, id]) => tagName === 'e' && id === channelId)) {
-				console.log('[channel unpin already]', packet.event);
+				console.debug('[channel unpin already]', packet.event);
 				return;
 			}
 
@@ -104,7 +104,7 @@
 			};
 		} catch (error) {
 			if (error instanceof EmptyError) {
-				console.log('[channel unpin already]', error);
+				console.debug('[channel unpin already]', error);
 				return;
 			} else {
 				pinned = true;
@@ -113,16 +113,16 @@
 		}
 
 		const event = await Signer.signEvent(unsignedEvent);
-		console.log('[channel unpin event]', event);
+		console.debug('[channel unpin event]', event);
 		const observable = rxNostr.send(event);
 		observable.subscribe((packet) => {
-			console.log('[send]', packet);
+			console.debug('[channel unpin send]', packet);
 			if (packet.ok && $authorChannelsEventStore?.id !== event.id) {
 				$authorChannelsEventStore = event;
 			}
 		});
 		observable.pipe(every((packet) => !packet.ok)).subscribe((failed) => {
-			console.log('[channel pinned]', !failed);
+			console.log('[channel unpinned]', !failed);
 			if (failed) {
 				console.error('[channel unpin failed]');
 				alert('Failed to unpin.');
