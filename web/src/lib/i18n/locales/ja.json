@@ -295,5 +295,8 @@
 			"unknown": "不明",
 			"impersonation": "なりすまし"
 		}
+	},
+	"fold": {
+		"view": "もっと見る"
 	}
 }
