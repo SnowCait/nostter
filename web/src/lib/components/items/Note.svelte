@@ -2,6 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { Kind, nip19 } from 'nostr-tools';
 	import type { EventItem, Item } from '$lib/Items';
+	import { goto } from '$app/navigation';
 	import { metadataStore } from '$lib/cache/Events';
 	import IconMessages from '@tabler/icons-svelte/icons/messages';
 	import { readRelays } from '$lib/stores/Author';
@@ -10,7 +11,7 @@
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
 	import Content from '$lib/components/Content.svelte';
-	import { isReply } from '$lib/EventHelper';
+	import { getAddress, isReply } from '$lib/EventHelper';
 	import { Channel, channelIdStore } from '$lib/Channel';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
 	import ProxyLink from '../ProxyLink.svelte';
@@ -118,7 +119,10 @@
 					<Content content={item.event.content} tags={item.event.tags} />
 				{/if}
 				{#if folded}
-					<button class="open" on:click={() => (fold = false)}>
+					<button
+						class="open"
+						on:click={async () => await goto(`/${getAddress(item.event)}`)}
+					>
 						<span>{$_('fold.view')}</span>
 					</button>
 				{/if}

@@ -1,5 +1,6 @@
-import type { Event } from 'nostr-tools';
+import { nip19, type Event } from 'nostr-tools';
 import type { id } from './Types';
+import { isParameterizedReplaceableKind, isReplaceableKind } from './nostr-tools/kinds';
 
 export function isReply(event: Event): boolean {
 	if (!event.tags.some(([tagName]) => tagName === 'p')) {
@@ -183,4 +184,22 @@ export function isNostrHex(hex: string): boolean {
 
 export function getTitle(tags: string[][]): string | undefined {
 	return filterTags('title', tags).at(0);
+}
+
+export function getAddress(event: Event): string {
+	if (isReplaceableKind(event.kind)) {
+		return nip19.naddrEncode({
+			kind: event.kind,
+			pubkey: event.pubkey,
+			identifier: ''
+		});
+	} else if (isParameterizedReplaceableKind(event.kind)) {
+		return nip19.naddrEncode({
+			kind: event.kind,
+			pubkey: event.pubkey,
+			identifier: findIdentifier(event.tags) ?? ''
+		});
+	} else {
+		return nip19.neventEncode({ id: event.id, author: event.pubkey });
+	}
 }
