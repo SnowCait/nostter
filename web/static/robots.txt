@@ -11,6 +11,8 @@ User-agent: GoogleOther
 User-agent: MJ12bot
 # https://support.anthropic.com/en/articles/10023637-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler
 User-agent: ClaudeBot
+# https://developer.amazon.com/support/amazonbot
+User-agent: Amazonbot
 Disallow: /npub
 Disallow: /nprofile
 Disallow: /note
