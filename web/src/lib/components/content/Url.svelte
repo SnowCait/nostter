@@ -55,7 +55,7 @@
 {:else if link.hostname === 'amzn.to' || link.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
 	<ExternalLink {link} />
 {:else}
-	{#await fetch(`https://proxy.nostter.app/?url=${encodeURIComponent(link.href)}`, { method: 'HEAD' }) then response}
+	{#await fetch( `https://proxy.nostter.app/?url=${encodeURIComponent(link.href)}`, { method: 'HEAD' } ) then response}
 		{@const contentType = response.headers.get('Content-Type')}
 		{#if contentType === null}
 			<ExternalLink {link} />
