@@ -54,38 +54,47 @@
 	<YouTube {link} />
 {:else if link.hostname === 'amzn.to' || link.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
 	<ExternalLink {link} />
-{:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
-	{#if preview}
-		<div>
-			<a href={link.href} target="_blank" rel="noopener noreferrer">
-				<Img url={link} />
-			</a>
-		</div>
-	{:else}
-		<ExternalLink {link} />
-		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
-	{/if}
-{:else if /\.(mp3|m4a|wav)$/i.test(link.pathname)}
-	{#if preview}
-		<audio src={link.href} controls />
-	{:else}
-		<ExternalLink {link} />
-		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
-	{/if}
-{:else if /\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(link.pathname)}
-	{#if preview}
-		<!-- svelte-ignore a11y-media-has-caption -->
-		<div>
-			<video src={link.href} controls />
-		</div>
-	{:else}
-		<ExternalLink {link} />
-		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
-	{/if}
-{:else if url !== undefined && text !== url}
-	<ExternalLink {link}>{text}</ExternalLink>
 {:else}
-	<ExternalLink {link} />
+	{#await fetch( `https://proxy.nostter.app/?url=${encodeURIComponent(link.href)}`, { method: 'HEAD' } ) then response}
+		{@const contentType = response.headers.get('Content-Type')}
+		{#if contentType === null}
+			<ExternalLink {link} />
+		{:else if contentType.startsWith('image/')}
+			{#if preview}
+				<div>
+					<a href={link.href} target="_blank" rel="noopener noreferrer">
+						<Img url={link} />
+					</a>
+				</div>
+			{:else}
+				<ExternalLink {link} />
+				<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+			{/if}
+		{:else if contentType.startsWith('audio/')}
+			{#if preview}
+				<audio src={link.href} controls />
+			{:else}
+				<ExternalLink {link} />
+				<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+			{/if}
+		{:else if contentType.startsWith('video/')}
+			{#if preview}
+				<!-- svelte-ignore a11y-media-has-caption -->
+				<div>
+					<video src={link.href} controls />
+				</div>
+			{:else}
+				<ExternalLink {link} />
+				<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+			{/if}
+		{:else if url !== undefined && text !== url}
+			<ExternalLink {link}>{text}</ExternalLink>
+		{:else}
+			<ExternalLink {link} />
+		{/if}
+	{:catch}
+		<ExternalLink {link} />
+	{/await}
 {/if}
 
 <style>
