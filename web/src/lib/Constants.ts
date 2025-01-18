@@ -148,6 +148,8 @@ export const imageOptimizerServers = [
 	'https://nostr-image-optimizer.ocknamo.com/image/'
 ];
 
+export const httpProxy = 'https://proxy.nostter.app';
+
 export const chronological = (x: NostrEvent, y: NostrEvent) => x.created_at - y.created_at;
 export const reverseChronological = (x: NostrEvent, y: NostrEvent) => y.created_at - x.created_at;
 export const chronologicalItem = (x: { event: NostrEvent }, y: { event: NostrEvent }) =>

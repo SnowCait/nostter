@@ -1,8 +1,28 @@
 <script lang="ts" context="module">
+	import AsyncLock from 'async-lock';
+	import { httpProxy } from '$lib/Constants';
+
 	declare global {
 		interface Window {
 			twttr: any;
 		}
+	}
+
+	const cache = new Map<string, string | null>();
+	const lock = new AsyncLock();
+
+	async function fetchContentType(url: string): Promise<string | null> {
+		return await lock.acquire(url, async () => {
+			if (cache.has(url)) {
+				return cache.get(url) ?? null;
+			}
+			const response = await fetch(`${httpProxy}/?url=${encodeURIComponent(url)}`, {
+				method: 'HEAD'
+			});
+			const contentType = response.headers.get('Content-Type');
+			cache.set(url, contentType);
+			return contentType;
+		});
 	}
 </script>
 
@@ -55,8 +75,7 @@
 {:else if link.hostname === 'amzn.to' || link.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
 	<ExternalLink {link} />
 {:else}
-	{#await fetch( `https://proxy.nostter.app/?url=${encodeURIComponent(link.href)}`, { method: 'HEAD' } ) then response}
-		{@const contentType = response.headers.get('Content-Type')}
+	{#await fetchContentType(link.href) then contentType}
 		{#if contentType === null}
 			<ExternalLink {link} />
 		{:else if contentType.startsWith('image/')}
