@@ -320,6 +320,7 @@
 		mention = undefined;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async function onEmojiPick({ detail: emoji }: { detail: any }): Promise<void> {
 		console.debug('[emoji pick]', emoji);
 		const shortcode = emoji.id.replaceAll('+', '_');

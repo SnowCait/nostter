@@ -31,6 +31,7 @@
 		$openNoteDialog = true;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async function emojiReaction(note: Event, emoji: any) {
 		console.log('[reaction with emoji]', note, emoji);
 

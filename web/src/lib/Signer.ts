@@ -12,7 +12,7 @@ import type { UnsignedEvent } from 'nostr-typedef';
 
 interface Window {
 	// NIP-07
-	nostr: any;
+	nostr: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 declare const window: Window;
 
