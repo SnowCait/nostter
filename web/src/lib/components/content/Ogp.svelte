@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-	const cache = new Map<string, any>();
+	const cache = new Map<string, any>(); // eslint-disable-line @typescript-eslint/no-explicit-any
 </script>
 
 <script lang="ts">

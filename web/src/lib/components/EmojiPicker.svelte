@@ -77,7 +77,7 @@
 			onClickOutside,
 			custom
 		});
-		emojiPicker.appendChild(picker as any);
+		emojiPicker.appendChild(picker as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 		console.debug('[emoji picker child]', emojiPicker.firstChild);
 		stopAutoUpdate = autoUpdate(button, emojiPicker, render);
 	}

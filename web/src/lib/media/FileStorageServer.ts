@@ -4,6 +4,7 @@ import { Signer } from '$lib/Signer';
 import { filterTags } from '$lib/EventHelper';
 import { getMediaUploader, type Media, type MediaResult } from './Media';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchNip96(origin: string): Promise<any> {
 	const nip96Url = new URL(origin);
 	nip96Url.pathname = '/.well-known/nostr/nip96.json';
