@@ -1,10 +1,12 @@
-import { get } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { eventItemStore, storeEventItem } from './cache/Events';
 import { fetchFirstEvent } from './RxNostrHelper';
 import { EventItem } from './Items';
 import { events } from './stores/Events';
 import { authorActionReqEmit } from './author/Action';
 import { referencesReqEmit } from './timelines/MainTimeline';
+
+export const inThread = writable(false);
 
 export async function fetchEvent(id: string): Promise<EventItem | undefined> {
 	const $eventItemStore = get(eventItemStore);
