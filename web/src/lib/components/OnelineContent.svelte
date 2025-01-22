@@ -5,6 +5,7 @@
 	import CustomEmoji from './content/CustomEmoji.svelte';
 	import ExternalLink from './ExternalLink.svelte';
 	import OnelineText from './content/OnelineText.svelte';
+	import ReferenceNip27 from './content/ReferenceNip27.svelte';
 
 	export let content: string;
 	export let tags: string[][];
@@ -15,9 +16,15 @@
 <p class="content">
 	{#each tokens as token}
 		{#if token.name === 'reference' && token.index === undefined}
-			<a href="/{token.text}">
-				{token.text.substring(0, 'nevent1'.length + 7)}
-			</a>
+			{#if token.text.startsWith('nostr:npub1') || token.text.startsWith('nostr:nprofile1')}
+				<ReferenceNip27 text={token.text} />
+			{:else}
+				{@const protocolLength = 'nostr:'.length}
+				{@const prefixLength = token.text.indexOf('1') + 1}
+				<a href="/{token.text.substring(protocolLength)}">
+					{token.text.substring(protocolLength, prefixLength + 7)}
+				</a>
+			{/if}
 		{:else if token.name === 'reference' && token.index !== undefined && tags.at(token.index) !== undefined}
 			<!-- <Reference text={token.text} tag={tags[token.index]} /> -->
 		{:else if token.name === 'hashtag'}
