@@ -14,11 +14,11 @@
 	import TimelineView from '../TimelineView.svelte';
 	import { referTags } from '$lib/EventHelper';
 	import { newUrl } from '$lib/Helper';
-	import { fetchEvent } from '$lib/Thread';
+	import { fetchEvent, inThread } from '$lib/Thread';
 	import { EventItem, Metadata, ZapEventItem } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { appName, chronological, chronologicalItem } from '$lib/Constants';
-	import { tick } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import CustomEmoji from '$lib/components/content/CustomEmoji.svelte';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import IconHeart from '@tabler/icons-svelte/icons/heart';
@@ -316,6 +316,14 @@
 		zapEventItemsMap = zapEventItemsMap;
 		customEmojiShortcode = new Map<string, string>();
 	}
+
+	onMount(() => {
+		$inThread = true;
+	});
+
+	onDestroy(() => {
+		$inThread = false;
+	});
 </script>
 
 <svelte:head>

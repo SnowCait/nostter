@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Kind, nip19 } from 'nostr-tools';
 	import type { EventItem, Item } from '$lib/Items';
-	import { metadataStore } from '$lib/cache/Events';
+	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconMessages from '@tabler/icons-svelte/icons/messages';
 	import { readRelays } from '$lib/stores/Author';
 	import { pool } from '$lib/stores/Pool';
@@ -17,6 +17,8 @@
 	import Via from '../Via.svelte';
 	import CreatedAt from '../CreatedAt.svelte';
 	import ActionMenu from '../actions/ActionMenu.svelte';
+	import OnelineNote from './OnelineNote.svelte';
+	import { inThread } from '$lib/Thread';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -55,6 +57,13 @@
 		}
 	});
 </script>
+
+{#if eventItem.replyToId && !$inThread}
+	{@const replyTo = $eventItemStore.get(eventItem.replyToId)}
+	{#if replyTo}
+		<OnelineNote item={replyTo} />
+	{/if}
+{/if}
 
 <EventMetadata {item} {createdAtFormat}>
 	<section slot="content">
