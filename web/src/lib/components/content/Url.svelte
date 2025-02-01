@@ -75,7 +75,13 @@
 {:else if link.hostname === 'amzn.to' || link.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
 	<ExternalLink {link} />
 {:else}
-	{#await fetchContentType(link.href) then contentType}
+	{#await fetchContentType(link.href)}
+		{#if url !== undefined && text !== url}
+			<ExternalLink {link}>{text}</ExternalLink>
+		{:else}
+			<ExternalLink {link} />
+		{/if}
+	{:then contentType}
 		{#if contentType === null}
 			<ExternalLink {link} />
 		{:else if contentType.startsWith('image/')}
