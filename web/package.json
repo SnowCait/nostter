@@ -47,7 +47,7 @@
 		"@rust-nostr/nostr": "^0.35.1",
 		"@svelteuidev/composables": "^0.15.4",
 		"@svelteuidev/core": "^0.15.7",
-		"@tabler/icons-svelte": "^3.14.0",
+		"@tabler/icons-svelte": "^3.29.0",
 		"@tabler/icons-webfont": "^3.14.0",
 		"async-lock": "^1.4.1",
 		"emoji-kitchen-mart": "^6.0.4",
