@@ -11,6 +11,7 @@
 	import Ogp from './content/Ogp.svelte';
 	import { enablePreview } from '$lib/stores/Preference';
 	import { Twitter } from '$lib/Twitter';
+	import { nicovideoRegexp } from '$lib/Constants';
 
 	export let content: string;
 	export let tags: string[][];
@@ -56,6 +57,8 @@
 				<!-- Twitter -->
 			{:else if url.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(url.hostname)}
 				<!-- YouTube -->
+			{:else if url.hostname.endsWith('nicovideo.jp') && nicovideoRegexp.test(url.href)}
+				<!-- Niconico -->
 			{:else if url.hostname === 'amzn.to' || url.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(url.hostname)}
 				<!-- Amazon -->
 			{:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp|mp3|m4a|wav|mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(url.pathname)}
