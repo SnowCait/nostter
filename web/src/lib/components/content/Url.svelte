@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
 	import AsyncLock from 'async-lock';
-	import { httpProxy } from '$lib/Constants';
+	import { httpProxy, nicovideoRegexp } from '$lib/Constants';
 
 	declare global {
 		interface Window {
@@ -35,6 +35,7 @@
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import YouTube from '$lib/components/content/YouTube.svelte';
 	import Img from '$lib/components/content/Img.svelte';
+	import Nicovideo from './Nicovideo.svelte';
 
 	export let text: string;
 	export let url: string | undefined = undefined;
@@ -72,6 +73,8 @@
 	{/if}
 {:else if link.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(link.hostname)}
 	<YouTube {link} />
+{:else if link.hostname.endsWith('nicovideo.jp') && nicovideoRegexp.test(link.href)}
+	<Nicovideo {link} />
 {:else if link.hostname === 'amzn.to' || link.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
 	<ExternalLink {link} />
 {:else}
