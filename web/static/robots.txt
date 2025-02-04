@@ -18,3 +18,6 @@ Disallow: /nprofile
 Disallow: /note
 Disallow: /nevent
 Disallow: /naddr
+
+User-agent: *
+Crawl-delay: 60
