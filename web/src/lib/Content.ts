@@ -1,6 +1,7 @@
 import { nip19 } from 'nostr-tools';
 import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
 import { unique } from './Array';
+import escapeStringRegexp from 'escape-string-regexp';
 
 export class Token {
 	constructor(
@@ -14,7 +15,7 @@ export class Token {
 export class Content {
 	static parse(content: string, tags: string[][] = []): Token[] {
 		const hashtags = tags
-			.filter(([tagName, tagContent]) => tagName === 't' && tagContent !== undefined)
+			.filter(([tagName, tagContent]) => tagName === 't' && tagContent)
 			.map(([, tagContent]) => tagContent);
 		hashtags.sort((x, y) => y.length - x.length);
 		const emojis = new Map(
@@ -30,7 +31,10 @@ export class Content {
 			matches = [
 				...(hashtags.length > 0
 					? content.matchAll(
-							new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'gi')
+							new RegExp(
+								`(${hashtags.map((x) => `#${escapeStringRegexp(x)}`).join('|')})`,
+								'gi'
+							)
 						)
 					: []),
 				...(emojis.size > 0
