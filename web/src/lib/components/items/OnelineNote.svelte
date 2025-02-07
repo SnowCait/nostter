@@ -1,17 +1,15 @@
 <script lang="ts">
-	import { metadataStore } from '$lib/cache/Events';
-	import { robohash, type EventItem } from '$lib/Items';
+	import { type EventItem } from '$lib/Items';
 	import IconMessageCircle from '@tabler/icons-svelte/icons/message-circle';
 	import OnelineContent from '../OnelineContent.svelte';
+	import ProfileIcon from '../profile/ProfileIcon.svelte';
 
 	export let item: EventItem;
-
-	$: metadata = item ? $metadataStore.get(item.event.pubkey) : undefined;
 </script>
 
 <article class="timeline-item">
 	<div class="icon"><IconMessageCircle /></div>
-	<div><img src={metadata?.picture ?? robohash(item.event.pubkey)} alt="" /></div>
+	<div class="picture"><ProfileIcon pubkey={item.event.pubkey} /></div>
 	<div class="content">
 		<OnelineContent content={item.event.content} tags={item.event.tags} />
 	</div>
@@ -29,10 +27,10 @@
 		margin: auto 0;
 	}
 
-	img {
+	.picture {
 		width: 1.5rem;
 		height: 1.5rem;
-		border-radius: 50%;
+		min-width: 1.5rem; /* for flex */
 	}
 
 	.content {
