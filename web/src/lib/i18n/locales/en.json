@@ -298,7 +298,8 @@
 		}
 	},
 	"poll": {
-		"vote": "Go vote",
-		"ends_at": "until %s"
+		"vote": "Vote",
+		"ends_at": "until %s",
+		"result": "View result"
 	}
 }
