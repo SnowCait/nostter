@@ -17,6 +17,7 @@
 	import LegacyDirectMessage from './LegacyDirectMessage.svelte';
 	import Picture from './Picture.svelte';
 	import Poll from './Poll.svelte';
+	import { pollKind } from '$lib/Poll';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -38,7 +39,7 @@
 	<Picture {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
 	<Channel {item} />
-{:else if Number(item.event.kind) === 1068}
+{:else if Number(item.event.kind) === pollKind}
 	<Poll {item} {createdAtFormat} />
 {:else if item.event.kind === Kind.Article}
 	<LongFormContent
