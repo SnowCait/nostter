@@ -109,6 +109,8 @@
 			</blockquote>
 		{:else if Number(item.event.kind) === 1063}
 			<Nip94 event={item.event} />
+		{:else if Number(item.event.kind) === 1068}
+			<blockquote><EventComponent {item} readonly={true} /></blockquote>
 		{:else}
 			<a href="/{nip19.neventEncode({ id: item.event.id, author: item.event.pubkey })}">
 				<blockquote><EventComponent {item} readonly={true} /></blockquote>

@@ -296,5 +296,8 @@
 			"unknown": "Unknown",
 			"impersonation": "Impersonation"
 		}
+	},
+	"poll": {
+		"vote": "Go vote"
 	}
 }
