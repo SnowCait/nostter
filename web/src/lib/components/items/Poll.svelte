@@ -49,7 +49,9 @@
 			</ExternalLink>
 		</form>
 		{#if endsAt}
-			<div>{new Date(Number(endsAt) * 1000).toLocaleString()}</div>
+			<div>
+				{$_('poll.ends_at').replace('%s', new Date(Number(endsAt) * 1000).toLocaleString())}
+			</div>
 		{/if}
 	</section>
 </EventMetadata>
