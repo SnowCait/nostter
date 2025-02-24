@@ -3,6 +3,7 @@ import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import { rxNostr } from '../timelines/MainTimeline';
 import { parseRelayJson } from '../EventHelper';
 import { WebStorage } from '../WebStorage';
+import { metadataRelays } from '$lib/Constants';
 
 export class RelayList {
 	public static async fetchEvents(pubkey: string): Promise<Map<Kind, Event>> {
@@ -24,7 +25,7 @@ export class RelayList {
 		await new Promise<void>((resolve, reject) => {
 			const relaysReq = createRxBackwardReq();
 			rxNostr
-				.use(relaysReq)
+				.use(relaysReq, { on: { defaultWriteRelays: true, relays: metadataRelays } })
 				.pipe(
 					uniq(),
 					latestEach(({ event }) => event.kind)

@@ -57,21 +57,6 @@ export class Signer {
 		}
 	}
 
-	public static async getRelays(): Promise<{ [url: string]: { read: boolean; write: boolean } }> {
-		const storage = new WebStorage(localStorage);
-		const login = storage.get('login');
-		if (login === 'NIP-07') {
-			try {
-				return await window.nostr.getRelays();
-			} catch (error) {
-				console.error('[NIP-07 getRelays()]', error);
-				return {};
-			}
-		} else {
-			return {};
-		}
-	}
-
 	public static async encrypt(pubkey: string, plaintext: string): Promise<string> {
 		const storage = new WebStorage(localStorage);
 		const login = storage.get('login');

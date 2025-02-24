@@ -125,6 +125,12 @@ export const localizedRelays = {
 	]
 };
 
+export const metadataRelays = [
+	'wss://purplepag.es',
+	'wss://user.kindpag.es/',
+	'wss://directory.yabu.me'
+];
+
 export const searchRelays = [
 	'wss://relay.nostr.band',
 	'wss://relay.noswhere.com',
