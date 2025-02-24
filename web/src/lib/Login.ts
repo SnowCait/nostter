@@ -71,14 +71,6 @@ export class Login {
 
 		console.timeLog('NIP-07');
 
-		const nip07Relays = await Signer.getRelays();
-
-		console.log('[NIP-07 relays]', nip07Relays);
-		console.timeLog('NIP-07');
-
-		rxNostr.addDefaultRelays(nip07Relays);
-		console.log('[relays for profile]', rxNostr.getDefaultRelays());
-
 		await this.fetchAuthor();
 
 		console.timeEnd('NIP-07');
