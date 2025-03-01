@@ -24,7 +24,7 @@
 		"@types/emoji-mart": "^3.0.14",
 		"@types/qrcode": "^1.5.5",
 		"@typescript-eslint/eslint-plugin": "^8.3.0",
-		"@typescript-eslint/parser": "^8.24.1",
+		"@typescript-eslint/parser": "^8.25.0",
 		"eslint": "^9.9.1",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^2.43.0",
