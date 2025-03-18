@@ -301,5 +301,10 @@
 		"vote": "Vote",
 		"ends_at": "until %s",
 		"result": "View result"
+	},
+	"zap": {
+		"title": "Zap",
+		"message": "Message (optional)",
+		"send": "Zap"
 	}
 }
