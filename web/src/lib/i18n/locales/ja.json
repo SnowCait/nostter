@@ -300,5 +300,10 @@
 		"vote": "投票",
 		"ends_at": "%s まで",
 		"result": "結果を見る"
+	},
+	"zap": {
+		"title": "Zap",
+		"message": "メッセージ（オプション）",
+		"send": "Zap"
 	}
 }

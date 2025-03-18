@@ -9,6 +9,11 @@
 	import { zapWithWalletConnect } from '$lib/Zap';
 	import { metadataStore } from '$lib/cache/Events';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
+	import { EventItem } from '$lib/Items';
+	import EventComponent from './items/EventComponent.svelte';
+	import ProfileIcon from './profile/ProfileIcon.svelte';
+	import ProfileName from './profile/ProfileName.svelte';
+	import { _ } from 'svelte-i18n';
 
 	export let pubkey: string;
 	export let event: Event | undefined;
@@ -97,27 +102,36 @@
 
 <ModalDialog bind:open>
 	<article>
+		<h1>{$_('zap.title')}</h1>
 		{#if invoice === ''}
-			<div>
-				@{metadata?.content?.name ?? metadata?.content?.display_name}
-			</div>
+			<blockquote>
+				{#if event}
+					<EventComponent item={new EventItem(event)} readonly={true} />
+				{:else}
+					<article class="profile timeline-item">
+						<div>
+							<ProfileIcon {pubkey} width="48px" height="48px" />
+						</div>
+						<div>
+							<ProfileName {pubkey} />
+						</div>
+					</article>
+				{/if}
+			</blockquote>
 			<form on:submit|preventDefault={zap}>
 				<div>
-					<input
-						type="number"
-						bind:value={sats}
-						on:keyup|stopPropagation={() => console.debug}
-					/>
-					<input type="submit" value="Zap" disabled={sending} />
+					<input type="number" bind:value={sats} on:keyup|stopPropagation />
+					<span>sats</span>
 				</div>
 				<div>
 					<input
 						type="text"
-						placeholder="Comment"
+						placeholder={$_('zap.message')}
 						bind:value={zapComment}
-						on:keyup|stopPropagation={() => console.debug}
+						on:keyup|stopPropagation
 					/>
 				</div>
+				<input type="submit" value={$_('zap.send')} disabled={sending} />
 			</form>
 		{:else}
 			{@const url = `lightning:${invoice}`}
@@ -141,8 +155,36 @@
 		margin: 1rem;
 	}
 
+	h1 {
+		font-size: 1.5rem;
+	}
+
 	.lnbc .text {
 		max-width: 400px;
 		overflow: auto;
+	}
+
+	.profile {
+		padding: 0;
+		vertical-align: middle;
+		display: flex;
+		gap: 12px;
+	}
+
+	.profile div:last-child {
+		display: flex;
+		align-items: center;
+	}
+
+	form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+
+		margin-top: 1rem;
+	}
+
+	input[type='text'] {
+		width: 100%;
 	}
 </style>
