@@ -183,6 +183,12 @@
 		"copy_id": {
 			"button": "Copy ID"
 		},
+		"copy_npub": {
+			"button": "Copy ID (npub)"
+		},
+		"copy_nprofile": {
+			"button": "Copy ID (nprofile)"
+		},
 		"copy_url": {
 			"button": "Copy link"
 		},
