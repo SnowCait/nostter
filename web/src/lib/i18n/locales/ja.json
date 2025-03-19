@@ -182,6 +182,12 @@
 		"copy_id": {
 			"button": "ID をコピー"
 		},
+		"copy_npub": {
+			"button": "ID (npub) をコピー"
+		},
+		"copy_nprofile": {
+			"button": "ID (nprofile) をコピー"
+		},
 		"copy_url": {
 			"button": "リンクをコピー"
 		},

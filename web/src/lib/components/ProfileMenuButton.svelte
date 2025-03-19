@@ -32,6 +32,7 @@
 	export let pubkey: string;
 
 	$: metadata = $metadataStore.get(pubkey);
+	$: npub = nip19.npubEncode(pubkey);
 	$: nprofile = nip19.nprofileEncode({ pubkey });
 	$: url = `${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`;
 
@@ -168,8 +169,12 @@
 		{$_('lists.edit')}
 	</Menu.Item>
 
+	<Menu.Item icon={IconClipboard} on:click={() => copy(npub)}>
+		{$_('actions.copy_npub.button')}
+	</Menu.Item>
+
 	<Menu.Item icon={IconClipboard} on:click={() => copy(nprofile)}>
-		{$_('actions.copy_id.button')}
+		{$_('actions.copy_nprofile.button')}
 	</Menu.Item>
 
 	<Menu.Item icon={IconLink} on:click={() => copy(url)}>
