@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { Content } from '$lib/Content';
-	import { newUrl } from '$lib/Helper';
 	import ReferenceNip27 from './content/ReferenceNip27.svelte';
 	import Reference from './content/Reference.svelte';
 	import Hashtag from './content/Hashtag.svelte';
@@ -18,10 +17,8 @@
 
 	$: tokens = Content.parse(content, tags);
 	$: urls = tokens
-		.filter((token) => token.name === 'url')
-		.map((token) => token.text)
-		.map((url) => newUrl(url))
-		.filter((url): url is URL => url !== undefined);
+		.filter((token) => token.name === 'url' && URL.canParse(token.text))
+		.map((token) => new URL(token.text));
 </script>
 
 <p class="content">
