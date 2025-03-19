@@ -13,7 +13,6 @@
 	import type { LayoutData } from './$types';
 	import TimelineView from '../TimelineView.svelte';
 	import { referTags } from '$lib/EventHelper';
-	import { newUrl } from '$lib/Helper';
 	import { fetchEvent, inThread } from '$lib/Thread';
 	import { EventItem, Metadata, ZapEventItem } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';
@@ -371,7 +370,7 @@
 		<span class="icon" class:heart={content === '+'}>
 			{#if content === '+'}
 				<IconHeart />
-			{:else if newUrl(content) !== undefined}
+			{:else if URL.canParse(content)}
 				<CustomEmoji url={content} text={customEmojiShortcode.get(content)} />
 			{:else}
 				<span>{content}</span>

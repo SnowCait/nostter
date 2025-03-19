@@ -3,7 +3,6 @@
 	import { now } from 'rx-nostr';
 	import { filter } from 'rxjs';
 	import type { ChannelContent } from '$lib/Channel';
-	import { newUrl } from '$lib/Helper';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { Signer } from '$lib/Signer';
 	import ModalDialog from '../ModalDialog.svelte';
@@ -30,7 +29,7 @@
 		if (about !== '') {
 			content.about = about.trim();
 		}
-		if (picture !== '' && newUrl(picture.trim()) !== undefined) {
+		if (picture !== '' && URL.canParse(picture.trim())) {
 			content.picture = picture.trim();
 		}
 
