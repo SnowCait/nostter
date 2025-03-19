@@ -3,8 +3,8 @@
 	import type { Event } from 'nostr-typedef';
 	import QRCode from 'qrcode';
 	import { writeRelays } from '$lib/stores/Author';
-	import { createEventDispatcher, onMount } from 'svelte';
-	import { WebStorage } from '$lib/WebStorage';
+	import { createEventDispatcher } from 'svelte';
+	import { persistedStore, WebStorage } from '$lib/WebStorage';
 	import { Signer } from '$lib/Signer';
 	import { zapWithWalletConnect } from '$lib/Zap';
 	import { metadataStore } from '$lib/cache/Events';
@@ -14,6 +14,7 @@
 	import ProfileIcon from './profile/ProfileIcon.svelte';
 	import ProfileName from './profile/ProfileName.svelte';
 	import { _ } from 'svelte-i18n';
+	import { browser } from '$app/environment';
 
 	export let pubkey: string;
 	export let event: Event | undefined;
@@ -25,21 +26,24 @@
 		open = true;
 	}
 
-	let sats = 50;
+	const history = persistedStore<number[]>('zap:history', []);
+
+	let sats = $history.at(0) ?? 1;
+	let satsList: number[] = [];
 	let zapComment = '';
 	let invoice = '';
 	let open = false;
 	let sending = false;
 
-	const dispatch = createEventDispatcher();
-
-	onMount(() => {
-		const storage = new WebStorage(localStorage);
-		const previousSats = storage.get('zap');
-		if (previousSats !== null) {
-			sats = Number(previousSats);
+	$: if (browser) {
+		const counts = new Map<number, number>();
+		for (const value of $history) {
+			counts.set(value, (counts.get(value) ?? 0) + 1);
 		}
-	});
+		satsList = [...counts].toSorted(([, x], [, y]) => y - x).map(([value]) => value);
+	}
+
+	const dispatch = createEventDispatcher();
 
 	async function zap() {
 		sending = true;
@@ -78,9 +82,9 @@
 			return;
 		}
 
-		const storage = new WebStorage(localStorage);
-		storage.set('zap', sats.toString());
+		$history = [sats, ...$history].slice(0, 100);
 
+		const storage = new WebStorage(localStorage);
 		const walletConnectUri = storage.get('nostr-wallet-connect');
 		if (walletConnectUri !== null && walletConnectUri !== '') {
 			try {
@@ -119,6 +123,13 @@
 				{/if}
 			</blockquote>
 			<form on:submit|preventDefault={zap}>
+				<div class="sats-input">
+					{#each satsList as value}
+						<button type="button" on:click={() => (sats = value)}>
+							{value.toLocaleString()}
+						</button>
+					{/each}
+				</div>
 				<div>
 					<input type="number" bind:value={sats} on:keyup|stopPropagation />
 					<span>sats</span>
@@ -186,5 +197,16 @@
 
 	input[type='text'] {
 		width: 100%;
+	}
+
+	.sats-input {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.sats-input button {
+		color: var(--foreground);
+		background-color: var(--accent-surface);
 	}
 </style>
