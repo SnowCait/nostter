@@ -58,7 +58,7 @@
 		"qrcode": "^1.5.4",
 		"rx-nostr": "^3.3.4",
 		"rx-nostr-crypto": "^3.1.1",
-		"rxjs": "^7.8.1",
+		"rxjs": "^7.8.2",
 		"svelte-easy-crop": "^3.0.0",
 		"svelte-i18n": "^4.0.0",
 		"svelte-persisted-store": "^0.12.0",
