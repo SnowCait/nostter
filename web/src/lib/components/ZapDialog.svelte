@@ -124,7 +124,7 @@
 			</blockquote>
 			<form on:submit|preventDefault={zap}>
 				<div class="sats-input">
-					{#each satsList as value}
+					{#each satsList.slice(0, 5) as value}
 						<button type="button" on:click={() => (sats = value)}>
 							{value.toLocaleString()}
 						</button>
