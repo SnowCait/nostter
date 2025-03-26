@@ -24,7 +24,6 @@
 	import IconBolt from '@tabler/icons-svelte/icons/bolt';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import DateLink from '$lib/components/DateLink.svelte';
-	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import BackButton from '$lib/components/BackButton.svelte';
 
@@ -429,20 +428,6 @@
 	<div>
 		<a href="/{$page.params.slug}/quotes">{$_('thread.quotes.title')}</a>
 	</div>
-	{#if item !== undefined}
-		<div>
-			<ExternalLink
-				link={new URL(
-					$_('thread.translation.url').replace(
-						'{0}',
-						encodeURIComponent(item.event.content)
-					)
-				)}
-			>
-				{$_('thread.translation.title')}
-			</ExternalLink>
-		</div>
-	{/if}
 </nav>
 
 <TimelineView items={repliedToEventItems} readonly={false} showLoading={false} />

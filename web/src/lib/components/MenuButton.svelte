@@ -19,6 +19,8 @@
 	import IconBroadcast from '@tabler/icons-svelte/icons/broadcast';
 	import IconTrash from '@tabler/icons-svelte/icons/trash';
 	import IconVolumeOff from '@tabler/icons-svelte/icons/volume-off';
+	import IconExternalLink from '@tabler/icons-svelte/icons/external-link';
+	import { IconLanguage } from '@tabler/icons-svelte';
 	import { deleteEvent } from '$lib/author/Delete';
 	import { mute, unmute } from '$lib/author/Mute';
 	import { referTags } from '$lib/EventHelper';
@@ -169,6 +171,21 @@
 			{$_('actions.copy_url.button')}
 		</Menu.Item>
 	{/if}
+
+	<Menu.Item
+		icon={IconLanguage}
+		on:click={() =>
+			open(
+				$_('thread.translation.url').replace('{0}', encodeURIComponent(event.content)),
+				'_blank',
+				'noopener,noreferrer'
+			)}
+	>
+		{$_('thread.translation.title')}
+		<svelte:fragment slot="rightSection">
+			<IconExternalLink size={16} />
+		</svelte:fragment>
+	</Menu.Item>
 
 	{#if event.pubkey === $authorPubkey}
 		<Divider />
