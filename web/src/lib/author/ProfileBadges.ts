@@ -44,7 +44,7 @@ async function save(type: DataType, a: string, e: string): Promise<void> {
 async function publish(): Promise<void> {
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getParameterizedReplaceableEvent(kind, identifier);
-	const tags = lastEvent?.tags.concat() ?? [];
+	const tags = lastEvent?.tags.concat() ?? [['d', identifier]];
 
 	while (queue.length > 0) {
 		const data = queue.dequeue();
