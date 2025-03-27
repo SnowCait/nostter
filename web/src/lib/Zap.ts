@@ -81,6 +81,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 			return true;
 		} else {
 			console.error('[NWC error]', payInvoice);
+			alert(payInvoice.error.message);
 			return false;
 		}
 	} catch (error) {
