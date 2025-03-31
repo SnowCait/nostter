@@ -14,3 +14,6 @@ export const fetchMinutes = (numberOfPubkeys: number): number => {
 		return 15;
 	}
 };
+
+const date = new Date();
+export const isAprilFool = date.getMonth() === 3 && date.getDate() === 1;
