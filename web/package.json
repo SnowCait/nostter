@@ -48,7 +48,7 @@
 		"@svelteuidev/composables": "^0.15.4",
 		"@svelteuidev/core": "^0.15.7",
 		"@tabler/icons-svelte": "^3.14.0",
-		"@tabler/icons-webfont": "^3.14.0",
+		"@tabler/icons-webfont": "^3.31.0",
 		"async-lock": "^1.4.1",
 		"emoji-kitchen-mart": "^6.0.4",
 		"escape-string-regexp": "^5.0.0",
