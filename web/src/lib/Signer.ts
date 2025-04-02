@@ -25,7 +25,7 @@ export class Signer {
 		}
 
 		if (login === 'NIP-07') {
-			return window.nostr.getPublicKey();
+			return await window.nostr.getPublicKey();
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
 			return getPublicKey(seckey as string);
