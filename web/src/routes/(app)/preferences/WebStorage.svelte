@@ -1,6 +1,14 @@
+<script lang="ts">
+	import { appName } from '$lib/Constants';
+
+	function maskNsec(key: string, value: string): string {
+		return key === `${appName}:login` && value.startsWith('nsec1') ? 'nsec1***' : value;
+	}
+</script>
+
 <section class="card">
 	<h3>Local storage</h3>
-	<code>{JSON.stringify(localStorage, null, 2)}</code>
+	<code>{JSON.stringify(localStorage, maskNsec, 2)}</code>
 </section>
 
 <section class="card">
