@@ -654,13 +654,8 @@
 	}
 
 	.dropzone {
-		background-image: linear-gradient(
-				to right,
-				#000,
-				#000 3px,
-				transparent 3px,
-				transparent 8px
-			),
+		background-image:
+			linear-gradient(to right, #000, #000 3px, transparent 3px, transparent 8px),
 			linear-gradient(to bottom, #000, #000 3px, transparent 3px, transparent 8px),
 			linear-gradient(to left, #000, #000 3px, transparent 3px, transparent 8px),
 			linear-gradient(to top, #000, #000 3px, transparent 3px, transparent 8px);
