@@ -17,6 +17,7 @@
 	import IconPencil from '@tabler/icons-svelte/icons/pencil';
 	import IconDeviceFloppy from '@tabler/icons-svelte/icons/device-floppy';
 	import Loading from '$lib/components/Loading.svelte';
+	import { sendEvent } from '$lib/RxNostrHelper';
 
 	export let data: LayoutData;
 
@@ -90,12 +91,11 @@
 	async function save() {
 		console.log('[save relays]', relays);
 
-		const newWriteRelays = relays.filter(({ write }) => write).map(({ url }) => url);
+		rxNostr.setDefaultRelays(relays);
 
 		try {
 			// kind 10002
-			const api = new Api($pool, newWriteRelays);
-			await api.signAndPublish(
+			await sendEvent(
 				Kind.RelayList,
 				'',
 				relays

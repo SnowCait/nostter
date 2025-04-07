@@ -6,11 +6,10 @@
 	import { FileStorageServer } from '$lib/media/FileStorageServer';
 	import { getMediaUploader } from '$lib/media/Media';
 	import { appName } from '$lib/Constants';
-	import { Api } from '$lib/Api';
-	import { pubkey, author, authorProfile, metadataEvent, writeRelays } from '$lib/stores/Author';
-	import { pool } from '$lib/stores/Pool';
+	import { pubkey, author, authorProfile, metadataEvent } from '$lib/stores/Author';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
+	import { sendEvent } from '$lib/RxNostrHelper';
 
 	//#region Cropper
 
@@ -130,9 +129,8 @@
 			return;
 		}
 
-		const api = new Api($pool, $writeRelays);
 		try {
-			await api.signAndPublish(
+			await sendEvent(
 				Kind.Metadata,
 				JSON.stringify($authorProfile),
 				$metadataEvent?.tags ?? []

@@ -1,8 +1,9 @@
 import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 import type { Event } from 'nostr-typedef';
-import { createRxBackwardReq, latest, type LazyFilter, uniq } from 'rx-nostr';
-import { firstValueFrom, tap } from 'rxjs';
+import { createRxBackwardReq, latest, type LazyFilter, now, uniq } from 'rx-nostr';
+import { filter, firstValueFrom, tap } from 'rxjs';
 import { reverseChronological } from '$lib/Constants';
+import { Signer } from './Signer';
 
 export async function fetchFirstEvent(filter: LazyFilter): Promise<Event | undefined> {
 	try {
@@ -78,4 +79,15 @@ export async function fetchEvents(
 	}
 	req.over();
 	return await promise;
+}
+
+export async function sendEvent(kind: number, content: string, tags: string[][]): Promise<Event> {
+	const { promise, resolve, reject } = Promise.withResolvers<void>();
+	const event = await Signer.signEvent({ kind, content, tags, created_at: now() });
+	rxNostr
+		.send(event)
+		.pipe(filter(({ ok }) => ok))
+		.subscribe({ next: () => resolve(), complete: () => reject() });
+	await promise;
+	return event;
 }
