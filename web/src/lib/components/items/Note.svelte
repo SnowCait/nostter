@@ -3,8 +3,6 @@
 	import type { EventItem, Item } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconMessages from '@tabler/icons-svelte/icons/messages';
-	import { readRelays } from '$lib/stores/Author';
-	import { pool } from '$lib/stores/Pool';
 	import { rom } from '$lib/stores/Author';
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
@@ -48,7 +46,7 @@
 			if (channelId === undefined) {
 				return;
 			}
-			const api = new Api($pool, $readRelays);
+			const api = new Api();
 			const channelMetadataEvent = await api.fetchChannelMetadataEvent(channelId);
 			if (channelMetadataEvent === undefined) {
 				return;

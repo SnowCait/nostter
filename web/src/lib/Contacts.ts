@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import { Kind, type SimplePool } from 'nostr-tools';
+import { Kind } from 'nostr-tools';
 import { Api } from './Api';
 import { filterTags } from './EventHelper';
 import { followees, originalFollowees, pubkey } from './stores/Author';
@@ -8,12 +8,8 @@ import { sendEvent } from './RxNostrHelper';
 export class Contacts {
 	private readonly api: Api;
 
-	constructor(
-		private readonly authorPubkey: string,
-		pool: SimplePool,
-		writeRelays: string[]
-	) {
-		this.api = new Api(pool, writeRelays);
+	constructor(private readonly authorPubkey: string) {
+		this.api = new Api();
 	}
 
 	// For legacy clients

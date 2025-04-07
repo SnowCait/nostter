@@ -2,11 +2,9 @@
 	import { onMount } from 'svelte';
 	import { nip19, type Event, Kind } from 'nostr-tools';
 	import type { AddressPointer } from 'nostr-tools/lib/nip19';
-	import { Api } from '$lib/Api';
-	import { readRelays } from '$lib/stores/Author';
-	import { pool } from '$lib/stores/Pool';
 	import LongFormContent from './LongFormContent.svelte';
 	import List from '$lib/components/items/List.svelte';
+	import { fetchLastEvent } from '$lib/RxNostrHelper';
 
 	export let naddr: string;
 
@@ -28,17 +26,14 @@
 
 	onMount(async () => {
 		const { identifier, kind, pubkey, relays } = pointer;
-		const api = new Api(
-			$pool,
-			relays !== undefined && relays.length > 0 ? relays : $readRelays
-		);
-		event = await api.fetchEvent([
+		event = await fetchLastEvent(
 			{
 				kinds: [kind],
 				authors: [pubkey],
 				'#d': [identifier]
-			}
-		]);
+			},
+			{ defaultReadRelays: true, relays }
+		);
 		console.log('[event]', event);
 	});
 </script>

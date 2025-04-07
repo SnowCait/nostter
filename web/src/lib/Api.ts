@@ -1,25 +1,23 @@
-import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-tools';
+import { nip19, type Event, Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { saveMetadataEvent, userEvents } from './stores/UserEvents';
 import { channelMetadataEventsStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
-import { fetchLastEvent } from './RxNostrHelper';
+import { fetchEvents, fetchLastEvent } from './RxNostrHelper';
 import type { RxNostrOnParams } from 'rx-nostr';
 
 export class Api {
-	constructor(
-		private pool: SimplePool,
-		private relays: string[]
-	) {}
-
-	public async fetchRelayEvents(pubkey: string): Promise<Map<Kind, Event>> {
-		const events = await this.pool.list(this.relays, [
-			{
-				kinds: [Kind.Contacts, Kind.RelayList],
-				authors: [pubkey]
-			}
-		]);
+	public async fetchRelayEvents(pubkey: string, relays: string[]): Promise<Map<Kind, Event>> {
+		const events = await fetchEvents(
+			[
+				{
+					kinds: [Kind.Contacts, Kind.RelayList],
+					authors: [pubkey]
+				}
+			],
+			relays
+		);
 		events.sort(chronological); // Latest event is effective
 		console.debug('[relay events all]', events);
 		return new Map<Kind, Event>(events.map((e) => [e.kind, e]));
@@ -44,7 +42,7 @@ export class Api {
 			return eventsMap;
 		}
 
-		const events = await this.pool.list(this.relays, [
+		const events = await fetchEvents([
 			{
 				kinds: [Kind.Metadata],
 				authors: pubkeys.filter((pubkey) => !eventsMap.has(pubkey))
@@ -61,14 +59,6 @@ export class Api {
 		await Promise.all([...eventsMap].map(async ([, event]) => await saveMetadataEvent(event)));
 
 		return eventsMap;
-	}
-
-	async fetchEvent(filters: Filter[]): Promise<Event | undefined> {
-		const events = await this.pool.list(this.relays, filters);
-
-		// Latest (return multi events except id filter)
-		events.sort(reverseChronological);
-		return events.at(0);
 	}
 
 	async fetchContactsEvent(
@@ -106,7 +96,7 @@ export class Api {
 			return cache;
 		}
 
-		const events = await this.pool.list(this.relays, [
+		const events = await fetchEvents([
 			{
 				kinds: [Kind.ChannelCreation],
 				ids: [id],
@@ -132,11 +122,6 @@ export class Api {
 			}
 		}
 		return event;
-	}
-
-	close() {
-		console.debug('[close connections]', this.relays);
-		this.pool.close(this.relays);
 	}
 }
 

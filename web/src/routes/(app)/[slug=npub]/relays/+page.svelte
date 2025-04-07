@@ -9,7 +9,6 @@
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { pubkey as authorPubkey, readRelays, writeRelays } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
-	import { pool } from '$lib/stores/Pool';
 	import { Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
 	import { filterRelayTags, parseRelayJson } from '$lib/EventHelper';
@@ -18,6 +17,7 @@
 	import IconDeviceFloppy from '@tabler/icons-svelte/icons/device-floppy';
 	import Loading from '$lib/components/Loading.svelte';
 	import { sendEvent } from '$lib/RxNostrHelper';
+	import { unique } from '$lib/Array';
 
 	export let data: LayoutData;
 
@@ -36,17 +36,12 @@
 			metadataReqEmit([pubkey]);
 		}
 
-		const api = new Api(
-			$pool,
-			Array.from(
-				new Set([
-					...data.relays,
-					...(pubkey === $authorPubkey ? $writeRelays : $readRelays)
-				])
-			)
-		);
+		const api = new Api();
 
-		const events = await api.fetchRelayEvents(pubkey);
+		const events = await api.fetchRelayEvents(
+			pubkey,
+			unique([...data.relays, ...(pubkey === $authorPubkey ? $writeRelays : $readRelays)])
+		);
 		console.log('[relay events]', events);
 		const kind10002 = events.get(Kind.RelayList);
 		const kind3 = events.get(Kind.Contacts);
@@ -114,7 +109,7 @@
 			);
 
 			if (saveToKind3) {
-				const contacts = new Contacts($authorPubkey, $pool, $writeRelays);
+				const contacts = new Contacts($authorPubkey);
 				await contacts.updateRelays(
 					new Map(relays.map(({ url, read, write }) => [url, { read, write }]))
 				);
