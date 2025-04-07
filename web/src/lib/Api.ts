@@ -1,24 +1,23 @@
-import { nip19, type Event, type SimplePool, Kind, type Filter } from 'nostr-tools';
+import { nip19, type Event, Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { saveMetadataEvent, userEvents } from './stores/UserEvents';
-import { Signer } from './Signer';
 import { channelMetadataEventsStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
+import { fetchEvents, fetchLastEvent } from './RxNostrHelper';
+import type { RxNostrOnParams } from 'rx-nostr';
 
 export class Api {
-	constructor(
-		private pool: SimplePool,
-		private relays: string[]
-	) {}
-
-	public async fetchRelayEvents(pubkey: string): Promise<Map<Kind, Event>> {
-		const events = await this.pool.list(this.relays, [
-			{
-				kinds: [Kind.Contacts, Kind.RelayList],
-				authors: [pubkey]
-			}
-		]);
+	public async fetchRelayEvents(pubkey: string, relays: string[]): Promise<Map<Kind, Event>> {
+		const events = await fetchEvents(
+			[
+				{
+					kinds: [Kind.Contacts, Kind.RelayList],
+					authors: [pubkey]
+				}
+			],
+			relays
+		);
 		events.sort(chronological); // Latest event is effective
 		console.debug('[relay events all]', events);
 		return new Map<Kind, Event>(events.map((e) => [e.kind, e]));
@@ -43,7 +42,7 @@ export class Api {
 			return eventsMap;
 		}
 
-		const events = await this.pool.list(this.relays, [
+		const events = await fetchEvents([
 			{
 				kinds: [Kind.Metadata],
 				authors: pubkeys.filter((pubkey) => !eventsMap.has(pubkey))
@@ -62,29 +61,18 @@ export class Api {
 		return eventsMap;
 	}
 
-	async fetchEvent(filters: Filter[]): Promise<Event | undefined> {
-		const events = await this.pool.list(this.relays, filters);
-
-		// Latest (return multi events except id filter)
-		events.sort(reverseChronological);
-		return events.at(0);
-	}
-
-	async fetchContactsEvent(pubkey: string): Promise<Event | undefined> {
-		const events = await this.pool.list(this.relays, [
+	async fetchContactsEvent(
+		pubkey: string,
+		on?: RxNostrOnParams | undefined
+	): Promise<Event | undefined> {
+		return await fetchLastEvent(
 			{
 				kinds: [3],
 				authors: [pubkey],
 				limit: 1 // Some relays have duplicate kind 3
-			}
-		]);
-		events.sort(reverseChronological);
-		console.log('[contact list events]', events);
-		return events.at(0);
-	}
-
-	async fetchEvents(filters: Filter[]): Promise<Event[]> {
-		return this.pool.list(this.relays, filters);
+			},
+			on
+		);
 	}
 
 	async fetchFollowees(pubkey: string): Promise<string[]> {
@@ -108,7 +96,7 @@ export class Api {
 			return cache;
 		}
 
-		const events = await this.pool.list(this.relays, [
+		const events = await fetchEvents([
 			{
 				kinds: [Kind.ChannelCreation],
 				ids: [id],
@@ -134,50 +122,6 @@ export class Api {
 			}
 		}
 		return event;
-	}
-
-	public async signAndPublish(kind: Kind, content: string, tags: string[][]): Promise<Event> {
-		const now = Date.now();
-		const event = await Signer.signEvent({
-			created_at: Math.round(now / 1000),
-			kind,
-			tags,
-			content
-		});
-		console.log('[publish]', event);
-
-		return new Promise((resolve, reject) => {
-			const publishedRelays = new Map<string, boolean>();
-
-			const timeoutId = setTimeout(() => {
-				console.warn(
-					'[publish timeout]',
-					this.relays.filter((relay) => !publishedRelays.has(relay)),
-					`${Date.now() - now}ms`
-				);
-				reject();
-			}, this.pool['eoseSubTimeout']);
-
-			const pub = this.pool.publish(this.relays, event);
-			pub.on('ok', (relay: string) => {
-				console.log('[ok]', relay, `${Date.now() - now}ms`);
-				publishedRelays.set(relay, true);
-				clearTimeout(timeoutId);
-				resolve(event);
-			});
-			pub.on('failed', (relay: string) => {
-				console.warn('[failed]', relay, `${Date.now() - now}ms`);
-				publishedRelays.set(relay, false);
-				if (this.relays.length === publishedRelays.size) {
-					reject();
-				}
-			});
-		});
-	}
-
-	close() {
-		console.debug('[close connections]', this.relays);
-		this.pool.close(this.relays);
 	}
 }
 

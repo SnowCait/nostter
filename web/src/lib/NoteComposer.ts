@@ -5,9 +5,6 @@ import { Content } from './Content';
 import type { ProfilePointer } from 'nostr-tools/lib/nip19';
 import type { User } from '../routes/types';
 import { Api } from './Api';
-import { pool } from './stores/Pool';
-import { get } from 'svelte/store';
-import { readRelays } from './stores/Author';
 import type { EventItem } from './Items';
 import { referTags } from './EventHelper';
 
@@ -95,7 +92,7 @@ export class NoteComposer {
 
 		// Custom emojis
 		tags.push(...emojiTags);
-		const readApi = new Api(get(pool), get(readRelays));
+		const readApi = new Api();
 		const shortcodes = Array.from(
 			new Set(
 				[...content.matchAll(/:(?<shortcode>\w+):/g)]

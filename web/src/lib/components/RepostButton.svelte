@@ -5,11 +5,11 @@
 	import type { Event } from 'nostr-typedef';
 	import { repostedEventIds, updateRepostedEvents } from '$lib/author/Action';
 	import { Signer } from '$lib/Signer';
-	import { rom, writeRelays } from '$lib/stores/Author';
-	import { pool } from '$lib/stores/Pool';
+	import { rom } from '$lib/stores/Author';
 	import { openNoteDialog, quotes } from '$lib/stores/NoteDialog';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import IconQuote from '@tabler/icons-svelte/icons/quote';
+	import { rxNostr } from '$lib/timelines/MainTimeline';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -39,7 +39,7 @@
 		});
 		console.log(repostEvent);
 
-		$pool.publish($writeRelays, repostEvent);
+		rxNostr.send(repostEvent);
 		updateRepostedEvents([repostEvent]);
 	}
 

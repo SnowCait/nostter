@@ -1,19 +1,13 @@
 import { get } from 'svelte/store';
-import type { Event, Kind } from 'nostr-tools';
-import { Api } from './Api';
+import type { Event } from 'nostr-tools';
 import { Signer } from './Signer';
-import { pubkey, storeMutedTagsByEvent, writeRelays } from './stores/Author';
-import { pool } from './stores/Pool';
+import { pubkey, storeMutedTagsByEvent } from './stores/Author';
 import { decryptListContent } from './List';
+import { sendEvent } from './RxNostrHelper';
 
 export class Mute {
 	private readonly authorPubkey = get(pubkey);
-	private readonly api: Api;
-	private readonly kind = 10000 as Kind;
-
-	constructor() {
-		this.api = new Api(get(pool), get(writeRelays));
-	}
+	private readonly kind = 10000;
 
 	// For legacy clients
 	public async migrate(legacyEvent: Event, event: Event | undefined): Promise<void> {
@@ -52,7 +46,7 @@ export class Mute {
 			privateTags.length > 0
 				? await Signer.encrypt(this.authorPubkey, JSON.stringify(privateTags))
 				: '';
-		const migratedEvent = await this.api.signAndPublish(10000 as Kind, content, publicTags);
+		const migratedEvent = await sendEvent(this.kind, content, publicTags);
 		await storeMutedTagsByEvent(migratedEvent);
 	}
 }
