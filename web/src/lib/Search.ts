@@ -3,10 +3,9 @@ import { get } from 'svelte/store';
 import { authorActionReqEmit } from './author/Action';
 import { hashtagsRegexp, reverseChronological, searchRelays } from './Constants';
 import { EventItem } from './Items';
-import { pool } from './stores/Pool';
-import { Api } from './Api';
 import { pubkey, readRelays } from './stores/Author';
 import { referencesReqEmit } from './timelines/MainTimeline';
+import { fetchEvents } from './RxNostrHelper';
 
 export class Search {
 	parseQuery(
@@ -92,9 +91,10 @@ export class Search {
 			new Date((filter.until ?? 0) * 1000),
 			new Date((filter.since ?? 0) * 1000)
 		);
-		const $pool = get(pool);
-		const api = new Api($pool, filter.search !== undefined ? searchRelays : get(readRelays));
-		const events = await api.fetchEvents([filter]);
+		const events = await fetchEvents(
+			[filter],
+			filter.search !== undefined ? searchRelays : get(readRelays)
+		);
 		console.debug('[search events]', events);
 		for (const event of events) {
 			referencesReqEmit(event);

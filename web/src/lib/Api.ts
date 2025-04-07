@@ -4,6 +4,8 @@ import { saveMetadataEvent, userEvents } from './stores/UserEvents';
 import { channelMetadataEventsStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
+import { fetchLastEvent } from './RxNostrHelper';
+import type { RxNostrOnParams } from 'rx-nostr';
 
 export class Api {
 	constructor(
@@ -69,21 +71,18 @@ export class Api {
 		return events.at(0);
 	}
 
-	async fetchContactsEvent(pubkey: string): Promise<Event | undefined> {
-		const events = await this.pool.list(this.relays, [
+	async fetchContactsEvent(
+		pubkey: string,
+		on?: RxNostrOnParams | undefined
+	): Promise<Event | undefined> {
+		return await fetchLastEvent(
 			{
 				kinds: [3],
 				authors: [pubkey],
 				limit: 1 // Some relays have duplicate kind 3
-			}
-		]);
-		events.sort(reverseChronological);
-		console.log('[contact list events]', events);
-		return events.at(0);
-	}
-
-	async fetchEvents(filters: Filter[]): Promise<Event[]> {
-		return this.pool.list(this.relays, filters);
+			},
+			on
+		);
 	}
 
 	async fetchFollowees(pubkey: string): Promise<string[]> {

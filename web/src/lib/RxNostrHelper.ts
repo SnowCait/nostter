@@ -1,6 +1,13 @@
 import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 import type { Event } from 'nostr-typedef';
-import { createRxBackwardReq, latest, type LazyFilter, now, uniq } from 'rx-nostr';
+import {
+	createRxBackwardReq,
+	latest,
+	type LazyFilter,
+	now,
+	type RxNostrOnParams,
+	uniq
+} from 'rx-nostr';
 import { filter, firstValueFrom, tap } from 'rxjs';
 import { reverseChronological } from '$lib/Constants';
 import { Signer } from './Signer';
@@ -19,12 +26,15 @@ export async function fetchFirstEvent(filter: LazyFilter): Promise<Event | undef
 	}
 }
 
-export async function fetchLastEvent(filter: LazyFilter): Promise<Event | undefined> {
+export async function fetchLastEvent(
+	filter: LazyFilter,
+	on?: RxNostrOnParams | undefined
+): Promise<Event | undefined> {
 	return await new Promise((resolve) => {
 		let lastEvent: Event | undefined;
 		const req = createRxBackwardReq();
 		rxNostr
-			.use(req)
+			.use(req, { on })
 			.pipe(latest())
 			.subscribe({
 				next: ({ from, event }) => {

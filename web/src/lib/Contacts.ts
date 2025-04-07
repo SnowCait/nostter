@@ -20,7 +20,9 @@ export class Contacts {
 	public async updateRelays(
 		relays: Map<string, { read: boolean; write: boolean }>
 	): Promise<void> {
-		const contacts = await this.api.fetchContactsEvent(this.authorPubkey);
+		const contacts = await this.api.fetchContactsEvent(this.authorPubkey, {
+			defaultWriteRelays: true
+		});
 		console.log('[contacts]', contacts);
 
 		if (contacts === undefined) {

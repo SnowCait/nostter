@@ -1,12 +1,9 @@
 <script lang="ts">
-	import { Api } from '$lib/Api';
 	import { nip19 } from 'nostr-tools';
-	import type { Event } from 'nostr-typedef';
 	import { onMount } from 'svelte';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
 	import { events } from '$lib/stores/Events';
-	import { pool } from '$lib/stores/Pool';
-	import { isMuteEvent, readRelays } from '$lib/stores/Author';
+	import { isMuteEvent } from '$lib/stores/Author';
 	import Text from './Text.svelte';
 	import Nip94 from '../Nip94.svelte';
 	import Naddr from './Naddr.svelte';
@@ -18,6 +15,7 @@
 	import DeletedContent from '../items/DeletedContent.svelte';
 	import MutedContent from '../items/MutedContent.svelte';
 	import { pollKind } from '$lib/Poll';
+	import { fetchLastEvent } from '$lib/RxNostrHelper';
 
 	export let text: string;
 
@@ -79,14 +77,11 @@
 
 	onMount(async () => {
 		if (dataType === 'addr') {
-			const api = new Api($pool, $readRelays);
-			const e = (await api.fetchEvent([
-				{
-					kinds: [addressPointer.kind],
-					authors: [addressPointer.pubkey],
-					'#d': [addressPointer.identifier]
-				}
-			])) as Event;
+			const e = await fetchLastEvent({
+				kinds: [addressPointer.kind],
+				authors: [addressPointer.pubkey],
+				'#d': [addressPointer.identifier]
+			});
 			if (e !== undefined) {
 				item = new EventItem(e);
 			}
