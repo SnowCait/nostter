@@ -51,7 +51,7 @@ export const rxNostr = createRxNostr({
 	connectionStrategy: 'lazy-keep',
 	eoseTimeout: timeout,
 	okTimeout: timeout,
-	retry: { strategy: 'immediately', maxCount: 1 },
+	retry: { strategy: 'exponential', maxCount: 5, initialDelay: 1000, polite: true },
 	authenticator: {
 		signer: {
 			getPublicKey: () => Signer.getPublicKey(),
