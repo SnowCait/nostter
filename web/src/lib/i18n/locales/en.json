@@ -262,7 +262,9 @@
 	},
 	"badge": {
 		"accept": "Accept",
-		"accepted": "Accepted"
+		"accepted": "Accepted",
+		"none": "No badge yet.",
+		"create": "Create a badge."
 	},
 	"replay": {
 		"title": "Replay",

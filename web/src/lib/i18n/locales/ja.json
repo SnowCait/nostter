@@ -261,7 +261,9 @@
 	},
 	"badge": {
 		"accept": "受け取る",
-		"accepted": "受取り済"
+		"accepted": "受取り済",
+		"none": "まだバッジはありません。",
+		"create": "バッジを作成する。"
 	},
 	"replay": {
 		"title": "リプレイ",
