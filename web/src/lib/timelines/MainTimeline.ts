@@ -78,20 +78,20 @@ rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 		case 'error':
 		case 'rejected':
 		case 'terminated': {
-			console.error('[rx-nostr connection]', from, state);
+			console.error('[connection]', new Date().toLocaleString(), from, state);
 			break;
 		}
 		case 'waiting-for-retrying':
 		case 'retrying':
 		case 'dormant': {
-			console.warn('[rx-nostr connection]', from, state);
+			console.warn('[connection]', new Date().toLocaleString(), from, state);
 			break;
 		}
 		case 'initialized':
 		case 'connecting':
 		case 'connected':
 		default: {
-			console.log('[rx-nostr connection]', from, state);
+			console.debug('[connection]', new Date().toLocaleString(), from, state);
 			break;
 		}
 	}
