@@ -6,7 +6,6 @@
 	import { goto } from '$app/navigation';
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import { BadgeApi, type Badge } from '$lib/BadgeApi';
 	import { newUrl } from '$lib/Helper';
 	import { type Metadata, alternativeName } from '$lib/Items';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
@@ -28,12 +27,10 @@
 	export let slug: string;
 	export let pubkey: string;
 	export let metadata: Metadata | undefined;
-	export let relays: string[] = [];
+	export let relays: string[];
 
 	let p: string | undefined;
 	let followees: string[] | undefined;
-
-	let badges: Badge[] = []; // NIP-58 Badges
 
 	$: user = metadata?.content;
 	$: url = user?.website ? newUrl(user.website) : undefined;
@@ -43,7 +40,6 @@
 
 		p = pubkey;
 		followees = undefined;
-		badges = [];
 
 		const contactsReq = createRxOneshotReq({
 			filters: [
@@ -72,11 +68,6 @@
 					console.error('[rx-nostr npub contacts error]', error);
 				}
 			});
-
-		const badgeApi = new BadgeApi();
-		badgeApi.fetchBadges(relays, pubkey).then((data) => {
-			badges = data;
-		});
 	}
 </script>
 
@@ -151,7 +142,7 @@
 			</div>
 		{/if}
 	</div>
-	<Badges {badges} />
+	<Badges {pubkey} {relays} />
 	<div class="relationships">
 		<div>
 			{$_('pages.followees')}: {#if followees === undefined}
