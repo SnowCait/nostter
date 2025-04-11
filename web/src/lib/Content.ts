@@ -1,5 +1,4 @@
 import { nip19 } from 'nostr-tools';
-import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
 import { unique } from './Array';
 import escapeStringRegexp from 'escape-string-regexp';
 
@@ -131,7 +130,7 @@ export class Content {
 						case 'npub':
 							return data as string;
 						case 'nprofile':
-							return (data as ProfilePointer).pubkey;
+							return (data as nip19.ProfilePointer).pubkey;
 						default:
 							return undefined;
 					}
@@ -159,7 +158,7 @@ export class Content {
 						case 'note':
 							return data as string;
 						case 'nevent':
-							return (data as EventPointer).id;
+							return (data as nip19.EventPointer).id;
 						default:
 							return undefined;
 					}

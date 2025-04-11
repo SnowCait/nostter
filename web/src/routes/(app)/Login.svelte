@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import type { Nip07 } from 'nostr-typedef';
-	import { generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
+	import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 	import { Login } from '$lib/Login';
 	import { loginType } from '$lib/stores/Author';
 	import { page } from '$app/stores';
@@ -44,7 +44,7 @@
 
 	function createAccount(): void {
 		showCreateAccountDialog = true;
-		const seckey = generatePrivateKey();
+		const seckey = generateSecretKey();
 		key = nip19.nsecEncode(seckey);
 		console.log('[pubkey]', getPublicKey(seckey));
 	}

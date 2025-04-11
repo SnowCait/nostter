@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { nip19, type Event, Kind } from 'nostr-tools';
-	import type { AddressPointer } from 'nostr-tools/lib/nip19';
+	import { nip19, type Event, kinds as Kind } from 'nostr-tools';
 	import LongFormContent from './LongFormContent.svelte';
 	import List from '$lib/components/items/List.svelte';
 	import { fetchLastEvent } from '$lib/RxNostrHelper';
 
 	export let naddr: string;
 
-	let pointer: AddressPointer;
+	let pointer: nip19.AddressPointer;
 	let event: Event | undefined;
 
 	try {
@@ -40,7 +39,7 @@
 
 {#if event === undefined}
 	<a href="/{naddr}">{naddr.substring(0, 'naddr1'.length + 7)}</a>
-{:else if event.kind == Kind.Article}
+{:else if event.kind == Kind.LongFormArticle}
 	<a href="/{naddr}">
 		<blockquote>
 			<LongFormContent {naddr} {event} />

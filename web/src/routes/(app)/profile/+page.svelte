@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Kind, nip19 } from 'nostr-tools';
+	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import Cropper from 'svelte-easy-crop';
 	import { goto } from '$app/navigation';

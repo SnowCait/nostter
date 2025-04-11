@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Kind, nip19 } from 'nostr-tools';
+	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import Profile from './Profile.svelte';
 	import RepostedNote from './RepostedNote.svelte';
 	import Reaction from './Reaction.svelte';
@@ -41,11 +41,11 @@
 	<Channel {item} />
 {:else if Number(item.event.kind) === pollKind}
 	<Poll {item} {createdAtFormat} />
-{:else if item.event.kind === Kind.Article}
+{:else if item.event.kind === Kind.LongFormArticle}
 	<LongFormContent
 		event={item.event}
 		naddr={nip19.naddrEncode({
-			kind: Kind.Article,
+			kind: Kind.LongFormArticle,
 			pubkey: item.event.pubkey,
 			identifier: findIdentifier(item.event.tags) ?? ''
 		})}

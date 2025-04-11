@@ -1,5 +1,4 @@
 import { now } from 'rx-nostr';
-import type { Kind } from 'nostr-tools';
 import { Signer } from '$lib/Signer';
 import { filterTags } from '$lib/EventHelper';
 import { getMediaUploader, type Media, type MediaResult } from './Media';
@@ -32,7 +31,7 @@ export class FileStorageServer implements Media {
 		form.append('file', file);
 
 		const event = await Signer.signEvent({
-			kind: 27235 as Kind,
+			kind: 27235,
 			content: '',
 			created_at: now(),
 			tags: [
@@ -62,7 +61,7 @@ export class FileStorageServer implements Media {
 		const startTime = now();
 		while (data.processing_url) {
 			const processingEvent = await Signer.signEvent({
-				kind: 27235 as Kind,
+				kind: 27235,
 				content: '',
 				created_at: now(),
 				tags: [

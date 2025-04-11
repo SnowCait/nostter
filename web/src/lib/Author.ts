@@ -1,4 +1,4 @@
-import { Kind, type Event } from 'nostr-tools';
+import { kinds as Kind, type Event } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { createRxBackwardReq, createRxOneshotReq, latest, latestEach, now, uniq } from 'rx-nostr';
 import { firstValueFrom, EmptyError } from 'rxjs';
@@ -54,7 +54,7 @@ export class Author {
 	}
 
 	// TODO: Ensure created_at
-	public storeRelays(replaceableEvents: Map<Kind, Event>) {
+	public storeRelays(replaceableEvents: Map<number, Event>) {
 		const contactsEvent = replaceableEvents.get(Kind.Contacts);
 		if (contactsEvent !== undefined) {
 			updateFolloweesStore(contactsEvent.tags);
@@ -107,18 +107,16 @@ export class Author {
 
 		this.storeRelays(replaceableEvents);
 
-		customEmojisEvent.set(replaceableEvents.get(10030 as Kind));
+		customEmojisEvent.set(replaceableEvents.get(10030));
 		const $customEmojisEvent = get(customEmojisEvent);
 		if ($customEmojisEvent !== undefined) {
 			storeCustomEmojis($customEmojisEvent);
 		}
 
-		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001 as Kind}:bookmark`));
+		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001}:bookmark`));
 		profileBadgesEvent.set(parameterizedReplaceableEvents.get(profileBadgesKey));
 
-		const preferencesEvent = parameterizedReplaceableEvents.get(
-			`${30078 as Kind}:nostter-preferences`
-		);
+		const preferencesEvent = parameterizedReplaceableEvents.get(`${30078}:nostter-preferences`);
 		if (preferencesEvent !== undefined) {
 			const preferences = new Preferences(preferencesEvent.content);
 			preferencesStore.set(preferences);
@@ -128,7 +126,7 @@ export class Author {
 			}
 		} else {
 			const regacyReactionEmojiEvent = parameterizedReplaceableEvents.get(
-				`${30078 as Kind}:nostter-reaction-emoji`
+				`${30078}:nostter-reaction-emoji`
 			);
 			if (regacyReactionEmojiEvent !== undefined) {
 				console.log('[preferences from regacy event]', regacyReactionEmojiEvent);
@@ -138,9 +136,9 @@ export class Author {
 			}
 		}
 
-		const lastReadEvent = parameterizedReplaceableEvents.get(`${30078 as Kind}:nostter-read`);
+		const lastReadEvent = parameterizedReplaceableEvents.get(`${30078}:nostter-read`);
 		const regacyLastReadEvent = parameterizedReplaceableEvents.get(
-			`${30000 as Kind}:notifications/lastOpened`
+			`${30000}:notifications/lastOpened`
 		);
 		if (lastReadEvent !== undefined) {
 			lastReadAt.set(lastReadEvent.created_at);
@@ -149,8 +147,8 @@ export class Author {
 		}
 		console.debug('[last read at]', new Date(get(lastReadAt) * 1000));
 
-		const muteEvent = replaceableEvents.get(10000 as Kind);
-		const legacyMuteEvent = parameterizedReplaceableEvents.get(`${30000 as Kind}:mute`);
+		const muteEvent = replaceableEvents.get(10000);
+		const legacyMuteEvent = parameterizedReplaceableEvents.get(`${30000}:mute`);
 
 		if (muteEvent !== undefined) {
 			await storeMutedTagsByEvent(muteEvent);
@@ -164,8 +162,8 @@ export class Author {
 		storeMutedPubkeysByKind(mutedByKindEvents);
 
 		// Channels
-		const pinEvent = replaceableEvents.get(10001 as Kind);
-		const channelsEvent = replaceableEvents.get(10005 as Kind);
+		const pinEvent = replaceableEvents.get(10001);
+		const channelsEvent = replaceableEvents.get(10005);
 		authorChannelsEventStore.set(channelsEvent);
 		if (channelsEvent === undefined && pinEvent !== undefined) {
 			await this.migrateChannels(pinEvent);
@@ -175,7 +173,7 @@ export class Author {
 	}
 
 	private async fetchAuthorEventsWithCache(pubkey: string): Promise<{
-		replaceableEvents: Map<Kind, Event>;
+		replaceableEvents: Map<number, Event>;
 		parameterizedReplaceableEvents: Map<string, Event>;
 	}> {
 		const storage = new WebStorage(localStorage);

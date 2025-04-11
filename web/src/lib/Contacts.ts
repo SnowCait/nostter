@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import { Kind } from 'nostr-tools';
+import { kinds as Kind } from 'nostr-tools';
 import { Api } from './Api';
 import { filterTags } from './EventHelper';
 import { followees, originalFollowees, pubkey } from './stores/Author';

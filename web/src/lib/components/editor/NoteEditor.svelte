@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
+	import { kinds as Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
 	import { uploadFiles } from '$lib/media/FileStorageServer';
 	import { complementPosition } from '$lib/styles/Complement';
 	import { adjustHeight } from '$lib/styles/Textarea';
@@ -354,7 +354,7 @@
 		const event = await noteComposer.compose(
 			$channelIdStore !== undefined || $replyTo?.event?.kind === Kind.ChannelMessage
 				? Kind.ChannelMessage
-				: Kind.Text,
+				: Kind.ShortTextNote,
 			Content.replaceNip19(content),
 			[
 				...noteComposer.replyTags(content, $replyTo, $channelIdStore, pubkeys),

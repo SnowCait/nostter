@@ -2,7 +2,6 @@ import { nip19, type Event } from 'nostr-tools';
 import { Signer } from './Signer';
 import { now } from 'rx-nostr';
 import { Content } from './Content';
-import type { ProfilePointer } from 'nostr-tools/lib/nip19';
 import type { User } from '../routes/types';
 import { Api } from './Api';
 import type { EventItem } from './Items';
@@ -73,7 +72,7 @@ export class NoteComposer {
 					break;
 				}
 				case 'nprofile': {
-					pubkeys.add((data as ProfilePointer).pubkey);
+					pubkeys.add((data as nip19.ProfilePointer).pubkey);
 				}
 			}
 		}

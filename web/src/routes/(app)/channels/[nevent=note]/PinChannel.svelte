@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createRxOneshotReq, latest, now } from 'rx-nostr';
 	import { every, firstValueFrom, EmptyError } from 'rxjs';
-	import type { Kind, EventTemplate } from 'nostr-tools';
+	import type { EventTemplate } from 'nostr-tools';
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { Signer } from '$lib/Signer';
 	import { pubkey } from '$lib/stores/Author';
@@ -44,7 +44,7 @@
 			if (error instanceof EmptyError) {
 				console.debug('[channel pin not found]', error);
 				unsignedEvent = {
-					kind: 10005 as Kind,
+					kind: 10005,
 					content: '',
 					tags: [['e', channelId]],
 					created_at: now()
