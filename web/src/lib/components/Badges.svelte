@@ -81,7 +81,7 @@
 								}
 							}
 						});
-					awardsReq.emit([{ kinds: [8], ids: awardIds }]);
+					awardsReq.emit([{ kinds: [8], ids: awardIds, '#p': [event.pubkey] }]);
 					awardsReq.over();
 
 					const definitionAddressesGroupedByPubkey = definitionAddresses.reduce(
