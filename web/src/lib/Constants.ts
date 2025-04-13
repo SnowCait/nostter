@@ -1,4 +1,4 @@
-import { Kind, type Event as NostrEvent } from 'nostr-tools';
+import { kinds as Kind, type Event as NostrEvent } from 'nostr-tools';
 import { unique } from './Array';
 
 export const appName = 'nostter';
@@ -71,7 +71,7 @@ export const authorFilterReplaceableKinds = unique(authorReplaceableKinds.map(({
 
 export const authorFilterKinds = [5, Kind.Reaction];
 
-export const authorHashtagsFilterKinds = [Kind.Text];
+export const authorHashtagsFilterKinds = [Kind.ShortTextNote];
 
 export const categoriesKinds = {
 	notes: [1],

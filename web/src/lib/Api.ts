@@ -1,4 +1,4 @@
-import { nip19, type Event, Kind } from 'nostr-tools';
+import { nip19, type Event, kinds as Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { saveMetadataEvent, userEvents } from './stores/UserEvents';
 import { channelMetadataEventsStore } from './cache/Events';
@@ -8,7 +8,7 @@ import { fetchEvents, fetchLastEvent } from './RxNostrHelper';
 import type { RxNostrOnParams } from 'rx-nostr';
 
 export class Api {
-	public async fetchRelayEvents(pubkey: string, relays: string[]): Promise<Map<Kind, Event>> {
+	public async fetchRelayEvents(pubkey: string, relays: string[]): Promise<Map<number, Event>> {
 		const events = await fetchEvents(
 			[
 				{
@@ -20,7 +20,7 @@ export class Api {
 		);
 		events.sort(chronological); // Latest event is effective
 		console.debug('[relay events all]', events);
-		return new Map<Kind, Event>(events.map((e) => [e.kind, e]));
+		return new Map<number, Event>(events.map((e) => [e.kind, e]));
 	}
 
 	async fetchMetadataEventsMap(pubkeys: string[]): Promise<Map<string, Event>> {

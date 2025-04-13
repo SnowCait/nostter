@@ -1,11 +1,10 @@
 import {
-	getEventHash,
 	type Event,
-	signEvent,
 	nip19,
 	type EventTemplate,
 	getPublicKey,
-	nip04
+	nip04,
+	finalizeEvent
 } from 'nostr-tools';
 import { WebStorage } from './WebStorage';
 import type { UnsignedEvent } from 'nostr-typedef';
@@ -28,7 +27,7 @@ export class Signer {
 			return await window.nostr.getPublicKey();
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
-			return getPublicKey(seckey as string);
+			return getPublicKey(seckey as Uint8Array);
 		} else {
 			throw new Error('[logic error]');
 		}
@@ -45,13 +44,7 @@ export class Signer {
 			return await window.nostr.signEvent(unsignedEvent);
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
-			const event = unsignedEvent as Event;
-			if (event.pubkey === undefined) {
-				event.pubkey = getPublicKey(seckey as string);
-			}
-			event.id = getEventHash(event);
-			event.sig = signEvent(event, seckey as string);
-			return event;
+			return finalizeEvent(unsignedEvent, seckey as Uint8Array);
 		} else {
 			throw new Error('[logic error]');
 		}

@@ -11,7 +11,7 @@ import { filter, share, tap } from 'rxjs';
 import type { Filter } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, storeSeenOn } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
-import { Kind } from 'nostr-tools';
+import { kinds as Kind } from 'nostr-tools';
 import { get, writable } from 'svelte/store';
 import { bookmarkEvent } from '$lib/author/Bookmark';
 import { updateReactionedEvents, updateRepostedEvents } from '$lib/author/Action';
@@ -249,7 +249,7 @@ observable
 		}
 
 		// Cache
-		if (event.kind === Kind.Text) {
+		if (event.kind === Kind.ShortTextNote) {
 			saveLastNote(event);
 		}
 

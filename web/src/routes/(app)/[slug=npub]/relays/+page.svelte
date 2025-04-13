@@ -9,7 +9,7 @@
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { pubkey as authorPubkey, readRelays, writeRelays } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
-	import { Kind } from 'nostr-tools';
+	import { kinds as Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
 	import { filterRelayTags, parseRelayJson } from '$lib/EventHelper';
 	import { Contacts } from '$lib/Contacts';

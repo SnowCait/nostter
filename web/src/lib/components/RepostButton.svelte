@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Menu } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
-	import { Kind } from 'nostr-tools';
+	import { kinds as Kind } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { repostedEventIds, updateRepostedEvents } from '$lib/author/Action';
 	import { Signer } from '$lib/Signer';
@@ -30,7 +30,7 @@
 
 		const repostEvent = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
-			kind: 6 as Kind,
+			kind: 6,
 			tags: [
 				['e', targetEvent.id, '', 'mention'],
 				['p', targetEvent.pubkey]

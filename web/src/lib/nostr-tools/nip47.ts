@@ -1,10 +1,13 @@
-import { nip04, type Event, getEventHash, signEvent, getPublicKey } from 'nostr-tools';
+import { nip04, finalizeEvent, type VerifiedEvent } from 'nostr-tools';
+import { kinds } from 'nostr-tools';
 
-export function parseConnectionString(connectionString: string): {
+interface NWCConnection {
 	pubkey: string;
 	relay: string;
 	secret: string;
-} {
+}
+
+export function parseConnectionString(connectionString: string): NWCConnection {
 	const { hostname, pathname, searchParams } = new URL(connectionString);
 	const pubkey = hostname ? hostname : pathname.replaceAll('/', '');
 	const relay = searchParams.get('relay');
@@ -19,9 +22,9 @@ export function parseConnectionString(connectionString: string): {
 
 export async function makeNwcRequestEvent(
 	pubkey: string,
-	secretKey: string,
+	secretKey: Uint8Array,
 	invoice: string
-): Promise<Event> {
+): Promise<VerifiedEvent> {
 	const content = {
 		method: 'pay_invoice',
 		params: {
@@ -30,14 +33,11 @@ export async function makeNwcRequestEvent(
 	};
 	const encryptedContent = await nip04.encrypt(secretKey, pubkey, JSON.stringify(content));
 	const eventTemplate = {
-		kind: 23194,
+		kind: kinds.NWCWalletRequest,
 		created_at: Math.round(Date.now() / 1000),
 		content: encryptedContent,
 		tags: [['p', pubkey]]
 	};
-	const event = eventTemplate as Event;
-	event.pubkey = getPublicKey(secretKey);
-	event.id = getEventHash(event);
-	event.sig = signEvent(event, secretKey);
-	return event;
+
+	return finalizeEvent(eventTemplate, secretKey);
 }

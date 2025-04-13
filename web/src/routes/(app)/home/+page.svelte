@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { uniq, type LazyFilter, createRxBackwardReq } from 'rx-nostr';
 	import { tap } from 'rxjs';
-	import { Kind } from 'nostr-tools';
+	import { kinds as Kind } from 'nostr-tools';
 	import { goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
@@ -99,7 +99,7 @@
 			];
 			if ($followingHashtags.length > 0) {
 				authorFilters.push({
-					kinds: [Kind.Text],
+					kinds: [Kind.ShortTextNote],
 					'#t': $followingHashtags,
 					until,
 					since
@@ -158,7 +158,7 @@
 							$events = $events;
 
 							// Cache
-							if (item.event.kind === Kind.Text) {
+							if (item.event.kind === Kind.ShortTextNote) {
 								saveLastNote(item.event);
 							}
 						},

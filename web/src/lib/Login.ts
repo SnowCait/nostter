@@ -78,7 +78,7 @@ export class Login {
 
 	public async withNsec(key: string) {
 		const { type, data: seckey } = nip19.decode(key);
-		if (type !== 'nsec' || typeof seckey !== 'string') {
+		if (type !== 'nsec') {
 			console.error('Invalid nsec');
 			return;
 		}

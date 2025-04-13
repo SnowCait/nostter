@@ -8,7 +8,6 @@
 	import Nip94 from '../Nip94.svelte';
 	import Naddr from './Naddr.svelte';
 	import EventComponent from '../items/EventComponent.svelte';
-	import type { AddressPointer } from 'nostr-tools/lib/nip19';
 	import { EventItem, Metadata, alternativeName } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import NoteLink from '../items/NoteLink.svelte';
@@ -24,7 +23,7 @@
 	let metadata: Metadata | undefined;
 	let eventId: string | undefined;
 	let item: EventItem | undefined;
-	let addressPointer: AddressPointer;
+	let addressPointer: nip19.AddressPointer;
 
 	$: slug = text.substring('nostr:'.length);
 

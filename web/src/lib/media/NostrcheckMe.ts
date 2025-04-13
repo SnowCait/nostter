@@ -1,5 +1,4 @@
 import { Signer } from '$lib/Signer';
-import type { Kind } from 'nostr-tools';
 import type { Media, MediaResult } from './Media';
 import { now } from 'rx-nostr';
 
@@ -13,7 +12,7 @@ export class NostrcheckMe implements Media {
 		form.set('mediafile', file);
 
 		const event = await Signer.signEvent({
-			kind: 27235 as Kind,
+			kind: 27235,
 			content: '',
 			created_at: now(),
 			tags: [

@@ -6,6 +6,7 @@ import { seckeySigner } from 'rx-nostr-crypto';
 import type { Event } from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
 import { verificationClient } from './timelines/MainTimeline';
+import { hexToBytes } from '@noble/hashes/utils';
 
 export async function zapWithWalletConnect(uri: string, invoice: string): Promise<boolean> {
 	const {
@@ -14,7 +15,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 		secret: walletSeckey
 	} = parseConnectionString(uri);
 	console.debug('[NWC info]', walletRelay, walletPubkey);
-	const event = await makeNwcRequestEvent(walletPubkey, walletSeckey, invoice);
+	const event = await makeNwcRequestEvent(walletPubkey, hexToBytes(walletSeckey), invoice);
 	console.debug('[NWC event]', event);
 
 	const nwcRxNostr = createRxNostr({
