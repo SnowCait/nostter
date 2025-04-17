@@ -7,13 +7,11 @@ import {
 	finalizeEvent
 } from 'nostr-tools';
 import { WebStorage } from './WebStorage';
-import type { UnsignedEvent } from 'nostr-typedef';
+import type { Nip07, UnsignedEvent } from 'nostr-typedef';
 
-interface Window {
-	// NIP-07
-	nostr: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-}
-declare const window: Window;
+declare const window: {
+	nostr: Nip07.Nostr | undefined;
+};
 
 export class Signer {
 	public static async getPublicKey(): Promise<string> {
@@ -23,7 +21,7 @@ export class Signer {
 			throw new Error('[logic error]');
 		}
 
-		if (login === 'NIP-07') {
+		if (login === 'NIP-07' && window.nostr !== undefined) {
 			return await window.nostr.getPublicKey();
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
@@ -40,7 +38,7 @@ export class Signer {
 			throw new Error('[logic error]');
 		}
 
-		if (login === 'NIP-07') {
+		if (login === 'NIP-07' && window.nostr !== undefined) {
 			return await window.nostr.signEvent(unsignedEvent);
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
@@ -57,7 +55,7 @@ export class Signer {
 			throw new Error('[logic error]');
 		}
 
-		if (login === 'NIP-07' && window.nostr.nip04 !== undefined) {
+		if (login === 'NIP-07' && window.nostr !== undefined && window.nostr.nip04 !== undefined) {
 			return await window.nostr.nip04.encrypt(pubkey, plaintext);
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
@@ -74,7 +72,7 @@ export class Signer {
 			throw new Error('[logic error]');
 		}
 
-		if (login === 'NIP-07' && window.nostr.nip04 !== undefined) {
+		if (login === 'NIP-07' && window.nostr !== undefined && window.nostr.nip04 !== undefined) {
 			return await window.nostr.nip04.decrypt(pubkey, ciphertext);
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
