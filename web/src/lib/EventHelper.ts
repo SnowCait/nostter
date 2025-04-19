@@ -126,16 +126,18 @@ export function referTags(event: Event): {
 	let reply = event.tags.findLast(
 		([tagName, , , marker]) => tagName === 'e' && marker === 'reply'
 	);
-	console.log(root, reply);
 
 	// Deprecated NIP-10
-	if (root === undefined && reply === undefined) {
-		const eTags = event.tags.filter((tag) => tag.at(0) === 'e' && tag.length < 4);
+	if (root === undefined || reply === undefined) {
+		const eTags = event.tags.filter(
+			([tagName, , , marker]) => tagName === 'e' && marker !== 'mention'
+		);
 		if (eTags.length === 1) {
-			root = eTags[0];
+			root = root ?? eTags[0];
+			reply = undefined;
 		} else if (eTags.length > 1) {
-			root = eTags[0];
-			reply = eTags[eTags.length - 1];
+			root = root ?? eTags[0];
+			reply = reply ?? eTags[eTags.length - 1];
 		}
 	}
 
@@ -177,4 +179,8 @@ export function getZapperPubkey(event: Event): string | undefined {
 
 export function isNostrHex(hex: string): boolean {
 	return /[0-9a-f]{64}/.test(hex);
+}
+
+export function getTitle(tags: string[][]): string | undefined {
+	return filterTags('title', tags).at(0);
 }

@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { Menu } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
-	import { Kind } from 'nostr-tools';
+	import { kinds as Kind } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { repostedEventIds, updateRepostedEvents } from '$lib/author/Action';
 	import { Signer } from '$lib/Signer';
-	import { rom, writeRelays } from '$lib/stores/Author';
-	import { pool } from '$lib/stores/Pool';
+	import { rom } from '$lib/stores/Author';
 	import { openNoteDialog, quotes } from '$lib/stores/NoteDialog';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import IconQuote from '@tabler/icons-svelte/icons/quote';
+	import { rxNostr } from '$lib/timelines/MainTimeline';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -30,7 +30,7 @@
 
 		const repostEvent = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
-			kind: 6 as Kind,
+			kind: 6,
 			tags: [
 				['e', targetEvent.id, '', 'mention'],
 				['p', targetEvent.pubkey]
@@ -39,7 +39,7 @@
 		});
 		console.log(repostEvent);
 
-		$pool.publish($writeRelays, repostEvent);
+		rxNostr.send(repostEvent);
 		updateRepostedEvents([repostEvent]);
 	}
 
@@ -60,7 +60,7 @@
 		</div>
 	</svelte:fragment>
 
-	<Menu.Item icon={IconRepeat} on:click={() => repost(event)} disabled={event.kind === 42}>
+	<Menu.Item icon={IconRepeat} on:click={() => repost(event)} disabled={event.kind !== 1}>
 		{$_('actions.repost.button')}
 	</Menu.Item>
 	<Menu.Item icon={IconQuote} on:click={() => quote(event)}>

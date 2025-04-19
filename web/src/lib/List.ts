@@ -3,7 +3,7 @@ import { createRxOneshotReq, latest } from 'rx-nostr';
 import { lastValueFrom } from 'rxjs';
 import type { Event } from 'nostr-typedef';
 import { rxNostr } from './timelines/MainTimeline';
-import { filterTags, findIdentifier } from './EventHelper';
+import { filterTags, findIdentifier, getTitle } from './EventHelper';
 import { parsePrivateTags } from './Encryption';
 import { pubkey } from './stores/Author';
 import { Signer } from './Signer';
@@ -26,7 +26,7 @@ export async function fetchListEvent(
 }
 
 export function getListTitle(tags: string[][]): string {
-	return filterTags('title', tags).at(0) ?? findIdentifier(tags) ?? '-';
+	return getTitle(tags) ?? findIdentifier(tags) ?? '-';
 }
 
 export async function getListPubkeys(event: Event): Promise<string[]> {

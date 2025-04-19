@@ -1,4 +1,4 @@
-import { Kind, type Event as NostrEvent } from 'nostr-tools';
+import { kinds as Kind, type Event as NostrEvent } from 'nostr-tools';
 import { unique } from './Array';
 
 export const appName = 'nostter';
@@ -14,7 +14,9 @@ export const maxFilters = 10;
 export const timelineBufferMs = 1500;
 export const timeout = 5000;
 
+export const hexRegexp = /^[0-9a-f]{64}$/;
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
+export const nicovideoRegexp = /^https:\/\/(www|sp).nicovideo.jp\/watch\/(?<id>[a-zA-Z0-9]+)/;
 
 export const replaceableKinds = [
 	Kind.Metadata,
@@ -28,6 +30,7 @@ export const replaceableKinds = [
 ];
 export const parameterizedReplaceableKinds = [30000, 30001, 30007, 30008, 30078];
 
+export const notesKinds = [1, 42];
 export const notesFilterKinds = [1, 6];
 export const followeesFilterKinds = [
 	...notesFilterKinds,
@@ -68,7 +71,7 @@ export const authorFilterReplaceableKinds = unique(authorReplaceableKinds.map(({
 
 export const authorFilterKinds = [5, Kind.Reaction];
 
-export const authorHashtagsFilterKinds = [Kind.Text];
+export const authorHashtagsFilterKinds = [Kind.ShortTextNote];
 
 export const categoriesKinds = {
 	notes: [1],
@@ -123,8 +126,16 @@ export const localizedRelays = {
 	]
 };
 
+export const metadataRelays = [
+	'wss://purplepag.es',
+	'wss://user.kindpag.es/',
+	'wss://directory.yabu.me'
+];
+
 export const searchRelays = [
 	'wss://relay.nostr.band',
+	'wss://relay.noswhere.com',
+	'wss://nostr.wine',
 	'wss://search.nos.today',
 	'wss://nostrja-kari-nip50.heguro.com'
 ];
@@ -144,6 +155,8 @@ export const imageOptimizerServers = [
 	'https://api.yabu.me/v0/images/optimize/',
 	'https://nostr-image-optimizer.ocknamo.com/image/'
 ];
+
+export const httpProxy = 'https://proxy.nostter.app';
 
 export const chronological = (x: NostrEvent, y: NostrEvent) => x.created_at - y.created_at;
 export const reverseChronological = (x: NostrEvent, y: NostrEvent) => y.created_at - x.created_at;

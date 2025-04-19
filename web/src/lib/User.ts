@@ -1,5 +1,4 @@
 import { nip19 } from 'nostr-tools';
-import type { ProfilePointer } from 'nostr-tools/lib/nip19';
 import type { Nip05 } from 'nostr-typedef';
 
 export class User {
@@ -18,7 +17,7 @@ export class User {
 						break;
 					}
 					case 'nprofile': {
-						const pointer = data as ProfilePointer;
+						const pointer = data as nip19.ProfilePointer;
 						pubkey = pointer.pubkey;
 						relays = pointer.relays ?? [];
 						break;

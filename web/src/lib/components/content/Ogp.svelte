@@ -1,8 +1,10 @@
 <script lang="ts" context="module">
-	const cache = new Map<string, any>();
+	const cache = new Map<string, any>(); // eslint-disable-line @typescript-eslint/no-explicit-any
 </script>
 
 <script lang="ts">
+	import { httpProxy } from '$lib/Constants';
+
 	export let url: URL;
 
 	$: ogp = cache.get(url.href);
@@ -20,7 +22,7 @@
 		cache.set(url.href, undefined);
 
 		return await new Promise((resolve) => {
-			fetch(proxy ? `https://corsproxy.io/?${encodeURIComponent(url.href)}` : url)
+			fetch(proxy ? `${httpProxy}/?url=${encodeURIComponent(url.href)}` : url)
 				.then(async (response) => {
 					const contentType = response.headers.get('Content-Type');
 					if (

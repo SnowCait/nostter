@@ -1,6 +1,6 @@
 import { nip19 } from 'nostr-tools';
-import type { EventPointer, ProfilePointer } from 'nostr-tools/lib/nip19';
 import { unique } from './Array';
+import escapeStringRegexp from 'escape-string-regexp';
 
 export class Token {
 	constructor(
@@ -14,7 +14,7 @@ export class Token {
 export class Content {
 	static parse(content: string, tags: string[][] = []): Token[] {
 		const hashtags = tags
-			.filter(([tagName, tagContent]) => tagName === 't' && tagContent !== undefined)
+			.filter(([tagName, tagContent]) => tagName === 't' && tagContent)
 			.map(([, tagContent]) => tagContent);
 		hashtags.sort((x, y) => y.length - x.length);
 		const emojis = new Map(
@@ -30,7 +30,10 @@ export class Content {
 			matches = [
 				...(hashtags.length > 0
 					? content.matchAll(
-							new RegExp(`(${hashtags.map((x) => `#${x}`).join('|')})`, 'gi')
+							new RegExp(
+								`(${hashtags.map((x) => `#${escapeStringRegexp(x)}`).join('|')})`,
+								'gi'
+							)
 						)
 					: []),
 				...(emojis.size > 0
@@ -46,7 +49,7 @@ export class Content {
 				...content.matchAll(
 					/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[\d+\]/g
 				),
-				...content.matchAll(/(http|ws)s?:\/\/\S+/g),
+				...content.matchAll(/(?<=^|\s)(https|wss|ws):\/\/\S+/g),
 				...content.matchAll(/NIP-[0-9]{2,}/g)
 			].sort((x, y) => {
 				if (x.index === undefined || y.index === undefined) {
@@ -55,7 +58,7 @@ export class Content {
 
 				return x.index - y.index;
 			});
-		} catch (error: any) {
+		} catch (error) {
 			console.error('[content parse failed]', error);
 			return [new Token('text', content)];
 		}
@@ -127,7 +130,7 @@ export class Content {
 						case 'npub':
 							return data as string;
 						case 'nprofile':
-							return (data as ProfilePointer).pubkey;
+							return (data as nip19.ProfilePointer).pubkey;
 						default:
 							return undefined;
 					}
@@ -155,7 +158,7 @@ export class Content {
 						case 'note':
 							return data as string;
 						case 'nevent':
-							return (data as EventPointer).id;
+							return (data as nip19.EventPointer).id;
 						default:
 							return undefined;
 					}

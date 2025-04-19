@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { Api } from '$lib/Api';
 	import TimelineView from '../../TimelineView.svelte';
-	import {
-		pubkey as authorPubkey,
-		followees as authorFollowees,
-		readRelays
-	} from '$lib/stores/Author';
-	import { SimplePool } from 'nostr-tools';
+	import { pubkey as authorPubkey, followees as authorFollowees } from '$lib/stores/Author';
 	import {
 		UserFollowingTimeline,
 		currentPubkey,
@@ -33,7 +28,7 @@
 		if (pubkey === $authorPubkey) {
 			followees = $authorFollowees;
 		} else {
-			new Api(new SimplePool(), $readRelays).fetchFollowees(pubkey).then((pubkeys) => {
+			new Api().fetchFollowees(pubkey).then((pubkeys) => {
 				followees = pubkeys;
 			});
 		}

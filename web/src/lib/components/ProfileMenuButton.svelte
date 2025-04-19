@@ -17,7 +17,6 @@
 	import { developerMode } from '$lib/stores/Preference';
 	import { copy } from '$lib/Clipboard';
 	import { alternativeName } from '$lib/Items';
-	import { shareUrl } from '$lib/Share';
 	import IconDots from '@tabler/icons-svelte/icons/dots';
 	import IconList from '@tabler/icons-svelte/icons/list';
 	import IconClipboard from '@tabler/icons-svelte/icons/clipboard';
@@ -33,6 +32,7 @@
 	export let pubkey: string;
 
 	$: metadata = $metadataStore.get(pubkey);
+	$: npub = nip19.npubEncode(pubkey);
 	$: nprofile = nip19.nprofileEncode({ pubkey });
 	$: url = `${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`;
 
@@ -76,7 +76,7 @@
 			await mute('p', pubkey);
 		} catch (error) {
 			console.error('[mute failed]', error);
-			alert('Failed to mute.');
+			alert($_('actions.mute.failed'));
 		}
 	}
 
@@ -87,7 +87,7 @@
 			await unmute('p', pubkey);
 		} catch (error) {
 			console.error('[unmute failed]', error);
-			alert('Failed to unmute.');
+			alert($_('actions.unmute.failed'));
 		}
 	}
 
@@ -169,26 +169,17 @@
 		{$_('lists.edit')}
 	</Menu.Item>
 
-	<Menu.Item icon={IconClipboard} on:click={() => copy(nprofile)}>
-		{$_('actions.copy_id.button')}
+	<Menu.Item icon={IconClipboard} on:click={() => copy(npub)}>
+		{$_('actions.copy_npub.button')}
 	</Menu.Item>
 
-	{#if navigator.canShare !== undefined}
-		<Menu.Item
-			icon={IconLink}
-			on:click={async () => {
-				if (!(await shareUrl(url))) {
-					await copy(url);
-				}
-			}}
-		>
-			{$_('actions.share.button')}
-		</Menu.Item>
-	{:else}
-		<Menu.Item icon={IconLink} on:click={() => copy(url)}>
-			{$_('actions.copy_url.button')}
-		</Menu.Item>
-	{/if}
+	<Menu.Item icon={IconClipboard} on:click={() => copy(nprofile)}>
+		{$_('actions.copy_nprofile.button')}
+	</Menu.Item>
+
+	<Menu.Item icon={IconLink} on:click={() => copy(url)}>
+		{$_('actions.copy_url.button')}
+	</Menu.Item>
 
 	<Menu.Item icon={IconAffiliate} on:click={async () => await goto(`/${nprofile}/relays`)}>
 		{$_('pages.relays')}
@@ -212,7 +203,7 @@
 		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={onUnmute}>
 			{$_('actions.unmute.button')}
 		</Menu.Item>
-	{:else}
+	{:else if pubkey !== $authorPubkey}
 		<Menu.Item icon={IconVolumeOff} on:click={onMute}>
 			{$_('actions.mute.button')}
 		</Menu.Item>

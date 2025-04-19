@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { Content } from '$lib/Content';
-	import { newUrl } from '$lib/Helper';
 	import ReferenceNip27 from './content/ReferenceNip27.svelte';
 	import Reference from './content/Reference.svelte';
 	import Hashtag from './content/Hashtag.svelte';
@@ -10,16 +9,16 @@
 	import CustomEmoji from './content/CustomEmoji.svelte';
 	import Ogp from './content/Ogp.svelte';
 	import { enablePreview } from '$lib/stores/Preference';
+	import { Twitter } from '$lib/Twitter';
+	import { nicovideoRegexp } from '$lib/Constants';
 
 	export let content: string;
 	export let tags: string[][];
 
 	$: tokens = Content.parse(content, tags);
 	$: urls = tokens
-		.filter((token) => token.name === 'url')
-		.map((token) => token.text)
-		.map((url) => newUrl(url))
-		.filter((url): url is URL => url !== undefined);
+		.filter((token) => token.name === 'url' && URL.canParse(token.text))
+		.map((token) => new URL(token.text));
 </script>
 
 <p class="content">
@@ -51,10 +50,12 @@
 	{/each}
 	{#if $enablePreview && browser}
 		{#each urls as url}
-			{#if url.origin === 'https://twitter.com' || url.origin === 'https://x.com'}
+			{#if Twitter.isTweetUrl(url)}
 				<!-- Twitter -->
 			{:else if url.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(url.hostname)}
 				<!-- YouTube -->
+			{:else if url.hostname.endsWith('nicovideo.jp') && nicovideoRegexp.test(url.href)}
+				<!-- Niconico -->
 			{:else if url.hostname === 'amzn.to' || url.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(url.hostname)}
 				<!-- Amazon -->
 			{:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp|mp3|m4a|wav|mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(url.pathname)}

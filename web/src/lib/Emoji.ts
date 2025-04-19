@@ -3,6 +3,7 @@ export type Emoji = {
 	url?: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function toEmoji(emoji: any): Emoji {
 	if (emoji.native !== undefined) {
 		return {

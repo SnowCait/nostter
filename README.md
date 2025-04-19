@@ -21,14 +21,15 @@ Link to
 https://nostter.app/post?content={url-encoded-text-here}
 ```
 
-<details>
-<summary>Bookmarklet</summary>
+### Browser Extension
+
+[Post for nostter](https://chromewebstore.google.com/detail/post-for-nostter/abifdocleldfpalofpbjlndgmojmijab) (Chrome)
+
+### Bookmarklet
 
 ```js
 javascript:window.open(`https://nostter.app/post?content=${document.title}%20${location.href}`);
 ```
-
-</details>
 
 ## Dependencies
 

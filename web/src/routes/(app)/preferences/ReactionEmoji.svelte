@@ -6,6 +6,7 @@
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import CustomEmoji from '$lib/components/content/CustomEmoji.svelte';
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async function save({ detail }: { detail: any }) {
 		const emoji = toEmoji(detail);
 		console.log('[reaction emoji save]', emoji, $preferencesStore.reactionEmoji);

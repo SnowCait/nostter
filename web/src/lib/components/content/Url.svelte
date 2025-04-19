@@ -1,19 +1,41 @@
 <script lang="ts" context="module">
+	import AsyncLock from 'async-lock';
+	import { httpProxy, nicovideoRegexp } from '$lib/Constants';
+
 	declare global {
 		interface Window {
-			twttr: any;
+			twttr: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 		}
+	}
+
+	const cache = new Map<string, string | null>();
+	const lock = new AsyncLock();
+
+	async function fetchContentType(url: string): Promise<string | null> {
+		return await lock.acquire(url, async () => {
+			if (cache.has(url)) {
+				return cache.get(url) ?? null;
+			}
+			const response = await fetch(`${httpProxy}/?url=${encodeURIComponent(url)}`, {
+				method: 'HEAD'
+			});
+			const contentType = response.headers.get('Content-Type');
+			cache.set(url, contentType);
+			return contentType;
+		});
 	}
 </script>
 
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { newUrl } from '$lib/Helper';
+	import { Twitter } from '$lib/Twitter';
 	import { enablePreview } from '$lib/stores/Preference';
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import YouTube from '$lib/components/content/YouTube.svelte';
 	import Img from '$lib/components/content/Img.svelte';
+	import Nicovideo from './Nicovideo.svelte';
 
 	export let text: string;
 	export let url: string | undefined = undefined;
@@ -32,7 +54,7 @@
 
 {#if link === undefined}
 	<Text {text} />
-{:else if link.origin === 'https://twitter.com' || link.origin === 'https://x.com'}
+{:else if Twitter.isTweetUrl(link)}
 	{#if preview}
 		<div bind:this={twitterWidget}>
 			<blockquote class="twitter-tweet">
@@ -51,40 +73,56 @@
 	{/if}
 {:else if link.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(link.hostname)}
 	<YouTube {link} />
+{:else if link.hostname.endsWith('nicovideo.jp') && nicovideoRegexp.test(link.href)}
+	<Nicovideo {link} />
 {:else if link.hostname === 'amzn.to' || link.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
 	<ExternalLink {link} />
-{:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp)$/i.test(link.pathname)}
-	{#if preview}
-		<div>
-			<a href={link.href} target="_blank" rel="noopener noreferrer">
-				<Img url={link} />
-			</a>
-		</div>
-	{:else}
-		<ExternalLink {link} />
-		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
-	{/if}
-{:else if /\.(mp3|m4a|wav)$/i.test(link.pathname)}
-	{#if preview}
-		<audio src={link.href} controls />
-	{:else}
-		<ExternalLink {link} />
-		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
-	{/if}
-{:else if /\.(mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(link.pathname)}
-	{#if preview}
-		<!-- svelte-ignore a11y-media-has-caption -->
-		<div>
-			<video src={link.href} controls />
-		</div>
-	{:else}
-		<ExternalLink {link} />
-		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
-	{/if}
-{:else if url !== undefined && text !== url}
-	<ExternalLink {link}>{text}</ExternalLink>
 {:else}
-	<ExternalLink {link} />
+	{#await fetchContentType(link.href)}
+		{#if url !== undefined && text !== url}
+			<ExternalLink {link}>{text}</ExternalLink>
+		{:else}
+			<ExternalLink {link} />
+		{/if}
+	{:then contentType}
+		{#if contentType === null}
+			<ExternalLink {link} />
+		{:else if contentType.startsWith('image/')}
+			{#if preview}
+				<div>
+					<a href={link.href} target="_blank" rel="noopener noreferrer">
+						<Img url={link} />
+					</a>
+				</div>
+			{:else}
+				<ExternalLink {link} />
+				<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+			{/if}
+		{:else if contentType.startsWith('audio/')}
+			{#if preview}
+				<audio src={link.href} controls />
+			{:else}
+				<ExternalLink {link} />
+				<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+			{/if}
+		{:else if contentType.startsWith('video/')}
+			{#if preview}
+				<!-- svelte-ignore a11y-media-has-caption -->
+				<div>
+					<video src={link.href} controls />
+				</div>
+			{:else}
+				<ExternalLink {link} />
+				<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+			{/if}
+		{:else if url !== undefined && text !== url}
+			<ExternalLink {link}>{text}</ExternalLink>
+		{:else}
+			<ExternalLink {link} />
+		{/if}
+	{:catch}
+		<ExternalLink {link} />
+	{/await}
 {/if}
 
 <style>

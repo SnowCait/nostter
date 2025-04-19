@@ -1,23 +1,20 @@
 import {
-	getEventHash,
 	type Event,
-	signEvent,
 	nip19,
 	type EventTemplate,
 	getPublicKey,
-	nip04
+	nip04,
+	finalizeEvent,
+	generateSecretKey
 } from 'nostr-tools';
-import { BunkerSigner, parseBunkerInput } from '@nostr/tools/nip46';
-import { generateSecretKey } from '@nostr/tools/pure';
+import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
 import { WebStorage } from './WebStorage';
-import type { UnsignedEvent } from 'nostr-typedef';
+import type { Nip07, UnsignedEvent } from 'nostr-typedef';
 
-interface Window {
-	// NIP-07
-	nostr: any;
-}
-declare const window: Window;
+declare const window: {
+	nostr: Nip07.Nostr | undefined;
+};
 
 let bunkerSigner: BunkerSigner | undefined;
 let nip46CachedPublicKey: string | undefined;
@@ -48,13 +45,13 @@ export class Signer {
 			throw new Error('[logic error]');
 		}
 
-		if (login === 'NIP-07') {
-			return window.nostr.getPublicKey();
+		if (login === 'NIP-07' && window.nostr !== undefined) {
+			return await window.nostr.getPublicKey();
 		} else if (login.startsWith('bunker://')) {
 			return nip46CachedPublicKey!;
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
-			return getPublicKey(seckey as string);
+			return getPublicKey(seckey as Uint8Array);
 		} else {
 			throw new Error('[logic error]');
 		}
@@ -67,42 +64,15 @@ export class Signer {
 			throw new Error('[logic error]');
 		}
 
-		if (login === 'NIP-07') {
+		if (login === 'NIP-07' && window.nostr !== undefined) {
 			return await window.nostr.signEvent(unsignedEvent);
 		} else if (login.startsWith('bunker://')) {
 			return await bunkerSigner!.signEvent(unsignedEvent as any);
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
-			const event = unsignedEvent as Event;
-			if (event.pubkey === undefined) {
-				event.pubkey = getPublicKey(seckey as string);
-			}
-			event.id = getEventHash(event);
-			event.sig = signEvent(event, seckey as string);
-			return event;
+			return finalizeEvent(unsignedEvent, seckey as Uint8Array);
 		} else {
 			throw new Error('[logic error]');
-		}
-	}
-
-	public static async getRelays(): Promise<{ [url: string]: { read: boolean; write: boolean } }> {
-		const storage = new WebStorage(localStorage);
-		const login = storage.get('login');
-		if (login === null || login.startsWith('npub')) {
-			throw new Error('[logic error]');
-		}
-
-		if (login === 'NIP-07') {
-			try {
-				return await window.nostr.getRelays();
-			} catch (error) {
-				console.error('[NIP-07 getRelays()]', error);
-				return {};
-			}
-		} else if (login.startsWith('bunker://')) {
-			return bunkerSigner!.getRelays();
-		} else {
-			return {};
 		}
 	}
 
@@ -113,7 +83,7 @@ export class Signer {
 			throw new Error('[logic error]');
 		}
 
-		if (login === 'NIP-07' && window.nostr.nip04 !== undefined) {
+		if (login === 'NIP-07' && window.nostr !== undefined && window.nostr.nip04 !== undefined) {
 			return await window.nostr.nip04.encrypt(pubkey, plaintext);
 		} else if (login.startsWith('bunker://')) {
 			return bunkerSigner!.nip04Encrypt(pubkey, plaintext);
@@ -132,7 +102,7 @@ export class Signer {
 			throw new Error('[logic error]');
 		}
 
-		if (login === 'NIP-07' && window.nostr.nip04 !== undefined) {
+		if (login === 'NIP-07' && window.nostr !== undefined && window.nostr.nip04 !== undefined) {
 			return await window.nostr.nip04.decrypt(pubkey, ciphertext);
 		} else if (login.startsWith('bunker://')) {
 			return bunkerSigner!.nip04Decrypt(pubkey, ciphertext);

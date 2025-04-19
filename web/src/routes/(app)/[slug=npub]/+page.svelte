@@ -7,10 +7,10 @@
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { metadataStore, storeMetadata } from '$lib/cache/Events';
 	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { pubkey as authorPubkey, readRelays } from '$lib/stores/Author';
+	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { Timeline } from '$lib/Timeline';
 	import { EventItem } from '$lib/Items';
-	import { appName, minTimelineLength } from '$lib/Constants';
+	import { minTimelineLength } from '$lib/Constants';
 	import { replaceableEvents, replaceableEventsReqEmit } from '$lib/Profile';
 	import type { LayoutData } from './$types';
 	import { developerMode } from '$lib/stores/Preference';
@@ -22,14 +22,12 @@
 	$: metadata = $metadataStore.get(data.pubkey);
 
 	let events: EventItem[] = [];
-	let relays = $readRelays;
 	let slug = $page.params.slug;
 
 	afterNavigate(() => {
 		console.debug('[npub page]', data.pubkey);
 
 		events = [];
-		relays = [...new Set([...$readRelays, ...data.relays])];
 
 		if (metadata === undefined) {
 			if (data.metadataEvent !== undefined) {
@@ -157,19 +155,8 @@
 	}
 </script>
 
-<svelte:head>
-	{#if metadata !== undefined}
-		<title>{appName} - {metadata.displayName} (@{metadata.name})</title>
-		<meta property="og:title" content={metadata.displayName} />
-		<meta property="og:description" content={metadata.about} />
-		<meta property="og:image" content={metadata.picture} />
-	{:else}
-		<title>{appName} - ghost</title>
-	{/if}
-</svelte:head>
-
 <section class="card profile-wrapper">
-	<Profile {slug} pubkey={data.pubkey} {metadata} {relays} />
+	<Profile {slug} pubkey={data.pubkey} {metadata} relays={data.relays} />
 </section>
 
 <section>

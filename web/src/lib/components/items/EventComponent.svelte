@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Kind, nip19 } from 'nostr-tools';
+	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import Profile from './Profile.svelte';
 	import RepostedNote from './RepostedNote.svelte';
 	import Reaction from './Reaction.svelte';
@@ -15,6 +15,9 @@
 	import BadgeDefinition from './BadgeDefinition.svelte';
 	import List from './List.svelte';
 	import LegacyDirectMessage from './LegacyDirectMessage.svelte';
+	import Picture from './Picture.svelte';
+	import Poll from './Poll.svelte';
+	import { pollKind } from '$lib/Poll';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -32,13 +35,17 @@
 	<Reaction {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.BadgeAward}
 	<BadgeAward {item} {readonly} {createdAtFormat} />
+{:else if Number(item.event.kind) === 20}
+	<Picture {item} {readonly} {createdAtFormat} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
 	<Channel {item} />
-{:else if item.event.kind === Kind.Article}
+{:else if Number(item.event.kind) === pollKind}
+	<Poll {item} {createdAtFormat} />
+{:else if item.event.kind === Kind.LongFormArticle}
 	<LongFormContent
 		event={item.event}
 		naddr={nip19.naddrEncode({
-			kind: Kind.Article,
+			kind: Kind.LongFormArticle,
 			pubkey: item.event.pubkey,
 			identifier: findIdentifier(item.event.tags) ?? ''
 		})}

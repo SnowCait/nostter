@@ -1,22 +1,20 @@
 <script lang="ts">
-	import { Api } from '$lib/Api';
 	import { nip19 } from 'nostr-tools';
-	import type { Event } from 'nostr-typedef';
 	import { onMount } from 'svelte';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
 	import { events } from '$lib/stores/Events';
-	import { pool } from '$lib/stores/Pool';
-	import { isMuteEvent, readRelays } from '$lib/stores/Author';
+	import { isMuteEvent } from '$lib/stores/Author';
 	import Text from './Text.svelte';
 	import Nip94 from '../Nip94.svelte';
 	import Naddr from './Naddr.svelte';
 	import EventComponent from '../items/EventComponent.svelte';
-	import type { AddressPointer } from 'nostr-tools/lib/nip19';
 	import { EventItem, Metadata, alternativeName } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import NoteLink from '../items/NoteLink.svelte';
 	import DeletedContent from '../items/DeletedContent.svelte';
 	import MutedContent from '../items/MutedContent.svelte';
+	import { pollKind } from '$lib/Poll';
+	import { fetchLastEvent } from '$lib/RxNostrHelper';
 
 	export let text: string;
 
@@ -25,7 +23,7 @@
 	let metadata: Metadata | undefined;
 	let eventId: string | undefined;
 	let item: EventItem | undefined;
-	let addressPointer: AddressPointer;
+	let addressPointer: nip19.AddressPointer;
 
 	$: slug = text.substring('nostr:'.length);
 
@@ -78,14 +76,11 @@
 
 	onMount(async () => {
 		if (dataType === 'addr') {
-			const api = new Api($pool, $readRelays);
-			const e = (await api.fetchEvent([
-				{
-					kinds: [addressPointer.kind],
-					authors: [addressPointer.pubkey],
-					'#d': [addressPointer.identifier]
-				}
-			])) as Event;
+			const e = await fetchLastEvent({
+				kinds: [addressPointer.kind],
+				authors: [addressPointer.pubkey],
+				'#d': [addressPointer.identifier]
+			});
 			if (e !== undefined) {
 				item = new EventItem(e);
 			}
@@ -109,6 +104,8 @@
 			</blockquote>
 		{:else if Number(item.event.kind) === 1063}
 			<Nip94 event={item.event} />
+		{:else if Number(item.event.kind) === pollKind}
+			<blockquote><EventComponent {item} readonly={true} /></blockquote>
 		{:else}
 			<a href="/{nip19.neventEncode({ id: item.event.id, author: item.event.pubkey })}">
 				<blockquote><EventComponent {item} readonly={true} /></blockquote>

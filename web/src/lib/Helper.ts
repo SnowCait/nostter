@@ -1,12 +1,7 @@
 export const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-export const newUrl = (url: string): URL | undefined => {
-	try {
-		return new URL(url);
-	} catch (error) {
-		console.log('[invalid url]', url, error);
-	}
-};
+export const newUrl = (url: string): URL | undefined =>
+	URL.canParse(url) ? new URL(url) : undefined;
 
 export const fetchMinutes = (numberOfPubkeys: number): number => {
 	if (numberOfPubkeys < 10) {
@@ -19,3 +14,6 @@ export const fetchMinutes = (numberOfPubkeys: number): number => {
 		return 15;
 	}
 };
+
+const date = new Date();
+export const isAprilFool = date.getMonth() === 3 && date.getDate() === 1;

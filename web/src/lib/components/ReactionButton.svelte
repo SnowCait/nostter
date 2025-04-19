@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { Kind } from 'nostr-tools';
+	import { kinds as Kind } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { reactionedEventIds } from '$lib/author/Action';
 	import { sendReaction } from '$lib/author/Reaction';
@@ -12,6 +12,7 @@
 	import IconPawFilled from '@tabler/icons-svelte/icons/paw-filled';
 	import IconStar from '@tabler/icons-svelte/icons/star';
 	import IconStarFilled from '@tabler/icons-svelte/icons/star-filled';
+	import { isAprilFool } from '$lib/Helper';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -48,7 +49,7 @@
 	class:reactioned
 	on:click={() => reaction(event)}
 >
-	{#if $preferencesStore.reactionEmoji.content === '🐾'}
+	{#if $preferencesStore.reactionEmoji.content === '🐾' || isAprilFool}
 		{#if reactioned}
 			<IconPawFilled size={iconSize} />
 		{:else}

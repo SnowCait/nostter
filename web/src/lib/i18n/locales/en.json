@@ -1,4 +1,7 @@
 {
+	"app": {
+		"description": "Nostr client for web."
+	},
 	"layout": {
 		"header": {
 			"home": "Home",
@@ -78,8 +81,11 @@
 		}
 	},
 	"post": "Post",
-	"follow": "Follow",
-	"following": "Following",
+	"follow": {
+		"follow": "Follow",
+		"following": "Following",
+		"organize": "Organize followees"
+	},
 	"cancel": "Cancel",
 	"or": "OR",
 	"preferences": {
@@ -142,7 +148,9 @@
 		"search": "Search",
 		"options": "Search options",
 		"mine": "My notes",
-		"proxy": "Include external SNS notes"
+		"proxy": "Include external SNS notes",
+		"notes": "Notes",
+		"users": "Users"
 	},
 	"public_chat": {
 		"create_channel": "Create channel",
@@ -176,6 +184,12 @@
 		"copy_id": {
 			"button": "Copy ID"
 		},
+		"copy_npub": {
+			"button": "Copy ID (npub)"
+		},
+		"copy_nprofile": {
+			"button": "Copy ID (nprofile)"
+		},
 		"copy_url": {
 			"button": "Copy link"
 		},
@@ -206,15 +220,21 @@
 		},
 		"mute": {
 			"button": "Mute",
+			"user": "Mute this user",
 			"reposts": "Mute reposts",
 			"reactions": "Mute reactions (likes)",
-			"zaps": "Mute zaps"
+			"zaps": "Mute zaps",
+			"thread": "Mute this thread",
+			"failed": "Failed to mute."
 		},
 		"unmute": {
 			"button": "Unmute",
+			"user": "Unmute this user",
 			"reposts": "Unmute this user's reposts",
 			"reactions": "Unmute this user's reactions",
-			"zaps": "Unmute this user's zaps"
+			"zaps": "Unmute this user's zaps",
+			"thread": "Unmute this thread",
+			"failed": "Failed to unmute."
 		},
 		"delete": {
 			"button": "Delete",
@@ -243,7 +263,9 @@
 	},
 	"badge": {
 		"accept": "Accept",
-		"accepted": "Accepted"
+		"accepted": "Accepted",
+		"none": "No badge yet.",
+		"create": "Create a badge."
 	},
 	"replay": {
 		"title": "Replay",
@@ -283,5 +305,15 @@
 			"unknown": "Unknown",
 			"impersonation": "Impersonation"
 		}
+	},
+	"poll": {
+		"vote": "Vote",
+		"ends_at": "until %s",
+		"result": "View result"
+	},
+	"zap": {
+		"title": "Zap",
+		"message": "Message (optional)",
+		"send": "Zap"
 	}
 }

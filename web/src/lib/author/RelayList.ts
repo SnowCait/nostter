@@ -1,11 +1,12 @@
-import { Kind, type Event } from 'nostr-tools';
+import { kinds as Kind, type Event } from 'nostr-tools';
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import { rxNostr } from '../timelines/MainTimeline';
 import { parseRelayJson } from '../EventHelper';
 import { WebStorage } from '../WebStorage';
+import { metadataRelays } from '$lib/Constants';
 
 export class RelayList {
-	public static async fetchEvents(pubkey: string): Promise<Map<Kind, Event>> {
+	public static async fetchEvents(pubkey: string): Promise<Map<number, Event>> {
 		const kinds = [Kind.Contacts, Kind.RelayList];
 		const storage = new WebStorage(localStorage);
 
@@ -13,7 +14,7 @@ export class RelayList {
 		const relayEventsMap = new Map(
 			kinds
 				.map((kind) => [kind, storage.getReplaceableEvent(kind)])
-				.filter((x): x is [Kind, Event] => x[1] !== undefined)
+				.filter((x): x is [number, Event] => x[1] !== undefined)
 		);
 
 		if (relayEventsMap.size > 0) {
@@ -24,7 +25,7 @@ export class RelayList {
 		await new Promise<void>((resolve, reject) => {
 			const relaysReq = createRxBackwardReq();
 			rxNostr
-				.use(relaysReq)
+				.use(relaysReq, { on: { defaultWriteRelays: true, relays: metadataRelays } })
 				.pipe(
 					uniq(),
 					latestEach(({ event }) => event.kind)
@@ -55,7 +56,7 @@ export class RelayList {
 		return relayEventsMap;
 	}
 
-	public static apply(eventsMap: Map<Kind, Event>) {
+	public static apply(eventsMap: Map<number, Event>) {
 		const kind10002 = eventsMap.get(10002);
 		const kind3 = eventsMap.get(3);
 		if (kind10002 !== undefined && kind10002.tags.length > 0) {

@@ -1,4 +1,7 @@
 {
+	"app": {
+		"description": "Web 向け Nostr クライアント。"
+	},
 	"layout": {
 		"header": {
 			"home": "ホーム",
@@ -77,8 +80,11 @@
 		}
 	},
 	"post": "投稿",
-	"follow": "フォロー",
-	"following": "フォロー中",
+	"follow": {
+		"follow": "フォロー",
+		"following": "フォロー中",
+		"organize": "フォロー整理"
+	},
 	"or": "または",
 	"preferences": {
 		"device": "端末",
@@ -140,7 +146,9 @@
 		"search": "検索",
 		"options": "検索オプション",
 		"mine": "自分の投稿",
-		"proxy": "外部 SNS の投稿を含める"
+		"proxy": "外部 SNS の投稿を含める",
+		"notes": "投稿",
+		"users": "ユーザー"
 	},
 	"public_chat": {
 		"create_channel": "チャンネルを作成",
@@ -174,6 +182,12 @@
 		"copy_id": {
 			"button": "ID をコピー"
 		},
+		"copy_npub": {
+			"button": "ID (npub) をコピー"
+		},
+		"copy_nprofile": {
+			"button": "ID (nprofile) をコピー"
+		},
 		"copy_url": {
 			"button": "リンクをコピー"
 		},
@@ -204,15 +218,21 @@
 		},
 		"mute": {
 			"button": "ミュート",
+			"user": "ユーザーをミュート",
 			"reposts": "リポストをミュート",
 			"reactions": "リアクション（いいね）をミュート",
-			"zaps": "Zap をミュート"
+			"zaps": "Zap をミュート",
+			"thread": "スレッドをミュート",
+			"failed": "ミュートできませんでした。"
 		},
 		"unmute": {
 			"button": "ミュート解除",
+			"user": "ユーザーをミュート解除",
 			"reposts": "リポストをミュート解除",
 			"reactions": "リアクション（いいね）をミュート解除",
-			"zaps": "Zap をミュート解除"
+			"zaps": "Zap をミュート解除",
+			"thread": "スレッドをミュート解除",
+			"failed": "ミュートを解除できませんでした。"
 		},
 		"delete": {
 			"button": "削除",
@@ -241,7 +261,9 @@
 	},
 	"badge": {
 		"accept": "受け取る",
-		"accepted": "受取り済"
+		"accepted": "受取り済",
+		"none": "まだバッジはありません。",
+		"create": "バッジを作成する。"
 	},
 	"replay": {
 		"title": "リプレイ",
@@ -281,5 +303,15 @@
 			"unknown": "不明",
 			"impersonation": "なりすまし"
 		}
+	},
+	"poll": {
+		"vote": "投票",
+		"ends_at": "%s まで",
+		"result": "結果を見る"
+	},
+	"zap": {
+		"title": "Zap",
+		"message": "メッセージ（オプション）",
+		"send": "Zap"
 	}
 }

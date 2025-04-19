@@ -109,18 +109,20 @@
 
 <svelte:window bind:innerHeight bind:scrollY={$scrollY} />
 
-<section class="card">
-	<VirtualScroll data={visibleItems} key="id" let:data pageMode={true} keeps={50}>
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div
-			class={canTransition ? 'canTransition-post' : ''}
-			class:related={$author?.isNotified(data.event)}
-			on:mouseup={(e) => viewDetail(e, data.event)}
-		>
-			<EventComponent item={data} {readonly} {createdAtFormat} {full} />
-		</div>
-	</VirtualScroll>
-</section>
+{#if visibleItems.length > 0}
+	<section class="card">
+		<VirtualScroll data={visibleItems} key="id" let:data pageMode={true} keeps={50}>
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<div
+				class={canTransition ? 'canTransition-post' : ''}
+				class:related={$author?.isNotified(data.event)}
+				on:mouseup={(e) => viewDetail(e, data.event)}
+			>
+				<EventComponent item={data} {readonly} {createdAtFormat} {full} />
+			</div>
+		</VirtualScroll>
+	</section>
+{/if}
 
 {#if showLoading}
 	<div class="loading"><Loading /></div>

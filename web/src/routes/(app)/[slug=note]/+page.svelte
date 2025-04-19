@@ -1,33 +1,29 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
-	import { createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
+	import { createRxBackwardReq, createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
 	import { tap, merge, filter } from 'rxjs';
 	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
+	import { insertIntoAscendingTimeline } from '$lib/timelines/TimelineHelper';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { LayoutData } from './$types';
-	import { author, readRelays } from '$lib/stores/Author';
-	import { pool } from '$lib/stores/Pool';
 	import TimelineView from '../TimelineView.svelte';
-	import { Api } from '$lib/Api';
 	import { referTags } from '$lib/EventHelper';
-	import { newUrl } from '$lib/Helper';
+	import { fetchEvent, inThread } from '$lib/Thread';
 	import { EventItem, Metadata, ZapEventItem } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';
-	import { appName, chronologicalItem } from '$lib/Constants';
-	import { tick } from 'svelte';
-	import MuteButton from '$lib/components/MuteButton.svelte';
+	import { appName, chronological, chronologicalItem } from '$lib/Constants';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import CustomEmoji from '$lib/components/content/CustomEmoji.svelte';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import IconHeart from '@tabler/icons-svelte/icons/heart';
 	import IconBolt from '@tabler/icons-svelte/icons/bolt';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import DateLink from '$lib/components/DateLink.svelte';
-	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import BackButton from '$lib/components/BackButton.svelte';
 
@@ -39,7 +35,6 @@
 	let items: EventItem[] = [];
 	let eventId: string | undefined;
 	let rootId: string | undefined;
-	let relays: string[] = [];
 	let canonicalUrl: string | undefined;
 
 	$: metadata = item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined;
@@ -57,6 +52,7 @@
 
 	let replyToEventItems: EventItem[] = [];
 	let repliedToEventItems: EventItem[] = [];
+	let repliedToEventsMap = new Map<string, Event>();
 	let repostEventItems: EventItem[] = [];
 	let reactionEventItems: EventItem[] = [];
 	let zapEventItemsMap = new Map<number | undefined, ZapEventItem[]>();
@@ -151,23 +147,17 @@
 		);
 
 		// Replies
-		merge(observable.pipe(filterByKind(1)), observable.pipe(filterByKind(42))).subscribe(
-			(packet) => {
-				console.log('[thread kind 1]', packet);
-				const eventItem = new EventItem(packet.event);
-				if (repliedToEventItems.some((x) => x.event.id === eventItem.event.id)) {
-					console.warn('[thread duplicate event]', packet);
-					return;
-				}
-				repliedToEventItems.push(eventItem);
-				repliedToEventItems.sort(chronologicalItem);
+		merge(observable.pipe(filterByKind(1)), observable.pipe(filterByKind(42)))
+			.pipe(filter(({ event }) => !repliedToEventItems.some((x) => x.event.id === event.id)))
+			.subscribe((packet) => {
+				console.debug('[thread kind 1]', packet);
+				insertIntoAscendingTimeline(packet.event, repliedToEventItems);
 				repliedToEventItems = repliedToEventItems;
-			}
-		);
+			});
 
 		// Repost
 		observable.pipe(filterByKind(6)).subscribe((packet) => {
-			console.log('[thread kind 6]', packet);
+			console.debug('[thread kind 6]', packet);
 			const eventItem = new EventItem(packet.event);
 			repostEventItems.sort(chronologicalItem);
 			repostEventItems.push(eventItem);
@@ -184,7 +174,7 @@
 				)
 			)
 			.subscribe((packet) => {
-				console.log('[thread kind 7]', packet);
+				console.debug('[thread kind 7]', packet);
 				const eventItem = new EventItem(packet.event);
 				reactionEventItems.sort(chronologicalItem);
 				reactionEventItems.push(eventItem);
@@ -193,7 +183,7 @@
 
 		// Zap
 		observable.pipe(filterByKind(9735)).subscribe((packet) => {
-			console.log('[thread kind 9735]', packet);
+			console.debug('[thread kind 9735]', packet);
 
 			let event: Event | undefined;
 			const description = packet.event.tags
@@ -202,7 +192,7 @@
 				)
 				?.at(1);
 			if (description !== undefined) {
-				console.log('[thread kind 9734]', description);
+				console.debug('[thread kind 9734]', description);
 				try {
 					event = JSON.parse(description) as Event;
 					referencesReqEmit(event, true);
@@ -223,25 +213,23 @@
 		});
 	}
 
-	$: if (item !== undefined && rootId === undefined) {
-		console.log('[thread item]', item);
+	let id: string | undefined;
 
+	$: if (item !== undefined && item.id !== id && browser) {
+		console.debug('[thread item]', item);
+		id = item.id;
 		const { root, reply } = referTags(item.event);
 		rootId = root?.at(1);
-		let replyId = reply?.at(1);
-		console.log('[thread root, reply]', rootId, replyId);
-
-		fetchReplies(replyId);
+		fetchReplies(reply?.at(1));
+		fetchThreads(rootId, item.event);
 	}
 
 	async function fetchReplies(originalReplyId: string | undefined): Promise<void> {
-		const api = new Api($pool, [...new Set([...$readRelays, ...relays])]);
-
 		let replyId = originalReplyId;
 		let i = 0;
 		while (replyId !== undefined) {
-			const replyToEventItem = await api.fetchEventItemById(replyId);
-			console.log('[thread reply]', replyToEventItem);
+			const replyToEventItem = await fetchEvent(replyId);
+			console.debug('[thread reply]', replyToEventItem);
 			if (replyToEventItem !== undefined) {
 				replyToEventItems.unshift(replyToEventItem);
 				replyToEventItems = replyToEventItems;
@@ -262,8 +250,8 @@
 			!replyToEventItems.some((x) => x.event.id === rootId) &&
 			i <= 20
 		) {
-			const rootEventItem = await api.fetchEventItemById(rootId);
-			console.log('[thread root]', rootEventItem);
+			const rootEventItem = await fetchEvent(rootId);
+			console.debug('[thread root]', rootEventItem);
 			if (rootEventItem !== undefined) {
 				replyToEventItems.unshift(rootEventItem);
 				replyToEventItems = replyToEventItems;
@@ -272,6 +260,48 @@
 
 		await tick();
 		focusedElement?.scrollIntoView();
+	}
+
+	function fetchThreads(rootId: string | undefined, original: Event): void {
+		if (rootId === undefined) {
+			return;
+		}
+
+		const req = createRxBackwardReq();
+		rxNostr
+			.use(req)
+			.pipe(uniq())
+			.subscribe({
+				next: ({ event }) => {
+					console.debug('[thread events next]', event.id);
+					const { root, reply } = referTags(event);
+					if (root?.at(1) === original.id || reply?.at(1) === original.id) {
+						if (!repliedToEventItems.some((item) => item.id === event.id)) {
+							insertIntoAscendingTimeline(event, repliedToEventItems);
+							repliedToEventItems = repliedToEventItems;
+						}
+					} else {
+						repliedToEventsMap.set(event.id, event);
+					}
+				},
+				complete: () => {
+					console.debug('[thread events complete]', repliedToEventsMap);
+					for (const event of [...repliedToEventsMap]
+						.map(([, event]) => event)
+						.toSorted(chronological)) {
+						const { reply } = referTags(event);
+						if (
+							repliedToEventItems.some((item) => item.id === reply?.at(1)) &&
+							!repliedToEventItems.some((item) => item.id === event.id)
+						) {
+							insertIntoAscendingTimeline(event, repliedToEventItems);
+						}
+					}
+					repliedToEventItems = repliedToEventItems;
+				}
+			});
+		req.emit([{ kinds: [1], '#e': [rootId, original.id], since: original.created_at }]);
+		req.over();
 	}
 
 	function clear() {
@@ -284,6 +314,14 @@
 		zapEventItemsMap = zapEventItemsMap;
 		customEmojiShortcode = new Map<string, string>();
 	}
+
+	onMount(() => {
+		$inThread = true;
+	});
+
+	onDestroy(() => {
+		$inThread = false;
+	});
 </script>
 
 <svelte:head>
@@ -331,7 +369,7 @@
 		<span class="icon" class:heart={content === '+'}>
 			{#if content === '+'}
 				<IconHeart />
-			{:else if newUrl(content) !== undefined}
+			{:else if URL.canParse(content)}
 				<CustomEmoji url={content} text={customEmojiShortcode.get(content)} />
 			{:else}
 				<span>{content}</span>
@@ -390,33 +428,7 @@
 	<div>
 		<a href="/{$page.params.slug}/quotes">{$_('thread.quotes.title')}</a>
 	</div>
-	{#if item !== undefined}
-		<div>
-			<ExternalLink
-				link={new URL(
-					$_('thread.translation.url').replace(
-						'{0}',
-						encodeURIComponent(item.event.content)
-					)
-				)}
-			>
-				{$_('thread.translation.title')}
-			</ExternalLink>
-		</div>
-	{/if}
 </nav>
-{#if $author !== undefined && item !== undefined}
-	<nav class="card">
-		<div class="mute">
-			<MuteButton tagName="e" tagContent={rootId === undefined ? item.event.id : rootId} />
-			<span>Mute this thread</span>
-		</div>
-		<div class="mute">
-			<MuteButton tagName="p" tagContent={item.event.pubkey} />
-			<span>Mute @{metadata?.content?.name}</span>
-		</div>
-	</nav>
-{/if}
 
 <TimelineView items={repliedToEventItems} readonly={false} showLoading={false} />
 
@@ -463,15 +475,6 @@
 
 	a {
 		text-decoration: underline;
-	}
-
-	.mute {
-		display: flex;
-		flex-direction: row;
-	}
-
-	.mute span {
-		margin-left: 0.5rem;
 	}
 
 	header {

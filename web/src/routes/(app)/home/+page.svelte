@@ -1,20 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { _ } from 'svelte-i18n';
 	import { uniq, type LazyFilter, createRxBackwardReq } from 'rx-nostr';
 	import { tap } from 'rxjs';
-	import { Kind, type Relay } from 'nostr-tools';
+	import { kinds as Kind } from 'nostr-tools';
 	import { goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { events, eventsPool } from '$lib/stores/Events';
-	import { pool } from '$lib/stores/Pool';
-	import { pubkey, followees, rom } from '$lib/stores/Author';
+	import { pubkey, followees } from '$lib/stores/Author';
 	import { saveLastNote } from '$lib/stores/LastNotes';
 	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
 	import { hasSubscribed, hometimelineReqEmit } from '$lib/timelines/HomeTimeline';
 	import {
-		appName,
 		notificationsFilterKinds,
 		minTimelineLength,
 		reverseChronologicalItem
@@ -23,7 +20,6 @@
 	import { followingHashtags } from '$lib/Interest';
 	import { EventItem } from '$lib/Items';
 	import { preferencesStore } from '$lib/Preferences';
-	import { Signer } from '$lib/Signer';
 	import { Timeline } from '$lib/Timeline';
 	import { applyTimelieFilter, excludeKinds } from '$lib/TimelineFilter';
 	import { userStatusReqEmit, userStatusesMap } from '$lib/UserStatus';
@@ -35,51 +31,6 @@
 			!$excludeKinds.includes(item.event.kind) &&
 			(!$preferencesStore.muteAutomatically || $followeesOfFollowees.has(item.event.pubkey))
 	);
-
-	function logRelays() {
-		console.debug('_conn', $pool['_conn']);
-		Object.entries($pool['_conn'] as { [url: string]: Relay }).map(([, relay]) => {
-			relay.on('connect', () => {
-				console.log('[connect]', relay.url, relay.status);
-				console.time(relay.url);
-			});
-			relay.on('disconnect', () => {
-				console.warn('[disconnect]', relay.url, relay.status);
-				console.timeEnd(relay.url);
-			});
-			relay.on('auth', async (challenge: string) => {
-				console.log('[auth challenge]', challenge);
-
-				if ($rom) {
-					return;
-				}
-
-				const event = await Signer.signEvent({
-					created_at: Math.round(Date.now() / 1000),
-					kind: Kind.ClientAuth,
-					tags: [
-						['relay', relay.url],
-						['challenge', challenge]
-					],
-					content: ''
-				});
-				console.log('[auth event]', event);
-				const pub = $pool.publish([relay.url], event);
-				pub.on('ok', (relay: string): void => {
-					console.log('[auth ok]', relay);
-				});
-				pub.on('failed', (relay: string): void => {
-					console.error('[auth failed]', relay);
-				});
-			});
-			relay.on('notice', (message) => {
-				console.warn('[notice]', relay.url, message);
-			});
-			relay.on('error', () => {
-				console.error('[error]', relay.url);
-			});
-		});
-	}
 
 	async function showPooledEvents() {
 		$eventsPool.sort(reverseChronologicalItem);
@@ -101,7 +52,6 @@
 
 		applyTimelieFilter();
 		hometimelineReqEmit();
-		logRelays();
 	});
 
 	async function load() {
@@ -149,7 +99,7 @@
 			];
 			if ($followingHashtags.length > 0) {
 				authorFilters.push({
-					kinds: [Kind.Text],
+					kinds: [Kind.ShortTextNote],
 					'#t': $followingHashtags,
 					until,
 					since
@@ -208,7 +158,7 @@
 							$events = $events;
 
 							// Cache
-							if (item.event.kind === Kind.Text) {
+							if (item.event.kind === Kind.ShortTextNote) {
 								saveLastNote(item.event);
 							}
 						},
@@ -237,10 +187,6 @@
 		}
 	}
 </script>
-
-<svelte:head>
-	<title>{appName} - {$_('layout.header.home')}</title>
-</svelte:head>
 
 <HomeTab selected="home" />
 

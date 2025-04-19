@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
+	import { kinds as Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
 	import { uploadFiles } from '$lib/media/FileStorageServer';
 	import { complementPosition } from '$lib/styles/Complement';
 	import { adjustHeight } from '$lib/styles/Textarea';
@@ -320,6 +320,7 @@
 		mention = undefined;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async function onEmojiPick({ detail: emoji }: { detail: any }): Promise<void> {
 		console.debug('[emoji pick]', emoji);
 		const shortcode = emoji.id.replaceAll('+', '_');
@@ -353,7 +354,7 @@
 		const event = await noteComposer.compose(
 			$channelIdStore !== undefined || $replyTo?.event?.kind === Kind.ChannelMessage
 				? Kind.ChannelMessage
-				: Kind.Text,
+				: Kind.ShortTextNote,
 			Content.replaceNip19(content),
 			[
 				...noteComposer.replyTags(content, $replyTo, $channelIdStore, pubkeys),
@@ -592,6 +593,7 @@
 		</div>
 		<div>
 			<button
+				title="{$_('editor.post.button')} (Ctrl + Enter)"
 				class="button-small"
 				on:click={postNote}
 				disabled={$author === undefined || content === '' || $rom || posting || uploading}
@@ -652,13 +654,8 @@
 	}
 
 	.dropzone {
-		background-image: linear-gradient(
-				to right,
-				#000,
-				#000 3px,
-				transparent 3px,
-				transparent 8px
-			),
+		background-image:
+			linear-gradient(to right, #000, #000 3px, transparent 3px, transparent 8px),
 			linear-gradient(to bottom, #000, #000 3px, transparent 3px, transparent 8px),
 			linear-gradient(to left, #000, #000 3px, transparent 3px, transparent 8px),
 			linear-gradient(to top, #000, #000 3px, transparent 3px, transparent 8px);

@@ -17,12 +17,13 @@ import { tap, bufferTime } from 'rxjs';
 import { browser } from '$app/environment';
 import { filterLimitItems, timeout } from '$lib/Constants';
 import { aTagContent, filterTags } from '$lib/EventHelper';
-import { EventItem, Metadata } from '$lib/Items';
+import { Metadata } from '$lib/Items';
 import {
 	eventItemStore,
 	metadataStore,
 	replaceableEventsStore,
 	seenOnStore,
+	storeEventItem,
 	storeMetadata
 } from '../cache/Events';
 import { chunk } from '$lib/Array';
@@ -50,7 +51,7 @@ export const rxNostr = createRxNostr({
 	connectionStrategy: 'lazy-keep',
 	eoseTimeout: timeout,
 	okTimeout: timeout,
-	retry: { strategy: 'immediately', maxCount: 1 },
+	retry: { strategy: 'exponential', maxCount: 5, initialDelay: 1000, polite: true },
 	authenticator: {
 		signer: {
 			getPublicKey: () => Signer.getPublicKey(),
@@ -77,20 +78,20 @@ rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 		case 'error':
 		case 'rejected':
 		case 'terminated': {
-			console.error('[rx-nostr connection]', from, state);
+			console.error('[connection]', new Date().toLocaleString(), from, state);
 			break;
 		}
 		case 'waiting-for-retrying':
 		case 'retrying':
 		case 'dormant': {
-			console.warn('[rx-nostr connection]', from, state);
+			console.warn('[connection]', new Date().toLocaleString(), from, state);
 			break;
 		}
 		case 'initialized':
 		case 'connecting':
 		case 'connected':
 		default: {
-			console.log('[rx-nostr connection]', from, state);
+			console.debug('[connection]', new Date().toLocaleString(), from, state);
 			break;
 		}
 	}
@@ -215,13 +216,7 @@ rxNostr
 		uniq(),
 		tap(({ event }) => referencesReqEmit(event, true))
 	)
-	.subscribe((packet) => {
-		console.log('[rx-nostr event]', packet);
-		const eventItem = new EventItem(packet.event);
-		const $eventItemStore = get(eventItemStore);
-		$eventItemStore.set(eventItem.event.id, eventItem);
-		eventItemStore.set($eventItemStore);
-	});
+	.subscribe(({ event }) => storeEventItem(event));
 
 rxNostr
 	.use(replaceableEventsReq.pipe(bufferTime(1000, null, 10), batch()))

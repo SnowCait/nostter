@@ -71,14 +71,6 @@ export class Login {
 
 		console.timeLog('NIP-07');
 
-		const nip07Relays = await Signer.getRelays();
-
-		console.log('[NIP-07 relays]', nip07Relays);
-		console.timeLog('NIP-07');
-
-		rxNostr.addDefaultRelays(nip07Relays);
-		console.log('[relays for profile]', rxNostr.getDefaultRelays());
-
 		await this.fetchAuthor();
 
 		console.timeEnd('NIP-07');
@@ -109,7 +101,7 @@ export class Login {
 
 	public async withNsec(key: string) {
 		const { type, data: seckey } = nip19.decode(key);
-		if (type !== 'nsec' || typeof seckey !== 'string') {
+		if (type !== 'nsec') {
 			console.error('Invalid nsec');
 			return;
 		}

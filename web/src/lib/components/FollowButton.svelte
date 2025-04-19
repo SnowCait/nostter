@@ -49,11 +49,11 @@
 
 {#if $originalFollowees.includes(pubkey)}
 	<button on:click={onUnfollow} class="button-small button-outlined" disabled={processing}>
-		{$_('following')}
+		{$_('follow.following')}
 	</button>
 {:else}
 	<button on:click={onFollow} class="button-small" disabled={processing}>
-		{$_('follow')}
+		{$_('follow.follow')}
 	</button>
 {/if}
 

@@ -1,13 +1,14 @@
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { prepareStylesSSR } from '@svelteuidev/core';
-import { locale } from 'svelte-i18n';
+import { locale, waitLocale } from 'svelte-i18n';
 import { get } from 'svelte/store';
 
 const i18n: Handle = async ({ event, resolve }) => {
 	const lang = event.request.headers.get('accept-language')?.split(',')[0];
 	if (lang) {
 		locale.set(lang);
+		await waitLocale(lang);
 	}
 	return resolve(event);
 };
