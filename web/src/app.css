@@ -33,6 +33,7 @@ html {
 	padding: 0;
 	/* Reset `padding` and `margin` of all elements */
 	margin: 0;
+	-webkit-tap-highlight-color: transparent;
 }
 
 /* # =================================================================
