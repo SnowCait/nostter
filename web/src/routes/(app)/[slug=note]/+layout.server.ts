@@ -4,6 +4,7 @@ import { error } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import { defaultRelays } from '$lib/Constants';
 import { fetchEvent } from '$lib/Api';
+import { checkRestriction } from '$lib/server/Restriction';
 
 export const load: LayoutServerLoad<{
 	eventId: string;
@@ -39,6 +40,10 @@ export const load: LayoutServerLoad<{
 			id,
 			relays.length > 0 ? relays : defaultRelays.map(({ url }) => url)
 		);
+
+		if (event !== undefined) {
+			await checkRestriction(event.pubkey);
+		}
 
 		return {
 			eventId: id,
