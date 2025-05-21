@@ -18,6 +18,7 @@
 	import Picture from './Picture.svelte';
 	import Poll from './Poll.svelte';
 	import { pollKind } from '$lib/Poll';
+	import Highlight from './Highlight.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -41,6 +42,8 @@
 	<Channel {item} />
 {:else if Number(item.event.kind) === pollKind}
 	<Poll {item} {createdAtFormat} />
+{:else if item.event.kind === Kind.Highlights}
+	<Highlight {item} {createdAtFormat} />
 {:else if item.event.kind === Kind.LongFormArticle}
 	<LongFormContent
 		event={item.event}
