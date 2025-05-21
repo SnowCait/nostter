@@ -15,7 +15,7 @@ import {
 import { createNoopClient, createVerificationServiceClient } from 'rx-nostr-crypto';
 import { tap, bufferTime } from 'rxjs';
 import { browser } from '$app/environment';
-import { filterLimitItems, timeout } from '$lib/Constants';
+import { filterLimitItems, hexRegexp, timeout } from '$lib/Constants';
 import { aTagContent, filterTags } from '$lib/EventHelper';
 import { Metadata } from '$lib/Items';
 import {
@@ -167,7 +167,13 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 
 	const $eventItemStore = get(eventItemStore);
 	const ids = [
-		...new Set([...filterTags('e', event.tags), ...Content.findNotesAndNeventsToIds(content)])
+		...new Set([
+			...filterTags('e', event.tags),
+			...Content.findNotesAndNeventsToIds(content),
+			...event.tags
+				.filter(([tagName, tagContent]) => tagName === 'q' && hexRegexp.test(tagContent))
+				.map(([, id]) => id)
+		])
 	].filter((id) => !$eventItemStore.has(id));
 
 	if (ids.length > 0) {

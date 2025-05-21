@@ -7,6 +7,7 @@
 	import ExternalLink from '../ExternalLink.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 	import { nip19 } from 'nostr-tools';
+	import { page } from '$app/stores';
 
 	export let item: Item;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
@@ -36,7 +37,7 @@
 		{/if}
 
 		{#if event.content}
-			<Blockquote>
+			<Blockquote override={{ color: 'var(--foreground)' }}>
 				{#if context}
 					<i>
 						<Content content={context} tags={event.tags} />
@@ -63,12 +64,12 @@
 							identifier
 						})}
 						<span>
-							<a href="/{naddr}">{naddr.substring(0, 'naddr1'.length + 7)}</a>
+							<ExternalLink link={new URL(`${$page.url.origin}/${naddr}`)} />
 						</span>
 					{:else if sourceId}
 						{@const nevent = nip19.neventEncode({ id: sourceId })}
 						<span>
-							<a href="/{nevent}">{nevent.substring(0, 'nevent1'.length + 7)}</a>
+							<ExternalLink link={new URL(`${$page.url.origin}/${nevent}`)} />
 						</span>
 					{/if}
 					{#if sourceUrl}
