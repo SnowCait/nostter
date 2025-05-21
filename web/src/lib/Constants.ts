@@ -15,6 +15,7 @@ export const timelineBufferMs = 1500;
 export const timeout = 5000;
 
 export const hexRegexp = /^[0-9a-f]{64}$/;
+export const addressRegexp = /^[0-9]+:[0-9a-f]{64}:.*$/;
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
 export const nicovideoRegexp = /^https:\/\/(www|sp).nicovideo.jp\/watch\/(?<id>[a-zA-Z0-9]+)/;
 
