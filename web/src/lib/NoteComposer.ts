@@ -6,6 +6,8 @@ import type { User } from '../routes/types';
 import { Api } from './Api';
 import type { EventItem } from './Items';
 import { referTags } from './EventHelper';
+import { getRelayHint } from './timelines/MainTimeline';
+import { unique } from './Array';
 
 export class NoteComposer {
 	async compose(kind: number, content: string, tags: string[][]): Promise<Event> {
@@ -44,11 +46,12 @@ export class NoteComposer {
 			}
 		} else if ($replyTo !== undefined) {
 			const { root } = referTags($replyTo.event);
+			const relay = getRelayHint($replyTo.event.id);
 			if (root === undefined) {
-				tags.push(['e', $replyTo.event.id, '', 'root']);
+				tags.push(['e', $replyTo.event.id, relay ?? '', 'root', $replyTo.event.pubkey]);
 			} else {
 				tags.push(root);
-				tags.push(['e', $replyTo.event.id, '', 'reply']);
+				tags.push(['e', $replyTo.event.id, relay ?? '', 'reply', $replyTo.event.pubkey]);
 			}
 			pubkeys = new Set([
 				$replyTo.event.pubkey,
@@ -57,7 +60,16 @@ export class NoteComposer {
 		}
 
 		const eventIds = Content.findNotesAndNeventsToIds(content);
-		tags.push(...[...new Set(eventIds)].map((id) => ['q', id]));
+		tags.push(
+			...unique(eventIds).map((id) => {
+				const qTag = ['q', id];
+				const relay = getRelayHint(id);
+				if (relay) {
+					qTag.push(relay);
+				}
+				return qTag;
+			})
+		);
 
 		for (const { type, data } of Content.findNpubsAndNprofiles(content).map((x) => {
 			try {

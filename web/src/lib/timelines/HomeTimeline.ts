@@ -9,7 +9,7 @@ import {
 } from 'rx-nostr';
 import { filter, share, tap } from 'rxjs';
 import type { Filter } from 'nostr-typedef';
-import { referencesReqEmit, rxNostr, storeSeenOn } from './MainTimeline';
+import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
 import { kinds as Kind } from 'nostr-tools';
 import { get, writable } from 'svelte/store';
@@ -55,7 +55,7 @@ export let hasSubscribed = false;
 export const activeAt = writable(now());
 
 const homeTimelineReq = createRxForwardReq();
-const observable = rxNostr.use(homeTimelineReq).pipe(uniq());
+const observable = rxNostr.use(homeTimelineReq).pipe(tie, uniq(), share());
 
 // Author Replaceable Events
 const authorReplaceableObservable = observable.pipe(
