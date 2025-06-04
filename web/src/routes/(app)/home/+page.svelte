@@ -9,7 +9,7 @@
 	import { events, eventsPool } from '$lib/stores/Events';
 	import { pubkey, followees } from '$lib/stores/Author';
 	import { saveLastNote } from '$lib/stores/LastNotes';
-	import { referencesReqEmit, rxNostr, storeSeenOn } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr, storeSeenOn, tie } from '$lib/timelines/MainTimeline';
 	import { hasSubscribed, hometimelineReqEmit } from '$lib/timelines/HomeTimeline';
 	import {
 		notificationsFilterKinds,
@@ -114,6 +114,7 @@
 				rxNostr
 					.use(loadTimelineReq)
 					.pipe(
+						tie,
 						uniq(),
 						tap(({ event, from }) => {
 							referencesReqEmit(event);

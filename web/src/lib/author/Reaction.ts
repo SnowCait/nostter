@@ -1,7 +1,7 @@
 import { now } from 'rx-nostr';
 import type { Event } from 'nostr-typedef';
 import { updateReactionedEvents } from './Action';
-import { rxNostr } from '$lib/timelines/MainTimeline';
+import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
 
 export async function sendReaction(
@@ -9,8 +9,9 @@ export async function sendReaction(
 	content: string,
 	emojiUrl: string | undefined
 ): Promise<void> {
+	const relay = getRelayHint(target.id);
 	const tags = [
-		['e', target.id],
+		['e', target.id, relay ?? '', target.pubkey],
 		['p', target.pubkey],
 		['k', String(target.kind)]
 	];
@@ -25,7 +26,7 @@ export async function sendReaction(
 		tags,
 		created_at: now()
 	});
-	console.debug('[reaction event]', event);
+	console.debug('[reaction event]', event, seenOn.get(target.id));
 
 	rxNostr.send(event).subscribe(({ from, ok }) => console.debug('[reaction send]', from, ok));
 	updateReactionedEvents([event]);

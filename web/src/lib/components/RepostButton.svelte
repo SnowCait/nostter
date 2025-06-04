@@ -9,7 +9,7 @@
 	import { openNoteDialog, quotes } from '$lib/stores/NoteDialog';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import IconQuote from '@tabler/icons-svelte/icons/quote';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -28,16 +28,19 @@
 			}
 		}
 
+		const eTag = ['e', targetEvent.id];
+		const relay = getRelayHint(targetEvent.id);
+		if (relay) {
+			eTag.push(relay);
+		}
+
 		const repostEvent = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: 6,
-			tags: [
-				['e', targetEvent.id, '', 'mention'],
-				['p', targetEvent.pubkey]
-			],
+			tags: [eTag, ['p', targetEvent.pubkey]],
 			content: ''
 		});
-		console.log(repostEvent);
+		console.log(repostEvent, seenOn.get(targetEvent.id));
 
 		rxNostr.send(repostEvent);
 		updateRepostedEvents([repostEvent]);

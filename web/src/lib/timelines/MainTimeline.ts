@@ -5,6 +5,7 @@ import {
 	batch,
 	createRxBackwardReq,
 	createRxNostr,
+	createTie,
 	filterByType,
 	latestEach,
 	now,
@@ -72,6 +73,20 @@ export const rxNostr = createRxNostr({
 		}
 	}
 }); // Based on NIP-65
+
+//#region Relay hints
+
+export const [tie, seenOn] = createTie();
+
+export function getRelayHint(id: string): string | undefined {
+	return seenOn
+		.get(id)
+		?.values()
+		.filter((value) => value.startsWith('wss://'))
+		.next().value;
+}
+
+//#endregion
 
 rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 	switch (state) {
