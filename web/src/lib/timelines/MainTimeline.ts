@@ -226,6 +226,7 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 rxNostr
 	.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
 	.pipe(
+		tie,
 		uniq(),
 		latestEach(({ event }) => event.pubkey)
 	)
@@ -234,6 +235,7 @@ rxNostr
 rxNostr
 	.use(eventsReq.pipe(bufferTime(1000, null, 10), batch()))
 	.pipe(
+		tie,
 		uniq(),
 		tap(({ event }) => referencesReqEmit(event, true))
 	)
@@ -242,6 +244,7 @@ rxNostr
 rxNostr
 	.use(replaceableEventsReq.pipe(bufferTime(1000, null, 10), batch()))
 	.pipe(
+		tie,
 		uniq(),
 		latestEach(({ event }) => aTagContent(event))
 	)

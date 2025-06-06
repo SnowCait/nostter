@@ -6,7 +6,7 @@
 	import type { PageData } from './$types';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { metadataStore } from '$lib/cache/Events';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { appName, notesFilterKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { items, pubkey, since } from '$lib/timelines/DateTimeline';
@@ -23,6 +23,7 @@
 	rxNostr
 		.use(req)
 		.pipe(
+			tie,
 			uniq(),
 			tap(({ event }) => {
 				referencesReqEmit(event);

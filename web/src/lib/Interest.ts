@@ -2,7 +2,7 @@ import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, latest, type EventPacket, now } from 'rx-nostr';
 import type { Event, UnsignedEvent } from 'nostr-typedef';
 import { browser } from '$app/environment';
-import { rxNostr } from './timelines/MainTimeline';
+import { rxNostr, tie } from './timelines/MainTimeline';
 import { WebStorage } from './WebStorage';
 import { Signer } from './Signer';
 import { pubkey } from './stores/Author';
@@ -127,7 +127,7 @@ async function fetch(pubkey: string): Promise<Event | undefined> {
 		const req = createRxBackwardReq();
 		rxNostr
 			.use(req)
-			.pipe(latest())
+			.pipe(tie, latest())
 			.subscribe({
 				next: (packet) => {
 					console.debug('[rx-nostr interest next]', packet);

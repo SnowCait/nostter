@@ -1,6 +1,6 @@
 import { kinds as Kind, type Event } from 'nostr-tools';
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
-import { rxNostr } from '../timelines/MainTimeline';
+import { rxNostr, tie } from '../timelines/MainTimeline';
 import { parseRelayJson } from '../EventHelper';
 import { WebStorage } from '../WebStorage';
 import { metadataRelays } from '$lib/Constants';
@@ -27,6 +27,7 @@ export class RelayList {
 			rxNostr
 				.use(relaysReq, { on: { defaultWriteRelays: true, relays: metadataRelays } })
 				.pipe(
+					tie,
 					uniq(),
 					latestEach(({ event }) => event.kind)
 				)

@@ -11,7 +11,7 @@
 	import { filterTags } from '$lib/EventHelper';
 	import { Signer } from '$lib/Signer';
 	import { EventItem } from '$lib/Items';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import type { LayoutData } from '../$types';
 
 	export let data: LayoutData;
@@ -34,6 +34,7 @@
 			rxNostr
 				.use(eventsReq)
 				.pipe(
+					tie,
 					uniq(),
 					tap(({ event }) => {
 						referencesReqEmit(event);
@@ -64,6 +65,7 @@
 						rxNostr
 							.use(eventsReq)
 							.pipe(
+								tie,
 								uniq(),
 								tap(({ event }) => {
 									referencesReqEmit(event);

@@ -3,7 +3,7 @@ import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import type { Event } from 'nostr-typedef';
 import { chunk } from '$lib/Array';
 import { filterLimit, maxFilters } from '$lib/Constants';
-import { rxNostr } from '$lib/timelines/MainTimeline';
+import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { followees } from '$lib/stores/Author';
 
 export const followeesOfFollowees = writable<Set<string>>(new Set());
@@ -34,6 +34,7 @@ export function contactsOfFolloweesReqEmit(): void {
 	rxNostr
 		.use(req)
 		.pipe(
+			tie,
 			uniq(),
 			latestEach(({ event }) => event.pubkey)
 		)

@@ -6,7 +6,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { metadataStore } from '$lib/cache/Events';
-	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { appName, reverseChronological } from '$lib/Constants';
 	import { isDecodable } from '$lib/Encryption';
 	import { findIdentifier } from '$lib/EventHelper';
@@ -37,6 +37,7 @@
 		subscription = rxNostr
 			.use(req)
 			.pipe(
+				tie,
 				latestEach(({ event }) => findIdentifier(event.tags) ?? ''),
 				filter(({ event }) => {
 					// For legacy clients

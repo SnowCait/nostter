@@ -22,7 +22,7 @@
 	import { appName, timeout } from '$lib/Constants';
 	import { fetchEvents } from '$lib/RxNostrHelper';
 	import type { ChannelMetadata } from '$lib/Types';
-	import { referencesReqEmit, verificationClient } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, tie, verificationClient } from '$lib/timelines/MainTimeline';
 	import { author, readRelays } from '$lib/stores/Author';
 	import Content from '$lib/components/Content.svelte';
 	import TimelineView from '../../TimelineView.svelte';
@@ -104,7 +104,7 @@
 
 		rxNostr
 			.use(channelMetadataReq)
-			.pipe(uniq(), latest())
+			.pipe(tie, uniq(), latest())
 			.subscribe((packet) => {
 				console.log('[channel metadata event]', packet);
 
@@ -122,6 +122,7 @@
 		channelMessageSubscription = rxNostr
 			.use(channelMessageReq)
 			.pipe(
+				tie,
 				uniq(),
 				tap(({ event }: { event: Event }) => referencesReqEmit(event))
 			)
@@ -164,6 +165,7 @@
 		rxNostr
 			.use(req)
 			.pipe(
+				tie,
 				uniq(),
 				filter(({ event }) => !items.some((item) => item.event.id === event.id)),
 				tap(({ event }) => referencesReqEmit(event))

@@ -1,7 +1,7 @@
 import { get } from 'svelte/store';
 import { batch, createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import { bufferTime } from 'rxjs';
-import { rxNostr } from './timelines/MainTimeline';
+import { rxNostr, tie } from './timelines/MainTimeline';
 import { maxFilters } from './Constants';
 import { sleep } from './Helper';
 import { lastNotesMap, saveLastNote } from './stores/LastNotes';
@@ -10,6 +10,7 @@ const lastNoteReq = createRxBackwardReq();
 rxNostr
 	.use(lastNoteReq.pipe(bufferTime(1000, null, maxFilters), batch()))
 	.pipe(
+		tie,
 		uniq(),
 		latestEach(({ event }) => event.pubkey)
 	)

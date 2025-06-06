@@ -7,12 +7,13 @@
 		cachedEvents,
 		channelMetadataEventsStore
 	} from '$lib/cache/Events';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { filterTags, findChannelId } from '$lib/EventHelper';
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
 	import { appName } from '$lib/Constants';
 	import CreateChannelButton from '$lib/components/actions/CreateChannelButton.svelte';
+	import { share } from 'rxjs';
 
 	let channelIds = new Set<string>();
 	let keyword = '';
@@ -44,7 +45,7 @@
 				}
 			]
 		});
-		const observable = rxNostr.use(channelsMetadataReq).pipe(uniq());
+		const observable = rxNostr.use(channelsMetadataReq).pipe(tie, uniq(), share());
 		observable.pipe(filterByKind(40)).subscribe((packet) => {
 			console.log('[channel definition packet]', packet);
 			const channelId = packet.event.id;

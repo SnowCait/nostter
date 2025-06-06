@@ -9,7 +9,7 @@
 	import { appName } from '$lib/Constants';
 	import type { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
-	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
 	import { lastNoteReqEmit } from '$lib/LastNotes';
 	import type { pubkey as Pubkey } from '$lib/Types';
@@ -40,7 +40,7 @@
 		});
 		rxNostr
 			.use(contactsReq)
-			.pipe(uniq(), latest())
+			.pipe(tie, uniq(), latest())
 			.subscribe((packet) => {
 				console.log('[rx-nostr contacts]', packet);
 				pubkeys = [...new Set(filterTags('p', packet.event.tags).reverse())];

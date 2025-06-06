@@ -6,7 +6,7 @@
 	import { tap } from 'rxjs';
 	import { afterNavigate } from '$app/navigation';
 	import { appName } from '$lib/Constants';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import type { PageData } from './$types';
 	import Content from '$lib/components/Content.svelte';
 	import Loading from '$lib/components/Loading.svelte';
@@ -43,6 +43,7 @@
 		rxNostr
 			.use(naddrReq)
 			.pipe(
+				tie,
 				uniq(),
 				latest(),
 				tap(({ event }) => referencesReqEmit(event))

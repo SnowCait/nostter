@@ -10,7 +10,7 @@
 	import type { LayoutData } from '../$types';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 
 	export let data: LayoutData;
 
@@ -51,6 +51,7 @@
 				rxNostr
 					.use(pastEventsReq)
 					.pipe(
+						tie,
 						uniq(),
 						filter(({ event }) => event.content.includes('https://')), // Media filter
 						tap(({ event }) => {

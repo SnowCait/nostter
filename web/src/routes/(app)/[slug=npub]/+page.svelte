@@ -6,7 +6,7 @@
 	import { afterNavigate, replaceState } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { metadataStore, storeMetadata } from '$lib/cache/Events';
-	import { metadataReqEmit, referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { metadataReqEmit, referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { Timeline } from '$lib/Timeline';
 	import { EventItem } from '$lib/Items';
@@ -92,6 +92,7 @@
 				rxNostr
 					.use(pastEventsReq)
 					.pipe(
+						tie,
 						uniq(),
 						tap(({ event }) => {
 							referencesReqEmit(event);

@@ -9,7 +9,7 @@ import {
 } from 'rx-nostr';
 import { filter, share, tap, type Subscription } from 'rxjs';
 import type { Timeline } from './Timeline';
-import { referencesReqEmit, rxNostr } from './MainTimeline';
+import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
 import { authorActionReqEmit } from '$lib/author/Action';
 import { chunk } from '$lib/Array';
 import {
@@ -51,7 +51,7 @@ export class UserFollowingTimeline implements Timeline {
 		);
 		const since = this.#newest;
 		const req = createRxForwardReq();
-		const observable$ = rxNostr.use(req).pipe(uniq(), share());
+		const observable$ = rxNostr.use(req).pipe(tie, uniq(), share());
 		observable$
 			.pipe(
 				filterByKind(0),
@@ -129,6 +129,7 @@ export class UserFollowingTimeline implements Timeline {
 				rxNostr
 					.use(req)
 					.pipe(
+						tie,
 						uniq(),
 						filter(
 							({ event }) => since <= event.created_at && event.created_at < until

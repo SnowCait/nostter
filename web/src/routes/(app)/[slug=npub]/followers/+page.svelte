@@ -8,7 +8,7 @@
 	import { appName } from '$lib/Constants';
 	import type { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
-	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
 	import FollowAllButton from '$lib/components/actions/FollowAllButton.svelte';
 
@@ -36,6 +36,7 @@
 		rxNostr
 			.use(contactsReq)
 			.pipe(
+				tie,
 				uniq(),
 				latestEach(({ event }) => event.pubkey),
 				bufferWhen(() => interval(1000))
