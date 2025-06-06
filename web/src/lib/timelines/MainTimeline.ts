@@ -5,7 +5,6 @@ import {
 	batch,
 	createRxBackwardReq,
 	createRxNostr,
-	createTie,
 	filterByType,
 	latestEach,
 	now,
@@ -32,6 +31,7 @@ import { Content } from '$lib/Content';
 import { sleep } from '$lib/Helper';
 import workerUrl from '$lib/Worker?worker&url';
 import { Signer } from '$lib/Signer';
+import { createTie } from '$lib/RxNostrTie';
 
 Nip11Registry.setDefault({
 	limitation: {
