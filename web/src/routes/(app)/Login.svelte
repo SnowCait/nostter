@@ -14,6 +14,7 @@
 
 	let nostr: Nip07.Nostr | undefined;
 	let key = '';
+	let bunker = '';
 	let name = '';
 
 	let showCreateAccountDialog = false;
@@ -26,6 +27,11 @@
 		storage.set('login', 'NIP-07');
 
 		await login.withNip07();
+		await gotoHome();
+	}
+
+	async function loginWithNip46() {
+		await login.withNip46(bunker);
 		await gotoHome();
 	}
 
@@ -191,6 +197,35 @@
 										{$_('login.browser_extension')}
 									</button>
 								</div>
+							</section>
+
+							<div class="divider-with-message">
+								<div />
+								<p>{$_('or')}</p>
+								<div />
+							</div>
+
+							<section>
+								<p class="login-recommend">{$_('login.recommended')}</p>
+								<form method="dialog" on:submit|preventDefault={loginWithNip46}>
+									<div>
+										<input
+											type="text"
+											bind:value={bunker}
+											placeholder="bunker://..."
+											required
+											on:keyup|stopPropagation={() => console.debug()}
+										/>
+									</div>
+
+									<div>
+										<input
+											type="submit"
+											value={$_('login.bunker')}
+											disabled={$loginType !== undefined}
+										/>
+									</div>
+								</form>
 							</section>
 
 							<div class="divider-with-message">
