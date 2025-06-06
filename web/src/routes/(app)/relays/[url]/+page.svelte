@@ -3,7 +3,7 @@
 	import { tap } from 'rxjs';
 	import { afterNavigate } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { EventItem } from '$lib/Items';
 	import { appName, minTimelineLength } from '$lib/Constants';
@@ -48,6 +48,7 @@
 						}
 					})
 					.pipe(
+						tie,
 						tap(({ event }) => {
 							referencesReqEmit(event);
 							authorActionReqEmit(event);

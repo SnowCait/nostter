@@ -1,4 +1,4 @@
-import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 import type { Event } from 'nostr-typedef';
 import {
 	createRxBackwardReq,
@@ -15,7 +15,7 @@ import { Signer } from './Signer';
 export async function fetchFirstEvent(filter: LazyFilter): Promise<Event | undefined> {
 	try {
 		const req = createRxBackwardReq();
-		const promise = firstValueFrom(rxNostr.use(req).pipe(uniq()));
+		const promise = firstValueFrom(rxNostr.use(req).pipe(tie, uniq()));
 		req.emit([filter]);
 		req.over();
 		const { event } = await promise;
@@ -35,7 +35,7 @@ export async function fetchLastEvent(
 		const req = createRxBackwardReq();
 		rxNostr
 			.use(req, { on })
-			.pipe(latest())
+			.pipe(tie, latest())
 			.subscribe({
 				next: ({ from, event }) => {
 					console.debug('[rx-nostr last next]', from, event);
@@ -65,6 +65,7 @@ export async function fetchEvents(
 	rxNostr
 		.use(req)
 		.pipe(
+			tie,
 			uniq(),
 			tap(({ event }) => referencesReqEmit(event))
 		)

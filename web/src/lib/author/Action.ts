@@ -1,8 +1,8 @@
 import { get, writable } from 'svelte/store';
 import { batch, createRxBackwardReq, filterByKind, uniq, type LazyFilter } from 'rx-nostr';
-import { bufferTime, bufferWhen, filter, interval } from 'rxjs';
+import { bufferTime, bufferWhen, filter, interval, share } from 'rxjs';
 import type { Event } from 'nostr-typedef';
-import { rxNostr } from '$lib/timelines/MainTimeline';
+import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { maxFilters } from '$lib/Constants';
 import { filterTags, findReactionToId } from '$lib/EventHelper';
 import type { id } from '$lib/Types';
@@ -35,7 +35,7 @@ export function updateReactionedEvents(events: Event[]): void {
 const authorActionReq = createRxBackwardReq();
 const observable = rxNostr
 	.use(authorActionReq.pipe(bufferTime(500, null, maxFilters / 2), batch()))
-	.pipe(uniq());
+	.pipe(tie, uniq(), share());
 observable.pipe(filterByKind(5)).subscribe(({ event }) => {
 	console.debug('[deleted]', event);
 	storeDeletedEvents(event);

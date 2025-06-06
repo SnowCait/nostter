@@ -9,7 +9,7 @@
 	import { filterTags } from '$lib/EventHelper';
 	import type { pubkey } from '$lib/Types';
 	import type { LayoutData } from '../../$types';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import TimelineView from '../../../TimelineView.svelte';
@@ -28,6 +28,7 @@
 	rxNostr
 		.use(eventReq)
 		.pipe(
+			tie,
 			uniq(),
 			tap(({ event }) => {
 				referencesReqEmit(event);
@@ -43,7 +44,7 @@
 	const repostsReq = createRxBackwardReq();
 	rxNostr
 		.use(repostsReq)
-		.pipe(uniq())
+		.pipe(tie, uniq())
 		.subscribe((packet) => {
 			console.debug('[rx-nostr reposts]', packet, packet.event.pubkey);
 			if (item === undefined) {
@@ -65,6 +66,7 @@
 	rxNostr
 		.use(eventsReq.pipe(bufferTime(500, null, maxFilters), batch()))
 		.pipe(
+			tie,
 			uniq(),
 			tap(({ event }) => {
 				referencesReqEmit(event);

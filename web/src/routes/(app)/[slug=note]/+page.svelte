@@ -7,7 +7,7 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { rxNostr, referencesReqEmit } from '$lib/timelines/MainTimeline';
+	import { rxNostr, referencesReqEmit, tie } from '$lib/timelines/MainTimeline';
 	import { insertIntoAscendingTimeline } from '$lib/timelines/TimelineHelper';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { LayoutData } from './$types';
@@ -117,6 +117,7 @@
 			rxNostr
 				.use(eventReq)
 				.pipe(
+					tie,
 					uniq(),
 					tap(({ event }) => {
 						referencesReqEmit(event);
@@ -139,6 +140,7 @@
 			]
 		});
 		const observable = rxNostr.use(relatedEventsReq).pipe(
+			tie,
 			uniq(),
 			tap(({ event }) => {
 				referencesReqEmit(event);
@@ -270,7 +272,7 @@
 		const req = createRxBackwardReq();
 		rxNostr
 			.use(req)
-			.pipe(uniq())
+			.pipe(tie, uniq())
 			.subscribe({
 				next: ({ event }) => {
 					console.debug('[thread events next]', event.id);

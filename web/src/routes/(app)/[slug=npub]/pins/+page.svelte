@@ -12,7 +12,7 @@
 	import { EventItem } from '$lib/Items';
 	import { filterTags } from '$lib/EventHelper';
 	import { pubkey as authorPubkey, readRelays } from '$lib/stores/Author';
-	import { verificationClient } from '$lib/timelines/MainTimeline';
+	import { tie, verificationClient } from '$lib/timelines/MainTimeline';
 	import TimelineView from '../../TimelineView.svelte';
 
 	export let data: LayoutData;
@@ -37,7 +37,7 @@
 				const pinReq = createRxOneshotReq({
 					filters: { kinds: [10001], authors: [data.pubkey], limit: 1 }
 				});
-				const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(latest()));
+				const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(tie, latest()));
 				console.log('[pin event]', packet);
 				event = packet.event;
 			} catch (error) {
@@ -61,7 +61,7 @@
 		const referenceReq = createRxOneshotReq({ filters: { ids } });
 		rxNostr
 			.use(referenceReq)
-			.pipe(uniq())
+			.pipe(tie, uniq())
 			.subscribe((packet) => {
 				console.log('[pin e tag]', packet);
 				items.push(new EventItem(packet.event));

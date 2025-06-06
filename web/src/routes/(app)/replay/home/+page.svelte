@@ -4,7 +4,7 @@
 	import { filter, tap } from 'rxjs';
 	import { browser } from '$app/environment';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import {
 		eventTimeouts,
 		fetchInterval,
@@ -72,6 +72,7 @@
 		$subscription = rxNostr
 			.use(req)
 			.pipe(
+				tie,
 				uniq(),
 				filter(({ event }) => since <= event.created_at && event.created_at < until),
 				tap(({ event }) => {

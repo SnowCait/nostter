@@ -20,7 +20,7 @@ import { lastReadAt } from './author/Notifications';
 import { Mute } from './Mute';
 import { WebStorage } from './WebStorage';
 import { Preferences, preferencesStore } from './Preferences';
-import { rxNostr } from './timelines/MainTimeline';
+import { rxNostr, tie } from './timelines/MainTimeline';
 import { Signer } from './Signer';
 import { authorChannelsEventStore } from './cache/Events';
 import { updateFolloweesStore } from './Contacts';
@@ -226,6 +226,7 @@ export class Author {
 			rxNostr
 				.use(authorReq)
 				.pipe(
+					tie,
 					uniq(),
 					latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`)
 				)
@@ -281,7 +282,9 @@ export class Author {
 					authors: [regacyChannelsEvent.pubkey]
 				}
 			});
-			const packet = await firstValueFrom(rxNostr.use(channelsReq).pipe(uniq(), latest()));
+			const packet = await firstValueFrom(
+				rxNostr.use(channelsReq).pipe(tie, uniq(), latest())
+			);
 			console.log('[channels event]', packet);
 			storage.setReplaceableEvent(packet.event);
 			authorChannelsEventStore.set(packet.event);
@@ -303,7 +306,7 @@ export class Author {
 		});
 		rxNostr
 			.use(channelsMetadataReq)
-			.pipe(uniq())
+			.pipe(tie, uniq())
 			.subscribe({
 				next: (packet) => {
 					console.log('[channel metadata next]', packet);

@@ -3,7 +3,7 @@
 	import { createRxOneshotReq, now, uniq, type LazyFilter } from 'rx-nostr';
 	import { filter, tap } from 'rxjs';
 	import TimelineView from '../../TimelineView.svelte';
-	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { items } from '$lib/timelines/ReactionsTimeline';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { EventItem } from '$lib/Items';
@@ -54,6 +54,7 @@
 				rxNostr
 					.use(pastEventsReq)
 					.pipe(
+						tie,
 						uniq(),
 						filter(
 							({ event }) => since <= event.created_at && event.created_at < until

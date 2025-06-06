@@ -2,7 +2,7 @@ import { get, writable } from 'svelte/store';
 import { createRxForwardReq, createRxOneshotReq, now, uniq } from 'rx-nostr';
 import { Subscription, filter, tap } from 'rxjs';
 import type { Event } from 'nostr-typedef';
-import { referencesReqEmit, rxNostr } from './MainTimeline';
+import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
 import { authorActionReqEmit } from '../author/Action';
 import { chunk } from '../Array';
 import { filterLimitItems, followeesFilterKinds, minTimelineLength } from '../Constants';
@@ -46,6 +46,7 @@ export function subscribeListTimeline(): void {
 	subscription = rxNostr
 		.use(req)
 		.pipe(
+			tie,
 			uniq(),
 			filter(({ event }) => {
 				const $items = get(items);
@@ -105,6 +106,7 @@ export async function loadListTimeline(): Promise<void> {
 			rxNostr
 				.use(pastEventsReq)
 				.pipe(
+					tie,
 					uniq(),
 					tap(({ event }) => {
 						referencesReqEmit(event);

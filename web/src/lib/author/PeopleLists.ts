@@ -4,7 +4,7 @@ import type { Event } from 'nostr-typedef';
 import { isDecodable } from '$lib/Encryption';
 import { aTagContent, findIdentifier } from '$lib/EventHelper';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
-import { rxNostr } from '$lib/timelines/MainTimeline';
+import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
@@ -30,6 +30,7 @@ export function fetchPeopleLists(): void {
 	rxNostr
 		.use(req)
 		.pipe(
+			tie,
 			uniq(),
 			latestEach(({ event }) => aTagContent(event)),
 			filterAsync(({ event }) => isPeopleList(event))

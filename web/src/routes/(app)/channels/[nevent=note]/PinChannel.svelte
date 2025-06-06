@@ -5,7 +5,7 @@
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { Signer } from '$lib/Signer';
 	import { pubkey } from '$lib/stores/Author';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import IconPin from '@tabler/icons-svelte/icons/pin';
 	import IconPinnedFilled from '@tabler/icons-svelte/icons/pinned-filled';
 
@@ -26,7 +26,7 @@
 		});
 		let unsignedEvent: EventTemplate;
 		try {
-			const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(latest()));
+			const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(tie, latest()));
 			console.debug('[channel pin latest]', packet);
 
 			if (packet.event.tags.some(([tagName, id]) => tagName === 'e' && id === channelId)) {
@@ -84,7 +84,7 @@
 		});
 		let unsignedEvent: EventTemplate;
 		try {
-			const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(latest()));
+			const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(tie, latest()));
 			console.debug('[channel pin latest]', packet);
 
 			if (!packet.event.tags.some(([tagName, id]) => tagName === 'e' && id === channelId)) {

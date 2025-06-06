@@ -4,7 +4,7 @@ import { filter, lastValueFrom } from 'rxjs';
 import { notificationsFilterKinds } from '$lib/Constants';
 import { EventItem } from '$lib/Items';
 import { author, pubkey } from '$lib/stores/Author';
-import { rxNostr } from '$lib/timelines/MainTimeline';
+import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 
 export const notifiedEventItems: Writable<EventItem[]> = writable([]);
 export const lastReadAt: Writable<number> = writable(0);
@@ -28,6 +28,7 @@ export async function fetchLastNotification(): Promise<void> {
 	try {
 		const { event } = await lastValueFrom(
 			rxNostr.use(notificationExistsReq).pipe(
+				tie,
 				uniq(),
 				filter(({ event }) => $author.isNotified(event)),
 				latest()

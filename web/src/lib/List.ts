@@ -2,7 +2,7 @@ import { get } from 'svelte/store';
 import { createRxOneshotReq, latest } from 'rx-nostr';
 import { lastValueFrom } from 'rxjs';
 import type { Event } from 'nostr-typedef';
-import { rxNostr } from './timelines/MainTimeline';
+import { rxNostr, tie } from './timelines/MainTimeline';
 import { filterTags, findIdentifier, getTitle } from './EventHelper';
 import { parsePrivateTags } from './Encryption';
 import { pubkey } from './stores/Author';
@@ -17,7 +17,7 @@ export async function fetchListEvent(
 		const req = createRxOneshotReq({
 			filters: [{ kinds: [kind], authors: [pubkey], '#d': [identifier] }]
 		});
-		const { event } = await lastValueFrom(rxNostr.use(req).pipe(latest()));
+		const { event } = await lastValueFrom(rxNostr.use(req).pipe(tie, latest()));
 		return event;
 	} catch (error) {
 		console.warn('[list event not found]', error);

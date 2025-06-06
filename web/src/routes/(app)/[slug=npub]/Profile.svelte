@@ -5,7 +5,7 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { filterTags } from '$lib/EventHelper';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { newUrl } from '$lib/Helper';
 	import { type Metadata, alternativeName } from '$lib/Items';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
@@ -52,7 +52,7 @@
 		});
 		rxNostr
 			.use(contactsReq)
-			.pipe(uniq(), latest())
+			.pipe(tie, uniq(), latest())
 			.subscribe({
 				next: (packet) => {
 					console.debug('[rx-nostr npub contacts]', packet);

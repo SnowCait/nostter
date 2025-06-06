@@ -2,7 +2,7 @@ import { get, writable } from 'svelte/store';
 import { batch, createRxBackwardReq, isExpired, uniq } from 'rx-nostr';
 import { bufferTime, filter } from 'rxjs';
 import type { Event } from 'nostr-typedef';
-import { rxNostr } from './timelines/MainTimeline';
+import { rxNostr, tie } from './timelines/MainTimeline';
 import { maxFilters } from './Constants';
 import type { pubkey } from './Types';
 
@@ -12,6 +12,7 @@ export const userStatusReq = createRxBackwardReq();
 rxNostr
 	.use(userStatusReq.pipe(bufferTime(1000, null, maxFilters), batch()))
 	.pipe(
+		tie,
 		uniq(),
 		filter(({ event }) => !isExpired(event))
 	)

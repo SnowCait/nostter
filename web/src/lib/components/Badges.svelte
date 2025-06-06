@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { createRxBackwardReq, latest, latestEach, uniq } from 'rx-nostr';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { hexRegexp } from '$lib/Constants';
@@ -37,7 +37,7 @@
 			.use(profileBadgesReq, {
 				on: { defaultReadRelays: !isAuthor, defaultWriteRelays: isAuthor, relays }
 			})
-			.pipe(uniq(), latest())
+			.pipe(tie, uniq(), latest())
 			.subscribe({
 				next: ({ event }) => {
 					console.debug('[badges profile]', event);
@@ -66,7 +66,7 @@
 						.use(awardsReq, {
 							on: { defaultReadRelays: true, relays: awardRelays }
 						})
-						.pipe(uniq())
+						.pipe(tie, uniq())
 						.subscribe({
 							next: ({ event }) => {
 								console.debug('[badges award]', event);
@@ -105,6 +105,7 @@
 							on: { defaultReadRelays: true, relays: definitionRelays }
 						})
 						.pipe(
+							tie,
 							uniq(),
 							latestEach(({ event }) => aTagContent(event))
 						)

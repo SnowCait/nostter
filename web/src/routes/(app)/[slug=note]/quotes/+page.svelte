@@ -6,7 +6,7 @@
 	import { chronologicalItem } from '$lib/Constants';
 	import type { pubkey } from '$lib/Types';
 	import type { LayoutData } from '../$types';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import TimelineView from '../../TimelineView.svelte';
 
@@ -20,7 +20,7 @@
 	const quotesReq = createRxBackwardReq();
 	rxNostr
 		.use(quotesReq)
-		.pipe(uniq())
+		.pipe(tie, uniq())
 		.subscribe((packet) => {
 			console.debug('[rx-nostr quotes]', packet, packet.event.pubkey);
 			itemsMap.set(packet.event.id, new EventItem(packet.event));

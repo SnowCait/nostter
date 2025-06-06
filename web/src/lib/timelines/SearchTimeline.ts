@@ -5,7 +5,7 @@ import { authorActionReqEmit } from '$lib/author/Action';
 import { minTimelineLength, searchRelays } from '$lib/Constants';
 import { EventItem } from '$lib/Items';
 import { fetchEvents } from '$lib/RxNostrHelper';
-import { referencesReqEmit, rxNostr } from './MainTimeline';
+import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
 import type { Timeline } from './Timeline';
 import { oldestCreatedAt } from './TimelineHelper';
 
@@ -38,6 +38,7 @@ export class SearchTimeline implements Timeline {
 		rxNostr
 			.use(req)
 			.pipe(
+				tie,
 				uniq(),
 				filter(({ event }) => !$items.some((item) => item.event.id === event.id)),
 				tap(({ event }) => {

@@ -15,6 +15,7 @@
 	import { notesKinds } from '$lib/Constants';
 	import { openNoteDialog, replyTo } from '$lib/stores/NoteDialog';
 	import { rom } from '$lib/stores/Author';
+	import SeenOnRelays from '../SeenOnRelays.svelte';
 
 	export let item: EventItem;
 
@@ -109,6 +110,7 @@
 				.map((codePoint) => `0x${codePoint.toString(16)}`)
 				.join(' ')}
 		</p>
+		<SeenOnRelays id={item.event.id} />
 		<div>
 			Open in <a
 				href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode(

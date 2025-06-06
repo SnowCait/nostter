@@ -5,7 +5,7 @@ import type { Event } from 'nostr-typedef';
 import { chunk } from '$lib/Array';
 import { maxFilters } from '$lib/Constants';
 import { filterEmojiTags, findIdentifier } from '$lib/EventHelper';
-import { rxNostr } from '$lib/timelines/MainTimeline';
+import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 
 // kind 10030
 export const customEmojisEvent = writable<Event | undefined>();
@@ -31,6 +31,7 @@ export function storeCustomEmojis(event: Event): void {
 	rxNostr
 		.use(emojisReq)
 		.pipe(
+			tie,
 			uniq(),
 			latestEach(
 				({ event }) => `${event.kind}:${event.pubkey}:${findIdentifier(event.tags) ?? ''}`

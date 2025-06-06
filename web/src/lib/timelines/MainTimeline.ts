@@ -5,7 +5,6 @@ import {
 	batch,
 	createRxBackwardReq,
 	createRxNostr,
-	createTie,
 	filterByType,
 	latestEach,
 	now,
@@ -32,6 +31,7 @@ import { Content } from '$lib/Content';
 import { sleep } from '$lib/Helper';
 import workerUrl from '$lib/Worker?worker&url';
 import { Signer } from '$lib/Signer';
+import { createTie } from '$lib/RxNostrTie';
 
 Nip11Registry.setDefault({
 	limitation: {
@@ -226,6 +226,7 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 rxNostr
 	.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
 	.pipe(
+		tie,
 		uniq(),
 		latestEach(({ event }) => event.pubkey)
 	)
@@ -234,6 +235,7 @@ rxNostr
 rxNostr
 	.use(eventsReq.pipe(bufferTime(1000, null, 10), batch()))
 	.pipe(
+		tie,
 		uniq(),
 		tap(({ event }) => referencesReqEmit(event, true))
 	)
@@ -242,6 +244,7 @@ rxNostr
 rxNostr
 	.use(replaceableEventsReq.pipe(bufferTime(1000, null, 10), batch()))
 	.pipe(
+		tie,
 		uniq(),
 		latestEach(({ event }) => aTagContent(event))
 	)
