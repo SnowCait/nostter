@@ -28,7 +28,7 @@
 	}
 
 	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
-	$: profile = nip19.nprofileEncode({ pubkey: $pubkey });
+	$: nprofile = nip19.nprofileEncode({ pubkey: $pubkey });
 	$: notificationsBadge =
 		$notifiedEventItems.filter(
 			(item) =>
@@ -75,13 +75,13 @@
 				</a>
 			{/if}
 			{#if $pubkey}
-				<a href="/{profile}/lists">
+				<a href="/{nprofile}/lists">
 					<li class="clickable">
 						<IconList size={30} />
 						<p>{$_('lists.title')}</p>
 					</li>
 				</a>
-				<a href="/{profile}/bookmarks">
+				<a href="/{nprofile}/bookmarks">
 					<li class="clickable">
 						<IconBookmark size={30} />
 						<p>{$_('layout.header.bookmarks')}</p>
@@ -95,7 +95,7 @@
 				</li>
 			</a>
 			{#if $pubkey}
-				<a href="/{profile}">
+				<a href="/{nprofile}">
 					<li class="clickable">
 						<IconUser size={30} />
 						<p>{$_('layout.header.profile')}</p>
@@ -138,7 +138,7 @@
 						<p>{$_('layout.header.notifications')}</p>
 					</li>
 				</a>
-				<a href="/{profile}">
+				<a href="/{nprofile}">
 					<li>
 						<IconUser size={30} />
 						<p>{$_('layout.header.profile')}</p>
@@ -152,13 +152,13 @@
 
 						<Menu.Item
 							icon={IconList}
-							on:click={async () => await goto(`/${profile}/lists`)}
+							on:click={async () => await goto(`/${nprofile}/lists`)}
 						>
 							{$_('lists.title')}
 						</Menu.Item>
 						<Menu.Item
 							icon={IconBookmark}
-							on:click={async () => await goto(`/${profile}/bookmarks`)}
+							on:click={async () => await goto(`/${nprofile}/bookmarks`)}
 						>
 							{$_('layout.header.bookmarks')}
 						</Menu.Item>

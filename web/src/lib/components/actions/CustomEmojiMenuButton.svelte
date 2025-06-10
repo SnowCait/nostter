@@ -6,13 +6,15 @@
 	import { findIdentifier } from '$lib/EventHelper';
 	import IconDots from '@tabler/icons-svelte/icons/dots';
 	import IconExternalLink from '@tabler/icons-svelte/icons/external-link';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let event: Event;
 
 	$: naddr = nip19.naddrEncode({
 		kind: event.kind,
 		pubkey: event.pubkey,
-		identifier: findIdentifier(event.tags) ?? ''
+		identifier: findIdentifier(event.tags) ?? '',
+		relays: getSeenOnRelays(event.id)
 	});
 	$: emojitoUrl = `https://emojito.meme/a/${naddr}`;
 </script>

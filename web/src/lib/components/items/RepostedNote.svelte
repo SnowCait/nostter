@@ -13,6 +13,8 @@
 	import DeletedContent from './DeletedContent.svelte';
 	import MutedContent from './MutedContent.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
+	import SeenOnRelays from '../SeenOnRelays.svelte';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -21,6 +23,12 @@
 	const { event } = item;
 
 	$: metadata = $metadataStore.get(event.pubkey);
+	$: nevent = nip19.neventEncode({
+		id: event.id,
+		relays: getSeenOnRelays(event.id),
+		author: event.pubkey,
+		kind: event.kind
+	});
 
 	let originalEvent: EventItem | undefined;
 	let jsonDisplay = false;
@@ -74,20 +82,17 @@
 		<h5>Event ID</h5>
 		<div>{nip19.noteEncode(event.id)}</div>
 		<br />
-		<div>{nip19.neventEncode({ id: event.id })}</div>
+		<div>{nevent}</div>
 		<h5>Event JSON</h5>
 		<code>{JSON.stringify(event, null, 2)}</code>
 		<h5>User ID</h5>
 		<div>{nip19.npubEncode(event.pubkey)}</div>
 		<h5>User JSON</h5>
 		<code>{JSON.stringify(metadata?.content, null, 2)}</code>
+		<SeenOnRelays id={event.id} />
 		<div>
 			Open in <a
-				href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode(
-					{
-						id: event.id
-					}
-				)}&kind={event.kind}"
+				href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nevent}&kind={event.kind}"
 				target="_blank"
 				rel="noopener noreferrer"
 			>

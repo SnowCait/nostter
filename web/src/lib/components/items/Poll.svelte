@@ -32,8 +32,9 @@
 
 	$: nevent = nip19.neventEncode({
 		id: item.event.id,
+		relays: relays.length > 0 ? relays : undefined,
 		author: item.event.pubkey,
-		relays: relays.length > 0 ? relays : undefined
+		kind: item.event.kind
 	});
 
 	function onSubmit(e: SubmitEvent): void {

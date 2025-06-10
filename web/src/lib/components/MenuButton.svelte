@@ -24,13 +24,19 @@
 	import { deleteEvent } from '$lib/author/Delete';
 	import { mute, unmute } from '$lib/author/Mute';
 	import { referTags } from '$lib/EventHelper';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let event: Event;
 	export let iconSize: number;
 	export let showDetails = false;
 
 	$: bookmarked = isBookmarked(event);
-	$: nevent = nip19.neventEncode({ id: event.id });
+	$: nevent = nip19.neventEncode({
+		id: event.id,
+		relays: getSeenOnRelays(event.id),
+		author: event.pubkey,
+		kind: event.kind
+	});
 	$: url = `${$page.url.origin}/${nevent}`;
 	$: rootId = referTags(event).root?.at(1) ?? event.id;
 

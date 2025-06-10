@@ -8,6 +8,8 @@
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { page } from '$app/stores';
+	import { metadataStore, replaceableEventsStore } from '$lib/cache/Events';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let item: Item;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
@@ -48,8 +50,16 @@
 					{#if authorsOrEditors.length > 0}
 						<div>
 							{#each authorsOrEditors as pubkey}
+								{@const metadata = $metadataStore.get(pubkey)}
 								<span>
-									<a href="/{nip19.nprofileEncode({ pubkey })}">
+									<a
+										href="/{nip19.nprofileEncode({
+											pubkey,
+											relays: metadata
+												? getSeenOnRelays(metadata.event.id)
+												: undefined
+										})}"
+									>
 										<OnelineProfile {pubkey} />
 									</a>
 								</span>
@@ -61,13 +71,21 @@
 						{@const naddr = nip19.naddrEncode({
 							kind: Number(kind),
 							pubkey,
-							identifier
+							identifier,
+							relays: $replaceableEventsStore.has(sourceAddress)
+								? getSeenOnRelays(
+										$replaceableEventsStore.get(sourceAddress)?.id ?? ''
+									)
+								: undefined
 						})}
 						<span>
 							<ExternalLink link={new URL(`${$page.url.origin}/${naddr}`)} />
 						</span>
 					{:else if sourceId}
-						{@const nevent = nip19.neventEncode({ id: sourceId })}
+						{@const nevent = nip19.neventEncode({
+							id: sourceId,
+							relays: getSeenOnRelays(sourceId)
+						})}
 						<span>
 							<ExternalLink link={new URL(`${$page.url.origin}/${nevent}`)} />
 						</span>

@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { nip19 } from 'nostr-tools';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
-	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import { getSeenOnRelays, metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { ZapEventItem, type EventItem, type Item, type Metadata } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import { isMuteEvent } from '$lib/stores/Author';
@@ -15,6 +15,7 @@
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 	import DeletedContent from './DeletedContent.svelte';
 	import MutedContent from './MutedContent.svelte';
+	import SeenOnRelays from '../SeenOnRelays.svelte';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -24,6 +25,12 @@
 	const zap = new ZapEventItem(event);
 
 	$: metadata = $metadataStore.get(event.pubkey);
+	$: nevent = nip19.neventEncode({
+		id: event.id,
+		relays: getSeenOnRelays(event.id),
+		author: event.pubkey,
+		kind: event.kind
+	});
 
 	let zapperMetadata: Metadata | undefined;
 
@@ -96,7 +103,7 @@
 		<h5>Event ID</h5>
 		<div>{nip19.noteEncode(event.id)}</div>
 		<br />
-		<div>{nip19.neventEncode({ id: event.id })}</div>
+		<div>{nevent}</div>
 		<h5>Event JSON</h5>
 		<code>{JSON.stringify(event, null, 2)}</code>
 		<h5>Zap Request Event JSON</h5>
@@ -107,13 +114,10 @@
 		<code>{JSON.stringify(metadata?.content, null, 2)}</code>
 		<h5>Invoice</h5>
 		<code>{JSON.stringify(zap.invoice, null, 2)}</code>
+		<SeenOnRelays id={event.id} />
 		<div>
 			Open in <a
-				href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode(
-					{
-						id: event.id
-					}
-				)}&kind={event.kind}"
+				href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nevent}&kind={event.kind}"
 				target="_blank"
 				rel="noopener noreferrer"
 			>

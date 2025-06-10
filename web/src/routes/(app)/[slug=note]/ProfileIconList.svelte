@@ -2,6 +2,7 @@
 	import { nip19 } from 'nostr-tools';
 	import type { Metadata } from '$lib/Items';
 	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let metadataList: (Metadata | undefined)[];
 </script>
@@ -10,7 +11,12 @@
 	{#each metadataList as metadata}
 		<li>
 			{#if metadata !== undefined}
-				<a href="/{nip19.nprofileEncode({ pubkey: metadata.event.pubkey })}">
+				<a
+					href="/{nip19.nprofileEncode({
+						pubkey: metadata.event.pubkey,
+						relays: getSeenOnRelays(metadata.event.id)
+					})}"
+				>
 					<ProfileIcon pubkey={metadata.event.pubkey} width="30px" height="30px" />
 				</a>
 			{/if}

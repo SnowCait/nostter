@@ -15,6 +15,7 @@
 	import MutedContent from '../items/MutedContent.svelte';
 	import { pollKind } from '$lib/Poll';
 	import { fetchLastEvent } from '$lib/RxNostrHelper';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let text: string;
 
@@ -89,7 +90,12 @@
 </script>
 
 {#if dataType === 'user' && pubkey !== undefined}
-	<a href="/{nip19.nprofileEncode({ pubkey })}">
+	<a
+		href="/{nip19.nprofileEncode({
+			pubkey,
+			relays: metadata ? getSeenOnRelays(metadata.event.id) : undefined
+		})}"
+	>
 		@{metadata !== undefined ? metadata.displayName : alternativeName(pubkey)}
 	</a>
 {:else if dataType === 'event' && eventId !== undefined}
@@ -107,7 +113,14 @@
 		{:else if Number(item.event.kind) === pollKind}
 			<blockquote><EventComponent {item} readonly={true} /></blockquote>
 		{:else}
-			<a href="/{nip19.neventEncode({ id: item.event.id, author: item.event.pubkey })}">
+			<a
+				href="/{nip19.neventEncode({
+					id: item.event.id,
+					relays: getSeenOnRelays(item.event.id),
+					author: item.event.pubkey,
+					kind: item.event.kind
+				})}"
+			>
 				<blockquote><EventComponent {item} readonly={true} /></blockquote>
 			</a>
 		{/if}

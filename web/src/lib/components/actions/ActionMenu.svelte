@@ -16,6 +16,7 @@
 	import { openNoteDialog, replyTo } from '$lib/stores/NoteDialog';
 	import { rom } from '$lib/stores/Author';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let item: EventItem;
 
@@ -26,6 +27,12 @@
 	const iconSize = 20;
 
 	$: metadata = $metadataStore.get(item.event.pubkey);
+	$: nevent = nip19.neventEncode({
+		id: item.event.id,
+		relays: metadata ? getSeenOnRelays(item.event.id) : undefined,
+		author: item.event.pubkey,
+		kind: item.event.kind
+	});
 
 	function reply(item: Item) {
 		$replyTo = item as EventItem;
@@ -84,7 +91,7 @@
 		<h5>Event ID</h5>
 		<div>{nip19.noteEncode(item.event.id)}</div>
 		<br />
-		<div>{nip19.neventEncode({ id: item.event.id })}</div>
+		<div>{nevent}</div>
 		<h5>Event JSON</h5>
 		<code>{JSON.stringify(item.event, null, 2)}</code>
 		<h5>User ID</h5>
@@ -113,9 +120,8 @@
 		<SeenOnRelays id={item.event.id} />
 		<div>
 			Open in <a
-				href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode(
-					{ id: item.event.id }
-				)}&kind={item.event.kind}"
+				href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nevent}&kind={item
+					.event.kind}"
 				target="_blank"
 				rel="noopener noreferrer"
 			>

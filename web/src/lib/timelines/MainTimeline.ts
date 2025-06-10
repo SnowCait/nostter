@@ -86,6 +86,14 @@ export function getRelayHint(id: string): string | undefined {
 		.next().value;
 }
 
+export function getSeenOnRelays(id: string): string[] | undefined {
+	const relays = seenOn.get(id);
+	if (relays === undefined) {
+		return undefined;
+	}
+	return [...relays].filter((value) => value.startsWith('wss://'));
+}
+
 //#endregion
 
 rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {

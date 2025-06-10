@@ -17,6 +17,7 @@
 	import ActionMenu from '../actions/ActionMenu.svelte';
 	import OnelineNote from './OnelineNote.svelte';
 	import { inThread } from '$lib/Thread';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let item: Item;
 	export let readonly: boolean;
@@ -114,7 +115,12 @@
 			<div class="channel">
 				<IconMessages size={16} color={'gray'} />
 				<span>
-					<a href="/channels/{nip19.neventEncode({ id: channelId })}">
+					<a
+						href="/channels/{nip19.neventEncode({
+							id: channelId,
+							relays: getSeenOnRelays(channelId)
+						})}"
+					>
 						{channelName ?? 'Channel'}
 					</a>
 				</span>

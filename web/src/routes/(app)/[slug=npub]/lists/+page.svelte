@@ -6,7 +6,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { metadataStore } from '$lib/cache/Events';
-	import { metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
+	import { getSeenOnRelays, metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { appName, reverseChronological } from '$lib/Constants';
 	import { isDecodable } from '$lib/Encryption';
 	import { findIdentifier } from '$lib/EventHelper';
@@ -100,7 +100,8 @@
 				href="/{nip19.npubEncode(data.pubkey)}/lists/{nip19.naddrEncode({
 					kind: event.kind,
 					pubkey: event.pubkey,
-					identifier: findIdentifier(event.tags) ?? ''
+					identifier: findIdentifier(event.tags) ?? '',
+					relays: getSeenOnRelays(event.id)
 				})}"
 			>
 				{getListTitle(event.tags)}

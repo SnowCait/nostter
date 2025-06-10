@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { kinds as Kind, nip19 } from 'nostr-tools';
+	import { kinds as Kind } from 'nostr-tools';
 	import Profile from './Profile.svelte';
 	import RepostedNote from './RepostedNote.svelte';
 	import Reaction from './Reaction.svelte';
@@ -10,7 +10,6 @@
 	import CustomEmojiList from './CustomEmojiList.svelte';
 	import UserStatus from './UserStatus.svelte';
 	import LongFormContent from '$lib/components/content/LongFormContent.svelte';
-	import { findIdentifier } from '$lib/EventHelper';
 	import BadgeAward from './BadgeAward.svelte';
 	import BadgeDefinition from './BadgeDefinition.svelte';
 	import List from './List.svelte';
@@ -45,14 +44,7 @@
 {:else if item.event.kind === Kind.Highlights}
 	<Highlight {item} {createdAtFormat} />
 {:else if item.event.kind === Kind.LongFormArticle}
-	<LongFormContent
-		event={item.event}
-		naddr={nip19.naddrEncode({
-			kind: Kind.LongFormArticle,
-			pubkey: item.event.pubkey,
-			identifier: findIdentifier(item.event.tags) ?? ''
-		})}
-	/>
+	<LongFormContent event={item.event} />
 {:else if item.event.kind === Kind.Zap}
 	<Zap {item} {readonly} {createdAtFormat} />
 {:else if Number(item.event.kind) === 30000}
