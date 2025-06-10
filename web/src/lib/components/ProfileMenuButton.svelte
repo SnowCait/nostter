@@ -28,12 +28,16 @@
 	import IconRSS from '@tabler/icons-svelte/icons/rss';
 	import IconExternalLink from '@tabler/icons-svelte/icons/external-link';
 	import ListDialog from './actions/ListDialog.svelte';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let pubkey: string;
 
 	$: metadata = $metadataStore.get(pubkey);
 	$: npub = nip19.npubEncode(pubkey);
-	$: nprofile = nip19.nprofileEncode({ pubkey });
+	$: nprofile = nip19.nprofileEncode({
+		pubkey,
+		relays: metadata ? getSeenOnRelays(metadata.event.id) : undefined
+	});
 	$: url = `${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`;
 
 	let listDialogOpen = false;

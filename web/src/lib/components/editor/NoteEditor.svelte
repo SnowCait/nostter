@@ -5,7 +5,7 @@
 	import { uploadFiles } from '$lib/media/FileStorageServer';
 	import { complementPosition } from '$lib/styles/Complement';
 	import { adjustHeight } from '$lib/styles/Textarea';
-	import { rxNostr } from '$lib/timelines/MainTimeline';
+	import { getSeenOnRelays, rxNostr } from '$lib/timelines/MainTimeline';
 	import { NoteComposer } from '$lib/NoteComposer';
 	import { channelIdStore, Channel } from '$lib/Channel';
 	import { Content } from '$lib/Content';
@@ -195,7 +195,15 @@
 				content =
 					'\n' +
 					$quotes
-						.map((event) => `nostr:${nip19.neventEncode({ id: event.id })}`)
+						.map(
+							(event) =>
+								`nostr:${nip19.neventEncode({
+									id: event.id,
+									relays: getSeenOnRelays(event.id),
+									author: event.pubkey,
+									kind: event.kind
+								})}`
+						)
 						.join('\n');
 			}
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
+	import { getSeenOnRelays, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { createRxBackwardReq, latest, latestEach, uniq } from 'rx-nostr';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { hexRegexp } from '$lib/Constants';
@@ -153,7 +153,8 @@
 		{@const naddr = nip19.naddrEncode({
 			kind: event.kind,
 			pubkey: event.pubkey,
-			identifier: findIdentifier(event.tags) ?? ''
+			identifier: findIdentifier(event.tags) ?? '',
+			relays: getSeenOnRelays(event.id)
 		})}
 		<li>
 			<a href="https://badges.page/a/{naddr}" target="_blank" rel="noreferrer">

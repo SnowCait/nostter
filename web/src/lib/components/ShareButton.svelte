@@ -6,6 +6,7 @@
 	import IconClipboardCheck from '@tabler/icons-svelte/icons/clipboard-check';
 	import { nip19 } from 'nostr-tools';
 	import { copy } from '$lib/Clipboard';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let pubkey: string;
 	export let size: number = 24;
@@ -15,7 +16,10 @@
 	let visited = false;
 
 	$: metadata = $metadataStore.get(pubkey);
-	$: nprofile = nip19.nprofileEncode({ pubkey });
+	$: nprofile = nip19.nprofileEncode({
+		pubkey,
+		relays: metadata ? getSeenOnRelays(metadata.event.id) : undefined
+	});
 	$: url = `${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`;
 	$: data = { url };
 </script>

@@ -4,6 +4,8 @@
 	import LongFormContent from './LongFormContent.svelte';
 	import List from '$lib/components/items/List.svelte';
 	import { fetchLastEvent } from '$lib/RxNostrHelper';
+	import { findIdentifier } from '$lib/EventHelper';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let naddr: string;
 
@@ -40,9 +42,16 @@
 {#if event === undefined}
 	<a href="/{naddr}">{naddr.substring(0, 'naddr1'.length + 7)}</a>
 {:else if event.kind == Kind.LongFormArticle}
-	<a href="/{naddr}">
+	<a
+		href="/{nip19.naddrEncode({
+			kind: event.kind,
+			pubkey: event.pubkey,
+			identifier: findIdentifier(event.tags) ?? '',
+			relays: getSeenOnRelays(event.id)
+		})}"
+	>
 		<blockquote>
-			<LongFormContent {naddr} {event} />
+			<LongFormContent {event} />
 		</blockquote>
 	</a>
 {:else if Number(event.kind) === 30000}

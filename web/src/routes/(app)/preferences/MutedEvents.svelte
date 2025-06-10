@@ -4,6 +4,7 @@
 	import { unmute } from '$lib/author/Mute';
 	import { muteEventIds } from '$lib/stores/Author';
 	import IconTrash from '@tabler/icons-svelte/icons/trash';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	let unmuting = false;
 
@@ -25,9 +26,10 @@
 
 <ul>
 	{#each $muteEventIds as eventId}
+		{@const nevent = nip19.neventEncode({ id: eventId, relays: getSeenOnRelays(eventId) })}
 		<li>
-			<a href="/{nip19.neventEncode({ id: eventId })}">
-				<span>{nip19.neventEncode({ id: eventId }).slice(0, 'nevent1'.length + 7)}</span>
+			<a href="/{nevent}">
+				<span>{nevent.slice(0, 'nevent1'.length + 7)}</span>
 			</a>
 			<button class="clear" disabled={unmuting} on:click={() => onUnmute(eventId)}>
 				<IconTrash size={18} />

@@ -11,6 +11,7 @@
 	import NoteLink from '../items/NoteLink.svelte';
 	import DeletedContent from '../items/DeletedContent.svelte';
 	import MutedContent from '../items/MutedContent.svelte';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let text: string;
 	export let tag: string[];
@@ -37,7 +38,14 @@
 				<MutedContent />
 			</blockquote>
 		{:else}
-			<a href="/{nip19.neventEncode({ id: item.event.id, author: item.event.pubkey })}">
+			<a
+				href="/{nip19.neventEncode({
+					id: item.event.id,
+					relays: getSeenOnRelays(item.event.id),
+					author: item.event.pubkey,
+					kind: item.event.kind
+				})}"
+			>
 				<blockquote>
 					<Note {item} readonly={true} />
 				</blockquote>

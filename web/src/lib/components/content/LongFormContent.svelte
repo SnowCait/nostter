@@ -3,13 +3,21 @@
 	import { intentContent, openNoteDialog } from '$lib/stores/NoteDialog';
 	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
 	import IconQuote from '@tabler/icons-svelte/icons/quote';
+	import SeenOnRelays from '../SeenOnRelays.svelte';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import { findIdentifier } from '$lib/EventHelper';
 
-	export let naddr: string;
 	export let event: Event;
 
 	$: title = event.tags.find(([tagName]) => tagName === 'title')?.at(1);
 	$: image = event.tags.find(([tagName]) => tagName === 'image')?.at(1);
 	$: summary = event.tags.find(([tagName]) => tagName === 'summary')?.at(1);
+	$: naddr = nip19.naddrEncode({
+		kind: event.kind,
+		pubkey: event.pubkey,
+		identifier: findIdentifier(event.tags) ?? '',
+		relays: getSeenOnRelays(event.id)
+	});
 
 	const iconSize = 20;
 	let jsonDisplay = false;
@@ -48,11 +56,15 @@
 			<div>{naddr}</div>
 			<h5>Event JSON</h5>
 			<code>{JSON.stringify(event, null, 2)}</code>
+			<SeenOnRelays id={event.id} />
 			<div>
 				Open in <a
 					href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode(
 						{
-							id: event.id
+							id: event.id,
+							relays: getSeenOnRelays(event.id),
+							author: event.pubkey,
+							kind: event.kind
 						}
 					)}&kind={event.kind}"
 					target="_blank"

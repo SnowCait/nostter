@@ -9,12 +9,20 @@
 	import { Channel } from '$lib/Channel';
 	import { findChannelId } from '$lib/EventHelper';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import SeenOnRelays from '../SeenOnRelays.svelte';
 
 	export let item: Item;
 
 	const { event } = item;
 
 	$: channelId = event.kind === 40 ? event.id : findChannelId(event.tags);
+	$: nevent = nip19.neventEncode({
+		id: event.id,
+		relays: getSeenOnRelays(event.id),
+		author: event.pubkey,
+		kind: event.kind
+	});
 
 	let channelMetadataEvent: Event | undefined;
 	let channelMetadata: ChannelMetadata | undefined;
@@ -35,8 +43,8 @@
 	const iconSize = 20;
 	let jsonDisplay = false;
 
-	function quote(event: Event) {
-		$intentContent = '\n' + nip19.neventEncode({ id: event.id });
+	function quote(): void {
+		$intentContent = '\n' + nevent;
 		$openNoteDialog = true;
 	}
 
@@ -70,7 +78,7 @@
 				</a>
 			</div>
 			<div class="action-menu">
-				<button on:click={() => quote(event)}>
+				<button on:click={quote}>
 					<IconQuote size={iconSize} />
 				</button>
 				<button on:click={toggleJsonDisplay}>
@@ -84,18 +92,13 @@
 			<h5>Event ID</h5>
 			<div>{nip19.noteEncode(event.id)}</div>
 			<br />
-			<div>{nip19.neventEncode({ id: event.id })}</div>
-			<h5>ID</h5>
-			<div>{nip19.neventEncode({ id: event.id })}</div>
+			<div>{nevent}</div>
 			<h5>Event JSON</h5>
 			<code>{JSON.stringify(event, null, 2)}</code>
+			<SeenOnRelays id={event.id} />
 			<div>
 				Open in <a
-					href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nip19.neventEncode(
-						{
-							id: event.id
-						}
-					)}&kind={event.kind}"
+					href="https://koteitan.github.io/nostr-post-checker/?hideform&eid={nevent}&kind={event.kind}"
 					target="_blank"
 					rel="noopener noreferrer"
 				>

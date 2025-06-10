@@ -12,6 +12,7 @@
 	import Loading from '$lib/components/Loading.svelte';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	export let items: Item[] = [];
 	export let readonly = false;
@@ -85,7 +86,14 @@
 		}
 		if (canTransition) {
 			if (nostrEvent.kind === 40 && $channelIdStore === undefined) {
-				await goto(`/channels/${nip19.neventEncode({ id: nostrEvent.id })}`);
+				await goto(
+					`/channels/${nip19.neventEncode({
+						id: nostrEvent.id,
+						relays: getSeenOnRelays(nostrEvent.id),
+						author: nostrEvent.pubkey,
+						kind: nostrEvent.kind
+					})}`
+				);
 				return;
 			}
 			if (
@@ -94,15 +102,17 @@
 			) {
 				const channelId = findChannelId(nostrEvent.tags);
 				if (channelId !== undefined) {
-					await goto(`/channels/${nip19.neventEncode({ id: channelId })}`);
+					await goto(
+						`/channels/${nip19.neventEncode({ id: channelId, relays: getSeenOnRelays(channelId) })}`
+					);
 					return;
 				}
 			}
 			const eventId = [6, 7, 9735].includes(nostrEvent.kind)
 				? getTargetETag(nostrEvent.tags)
 				: nostrEvent.id;
-			const encodedId = nip19.neventEncode({ id: eventId });
-			await goto(`/${encodedId}`);
+			const nevent = nip19.neventEncode({ id: eventId, relays: getSeenOnRelays(eventId) });
+			await goto(`/${nevent}`);
 		}
 	};
 </script>
