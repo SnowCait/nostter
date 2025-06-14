@@ -26,7 +26,8 @@
 		"relays_edit": "リレーを編集",
 		"timeline": "タイムライン",
 		"media": "メディア",
-		"latest": "最新の投稿"
+		"latest": "最新の投稿",
+		"public": "パブリック"
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",
@@ -313,5 +314,8 @@
 		"title": "Zap",
 		"message": "メッセージ（オプション）",
 		"send": "Zap"
+	},
+	"timeline": {
+		"update": "新しい投稿を表示"
 	}
 }
