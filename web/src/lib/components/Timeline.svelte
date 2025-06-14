@@ -59,6 +59,7 @@
 
 	async function newer() {
 		const id = visibleItems.at(0)?.id;
+		timeline.newer();
 		if (id === undefined) {
 			return;
 		}
@@ -67,7 +68,6 @@
 			return;
 		}
 		const before = latestElement.getBoundingClientRect();
-		timeline.newer();
 		await tick();
 		const after = latestElement.getBoundingClientRect();
 		window.scrollTo({
