@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Menu } from '@svelteuidev/core';
 	import IconHome from '@tabler/icons-svelte/icons/home';
+	import IconWorld from '@tabler/icons-svelte/icons/world';
 	import IconSearch from '@tabler/icons-svelte/icons/search';
 	import IconBell from '@tabler/icons-svelte/icons/bell';
 	import IconUser from '@tabler/icons-svelte/icons/user';
@@ -55,6 +56,12 @@
 				<li class="clickable">
 					<IconHome size={30} />
 					<p>{$_('layout.header.home')}</p>
+				</li>
+			</a>
+			<a href="/public">
+				<li class="clickable">
+					<IconWorld size={30} />
+					<p>{$_('pages.public')}</p>
 				</li>
 			</a>
 			<a href="/search">
