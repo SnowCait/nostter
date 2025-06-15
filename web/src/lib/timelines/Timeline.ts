@@ -18,5 +18,6 @@ export interface NewTimeline {
 	unsubscribe(): void;
 	newer(): void;
 	older(): void;
+	reduce(): void;
 	[Symbol.dispose](): void;
 }

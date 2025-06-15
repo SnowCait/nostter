@@ -74,7 +74,22 @@
 		});
 	}
 
-	function older(): void {
+	async function older(): Promise<void> {
+		const id = visibleItems.at(-1)?.id;
+		timeline.reduce();
+		if (id === undefined) {
+			return;
+		}
+		const oldestElement = document.getElementById(id);
+		if (oldestElement === null) {
+			return;
+		}
+		const before = oldestElement.getBoundingClientRect();
+		await tick();
+		const after = oldestElement.getBoundingClientRect();
+		window.scrollTo({
+			top: scrollY + after.top - before.top
+		});
 		timeline.older();
 	}
 

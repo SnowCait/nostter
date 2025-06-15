@@ -130,7 +130,7 @@ export class PublicTimeline implements NewTimeline {
 				(event) => event.id === $eventsForView[$eventsForView.length - 1].id
 			);
 			const events = this.#eventsStore.slice(index + 1, index + 1 + minTimelineLength);
-			this.#eventsForView.set([...$eventsForView, ...events].slice(-maxTimelineLength));
+			this.#eventsForView.set([...$eventsForView, ...events]);
 			count += events.length;
 			console.debug('[public timeline older from store]', count);
 		}
@@ -171,16 +171,10 @@ export class PublicTimeline implements NewTimeline {
 				},
 				complete: async () => {
 					console.debug('[public timeline older complete]', count);
-					const $eventsForView = get(this.#eventsForView);
-					if ($eventsForView.length > maxTimelineLength) {
-						this.#eventsForView.set($eventsForView.slice(-maxTimelineLength));
-					}
 					if (count < minTimelineLength) {
 						const events = await this.#fetchEnough(minTimelineLength - count);
 						this.#eventsStore.push(...events);
-						this.#eventsForView.set(
-							[...get(this.#eventsForView), ...events].slice(-maxTimelineLength)
-						);
+						this.#eventsForView.set([...get(this.#eventsForView), ...events]);
 						count += events.length;
 						console.debug(
 							'[public timeline fetch enough complete]',
@@ -200,6 +194,11 @@ export class PublicTimeline implements NewTimeline {
 			});
 		req.emit([{ kinds: [1], until, since: until - 5 * 60 }]);
 		req.over();
+	}
+
+	public reduce(): void {
+		const $eventsForView = get(this.#eventsForView);
+		this.#eventsForView.set($eventsForView.slice(-minTimelineLength));
 	}
 
 	async #fetchEnough(limit: number): Promise<Event[]> {
