@@ -60,7 +60,11 @@ export class PublicTimeline implements NewTimeline {
 				filter(({ event }) => !this.#eventsStore.some((e) => e.id === event.id)),
 				filter(
 					({ event }) =>
-						!event.tags.some((tag) => ['proxy', 'content-warning'].includes(tag[0]))
+						!event.tags.some(
+							(tag) =>
+								tag[0] === 'content-warning' ||
+								(tag[0] === 'proxy' && !['rss', 'web'].includes(tag[2]))
+						)
 				),
 				filter(({ event }) => event.tags.filter((tag) => tag[0] === 't').length <= 5),
 				tap(({ event }) => {
@@ -151,7 +155,11 @@ export class PublicTimeline implements NewTimeline {
 				filter(({ event }) => !this.#eventsStore.some((e) => e.id === event.id)),
 				filter(
 					({ event }) =>
-						!event.tags.some((tag) => ['proxy', 'content-warning'].includes(tag[0]))
+						!event.tags.some(
+							(tag) =>
+								tag[0] === 'content-warning' ||
+								(tag[0] === 'proxy' && !['rss', 'web'].includes(tag[2]))
+						)
 				),
 				filter(({ event }) => event.tags.filter((tag) => tag[0] === 't').length <= 5),
 				tap(({ event }) => {
@@ -215,7 +223,11 @@ export class PublicTimeline implements NewTimeline {
 				filter(({ event }) => !this.#eventsStore.some((e) => e.id === event.id)),
 				filter(
 					({ event }) =>
-						!event.tags.some((tag) => ['proxy', 'content-warning'].includes(tag[0]))
+						!event.tags.some(
+							(tag) =>
+								tag[0] === 'content-warning' ||
+								(tag[0] === 'proxy' && !['rss', 'web'].includes(tag[2]))
+						)
 				),
 				filter(({ event }) => event.tags.filter((tag) => tag[0] === 't').length <= 5),
 				tap(({ event }) => {
