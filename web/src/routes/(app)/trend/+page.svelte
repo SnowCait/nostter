@@ -20,6 +20,8 @@
 
 <HomeTab selected="trend" />
 
+<div class="message">{$_('pages.trend.message')}</div>
+
 {#if pubkey !== undefined}
 	<div class="timeline">
 		<UserFollowingTimeline {pubkey} />
@@ -31,5 +33,10 @@
 		.timeline {
 			margin-top: 0.75rem;
 		}
+	}
+
+	.message {
+		text-align: center;
+		margin: 1rem;
 	}
 </style>

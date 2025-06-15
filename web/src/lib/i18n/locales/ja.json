@@ -27,7 +27,10 @@
 		"timeline": "タイムライン",
 		"media": "メディア",
 		"latest": "最新の投稿",
-		"public": "パブリック"
+		"public": "パブリック",
+		"trend": {
+			"message": "トレンドはパブリックに統合されます。"
+		}
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",

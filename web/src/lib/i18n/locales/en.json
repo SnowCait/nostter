@@ -27,7 +27,10 @@
 		"timeline": "Timeline",
 		"media": "Media",
 		"latest": "Latest notes",
-		"public": "Public"
+		"public": "Public",
+		"trend": {
+			"message": "Trend will be integrated into Public."
+		}
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",
