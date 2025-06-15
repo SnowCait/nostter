@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { writable } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
 	import type { EventItem } from '$lib/Items';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
@@ -25,12 +24,12 @@
 	export let canTransition = true;
 
 	let innerHeight: number;
-	let scrollY = writable(0);
+	let scrollY = 0;
 	let isTop = true;
 	let latest = true;
 	let oldest = false;
 
-	$: if ($scrollY === 0 && !isTop) {
+	$: if (scrollY === 0 && !isTop) {
 		isTop = true;
 		timeline.setIsTop(isTop);
 		if (timeline.autoUpdate && !latest) {
@@ -38,14 +37,14 @@
 		}
 	}
 
-	$: if ($scrollY > 0 && isTop) {
+	$: if (scrollY > 0 && isTop) {
 		isTop = false;
 		timeline.setIsTop(isTop);
 	}
 
 	$: if (
-		$scrollY > 0 &&
-		$scrollY + window.innerHeight * 1.2 >= document.documentElement.scrollHeight &&
+		scrollY > 0 &&
+		scrollY + window.innerHeight * 1.2 >= document.documentElement.scrollHeight &&
 		!timeline.loading
 	) {
 		older();
@@ -71,7 +70,7 @@
 		await tick();
 		const after = latestElement.getBoundingClientRect();
 		window.scrollTo({
-			top: $scrollY + after.top - before.top
+			top: scrollY + after.top - before.top
 		});
 	}
 
@@ -163,7 +162,7 @@
 	});
 </script>
 
-<svelte:window bind:innerHeight bind:scrollY={$scrollY} />
+<svelte:window bind:innerHeight bind:scrollY />
 
 {#if !timeline.autoUpdate && !latest}
 	<button on:click={newer} class="new">{$_('timeline.update')}</button>
