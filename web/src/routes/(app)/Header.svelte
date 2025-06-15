@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Menu } from '@svelteuidev/core';
 	import IconHome from '@tabler/icons-svelte/icons/home';
+	import IconWorld from '@tabler/icons-svelte/icons/world';
 	import IconSearch from '@tabler/icons-svelte/icons/search';
 	import IconBell from '@tabler/icons-svelte/icons/bell';
 	import IconUser from '@tabler/icons-svelte/icons/user';
@@ -55,6 +56,12 @@
 				<li class="clickable">
 					<IconHome size={30} />
 					<p>{$_('layout.header.home')}</p>
+				</li>
+			</a>
+			<a href="/public">
+				<li class="clickable">
+					<IconWorld size={30} />
+					<p>{$_('pages.public')}</p>
 				</li>
 			</a>
 			<a href="/search">
@@ -122,6 +129,14 @@
 					<p>{$_('layout.header.home')}</p>
 				</li>
 			</a>
+			{#if !$pubkey}
+				<a href="/public">
+					<li>
+						<IconWorld size={30} />
+						<p>{$_('pages.public')}</p>
+					</li>
+				</a>
+			{/if}
 			<a href="/search">
 				<li>
 					<IconSearch size={30} />
@@ -150,6 +165,9 @@
 							<IconDots size={30} />
 						</svelte:fragment>
 
+						<Menu.Item icon={IconWorld} on:click={async () => await goto(`/public`)}>
+							{$_('pages.public')}
+						</Menu.Item>
 						<Menu.Item
 							icon={IconList}
 							on:click={async () => await goto(`/${nprofile}/lists`)}

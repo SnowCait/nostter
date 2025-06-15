@@ -26,7 +26,11 @@
 		"relays_edit": "Edit relays",
 		"timeline": "Timeline",
 		"media": "Media",
-		"latest": "Latest notes"
+		"latest": "Latest notes",
+		"public": "Public",
+		"trend": {
+			"message": "Trend will be integrated into Public."
+		}
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",
@@ -314,5 +318,8 @@
 		"title": "Zap",
 		"message": "Message (optional)",
 		"send": "Zap"
+	},
+	"timeline": {
+		"update": "Show new posts"
 	}
 }
