@@ -143,6 +143,14 @@ export const searchRelays = [
 
 export const trendRelays = ['wss://nostrbuzzs-relay.fly.dev/'];
 
+// Spam-free relays with limited writes and free reads
+export const publicRelays = [
+	'wss://nostr.wine/',
+	'wss://relay.snort.social/',
+	'wss://wot.utxo.one/',
+	'wss://nostrelites.org/'
+];
+
 export const fileStorageServers = [
 	'https://nostrcheck.me',
 	'https://nostr.build',
