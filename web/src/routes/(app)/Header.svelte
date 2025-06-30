@@ -262,6 +262,9 @@
 		justify-content: center;
 		gap: 0.5rem;
 		margin-left: 1rem;
+
+		position: sticky;
+		bottom: 1.5rem;
 	}
 
 	ul {
