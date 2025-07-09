@@ -209,6 +209,10 @@ export class PublicTimeline implements NewTimeline {
 		this.#eventsForView.set($eventsForView.slice(-minTimelineLength));
 	}
 
+	public scrollToTop(): void {
+		this.#eventsForView.set(this.#eventsStore.slice(0, minTimelineLength));
+	}
+
 	async #fetchEnough(limit: number): Promise<Event[]> {
 		console.debug('[public timeline fetch enough]', limit);
 		const { promise, resolve } = Promise.withResolvers<Event[]>();
