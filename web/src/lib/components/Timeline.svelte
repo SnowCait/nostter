@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { beforeUpdate, onMount, tick } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import type { EventItem } from '$lib/Items';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
@@ -14,6 +14,8 @@
 	import { nip19 } from 'nostr-tools';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { findChannelId } from '$lib/EventHelper';
+	import IconChevronsUp from '@tabler/icons-svelte/icons/chevrons-up';
+	import { sleep } from '$lib/Helper';
 
 	export let timeline: NewTimeline;
 	export let items: EventItem[];
@@ -93,6 +95,37 @@
 		timeline.older();
 	}
 
+	//#region Scroll to top
+
+	let scrollToTopButton: HTMLButtonElement | undefined;
+	let element: HTMLElement | undefined;
+	let offset = 0;
+
+	$: showScrollToTopButton = scrollY > offset;
+
+	beforeUpdate(() => {
+		if (scrollToTopButton && showScrollToTopButton) {
+			scrollToTopButton.style.top = `${scrollY - offset + 24}px`;
+		}
+	});
+
+	async function scrollToTop(): Promise<void> {
+		timeline.scrollToTop();
+		await tick();
+		window.scrollTo({
+			top: 0,
+			behavior: 'smooth'
+		});
+		// The reflection is not complete immediately after the tick
+		await sleep(500);
+		window.scrollTo({
+			top: 0,
+			behavior: 'smooth'
+		});
+	}
+
+	//#endregion
+
 	const getTargetETag = (tags: string[][]) => {
 		const [, refEventId] = tags.findLast(
 			([tagName, tagContent]) =>
@@ -162,6 +195,8 @@
 	};
 
 	onMount(() => {
+		offset = element?.getBoundingClientRect().top ?? 0;
+
 		const unsubscribeLatest = timeline.latest.subscribe(($latest) => {
 			latest = $latest;
 		});
@@ -183,7 +218,13 @@
 	<button on:click={newer} class="new">{$_('timeline.update')}</button>
 {/if}
 
-<section class="card">
+<section bind:this={element} class="card">
+	{#if showScrollToTopButton}
+		<button on:click={scrollToTop} bind:this={scrollToTopButton} class="scroll-to-top">
+			<IconChevronsUp size="24" />
+		</button>
+	{/if}
+
 	{#each visibleItems as item (item.id)}
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
@@ -202,7 +243,7 @@
 {/if}
 
 <style>
-	button {
+	button.new {
 		width: 100%;
 		border: var(--default-border);
 		border-bottom: none;
@@ -211,11 +252,29 @@
 		color: var(--secondary-accent);
 	}
 
+	button.scroll-to-top {
+		position: absolute;
+		top: 1.5rem;
+		left: 50%;
+		transform: translateX(-50%);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+		background: var(--accent-foreground);
+		color: var(--secondary-accent);
+		border: var(--default-border);
+		z-index: 1;
+	}
+
+	button.scroll-to-top:hover {
+		opacity: 1;
+	}
+
 	section {
 		margin: 0;
 		padding: 0;
 		border-radius: 0;
 		border-bottom: none;
+		position: relative;
+		overflow: visible;
 	}
 
 	section div {

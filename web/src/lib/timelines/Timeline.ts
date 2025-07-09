@@ -19,5 +19,6 @@ export interface NewTimeline {
 	newer(): void;
 	older(): void;
 	reduce(): void;
+	scrollToTop(): void;
 	[Symbol.dispose](): void;
 }
