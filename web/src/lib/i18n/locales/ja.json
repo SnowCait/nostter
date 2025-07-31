@@ -99,6 +99,12 @@
 			"light": "ライト",
 			"dark": "ダーク"
 		},
+		"language": {
+			"language": "言語",
+			"system": "システム",
+			"ja": "日本語",
+			"en": "English"
+		},
 		"emoji": {
 			"like": "いいねの絵文字",
 			"custom": "絵文字を追加"

@@ -27,6 +27,7 @@
 	import TimelineFilter from './TimelineFilter.svelte';
 	import MuteAutomatically from './MuteAutomatically.svelte';
 	import Json from '$lib/components/Json.svelte';
+	import Language from './Language.svelte';
 </script>
 
 <svelte:head>
@@ -86,6 +87,7 @@
 <section class="card">
 	<h2>{$_('preferences.device')}</h2>
 	<div><Theme /></div>
+	<div><Language /></div>
 	<div><AutoRefresh /></div>
 	<div><EnablePreview /></div>
 	<div><ImageOptimization /></div>
