@@ -14,21 +14,6 @@ export const load: LayoutLoad = async ({ url }) => {
 	let authenticated = false;
 	if (browser) {
 		rxNostr.setDefaultRelays(defaultRelays);
-
-		// load language preference from localStorage
-		const storage = new WebStorage(localStorage);
-		const savedLanguage = storage.get('language') as 'system' | 'ja' | 'en' | null;
-
-		let targetLanguage: string;
-		if (savedLanguage === 'ja') {
-			targetLanguage = 'ja';
-		} else if (savedLanguage === 'en') {
-			targetLanguage = 'en';
-		} else {
-			targetLanguage = window.navigator.language;
-		}
-
-		locale.set(targetLanguage);
 		if (get(locale)?.startsWith('ja')) {
 			rxNostr.addDefaultRelays(localizedRelays.ja);
 			readRelays.set(

@@ -21,7 +21,7 @@ if (browser) {
 	}
 }
 
-init({
+await init({
 	fallbackLocale: defaultLocale,
 	initialLocale
 });
