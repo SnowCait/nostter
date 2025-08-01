@@ -15,27 +15,21 @@
 			let targetLang: string;
 			if (v === 'ja') {
 				console.log('[language local]', 'ja');
-				document.documentElement.classList.add('ja');
 				targetLang = 'ja';
 			} else if (v === 'en') {
 				console.log('[language local]', 'en');
-				document.documentElement.classList.remove('ja');
 				targetLang = 'en';
 			} else {
-				if (
-					window.navigator.language === 'ja' ||
-					window.navigator.language.startsWith('ja')
-				) {
+				if (window.navigator.language.startsWith('ja')) {
 					console.log('[language system]', 'ja');
-					document.documentElement.classList.add('ja');
 					targetLang = 'ja';
 				} else {
 					console.log('[language system]', 'en');
-					document.documentElement.classList.remove('ja');
 					targetLang = 'en';
 				}
 			}
 
+			document.documentElement.lang = targetLang;
 			locale.set(targetLang);
 		});
 	}
