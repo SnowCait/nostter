@@ -102,9 +102,7 @@
 		},
 		"language": {
 			"language": "Language",
-			"system": "System",
-			"ja": "日本語",
-			"en": "English"
+			"system": "System"
 		},
 		"emoji": {
 			"like": "Like emoji",

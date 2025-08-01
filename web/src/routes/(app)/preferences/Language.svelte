@@ -39,7 +39,7 @@
 	<label for="language-select">{$_('preferences.language.language')}:</label>
 	<select bind:value={$language} id="language-select">
 		<option value="system">{$_('preferences.language.system')}</option>
-		<option value="ja">{$_('preferences.language.ja')}</option>
-		<option value="en">{$_('preferences.language.en')}</option>
+		<option value="en">English</option>
+		<option value="ja">日本語</option>
 	</select>
 </div>

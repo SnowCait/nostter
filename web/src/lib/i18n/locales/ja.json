@@ -101,9 +101,7 @@
 		},
 		"language": {
 			"language": "言語",
-			"system": "システム",
-			"ja": "日本語",
-			"en": "English"
+			"system": "システム"
 		},
 		"emoji": {
 			"like": "いいねの絵文字",
