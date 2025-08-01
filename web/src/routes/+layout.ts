@@ -14,7 +14,6 @@ export const load: LayoutLoad = async ({ url }) => {
 	let authenticated = false;
 	if (browser) {
 		rxNostr.setDefaultRelays(defaultRelays);
-		locale.set(window.navigator.language);
 		if (get(locale)?.startsWith('ja')) {
 			rxNostr.addDefaultRelays(localizedRelays.ja);
 			readRelays.set(

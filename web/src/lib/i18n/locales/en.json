@@ -100,6 +100,10 @@
 			"light": "Light",
 			"dark": "Dark"
 		},
+		"language": {
+			"language": "Language",
+			"system": "System"
+		},
 		"emoji": {
 			"like": "Like emoji",
 			"custom": "Add emojis"
