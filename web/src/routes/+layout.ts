@@ -3,7 +3,7 @@ import { _, locale, waitLocale } from 'svelte-i18n';
 import { browser } from '$app/environment';
 import { Login } from '$lib/Login';
 import { WebStorage } from '$lib/WebStorage';
-import '$lib/i18n';
+import { initialize } from '$lib/i18n';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { appName, defaultRelays, localizedRelays } from '$lib/Constants';
 import type { LayoutLoad } from './$types';
@@ -12,6 +12,7 @@ import { readRelays, writeRelays } from '$lib/stores/Author';
 export const load: LayoutLoad = async ({ url }) => {
 	console.debug('[layout load]');
 	let authenticated = false;
+	await initialize();
 	if (browser) {
 		rxNostr.setDefaultRelays(defaultRelays);
 		if (get(locale)?.startsWith('ja')) {
