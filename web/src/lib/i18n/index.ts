@@ -21,7 +21,9 @@ if (browser) {
 	}
 }
 
-await init({
-	fallbackLocale: defaultLocale,
-	initialLocale
-});
+export async function initialize(): Promise<void> {
+	await init({
+		fallbackLocale: defaultLocale,
+		initialLocale
+	});
+}
