@@ -16,6 +16,7 @@
 	import { pollKind } from '$lib/Poll';
 	import { fetchLastEvent } from '$lib/RxNostrHelper';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import { goto } from '$app/navigation';
 
 	export let text: string;
 
@@ -87,6 +88,27 @@
 			}
 		}
 	});
+
+	async function navigate(event: MouseEvent | KeyboardEvent): Promise<void> {
+		if (item === undefined || !(event.target instanceof HTMLElement)) {
+			return;
+		}
+		const element = event.target;
+		if (
+			['a', 'button', 'img', 'video', 'audio', 'dialog'].some((selectors) =>
+				element.closest(selectors)
+			)
+		) {
+			return;
+		}
+		const nevent = nip19.neventEncode({
+			id: item.event.id,
+			relays: getSeenOnRelays(item.event.id),
+			author: item.event.pubkey,
+			kind: item.event.kind
+		});
+		await goto(`/${nevent}`);
+	}
 </script>
 
 {#if dataType === 'user' && pubkey !== undefined}
@@ -113,16 +135,10 @@
 		{:else if Number(item.event.kind) === pollKind}
 			<blockquote><EventComponent {item} readonly={true} /></blockquote>
 		{:else}
-			<a
-				href="/{nip19.neventEncode({
-					id: item.event.id,
-					relays: getSeenOnRelays(item.event.id),
-					author: item.event.pubkey,
-					kind: item.event.kind
-				})}"
-			>
-				<blockquote><EventComponent {item} readonly={true} /></blockquote>
-			</a>
+			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+			<blockquote on:click={navigate} on:keydown={navigate}>
+				<EventComponent {item} readonly={true} />
+			</blockquote>
 		{/if}
 	{:else}
 		<blockquote><NoteLink {eventId} /></blockquote>
