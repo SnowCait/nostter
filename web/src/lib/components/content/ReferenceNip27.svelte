@@ -90,7 +90,6 @@
 	});
 
 	async function navigate(event: MouseEvent | KeyboardEvent): Promise<void> {
-		console.log('[navigate]');
 		if (item === undefined || !(event.target instanceof HTMLElement)) {
 			return;
 		}
