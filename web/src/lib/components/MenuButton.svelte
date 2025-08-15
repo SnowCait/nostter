@@ -15,6 +15,7 @@
 	import IconBookmarkFilled from '@tabler/icons-svelte/icons/bookmark-filled';
 	import IconClipboard from '@tabler/icons-svelte/icons/clipboard';
 	import IconLink from '@tabler/icons-svelte/icons/link';
+	import IconCode from '@tabler/icons-svelte/icons/code';
 	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
 	import IconBroadcast from '@tabler/icons-svelte/icons/broadcast';
 	import IconTrash from '@tabler/icons-svelte/icons/trash';
@@ -75,6 +76,14 @@
 			bookmarked = true;
 			alert($_('actions.unbookmark.failed'));
 		}
+	}
+
+	function embed(): void {
+		const html = [
+			'<script type="module" src="https://cdn.jsdelivr.net/npm/nostr-widgets/dist/nostr-widgets.js"><\/script>',
+			`<nostr-note data='${JSON.stringify(event)}'></nostr-note>`
+		].join('');
+		copy(html);
 	}
 
 	async function onDelete(): Promise<void> {
@@ -177,6 +186,10 @@
 			{$_('actions.copy_url.button')}
 		</Menu.Item>
 	{/if}
+
+	<Menu.Item icon={IconCode} on:click={embed}>
+		{$_('actions.embed.button')}
+	</Menu.Item>
 
 	<Menu.Item
 		icon={IconLanguage}

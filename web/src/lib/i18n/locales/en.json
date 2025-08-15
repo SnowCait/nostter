@@ -209,6 +209,9 @@
 		"share": {
 			"button": "Share link"
 		},
+		"embed": {
+			"button": "Embed note"
+		},
 		"details": {
 			"button": "Details"
 		},

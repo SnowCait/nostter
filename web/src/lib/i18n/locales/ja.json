@@ -208,6 +208,9 @@
 		"share": {
 			"button": "リンクを共有"
 		},
+		"embed": {
+			"button": "投稿を埋め込む"
+		},
 		"details": {
 			"button": "詳細"
 		},
