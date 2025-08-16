@@ -133,11 +133,7 @@ export const metadataRelays = [
 	'wss://directory.yabu.me/'
 ];
 
-export const searchRelays = [
-	'wss://relay.nostr.band/',
-	'wss://relay.noswhere.com/',
-	'wss://search.nos.today/'
-];
+export const searchRelays = ['wss://relay.nostr.band/', 'wss://search.nos.today/'];
 
 export const trendRelays = ['wss://nostrbuzzs-relay.fly.dev/'];
 
