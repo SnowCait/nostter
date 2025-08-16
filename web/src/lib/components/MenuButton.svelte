@@ -15,6 +15,7 @@
 	import IconBookmarkFilled from '@tabler/icons-svelte/icons/bookmark-filled';
 	import IconClipboard from '@tabler/icons-svelte/icons/clipboard';
 	import IconLink from '@tabler/icons-svelte/icons/link';
+	import IconCode from '@tabler/icons-svelte/icons/code';
 	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
 	import IconBroadcast from '@tabler/icons-svelte/icons/broadcast';
 	import IconTrash from '@tabler/icons-svelte/icons/trash';
@@ -25,6 +26,7 @@
 	import { mute, unmute } from '$lib/author/Mute';
 	import { referTags } from '$lib/EventHelper';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import { addToast } from './Toaster.svelte';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -75,6 +77,22 @@
 			bookmarked = true;
 			alert($_('actions.unbookmark.failed'));
 		}
+	}
+
+	function embed(): void {
+		const html = [
+			// Workaround for Svelte compiler with script tags
+			// eslint-disable-next-line no-useless-escape
+			'<script type="module" src="https://cdn.jsdelivr.net/npm/nostr-widgets/dist/nostr-widgets.js"><\/script>',
+			`<nostr-note data='${JSON.stringify(event)}'></nostr-note>`
+		].join('');
+		copy(html);
+		addToast({
+			data: {
+				title: $_('actions.embed.copied.title'),
+				description: $_('actions.embed.copied.description')
+			}
+		});
 	}
 
 	async function onDelete(): Promise<void> {
@@ -177,6 +195,10 @@
 			{$_('actions.copy_url.button')}
 		</Menu.Item>
 	{/if}
+
+	<Menu.Item icon={IconCode} on:click={embed}>
+		{$_('actions.embed.button')}
+	</Menu.Item>
 
 	<Menu.Item
 		icon={IconLanguage}

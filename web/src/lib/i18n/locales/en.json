@@ -209,6 +209,13 @@
 		"share": {
 			"button": "Share link"
 		},
+		"embed": {
+			"button": "Embed note",
+			"copied": {
+				"title": "Copied",
+				"description": "Embed code copied to clipboard."
+			}
+		},
 		"details": {
 			"button": "Details"
 		},

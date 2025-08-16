@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { appName } from '$lib/Constants';
 	import '../app.css';
+	import Toaster from '$lib/components/Toaster.svelte';
 </script>
 
 <svelte:head>
@@ -46,5 +47,6 @@
 </svelte:head>
 
 <SvelteUIProvider>
+	<Toaster />
 	<slot />
 </SvelteUIProvider>
