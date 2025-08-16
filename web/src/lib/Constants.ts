@@ -128,17 +128,15 @@ export const localizedRelays = {
 };
 
 export const metadataRelays = [
-	'wss://purplepag.es',
+	'wss://purplepag.es/',
 	'wss://user.kindpag.es/',
-	'wss://directory.yabu.me'
+	'wss://directory.yabu.me/'
 ];
 
 export const searchRelays = [
-	'wss://relay.nostr.band',
-	'wss://relay.noswhere.com',
-	'wss://nostr.wine',
-	'wss://search.nos.today',
-	'wss://nostrja-kari-nip50.heguro.com'
+	'wss://relay.nostr.band/',
+	'wss://relay.noswhere.com/',
+	'wss://search.nos.today/'
 ];
 
 export const trendRelays = ['wss://nostrbuzzs-relay.fly.dev/'];
