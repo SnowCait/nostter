@@ -26,6 +26,7 @@
 	import { mute, unmute } from '$lib/author/Mute';
 	import { referTags } from '$lib/EventHelper';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import { addToast } from './Toaster.svelte';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -84,6 +85,12 @@
 			`<nostr-note data='${JSON.stringify(event)}'></nostr-note>`
 		].join('');
 		copy(html);
+		addToast({
+			data: {
+				title: $_('actions.embed.copied.title'),
+				description: $_('actions.embed.copied.description')
+			}
+		});
 	}
 
 	async function onDelete(): Promise<void> {

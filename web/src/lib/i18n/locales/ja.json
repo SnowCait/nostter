@@ -209,7 +209,11 @@
 			"button": "リンクを共有"
 		},
 		"embed": {
-			"button": "投稿を埋め込む"
+			"button": "投稿を埋め込む",
+			"copied": {
+				"title": "コピー",
+				"description": "埋め込みコードがクリップボードにコピーされました。"
+			}
 		},
 		"details": {
 			"button": "詳細"
