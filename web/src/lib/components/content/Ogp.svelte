@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-	const cache = new Map<string, any>(); // eslint-disable-line @typescript-eslint/no-explicit-any
+	const cache = new Map<string, { [k: string]: string } | undefined>();
 </script>
 
 <script lang="ts">
@@ -64,13 +64,15 @@
 					}
 					ogp = Object.fromEntries(
 						metaTags
-							.filter((element) =>
-								element.getAttribute('property')?.startsWith('og:')
+							.filter(
+								(element) =>
+									element.getAttribute('property')?.startsWith('og:') &&
+									element.getAttribute('content')
 							)
 							.map((element) => {
 								return [
-									element.getAttribute('property'),
-									element.getAttribute('content')
+									element.getAttribute('property')!,
+									element.getAttribute('content')!
 								];
 							})
 					);
@@ -84,6 +86,11 @@
 				});
 		});
 	}
+
+	function error(event: Event): void {
+		const img = event.target as HTMLImageElement;
+		img.hidden = true;
+	}
 </script>
 
 {#if ogp !== undefined && ogp['og:title']}
@@ -91,9 +98,15 @@
 		<blockquote>
 			{#if ogp['og:image']}
 				{#if ogp['og:image'].startsWith('https://')}
-					<img src={ogp['og:image']} alt={url.href} />
+					<img src={ogp['og:image']} alt="" on:error={error} loading="lazy" />
 				{:else}
-					<img src={new URL(url.href).origin + ogp['og:image']} alt={url.href} />
+					<img
+						src={ogp['og:image'].startsWith('/')
+							? url.origin + ogp['og:image']
+							: url.href + ogp['og:image']}
+						alt=""
+						loading="lazy"
+					/>
 				{/if}
 			{/if}
 			<h1>{ogp['og:title']}</h1>
