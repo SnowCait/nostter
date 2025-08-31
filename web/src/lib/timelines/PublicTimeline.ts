@@ -6,6 +6,7 @@ import { derived, get, writable } from 'svelte/store';
 import { minTimelineLength, reverseChronological } from '$lib/Constants';
 import { filter, tap, type Subscription } from 'rxjs';
 import { authorActionReqEmit } from '$lib/author/Action';
+import twitter from 'twitter-text';
 
 export const publicTimelines: PublicTimeline[] = [];
 
@@ -67,6 +68,11 @@ export class PublicTimeline implements NewTimeline {
 						)
 				),
 				filter(({ event }) => event.tags.filter((tag) => tag[0] === 't').length <= 5),
+				filter(({ event }) => {
+					const hashtags = twitter.extractHashtags(event.content);
+					return hashtags.length <= event.tags.filter((tag) => tag[0] === 't').length;
+				}),
+				filter(({ event }) => !event.content.includes('http://')),
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
@@ -162,6 +168,11 @@ export class PublicTimeline implements NewTimeline {
 						)
 				),
 				filter(({ event }) => event.tags.filter((tag) => tag[0] === 't').length <= 5),
+				filter(({ event }) => {
+					const hashtags = twitter.extractHashtags(event.content);
+					return hashtags.length <= event.tags.filter((tag) => tag[0] === 't').length;
+				}),
+				filter(({ event }) => !event.content.includes('http://')),
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
@@ -234,6 +245,11 @@ export class PublicTimeline implements NewTimeline {
 						)
 				),
 				filter(({ event }) => event.tags.filter((tag) => tag[0] === 't').length <= 5),
+				filter(({ event }) => {
+					const hashtags = twitter.extractHashtags(event.content);
+					return hashtags.length <= event.tags.filter((tag) => tag[0] === 't').length;
+				}),
+				filter(({ event }) => !event.content.includes('http://')),
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
