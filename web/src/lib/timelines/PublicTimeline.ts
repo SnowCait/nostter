@@ -58,21 +58,7 @@ export class PublicTimeline implements NewTimeline {
 			.pipe(
 				tie,
 				uniq(),
-				filter(({ event }) => !this.#eventsStore.some((e) => e.id === event.id)),
-				filter(
-					({ event }) =>
-						!event.tags.some(
-							(tag) =>
-								tag[0] === 'content-warning' ||
-								(tag[0] === 'proxy' && !['rss', 'web'].includes(tag[2]))
-						)
-				),
-				filter(({ event }) => event.tags.filter((tag) => tag[0] === 't').length <= 5),
-				filter(({ event }) => {
-					const hashtags = twitter.extractHashtags(event.content);
-					return hashtags.length <= event.tags.filter((tag) => tag[0] === 't').length;
-				}),
-				filter(({ event }) => !event.content.includes('http://')),
+				filter(({ event }) => this.#fine(event)),
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
@@ -158,21 +144,7 @@ export class PublicTimeline implements NewTimeline {
 			.pipe(
 				tie,
 				uniq(),
-				filter(({ event }) => !this.#eventsStore.some((e) => e.id === event.id)),
-				filter(
-					({ event }) =>
-						!event.tags.some(
-							(tag) =>
-								tag[0] === 'content-warning' ||
-								(tag[0] === 'proxy' && !['rss', 'web'].includes(tag[2]))
-						)
-				),
-				filter(({ event }) => event.tags.filter((tag) => tag[0] === 't').length <= 5),
-				filter(({ event }) => {
-					const hashtags = twitter.extractHashtags(event.content);
-					return hashtags.length <= event.tags.filter((tag) => tag[0] === 't').length;
-				}),
-				filter(({ event }) => !event.content.includes('http://')),
+				filter(({ event }) => this.#fine(event)),
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
@@ -233,23 +205,9 @@ export class PublicTimeline implements NewTimeline {
 		rxNostr
 			.use(req, { on: { relays: this.#relays } })
 			.pipe(
+				// Don't filter before slice
 				tie,
 				uniq(),
-				filter(({ event }) => !this.#eventsStore.some((e) => e.id === event.id)),
-				filter(
-					({ event }) =>
-						!event.tags.some(
-							(tag) =>
-								tag[0] === 'content-warning' ||
-								(tag[0] === 'proxy' && !['rss', 'web'].includes(tag[2]))
-						)
-				),
-				filter(({ event }) => event.tags.filter((tag) => tag[0] === 't').length <= 5),
-				filter(({ event }) => {
-					const hashtags = twitter.extractHashtags(event.content);
-					return hashtags.length <= event.tags.filter((tag) => tag[0] === 't').length;
-				}),
-				filter(({ event }) => !event.content.includes('http://')),
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
@@ -257,12 +215,50 @@ export class PublicTimeline implements NewTimeline {
 			)
 			.subscribe({
 				next: ({ event }) => events.push(event),
-				complete: () => resolve(events.toSorted(reverseChronological).slice(0, limit)),
+				complete: () =>
+					resolve(
+						events
+							.toSorted(reverseChronological)
+							.slice(0, limit * 2)
+							.filter((event) => this.#fine(event))
+							.slice(0, limit)
+					),
 				error: () => resolve([])
 			});
-		req.emit([{ kinds: [1], until, limit }]);
+		req.emit([{ kinds: [1], until, limit: limit * 2 }]);
 		req.over();
 		return promise;
+	}
+
+	#fine(event: Event): boolean {
+		if (this.#eventsStore.some((e) => e.id === event.id)) {
+			return false;
+		}
+
+		if (
+			event.tags.some(
+				(tag) =>
+					tag[0] === 'content-warning' ||
+					(tag[0] === 'proxy' && !['rss', 'web'].includes(tag[2]))
+			)
+		) {
+			return false;
+		}
+
+		if (event.tags.filter((tag) => tag[0] === 't').length > 5) {
+			return false;
+		}
+
+		if (event.content.includes('http://')) {
+			return false;
+		}
+
+		const hashtags = twitter.extractHashtags(event.content);
+		if (hashtags.length > event.tags.filter((tag) => tag[0] === 't').length) {
+			return false;
+		}
+
+		return true;
 	}
 
 	[Symbol.dispose]() {
