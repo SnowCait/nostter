@@ -36,6 +36,7 @@
 	import YouTube from '$lib/components/content/YouTube.svelte';
 	import Img from '$lib/components/content/Img.svelte';
 	import Nicovideo from './Nicovideo.svelte';
+	import Video from './Video.svelte';
 
 	export let text: string;
 	export let url: string | undefined = undefined;
@@ -107,10 +108,7 @@
 			{/if}
 		{:else if contentType.startsWith('video/')}
 			{#if preview}
-				<!-- svelte-ignore a11y-media-has-caption -->
-				<div>
-					<video src={link.href} controls />
-				</div>
+				<Video url={link} />
 			{:else}
 				<ExternalLink {link} />
 				<button on:click={() => (preview = true)}>{$_('content.show')}</button>
@@ -124,11 +122,3 @@
 		<ExternalLink {link} />
 	{/await}
 {/if}
-
-<style>
-	video {
-		max-width: calc(100% - 1.5em);
-		max-height: 20em;
-		margin: 0.5em;
-	}
-</style>
