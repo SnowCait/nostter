@@ -17,7 +17,7 @@
 		"@beyonk/gdpr-cookie-consent-banner": "^11.0.0",
 		"@melt-ui/pp": "^0.3.2",
 		"@melt-ui/svelte": "^0.86.6",
-		"@playwright/test": "^1.47.0",
+		"@playwright/test": "^1.55.0",
 		"@sveltejs/adapter-auto": "^6.0.0",
 		"@sveltejs/kit": "^2.5.25",
 		"@sveltejs/vite-plugin-svelte": "^3.1.2",
