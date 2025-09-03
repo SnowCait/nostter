@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { beforeUpdate, onMount, tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import type { EventItem } from '$lib/Items';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
@@ -97,18 +97,6 @@
 
 	//#region Scroll to top
 
-	let scrollToTopButton: HTMLButtonElement | undefined;
-	let element: HTMLElement | undefined;
-	let offset = 0;
-
-	$: showScrollToTopButton = scrollY > offset;
-
-	beforeUpdate(() => {
-		if (scrollToTopButton && showScrollToTopButton) {
-			scrollToTopButton.style.top = `${scrollY - offset + 24}px`;
-		}
-	});
-
 	async function scrollToTop(): Promise<void> {
 		timeline.scrollToTop();
 		await tick();
@@ -195,8 +183,6 @@
 	};
 
 	onMount(() => {
-		offset = element?.getBoundingClientRect().top ?? 0;
-
 		const unsubscribeLatest = timeline.latest.subscribe(($latest) => {
 			latest = $latest;
 		});
@@ -218,11 +204,13 @@
 	<button on:click={newer} class="new">{$_('timeline.update')}</button>
 {/if}
 
-<section bind:this={element} class="card">
-	{#if showScrollToTopButton}
-		<button on:click={scrollToTop} bind:this={scrollToTopButton} class="scroll-to-top">
-			<IconChevronsUp size="24" />
-		</button>
+<section class="card">
+	{#if scrollY > 0}
+		<div class="scroll-to-top">
+			<button on:click={scrollToTop} class="scroll-to-top">
+				<IconChevronsUp size="24" />
+			</button>
+		</div>
 	{/if}
 
 	{#each visibleItems as item (item.id)}
@@ -243,6 +231,11 @@
 {/if}
 
 <style>
+	div.scroll-to-top {
+		position: absolute;
+		left: 50%;
+	}
+
 	button.new {
 		width: 100%;
 		border: var(--default-border);
@@ -253,15 +246,14 @@
 	}
 
 	button.scroll-to-top {
-		position: absolute;
+		position: fixed;
 		top: 1.5rem;
-		left: 50%;
 		transform: translateX(-50%);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 		background: var(--accent-foreground);
 		color: var(--secondary-accent);
 		border: var(--default-border);
-		z-index: 1;
+		z-index: 5;
 	}
 
 	button.scroll-to-top:hover {
@@ -277,7 +269,7 @@
 		overflow: visible;
 	}
 
-	section div {
+	section div:not(.scroll-to-top) {
 		border-bottom: var(--default-border);
 
 		animation-name: add;
