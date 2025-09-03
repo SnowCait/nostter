@@ -99,6 +99,8 @@
 			{#if ogp['og:image']}
 				{#if ogp['og:image'].startsWith('https://')}
 					<img src={ogp['og:image']} alt="" on:error={error} loading="lazy" />
+				{:else if ogp['og:image'].startsWith('http://')}
+					<!-- Don't show image due to mixed content -->
 				{:else}
 					<img
 						src={ogp['og:image'].startsWith('/')
