@@ -30,7 +30,7 @@
 		"@typescript-eslint/parser": "^8.24.1",
 		"eslint": "^9.9.1",
 		"eslint-config-prettier": "^10.0.1",
-		"eslint-plugin-svelte": "^2.43.0",
+		"eslint-plugin-svelte": "^3.12.0",
 		"html5-qrcode": "^2.3.8",
 		"nostr-typedef": "^0.13.0",
 		"prettier": "^3.3.3",
