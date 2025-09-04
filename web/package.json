@@ -14,7 +14,7 @@
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
-		"@beyonk/gdpr-cookie-consent-banner": "^11.0.0",
+		"@beyonk/gdpr-cookie-consent-banner": "^16.0.2",
 		"@melt-ui/pp": "^0.3.2",
 		"@melt-ui/svelte": "^0.86.6",
 		"@playwright/test": "^1.47.0",
