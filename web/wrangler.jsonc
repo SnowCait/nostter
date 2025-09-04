@@ -1,0 +1,7 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "nostter",
+	"main": ".svelte-kit/cloudflare/_worker.js",
+	"compatibility_date": "2025-09-05",
+	"pages_build_output_dir": ".svelte-kit/cloudflare"
+}
