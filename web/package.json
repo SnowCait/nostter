@@ -18,7 +18,7 @@
 		"@melt-ui/pp": "^0.3.2",
 		"@melt-ui/svelte": "^0.86.6",
 		"@playwright/test": "^1.47.0",
-		"@sveltejs/adapter-auto": "^6.0.0",
+		"@sveltejs/adapter-cloudflare": "^7.2.3",
 		"@sveltejs/kit": "^2.5.25",
 		"@sveltejs/vite-plugin-svelte": "^3.1.2",
 		"@types/async-lock": "^1.4.2",
@@ -42,7 +42,8 @@
 		"tslib": "^2.7.0",
 		"typescript": "^5.5.4",
 		"vite": "^5.4.3",
-		"vitest": "^3.0.4"
+		"vitest": "^3.0.4",
+		"wrangler": "^4.34.0"
 	},
 	"type": "module",
 	"dependencies": {
