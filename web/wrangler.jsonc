@@ -2,5 +2,5 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "nostter",
 	"pages_build_output_dir": ".svelte-kit/cloudflare",
-	"compatibility_date": "2025-09-05"
+	"compatibility_date": "2025-09-04"
 }
