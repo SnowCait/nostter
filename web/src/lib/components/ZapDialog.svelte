@@ -22,7 +22,7 @@
 	$: metadata = $metadataStore.get(pubkey);
 
 	export function openZapDialog() {
-		console.log('[zap open]');
+		console.debug('[zap open]');
 		open = true;
 	}
 
@@ -30,7 +30,7 @@
 
 	let sats = $history.at(0) ?? 1;
 	let satsList: number[] = [];
-	let zapComment = '';
+	let comment = '';
 	let invoice = '';
 	let open = false;
 	let sending = false;
@@ -49,15 +49,14 @@
 		sending = true;
 
 		const amount = sats * 1000;
-		const zapRequest = nip57.makeZapRequest({
-			profile: pubkey,
-			event: event?.id ?? null,
-			amount,
-			comment: zapComment,
-			relays: $writeRelays
-		});
+		const relays = $writeRelays;
+		const zapRequest = nip57.makeZapRequest(
+			event === undefined
+				? { pubkey, amount, comment, relays }
+				: { event, amount, comment, relays }
+		);
 		const zapRequestEvent = await Signer.signEvent(zapRequest);
-		console.log('[zap request]', zapRequestEvent, metadata?.content);
+		console.debug('[zap request]', zapRequestEvent, metadata?.content);
 		const encoded = encodeURI(JSON.stringify(zapRequestEvent));
 
 		const zapUrl = (await metadata?.zapUrl()) ?? null;
@@ -66,7 +65,7 @@
 			return;
 		}
 		const url = `${zapUrl.href}?amount=${amount}&nostr=${encoded}`;
-		console.log('[zap url]', url);
+		console.debug('[zap url]', url);
 
 		const response = await fetch(url);
 		if (!response.ok) {
@@ -75,7 +74,7 @@
 		}
 		const payment = await response.json();
 		const { pr: zapInvoice } = payment;
-		console.log('[zap invoice]', zapInvoice);
+		console.debug('[zap invoice]', zapInvoice);
 
 		if (zapInvoice === undefined) {
 			console.error('[zap failed]', payment);
@@ -138,7 +137,7 @@
 					<input
 						type="text"
 						placeholder={$_('zap.message')}
-						bind:value={zapComment}
+						bind:value={comment}
 						on:keyup|stopPropagation
 					/>
 				</div>
