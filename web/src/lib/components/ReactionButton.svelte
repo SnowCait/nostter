@@ -2,13 +2,14 @@
 	import { _ } from 'svelte-i18n';
 	import { kinds as Kind } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
-	import { reactionedEventIds } from '$lib/author/Action';
-	import { sendReaction } from '$lib/author/Reaction';
+	import { reactionedEvents } from '$lib/author/Action';
+	import { deleteReaction, sendReaction } from '$lib/author/Reaction';
 	import { preferencesStore } from '$lib/Preferences';
 	import { rom } from '$lib/stores/Author';
 	import { isAprilFool } from '$lib/Helper';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import ReactionIcon from './ReactionIcon.svelte';
+	import IconTrash from '@tabler/icons-svelte/icons/trash';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -17,10 +18,10 @@
 		elements: { menu, item, trigger, overlay }
 	} = createDropdownMenu({ preventScroll: false });
 
-	$: reactioned = $reactionedEventIds.has(event.id);
+	$: reactioned = $reactionedEvents.has(event.id) && $reactionedEvents.get(event.id)!.length > 0;
 
 	async function onReaction(): Promise<void> {
-		console.log('[reaction]', event);
+		console.debug('[reaction]', event);
 
 		if ($rom) {
 			console.error('Readonly');
@@ -32,6 +33,17 @@
 			$preferencesStore.reactionEmoji.content,
 			$preferencesStore.reactionEmoji.url
 		);
+	}
+
+	function onDelete(): void {
+		console.debug('[reaction delete]', event);
+
+		if ($rom) {
+			console.error('Readonly');
+			return;
+		}
+
+		deleteReaction(event);
 	}
 </script>
 
@@ -63,6 +75,10 @@
 				/>
 			</div>
 			<div>{$_('actions.reaction.again')}</div>
+		</div>
+		<div use:melt={$item} on:m-click={onDelete} class="item">
+			<div class="icon"><IconTrash size={iconSize} /></div>
+			<div>{$_('actions.reaction.delete')}</div>
 		</div>
 	</div>
 {:else}

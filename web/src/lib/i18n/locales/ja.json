@@ -185,7 +185,8 @@
 			"button": "引用"
 		},
 		"reaction": {
-			"again": "もう一度"
+			"again": "もう一度",
+			"delete": "削除"
 		},
 		"copy_id": {
 			"button": "ID をコピー"

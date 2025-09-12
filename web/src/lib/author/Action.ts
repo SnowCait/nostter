@@ -8,9 +8,10 @@ import { filterTags, findReactionToId } from '$lib/EventHelper';
 import type { id } from '$lib/Types';
 import { pubkey } from '../stores/Author';
 import { deletedEventIdsByPubkey, storeDeletedEvents } from './Delete';
+import { Reaction } from 'nostr-tools/kinds';
 
 export const repostedEventIds = writable(new Set<id>());
-export const reactionedEventIds = writable(new Set<id>());
+export const reactionedEvents = writable(new Map<id, Event[]>());
 
 export function updateRepostedEvents(events: Event[]): void {
 	const ids = events.flatMap((event) => filterTags('e', event.tags));
@@ -22,14 +23,24 @@ export function updateRepostedEvents(events: Event[]): void {
 }
 
 export function updateReactionedEvents(events: Event[]): void {
-	const ids = events
-		.map((event) => findReactionToId(event.tags))
-		.filter((id): id is string => id !== undefined);
-	const $reactionedEventIds = get(reactionedEventIds);
-	for (const id of ids) {
-		$reactionedEventIds.add(id);
+	const $reactionedEvents = get(reactionedEvents);
+	for (const event of events.filter(
+		(event) => event.kind === Reaction && event.pubkey === get(pubkey) // Ensure
+	)) {
+		const id = findReactionToId(event.tags);
+		if (id === undefined) {
+			continue;
+		}
+
+		const reactionEvents = $reactionedEvents.get(id) ?? [];
+		if (reactionEvents.some((e) => e.id === event.id)) {
+			continue;
+		}
+
+		reactionEvents.push(event);
+		$reactionedEvents.set(id, reactionEvents);
 	}
-	reactionedEventIds.set($reactionedEventIds);
+	reactionedEvents.set($reactionedEvents);
 }
 
 const authorActionReq = createRxBackwardReq();
