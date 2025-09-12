@@ -49,13 +49,12 @@
 		sending = true;
 
 		const amount = sats * 1000;
-		const zapRequest = nip57.makeZapRequest({
-			profile: pubkey,
-			event: event?.id ?? null,
-			amount,
-			comment: zapComment,
-			relays: $writeRelays
-		});
+		const relays = $writeRelays;
+		const zapRequest = nip57.makeZapRequest(
+			event === undefined
+				? { pubkey, amount, comment, relays }
+				: { event, amount, comment, relays }
+		);
 		const zapRequestEvent = await Signer.signEvent(zapRequest);
 		console.log('[zap request]', zapRequestEvent, metadata?.content);
 		const encoded = encodeURI(JSON.stringify(zapRequestEvent));
