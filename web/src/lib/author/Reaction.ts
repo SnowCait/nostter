@@ -1,8 +1,11 @@
 import { now } from 'rx-nostr';
 import type { Event } from 'nostr-typedef';
-import { updateReactionedEvents } from './Action';
+import { reactionedEvents, updateReactionedEvents } from './Action';
 import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
+import { deleteEvent } from './Delete';
+import { sortEvents } from 'nostr-tools';
+import { get } from 'svelte/store';
 
 export async function sendReaction(
 	target: Event,
@@ -30,4 +33,17 @@ export async function sendReaction(
 
 	rxNostr.send(event).subscribe(({ from, ok }) => console.debug('[reaction send]', from, ok));
 	updateReactionedEvents([event]);
+}
+
+export function deleteReaction(target: Event): void {
+	const $reactionedEvents = get(reactionedEvents);
+	const events = $reactionedEvents.get(target.id);
+	if (events === undefined || events.length === 0) {
+		return;
+	}
+
+	const sortedEvents = sortEvents(events);
+	deleteEvent(sortedEvents.slice(0, 1));
+	$reactionedEvents.set(target.id, sortedEvents.slice(1));
+	reactionedEvents.set($reactionedEvents);
 }

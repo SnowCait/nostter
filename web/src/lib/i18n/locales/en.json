@@ -186,7 +186,8 @@
 			"button": "Quote"
 		},
 		"reaction": {
-			"again": "Again"
+			"again": "Again",
+			"delete": "Delete"
 		},
 		"copy_id": {
 			"button": "Copy ID"
