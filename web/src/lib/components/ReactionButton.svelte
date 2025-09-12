@@ -6,67 +6,82 @@
 	import { sendReaction } from '$lib/author/Reaction';
 	import { preferencesStore } from '$lib/Preferences';
 	import { rom } from '$lib/stores/Author';
-	import IconHeart from '@tabler/icons-svelte/icons/heart';
-	import IconHeartFilled from '@tabler/icons-svelte/icons/heart-filled';
-	import IconPaw from '@tabler/icons-svelte/icons/paw';
-	import IconPawFilled from '@tabler/icons-svelte/icons/paw-filled';
-	import IconStar from '@tabler/icons-svelte/icons/star';
-	import IconStarFilled from '@tabler/icons-svelte/icons/star-filled';
 	import { isAprilFool } from '$lib/Helper';
+	import { createDropdownMenu, melt } from '@melt-ui/svelte';
+	import ReactionIcon from './ReactionIcon.svelte';
 
 	export let event: Event;
 	export let iconSize: number;
 
+	const {
+		elements: { menu, item, trigger, overlay }
+	} = createDropdownMenu({ preventScroll: false });
+
 	$: reactioned = $reactionedEventIds.has(event.id);
 
-	async function reaction(note: Event) {
-		console.log('[reaction]', note);
+	async function onReaction(): Promise<void> {
+		console.log('[reaction]', event);
 
 		if ($rom) {
 			console.error('Readonly');
 			return;
 		}
 
-		if (reactioned) {
-			if (!confirm($_('actions.reaction.again'))) {
-				return;
-			}
-		}
-
-		sendReaction(
-			note,
+		await sendReaction(
+			event,
 			$preferencesStore.reactionEmoji.content,
 			$preferencesStore.reactionEmoji.url
 		);
 	}
 </script>
 
-<button
-	class="clear"
-	class:hidden={event.kind === Kind.EncryptedDirectMessage}
-	class:paw-pad={$preferencesStore.reactionEmoji.content === '🐾'}
-	class:star={$preferencesStore.reactionEmoji.content === '⭐'}
-	class:reactioned
-	on:click={() => reaction(event)}
->
-	{#if $preferencesStore.reactionEmoji.content === '🐾' || isAprilFool}
-		{#if reactioned}
-			<IconPawFilled size={iconSize} />
-		{:else}
-			<IconPaw size={iconSize} />
-		{/if}
-	{:else if $preferencesStore.reactionEmoji.content === '⭐'}
-		{#if reactioned}
-			<IconStarFilled size={iconSize} />
-		{:else}
-			<IconStar size={iconSize} />
-		{/if}
-	{:else if reactioned}
-		<IconHeartFilled size={iconSize} />
-	{:else}
-		<IconHeart size={iconSize} />
-	{/if}
-</button>
+{#if reactioned}
+	<button
+		class="clear"
+		class:hidden={event.kind === Kind.EncryptedDirectMessage}
+		class:paw-pad={$preferencesStore.reactionEmoji.content === '🐾'}
+		class:star={$preferencesStore.reactionEmoji.content === '⭐'}
+		class:reactioned
+		use:melt={$trigger}
+	>
+		<ReactionIcon
+			defaultReaction={$preferencesStore.reactionEmoji.content}
+			{reactioned}
+			{isAprilFool}
+			size={iconSize}
+		/>
+	</button>
+	<div use:melt={$overlay} class="overlay" />
+	<div use:melt={$menu} class="menu">
+		<div use:melt={$item} on:m-click={onReaction} class="item">
+			<div class="icon">
+				<ReactionIcon
+					defaultReaction={$preferencesStore.reactionEmoji.content}
+					reactioned={false}
+					{isAprilFool}
+					size={iconSize}
+				/>
+			</div>
+			<div>{$_('actions.reaction.again')}</div>
+		</div>
+	</div>
+{:else}
+	<button
+		class="clear"
+		class:hidden={event.kind === Kind.EncryptedDirectMessage}
+		class:paw-pad={$preferencesStore.reactionEmoji.content === '🐾'}
+		class:star={$preferencesStore.reactionEmoji.content === '⭐'}
+		class:reactioned
+		on:click={onReaction}
+	>
+		<ReactionIcon
+			defaultReaction={$preferencesStore.reactionEmoji.content}
+			{reactioned}
+			{isAprilFool}
+			size={iconSize}
+		/>
+	</button>
+{/if}
 
 <style>
 	button {
@@ -83,5 +98,44 @@
 
 	button.star.reactioned {
 		color: var(--gold);
+	}
+
+	.overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+	}
+
+	.menu {
+		background-color: var(--surface);
+		border-radius: 5px;
+		display: flex;
+		flex-direction: column;
+		box-shadow:
+			rgba(101, 119, 134, 0.2) 0px 0px 15px,
+			rgba(101, 119, 134, 0.15) 0px 0px 3px 1px;
+		overflow: hidden;
+	}
+
+	.menu .item {
+		padding: 0.5rem 0.75rem;
+		cursor: pointer;
+		display: flex;
+		flex-direction: row;
+	}
+
+	.menu .item:hover {
+		background-color: var(--hover-background-color);
+	}
+
+	.menu .item .icon {
+		width: 24px;
+		height: 24px;
+		margin-right: 12px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 </style>

@@ -333,6 +333,7 @@ progress {
 	--radius: 0.5rem;
 	--default-border: 1px solid #e1d8cb;
 	--shadow: 0 0 0.25rem 0 rgba(0, 0, 0, 0.2);
+	--hover-background-color: rgba(0, 0, 0, 0.03);
 }
 
 .dark {
@@ -358,6 +359,7 @@ progress {
 	--accent-surface-high: #383838;
 	--default-border: 1px solid #424242;
 	--shadow: 0 0 0.25rem 0 rgba(255, 255, 255, 0.2);
+	--hover-background-color: rgba(255, 255, 255, 0.03);
 }
 
 body {
