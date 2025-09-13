@@ -4,22 +4,34 @@ import { bufferTime, bufferWhen, filter, interval, share } from 'rxjs';
 import type { Event } from 'nostr-typedef';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { maxFilters } from '$lib/Constants';
-import { filterTags, findReactionToId } from '$lib/EventHelper';
+import { filterTags, findLastId } from '$lib/EventHelper';
 import type { id } from '$lib/Types';
 import { pubkey } from '../stores/Author';
 import { deletedEventIdsByPubkey, storeDeletedEvents } from './Delete';
-import { Reaction } from 'nostr-tools/kinds';
+import { Reaction, Repost } from 'nostr-tools/kinds';
 
-export const repostedEventIds = writable(new Set<id>());
+export const repostedEvents = writable(new Map<id, Event[]>());
 export const reactionedEvents = writable(new Map<id, Event[]>());
 
 export function updateRepostedEvents(events: Event[]): void {
-	const ids = events.flatMap((event) => filterTags('e', event.tags));
-	const $repostedEventIds = get(repostedEventIds);
-	for (const id of ids) {
-		$repostedEventIds.add(id);
+	const $repostedEvents = get(repostedEvents);
+	for (const event of events.filter(
+		(event) => event.kind === Repost && event.pubkey === get(pubkey) // Ensure
+	)) {
+		const id = findLastId(event.tags);
+		if (id === undefined) {
+			continue;
+		}
+
+		const repostEvents = $repostedEvents.get(id) ?? [];
+		if (repostEvents.some((e) => e.id === event.id)) {
+			continue;
+		}
+
+		repostEvents.push(event);
+		$repostedEvents.set(id, repostEvents);
 	}
-	repostedEventIds.set($repostedEventIds);
+	repostedEvents.set($repostedEvents);
 }
 
 export function updateReactionedEvents(events: Event[]): void {
@@ -27,7 +39,7 @@ export function updateReactionedEvents(events: Event[]): void {
 	for (const event of events.filter(
 		(event) => event.kind === Reaction && event.pubkey === get(pubkey) // Ensure
 	)) {
-		const id = findReactionToId(event.tags);
+		const id = findLastId(event.tags);
 		if (id === undefined) {
 			continue;
 		}

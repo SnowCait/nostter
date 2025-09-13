@@ -2,31 +2,28 @@
 	import { _ } from 'svelte-i18n';
 	import { ShortTextNote, EncryptedDirectMessage, Repost } from 'nostr-tools/kinds';
 	import type { Event } from 'nostr-typedef';
-	import { repostedEventIds, updateRepostedEvents } from '$lib/author/Action';
+	import { repostedEvents, updateRepostedEvents } from '$lib/author/Action';
 	import { Signer } from '$lib/Signer';
 	import { rom } from '$lib/stores/Author';
 	import { openNoteDialog, quotes } from '$lib/stores/NoteDialog';
-	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
-	import IconQuote from '@tabler/icons-svelte/icons/quote';
 	import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import '$lib/styles/menu.css';
+	import { IconQuote, IconRepeat, IconTrash } from '@tabler/icons-svelte';
+	import { undoRepost } from '$lib/author/Repost';
 
 	export let event: Event;
 	export let iconSize: number;
 
 	const {
-		elements: { menu, item, trigger, overlay }
+		elements: { menu, item, trigger, overlay, separator }
 	} = createDropdownMenu({ preventScroll: false });
 
-	$: reposted = $repostedEventIds.has(event.id);
+	$: reposted = $repostedEvents.has(event.id) && $repostedEvents.get(event.id)!.length > 0;
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async function repost(e: any): Promise<void> {
-		const target = e.currentTarget as HTMLElement;
-		if (target.hasAttribute('data-disabled')) {
-			return;
-		}
+	async function onRepost(): Promise<void> {
+		console.debug('[repost]', event);
+
 		if ($rom) {
 			console.error('Readonly');
 			return;
@@ -50,7 +47,18 @@
 		updateRepostedEvents([repostEvent]);
 	}
 
-	function quote(): void {
+	function onUndoRepost(): void {
+		console.debug('[repost undo]', event);
+
+		if ($rom) {
+			console.error('Readonly');
+			return;
+		}
+
+		undoRepost(event);
+	}
+
+	function onQuote(): void {
 		$quotes.push(event);
 		$openNoteDialog = true;
 	}
@@ -67,7 +75,7 @@
 <div use:melt={$overlay} class="overlay" />
 <div use:melt={$menu} class="menu">
 	{#if event.kind === ShortTextNote}
-		<div use:melt={$item} on:m-click={repost} class="item">
+		<div use:melt={$item} on:m-click={onRepost} class="item">
 			<div class="icon"><IconRepeat size={iconSize} /></div>
 			{#if reposted}
 				<div>{$_('actions.repost.again')}</div>
@@ -76,10 +84,18 @@
 			{/if}
 		</div>
 	{/if}
-	<div use:melt={$item} on:m-click={quote} class="item">
+	<div use:melt={$item} on:m-click={onQuote} class="item">
 		<div class="icon"><IconQuote size={iconSize} /></div>
 		<div>{$_('actions.quote.button')}</div>
 	</div>
+	{#if event.kind === ShortTextNote}
+		<div use:melt={$separator} class="separator" />
+		<div class="text">{$_('menu.caution')}</div>
+		<div use:melt={$item} on:m-click={onUndoRepost} class="item">
+			<div class="icon"><IconTrash size={iconSize} /></div>
+			<div>{$_('actions.repost.undo')}</div>
+		</div>
+	{/if}
 </div>
 
 <style>

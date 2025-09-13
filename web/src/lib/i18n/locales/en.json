@@ -180,14 +180,15 @@
 		},
 		"repost": {
 			"button": "Repost",
-			"again": "Repost again"
+			"again": "Repost again",
+			"undo": "Undo repost"
 		},
 		"quote": {
 			"button": "Quote"
 		},
 		"reaction": {
 			"again": "Again",
-			"delete": "Delete"
+			"undo": "Undo"
 		},
 		"copy_id": {
 			"button": "Copy ID"
