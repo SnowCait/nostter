@@ -21,6 +21,7 @@
 
 	$: reposted = $repostedEventIds.has(event.id);
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async function repost(e: any): Promise<void> {
 		const target = e.currentTarget as HTMLElement;
 		if (target.hasAttribute('data-disabled')) {
