@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { Menu } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
-	import { kinds as Kind } from 'nostr-tools';
+	import { ShortTextNote, EncryptedDirectMessage, Repost } from 'nostr-tools/kinds';
 	import type { Event } from 'nostr-typedef';
 	import { repostedEventIds, updateRepostedEvents } from '$lib/author/Action';
 	import { Signer } from '$lib/Signer';
@@ -10,73 +9,84 @@
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import IconQuote from '@tabler/icons-svelte/icons/quote';
 	import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
+	import { createDropdownMenu, melt } from '@melt-ui/svelte';
+	import '$lib/styles/menu.css';
 
 	export let event: Event;
 	export let iconSize: number;
 
+	const {
+		elements: { menu, item, trigger, overlay }
+	} = createDropdownMenu({ preventScroll: false });
+
 	$: reposted = $repostedEventIds.has(event.id);
 
-	async function repost(targetEvent: Event): Promise<void> {
+	async function repost(e: any): Promise<void> {
+		const target = e.currentTarget as HTMLElement;
+		if (target.hasAttribute('data-disabled')) {
+			return;
+		}
 		if ($rom) {
 			console.error('Readonly');
 			return;
 		}
 
-		if (reposted) {
-			if (!confirm($_('actions.repost.again'))) {
-				return;
-			}
-		}
-
-		const eTag = ['e', targetEvent.id];
-		const relay = getRelayHint(targetEvent.id);
+		const eTag = ['e', event.id];
+		const relay = getRelayHint(event.id);
 		if (relay) {
 			eTag.push(relay);
 		}
 
 		const repostEvent = await Signer.signEvent({
 			created_at: Math.round(Date.now() / 1000),
-			kind: 6,
-			tags: [eTag, ['p', targetEvent.pubkey]],
+			kind: Repost,
+			tags: [eTag, ['p', event.pubkey]],
 			content: ''
 		});
-		console.log(repostEvent, seenOn.get(targetEvent.id));
+		console.debug(repostEvent, seenOn.get(event.id));
 
 		rxNostr.send(repostEvent);
 		updateRepostedEvents([repostEvent]);
 	}
 
-	function quote(event: Event): void {
+	function quote(): void {
 		$quotes.push(event);
 		$openNoteDialog = true;
 	}
 </script>
 
-<Menu placement="center">
-	<svelte:fragment slot="control">
-		<div
-			class="repost"
-			class:hidden={event.kind === Kind.EncryptedDirectMessage}
-			class:reposted
-		>
-			<IconRepeat size={iconSize} />
+<button
+	class="clear"
+	class:hidden={event.kind === EncryptedDirectMessage}
+	class:reposted
+	use:melt={$trigger}
+>
+	<IconRepeat size={iconSize} />
+</button>
+<div use:melt={$overlay} class="overlay" />
+<div use:melt={$menu} class="menu">
+	{#if event.kind === ShortTextNote}
+		<div use:melt={$item} on:m-click={repost} class="item">
+			<div class="icon"><IconRepeat size={iconSize} /></div>
+			{#if reposted}
+				<div>{$_('actions.repost.again')}</div>
+			{:else}
+				<div>{$_('actions.repost.button')}</div>
+			{/if}
 		</div>
-	</svelte:fragment>
-
-	<Menu.Item icon={IconRepeat} on:click={() => repost(event)} disabled={event.kind !== 1}>
-		{$_('actions.repost.button')}
-	</Menu.Item>
-	<Menu.Item icon={IconQuote} on:click={() => quote(event)}>
-		{$_('actions.quote.button')}
-	</Menu.Item>
-</Menu>
+	{/if}
+	<div use:melt={$item} on:m-click={quote} class="item">
+		<div class="icon"><IconQuote size={iconSize} /></div>
+		<div>{$_('actions.quote.button')}</div>
+	</div>
+</div>
 
 <style>
-	.repost {
+	button {
 		color: var(--accent-gray);
 	}
 
-	.repost.reposted {
+	button.reposted {
 		color: var(--green);
 	}
 </style>
