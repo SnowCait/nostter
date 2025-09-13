@@ -88,7 +88,7 @@
 		<div class="icon"><IconQuote size={iconSize} /></div>
 		<div>{$_('actions.quote.button')}</div>
 	</div>
-	{#if event.kind === ShortTextNote}
+	{#if event.kind === ShortTextNote && reposted}
 		<div use:melt={$separator} class="separator" />
 		<div class="text">{$_('menu.caution')}</div>
 		<div use:melt={$item} on:m-click={onUndoRepost} class="item">
