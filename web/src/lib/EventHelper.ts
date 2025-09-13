@@ -36,7 +36,7 @@ export function findChannelId(tags: string[][]): string | undefined {
 		?.at(1);
 }
 
-export function findReactionToId(tags: string[][]): id | undefined {
+export function findLastId(tags: string[][]): id | undefined {
 	const ids = filterTags('e', tags);
 	if (ids.length === 0) {
 		return undefined;

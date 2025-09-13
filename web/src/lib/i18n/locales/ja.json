@@ -179,14 +179,15 @@
 		},
 		"repost": {
 			"button": "リポスト",
-			"again": "もう一度リポスト"
+			"again": "もう一度リポスト",
+			"undo": "リポストを取り消す"
 		},
 		"quote": {
 			"button": "引用"
 		},
 		"reaction": {
 			"again": "もう一度",
-			"delete": "削除"
+			"undo": "取り消す"
 		},
 		"copy_id": {
 			"button": "ID をコピー"

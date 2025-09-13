@@ -32,8 +32,21 @@
 .menu .item .icon {
 	width: 24px;
 	height: 24px;
-	margin-right: 12px;
+	margin-right: 0.75rem;
 	display: flex;
 	justify-content: center;
 	align-items: center;
+}
+
+.menu .separator {
+	margin: 5px;
+	height: 1px;
+	background-color: var(--separator-color);
+}
+
+.menu .text {
+	padding-left: 0.75rem;
+	font-size: 0.75rem;
+	line-height: 1.5rem;
+	color: var(--accent);
 }

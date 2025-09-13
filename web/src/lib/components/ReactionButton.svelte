@@ -9,14 +9,14 @@
 	import { isAprilFool } from '$lib/Helper';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import ReactionIcon from './ReactionIcon.svelte';
-	import IconTrash from '@tabler/icons-svelte/icons/trash';
+	import { IconTrash } from '@tabler/icons-svelte';
 	import '$lib/styles/menu.css';
 
 	export let event: Event;
 	export let iconSize: number;
 
 	const {
-		elements: { menu, item, trigger, overlay }
+		elements: { menu, item, trigger, overlay, separator }
 	} = createDropdownMenu({ preventScroll: false });
 
 	$: reactioned = $reactionedEvents.has(event.id) && $reactionedEvents.get(event.id)!.length > 0;
@@ -77,9 +77,11 @@
 			</div>
 			<div>{$_('actions.reaction.again')}</div>
 		</div>
+		<div use:melt={$separator} class="separator" />
+		<div class="text">{$_('menu.caution')}</div>
 		<div use:melt={$item} on:m-click={onDelete} class="item">
 			<div class="icon"><IconTrash size={iconSize} /></div>
-			<div>{$_('actions.reaction.delete')}</div>
+			<div>{$_('actions.reaction.undo')}</div>
 		</div>
 	</div>
 {:else}
