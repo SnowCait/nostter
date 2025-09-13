@@ -10,6 +10,7 @@
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import ReactionIcon from './ReactionIcon.svelte';
 	import IconTrash from '@tabler/icons-svelte/icons/trash';
+	import '$lib/styles/menu.css';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -114,44 +115,5 @@
 
 	button.star.reactioned {
 		color: var(--gold);
-	}
-
-	.overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100vw;
-		height: 100vh;
-	}
-
-	.menu {
-		background-color: var(--surface);
-		border-radius: 5px;
-		display: flex;
-		flex-direction: column;
-		box-shadow:
-			rgba(101, 119, 134, 0.2) 0px 0px 15px,
-			rgba(101, 119, 134, 0.15) 0px 0px 3px 1px;
-		overflow: hidden;
-	}
-
-	.menu .item {
-		padding: 0.5rem 0.75rem;
-		cursor: pointer;
-		display: flex;
-		flex-direction: row;
-	}
-
-	.menu .item:hover {
-		background-color: var(--hover-background-color);
-	}
-
-	.menu .item .icon {
-		width: 24px;
-		height: 24px;
-		margin-right: 12px;
-		display: flex;
-		justify-content: center;
-		align-items: center;
 	}
 </style>
