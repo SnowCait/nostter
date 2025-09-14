@@ -155,7 +155,6 @@ observable.pipe(filterByType('CLOSED')).subscribe((packet) => {
 });
 
 const metadataReq = createRxBackwardReq();
-const eventsReq = createRxBackwardReq();
 const replaceableEventsReq = createRxBackwardReq();
 
 export async function metadataReqEmit(pubkeys: string[]): Promise<void> {
@@ -200,9 +199,30 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 	].filter((id) => !$eventItemStore.has(id));
 
 	if (ids.length > 0) {
-		eventsReq.emit({
+		const relays = event.tags
+			.filter(
+				([tagName, , relay]) =>
+					['e', 'q'].includes(tagName) &&
+					relay &&
+					relay.startsWith('wss://') &&
+					URL.canParse(relay)
+			)
+			.map(([, , relay]) => relay);
+		const req = createRxBackwardReq();
+		rxNostr
+			.use(req.pipe(bufferTime(1000, null, 10), batch()), {
+				on: { defaultReadRelays: true, relays }
+			})
+			.pipe(
+				tie,
+				uniq(),
+				tap(({ event }) => referencesReqEmit(event, true))
+			)
+			.subscribe(({ event }) => storeEventItem(event));
+		req.emit({
 			ids
 		});
+		req.over();
 	}
 
 	const $replaceableEventsStore = get(replaceableEventsStore);
@@ -239,15 +259,6 @@ rxNostr
 		latestEach(({ event }) => event.pubkey)
 	)
 	.subscribe(({ event }) => storeMetadata(event));
-
-rxNostr
-	.use(eventsReq.pipe(bufferTime(1000, null, 10), batch()))
-	.pipe(
-		tie,
-		uniq(),
-		tap(({ event }) => referencesReqEmit(event, true))
-	)
-	.subscribe(({ event }) => storeEventItem(event));
 
 rxNostr
 	.use(replaceableEventsReq.pipe(bufferTime(1000, null, 10), batch()))
