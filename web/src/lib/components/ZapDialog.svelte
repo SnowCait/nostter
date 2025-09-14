@@ -196,6 +196,11 @@
 
 	input[type='text'] {
 		width: 100%;
+		font-size: 1rem;
+	}
+
+	input[type='number'] {
+		font-size: 1rem;
 	}
 
 	.sats-input {
