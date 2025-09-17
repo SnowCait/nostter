@@ -40,12 +40,12 @@ sw.addEventListener('activate', (e) => {
 });
 
 sw.addEventListener('fetch', (e) => {
-	if (e.request.method !== 'GET') {
+	const url = new URL(e.request.url);
+	if (e.request.method !== 'GET' || url.origin !== sw.origin) {
 		return;
 	}
 
 	async function respond() {
-		const url = new URL(e.request.url);
 		const cache = await caches.open(CACHE);
 
 		if (ASSETS.includes(url.pathname)) {
