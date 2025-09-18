@@ -13,8 +13,8 @@
 <article class="timeline-item">
 	<h1>
 		<IconMoodSmile />
-		<span>{title}</span>
-		<span class="menu"><CustomEmojiMenuButton {event} /></span>
+		<div>{title}</div>
+		<div><CustomEmojiMenuButton {event} /></div>
 	</h1>
 
 	<ul>
@@ -28,12 +28,13 @@
 	h1 {
 		font-size: 1.8rem;
 		color: var(--foreground);
-		position: relative;
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
 	}
 
-	.menu {
-		position: absolute;
-		right: 0;
+	h1 div:last-child {
+		margin-left: auto;
 	}
 
 	ul {
