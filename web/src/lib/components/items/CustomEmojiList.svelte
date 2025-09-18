@@ -4,6 +4,7 @@
 	import CustomEmojiMenuButton from '../actions/CustomEmojiMenuButton.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
+	import OnelineProfile from '../profile/OnelineProfile.svelte';
 
 	export let event: Event;
 
@@ -17,6 +18,11 @@
 		<div><CustomEmojiMenuButton {event} /></div>
 	</h1>
 
+	<div>
+		<span>by</span>
+		<span><OnelineProfile pubkey={event.pubkey} /></span>
+	</div>
+
 	<ul>
 		{#each event.tags.filter(([tagName, shortcode, imageUrl]) => tagName === 'emoji' && shortcode !== undefined && imageUrl !== undefined) as tag}
 			<CustomEmoji text={tag[1]} url={tag[2]} />
@@ -26,7 +32,7 @@
 
 <style>
 	h1 {
-		font-size: 1.8rem;
+		font-size: 1.5rem;
 		color: var(--foreground);
 		display: flex;
 		gap: 0.5rem;
