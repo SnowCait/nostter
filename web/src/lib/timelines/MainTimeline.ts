@@ -15,7 +15,7 @@ import {
 import { createNoopClient, createVerificationServiceClient } from 'rx-nostr-crypto';
 import { tap, bufferTime } from 'rxjs';
 import { browser } from '$app/environment';
-import { filterLimitItems, hexRegexp, timeout } from '$lib/Constants';
+import { addressRegexp, filterLimitItems, hexRegexp, timeout } from '$lib/Constants';
 import { aTagContent, filterTags } from '$lib/EventHelper';
 import { Metadata } from '$lib/Items';
 import {
@@ -32,6 +32,7 @@ import { sleep } from '$lib/Helper';
 import workerUrl from '$lib/Worker?worker&url';
 import { Signer } from '$lib/Signer';
 import { createTie } from '$lib/RxNostrTie';
+import { isReplaceableKind } from 'nostr-tools/kinds';
 
 Nip11Registry.setDefault({
 	limitation: {
@@ -193,7 +194,7 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 			...filterTags('e', event.tags),
 			...Content.findNotesAndNeventsToIds(content),
 			...event.tags
-				.filter(([tagName, tagContent]) => tagName === 'q' && hexRegexp.test(tagContent))
+				.filter(([tagName, id]) => tagName === 'q' && id && hexRegexp.test(id))
 				.map(([, id]) => id)
 		])
 	].filter((id) => !$eventItemStore.has(id));
@@ -227,16 +228,30 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 
 	const $replaceableEventsStore = get(replaceableEventsStore);
 	const aTags = event.tags.filter(
-		([tagName, a]) => tagName === 'a' && a !== undefined && !$replaceableEventsStore.has(a)
+		([tagName, address]) =>
+			tagName === 'a' && address !== undefined && !$replaceableEventsStore.has(address)
 	);
+	const qTags = event.tags.filter(
+		([tagName, address]) =>
+			tagName === 'q' &&
+			address &&
+			addressRegexp.test(address) &&
+			!$replaceableEventsStore.has(address)
+	);
+	aTags.push(...qTags);
 	if (aTags.length > 0) {
 		const filters: LazyFilter[] = aTags.map(([, a]) => {
 			const [kind, pubkey, identifier] = a.split(':');
-			return {
-				kinds: [Number(kind)],
-				authors: [pubkey],
-				'#d': [identifier]
-			};
+			return isReplaceableKind(Number(kind))
+				? {
+						kinds: [Number(kind)],
+						authors: [pubkey]
+					}
+				: {
+						kinds: [Number(kind)],
+						authors: [pubkey],
+						'#d': [identifier]
+					};
 		});
 		replaceableEventsReq.emit(filters);
 		const relays = aTags
@@ -265,7 +280,8 @@ rxNostr
 	.pipe(
 		tie,
 		uniq(),
-		latestEach(({ event }) => aTagContent(event))
+		latestEach(({ event }) => aTagContent(event)),
+		tap(({ event }) => referencesReqEmit(event, true))
 	)
 	.subscribe((packet) => {
 		console.debug('[rx-nostr replaceable event]', packet);
