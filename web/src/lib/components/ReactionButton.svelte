@@ -10,7 +10,6 @@
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import ReactionIcon from './ReactionIcon.svelte';
 	import { IconTrash } from '@tabler/icons-svelte';
-	import '$lib/styles/menu.css';
 
 	export let event: Event;
 	export let iconSize: number;

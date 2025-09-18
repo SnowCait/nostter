@@ -23,6 +23,12 @@
 	cursor: pointer;
 	display: flex;
 	flex-direction: row;
+	align-items: center;
+	font-size: 15px;
+}
+
+.menu .item.undo {
+	color: var(--red);
 }
 
 .menu .item:hover {
@@ -38,6 +44,16 @@
 	align-items: center;
 }
 
+.menu .item .secondary-icon {
+	margin-left: auto;
+	width: 16px;
+	height: 16px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: var(--accent);
+}
+
 .menu .separator {
 	margin: 5px;
 	height: 1px;
@@ -46,7 +62,7 @@
 
 .menu .text {
 	padding-left: 0.75rem;
-	font-size: 0.75rem;
+	font-size: 13px;
 	line-height: 1.5rem;
 	color: var(--accent);
 }

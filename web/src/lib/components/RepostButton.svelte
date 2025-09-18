@@ -8,7 +8,6 @@
 	import { openNoteDialog, quotes } from '$lib/stores/NoteDialog';
 	import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
-	import '$lib/styles/menu.css';
 	import { IconQuote, IconRepeat, IconTrash } from '@tabler/icons-svelte';
 	import { undoRepost } from '$lib/author/Repost';
 
