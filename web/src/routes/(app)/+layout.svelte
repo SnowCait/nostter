@@ -10,6 +10,7 @@
 	import { fetchLastNotification } from '$lib/author/Notifications';
 	import { onMount } from 'svelte';
 	import Gdpr from '$lib/components/Gdpr.svelte';
+	import '$lib/styles/menu.css';
 
 	const konamiCode = [
 		'ArrowUp',

@@ -175,7 +175,6 @@
 		},
 		"unbookmark": {
 			"button": "Unookmark",
-			"confirm": "Unbookmark?",
 			"failed": "Failed to unbookmark"
 		},
 		"repost": {

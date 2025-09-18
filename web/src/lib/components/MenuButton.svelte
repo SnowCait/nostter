@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { Divider, Menu } from '@svelteuidev/core';
+	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
+	import { ShortTextNote } from 'nostr-tools/kinds';
 	import type { Event } from 'nostr-typedef';
 	import { page } from '$app/stores';
 	import { bookmark, unbookmark, isBookmarked } from '$lib/author/Bookmark';
@@ -32,6 +33,10 @@
 	export let iconSize: number;
 	export let showDetails = false;
 
+	const {
+		elements: { menu, item, trigger, overlay, separator }
+	} = createDropdownMenu({ preventScroll: false });
+
 	$: bookmarked = isBookmarked(event);
 	$: nevent = nip19.neventEncode({
 		id: event.id,
@@ -42,8 +47,8 @@
 	$: url = `${$page.url.origin}/${nevent}`;
 	$: rootId = referTags(event).root?.at(1) ?? event.id;
 
-	async function onBookmark(note: Event) {
-		console.log('[bookmark]', note, $rom);
+	async function onBookmark() {
+		console.log('[bookmark]', event, $rom);
 
 		if (bookmarked) {
 			console.debug('[bookmark already]');
@@ -53,7 +58,7 @@
 		bookmarked = true;
 
 		try {
-			await bookmark(['e', note.id]);
+			await bookmark(['e', event.id]);
 		} catch (error) {
 			console.error('[bookmark failed]', error);
 			bookmarked = false;
@@ -61,17 +66,13 @@
 		}
 	}
 
-	async function onUnbookmark(note: Event) {
-		console.log('[unbookmark]', note, $rom);
-
-		if (!confirm($_('actions.unbookmark.confirm'))) {
-			return;
-		}
+	async function onUnbookmark() {
+		console.log('[unbookmark]', event, $rom);
 
 		bookmarked = false;
 
 		try {
-			await unbookmark(['e', note.id]);
+			await unbookmark(['e', event.id]);
 		} catch (error) {
 			console.error('[remove bookmark failed]', error);
 			bookmarked = true;
@@ -79,7 +80,13 @@
 		}
 	}
 
-	function embed(): void {
+	async function onShare() {
+		if (!(await shareUrl(url))) {
+			await copy(url);
+		}
+	}
+
+	function onEmbed(): void {
 		const html = [
 			// Workaround for Svelte compiler with script tags
 			// eslint-disable-next-line no-useless-escape
@@ -102,6 +109,14 @@
 
 		console.log('[delete]', event);
 		await deleteEvent([event]);
+	}
+
+	function onTranslate(): void {
+		open(
+			$_('thread.translation.url').replace('{0}', encodeURIComponent(event.content)),
+			'_blank',
+			'noopener,noreferrer'
+		);
 	}
 
 	async function onMute(): Promise<void> {
@@ -149,118 +164,98 @@
 	}
 </script>
 
-<Menu placement="center">
-	<svelte:fragment slot="control">
-		<div class="icon">
-			<IconDots size={iconSize} />
-		</div>
-	</svelte:fragment>
-
-	{#if bookmarked}
-		<Menu.Item
-			icon={IconBookmarkFilled}
-			color="var(--red)"
-			disabled={$rom || event.kind === 42}
-			on:click={() => onUnbookmark(event)}
-		>
-			{$_('actions.unbookmark.button')}
-		</Menu.Item>
-	{:else}
-		<Menu.Item
-			icon={IconBookmark}
-			disabled={$rom || event.kind === 42}
-			on:click={() => onBookmark(event)}
-		>
-			{$_('actions.bookmark.button')}
-		</Menu.Item>
+<button class="clear" use:melt={$trigger}>
+	<IconDots size={iconSize} />
+</button>
+<div use:melt={$overlay} class="overlay" />
+<div use:melt={$menu} class="menu">
+	<div use:melt={$item} on:m-click={onTranslate} class="item">
+		<div class="icon"><IconLanguage size={iconSize} /></div>
+		<div>{$_('thread.translation.title')}</div>
+		<div class="secondary-icon"><IconExternalLink /></div>
+	</div>
+	{#if !$rom && event.kind === ShortTextNote}
+		{#if bookmarked}
+			<div use:melt={$item} on:m-click={onUnbookmark} class="item undo">
+				<div class="icon"><IconBookmarkFilled size={iconSize} /></div>
+				<div>{$_('actions.unbookmark.button')}</div>
+			</div>
+		{:else}
+			<div use:melt={$item} on:m-click={onBookmark} class="item">
+				<div class="icon"><IconBookmark size={iconSize} /></div>
+				<div>{$_('actions.bookmark.button')}</div>
+			</div>
+		{/if}
 	{/if}
-
-	<Menu.Item icon={IconClipboard} on:click={() => copy(nevent)}>
-		{$_('actions.copy_id.button')}
-	</Menu.Item>
-
+	<div use:melt={$item} on:m-click={() => copy(nevent)} class="item">
+		<div class="icon"><IconClipboard size={iconSize} /></div>
+		<div>{$_('actions.copy_id.button')}</div>
+	</div>
 	{#if navigator.canShare !== undefined}
-		<Menu.Item
-			icon={IconLink}
-			on:click={async () => {
-				if (!(await shareUrl(url))) {
-					await copy(url);
-				}
-			}}
-		>
-			{$_('actions.share.button')}
-		</Menu.Item>
+		<div use:melt={$item} on:m-click={onShare} class="item">
+			<div class="icon"><IconLink size={iconSize} /></div>
+			<div>{$_('actions.share.button')}</div>
+		</div>
 	{:else}
-		<Menu.Item icon={IconLink} on:click={() => copy(url)}>
-			{$_('actions.copy_url.button')}
-		</Menu.Item>
+		<div use:melt={$item} on:m-click={() => copy(url)} class="item">
+			<div class="icon"><IconLink size={iconSize} /></div>
+			<div>{$_('actions.copy_url.button')}</div>
+		</div>
 	{/if}
-
-	<Menu.Item icon={IconCode} on:click={embed}>
-		{$_('actions.embed.button')}
-	</Menu.Item>
-
-	<Menu.Item
-		icon={IconLanguage}
-		on:click={() =>
-			open(
-				$_('thread.translation.url').replace('{0}', encodeURIComponent(event.content)),
-				'_blank',
-				'noopener,noreferrer'
-			)}
-	>
-		{$_('thread.translation.title')}
-		<svelte:fragment slot="rightSection">
-			<IconExternalLink size={16} />
-		</svelte:fragment>
-	</Menu.Item>
-
-	{#if event.pubkey === $authorPubkey}
-		<Divider />
-		<Menu.Label>{$_('menu.caution')}</Menu.Label>
-		<Menu.Item icon={IconTrash} on:click={onDelete}>
-			{$_('actions.delete.button')}
-		</Menu.Item>
+	<div use:melt={$item} on:m-click={onEmbed} class="item">
+		<div class="icon"><IconCode size={iconSize} /></div>
+		<div>{$_('actions.embed.button')}</div>
+	</div>
+	{#if !$rom}
+		<div use:melt={$separator} class="separator" />
+		<div class="text">{$_('preferences.mute.mute')}</div>
+		{#if $mutePubkeys.includes(event.pubkey)}
+			<div use:melt={$item} on:m-click={onUnmute} class="item undo">
+				<div class="icon"><IconVolumeOff size={iconSize} /></div>
+				<div>{$_('actions.unmute.user')}</div>
+			</div>
+		{:else if event.pubkey !== $authorPubkey}
+			<div use:melt={$item} on:m-click={onMute} class="item">
+				<div class="icon"><IconVolumeOff size={iconSize} /></div>
+				<div>{$_('actions.mute.user')}</div>
+			</div>
+		{/if}
+		{#if $muteEventIds.includes(rootId)}
+			<div use:melt={$item} on:m-click={onUnmuteThread} class="item undo">
+				<div class="icon"><IconVolumeOff size={iconSize} /></div>
+				<div>{$_('actions.unmute.thread')}</div>
+			</div>
+		{:else}
+			<div use:melt={$item} on:m-click={onMuteThread} class="item">
+				<div class="icon"><IconVolumeOff size={iconSize} /></div>
+				<div>{$_('actions.mute.thread')}</div>
+			</div>
+		{/if}
+		{#if event.pubkey === $authorPubkey}
+			<div use:melt={$separator} class="separator" />
+			<div class="text">{$_('menu.caution')}</div>
+			<div use:melt={$item} on:m-click={onDelete} class="item">
+				<div class="icon"><IconTrash size={iconSize} /></div>
+				<div>{$_('actions.delete.button')}</div>
+			</div>
+		{/if}
 	{/if}
-
-	<Divider />
-
-	<Menu.Label>{$_('preferences.mute.mute')}</Menu.Label>
-
-	{#if $mutePubkeys.includes(event.pubkey)}
-		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={onUnmute}>
-			{$_('actions.unmute.user')}
-		</Menu.Item>
-	{:else if event.pubkey !== $authorPubkey}
-		<Menu.Item icon={IconVolumeOff} on:click={onMute}>
-			{$_('actions.mute.user')}
-		</Menu.Item>
-	{/if}
-
-	{#if $muteEventIds.includes(rootId)}
-		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={onUnmuteThread}>
-			{$_('actions.unmute.thread')}
-		</Menu.Item>
-	{:else}
-		<Menu.Item icon={IconVolumeOff} on:click={onMuteThread}>
-			{$_('actions.mute.thread')}
-		</Menu.Item>
-	{/if}
-
 	{#if $developerMode}
-		<Divider />
-		<Menu.Label>{$_('menu.developer')}</Menu.Label>
-		<Menu.Item icon={IconCodeDots} on:click={() => (showDetails = !showDetails)}>
-			{$_('actions.details.button')}
-		</Menu.Item>
-		<Menu.Item icon={IconBroadcast} on:click={() => broadcast(event)}>
-			{$_('actions.broadcast.button')}
-		</Menu.Item>
+		<div use:melt={$separator} class="separator" />
+		<div class="text">{$_('menu.developer')}</div>
+		<div use:melt={$item} on:m-click={() => (showDetails = !showDetails)} class="item">
+			<div class="icon"><IconCodeDots size={iconSize} /></div>
+			<div>{$_('actions.details.button')}</div>
+		</div>
+		<div use:melt={$item} on:m-click={() => broadcast(event)} class="item">
+			<div class="icon"><IconBroadcast size={iconSize} /></div>
+			<div>{$_('actions.broadcast.button')}</div>
+		</div>
 	{/if}
-</Menu>
+</div>
 
 <style>
-	.icon {
+	button {
 		color: var(--accent-gray);
 	}
 </style>
