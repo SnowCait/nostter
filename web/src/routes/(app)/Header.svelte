@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Menu } from '@svelteuidev/core';
 	import IconHome from '@tabler/icons-svelte/icons/home';
 	import IconWorld from '@tabler/icons-svelte/icons/world';
 	import IconSearch from '@tabler/icons-svelte/icons/search';
@@ -23,6 +22,11 @@
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
+	import { createDropdownMenu, melt } from '@melt-ui/svelte';
+
+	const {
+		elements: { menu, item, trigger, overlay }
+	} = createDropdownMenu({ preventScroll: false });
 
 	async function onClickPostButton(): Promise<void> {
 		$openNoteDialog = !$openNoteDialog;
@@ -160,42 +164,60 @@
 					</li>
 				</a>
 				<li>
-					<Menu placement="center">
-						<svelte:fragment slot="control">
-							<IconDots size={30} />
-						</svelte:fragment>
-
-						<Menu.Item icon={IconWorld} on:click={async () => await goto(`/public`)}>
-							{$_('pages.public')}
-						</Menu.Item>
-						<Menu.Item
-							icon={IconList}
-							on:click={async () => await goto(`/${nprofile}/lists`)}
+					<button class="clear" use:melt={$trigger}>
+						<IconDots size={30} />
+					</button>
+					<div use:melt={$overlay} class="overlay" />
+					<div use:melt={$menu} class="menu">
+						<div
+							use:melt={$item}
+							on:m-click={async () => await goto(`/public`)}
+							class="item"
 						>
-							{$_('lists.title')}
-						</Menu.Item>
-						<Menu.Item
-							icon={IconBookmark}
-							on:click={async () => await goto(`/${nprofile}/bookmarks`)}
+							<div class="icon"><IconWorld /></div>
+							<div>{$_('pages.public')}</div>
+						</div>
+						<div
+							use:melt={$item}
+							on:m-click={async () => await goto(`/${nprofile}/lists`)}
+							class="item"
 						>
-							{$_('layout.header.bookmarks')}
-						</Menu.Item>
-						<Menu.Item
-							icon={IconMessages}
-							on:click={async () => await goto('/channels')}
+							<div class="icon"><IconList /></div>
+							<div>{$_('lists.title')}</div>
+						</div>
+						<div
+							use:melt={$item}
+							on:m-click={async () => await goto(`/${nprofile}/bookmarks`)}
+							class="item"
 						>
-							{$_('layout.header.channels')}
-						</Menu.Item>
-						<Menu.Item
-							icon={IconSettings}
-							on:click={async () => await goto('/preferences')}
+							<div class="icon"><IconBookmark /></div>
+							<div>{$_('layout.header.bookmarks')}</div>
+						</div>
+						<div
+							use:melt={$item}
+							on:m-click={async () => await goto('/channels')}
+							class="item"
 						>
-							{$_('layout.header.preferences')}
-						</Menu.Item>
-						<Menu.Item icon={IconPaw} on:click={async () => await goto('/about')}>
-							{$_('about.title')}
-						</Menu.Item>
-					</Menu>
+							<div class="icon"><IconMessages /></div>
+							<div>{$_('layout.header.channels')}</div>
+						</div>
+						<div
+							use:melt={$item}
+							on:m-click={async () => await goto('/preferences')}
+							class="item"
+						>
+							<div class="icon"><IconSettings /></div>
+							<div>{$_('layout.header.preferences')}</div>
+						</div>
+						<div
+							use:melt={$item}
+							on:m-click={async () => await goto('/about')}
+							class="item"
+						>
+							<div class="icon"><IconPaw /></div>
+							<div>{$_('about.title')}</div>
+						</div>
+					</div>
 				</li>
 			{:else}
 				<a href="/channels">
@@ -254,7 +276,7 @@
 		text-decoration: none;
 	}
 
-	button {
+	.header > button {
 		width: calc(100% - 1rem);
 		height: inherit;
 		display: flex;
@@ -293,6 +315,14 @@
 	li p {
 		margin-left: 0.5rem;
 		font-size: 1.15rem;
+	}
+
+	ul.fold li button {
+		color: var(--accent);
+	}
+
+	.menu {
+		z-index: 3;
 	}
 
 	a:visited {
@@ -337,7 +367,7 @@
 			display: none;
 		}
 
-		button {
+		.header > button {
 			padding: 0;
 			padding-bottom: 4px;
 			width: 3.125rem;
@@ -346,7 +376,7 @@
 			margin: 0;
 		}
 
-		button p {
+		.header > button p {
 			display: none;
 		}
 
@@ -398,7 +428,7 @@
 			align-self: auto;
 		}
 
-		button {
+		.header > button {
 			position: fixed;
 			bottom: calc(3.125rem + 0.75rem + env(safe-area-inset-bottom));
 			right: 0.75rem;
@@ -407,7 +437,6 @@
 		nav {
 			margin: 0;
 			width: 100%;
-			overflow: auto;
 		}
 
 		ul {
