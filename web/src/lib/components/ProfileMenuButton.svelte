@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Divider, Menu, Text } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { goto } from '$app/navigation';
@@ -12,7 +11,8 @@
 		pubkey as authorPubkey,
 		mutedPubkeysByKindMap,
 		mutePubkeys,
-		originalFollowees
+		originalFollowees,
+		rom
 	} from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import { copy } from '$lib/Clipboard';
@@ -29,8 +29,13 @@
 	import IconExternalLink from '@tabler/icons-svelte/icons/external-link';
 	import ListDialog from './actions/ListDialog.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 
 	export let pubkey: string;
+
+	const {
+		elements: { menu, item, trigger, overlay, separator }
+	} = createDropdownMenu({ preventScroll: false });
 
 	$: metadata = $metadataStore.get(pubkey);
 	$: npub = nip19.npubEncode(pubkey);
@@ -162,111 +167,117 @@
 	}
 </script>
 
-<Menu placement="center">
-	<svelte:fragment slot="control">
-		<div class="icon">
-			<IconDots />
+<button class="clear" use:melt={$trigger}>
+	<IconDots />
+</button>
+<div use:melt={$overlay} class="overlay" />
+<div use:melt={$menu} class="menu">
+	{#if $authorPubkey && !$rom}
+		<div use:melt={$item} on:m-click={editLists} class="item">
+			<div class="icon"><IconList /></div>
+			<div>{$_('lists.edit')}</div>
 		</div>
-	</svelte:fragment>
-
-	<Menu.Item icon={IconList} on:click={editLists}>
-		{$_('lists.edit')}
-	</Menu.Item>
-
-	<Menu.Item icon={IconClipboard} on:click={() => copy(npub)}>
-		{$_('actions.copy_npub.button')}
-	</Menu.Item>
-
-	<Menu.Item icon={IconClipboard} on:click={() => copy(nprofile)}>
-		{$_('actions.copy_nprofile.button')}
-	</Menu.Item>
-
-	<Menu.Item icon={IconLink} on:click={() => copy(url)}>
-		{$_('actions.copy_url.button')}
-	</Menu.Item>
-
-	<Menu.Item icon={IconAffiliate} on:click={async () => await goto(`/${nprofile}/relays`)}>
-		{$_('pages.relays')}
-	</Menu.Item>
-
-	<Menu.Item
-		icon={IconRSS}
-		on:click={() => open(`https://njump.me/${nprofile}.rss`, '_blank', 'noopener,noreferrer')}
+	{/if}
+	<div use:melt={$item} on:m-click={() => copy(npub)} class="item">
+		<div class="icon"><IconClipboard /></div>
+		<div>{$_('actions.copy_npub.button')}</div>
+	</div>
+	<div use:melt={$item} on:m-click={() => copy(nprofile)} class="item">
+		<div class="icon"><IconClipboard /></div>
+		<div>{$_('actions.copy_nprofile.button')}</div>
+	</div>
+	<div use:melt={$item} on:m-click={() => copy(url)} class="item">
+		<div class="icon"><IconLink /></div>
+		<div>{$_('actions.copy_url.button')}</div>
+	</div>
+	<div use:melt={$item} on:m-click={async () => await goto(`/${nprofile}/relays`)} class="item">
+		<div class="icon"><IconAffiliate /></div>
+		<div>{$_('pages.relays')}</div>
+	</div>
+	<div
+		use:melt={$item}
+		on:m-click={() =>
+			open(`https://nostr.com/${nprofile}.rss`, '_blank', 'noopener,noreferrer')}
+		class="item"
 	>
-		<svelte:fragment slot="rightSection">
-			<Text><IconExternalLink size={16} /></Text>
-		</svelte:fragment>
-		RSS
-	</Menu.Item>
-
-	<Divider />
-
-	<Menu.Label>{$_('preferences.mute.mute')}</Menu.Label>
-
-	{#if $mutePubkeys.includes(pubkey)}
-		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={onUnmute}>
-			{$_('actions.unmute.button')}
-		</Menu.Item>
-	{:else if pubkey !== $authorPubkey}
-		<Menu.Item icon={IconVolumeOff} on:click={onMute}>
-			{$_('actions.mute.button')}
-		</Menu.Item>
-	{/if}
-
-	{#if $mutedPubkeysByKindMap.get(6)?.has(pubkey)}
-		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={() => unmuteReposts()}>
-			{$_('actions.unmute.reposts')}
-		</Menu.Item>
-	{:else}
-		<Menu.Item icon={IconVolumeOff} on:click={() => muteReposts()}>
-			{$_('actions.mute.reposts')}
-		</Menu.Item>
-	{/if}
-
-	{#if $mutedPubkeysByKindMap.get(7)?.has(pubkey)}
-		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={() => unmuteReactions()}>
-			{$_('actions.unmute.reactions')}
-		</Menu.Item>
-	{:else}
-		<Menu.Item icon={IconVolumeOff} on:click={() => muteReactions()}>
-			{$_('actions.mute.reactions')}
-		</Menu.Item>
-	{/if}
-
-	{#if $mutedPubkeysByKindMap.get(9735)?.has(pubkey)}
-		<Menu.Item icon={IconVolumeOff} color="var(--red)" on:click={() => unmuteZaps()}>
-			{$_('actions.unmute.zaps')}
-		</Menu.Item>
-	{:else}
-		<Menu.Item icon={IconVolumeOff} on:click={() => muteZaps()}>
-			{$_('actions.mute.zaps')}
-		</Menu.Item>
-	{/if}
-
-	{#if $developerMode && pubkey === $authorPubkey}
-		<Divider />
-
-		<Menu.Label>{$_('menu.developer')}</Menu.Label>
-
-		{#if $originalFollowees.includes(pubkey)}
-			<Menu.Item icon={IconUserMinus} color="var(--red)" on:click={onUnfollow}>
-				{$_('actions.unfollow.myself')}
-			</Menu.Item>
+		<div class="icon"><IconRSS /></div>
+		<div>RSS</div>
+		<div class="secondary-icon"><IconExternalLink /></div>
+	</div>
+	{#if $authorPubkey && !$rom}
+		<div use:melt={$separator} class="separator" />
+		<div class="text">{$_('preferences.mute.mute')}</div>
+		{#if $mutePubkeys.includes(pubkey)}
+			<div use:melt={$item} on:m-click={onUnmute} class="item undo">
+				<div class="icon"><IconVolumeOff /></div>
+				<div>{$_('actions.unmute.button')}</div>
+			</div>
+		{:else if pubkey !== $authorPubkey}
+			<div use:melt={$item} on:m-click={onMute} class="item">
+				<div class="icon"><IconVolumeOff /></div>
+				<div>{$_('actions.mute.button')}</div>
+			</div>
+		{/if}
+		{#if $mutedPubkeysByKindMap.get(6)?.has(pubkey)}
+			<div use:melt={$item} on:m-click={unmuteReposts} class="item undo">
+				<div class="icon"><IconVolumeOff /></div>
+				<div>{$_('actions.unmute.reposts')}</div>
+			</div>
 		{:else}
-			<Menu.Item icon={IconUserPlus} on:click={onFollow}>
-				{$_('actions.follow.myself')}
-			</Menu.Item>
+			<div use:melt={$item} on:m-click={muteReposts} class="item">
+				<div class="icon"><IconVolumeOff /></div>
+				<div>{$_('actions.mute.reposts')}</div>
+			</div>
+		{/if}
+		{#if $mutedPubkeysByKindMap.get(7)?.has(pubkey)}
+			<div use:melt={$item} on:m-click={unmuteReactions} class="item undo">
+				<div class="icon"><IconVolumeOff /></div>
+				<div>{$_('actions.unmute.reactions')}</div>
+			</div>
+		{:else}
+			<div use:melt={$item} on:m-click={muteReactions} class="item">
+				<div class="icon"><IconVolumeOff /></div>
+				<div>{$_('actions.mute.reactions')}</div>
+			</div>
+		{/if}
+		{#if $mutedPubkeysByKindMap.get(9735)?.has(pubkey)}
+			<div use:melt={$item} on:m-click={unmuteZaps} class="item undo">
+				<div class="icon"><IconVolumeOff /></div>
+				<div>{$_('actions.unmute.zaps')}</div>
+			</div>
+		{:else}
+			<div use:melt={$item} on:m-click={muteZaps} class="item">
+				<div class="icon"><IconVolumeOff /></div>
+				<div>{$_('actions.mute.zaps')}</div>
+			</div>
+		{/if}
+		{#if $developerMode && pubkey === $authorPubkey}
+			<div use:melt={$separator} class="separator" />
+			<div class="text">{$_('menu.developer')}</div>
+			{#if $originalFollowees.includes(pubkey)}
+				<div use:melt={$item} on:m-click={onUnfollow} class="item">
+					<div class="icon"><IconUserMinus /></div>
+					<div>{$_('actions.unfollow.myself')}</div>
+				</div>
+			{:else}
+				<div use:melt={$item} on:m-click={onFollow} class="item">
+					<div class="icon"><IconUserPlus /></div>
+					<div>{$_('actions.follow.myself')}</div>
+				</div>
+			{/if}
 		{/if}
 	{/if}
-</Menu>
+</div>
 
 <ListDialog {pubkey} bind:open={listDialogOpen} />
 
 <style>
-	.icon {
+	button {
 		color: var(--accent-gray);
 		width: 34px;
 		height: 34px;
-		padding: 8px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 </style>
