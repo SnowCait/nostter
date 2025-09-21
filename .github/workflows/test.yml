@@ -11,7 +11,7 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm ci
       - run: npm run lint
 
@@ -22,7 +22,7 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm ci
       - run: npm test
 
@@ -33,7 +33,7 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm ci
       - run: npx playwright install
       - run: npm run test:e2e
