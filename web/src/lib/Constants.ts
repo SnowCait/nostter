@@ -148,7 +148,6 @@ export const publicRelays = [
 export const fileStorageServers = [
 	'https://nostrcheck.me',
 	'https://nostr.build',
-	'https://void.cat',
 	'https://files.sovbit.host',
 	'https://nostpic.com',
 	'https://yabu.me'
