@@ -28,6 +28,8 @@
 	import { referTags } from '$lib/EventHelper';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { addToast } from './Toaster.svelte';
+	import { get } from 'svelte/store';
+	import { metadataStore } from '$lib/cache/Events';
 
 	export let event: Event;
 	export let iconSize: number;
@@ -112,8 +114,32 @@
 	}
 
 	function onTranslate(): void {
+		const text = event.content
+			.replaceAll(
+				/\bnostr:((npub|nprofile)1[023456789acdefghjklmnpqrstuvwxyz]{6,})\b/g,
+				(_, bech32: string, prefix: string) => {
+					try {
+						const result = nip19.decode(bech32);
+						if (result.type !== 'npub' && result.type !== 'nprofile') {
+							throw new Error('logic error');
+						}
+						const pubkey = result.type === 'npub' ? result.data : result.data.pubkey;
+						const metadata = get(metadataStore).get(pubkey);
+						if (metadata === undefined) {
+							throw new Error('not found');
+						}
+						return `@${metadata.displayName}`;
+					} catch {
+						return `@${bech32.substring(0, prefix.length + '1'.length + 7)}`;
+					}
+				}
+			)
+			.replaceAll(
+				/\bnostr:(?<bech32>(nevent|note)1[023456789acdefghjklmnpqrstuvwxyz]{6,})\b/g,
+				'https://nostter.app/$<bech32>'
+			);
 		open(
-			$_('thread.translation.url').replace('{0}', encodeURIComponent(event.content)),
+			$_('thread.translation.url').replace('{0}', encodeURIComponent(text)),
 			'_blank',
 			'noopener,noreferrer'
 		);
