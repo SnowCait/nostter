@@ -90,6 +90,9 @@ describe('parse test', () => {
 		expect(Content.parse('https://example.com/')).toStrictEqual([
 			new Token('url', 'https://example.com/')
 		]);
+		expect(Content.parse('http://example.com/')).toStrictEqual([
+			new Token('url', 'http://example.com/')
+		]);
 	});
 	it('url in JSON', () => {
 		expect(Content.parse('{"key":"https://example.com/"}')).toStrictEqual([

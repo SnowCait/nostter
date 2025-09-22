@@ -55,6 +55,8 @@
 
 {#if link === undefined}
 	<Text {text} />
+{:else if link.protocol === 'http:'}
+	<ExternalLink {link} />
 {:else if Twitter.isTweetUrl(link)}
 	{#if preview}
 		<div bind:this={twitterWidget}>
