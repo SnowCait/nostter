@@ -179,8 +179,8 @@ export class Content {
 
 	static replaceNip19(content: string): string {
 		return content.replaceAll(
-			/(?<=^|\s)(nostr:)?((note|npub|naddr|nevent|nprofile)1\w{6,})\b/g,
-			'nostr:$2'
+			/(?<=^|\s)(nostr:)?(?<bech32>(note|naddr|nevent)1\w{6,})\b/g,
+			'nostr:$<bech32>'
 		);
 	}
 }
