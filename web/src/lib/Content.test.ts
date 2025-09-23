@@ -204,9 +204,9 @@ describe('findHashtags test', () => {
 
 describe('replaceNip19 test', () => {
 	it('replace', () => {
-		expect(Content.replaceNip19('npub1aaaaaa nprofile1bbbbbb nostr:note1cccccc')).toStrictEqual(
-			'nostr:npub1aaaaaa nostr:nprofile1bbbbbb nostr:note1cccccc'
-		);
+		expect(
+			Content.replaceNip19('npub1aaaaaa nprofile1bbbbbb nostr:note1cccccc nevent1dddddd')
+		).toStrictEqual('npub1aaaaaa nprofile1bbbbbb nostr:note1cccccc nostr:nevent1dddddd');
 	});
 	it('url', () => {
 		expect(Content.replaceNip19('https://example.com/npub1aaaaaa')).toStrictEqual(
