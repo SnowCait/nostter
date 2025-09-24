@@ -18,14 +18,15 @@
 	$: tokens = Content.parse(content, tags);
 	$: urls = tokens
 		.filter((token) => token.name === 'url' && URL.canParse(token.text))
-		.map((token) => new URL(token.text));
+		.map((token) => new URL(token.text))
+		.filter((url) => url.protocol === 'https:');
 </script>
 
 <p class="content">
 	{#each tokens as token}
-		{#if token.name === 'reference' && token.index === undefined}
+		{#if token.name === 'reference' && token.text.startsWith('nostr:')}
 			<ReferenceNip27 text={token.text} />
-		{:else if token.name === 'reference' && token.index !== undefined && tags.at(token.index) !== undefined}
+		{:else if token.name === 'reference' && tags.at(token.index) !== undefined}
 			<Reference text={token.text} tag={tags[token.index]} />
 		{:else if token.name === 'hashtag'}
 			<Hashtag text={token.text} />
