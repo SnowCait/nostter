@@ -30,8 +30,12 @@ export class Content {
 		const emojis = new Map(
 			tags
 				.filter(
-					([tagName, tagContent, url]) =>
-						tagName === 'emoji' && tagContent !== undefined && url !== undefined
+					([tagName, shortcode, url]) =>
+						tagName === 'emoji' &&
+						shortcode &&
+						url &&
+						url.startsWith('https://') &&
+						URL.canParse(url)
 				)
 				.map(([, shortcode, url]) => [shortcode, url])
 		);
