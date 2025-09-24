@@ -80,7 +80,7 @@ export class Content {
 			)
 		);
 		foundTokens.push(
-			...[...content.matchAll(/NIP-[0-9]{2,}/g)].map(
+			...[...content.matchAll(/NIP-[0-9A-Z]{2,}/g)].map(
 				(match) => new Token('nip', match[0], match.index)
 			)
 		);
