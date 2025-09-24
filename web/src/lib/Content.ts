@@ -1,22 +1,32 @@
 import { nip19 } from 'nostr-tools';
 import { unique } from './Array';
 import escapeStringRegexp from 'escape-string-regexp';
+import twitter from 'twitter-text';
 
 export class Token {
 	constructor(
 		readonly name: 'text' | 'reference' | 'hashtag' | 'emoji' | 'url' | 'relay' | 'nip',
 		readonly text: string,
-		readonly index?: number,
+		readonly index: number,
 		readonly url?: string
 	) {}
 }
 
 export class Content {
 	static parse(content: string, tags: string[][] = []): Token[] {
-		const hashtags = tags
-			.filter(([tagName, tagContent]) => tagName === 't' && tagContent)
-			.map(([, tagContent]) => tagContent);
+		if (content.length === 0) {
+			return [];
+		}
+
+		const urls = twitter.extractUrlsWithIndices(content, { extractUrlsWithoutProtocol: false });
+
+		const hashtags = unique(
+			tags
+				.filter(([tagName, tagContent]) => tagName === 't' && tagContent)
+				.map(([, tagContent]) => tagContent.toLowerCase())
+		);
 		hashtags.sort((x, y) => y.length - x.length);
+
 		const emojis = new Map(
 			tags
 				.filter(
@@ -25,90 +35,70 @@ export class Content {
 				)
 				.map(([, shortcode, url]) => [shortcode, url])
 		);
-		let matches: RegExpMatchArray[] = [];
-		try {
-			matches = [
-				...(hashtags.length > 0
-					? content.matchAll(
-							new RegExp(
-								`(${hashtags.map((x) => `#${escapeStringRegexp(x)}`).join('|')})`,
-								'gi'
-							)
+
+		const foundTokens: Token[] = [];
+		foundTokens.push(
+			...urls
+				.map(({ url, indices }) => new Token('url', url, indices[0]))
+				.filter((token) => token.index === 0 || content[token.index - 1] !== '"') // Ignore URLs in JSON
+		);
+		if (hashtags.length > 0) {
+			foundTokens.push(
+				...[
+					...content.matchAll(
+						new RegExp(`#(${hashtags.map(escapeStringRegexp).join('|')})`, 'gi')
+					)
+				].map((match) => new Token('hashtag', match[0], match.index))
+			);
+		}
+		if (emojis.size > 0) {
+			foundTokens.push(
+				...[
+					...content.matchAll(
+						new RegExp(
+							`:(${[...emojis.keys()].filter((x) => /^\w+$/.test(x)).join('|')}):`,
+							'g'
 						)
-					: []),
-				...(emojis.size > 0
-					? content.matchAll(
-							new RegExp(
-								`:(${[...emojis.keys()]
-									.filter((x) => /^\w+$/.test(x))
-									.join('|')}):`,
-								'g'
-							)
-						)
-					: []),
+					)
+				].map((match) => new Token('emoji', match[0], match.index, emojis.get(match[1])))
+			);
+		}
+		foundTokens.push(
+			...[
 				...content.matchAll(
 					/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[\d+\]/g
-				),
-				...content.matchAll(/(?<=^|\s)(https|http|wss|ws):\/\/\S+/g),
-				...content.matchAll(/NIP-[0-9]{2,}/g)
-			].sort((x, y) => {
-				if (x.index === undefined || y.index === undefined) {
-					throw new Error('Index is undefined');
-				}
-
-				return x.index - y.index;
-			});
-		} catch (error) {
-			console.error('[content parse failed]', error);
-			return [new Token('text', content)];
-		}
+				)
+			].map((match) => new Token('reference', match[0], match.index))
+		);
+		foundTokens.push(
+			...[...content.matchAll(/(?<=^|\s)(wss|ws):\/\/\S+/g)].map(
+				(match) => new Token('relay', match[0], match.index)
+			)
+		);
+		foundTokens.push(
+			...[...content.matchAll(/NIP-[0-9]{2,}/g)].map(
+				(match) => new Token('nip', match[0], match.index)
+			)
+		);
 
 		const tokens: Token[] = [];
 		let index = 0;
-		for (const match of matches) {
-			const text = match[0];
-			const matchIndex = match.index;
-
-			if (matchIndex === undefined || matchIndex < index) {
+		for (const token of foundTokens.sort((x, y) => x.index - y.index)) {
+			if (token.index === undefined || token.index < index) {
 				continue;
 			}
 
-			if (matchIndex > index) {
-				tokens.push(new Token('text', content.slice(index, matchIndex)));
+			if (token.index > index) {
+				tokens.push(new Token('text', content.slice(index, token.index), index));
 			}
 
-			if (text.startsWith('#')) {
-				const m = text.match(/#\[(?<i>\d+)]/);
-				if (m !== null) {
-					const i = Number(m.groups?.i);
-					tokens.push(new Token('reference', text, i));
-				} else {
-					tokens.push(new Token('hashtag', text));
-				}
-			} else if (text.startsWith(':')) {
-				tokens.push(
-					new Token(
-						'emoji',
-						text,
-						undefined,
-						emojis.get(text.substring(1, text.length - 1))
-					)
-				);
-			} else if (text.startsWith('nostr:')) {
-				tokens.push(new Token('reference', text));
-			} else if (text.startsWith('NIP-')) {
-				tokens.push(new Token('nip', text));
-			} else if (text.startsWith('wss://') || text.startsWith('ws://')) {
-				tokens.push(new Token('relay', text));
-			} else {
-				tokens.push(new Token('url', text));
-			}
+			tokens.push(token);
 
-			index = matchIndex + text.length;
+			index = token.index + token.text.length;
 		}
 
 		if (index < content.length) {
-			tokens.push(new Token('text', content.slice(index, content.length)));
+			tokens.push(new Token('text', content.slice(index, content.length), index));
 		}
 
 		return tokens;

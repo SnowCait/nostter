@@ -7,30 +7,28 @@ describe('parse test', () => {
 		expect(Content.parse('')).toStrictEqual([]);
 	});
 	it('text', () => {
-		expect(Content.parse('text')).toStrictEqual([new Token('text', 'text')]);
+		expect(Content.parse('text')).toStrictEqual([new Token('text', 'text', 0)]);
 	});
 	it('reference #[index]', () => {
-		expect(Content.parse('#[0]', [[]])).toStrictEqual([new Token('reference', '#[0]', 0)]);
+		expect(Content.parse('#[0]')).toStrictEqual([new Token('reference', '#[0]', 0)]);
 	});
 	it('reference nostr:', () => {
 		expect(
-			Content.parse('nostr:npub19rfhux6gjsmu0rtyendlrazvyr3lqy7m506vy4emy4vehf3s3s3qhhje7x', [
-				[]
-			])
+			Content.parse('nostr:npub19rfhux6gjsmu0rtyendlrazvyr3lqy7m506vy4emy4vehf3s3s3qhhje7x')
 		).toStrictEqual([
 			new Token(
 				'reference',
 				'nostr:npub19rfhux6gjsmu0rtyendlrazvyr3lqy7m506vy4emy4vehf3s3s3qhhje7x',
-				undefined
+				0
 			)
 		]);
 	});
 	it('hashtag', () => {
 		expect(Content.parse('#nostter', [['t', 'nostter']])).toStrictEqual([
-			new Token('hashtag', '#nostter')
+			new Token('hashtag', '#nostter', 0)
 		]);
 		expect(Content.parse('#nostter', [['t', '']])).toStrictEqual([
-			new Token('text', '#nostter')
+			new Token('text', '#nostter', 0)
 		]);
 	});
 	it('emoji', () => {
@@ -46,7 +44,7 @@ describe('parse test', () => {
 			new Token(
 				'emoji',
 				':pawprint:',
-				undefined,
+				0,
 				'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
 			)
 		]);
@@ -58,15 +56,15 @@ describe('parse test', () => {
 				['t', 'nostr']
 			])
 		).toStrictEqual([
-			new Token('hashtag', '#nostter'),
-			new Token('text', ' '),
-			new Token('hashtag', '#nostr')
+			new Token('hashtag', '#nostter', 0),
+			new Token('text', ' ', 8),
+			new Token('hashtag', '#nostr', 9)
 		]);
 	});
 	it('part hashtags', () => {
 		expect(Content.parse('#nostter #nostr', [['t', 'nostter']])).toStrictEqual([
-			new Token('hashtag', '#nostter'),
-			new Token('text', ' #nostr')
+			new Token('hashtag', '#nostter', 0),
+			new Token('text', ' #nostr', 8)
 		]);
 	});
 	it('overlap hashtags', () => {
@@ -76,46 +74,46 @@ describe('parse test', () => {
 				['t', 'nostrich']
 			])
 		).toStrictEqual([
-			new Token('hashtag', '#nostr'),
-			new Token('text', ' '),
-			new Token('hashtag', '#nostrich')
+			new Token('hashtag', '#nostr', 0),
+			new Token('text', ' ', 6),
+			new Token('hashtag', '#nostrich', 7)
 		]);
 	});
 	it('invalid hashtags', () => {
 		expect(Content.parse('#nostr', [['t', 'nostter']])).toStrictEqual([
-			new Token('text', '#nostr')
+			new Token('text', '#nostr', 0)
 		]);
 	});
 	it('url', () => {
 		expect(Content.parse('https://example.com/')).toStrictEqual([
-			new Token('url', 'https://example.com/')
+			new Token('url', 'https://example.com/', 0)
 		]);
 		expect(Content.parse('http://example.com/')).toStrictEqual([
-			new Token('url', 'http://example.com/')
+			new Token('url', 'http://example.com/', 0)
 		]);
 	});
 	it('url in JSON', () => {
 		expect(Content.parse('{"key":"https://example.com/"}')).toStrictEqual([
-			new Token('text', '{"key":"https://example.com/"}')
+			new Token('text', '{"key":"https://example.com/"}', 0)
 		]);
 	});
-	// it('url', () => {
-	// 	expect(Content.parse('(https://example.com/path)')).toStrictEqual([
-	// 		new Token('text', '('),
-	// 		new Token('url', 'https://example.com/path'),
-	// 		new Token('text', ')')
-	// 	]);
-	// });
+	it('url', () => {
+		expect(Content.parse('(https://example.com/path)')).toStrictEqual([
+			new Token('text', '(', 0),
+			new Token('url', 'https://example.com/path', 1),
+			new Token('text', ')', 25)
+		]);
+	});
 	it('nip', () => {
-		expect(Content.parse('NIP-01')).toStrictEqual([new Token('nip', 'NIP-01')]);
+		expect(Content.parse('NIP-01')).toStrictEqual([new Token('nip', 'NIP-01', 0)]);
 	});
 	it('nips', () => {
 		expect(Content.parse(' NIP-01\nNIP-02\nNIP-3')).toStrictEqual([
-			new Token('text', ' '),
-			new Token('nip', 'NIP-01'),
-			new Token('text', '\n'),
-			new Token('nip', 'NIP-02'),
-			new Token('text', '\nNIP-3')
+			new Token('text', ' ', 0),
+			new Token('nip', 'NIP-01', 1),
+			new Token('text', '\n', 7),
+			new Token('nip', 'NIP-02', 8),
+			new Token('text', '\nNIP-3', 14)
 		]);
 	});
 
@@ -123,8 +121,8 @@ describe('parse test', () => {
 	it('multi lines', () => {
 		expect(Content.parse('#[0]\n#nostter', [[], ['t', 'nostter']])).toStrictEqual([
 			new Token('reference', '#[0]', 0),
-			new Token('text', '\n'),
-			new Token('hashtag', '#nostter')
+			new Token('text', '\n', 4),
+			new Token('hashtag', '#nostter', 5)
 		]);
 	});
 	it('multi lines', () => {
@@ -134,17 +132,17 @@ describe('parse test', () => {
 				[[], [], ['t', 'nostter'], ['t', 'nostr']]
 			)
 		).toStrictEqual([
-			new Token('reference', '#[1]', 1),
-			new Token('text', ' 𠮷#test '),
-			new Token('hashtag', '#nostter'),
-			new Token('text', ' '),
-			new Token('hashtag', '#nostr'),
-			new Token('text', '\n'),
-			new Token('reference', '#[0]', 0),
-			new Token('text', ' '),
-			new Token('url', 'https://example.com/'),
-			new Token('text', ' '),
-			new Token('url', 'https://example.com/#tag')
+			new Token('reference', '#[1]', 0),
+			new Token('text', ' 𠮷#test ', 4),
+			new Token('hashtag', '#nostter', 13),
+			new Token('text', ' ', 21),
+			new Token('hashtag', '#nostr', 22),
+			new Token('text', '\n', 28),
+			new Token('reference', '#[0]', 29),
+			new Token('text', ' ', 33),
+			new Token('url', 'https://example.com/', 34),
+			new Token('text', ' ', 54),
+			new Token('url', 'https://example.com/#tag', 55)
 		]);
 	});
 });

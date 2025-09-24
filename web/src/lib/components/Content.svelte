@@ -24,9 +24,9 @@
 
 <p class="content">
 	{#each tokens as token}
-		{#if token.name === 'reference' && token.index === undefined}
+		{#if token.name === 'reference' && token.text.startsWith('nostr:')}
 			<ReferenceNip27 text={token.text} />
-		{:else if token.name === 'reference' && token.index !== undefined && tags.at(token.index) !== undefined}
+		{:else if token.name === 'reference' && tags.at(token.index) !== undefined}
 			<Reference text={token.text} tag={tags[token.index]} />
 		{:else if token.name === 'hashtag'}
 			<Hashtag text={token.text} />
