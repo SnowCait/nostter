@@ -10,7 +10,7 @@ describe('parse test', () => {
 		expect(Content.parse('text')).toStrictEqual([new Token('text', 'text', 0)]);
 	});
 	it('reference #[index]', () => {
-		expect(Content.parse('#[0]')).toStrictEqual([new Token('reference', '#[0]', 0)]);
+		expect(Content.parse('#[0]')).toStrictEqual([new Token('reference', '#[0]', 0, 0)]);
 	});
 	it('reference nostr:', () => {
 		expect(
@@ -45,6 +45,7 @@ describe('parse test', () => {
 				'emoji',
 				':pawprint:',
 				0,
+				undefined,
 				'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
 			)
 		]);
@@ -120,7 +121,7 @@ describe('parse test', () => {
 	// Complex
 	it('multi lines', () => {
 		expect(Content.parse('#[0]\n#nostter', [[], ['t', 'nostter']])).toStrictEqual([
-			new Token('reference', '#[0]', 0),
+			new Token('reference', '#[0]', 0, 0),
 			new Token('text', '\n', 4),
 			new Token('hashtag', '#nostter', 5)
 		]);
@@ -132,13 +133,13 @@ describe('parse test', () => {
 				[[], [], ['t', 'nostter'], ['t', 'nostr']]
 			)
 		).toStrictEqual([
-			new Token('reference', '#[1]', 0),
+			new Token('reference', '#[1]', 0, 1),
 			new Token('text', ' 𠮷#test ', 4),
 			new Token('hashtag', '#nostter', 13),
 			new Token('text', ' ', 21),
 			new Token('hashtag', '#nostr', 22),
 			new Token('text', '\n', 28),
-			new Token('reference', '#[0]', 29),
+			new Token('reference', '#[0]', 29, 0),
 			new Token('text', ' ', 33),
 			new Token('url', 'https://example.com/', 34),
 			new Token('text', ' ', 54),

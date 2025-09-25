@@ -7,8 +7,9 @@ export class Token {
 	constructor(
 		readonly name: 'text' | 'reference' | 'hashtag' | 'emoji' | 'url' | 'relay' | 'nip',
 		readonly text: string,
-		readonly index: number,
-		readonly url?: string
+		readonly start: number,
+		readonly tagIndex?: number, // for legacy reference #[index]
+		readonly url?: string // for custom emoji
 	) {}
 }
 
@@ -44,7 +45,7 @@ export class Content {
 		foundTokens.push(
 			...urls
 				.map(({ url, indices }) => new Token('url', url, indices[0]))
-				.filter((token) => token.index === 0 || content[token.index - 1] !== '"') // Ignore URLs in JSON
+				.filter((token) => token.start === 0 || content[token.start - 1] !== '"') // ignore URLs in JSON
 		);
 		if (hashtags.length > 0) {
 			foundTokens.push(
@@ -64,15 +65,26 @@ export class Content {
 							'g'
 						)
 					)
-				].map((match) => new Token('emoji', match[0], match.index, emojis.get(match[1])))
+				].map(
+					(match) =>
+						new Token('emoji', match[0], match.index, undefined, emojis.get(match[1]))
+				)
 			);
 		}
 		foundTokens.push(
 			...[
 				...content.matchAll(
-					/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[\d+\]/g
+					/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[(?<i>\d+)\]/g
 				)
-			].map((match) => new Token('reference', match[0], match.index))
+			].map(
+				(match) =>
+					new Token(
+						'reference',
+						match[0],
+						match.index,
+						match.groups?.i ? Number(match.groups.i) : undefined
+					)
+			)
 		);
 		foundTokens.push(
 			...[...content.matchAll(/(?<=^|\s)(wss|ws):\/\/\S+/g)].map(
@@ -87,18 +99,18 @@ export class Content {
 
 		const tokens: Token[] = [];
 		let index = 0;
-		for (const token of foundTokens.sort((x, y) => x.index - y.index)) {
-			if (token.index === undefined || token.index < index) {
+		for (const token of foundTokens.sort((x, y) => x.start - y.start)) {
+			if (token.start === undefined || token.start < index) {
 				continue;
 			}
 
-			if (token.index > index) {
-				tokens.push(new Token('text', content.slice(index, token.index), index));
+			if (token.start > index) {
+				tokens.push(new Token('text', content.slice(index, token.start), index));
 			}
 
 			tokens.push(token);
 
-			index = token.index + token.text.length;
+			index = token.start + token.text.length;
 		}
 
 		if (index < content.length) {
