@@ -26,8 +26,8 @@
 	{#each tokens as token}
 		{#if token.name === 'reference' && token.text.startsWith('nostr:')}
 			<ReferenceNip27 text={token.text} />
-		{:else if token.name === 'reference' && tags.at(token.index) !== undefined}
-			<Reference text={token.text} tag={tags[token.index]} />
+		{:else if token.name === 'reference' && token.tagIndex !== undefined && tags.at(token.tagIndex) !== undefined}
+			<Reference text={token.text} tag={tags[token.tagIndex]} />
 		{:else if token.name === 'hashtag'}
 			<Hashtag text={token.text} />
 		{:else if token.name === 'emoji' && token.url !== undefined}

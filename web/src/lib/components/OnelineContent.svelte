@@ -15,7 +15,7 @@
 
 <p class="content">
 	{#each tokens as token}
-		{#if token.name === 'reference' && token.index === undefined}
+		{#if token.name === 'reference' && token.text.startsWith('nostr:')}
 			{#if token.text.startsWith('nostr:npub1') || token.text.startsWith('nostr:nprofile1')}
 				<ReferenceNip27 text={token.text} />
 			{:else}
@@ -25,8 +25,8 @@
 					{token.text.substring(protocolLength, prefixLength + 7)}
 				</a>
 			{/if}
-		{:else if token.name === 'reference' && token.index !== undefined && tags.at(token.index) !== undefined}
-			<!-- <Reference text={token.text} tag={tags[token.index]} /> -->
+		{:else if token.name === 'reference' && token.tagIndex !== undefined && tags.at(token.tagIndex) !== undefined}
+			<!-- <Reference text={token.text} tag={tags[token.tagIndex]} /> -->
 		{:else if token.name === 'hashtag'}
 			<Hashtag text={token.text} />
 		{:else if token.name === 'emoji' && token.url !== undefined}
