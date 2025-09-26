@@ -1,5 +1,9 @@
 <script lang="ts" context="module">
-	const cache = new Map<string, { [k: string]: string } | undefined>();
+	type Data = {
+		title?: string;
+		image?: string;
+	};
+	const cache = new Map<string, Data | undefined>();
 </script>
 
 <script lang="ts">
@@ -7,7 +11,7 @@
 
 	export let url: URL;
 
-	$: ogp = cache.get(url.href);
+	$: data = cache.get(url.href);
 
 	$: if (!cache.has(url.href)) {
 		fetchOgp(url, true).then((success) => {
@@ -62,7 +66,7 @@
 						resolve(true);
 						return;
 					}
-					ogp = Object.fromEntries(
+					const ogp = Object.fromEntries(
 						metaTags
 							.filter(
 								(element) =>
@@ -77,7 +81,10 @@
 							})
 					);
 					console.debug('[OGP]', url.href, ogp);
-					cache.set(url.href, ogp);
+					cache.set(url.href, {
+						title: ogp['og:title'] ?? dom.title,
+						image: ogp['og:image']
+					});
 					resolve(true);
 				})
 				.catch((error) => {
@@ -93,25 +100,25 @@
 	}
 </script>
 
-{#if ogp !== undefined && ogp['og:title']}
+{#if data?.title}
 	<a href={url.href} target="_blank" rel="noopener noreferrer">
 		<blockquote>
-			{#if ogp['og:image']}
-				{#if ogp['og:image'].startsWith('https://')}
-					<img src={ogp['og:image']} alt="" on:error={error} loading="lazy" />
-				{:else if ogp['og:image'].startsWith('http://')}
+			{#if data.image}
+				{#if data.image.startsWith('https://')}
+					<img src={data.image} alt="" on:error={error} loading="lazy" />
+				{:else if data.image.startsWith('http://')}
 					<!-- Don't show image due to mixed content -->
 				{:else}
 					<img
-						src={ogp['og:image'].startsWith('/')
-							? url.origin + ogp['og:image']
-							: url.href + ogp['og:image']}
+						src={data.image.startsWith('/')
+							? url.origin + data.image
+							: url.href + data.image}
 						alt=""
 						loading="lazy"
 					/>
 				{/if}
 			{/if}
-			<h1>{ogp['og:title']}</h1>
+			<h1>{data.title}</h1>
 			<div>{url.hostname}</div>
 		</blockquote>
 	</a>
