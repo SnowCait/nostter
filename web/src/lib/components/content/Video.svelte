@@ -30,7 +30,7 @@
 
 	video {
 		max-width: calc(100% - 1.5em);
-		max-height: 20em;
+		max-height: 25em;
 		margin: 0.5em;
 	}
 
