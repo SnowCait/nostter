@@ -30,7 +30,9 @@
 
 	video {
 		max-width: calc(100% - 1.5em);
+		min-width: 170px;
 		max-height: 25em;
+		object-fit: scale-down;
 		margin: 0.5em;
 	}
 
