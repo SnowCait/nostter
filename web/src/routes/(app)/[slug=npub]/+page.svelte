@@ -22,7 +22,7 @@
 	$: metadata = $metadataStore.get(data.pubkey);
 
 	let events: EventItem[] = [];
-	let slug = $page.params.slug;
+	let slug = $page.params.slug!;
 
 	afterNavigate(() => {
 		console.debug('[npub page]', data.pubkey);
