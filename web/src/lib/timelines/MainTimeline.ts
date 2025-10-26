@@ -54,23 +54,20 @@ export const rxNostr = createRxNostr({
 	eoseTimeout: timeout,
 	okTimeout: timeout,
 	retry: { strategy: 'exponential', maxCount: 5, initialDelay: 1000, polite: true },
-	authenticator: {
-		signer: {
-			getPublicKey: () => Signer.getPublicKey(),
-			signEvent: async <K extends number>(
-				unsignedEvent: EventParameters<K>
-			): Promise<Event<K>> => {
-				console.debug('[AUTH]', unsignedEvent);
-				const event = await Signer.signEvent({
-					...unsignedEvent,
-					tags: unsignedEvent.tags ?? [],
-					created_at: unsignedEvent.created_at ?? now()
-				});
-				return {
-					...event,
-					ots: unsignedEvent.ots
-				} as Event<K>;
+	authenticator: 'auto',
+	signer: {
+		getPublicKey: () => Signer.getPublicKey(),
+		signEvent: async <K extends number>(params: EventParameters<K>): Promise<Event<K>> => {
+			if (params.sig) {
+				return params as Event<K>;
 			}
+
+			const event = await Signer.signEvent({
+				...params,
+				tags: params.tags ?? [],
+				created_at: params.created_at ?? now()
+			});
+			return event as Event<K>;
 		}
 	}
 }); // Based on NIP-65
