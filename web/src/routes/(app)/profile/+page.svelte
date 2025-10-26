@@ -10,6 +10,8 @@
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 	import { sendEvent } from '$lib/RxNostrHelper';
+	import { storeMetadata } from '$lib/cache/Events';
+	import { WebStorage } from '$lib/WebStorage';
 
 	//#region Cropper
 
@@ -130,11 +132,14 @@
 		}
 
 		try {
-			await sendEvent(
+			const event = await sendEvent(
 				Kind.Metadata,
 				JSON.stringify($authorProfile),
 				$metadataEvent?.tags ?? []
 			);
+			storeMetadata(event);
+			const storage = new WebStorage(localStorage);
+			storage.setReplaceableEvent(event);
 			await goto(`/${nip19.npubEncode($pubkey)}`);
 		} catch (error) {
 			console.error('[save metadata failed]', error);
