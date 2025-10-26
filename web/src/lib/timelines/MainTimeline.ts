@@ -66,10 +66,7 @@ export const rxNostr = createRxNostr({
 					tags: unsignedEvent.tags ?? [],
 					created_at: unsignedEvent.created_at ?? now()
 				});
-				return {
-					...event,
-					ots: unsignedEvent.ots
-				} as Event<K>;
+				return event as Event<K>;
 			}
 		}
 	}
