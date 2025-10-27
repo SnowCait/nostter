@@ -1,9 +1,12 @@
 <script lang="ts" context="module">
+	import { writable } from 'svelte/store';
+
 	type Data = {
 		title?: string;
 		image?: string;
 	};
-	const cache = new Map<string, Data | undefined>();
+
+	const cache = writable(new Map<string, Data | undefined>());
 </script>
 
 <script lang="ts">
@@ -11,9 +14,9 @@
 
 	export let url: URL;
 
-	$: data = cache.get(url.href);
+	$: data = $cache.get(url.href);
 
-	$: if (!cache.has(url.href)) {
+	$: if (!$cache.has(url.href)) {
 		fetchOgp(url, true).then((success) => {
 			if (!success) {
 				fetchOgp(url, false);
@@ -23,7 +26,8 @@
 
 	async function fetchOgp(url: URL, proxy: boolean): Promise<boolean> {
 		console.debug('[OGP url]', url.href, proxy);
-		cache.set(url.href, undefined);
+		$cache.set(url.href, undefined);
+		cache.set($cache);
 
 		return await new Promise((resolve) => {
 			fetch(proxy ? `${httpProxy}/?url=${encodeURIComponent(url.href)}` : url)
@@ -80,11 +84,12 @@
 								];
 							})
 					);
-					console.debug('[OGP]', url.href, ogp);
-					cache.set(url.href, {
+					console.debug('[OGP]', url.href, dom.title, ogp);
+					$cache.set(url.href, {
 						title: ogp['og:title'] ?? dom.title,
 						image: ogp['og:image']
 					});
+					cache.set($cache);
 					resolve(true);
 				})
 				.catch((error) => {
