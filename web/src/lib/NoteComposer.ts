@@ -106,7 +106,7 @@ export class NoteComposer {
 		const tags: string[][] = [];
 
 		// Custom emojis
-		tags.push(...emojiTags);
+		tags.push(...emojiTags.filter(([, shortcode]) => content.includes(`:${shortcode}:`)));
 		const readApi = new Api();
 		const shortcodes = Array.from(
 			new Set(
