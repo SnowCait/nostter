@@ -22,9 +22,9 @@ export class NoteComposer {
 	replyTags(
 		content: string,
 		$replyTo: EventItem | undefined = undefined,
-		$channelIdStore: string | undefined = undefined,
-		pubkeys: Set<string> = new Set()
+		$channelIdStore: string | undefined = undefined
 	): string[][] {
+		let pubkeys = new Set<string>();
 		const tags: string[][] = [];
 
 		if ($channelIdStore) {
