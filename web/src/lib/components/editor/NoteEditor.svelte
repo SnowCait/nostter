@@ -34,7 +34,6 @@
 		$openNoteDialog = false;
 		content = '';
 		$intentContent = '';
-		pubkeys.clear();
 		$replyTo = undefined;
 		$quotes = [];
 		mention = undefined;
@@ -50,7 +49,6 @@
 	let posting = false;
 	let channelEvent: NostrEvent | undefined;
 	let emojiTags: string[][] = [];
-	let pubkeys = new Set<string>();
 	let contentWarningReason: string | undefined;
 
 	let textarea: HTMLTextAreaElement;
@@ -168,7 +166,7 @@
 		const noteComposer = new NoteComposer();
 		noteComposer.emojiTags(content, emojiTags).then((emojiTags) => {
 			tags = [
-				...noteComposer.replyTags(content, $replyTo, $channelIdStore, pubkeys),
+				...noteComposer.replyTags(content, $replyTo, $channelIdStore),
 				...noteComposer.hashtags(content),
 				...emojiTags,
 				...noteComposer.contentWarningTags(contentWarningReason)
@@ -365,7 +363,7 @@
 				: Kind.ShortTextNote,
 			Content.replaceNip19(content),
 			[
-				...noteComposer.replyTags(content, $replyTo, $channelIdStore, pubkeys),
+				...noteComposer.replyTags(content, $replyTo, $channelIdStore),
 				...noteComposer.hashtags(content),
 				...(await noteComposer.emojiTags(content, emojiTags)),
 				...noteComposer.contentWarningTags(contentWarningReason)
