@@ -370,6 +370,11 @@
 			]
 		);
 
+		if (event === null) {
+			posting = false;
+			return;
+		}
+
 		console.log('[rx-nostr send to]', rxNostr.getAllRelayStatus());
 		const sendToRelays = Object.entries(rxNostr.getDefaultRelays())
 			.filter(([, { write }]) => write)

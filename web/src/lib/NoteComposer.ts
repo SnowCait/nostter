@@ -10,13 +10,17 @@ import { getRelayHint } from './timelines/MainTimeline';
 import { unique } from './Array';
 
 export class NoteComposer {
-	async compose(kind: number, content: string, tags: string[][]): Promise<Event> {
-		return await Signer.signEvent({
-			kind,
-			content,
-			tags,
-			created_at: now()
-		});
+	async compose(kind: number, content: string, tags: string[][]): Promise<Event | null> {
+		try {
+			return await Signer.signEvent({
+				kind,
+				content,
+				tags,
+				created_at: now()
+			});
+		} catch {
+			return null;
+		}
 	}
 
 	replyTags(
