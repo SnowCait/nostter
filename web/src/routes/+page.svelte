@@ -8,7 +8,7 @@
 
 	export let data: LayoutData;
 
-	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
+	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/public';
 
 	$: if (data.authenticated) {
 		goto(homeLink);

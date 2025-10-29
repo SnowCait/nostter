@@ -29,7 +29,8 @@
 		"latest": "Latest notes",
 		"public": "Public",
 		"trend": {
-			"message": "Trend will be integrated into Public."
+			"message": "Trend was integrated into Public.",
+			"message2": "This page will be removed in the future."
 		}
 	},
 	"login": {
