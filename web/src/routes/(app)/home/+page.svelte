@@ -23,8 +23,8 @@
 	import { Timeline } from '$lib/Timeline';
 	import { applyTimelieFilter, excludeKinds } from '$lib/TimelineFilter';
 	import { userStatusReqEmit, userStatusesMap } from '$lib/UserStatus';
-	import HomeTab from '$lib/components/HomeTab.svelte';
 	import TimelineView from '../TimelineView.svelte';
+	import { _ } from 'svelte-i18n';
 
 	$: items = $events.filter(
 		(item) =>
@@ -43,7 +43,7 @@
 		console.log('[home page]');
 
 		if ($followees.length === 0) {
-			await goto('/trend');
+			await goto('/public');
 		}
 
 		if (hasSubscribed) {
@@ -189,7 +189,7 @@
 	}
 </script>
 
-<HomeTab selected="home" />
+<h1>{$_('layout.header.home')}</h1>
 
 {#if $eventsPool.length > 0}
 	<article>

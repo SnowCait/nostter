@@ -3,7 +3,6 @@
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { appName, japaneseBotNpub, trendingPeopleBotNpub } from '$lib/Constants';
-	import HomeTab from '$lib/components/HomeTab.svelte';
 	import UserFollowingTimeline from '../[slug=npub]/timeline/UserFollowingTimeline.svelte';
 
 	let pubkey: string | undefined;
@@ -18,9 +17,9 @@
 	<title>{appName} - {$_('layout.header.global')}</title>
 </svelte:head>
 
-<HomeTab selected="trend" />
+<h1>{$_('layout.header.global')}</h1>
 
-<div class="message">{$_('pages.trend.message')}</div>
+<div class="message">{$_('pages.trend.message')}<br />{$_('pages.trend.message2')}</div>
 
 {#if pubkey !== undefined}
 	<div class="timeline">

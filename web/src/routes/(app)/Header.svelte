@@ -32,7 +32,7 @@
 		$openNoteDialog = !$openNoteDialog;
 	}
 
-	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/trend';
+	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/public';
 	$: nprofile = nip19.nprofileEncode({ pubkey: $pubkey });
 	$: notificationsBadge =
 		$notifiedEventItems.filter(
