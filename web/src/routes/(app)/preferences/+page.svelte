@@ -24,7 +24,6 @@
 	import ClearEventCacheAndReload from './ClearEventCacheAndReload.svelte';
 	import MediaUploader from './MediaUploader.svelte';
 	import ImageOptimization from './ImageOptimization.svelte';
-	import TimelineFilter from './TimelineFilter.svelte';
 	import MuteAutomatically from './MuteAutomatically.svelte';
 	import Json from '$lib/components/Json.svelte';
 	import Language from './Language.svelte';
@@ -93,8 +92,6 @@
 	<div><ImageOptimization /></div>
 	<div><Notification /></div>
 	<div><UriScheme /></div>
-	<h3>{$_('preferences.timeline_filter.title')}</h3>
-	<div><TimelineFilter /></div>
 	<div><WalletConnect /></div>
 	<div><DeveloperMode /></div>
 	{#if $developerMode}
