@@ -25,6 +25,15 @@
 	import { userStatusReqEmit, userStatusesMap } from '$lib/UserStatus';
 	import TimelineView from '../TimelineView.svelte';
 	import { _ } from 'svelte-i18n';
+	import { IconAdjustmentsHorizontal } from '@tabler/icons-svelte';
+	import { createCollapsible, melt } from '@melt-ui/svelte';
+	import { slide } from 'svelte/transition';
+	import TimelineFilter from '../preferences/TimelineFilter.svelte';
+
+	const {
+		elements: { root, content, trigger },
+		states: { open }
+	} = createCollapsible();
 
 	$: items = $events.filter(
 		(item) =>
@@ -189,7 +198,19 @@
 	}
 </script>
 
-<h1>{$_('layout.header.home')}</h1>
+<header use:melt={$root}>
+	<div class="title">
+		<h1>{$_('layout.header.home')}</h1>
+		<button class="clear" use:melt={$trigger}>
+			<IconAdjustmentsHorizontal />
+		</button>
+	</div>
+	{#if $open}
+		<div use:melt={$content} transition:slide class="filter">
+			<TimelineFilter />
+		</div>
+	{/if}
+</header>
 
 {#if $eventsPool.length > 0}
 	<article>
@@ -204,6 +225,18 @@
 </div>
 
 <style>
+	header div {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	header div button {
+		background: initial;
+		width: initial;
+		color: var(--foreground);
+	}
+
 	article {
 		border: var(--default-border);
 		border-bottom: none;
