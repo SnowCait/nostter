@@ -233,8 +233,10 @@
 
 	header div button {
 		background: initial;
-		width: initial;
 		color: var(--foreground);
+		height: 2rem;
+		width: 2rem;
+		font-size: 0;
 	}
 
 	article {
