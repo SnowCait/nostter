@@ -304,7 +304,6 @@
 		"edit": "Add/Remove from lists"
 	},
 	"notifications": {
-		"others": "etc",
 		"followees_only": "followees only",
 		"toast": {
 			"title": "Toast notifications",
