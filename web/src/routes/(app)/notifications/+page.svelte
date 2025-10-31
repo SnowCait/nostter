@@ -19,7 +19,7 @@
 	import { preferencesStore } from '$lib/Preferences';
 	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { Signer } from '$lib/Signer';
-	import { IconBell } from '@tabler/icons-svelte';
+	import { IconAsterisk, IconBell } from '@tabler/icons-svelte';
 
 	$: items = $notifiedEventItems.filter(
 		(item) =>
@@ -200,7 +200,7 @@
 	</Tabs.Tab>
 	<Tabs.Tab>
 		<svelte:fragment slot="label">
-			<div>{$_('notifications.others')}</div>
+			<div><IconAsterisk size={20} /></div>
 		</svelte:fragment>
 		<TimelineView
 			items={items.filter((item) => ![1, 6, 16, 7, 9735].includes(item.event.kind))}
