@@ -304,9 +304,12 @@
 		"edit": "Add/Remove from lists"
 	},
 	"notifications": {
-		"all": "all",
 		"others": "etc",
-		"followees_only": "followees only"
+		"followees_only": "followees only",
+		"toast": {
+			"title": "Toast notifications",
+			"enable": "On"
+		}
 	},
 	"menu": {
 		"developer": "Developer",

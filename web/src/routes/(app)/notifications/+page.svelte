@@ -19,6 +19,7 @@
 	import { preferencesStore } from '$lib/Preferences';
 	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { Signer } from '$lib/Signer';
+	import { IconBell } from '@tabler/icons-svelte';
 
 	$: items = $notifiedEventItems.filter(
 		(item) =>
@@ -163,13 +164,13 @@
 <Tabs grow>
 	<Tabs.Tab>
 		<svelte:fragment slot="label">
-			<div>{$_('notifications.all')}</div>
+			<div><IconBell size={20} /></div>
 		</svelte:fragment>
 		<TimelineView {items} {load} />
 	</Tabs.Tab>
 	<Tabs.Tab>
 		<svelte:fragment slot="icon">
-			<IconAt color="var(--orange)" size={20} />
+			<IconAt color="var(--red)" size={20} />
 		</svelte:fragment>
 		<TimelineView items={items.filter((item) => item.event.kind === 1)} showLoading={false} />
 	</Tabs.Tab>
@@ -190,7 +191,7 @@
 	</Tabs.Tab>
 	<Tabs.Tab>
 		<svelte:fragment slot="icon">
-			<IconBolt color="var(--yellow)" size={20} />
+			<IconBolt color="var(--orange)" size={20} />
 		</svelte:fragment>
 		<TimelineView
 			items={items.filter((item) => item.event.kind === 9735)}
