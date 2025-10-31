@@ -100,6 +100,12 @@
 </article>
 {#if jsonDisplay}
 	<div class="develop">
+		<div>
+			<span>via</span>
+			<a href="/{nip19.npubEncode(event.pubkey)}">
+				<OnelineProfile pubkey={event.pubkey} />
+			</a>
+		</div>
 		<h5>Event ID</h5>
 		<div>{nip19.noteEncode(event.id)}</div>
 		<br />
