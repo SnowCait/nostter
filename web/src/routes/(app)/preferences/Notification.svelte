@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { _ } from 'svelte-i18n';
 
 	let show = false;
 
@@ -16,6 +17,6 @@
 </script>
 
 {#if show}
-	<span>Notification:</span>
-	<button on:click={requestPermission}>Notification Setting</button>
+	<span>{$_('notifications.toast.title')}</span>
+	<button on:click={requestPermission}>{$_('notifications.toast.enable')}</button>
 {/if}

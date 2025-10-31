@@ -303,9 +303,12 @@
 		"edit": "リストへ追加/削除"
 	},
 	"notifications": {
-		"all": "すべて",
 		"others": "他",
-		"followees_only": "フォローのみ"
+		"followees_only": "フォローのみ",
+		"toast": {
+			"title": "トースト通知",
+			"enable": "オン"
+		}
 	},
 	"menu": {
 		"developer": "開発者",
