@@ -220,18 +220,18 @@
 					</div>
 				</li>
 			{:else}
-				<a href="/channels">
-					<li>
+				<li>
+					<a href="/channels">
 						<IconMessages size={30} />
 						<p>{$_('layout.header.channels')}</p>
-					</li>
-				</a>
-				<a href="/about">
-					<li>
+					</a>
+				</li>
+				<li>
+					<a href="/about">
 						<IconPaw size={30} />
 						<p>{$_('about.title')}</p>
-					</li>
-				</a>
+					</a>
+				</li>
 			{/if}
 		</ul>
 	</nav>
@@ -272,8 +272,12 @@
 	}
 
 	a {
-		align-self: flex-start;
 		text-decoration: none;
+		color: var(--accent);
+	}
+
+	a:visited {
+		color: var(--accent);
 	}
 
 	.header > button {
@@ -305,12 +309,6 @@
 		display: none;
 	}
 
-	li {
-		display: flex;
-		align-items: center;
-		color: var(--accent);
-	}
-
 	li a {
 		display: flex;
 		align-items: center;
@@ -332,10 +330,6 @@
 
 	.menu {
 		z-index: 3;
-	}
-
-	a:visited {
-		color: inherit;
 	}
 
 	.notifications-icon {
@@ -431,10 +425,6 @@
 			display: flex;
 			justify-content: center;
 			align-items: center;
-		}
-
-		#logo-icon-wrapper > a {
-			align-self: auto;
 		}
 
 		.header > button {
