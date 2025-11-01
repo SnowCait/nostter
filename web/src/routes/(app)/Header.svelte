@@ -56,113 +56,113 @@
 	</div>
 	<nav>
 		<ul class="full">
-			<a href={homeLink}>
-				<li class="clickable">
+			<li class="clickable">
+				<a href={homeLink}>
 					<IconHome size={30} />
 					<p>{$_('layout.header.home')}</p>
-				</li>
-			</a>
-			<a href="/public">
-				<li class="clickable">
+				</a>
+			</li>
+			<li class="clickable">
+				<a href="/public">
 					<IconWorld size={30} />
 					<p>{$_('pages.public')}</p>
-				</li>
-			</a>
-			<a href="/search">
-				<li class="clickable">
+				</a>
+			</li>
+			<li class="clickable">
+				<a href="/search">
 					<IconSearch size={30} />
 					<p>{$_('layout.header.search')}</p>
-				</li>
-			</a>
+				</a>
+			</li>
 			{#if $pubkey}
-				<a href="/notifications">
-					<li class="clickable notifications-icon">
+				<li class="clickable notifications-icon">
+					<a href="/notifications">
 						<IconBell size={30} />
 						{#if notificationsBadge}
 							<span class="notifications-icon-badge" />
 						{/if}
 						<p>{$_('layout.header.notifications')}</p>
-					</li>
-				</a>
+					</a>
+				</li>
 			{/if}
 			{#if $pubkey}
-				<a href="/{nprofile}/lists">
-					<li class="clickable">
+				<li class="clickable">
+					<a href="/{nprofile}/lists">
 						<IconList size={30} />
 						<p>{$_('lists.title')}</p>
-					</li>
-				</a>
-				<a href="/{nprofile}/bookmarks">
-					<li class="clickable">
+					</a>
+				</li>
+				<li class="clickable">
+					<a href="/{nprofile}/bookmarks">
 						<IconBookmark size={30} />
 						<p>{$_('layout.header.bookmarks')}</p>
-					</li>
-				</a>
+					</a>
+				</li>
 			{/if}
-			<a href="/channels">
-				<li class="clickable">
+			<li class="clickable">
+				<a href="/channels">
 					<IconMessages size={30} />
 					<p>{$_('layout.header.channels')}</p>
-				</li>
-			</a>
+				</a>
+			</li>
 			{#if $pubkey}
-				<a href="/{nprofile}">
-					<li class="clickable">
+				<li class="clickable">
+					<a href="/{nprofile}">
 						<IconUser size={30} />
 						<p>{$_('layout.header.profile')}</p>
-					</li>
-				</a>
-				<a href="/preferences">
-					<li class="clickable">
+					</a>
+				</li>
+				<li class="clickable">
+					<a href="/preferences">
 						<IconSettings size={30} />
 						<p>{$_('layout.header.preferences')}</p>
-					</li>
-				</a>
+					</a>
+				</li>
 			{/if}
-			<a href="/about">
-				<li class="clickable">
+			<li class="clickable">
+				<a href="/about">
 					<IconPaw size={30} />
 					<p>{$_('about.title')}</p>
-				</li>
-			</a>
+				</a>
+			</li>
 		</ul>
 		<ul class="fold">
-			<a href={homeLink}>
-				<li>
+			<li>
+				<a href={homeLink}>
 					<IconHome size={30} />
 					<p>{$_('layout.header.home')}</p>
-				</li>
-			</a>
+				</a>
+			</li>
 			{#if !$pubkey}
-				<a href="/public">
-					<li>
+				<li>
+					<a href="/public">
 						<IconWorld size={30} />
 						<p>{$_('pages.public')}</p>
-					</li>
-				</a>
+					</a>
+				</li>
 			{/if}
-			<a href="/search">
-				<li>
+			<li>
+				<a href="/search">
 					<IconSearch size={30} />
 					<p>{$_('layout.header.search')}</p>
-				</li>
-			</a>
+				</a>
+			</li>
 			{#if $pubkey}
-				<a href="/notifications">
-					<li class="notifications-icon">
+				<li class="notifications-icon">
+					<a href="/notifications">
 						<IconBell size={30} />
 						{#if notificationsBadge}
 							<span class="notifications-icon-badge" />
 						{/if}
 						<p>{$_('layout.header.notifications')}</p>
-					</li>
-				</a>
-				<a href="/{nprofile}">
-					<li>
+					</a>
+				</li>
+				<li>
+					<a href="/{nprofile}">
 						<IconUser size={30} />
 						<p>{$_('layout.header.profile')}</p>
-					</li>
-				</a>
+					</a>
+				</li>
 				<li>
 					<button class="clear" use:melt={$trigger}>
 						<IconDots size={30} />
@@ -309,6 +309,15 @@
 		display: flex;
 		align-items: center;
 		color: var(--accent);
+	}
+
+	li a {
+		display: flex;
+		align-items: center;
+		width: 100%;
+	}
+
+	ul.full li a {
 		padding: 0.5rem 1rem;
 	}
 
