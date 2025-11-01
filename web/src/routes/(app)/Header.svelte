@@ -383,7 +383,7 @@
 			display: none;
 		}
 
-		li {
+		ul.full li a {
 			padding: 0.5rem;
 		}
 
