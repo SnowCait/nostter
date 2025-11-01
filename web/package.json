@@ -49,7 +49,7 @@
 	"dependencies": {
 		"@emoji-mart/data": "^1.2.1",
 		"@floating-ui/dom": "^1.6.8",
-		"@noble/hashes": "^1.7.1",
+		"@noble/hashes": "^2.0.1",
 		"@rust-nostr/nostr-sdk": "^0.43.0",
 		"@svelteuidev/composables": "^0.15.4",
 		"@svelteuidev/core": "^0.15.7",
