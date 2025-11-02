@@ -26,6 +26,7 @@
 	import DateLink from '$lib/components/DateLink.svelte';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import BackButton from '$lib/components/BackButton.svelte';
+	import { IconHeartBroken } from '@tabler/icons-svelte';
 
 	export let data: LayoutData;
 
@@ -368,9 +369,11 @@
 </section>
 {#each [...reactionMetadataMap] as [content, metadataList]}
 	<section class="reaction counter card">
-		<span class="icon" class:heart={content === '+'}>
+		<span class="icon" class:heart={content === '+' || content === '-'}>
 			{#if content === '+'}
 				<IconHeart />
+			{:else if content === '-'}
+				<IconHeartBroken />
 			{:else if URL.canParse(content)}
 				<CustomEmoji url={content} text={customEmojiShortcode.get(content)} />
 			{:else}
@@ -464,7 +467,7 @@
 	}
 
 	.heart {
-		color: var(--red);
+		color: var(--pink);
 	}
 
 	.zap .icon {
