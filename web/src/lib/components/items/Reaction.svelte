@@ -50,11 +50,11 @@
 </script>
 
 <article class="timeline-item">
-	<div>
+	<div class:heart={event.content === '+' || event.content === '-'}>
 		{#if event.content === '+' || event.content === ''}
-			<IconHeart size={18} color={'lightpink'} />
+			<IconHeart size={18} />
 		{:else if event.content === '-'}
-			<IconHeartBroken size={18} color={'lightpink'} />
+			<IconHeartBroken size={18} />
 		{:else}
 			<Content content={event.content} tags={event.tags} />
 		{/if}
@@ -140,5 +140,9 @@
 
 	.right {
 		margin-left: auto;
+	}
+
+	.heart {
+		color: var(--pink);
 	}
 </style>
