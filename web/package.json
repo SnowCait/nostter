@@ -24,7 +24,7 @@
 		"@types/async-lock": "^1.4.2",
 		"@types/beyonk__gdpr-cookie-consent-banner": "^9.0.2",
 		"@types/emoji-mart": "^3.0.14",
-		"@types/qrcode": "^1.5.5",
+		"@types/qrcode": "^1.5.6",
 		"@types/twitter-text": "^3.1.10",
 		"@typescript-eslint/eslint-plugin": "^8.46.3",
 		"@typescript-eslint/parser": "^8.46.3",
