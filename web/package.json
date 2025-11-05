@@ -23,7 +23,7 @@
 		"@sveltejs/vite-plugin-svelte": "^3.1.2",
 		"@types/async-lock": "^1.4.2",
 		"@types/beyonk__gdpr-cookie-consent-banner": "^9.0.2",
-		"@types/emoji-mart": "^3.0.14",
+		"@types/emoji-mart": "^5.3.0",
 		"@types/qrcode": "^1.5.5",
 		"@types/twitter-text": "^3.1.10",
 		"@typescript-eslint/eslint-plugin": "^8.46.3",
