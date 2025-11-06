@@ -13,6 +13,8 @@ User-agent: MJ12bot
 User-agent: ClaudeBot
 # https://developer.amazon.com/support/amazonbot
 User-agent: Amazonbot
+# HeadlessChrome
+User-agent: HeadlessChrome
 Disallow: /npub
 Disallow: /nprofile
 Disallow: /note
