@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import type { EventItem } from '$lib/Items';
+	import { EventItem } from '$lib/Items';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
 	import { author, isMuteEvent } from '$lib/stores/Author';
 	import Loading from './Loading.svelte';
@@ -18,13 +18,13 @@
 	import { sleep } from '$lib/Helper';
 
 	export let timeline: NewTimeline;
-	export let items: EventItem[];
 	export let readonly = false;
 	export let showLoading = true;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
 	export let full = false;
 	export let canTransition = true;
 
+	let items: EventItem[] = [];
 	let innerHeight: number;
 	let scrollY = 0;
 	let isTop = true;
@@ -183,6 +183,10 @@
 	};
 
 	onMount(() => {
+		const unsubscribeEvents = timeline.events.subscribe(($events) => {
+			items = $events.map((event) => new EventItem(event));
+		});
+
 		const unsubscribeLatest = timeline.latest.subscribe(($latest) => {
 			latest = $latest;
 		});
@@ -192,6 +196,7 @@
 		});
 
 		return () => {
+			unsubscribeEvents();
 			unsubscribeLatest();
 			unsubscribeOldest();
 		};
