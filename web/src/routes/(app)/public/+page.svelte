@@ -2,14 +2,11 @@
 	import { _, locale } from 'svelte-i18n';
 	import { localizedRelays, publicRelays } from '$lib/Constants';
 	import { PublicTimeline, publicTimelines } from '$lib/timelines/PublicTimeline';
-	import { EventItem } from '$lib/Items';
 	import { onMount } from 'svelte';
 	import Timeline from '$lib/components/Timeline.svelte';
 	import { autoRefresh } from '$lib/stores/Preference';
 
 	let timeline: PublicTimeline | undefined;
-
-	let items: EventItem[] = [];
 
 	onMount(() => {
 		console.debug('[public timeline on mount]', $locale);
@@ -24,14 +21,11 @@
 			timeline.older();
 			publicTimelines.push(timeline);
 		}
-		timeline.events.subscribe((events) => {
-			items = events.map((event) => new EventItem(event));
-		});
 	});
 </script>
 
 <h1>{$_('pages.public')}</h1>
 
 {#if timeline !== undefined}
-	<Timeline {timeline} {items} />
+	<Timeline {timeline} />
 {/if}
