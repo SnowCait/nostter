@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { author } from '$lib/stores/Author';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 </script>
 
@@ -40,14 +39,6 @@
 
 <h2>{$_('about.others')}</h2>
 <section class="card">
-	{#if $author !== undefined}
-		<div>
-			<a href="/latest">{$_('pages.latest')}</a>
-		</div>
-		<div>
-			<a href="/replay/home">{$_('replay.title')}</a>
-		</div>
-	{/if}
 	<div>
 		<a href="/qrcode">{$_('qrcode.scan')}</a>
 	</div>
