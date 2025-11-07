@@ -131,6 +131,7 @@
 		"clear_event_cache": "イベントキャッシュクリア＆再読み込み",
 		"reload": "再読み込み",
 		"timeline_filter": {
+			"title": "フィルター",
 			"categories": {
 				"notes": "ノート",
 				"dms": "DM",

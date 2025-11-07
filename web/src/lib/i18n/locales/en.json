@@ -132,6 +132,7 @@
 		"clear_event_cache": "Clear event cache and reload",
 		"reload": "Reload",
 		"timeline_filter": {
+			"title": "Filter",
 			"categories": {
 				"notes": "Notes",
 				"dms": "DMs",

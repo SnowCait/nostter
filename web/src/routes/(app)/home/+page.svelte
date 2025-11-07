@@ -7,7 +7,7 @@
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { events, eventsPool } from '$lib/stores/Events';
-	import { pubkey, followees } from '$lib/stores/Author';
+	import { pubkey, followees, author } from '$lib/stores/Author';
 	import { saveLastNote } from '$lib/stores/LastNotes';
 	import { referencesReqEmit, rxNostr, storeSeenOn, tie } from '$lib/timelines/MainTimeline';
 	import { hasSubscribed, hometimelineReqEmit } from '$lib/timelines/HomeTimeline';
@@ -207,7 +207,24 @@
 	</div>
 	{#if $open}
 		<div use:melt={$content} transition:slide class="filter">
-			<TimelineFilter />
+			<section>
+				<h2>{$_('preferences.timeline_filter.title')}</h2>
+				<TimelineFilter />
+			</section>
+
+			{#if $author !== undefined}
+				<section>
+					<h2>{$_('about.others')}</h2>
+					<ul>
+						<li>
+							<a href="/latest">{$_('pages.latest')}</a>
+						</li>
+						<li>
+							<a href="/replay/home">{$_('replay.title')}</a>
+						</li>
+					</ul>
+				</section>
+			{/if}
 		</div>
 	{/if}
 </header>
@@ -225,18 +242,33 @@
 </div>
 
 <style>
-	header div {
+	header div.title {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 	}
 
-	header div button {
+	header div.title button {
 		background: initial;
 		color: var(--foreground);
 		height: 2rem;
 		width: 2rem;
 		font-size: 0;
+	}
+
+	header div.filter {
+		display: flex;
+		flex-direction: column;
+		margin: 0.5rem 0;
+		gap: 0.5rem;
+	}
+
+	header div.filter h2 {
+		font-size: 1.2rem;
+	}
+
+	header div.filter ul {
+		margin-left: 2rem;
 	}
 
 	article {
