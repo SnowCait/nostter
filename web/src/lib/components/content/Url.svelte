@@ -74,7 +74,7 @@
 		<ExternalLink {link} />
 		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
-{:else if link.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(link.hostname)}
+{:else if (link.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(link.hostname)) && !link.pathname.startsWith('/@')}
 	<YouTube {link} />
 {:else if link.hostname.endsWith('nicovideo.jp') && nicovideoRegexp.test(link.href)}
 	<Nicovideo {link} />
