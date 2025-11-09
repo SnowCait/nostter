@@ -53,7 +53,7 @@
 		{#each urls as url}
 			{#if Twitter.isTweetUrl(url)}
 				<!-- Twitter -->
-			{:else if url.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(url.hostname)}
+			{:else if (url.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(url.hostname)) && !url.pathname.startsWith('/@')}
 				<!-- YouTube -->
 			{:else if url.hostname.endsWith('nicovideo.jp') && nicovideoRegexp.test(url.href)}
 				<!-- Niconico -->
