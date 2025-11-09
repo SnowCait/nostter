@@ -456,5 +456,10 @@
 		li p {
 			display: none;
 		}
+
+		.notifications-icon .notifications-icon-badge {
+			top: 0.05rem;
+			left: 1rem;
+		}
 	}
 </style>
