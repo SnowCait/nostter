@@ -85,8 +85,6 @@ export class HomeTimeline implements NewTimeline {
 	constructor() {
 		console.debug('[home timeline initialize]');
 		this.#autoUpdate = get(autoRefresh);
-
-		this.#createSubscriptions();
 	}
 
 	//#region autoUpdate
@@ -124,18 +122,13 @@ export class HomeTimeline implements NewTimeline {
 	#req = createRxForwardReq();
 
 	#createSubscriptions(): void {
+		console.debug('[home timeline create subscriptions]');
 		const $pubkey = get(pubkey);
 		if (!$pubkey) {
 			console.error('[pubkey is empty]');
 			return;
 		}
-		this.unsubscribe();
-		const observable$ = rxNostr.use(this.#req).pipe(
-			tie,
-			uniq(),
-			tap(({ event }) => console.debug('[DEBUG]', event.kind, event.id)),
-			share()
-		);
+		const observable$ = rxNostr.use(this.#req).pipe(tie, uniq(), share());
 		const author$ = observable$.pipe(
 			filter(({ event }) => event.pubkey === $pubkey),
 			share()
@@ -379,7 +372,13 @@ export class HomeTimeline implements NewTimeline {
 		return [...followeesFilters, ...authorFilters];
 	}
 
+	#first = true;
+
 	subscribe(): void {
+		if (this.#first) {
+			this.#first = false;
+			this.#createSubscriptions();
+		}
 		const filters = this.#createForwardFilters();
 		console.debug('[home timeline REQ]', filters);
 		this.#req.emit(filters);
