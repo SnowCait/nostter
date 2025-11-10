@@ -30,6 +30,8 @@ export class PublicTimeline implements NewTimeline {
 	#isTop = true;
 	#loading = false;
 
+	public filter = undefined;
+
 	constructor(relays: string[], autoUpdate = true) {
 		if (relays.length === 0) {
 			throw new Error('No relays');

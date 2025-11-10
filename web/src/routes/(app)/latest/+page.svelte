@@ -3,7 +3,6 @@
 	import { appName, reverseChronologicalItem } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { lastNoteReqEmit } from '$lib/LastNotes';
-	import { hasSubscribed, hometimelineReqEmit } from '$lib/timelines/HomeTimeline';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { followees } from '$lib/stores/Author';
 	import { lastNotesMap } from '$lib/stores/LastNotes';
@@ -12,9 +11,6 @@
 	if ($followees.length > 0) {
 		metadataReqEmit($followees);
 		lastNoteReqEmit($followees);
-		if (!hasSubscribed) {
-			hometimelineReqEmit();
-		}
 	}
 
 	$: items = [...$lastNotesMap]

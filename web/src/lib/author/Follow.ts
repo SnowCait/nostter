@@ -10,7 +10,7 @@ import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
 import { followees, pubkey } from '../stores/Author';
-import { hometimelineReqEmit } from '$lib/timelines/HomeTimeline';
+import { timeline as homeTimeline } from '$lib/timelines/HomeTimeline';
 
 type DataType = 'follow' | 'unfollow';
 type Data = {
@@ -92,7 +92,7 @@ async function publish(): Promise<void> {
 	if (queue.length > 0) {
 		await publish();
 	} else {
-		hometimelineReqEmit();
+		homeTimeline.subscribe();
 	}
 }
 

@@ -16,6 +16,10 @@
 	import { findChannelId } from '$lib/EventHelper';
 	import IconChevronsUp from '@tabler/icons-svelte/icons/chevrons-up';
 	import { sleep } from '$lib/Helper';
+	import { HomeTimeline } from '$lib/timelines/HomeTimeline';
+	import { excludeKinds } from '$lib/TimelineFilter';
+	import { preferencesStore } from '$lib/Preferences';
+	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 
 	export let timeline: NewTimeline;
 	export let readonly = false;
@@ -55,7 +59,12 @@
 	$: visibleItems = items.filter(
 		(item) =>
 			!isMuteEvent(item.event) &&
-			!$deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id)
+			!$deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id) &&
+			// TODO: Not to depend on HomeTimeline in Svelte 5
+			(!(timeline instanceof HomeTimeline) ||
+				(!$excludeKinds.includes(item.event.kind) &&
+					(!$preferencesStore.muteAutomatically ||
+						$followeesOfFollowees.has(item.event.pubkey))))
 	);
 
 	async function newer() {

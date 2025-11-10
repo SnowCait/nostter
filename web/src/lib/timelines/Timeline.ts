@@ -13,6 +13,7 @@ export interface NewTimeline {
 	oldest: Readable<boolean>;
 	loading: boolean;
 	events: Readable<Event[]>;
+	filter: ((event: Event) => boolean) | undefined;
 	setIsTop(isTop: boolean): void;
 	subscribe(): void;
 	unsubscribe(): void;
