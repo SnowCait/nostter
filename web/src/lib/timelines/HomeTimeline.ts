@@ -61,6 +61,7 @@ import { storeDeletedEvents } from '$lib/author/Delete';
 import type { NewTimeline } from './Timeline';
 import { excludeKinds } from '$lib/TimelineFilter';
 import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
+import { fetchMinutes } from '$lib/Helper';
 
 export const activeAt = writable(now());
 
@@ -330,7 +331,7 @@ export class HomeTimeline implements NewTimeline {
 		const $followingHashtags = get(followingHashtags);
 
 		const until = this.#eventsStore.at(-1)?.created_at ?? now();
-		const since = until - 5 * 60;
+		const since = until - fetchMinutes($followees.length) * 60;
 
 		const followeesFilters = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
 			return {
