@@ -1,8 +1,8 @@
 import { createRxBackwardReq, createRxForwardReq, now, uniq } from 'rx-nostr';
-import type { NewTimeline } from './Timeline';
+import { NewTimeline } from './Timeline';
 import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
 import type { Event } from 'nostr-typedef';
-import { derived, get, writable } from 'svelte/store';
+import { get } from 'svelte/store';
 import { minTimelineLength, reverseChronological } from '$lib/Constants';
 import { filter, tap, type Subscription } from 'rxjs';
 import { authorActionReqEmit } from '$lib/author/Action';
@@ -12,40 +12,21 @@ export const publicTimelines: PublicTimeline[] = [];
 
 const maxTimelineLength = minTimelineLength * 2;
 
-export class PublicTimeline implements NewTimeline {
+export class PublicTimeline extends NewTimeline {
 	readonly #relays: string[];
-	readonly #eventsStore: Event[] = [];
-	readonly #eventsForView = writable<Event[]>([]);
-	#latestId = writable<string | undefined>();
-	#oldest = writable(false);
 	#subscription: Subscription | undefined;
-	public readonly events = derived(this.#eventsForView, ($) => $);
-	public readonly latest = derived(
-		[this.#latestId, this.#eventsForView],
-		([$id, $events]) => $id === $events.at(0)?.id
-	);
-	public readonly oldest = derived(this.#oldest, ($) => $);
 
-	#autoUpdate: boolean;
 	#isTop = true;
-	#loading = false;
 
 	public filter = undefined;
 
-	constructor(relays: string[], autoUpdate = true) {
+	constructor(relays: string[]) {
+		super();
+
 		if (relays.length === 0) {
 			throw new Error('No relays');
 		}
 		this.#relays = relays;
-		this.#autoUpdate = autoUpdate;
-	}
-
-	get autoUpdate(): boolean {
-		return this.#autoUpdate;
-	}
-
-	get loading(): boolean {
-		return this.#loading;
 	}
 
 	public setIsTop(isTop: boolean): void {
@@ -67,16 +48,16 @@ export class PublicTimeline implements NewTimeline {
 				})
 			)
 			.subscribe(({ event }) => {
-				const lastId = this.#eventsStore.at(0)?.id;
-				this.#eventsStore.unshift(event);
-				this.#latestId.set(event.id);
+				const lastId = this.eventsStore.at(0)?.id;
+				this.eventsStore.unshift(event);
+				this.latestId.set(event.id);
 				if (
-					this.#autoUpdate &&
+					this.autoUpdate &&
 					this.#isTop &&
-					get(this.#eventsForView).at(0)?.id === lastId
+					get(this.eventsForView).at(0)?.id === lastId
 				) {
-					this.#eventsForView.set(
-						[event, ...get(this.#eventsForView)].slice(0, maxTimelineLength)
+					this.eventsForView.set(
+						[event, ...get(this.eventsForView)].slice(0, maxTimelineLength)
 					);
 				}
 			});
@@ -88,57 +69,34 @@ export class PublicTimeline implements NewTimeline {
 		this.#subscription?.unsubscribe();
 	}
 
-	newer(): void {
-		console.debug('[public timeline newer]', get(this.latest));
-
-		if (get(this.latest)) {
-			return;
-		}
-
-		const $eventsForView = get(this.#eventsForView);
-		if ($eventsForView.length === 0) {
-			return;
-		}
-
-		const latestEvent = $eventsForView[0];
-		const index = this.#eventsStore.findIndex((event) => event.id === latestEvent.id);
-		if (index > minTimelineLength) {
-			const events = this.#eventsStore.slice(index - minTimelineLength, index);
-			this.#eventsForView.set([...events, ...$eventsForView].slice(0, maxTimelineLength));
-		} else {
-			const events = this.#eventsStore.slice(0, index);
-			this.#eventsForView.set([...events, ...$eventsForView].slice(0, maxTimelineLength));
-		}
-	}
-
 	older(): void {
-		console.debug('[public timeline older]', get(this.#oldest));
+		console.debug('[public timeline older]', get(this._oldest));
 
-		if (get(this.#oldest)) {
+		if (get(this._oldest)) {
 			return;
 		}
 
-		this.#loading = true;
+		this._loading = true;
 		let count = 0;
 
-		const $eventsForView = get(this.#eventsForView);
+		const $eventsForView = get(this.eventsForView);
 
 		if ($eventsForView.length > 0) {
-			const index = this.#eventsStore.findIndex(
+			const index = this.eventsStore.findIndex(
 				(event) => event.id === $eventsForView[$eventsForView.length - 1].id
 			);
-			const events = this.#eventsStore.slice(index + 1, index + 1 + minTimelineLength);
-			this.#eventsForView.set([...$eventsForView, ...events]);
+			const events = this.eventsStore.slice(index + 1, index + 1 + minTimelineLength);
+			this.eventsForView.set([...$eventsForView, ...events]);
 			count += events.length;
 			console.debug('[public timeline older from store]', count);
 		}
 
 		if (count >= minTimelineLength) {
-			this.#loading = false;
+			this._loading = false;
 			return;
 		}
 
-		const until = this.#eventsStore.at(-1)?.created_at ?? now();
+		const until = this.eventsStore.at(-1)?.created_at ?? now();
 
 		const req = createRxBackwardReq();
 		rxNostr
@@ -154,20 +112,20 @@ export class PublicTimeline implements NewTimeline {
 			)
 			.subscribe({
 				next: ({ event }) => {
-					this.#eventsStore.push(event);
-					const $eventsForView = get(this.#eventsForView);
-					this.#eventsForView.set([...$eventsForView, event]);
+					this.eventsStore.push(event);
+					const $eventsForView = get(this.eventsForView);
+					this.eventsForView.set([...$eventsForView, event]);
 					count++;
-					if (get(this.#latestId) === undefined) {
-						this.#latestId.set(event.id);
+					if (get(this.latestId) === undefined) {
+						this.latestId.set(event.id);
 					}
 				},
 				complete: async () => {
 					console.debug('[public timeline older complete]', count);
 					if (count < minTimelineLength) {
-						const events = await this.#fetchEnough(minTimelineLength - count);
-						this.#eventsStore.push(...events);
-						this.#eventsForView.set([...get(this.#eventsForView), ...events]);
+						const events = await this.fetchEnough(minTimelineLength - count);
+						this.eventsStore.push(...events);
+						this.eventsForView.set([...get(this.eventsForView), ...events]);
 						count += events.length;
 						console.debug(
 							'[public timeline fetch enough complete]',
@@ -175,33 +133,24 @@ export class PublicTimeline implements NewTimeline {
 							count
 						);
 					}
-					this.#loading = false;
+					this._loading = false;
 					if (count === 0) {
-						this.#oldest.set(true);
+						this._oldest.set(true);
 					}
 				},
 				error: (error) => {
 					console.error('[public timeline load older error]', error);
-					this.#loading = false;
+					this._loading = false;
 				}
 			});
 		req.emit([{ kinds: [1], until, since: until - 5 * 60 }]);
 		req.over();
 	}
 
-	public reduce(): void {
-		const $eventsForView = get(this.#eventsForView);
-		this.#eventsForView.set($eventsForView.slice(-minTimelineLength));
-	}
-
-	public scrollToTop(): void {
-		this.#eventsForView.set(this.#eventsStore.slice(0, minTimelineLength));
-	}
-
-	async #fetchEnough(limit: number): Promise<Event[]> {
+	protected async fetchEnough(limit: number): Promise<Event[]> {
 		console.debug('[public timeline fetch enough]', limit);
 		const { promise, resolve } = Promise.withResolvers<Event[]>();
-		const until = this.#eventsStore.at(-1)?.created_at ?? now();
+		const until = this.eventsStore.at(-1)?.created_at ?? now();
 		const req = createRxBackwardReq();
 		const events: Event[] = [];
 		rxNostr
@@ -233,7 +182,7 @@ export class PublicTimeline implements NewTimeline {
 	}
 
 	#fine(event: Event): boolean {
-		if (this.#eventsStore.some((e) => e.id === event.id)) {
+		if (this.eventsStore.some((e) => e.id === event.id)) {
 			return false;
 		}
 
@@ -261,9 +210,5 @@ export class PublicTimeline implements NewTimeline {
 		}
 
 		return true;
-	}
-
-	[Symbol.dispose]() {
-		this.unsubscribe();
 	}
 }

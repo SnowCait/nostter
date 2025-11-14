@@ -14,7 +14,7 @@ import type { Event } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
 import { kinds as Kind } from 'nostr-tools';
-import { derived, get, writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { bookmarkEvent } from '$lib/author/Bookmark';
 import {
 	authorActionReqEmit,
@@ -55,10 +55,9 @@ import {
 } from '../stores/Author';
 import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { saveLastNote } from '../stores/LastNotes';
-import { autoRefresh } from '../stores/Preference';
 import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';
 import { storeDeletedEvents } from '$lib/author/Delete';
-import type { NewTimeline } from './Timeline';
+import { NewTimeline } from './Timeline';
 import { excludeKinds } from '$lib/TimelineFilter';
 import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 import { fetchMinutes } from '$lib/Helper';
@@ -67,43 +66,15 @@ export const activeAt = writable(now());
 
 const maxTimelineLength = minTimelineLength * 2;
 
-export class HomeTimeline implements NewTimeline {
-	readonly #eventsStore: Event[] = [];
-	readonly #eventsForView = writable<Event[]>([]);
-	#latestId = writable<string | undefined>();
-	#oldest = writable(false);
-	public readonly events = derived(this.#eventsForView, ($) => $);
-	public readonly latest = derived(
-		[this.#latestId, this.#eventsForView],
-		([$id, $events]) => $id === $events.at(0)?.id
-	);
-	public readonly oldest = derived(this.#oldest, ($) => $);
-
+export class HomeTimeline extends NewTimeline {
 	public filter = (event: Event) =>
 		!get(excludeKinds).includes(event.kind) &&
 		(!get(preferencesStore).muteAutomatically || get(followeesOfFollowees).has(event.pubkey));
 
 	constructor() {
+		super();
+
 		console.debug('[home timeline initialize]');
-		this.#autoUpdate = get(autoRefresh);
-	}
-
-	//#region autoUpdate
-
-	#autoUpdate: boolean;
-
-	get autoUpdate(): boolean {
-		return this.#autoUpdate;
-	}
-
-	//#endregion
-
-	//#region loading
-
-	#loading = false;
-
-	get loading(): boolean {
-		return this.#loading;
 	}
 
 	//#endregion
@@ -248,17 +219,17 @@ export class HomeTimeline implements NewTimeline {
 					not: true
 				}
 			),
-			filter(({ event }) => !this.#eventsStore.some((e) => e.id === event.id)),
+			filter(({ event }) => !this.eventsStore.some((e) => e.id === event.id)),
 			tap(({ event }) => referencesReqEmit(event)),
 			share()
 		);
 		timeline$.subscribe(({ event }) => {
-			const lastId = this.#eventsStore.at(0)?.id;
-			this.#eventsStore.unshift(event);
-			this.#latestId.set(event.id);
-			if (this.#autoUpdate && this.#isTop && get(this.#eventsForView).at(0)?.id === lastId) {
-				this.#eventsForView.set(
-					[event, ...get(this.#eventsForView)].slice(0, maxTimelineLength)
+			const lastId = this.eventsStore.at(0)?.id;
+			this.eventsStore.unshift(event);
+			this.latestId.set(event.id);
+			if (this.autoUpdate && this.#isTop && get(this.eventsForView).at(0)?.id === lastId) {
+				this.eventsForView.set(
+					[event, ...get(this.eventsForView)].slice(0, maxTimelineLength)
 				);
 			}
 		});
@@ -330,7 +301,7 @@ export class HomeTimeline implements NewTimeline {
 		const $followees = get(followees);
 		const $followingHashtags = get(followingHashtags);
 
-		const until = this.#eventsStore.at(-1)?.created_at ?? now();
+		const until = this.eventsStore.at(-1)?.created_at ?? now();
 		const since = until - fetchMinutes($followees.length) * 60;
 
 		const followeesFilters = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
@@ -391,48 +362,27 @@ export class HomeTimeline implements NewTimeline {
 
 	//#endregion
 
-	newer(): void {
-		if (get(this.latest)) {
-			return;
-		}
-
-		const $eventsForView = get(this.#eventsForView);
-		if ($eventsForView.length === 0) {
-			return;
-		}
-
-		const latestEvent = $eventsForView[0];
-		const index = this.#eventsStore.findIndex((event) => event.id === latestEvent.id);
-		if (index > minTimelineLength) {
-			const events = this.#eventsStore.slice(index - minTimelineLength, index);
-			this.#eventsForView.set([...events, ...$eventsForView].slice(0, maxTimelineLength));
-		} else {
-			const events = this.#eventsStore.slice(0, index);
-			this.#eventsForView.set([...events, ...$eventsForView].slice(0, maxTimelineLength));
-		}
-	}
-
 	older(): void {
-		if (get(this.#oldest)) {
+		if (get(this._oldest)) {
 			return;
 		}
 
-		this.#loading = true;
+		this._loading = true;
 		let count = 0;
 
-		const $eventsForView = get(this.#eventsForView);
+		const $eventsForView = get(this.eventsForView);
 
 		if ($eventsForView.length > 0) {
-			const index = this.#eventsStore.findIndex(
+			const index = this.eventsStore.findIndex(
 				(event) => event.id === $eventsForView[$eventsForView.length - 1].id
 			);
-			const events = this.#eventsStore.slice(index + 1, index + 1 + minTimelineLength);
-			this.#eventsForView.set([...$eventsForView, ...events]);
+			const events = this.eventsStore.slice(index + 1, index + 1 + minTimelineLength);
+			this.eventsForView.set([...$eventsForView, ...events]);
 			count += events.length;
 		}
 
 		if (count >= minTimelineLength) {
-			this.#loading = false;
+			this._loading = false;
 			return;
 		}
 
@@ -443,7 +393,7 @@ export class HomeTimeline implements NewTimeline {
 			.pipe(
 				tie,
 				uniq(),
-				filter(({ event }) => !this.#eventsStore.some((e) => e.id === event.id)),
+				filter(({ event }) => !this.eventsStore.some((e) => e.id === event.id)),
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
@@ -455,12 +405,12 @@ export class HomeTimeline implements NewTimeline {
 			)
 			.subscribe({
 				next: ({ event }) => {
-					this.#eventsStore.push(event);
-					const $eventsForView = get(this.#eventsForView);
-					this.#eventsForView.set([...$eventsForView, event]);
+					this.eventsStore.push(event);
+					const $eventsForView = get(this.eventsForView);
+					this.eventsForView.set([...$eventsForView, event]);
 					count++;
-					if (get(this.#latestId) === undefined) {
-						this.#latestId.set(event.id);
+					if (get(this.latestId) === undefined) {
+						this.latestId.set(event.id);
 					}
 				},
 				complete: async () => {
@@ -468,8 +418,8 @@ export class HomeTimeline implements NewTimeline {
 					userStatusReqEmit([...pubkeys]);
 					if (count < minTimelineLength) {
 						const events = await this.#fetchEnough(minTimelineLength - count);
-						this.#eventsStore.push(...events);
-						this.#eventsForView.set([...get(this.#eventsForView), ...events]);
+						this.eventsStore.push(...events);
+						this.eventsForView.set([...get(this.eventsForView), ...events]);
 						count += events.length;
 						console.debug(
 							'[home timeline fetch enough complete]',
@@ -477,14 +427,14 @@ export class HomeTimeline implements NewTimeline {
 							count
 						);
 					}
-					this.#loading = false;
+					this._loading = false;
 					if (count === 0) {
-						this.#oldest.set(true);
+						this._oldest.set(true);
 					}
 				},
 				error: (error) => {
 					console.error('[home timeline load older error]', error);
-					this.#loading = false;
+					this._loading = false;
 				}
 			});
 		const filters = this.#createBackwardFilters();
@@ -517,7 +467,7 @@ export class HomeTimeline implements NewTimeline {
 					const filteredEvents = events
 						.toSorted(reverseChronological)
 						.slice(0, limit * 2)
-						.filter((event) => !this.#eventsStore.some((e) => e.id === event.id))
+						.filter((event) => !this.eventsStore.some((e) => e.id === event.id))
 						.slice(0, limit);
 					const pubkeys = new Set<string>(filteredEvents.map((e) => e.pubkey));
 					userStatusReqEmit([...pubkeys]);
@@ -530,19 +480,6 @@ export class HomeTimeline implements NewTimeline {
 		req.emit(filters);
 		req.over();
 		return promise;
-	}
-
-	reduce(): void {
-		const $eventsForView = get(this.#eventsForView);
-		this.#eventsForView.set($eventsForView.slice(-minTimelineLength));
-	}
-
-	scrollToTop(): void {
-		this.#eventsForView.set(this.#eventsStore.slice(0, minTimelineLength));
-	}
-
-	[Symbol.dispose](): void {
-		this.unsubscribe();
 	}
 }
 
