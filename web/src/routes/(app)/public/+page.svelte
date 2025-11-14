@@ -4,7 +4,6 @@
 	import { PublicTimeline, publicTimelines } from '$lib/timelines/PublicTimeline';
 	import { onMount } from 'svelte';
 	import Timeline from '$lib/components/Timeline.svelte';
-	import { autoRefresh } from '$lib/stores/Preference';
 
 	let timeline: PublicTimeline | undefined;
 
@@ -14,8 +13,7 @@
 			timeline = publicTimelines[0];
 		} else {
 			timeline = new PublicTimeline(
-				$locale?.startsWith('ja') ? localizedRelays.ja.map(({ url }) => url) : publicRelays,
-				$autoRefresh
+				$locale?.startsWith('ja') ? localizedRelays.ja.map(({ url }) => url) : publicRelays
 			);
 			timeline.subscribe();
 			timeline.older();
