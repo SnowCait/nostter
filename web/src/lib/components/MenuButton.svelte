@@ -188,6 +188,13 @@
 			alert($_('actions.unmute.failed'));
 		}
 	}
+
+	function onBroadcast(): void {
+		if (event.tags.some((tag) => tag[0] === '-') && !confirm($_('actions.broadcast.confirm'))) {
+			return;
+		}
+		broadcast(event);
+	}
 </script>
 
 <button class="clear" use:melt={$trigger}>
@@ -273,7 +280,7 @@
 			<div class="icon"><IconCodeDots size={iconSize} /></div>
 			<div>{$_('actions.details.button')}</div>
 		</div>
-		<div use:melt={$item} on:m-click={() => broadcast(event)} class="item">
+		<div use:melt={$item} on:m-click={onBroadcast} class="item">
 			<div class="icon"><IconBroadcast size={iconSize} /></div>
 			<div>{$_('actions.broadcast.button')}</div>
 		</div>
