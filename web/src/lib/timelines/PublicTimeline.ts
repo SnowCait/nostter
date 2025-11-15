@@ -112,9 +112,25 @@ export class PublicTimeline extends NewTimeline {
 			)
 			.subscribe({
 				next: ({ event }) => {
-					this.eventsStore.push(event);
+					const index = this.eventsStore.findIndex(
+						(e) => e.created_at < event.created_at
+					);
 					const $eventsForView = get(this.eventsForView);
-					this.eventsForView.set([...$eventsForView, event]);
+					if (index < 0) {
+						this.eventsStore.push(event);
+						this.eventsForView.set([...$eventsForView, event]);
+					} else {
+						this.eventsStore.splice(index, 0, event);
+						const indexForView = $eventsForView.findIndex(
+							(e) => e.created_at < event.created_at
+						);
+						if (indexForView < 0) {
+							console.warn('[public timeline logic error]');
+						} else {
+							$eventsForView.splice(indexForView, 0, event);
+							this.eventsForView.set($eventsForView);
+						}
+					}
 					count++;
 					if (get(this.latestId) === undefined) {
 						this.latestId.set(event.id);
