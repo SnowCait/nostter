@@ -222,7 +222,8 @@
 			"button": "Details"
 		},
 		"broadcast": {
-			"button": "Broadcast"
+			"button": "Broadcast",
+			"confirm": "This event is protected. Are you sure you want to broadcast it?"
 		},
 		"follow": {
 			"myself": "Follow myself",
