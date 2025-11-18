@@ -207,6 +207,9 @@
 		// Workaround for scroll position
 		if (!timeline.isLatest) {
 			setTimeout(() => {
+				if (scrollY > 0) {
+					return;
+				}
 				newer();
 			}, 1000);
 		}
