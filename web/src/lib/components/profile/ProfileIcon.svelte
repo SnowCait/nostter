@@ -12,13 +12,16 @@
 
 	const onError = (event: Event) => {
 		const img = event.target as HTMLImageElement;
-		img.src = robohash(pubkey);
+		const url = robohash(pubkey);
+		if (img.src !== url) {
+			img.src = url;
+		}
 	};
 </script>
 
 <img
 	src={metadata?.picture ?? robohash(pubkey)}
-	alt={name}
+	alt=""
 	title={tooltip ? name : ''}
 	style="width: {width}; height: {height};"
 	on:error={onError}
