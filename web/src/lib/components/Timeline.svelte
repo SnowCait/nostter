@@ -204,6 +204,13 @@
 			oldest = $oldest;
 		});
 
+		// Workaround for scroll position
+		if (!timeline.isLatest) {
+			setTimeout(() => {
+				newer();
+			}, 1000);
+		}
+
 		return () => {
 			unsubscribeEvents();
 			unsubscribeLatest();
