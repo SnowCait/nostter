@@ -24,6 +24,10 @@ export abstract class NewTimeline {
 		([$id, $events]) => $id === $events.at(0)?.id
 	);
 
+	public get isLatest(): boolean {
+		return get(this.latest);
+	}
+
 	protected _oldest = writable(false);
 	public readonly oldest = derived(this._oldest, ($) => $);
 
