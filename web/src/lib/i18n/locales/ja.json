@@ -347,7 +347,11 @@
 		"send": "Zap"
 	},
 	"timeline": {
-		"update": "新しい投稿を表示"
+		"update": "新しい投稿を表示",
+		"options": {
+			"title": "オプション",
+			"speech": "読み上げ"
+		}
 	},
 	"emoji": {
 		"custom": {
