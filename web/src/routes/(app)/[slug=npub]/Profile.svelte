@@ -23,6 +23,7 @@
 	import ProfileMenuButton from '$lib/components/ProfileMenuButton.svelte';
 	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
 	import ShareButton from '$lib/components/ShareButton.svelte';
+	import EmojifiedContent from '$lib/components/profile/EmojifiedContent.svelte';
 
 	export let slug: string;
 	export let pubkey: string;
@@ -105,9 +106,22 @@
 				{/if}
 			</div>
 		</div>
-		<h1>{metadata?.displayName ?? alternativeName(pubkey)}</h1>
+		<h1>
+			{#if metadata !== undefined}
+				<EmojifiedContent content={metadata.displayName} tags={metadata.event.tags} />
+			{:else}
+				{alternativeName(pubkey)}
+			{/if}
+		</h1>
 		<div class="user-name-wrapper">
-			<h2>@{metadata?.name ?? alternativeName(pubkey)}</h2>
+			<h2>
+				<span>@</span>
+				{#if metadata !== undefined}
+					<EmojifiedContent content={metadata.name} tags={metadata.event.tags} />
+				{:else}
+					<span>{alternativeName(pubkey)}</span>
+				{/if}
+			</h2>
 			{#if followees?.some((pubkey) => pubkey === $authorPubkey)}
 				<p>Follows you</p>
 			{/if}
@@ -223,6 +237,11 @@
 
 	h2 {
 		font-weight: 400;
+	}
+
+	h1,
+	h2 {
+		display: flex;
 	}
 
 	.user-name-wrapper {

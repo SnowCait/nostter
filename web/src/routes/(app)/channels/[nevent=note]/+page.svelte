@@ -32,8 +32,9 @@
 	import ChannelTitle from '$lib/components/ChannelTitle.svelte';
 	import MuteButton from '$lib/components/MuteButton.svelte';
 	import { oldestCreatedAt } from '$lib/timelines/TimelineHelper';
+	import OnelineProfile from '$lib/components/profile/OnelineProfile.svelte';
 
-	let slug = $page.params.nevent;
+	let slug = $page.params.nevent!;
 	let channelId: string;
 	// let author: string | undefined;
 	let relays: string[];
@@ -84,7 +85,7 @@
 	let items: EventItem[] = [];
 
 	afterNavigate(async () => {
-		slug = $page.params.nevent;
+		slug = $page.params.nevent!;
 		console.log('[channel page after navigate]', slug, channelId);
 		updateChannelMetadata();
 		rxNostr.setDefaultRelays([...$readRelays, ...relays]);
@@ -246,7 +247,7 @@
 			{#if metadata !== undefined}
 				<div>
 					Created by <a href="/{nip19.npubEncode(metadata.event.pubkey)}">
-						{metadata.displayName} @{metadata.name}
+						<OnelineProfile pubkey={metadata.event.pubkey} />
 					</a>
 				</div>
 			{/if}

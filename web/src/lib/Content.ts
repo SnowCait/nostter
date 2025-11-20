@@ -97,27 +97,7 @@ export class Content {
 			)
 		);
 
-		const tokens: Token[] = [];
-		let index = 0;
-		for (const token of foundTokens.sort((x, y) => x.start - y.start)) {
-			if (token.start === undefined || token.start < index) {
-				continue;
-			}
-
-			if (token.start > index) {
-				tokens.push(new Token('text', content.slice(index, token.start), index));
-			}
-
-			tokens.push(token);
-
-			index = token.start + token.text.length;
-		}
-
-		if (index < content.length) {
-			tokens.push(new Token('text', content.slice(index, content.length), index));
-		}
-
-		return tokens;
+		return composeTokens(content, foundTokens);
 	}
 
 	static findNpubsAndNprofiles(content: string): string[] {
@@ -189,4 +169,57 @@ export class Content {
 			'nostr:$<bech32>'
 		);
 	}
+}
+
+function composeTokens(content: string, foundTokens: Token[]): Token[] {
+	const tokens: Token[] = [];
+	let index = 0;
+	for (const token of foundTokens.sort((x, y) => x.start - y.start)) {
+		if (token.start === undefined || token.start < index) {
+			continue;
+		}
+
+		if (token.start > index) {
+			tokens.push(new Token('text', content.slice(index, token.start), index));
+		}
+
+		tokens.push(token);
+
+		index = token.start + token.text.length;
+	}
+
+	if (index < content.length) {
+		tokens.push(new Token('text', content.slice(index, content.length), index));
+	}
+	return tokens;
+}
+
+export function emojify(content: string, tags: string[][]): Token[] {
+	const emojis = new Map(
+		tags
+			.filter(
+				([tagName, shortcode, url]) =>
+					tagName === 'emoji' &&
+					shortcode &&
+					/^\w+$/.test(shortcode) &&
+					url &&
+					url.startsWith('https://') &&
+					URL.canParse(url) &&
+					content.includes(`:${shortcode}:`)
+			)
+			.map(([, shortcode, url]) => [shortcode, url])
+	);
+
+	const foundTokens: Token[] = [];
+
+	if (emojis.size > 0) {
+		foundTokens.push(
+			...[...content.matchAll(new RegExp(`:(${[...emojis.keys()].join('|')}):`, 'g'))].map(
+				(match) =>
+					new Token('emoji', match[0], match.index, undefined, emojis.get(match[1]))
+			)
+		);
+	}
+
+	return composeTokens(content, foundTokens);
 }
