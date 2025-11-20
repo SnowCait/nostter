@@ -6,6 +6,7 @@
 	import Content from '$lib/components/Content.svelte';
 	import type { Metadata } from '$lib/Items';
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
+	import EmojifiedContent from '../profile/EmojifiedContent.svelte';
 
 	export let metadata: Metadata;
 
@@ -21,9 +22,12 @@
 	<div class="text">
 		<div class="row">
 			<div class="display_name">
-				{metadata.content?.display_name ?? metadata.content?.name}
+				<EmojifiedContent content={metadata.displayName} tags={metadata.event.tags} />
 			</div>
-			<div class="name">@{metadata.content?.name ?? metadata.content?.display_name}</div>
+			<div class="name">
+				<span>@</span>
+				<EmojifiedContent content={metadata.name} tags={metadata.event.tags} />
+			</div>
 			{#if !$rom}
 				<div class="follow">
 					<FollowButton pubkey={metadata.event.pubkey} />
@@ -70,6 +74,7 @@
 		text-overflow: ellipsis;
 		overflow: hidden;
 		white-space: nowrap;
+		display: flex;
 	}
 
 	.follow {

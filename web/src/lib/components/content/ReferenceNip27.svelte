@@ -8,7 +8,7 @@
 	import Nip94 from '../Nip94.svelte';
 	import Naddr from './Naddr.svelte';
 	import EventComponent from '../items/EventComponent.svelte';
-	import { EventItem, Metadata, alternativeName } from '$lib/Items';
+	import { EventItem, Metadata } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import NoteLink from '../items/NoteLink.svelte';
 	import DeletedContent from '../items/DeletedContent.svelte';
@@ -17,6 +17,7 @@
 	import { fetchLastEvent } from '$lib/RxNostrHelper';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { goto } from '$app/navigation';
+	import ProfileName from '../profile/ProfileName.svelte';
 
 	export let text: string;
 
@@ -118,7 +119,8 @@
 			relays: metadata ? getSeenOnRelays(metadata.event.id) : undefined
 		})}"
 	>
-		@{metadata !== undefined ? metadata.displayName : alternativeName(pubkey)}
+		<span>@</span>
+		<ProfileName {pubkey} displayNameOnly={true} />
 	</a>
 {:else if dataType === 'event' && eventId !== undefined}
 	{#if item !== undefined}
@@ -166,6 +168,10 @@
 {/if}
 
 <style>
+	a {
+		display: inline-flex;
+	}
+
 	a:has(blockquote) {
 		text-decoration: none;
 	}

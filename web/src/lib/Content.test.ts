@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Content, Token } from './Content';
+import { Content, emojify, Token } from './Content';
 
 describe('parse test', () => {
 	// Basic
@@ -214,5 +214,47 @@ describe('replaceNip19 test', () => {
 		expect(Content.replaceNip19('https://example.com/npub1aaaaaa')).toStrictEqual(
 			'https://example.com/npub1aaaaaa'
 		);
+	});
+});
+
+describe('emojify', () => {
+	it('text with unused tags', () => {
+		expect(
+			emojify('text', [
+				[
+					'emoji',
+					'pawprint',
+					'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+				]
+			])
+		).toStrictEqual([new Token('text', 'text', 0)]);
+	});
+	it('emoji', () => {
+		expect(
+			emojify('text1 :pawprint::pawprint: text2', [
+				[
+					'emoji',
+					'pawprint',
+					'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+				]
+			])
+		).toStrictEqual([
+			new Token('text', 'text1 ', 0),
+			new Token(
+				'emoji',
+				':pawprint:',
+				6,
+				undefined,
+				'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+			),
+			new Token(
+				'emoji',
+				':pawprint:',
+				16,
+				undefined,
+				'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+			),
+			new Token('text', ' text2', 26)
+		]);
 	});
 });

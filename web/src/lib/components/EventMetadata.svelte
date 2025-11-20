@@ -5,6 +5,7 @@
 	import UserStatus from './UserStatus.svelte';
 	import CreatedAt from './CreatedAt.svelte';
 	import ProfileIcon from './profile/ProfileIcon.svelte';
+	import EmojifiedContent from './profile/EmojifiedContent.svelte';
 
 	export let item: Item;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
@@ -25,11 +26,16 @@
 	<div class="note">
 		<div class="user">
 			<div class="display_name">
-				{metadata?.displayName ?? alternativeName(item.event.pubkey)}
+				{#if metadata !== undefined}
+					<EmojifiedContent content={metadata.displayName} tags={metadata.event.tags} />
+				{:else}
+					<span>{alternativeName(item.event.pubkey)}</span>
+				{/if}
 			</div>
 			{#if metadata !== undefined && metadata.displayName !== metadata.name}
 				<div class="name">
-					@{metadata.name ?? alternativeName(item.event.pubkey)}
+					<span>@</span>
+					<EmojifiedContent content={metadata.name} tags={metadata.event.tags} />
 				</div>
 			{/if}
 			<div class="created_at">
@@ -92,6 +98,7 @@
 		text-overflow: ellipsis;
 		overflow: hidden;
 		white-space: nowrap;
+		display: flex;
 	}
 
 	.created_at {
