@@ -8,6 +8,7 @@
 	import IconMusic from '@tabler/icons-svelte/icons/music';
 	import IconLink from '@tabler/icons-svelte/icons/link';
 	import IconPencil from '@tabler/icons-svelte/icons/pencil';
+	import EmojifiedContent from './EmojifiedContent.svelte';
 
 	export let pubkey: string;
 	export let showLink = false;
@@ -48,7 +49,9 @@
 	{#if generalEvent !== undefined && generalEvent.content !== ''}
 		<div class="general">
 			<span><IconUser size="14" /></span>
-			<span class="content">{generalEvent.content}</span>
+			<span class="content">
+				<EmojifiedContent content={generalEvent.content} tags={generalEvent.tags} />
+			</span>
 			{#if showLink}
 				{#if generalLink !== undefined}
 					<a href={generalLink.href} target="_blank" rel="noopener noreferrer">
@@ -70,7 +73,9 @@
 	{#if musicEvent !== undefined && musicEvent.content !== ''}
 		<div class="music">
 			<span><IconMusic size="14" /></span>
-			<span class="content">{musicEvent.content}</span>
+			<span class="content">
+				<EmojifiedContent content={musicEvent.content} tags={musicEvent.tags} />
+			</span>
 			{#if showLink && musicLink !== undefined}
 				<a href={musicLink.href} target="_blank" rel="noopener noreferrer">
 					<IconLink size="14" />

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { metadataStore } from '$lib/cache/Events';
 	import { alternativeName } from '$lib/Items';
-	import EmojifiedContent from './EmojifiedContent.svelte';
+	import EmojifiedContent from '../EmojifiedContent.svelte';
 
 	export let pubkey: string;
 	export let displayNameOnly: boolean = false;

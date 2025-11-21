@@ -6,7 +6,7 @@
 	import Content from '$lib/components/Content.svelte';
 	import type { Metadata } from '$lib/Items';
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
-	import EmojifiedContent from '../profile/EmojifiedContent.svelte';
+	import EmojifiedContent from '../EmojifiedContent.svelte';
 
 	export let metadata: Metadata;
 
