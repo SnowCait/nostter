@@ -12,7 +12,7 @@ import {
 import { filter, share, tap } from 'rxjs';
 import type { Event } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
-import { WebStorage } from '$lib/WebStorage';
+import { persistedStore, WebStorage } from '$lib/WebStorage';
 import { kinds as Kind } from 'nostr-tools';
 import { get, writable } from 'svelte/store';
 import { bookmarkEvent } from '$lib/author/Bookmark';
@@ -247,9 +247,14 @@ export class HomeTimeline extends NewTimeline {
 				const toast = new ToastNotification();
 				toast.notify(event);
 			});
-		timeline$
-			.pipe(filterByKind(Kind.ShortTextNote))
-			.subscribe(({ event }) => saveLastNote(event));
+		timeline$.pipe(filterByKind(Kind.ShortTextNote)).subscribe(({ event }) => {
+			saveLastNote(event);
+
+			if (get(options).speech) {
+				const utterance = new SpeechSynthesisUtterance(event.content);
+				window.speechSynthesis.speak(utterance);
+			}
+		});
 	}
 
 	#createForwardFilters(): LazyFilter[] {
@@ -500,3 +505,4 @@ export class HomeTimeline extends NewTimeline {
 }
 
 export const timeline = new HomeTimeline();
+export const options = persistedStore('preference:timeline:home:options', { speech: false });
