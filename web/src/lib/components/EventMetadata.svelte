@@ -5,7 +5,7 @@
 	import UserStatus from './UserStatus.svelte';
 	import CreatedAt from './CreatedAt.svelte';
 	import ProfileIcon from './profile/ProfileIcon.svelte';
-	import EmojifiedContent from './profile/EmojifiedContent.svelte';
+	import EmojifiedContent from './EmojifiedContent.svelte';
 
 	export let item: Item;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';

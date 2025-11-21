@@ -23,7 +23,7 @@
 	import ProfileMenuButton from '$lib/components/ProfileMenuButton.svelte';
 	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
 	import ShareButton from '$lib/components/ShareButton.svelte';
-	import EmojifiedContent from '$lib/components/profile/EmojifiedContent.svelte';
+	import EmojifiedContent from '$lib/components/EmojifiedContent.svelte';
 
 	export let slug: string;
 	export let pubkey: string;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { emojify } from '$lib/Content';
-	import CustomEmoji from '../content/CustomEmoji.svelte';
+	import CustomEmoji from './content/CustomEmoji.svelte';
 
 	export let content: string;
 	export let tags: string[][];

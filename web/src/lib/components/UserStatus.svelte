@@ -8,7 +8,7 @@
 	import IconMusic from '@tabler/icons-svelte/icons/music';
 	import IconLink from '@tabler/icons-svelte/icons/link';
 	import IconPencil from '@tabler/icons-svelte/icons/pencil';
-	import EmojifiedContent from './profile/EmojifiedContent.svelte';
+	import EmojifiedContent from './EmojifiedContent.svelte';
 
 	export let pubkey: string;
 	export let showLink = false;
