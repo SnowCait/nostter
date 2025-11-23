@@ -39,5 +39,9 @@ export function userStatusReqEmit(pubkeys: pubkey[]): void {
 	if (authors.length === 0) {
 		return;
 	}
+	for (const pubkey of authors) {
+		$userStatusesMap.set(pubkey, []);
+	}
+	userStatusesMap.set($userStatusesMap);
 	userStatusReq.emit({ kinds: [30315], authors });
 }

@@ -24,6 +24,7 @@
 	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
 	import ShareButton from '$lib/components/ShareButton.svelte';
 	import EmojifiedContent from '$lib/components/EmojifiedContent.svelte';
+	import { userStatusReqEmit } from '$lib/UserStatus';
 
 	export let slug: string;
 	export let pubkey: string;
@@ -69,6 +70,8 @@
 					console.error('[rx-nostr npub contacts error]', error);
 				}
 			});
+
+		userStatusReqEmit([pubkey]);
 	}
 </script>
 
