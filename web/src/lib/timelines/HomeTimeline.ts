@@ -248,7 +248,10 @@ export class HomeTimeline extends NewTimeline {
 				toast.notify(event);
 			});
 		timeline$
-			.pipe(filterByKind(Kind.ShortTextNote))
+			.pipe(
+				filterByKind(Kind.ShortTextNote),
+				tap(({ event }) => userStatusReqEmit([event.pubkey]))
+			)
 			.subscribe(({ event }) => saveLastNote(event));
 	}
 
