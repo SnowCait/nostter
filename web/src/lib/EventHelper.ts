@@ -136,8 +136,8 @@ export function referTags(event: Event): {
 			root = root ?? eTags[0];
 			reply = undefined;
 		} else if (eTags.length > 1) {
-			root = root ?? eTags[0];
-			reply = reply ?? eTags[eTags.length - 1];
+			root = root ?? eTags.filter(([, id]) => id !== reply?.at(1)).at(0);
+			reply = reply ?? eTags.filter(([, id]) => id !== root?.at(1)).at(-1);
 		}
 	}
 

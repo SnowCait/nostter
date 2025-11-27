@@ -76,6 +76,38 @@ describe('referTags', () => {
 		expect(root?.at(1)).toBe('root-id');
 		expect(reply?.at(1)).toBe('reply-id');
 	});
+	it('mixed with last root', () => {
+		const { root, reply } = referTags({
+			kind: 1,
+			pubkey: '',
+			content: '',
+			tags: [
+				['e', 'reply-id'],
+				['e', 'root-id', '', 'root']
+			],
+			created_at: 0,
+			id: '',
+			sig: ''
+		});
+		expect(root?.at(1)).toBe('root-id');
+		expect(reply?.at(1)).toBe('reply-id');
+	});
+	it('mixed with first reply', () => {
+		const { root, reply } = referTags({
+			kind: 1,
+			pubkey: '',
+			content: '',
+			tags: [
+				['e', 'reply-id', '', 'reply'],
+				['e', 'root-id']
+			],
+			created_at: 0,
+			id: '',
+			sig: ''
+		});
+		expect(root?.at(1)).toBe('root-id');
+		expect(reply?.at(1)).toBe('reply-id');
+	});
 	it('invalid reply', () => {
 		const { root, reply } = referTags({
 			kind: 1,
