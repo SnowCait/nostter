@@ -153,7 +153,7 @@
 	}
 
 	.content.shorten {
-		max-height: 30em;
+		max-height: 30rem;
 	}
 
 	.channel,
