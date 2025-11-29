@@ -21,7 +21,7 @@ import {
 	updateReactionedEvents,
 	updateRepostedEvents
 } from '$lib/author/Action';
-import { storeCustomEmojis } from '$lib/author/CustomEmojis';
+import { customEmojiListEvent, storeCustomEmojis } from '$lib/author/CustomEmojis';
 import { profileBadgesEvent } from '$lib/author/ProfileBadges';
 import { authorChannelsEventStore, storeMetadata } from '$lib/cache/Events';
 import { updateFolloweesStore } from '$lib/Contacts';
@@ -143,9 +143,10 @@ export class HomeTimeline extends NewTimeline {
 			updateFollowingHashtags();
 			this.subscribe();
 		});
-		replaceable$
-			.pipe(filterByKind(Kind.UserEmojiList))
-			.subscribe(({ event }) => storeCustomEmojis(event));
+		replaceable$.pipe(filterByKind(Kind.UserEmojiList)).subscribe(({ event }) => {
+			customEmojiListEvent.set(event);
+			storeCustomEmojis(event);
+		});
 		const addressable$ = author$.pipe(
 			filterByKinds(parameterizedReplaceableKinds),
 			latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`),
