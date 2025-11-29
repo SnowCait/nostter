@@ -14,7 +14,7 @@ import {
 } from './stores/Author';
 import { RelayList } from './author/RelayList';
 import { filterTags, findIdentifier, parseRelayJson } from './EventHelper';
-import { customEmojisEvent, storeCustomEmojis } from './author/CustomEmojis';
+import { customEmojiListEvent, storeCustomEmojis } from './author/CustomEmojis';
 import type { User } from '../routes/types';
 import { lastReadAt } from './author/Notifications';
 import { Mute } from './Mute';
@@ -107,10 +107,10 @@ export class Author {
 
 		this.storeRelays(replaceableEvents);
 
-		customEmojisEvent.set(replaceableEvents.get(10030));
-		const $customEmojisEvent = get(customEmojisEvent);
-		if ($customEmojisEvent !== undefined) {
-			storeCustomEmojis($customEmojisEvent);
+		customEmojiListEvent.set(replaceableEvents.get(Kind.UserEmojiList));
+		const $customEmojiListEvent = get(customEmojiListEvent);
+		if ($customEmojiListEvent !== undefined) {
+			storeCustomEmojis($customEmojiListEvent);
 		}
 
 		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001}:bookmark`));

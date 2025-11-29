@@ -337,5 +337,12 @@
 	},
 	"timeline": {
 		"update": "Show new posts"
+	},
+	"emoji": {
+		"custom": {
+			"add": "Add to my emoji list",
+			"remove": "Remove from my emoji list",
+			"failed": "Failed to update custom emoji."
+		}
 	}
 }
