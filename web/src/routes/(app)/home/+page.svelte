@@ -10,6 +10,9 @@
 	import { slide } from 'svelte/transition';
 	import TimelineFilter from '../preferences/TimelineFilter.svelte';
 	import Timeline from '$lib/components/Timeline.svelte';
+	import { developerMode } from '$lib/stores/Preference';
+	import ConnectionStates from '$lib/components/ConnectionStates.svelte';
+	import { getDefaultReadRelays } from '$lib/RxNostrHelper';
 
 	const {
 		elements: { root, content, trigger },
@@ -51,6 +54,13 @@
 							<a href="/replay/home">{$_('replay.title')}</a>
 						</li>
 					</ul>
+				</section>
+			{/if}
+
+			{#if $developerMode}
+				<section>
+					<h2>{$_('relay.connection.states')}</h2>
+					<ConnectionStates relays={getDefaultReadRelays()} />
 				</section>
 			{/if}
 		</div>

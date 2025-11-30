@@ -344,5 +344,10 @@
 			"remove": "Remove from my emoji list",
 			"failed": "Failed to update custom emoji."
 		}
+	},
+	"relay": {
+		"connection": {
+			"states": "Relay states"
+		}
 	}
 }

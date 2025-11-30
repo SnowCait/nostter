@@ -102,3 +102,9 @@ export async function sendEvent(kind: number, content: string, tags: string[][])
 	await promise;
 	return event;
 }
+
+export function getDefaultReadRelays(): string[] {
+	return Object.values(rxNostr.getDefaultRelays())
+		.filter(({ read }) => read)
+		.map(({ url }) => url);
+}
