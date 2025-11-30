@@ -1,4 +1,4 @@
-import { get } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import type { Event, EventParameters } from 'nostr-typedef';
 import {
 	Nip11Registry,
@@ -94,7 +94,12 @@ export function getSeenOnRelays(id: string): string[] | undefined {
 
 //#endregion
 
+//#region Connection States
+
+export const connectionStates = writable(new Map<string, ConnectionState>());
+
 rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
+	connectionStates.update((states) => states.set(from, state));
 	switch (state) {
 		case 'error':
 		case 'rejected':
@@ -143,6 +148,8 @@ export function reconnectIfConnectionsAreUnstable(): void {
 	console.log('[reload]', states);
 	location.reload();
 }
+
+//#endregion
 
 const observable = rxNostr.createAllMessageObservable();
 observable.pipe(filterByType('NOTICE')).subscribe((packet) => {
