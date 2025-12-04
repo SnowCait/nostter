@@ -1,27 +1,34 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { browser } from '$app/environment';
 	import { WebStorage } from '$lib/WebStorage';
 	import { imageOptimization } from '$lib/stores/Preference';
 	import { imageOptimizerServers } from '$lib/Constants';
-	import { NativeSelect } from '@svelteuidev/core';
+	import { onMount } from 'svelte';
 
-	if (browser) {
-		imageOptimization.subscribe((value) => {
+	onMount(() => {
+		const unsubscribe = imageOptimization.subscribe((value) => {
 			const storage = new WebStorage(localStorage);
 			storage.set('preference:image-optimization', value);
 		});
-	}
+
+		return () => {
+			unsubscribe();
+		};
+	});
 </script>
 
-<div>{$_('preferences.image_optimization')}</div>
-<NativeSelect
-	data={[
-		{ label: $_('preferences.image_optimization_none'), value: '' },
-		...imageOptimizerServers.map((server) => ({
-			label: server,
-			value: server
-		}))
-	]}
-	bind:value={$imageOptimization}
-/>
+<label for="image-optimization-server">{$_('preferences.image_optimization')}</label>
+<select id="image-optimization-server" bind:value={$imageOptimization}>
+	<option value="">{$_('preferences.image_optimization_none')}</option>
+	{#each imageOptimizerServers as server}
+		<option value={server}>{server}</option>
+	{/each}
+</select>
+
+<style>
+	select {
+		width: 100%;
+		padding: 0.3rem;
+		border: var(--default-border);
+	}
+</style>
