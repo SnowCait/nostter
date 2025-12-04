@@ -20,6 +20,7 @@
 	import { excludeKinds } from '$lib/TimelineFilter';
 	import { preferencesStore } from '$lib/Preferences';
 	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
+	import { MouseButton } from '$lib/DomHelper';
 
 	export let timeline: NewTimeline;
 	export let readonly = false;
@@ -132,6 +133,10 @@
 	};
 
 	const viewDetail = async (clickEvent: MouseEvent, nostrEvent: Event) => {
+		if (clickEvent.button !== MouseButton.Left) {
+			return;
+		}
+
 		let target: HTMLElement | null = clickEvent.target as HTMLElement;
 		if (target.closest('.svelteui-Menu-root') || target.closest('a') || emojiPickerOpen) {
 			return;

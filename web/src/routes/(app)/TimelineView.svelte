@@ -13,6 +13,7 @@
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import { MouseButton } from '$lib/DomHelper';
 
 	export let items: Item[] = [];
 	export let readonly = false;
@@ -57,6 +58,10 @@
 	};
 
 	const viewDetail = async (clickEvent: MouseEvent, nostrEvent: Event) => {
+		if (clickEvent.button !== MouseButton.Left) {
+			return;
+		}
+
 		let target: HTMLElement | null = clickEvent.target as HTMLElement;
 		if (target.closest('.svelteui-Menu-root') || target.closest('a') || emojiPickerOpen) {
 			return;
