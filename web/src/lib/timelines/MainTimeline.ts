@@ -266,6 +266,9 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 			.map(([, , relayUrl]) => relayUrl)
 			.filter(
 				(relayUrl) =>
+					typeof relayUrl === 'string' &&
+					relayUrl.startsWith('wss://') &&
+					URL.canParse(relayUrl) &&
 					!Object.entries(rxNostr.getDefaultRelays()).some(([url]) => url === relayUrl)
 			);
 		if (relays.length > 0) {
