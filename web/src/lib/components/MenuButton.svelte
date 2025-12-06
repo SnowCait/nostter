@@ -93,7 +93,7 @@
 			// Workaround for Svelte compiler with script tags
 			// eslint-disable-next-line no-useless-escape
 			'<script type="module" src="https://cdn.jsdelivr.net/npm/nostr-widgets/dist/nostr-widgets.js"><\/script>',
-			`<nostr-note data='${JSON.stringify(event)}'></nostr-note>`
+			`<nostr-note data='${JSON.stringify(event).replaceAll("'", '&#39;')}'></nostr-note>`
 		].join('');
 		copy(html);
 		addToast({
