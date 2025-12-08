@@ -126,7 +126,7 @@
 				{/if}
 			</h2>
 			{#if followees?.some((pubkey) => pubkey === $authorPubkey)}
-				<p>Follows you</p>
+				<p class="label">Follows you</p>
 			{/if}
 			{#if pubkey !== undefined}
 				<Nip21QrcodeButton identifier={nip19.npubEncode(pubkey)} />
@@ -251,16 +251,6 @@
 		display: flex;
 		gap: 0.5rem;
 		align-items: center;
-	}
-
-	.user-name-wrapper p {
-		padding: 0.3rem;
-		background-color: var(--accent-surface);
-		font-size: 0.75rem;
-		font-weight: 600;
-		color: var(--accent);
-		border-radius: 0.25rem;
-		line-height: 1;
 	}
 
 	.actions .buttons {

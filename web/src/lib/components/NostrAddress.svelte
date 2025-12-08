@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Badge } from '@svelteuidev/core';
 	import { _ } from 'svelte-i18n';
 	import { nip05 } from 'nostr-tools';
 	import type { Metadata } from '$lib/Items';
@@ -17,12 +16,12 @@
 		{#await nip05.queryProfile(normalizedNip05) then pointer}
 			{#if pointer === null}
 				<IconAlertTriangle color="orange" />
-				<Badge color="gray">{$_('profile.nip05.unknown')}</Badge>
+				<span class="label">{$_('profile.nip05.unknown')}</span>
 			{:else if pointer.pubkey === metadata.event.pubkey}
 				<IconRosetteDiscountCheck color="skyblue" />
 			{:else}
 				<IconAlertTriangle color="red" />
-				<Badge color="gray">{$_('profile.nip05.impersonation')}</Badge>
+				<span class="label">{$_('profile.nip05.impersonation')}</span>
 			{/if}
 		{/await}
 	</div>
