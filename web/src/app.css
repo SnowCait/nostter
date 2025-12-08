@@ -534,3 +534,13 @@ code {
 .clickable:hover {
 	background-color: var(--accent-surface);
 }
+
+.label {
+	padding: 0.3rem;
+	background-color: var(--accent-surface);
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--accent);
+	border-radius: 0.25rem;
+	line-height: 1;
+}
