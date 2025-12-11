@@ -544,3 +544,36 @@ code {
 	border-radius: 0.25rem;
 	line-height: 1;
 }
+
+.tabs {
+	display: flex;
+	margin-bottom: 1rem;
+	flex-wrap: nowrap;
+}
+
+.tabs .trigger {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	user-select: none;
+
+	border-radius: 0;
+	background-color: var(--background);
+
+	flex: 1;
+	position: relative;
+	border-bottom: var(--default-border);
+	padding: 0.6rem;
+}
+
+.tabs .trigger .active {
+	position: absolute;
+	bottom: -1px;
+	left: 50%;
+	height: 2px;
+	width: 100%;
+	transform: translateX(-50%);
+	border-radius: calc(infinity * 1px);
+	background-color: rgb(28, 126, 214);
+}

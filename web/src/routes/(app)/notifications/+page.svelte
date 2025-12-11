@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Tabs } from '@svelteuidev/core';
 	import type { Filter } from 'nostr-typedef';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
@@ -20,6 +19,25 @@
 	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { Signer } from '$lib/Signer';
 	import { IconAsterisk, IconBell } from '@tabler/icons-svelte';
+	import { createTabs, melt } from '@melt-ui/svelte';
+	import { crossfade } from 'svelte/transition';
+	import { cubicInOut } from 'svelte/easing';
+
+	const {
+		elements: { root, list, content, trigger },
+		states: { value }
+	} = createTabs({ defaultValue: 'all' });
+
+	const triggers = [
+		{ id: 'all', icon: IconBell, color: 'var(--accent)' },
+		{ id: 'mentions', icon: IconAt, color: 'var(--red)' },
+		{ id: 'reposts', icon: IconRepeat, color: 'var(--green)' },
+		{ id: 'reactions', icon: IconHeart, color: 'var(--pink)' },
+		{ id: 'zaps', icon: IconBolt, color: 'var(--orange)' },
+		{ id: 'others', icon: IconAsterisk, color: 'var(--accent)' }
+	];
+
+	const [send, receive] = crossfade({ duration: 250, easing: cubicInOut });
 
 	$: items = $notifiedEventItems.filter(
 		(item) =>
@@ -161,65 +179,53 @@
 
 <h1>{$_('layout.header.notifications')}</h1>
 
-<Tabs grow>
-	<Tabs.Tab>
-		<svelte:fragment slot="label">
-			<div><IconBell size={20} /></div>
-		</svelte:fragment>
+<div use:melt={$root}>
+	<div use:melt={$list} class="tabs">
+		{#each triggers as triggerItem}
+			<button use:melt={$trigger(triggerItem.id)} class="trigger">
+				<svelte:component this={triggerItem.icon} size={20} color={triggerItem.color} />
+				{#if $value == triggerItem.id}
+					<div
+						in:send={{ key: 'trigger' }}
+						out:receive={{ key: 'trigger' }}
+						class="active"
+					></div>
+				{/if}
+			</button>
+		{/each}
+	</div>
+	<div use:melt={$content('all')}>
 		<TimelineView {items} {load} />
-	</Tabs.Tab>
-	<Tabs.Tab>
-		<svelte:fragment slot="icon">
-			<IconAt color="var(--red)" size={20} />
-		</svelte:fragment>
+	</div>
+	<div use:melt={$content('mentions')}>
 		<TimelineView items={items.filter((item) => item.event.kind === 1)} showLoading={false} />
-	</Tabs.Tab>
-	<Tabs.Tab>
-		<svelte:fragment slot="icon">
-			<IconRepeat color="var(--green)" size={20} />
-		</svelte:fragment>
+	</div>
+	<div use:melt={$content('reposts')}>
 		<TimelineView
 			items={items.filter((item) => [6, 16].includes(item.event.kind))}
 			showLoading={false}
 		/>
-	</Tabs.Tab>
-	<Tabs.Tab>
-		<svelte:fragment slot="icon">
-			<IconHeart color="var(--pink)" size={20} />
-		</svelte:fragment>
+	</div>
+	<div use:melt={$content('reactions')}>
 		<TimelineView items={items.filter((item) => item.event.kind === 7)} showLoading={false} />
-	</Tabs.Tab>
-	<Tabs.Tab>
-		<svelte:fragment slot="icon">
-			<IconBolt color="var(--orange)" size={20} />
-		</svelte:fragment>
+	</div>
+	<div use:melt={$content('zaps')}>
 		<TimelineView
 			items={items.filter((item) => item.event.kind === 9735)}
 			showLoading={false}
 		/>
-	</Tabs.Tab>
-	<Tabs.Tab>
-		<svelte:fragment slot="label">
-			<div><IconAsterisk size={20} /></div>
-		</svelte:fragment>
+	</div>
+	<div use:melt={$content('others')}>
 		<TimelineView
 			items={items.filter((item) => ![1, 6, 16, 7, 9735].includes(item.event.kind))}
 			showLoading={false}
 		/>
-	</Tabs.Tab>
-</Tabs>
+	</div>
+</div>
 
 <style>
 	h1 {
 		display: flex;
 		justify-content: space-between;
-	}
-
-	div {
-		color: var(--accent);
-	}
-
-	:global(button.svelteui-Tab) {
-		border-radius: 0;
 	}
 </style>
