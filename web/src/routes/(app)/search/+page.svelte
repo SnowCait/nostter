@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Tabs } from '@svelteuidev/core';
 	import type { Filter } from 'nostr-tools';
 	import type { Unsubscriber } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
@@ -16,6 +15,22 @@
 	import UnfollowHashtagButton from '$lib/components/UnfollowHashtagButton.svelte';
 	import { unique } from '$lib/Array';
 	import { SearchTimeline } from '$lib/timelines/SearchTimeline';
+	import { createTabs, melt } from '@melt-ui/svelte';
+	import { crossfade } from 'svelte/transition';
+	import { cubicInOut } from 'svelte/easing';
+	import { onMount } from 'svelte';
+
+	const {
+		elements: { root, list, content, trigger },
+		states: { value }
+	} = createTabs({ defaultValue: 'notes' });
+
+	const triggers = [
+		{ id: 'notes', label: $_('search.notes') },
+		{ id: 'users', label: $_('search.users') }
+	];
+
+	const [send, receive] = crossfade({ duration: 250, easing: cubicInOut });
 
 	let query = '';
 	let mine = false;
@@ -34,6 +49,17 @@
 	let tabKey = 'notes';
 
 	const search = new Search();
+
+	onMount(() => {
+		const unsubscribe = value.subscribe((v) => {
+			tabKey = v;
+			tabChanged(v);
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	});
 
 	afterNavigate(async () => {
 		const params = $page.url.searchParams;
@@ -164,10 +190,7 @@
 		showUsersLoading = false;
 	}
 
-	async function tabChanged(event: CustomEvent): Promise<void> {
-		const { key } = event.detail as { key: string };
-		tabKey = key;
-
+	async function tabChanged(key: string): Promise<void> {
 		switch (key) {
 			case 'notes': {
 				console.debug('[search notes]', filter);
@@ -234,30 +257,30 @@
 		<Trending />
 	</section>
 {:else}
-	<Tabs on:change={tabChanged}>
-		<Tabs.Tab tabKey="notes">
-			<svelte:fragment slot="label">
-				<div>{$_('search.notes')}</div>
-			</svelte:fragment>
-			<section>
-				<TimelineView {items} {load} {showLoading} />
-			</section>
-		</Tabs.Tab>
-		{#if filter.search}
-			<Tabs.Tab tabKey="users">
-				<svelte:fragment slot="label">
-					<div>{$_('search.users')}</div>
-				</svelte:fragment>
-				<section>
-					<TimelineView
-						items={metadataItems}
-						load={loadUsers}
-						showLoading={showUsersLoading}
-					/>
-				</section>
-			</Tabs.Tab>
-		{/if}
-	</Tabs>
+	<div use:melt={$root}>
+		<div use:melt={$list} class="tabs">
+			{#each triggers as triggerItem}
+				<button use:melt={$trigger(triggerItem.id)} class="trigger">
+					<div>{triggerItem.label}</div>
+					{#if $value == triggerItem.id}
+						<div
+							in:send={{ key: 'trigger' }}
+							out:receive={{ key: 'trigger' }}
+							class="active"
+						></div>
+					{/if}
+				</button>
+			{/each}
+		</div>
+	</div>
+	<section use:melt={$content('notes')}>
+		<TimelineView {items} {load} {showLoading} />
+	</section>
+	{#if filter.search}
+		<section use:melt={$content('users')}>
+			<TimelineView items={metadataItems} load={loadUsers} showLoading={showUsersLoading} />
+		</section>
+	{/if}
 {/if}
 
 <style>
