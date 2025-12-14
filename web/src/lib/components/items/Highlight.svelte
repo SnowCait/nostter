@@ -3,13 +3,13 @@
 	import { addressRegexp, hexRegexp } from '$lib/Constants';
 	import EventMetadata from '../EventMetadata.svelte';
 	import type { Item } from '$lib/Items';
-	import { Blockquote } from '@svelteuidev/core';
 	import ExternalLink from '../ExternalLink.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 	import { nip19 } from 'nostr-tools';
 	import { page } from '$app/stores';
 	import { metadataStore, replaceableEventsStore } from '$lib/cache/Events';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import { IconQuoteFilled } from '@tabler/icons-svelte';
 
 	export let item: Item;
 	export let createdAtFormat: 'auto' | 'time' = 'auto';
@@ -39,64 +39,71 @@
 		{/if}
 
 		{#if event.content}
-			<Blockquote override={{ color: 'var(--foreground)' }}>
-				{#if context}
-					<i>
-						<Content content={context} tags={event.tags} />
-					</i>
-				{/if}
-				<Content content={event.content} tags={event.tags} />
-				<svelte:fragment slot="cite">
-					{#if authorsOrEditors.length > 0}
-						<div>
-							{#each authorsOrEditors as pubkey}
-								{@const metadata = $metadataStore.get(pubkey)}
-								<span>
-									<a
-										href="/{nip19.nprofileEncode({
-											pubkey,
-											relays: metadata
-												? getSeenOnRelays(metadata.event.id)
-												: undefined
-										})}"
-									>
-										<OnelineProfile {pubkey} />
-									</a>
-								</span>
-							{/each}
-						</div>
-					{/if}
-					{#if sourceAddress}
-						{@const [kind, pubkey, identifier] = sourceAddress.split(':')}
-						{@const naddr = nip19.naddrEncode({
-							kind: Number(kind),
-							pubkey,
-							identifier,
-							relays: $replaceableEventsStore.has(sourceAddress)
-								? getSeenOnRelays(
-										$replaceableEventsStore.get(sourceAddress)?.id ?? ''
-									)
-								: undefined
-						})}
-						<span>
-							<ExternalLink link={new URL(`${$page.url.origin}/${naddr}`)} />
-						</span>
-					{:else if sourceId}
-						{@const nevent = nip19.neventEncode({
-							id: sourceId,
-							relays: getSeenOnRelays(sourceId)
-						})}
-						<span>
-							<ExternalLink link={new URL(`${$page.url.origin}/${nevent}`)} />
-						</span>
-					{/if}
-					{#if sourceUrl}
-						<span>
-							<ExternalLink link={new URL(sourceUrl)} />
-						</span>
-					{/if}
-				</svelte:fragment>
-			</Blockquote>
+			<blockquote>
+				<div>
+					<IconQuoteFilled size={30} />
+				</div>
+				<div>
+					<main>
+						{#if context}
+							<i>
+								<Content content={context} tags={event.tags} />
+							</i>
+						{/if}
+						<Content content={event.content} tags={event.tags} />
+					</main>
+					<footer>
+						{#if authorsOrEditors.length > 0}
+							<div>
+								{#each authorsOrEditors as pubkey}
+									{@const metadata = $metadataStore.get(pubkey)}
+									<span>
+										<a
+											href="/{nip19.nprofileEncode({
+												pubkey,
+												relays: metadata
+													? getSeenOnRelays(metadata.event.id)
+													: undefined
+											})}"
+										>
+											<OnelineProfile {pubkey} />
+										</a>
+									</span>
+								{/each}
+							</div>
+						{/if}
+						{#if sourceAddress}
+							{@const [kind, pubkey, identifier] = sourceAddress.split(':')}
+							{@const naddr = nip19.naddrEncode({
+								kind: Number(kind),
+								pubkey,
+								identifier,
+								relays: $replaceableEventsStore.has(sourceAddress)
+									? getSeenOnRelays(
+											$replaceableEventsStore.get(sourceAddress)?.id ?? ''
+										)
+									: undefined
+							})}
+							<div>
+								<ExternalLink link={new URL(`${$page.url.origin}/${naddr}`)} />
+							</div>
+						{:else if sourceId}
+							{@const nevent = nip19.neventEncode({
+								id: sourceId,
+								relays: getSeenOnRelays(sourceId)
+							})}
+							<div>
+								<ExternalLink link={new URL(`${$page.url.origin}/${nevent}`)} />
+							</div>
+						{/if}
+						{#if sourceUrl}
+							<div>
+								<ExternalLink link={new URL(sourceUrl)} />
+							</div>
+						{/if}
+					</footer>
+				</div>
+			</blockquote>
 		{/if}
 	</section>
 </EventMetadata>
@@ -109,15 +116,38 @@
 		margin: 0.2rem 0;
 	}
 
+	blockquote {
+		display: flex;
+		justify-content: flex-start;
+		gap: 1rem;
+		padding: 1rem;
+	}
+
+	blockquote > div:first-child {
+		color: var(--accent);
+	}
+
+	blockquote div:last-child {
+		min-width: 0;
+	}
+
+	main {
+		max-width: 100%;
+		overflow-wrap: break-word;
+		word-wrap: break-word;
+		min-width: 0;
+	}
+
+	footer {
+		margin: 1rem 0;
+	}
+
+	footer > div {
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
 	a {
 		text-decoration: none;
-	}
-
-	:global(.highlight blockquote:not(.canTransition-post .highlight blockquote)) {
-		cursor: initial;
-	}
-
-	:global(.highlight blockquote:hover:not(.canTransition-post .highlight blockquote)) {
-		background: initial;
 	}
 </style>
