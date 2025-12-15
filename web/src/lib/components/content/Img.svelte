@@ -39,22 +39,6 @@
 	{#if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith($imageOptimization)}
 		<Img class="global-content-image{blur ? ' blur' : ''}" src={imageSrc} alt={src} />
 	{:else}
-		<img bind:this={imgElement} class="global-content-image" {src} alt={src} />
-	{/if}
-	{#if blur}
-		<button>{$_('content.show')}</button>
-	{/if}
-</span>
-
-<style>
-	.img-wrapper :global(.global-content-image) {
-		max-width: calc(100% - 1.5em);
-		max-height: 20em;
-		margin: 0.5em;
-		border: 1px solid lightgray;
-		border-radius: 5px;
-		vertical-align: middle;
-	{:else}
 		<div class="global-content-image">
 			<img bind:this={imgElement} {src} alt={src} />
 		</div>
