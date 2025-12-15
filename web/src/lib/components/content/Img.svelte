@@ -35,14 +35,16 @@
 	});
 </script>
 
-<span class="img-wrapper" class:blur>
-	{#if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith($imageOptimization)}
-		<Img class="global-content-image{blur ? ' blur' : ''}" src={imageSrc} alt={src} />
-	{:else}
-		<div class="global-content-image">
-			<img bind:this={imgElement} {src} alt={src} />
-		</div>
-	{/if}
+<span class="img-wrapper">
+	<span class:blur>
+		{#if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith($imageOptimization)}
+			<Img class="global-content-image" src={imageSrc} alt={src} />
+		{:else}
+			<div class="global-content-image">
+				<img bind:this={imgElement} {src} alt={src} />
+			</div>
+		{/if}
+	</span>
 	{#if blur}
 		<button>{$_('content.show')}</button>
 	{/if}
@@ -60,8 +62,7 @@
 		vertical-align: middle;
 	}
 
-	.img-wrapper :global(.global-content-image.blur),
-	img.blur {
+	.blur {
 		filter: blur(8px);
 	}
 
