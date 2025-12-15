@@ -6,6 +6,7 @@
 	import { _ } from 'svelte-i18n';
 	import { Img, type ImgSrc } from 'svelte-remote-image';
 	import { onMount } from 'svelte';
+	import { WebStorage } from '$lib/WebStorage';
 
 	export let url: URL;
 
@@ -21,7 +22,9 @@
 	let imgElement: HTMLElement;
 
 	onMount(async () => {
-		if (/\.gif$/i.test(pathname) && imgElement) {
+		const isAutoPlayGif =
+			new WebStorage(localStorage).get('preference:autoplay-gif') !== 'false';
+		if (/\.gif$/i.test(pathname) && imgElement && !isAutoPlayGif) {
 			const FreezeFrame = (await import('freezeframe')).default;
 			new FreezeFrame(imgElement, {
 				trigger: 'hover',

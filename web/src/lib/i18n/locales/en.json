@@ -111,6 +111,7 @@
 		},
 		"auto_refresh": "Auto refresh",
 		"media_preview": "Media preview",
+		"autoplay_gif": "Auto-play GIF",
 		"image_optimization": "Image optimization",
 		"image_optimization_none": "None",
 		"media_uploader": {
