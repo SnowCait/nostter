@@ -29,7 +29,7 @@
 			new FreezeFrame(imgElement, {
 				trigger: 'hover',
 				overlay: true,
-				responsive: true
+				responsive: false
 			});
 		}
 	});
@@ -47,9 +47,7 @@
 </span>
 
 <style>
-	.img-wrapper :global(.global-content-image),
-	.img-wrapper :global(.ff-canvas),
-	.img-wrapper img {
+	.img-wrapper :global(.global-content-image) {
 		max-width: calc(100% - 1.5em);
 		max-height: 20em;
 		margin: 0.5em;
@@ -58,18 +56,13 @@
 		vertical-align: middle;
 	}
 
-	.img-wrapper.blur :global(.global-content-image.blur),
-	.img-wrapper.blur :global(.ff-canvas),
-	.img-wrapper.blur img {
+	.img-wrapper :global(.global-content-image.blur),
+	img.blur {
 		filter: blur(8px);
 	}
 
 	.img-wrapper {
 		position: relative;
-	}
-
-	.img-wrapper :global(.ff-container) {
-		display: inline-block;
 	}
 
 	button {
