@@ -54,6 +54,26 @@
 		border: 1px solid lightgray;
 		border-radius: 5px;
 		vertical-align: middle;
+	{:else}
+		<div class="global-content-image">
+			<img bind:this={imgElement} {src} alt={src} />
+		</div>
+	{/if}
+	{#if blur}
+		<button>{$_('content.show')}</button>
+	{/if}
+</span>
+
+<style>
+	.img-wrapper :global(.global-content-image) {
+		width: fit-content;
+		white-space: normal;
+		max-width: calc(100% - 1.5em);
+		max-height: 20em;
+		margin: 0.5em;
+		border: 1px solid lightgray;
+		border-radius: 5px;
+		vertical-align: middle;
 	}
 
 	.img-wrapper :global(.global-content-image.blur),
