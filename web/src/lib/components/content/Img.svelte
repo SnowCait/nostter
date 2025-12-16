@@ -54,12 +54,18 @@
 		width: fit-content;
 		white-space: normal;
 		max-width: calc(100% - 1.5em);
-		width: 100%;
 		max-height: 20em;
 		margin: 0.5em;
 		border: 1px solid lightgray;
 		border-radius: 5px;
 		vertical-align: middle;
+	}
+
+	.img-wrapper :global(.global-content-image img) {
+		max-width: 100%;
+		height: auto;
+		display: block;
+		border-radius: 5px;
 	}
 
 	.blur {
