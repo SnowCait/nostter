@@ -22,7 +22,8 @@
 	let imgElement: HTMLElement;
 
 	onMount(async () => {
-		const isAutoPlayGif = new WebStorage(localStorage).get('preference:autoplay-gif') !== 'false';
+		const isAutoPlayGif =
+			new WebStorage(localStorage).get('preference:autoplay-gif') !== 'false';
 		if (/\.gif$/i.test(pathname) && imgElement && !isAutoPlayGif) {
 			const FreezeFrame = (await import('freezeframe')).default;
 			new FreezeFrame(imgElement, {
