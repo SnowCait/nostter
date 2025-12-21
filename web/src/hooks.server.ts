@@ -1,6 +1,5 @@
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
-import { prepareStylesSSR } from '@svelteuidev/core';
 import { locale, waitLocale } from 'svelte-i18n';
 import { get } from 'svelte/store';
 
@@ -19,4 +18,4 @@ const lang: Handle = ({ event, resolve }) => {
 	});
 };
 
-export const handle: Handle = sequence(prepareStylesSSR, i18n, lang);
+export const handle: Handle = sequence(i18n, lang);
