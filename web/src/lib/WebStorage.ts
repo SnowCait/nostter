@@ -4,6 +4,7 @@ import { findIdentifier } from './EventHelper';
 import { pubkey } from './stores/Author';
 import { appName } from './Constants';
 import { persisted, type Persisted } from 'svelte-persisted-store';
+import { eventCache } from './cache/Events';
 
 export function persistedStore<StoreType>(
 	key: string,
@@ -52,6 +53,7 @@ export class WebStorage {
 		if (cache === undefined || cache.created_at < event.created_at) {
 			this.set(`kind:${event.kind}`, JSON.stringify(event));
 			this.setCachedAt();
+			eventCache.addIfNotExists(event); // Fire and forget
 		}
 	}
 
