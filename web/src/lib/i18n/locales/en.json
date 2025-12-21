@@ -141,6 +141,18 @@
 				"channels": "Channels",
 				"zaps": "Zaps"
 			}
+		},
+		"backup": {
+			"title": "Backup and Restore",
+			"none": "No backups",
+			"date": "Date",
+			"restore": "Restore",
+			"confirm": "Are you sure you want to restore this backup? Current data will be overwritten.",
+			"latest": "Latest",
+			"followees": {
+				"list": "Followees list",
+				"count": "Followees count"
+			}
 		}
 	},
 	"content": {

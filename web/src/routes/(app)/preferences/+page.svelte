@@ -27,6 +27,7 @@
 	import MuteAutomatically from './MuteAutomatically.svelte';
 	import Json from '$lib/components/Json.svelte';
 	import Language from './Language.svelte';
+	import Backup from './Backup.svelte';
 </script>
 
 <svelte:head>
@@ -93,6 +94,7 @@
 	<div><Notification /></div>
 	<div><UriScheme /></div>
 	<div><WalletConnect /></div>
+	<div><Backup /></div>
 	<div><DeveloperMode /></div>
 	{#if $developerMode}
 		<div><RelayStates /></div>
