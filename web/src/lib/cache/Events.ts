@@ -3,6 +3,7 @@ import type { Event } from 'nostr-typedef';
 import type { id, pubkey } from '$lib/Types';
 import { EventItem, Metadata } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
+import { db, EventCache } from './db';
 
 export const metadataStore = writable(new Map<pubkey, Metadata>());
 export const eventItemStore = writable(new Map<id, EventItem>());
@@ -39,3 +40,5 @@ export function storeEventItem(event: Event): void {
 		eventItemStore.set($eventItemStore);
 	}
 }
+
+export const eventCache = new EventCache(db);
