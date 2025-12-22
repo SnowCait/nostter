@@ -18,7 +18,7 @@
 
 	$: title = event?.tags.find(([t]) => t === 'title')?.at(1);
 	$: summary = event?.tags.find(([t]) => t === 'summary')?.at(1) ?? '';
-	$: link = new URL(`https://nostrapp.link/kind/${data.kind}`);
+	$: link = new URL(`https://nostr.com/${data.slug}`);
 
 	afterNavigate(async () => {
 		console.log('[naddr page]', data);
