@@ -2,7 +2,7 @@
 	import { now } from 'rx-nostr';
 	import { WebStorage } from '$lib/WebStorage';
 	import { activeAt, timeline as homeTimeline } from '$lib/timelines/HomeTimeline';
-	import { reconnectIfConnectionsAreUnstable } from '$lib/timelines/MainTimeline';
+	import { areConnectionsStable } from '$lib/timelines/MainTimeline';
 	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
@@ -75,6 +75,16 @@
 				break;
 			}
 		}
+	}
+
+	function reconnectIfConnectionsAreUnstable(): void {
+		if (areConnectionsStable()) {
+			return;
+		}
+
+		// TODO: Clear timeline and reconnect WebSocket without reload
+		console.debug('[reload]');
+		location.reload();
 	}
 
 	onMount(() => {

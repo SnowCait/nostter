@@ -33,6 +33,7 @@ import workerUrl from '$lib/Worker?worker&url';
 import { Signer } from '$lib/Signer';
 import { createTie } from '$lib/RxNostrTie';
 import { isReplaceableKind } from 'nostr-tools/kinds';
+import { getDefaultReadRelays } from '$lib/RxNostrHelper';
 
 Nip11Registry.setDefault({
 	limitation: {
@@ -123,30 +124,21 @@ rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 	}
 });
 
-const recconectableStates: ConnectionState[] = [
+const unstableStates: ConnectionState[] = [
 	'error',
 	'rejected',
 	'terminated',
 	'waiting-for-retrying',
-	'retrying',
-	'dormant'
+	'retrying'
 ];
 
-export function reconnectIfConnectionsAreUnstable(): void {
-	const states: [string, ConnectionState][] = Object.entries(rxNostr.getAllRelayStatus()).map(
-		([relay, status]) => [relay, status.connection]
-	);
-	console.log('[relay states]', states);
-	if (
-		states.filter(([, state]) => recconectableStates.includes(state)).length * 2 <
-		states.length
-	) {
-		return;
-	}
-
-	// TODO: Clear timeline and reconnect WebSocket without reload
-	console.log('[reload]', states);
-	location.reload();
+export function areConnectionsStable(): boolean {
+	const defaultReadRelays = getDefaultReadRelays();
+	const states: [string, ConnectionState][] = Object.entries(rxNostr.getAllRelayStatus())
+		.filter(([relay]) => defaultReadRelays.includes(relay))
+		.map(([relay, status]) => [relay, status.connection]);
+	console.debug('[relay states]', states);
+	return states.filter(([, state]) => unstableStates.includes(state)).length * 2 < states.length;
 }
 
 //#endregion
