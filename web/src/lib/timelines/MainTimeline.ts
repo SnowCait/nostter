@@ -124,7 +124,7 @@ rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 	}
 });
 
-const recconectableStates: ConnectionState[] = [
+const unstableStates: ConnectionState[] = [
 	'error',
 	'rejected',
 	'terminated',
@@ -132,22 +132,13 @@ const recconectableStates: ConnectionState[] = [
 	'retrying'
 ];
 
-export function reconnectIfConnectionsAreUnstable(): void {
+export function areConnectionsStable(): boolean {
 	const defaultReadRelays = getDefaultReadRelays();
 	const states: [string, ConnectionState][] = Object.entries(rxNostr.getAllRelayStatus())
 		.filter(([relay]) => defaultReadRelays.includes(relay))
 		.map(([relay, status]) => [relay, status.connection]);
 	console.debug('[relay states]', states);
-	if (
-		states.filter(([, state]) => recconectableStates.includes(state)).length * 2 <
-		states.length
-	) {
-		return;
-	}
-
-	// TODO: Clear timeline and reconnect WebSocket without reload
-	console.debug('[reload]', states);
-	location.reload();
+	return states.filter(([, state]) => unstableStates.includes(state)).length * 2 < states.length;
 }
 
 //#endregion
