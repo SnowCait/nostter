@@ -19,7 +19,7 @@
 
 <ul>
 	{#each $connectionStates as [relay, state]}
-		{#if relays === undefined || relays.includes(relay)}
+		{#if relays === undefined || relays.includes(new URL(relay).href)}
 			<li class={connectionStatesGroup[state]} title={state}>
 				{new URL(relay).href}
 			</li>
