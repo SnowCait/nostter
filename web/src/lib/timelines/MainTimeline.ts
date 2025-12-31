@@ -135,7 +135,7 @@ const unstableStates: ConnectionState[] = [
 export function areConnectionsStable(): boolean {
 	const defaultReadRelays = getDefaultReadRelays();
 	const states: [string, ConnectionState][] = Object.entries(rxNostr.getAllRelayStatus())
-		.filter(([relay]) => defaultReadRelays.includes(relay))
+		.filter(([relay]) => defaultReadRelays.includes(new URL(relay).href))
 		.map(([relay, status]) => [relay, status.connection]);
 	console.debug('[relay states]', states);
 	return states.filter(([, state]) => unstableStates.includes(state)).length * 2 < states.length;
