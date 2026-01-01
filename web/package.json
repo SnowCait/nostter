@@ -52,7 +52,7 @@
 		"@floating-ui/dom": "^1.6.8",
 		"@noble/hashes": "^1.7.1",
 		"@rust-nostr/nostr-sdk": "^0.44.0",
-		"@tabler/icons-svelte": "^3.14.0",
+		"@tabler/icons-svelte": "^3.36.0",
 		"@tabler/icons-webfont": "^3.14.0",
 		"async-lock": "^1.4.1",
 		"dexie": "^4.2.1",
