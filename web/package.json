@@ -58,6 +58,7 @@
 		"dexie": "^4.2.1",
 		"emoji-kitchen-mart": "^6.0.5",
 		"escape-string-regexp": "^5.0.0",
+		"freezeframe": "^5.0.2",
 		"light-bolt11-decoder": "^3.1.1",
 		"nip07-awaiter": "^1.0.0",
 		"nostr-tools": "^2.18.2",
