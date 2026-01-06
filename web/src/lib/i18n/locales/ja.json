@@ -360,5 +360,13 @@
 		"connection": {
 			"states": "リレーステータス"
 		}
+	},
+	"remote-signer-service": {
+		"title": "Work as Remote Signer",
+		"description": "この機能は PC で %s が開かれているときのみ動作します。",
+		"extension": "Nostr 拡張機能でログインしている場合は事前に操作を許可しておく必要があります。",
+		"enable": "有効化",
+		"disable": "無効化",
+		"copy": "Bunker URL をコピー"
 	}
 }

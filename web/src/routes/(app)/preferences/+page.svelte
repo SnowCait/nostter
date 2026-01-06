@@ -28,6 +28,7 @@
 	import Json from '$lib/components/Json.svelte';
 	import Language from './Language.svelte';
 	import Backup from './Backup.svelte';
+	import WorkAsRemoteSigner from './WorkAsRemoteSigner.svelte';
 </script>
 
 <svelte:head>
@@ -97,6 +98,7 @@
 	<div><Backup /></div>
 	<div><DeveloperMode /></div>
 	{#if $developerMode}
+		<div><WorkAsRemoteSigner /></div>
 		<div><RelayStates /></div>
 		<div><WebStorage /></div>
 		<h3>{$_('preferences.trouble_shooting')}</h3>
