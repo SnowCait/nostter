@@ -8,6 +8,7 @@ import { WebStorage } from './WebStorage';
 import { rxNostr } from './timelines/MainTimeline';
 import { now } from 'rx-nostr';
 import type { User } from '../routes/types';
+import { remoteSigner } from './RemoteSigner';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -121,5 +122,7 @@ export class Login {
 		console.timeEnd('fetch author');
 
 		author.set($author);
+
+		remoteSigner.subscribeIfEnabled();
 	}
 }

@@ -361,5 +361,13 @@
 		"connection": {
 			"states": "Relay states"
 		}
+	},
+	"remote-signer-service": {
+		"title": "Work as Remote Signer",
+		"description": "This feature only works while %s is open on your PC.",
+		"extension": "If you are logged in with Nostr extension, you need to grant permission for operations in advance.",
+		"enable": "Enable",
+		"disable": "Disable",
+		"copy": "Copy Bunker URL"
 	}
 }
