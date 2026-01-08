@@ -16,6 +16,7 @@
 	import Theme from './Theme.svelte';
 	import UriScheme from './UriScheme.svelte';
 	import EnablePreview from './EnablePreview.svelte';
+	import EnableAutoPlayGif from './EnableAutoPlayGif.svelte';
 	import DeveloperMode from './DeveloperMode.svelte';
 	import WebStorage from './WebStorage.svelte';
 	import RelayStates from './RelayStates.svelte';
@@ -91,6 +92,7 @@
 	<div><Language /></div>
 	<div><AutoRefresh /></div>
 	<div><EnablePreview /></div>
+	<div><EnableAutoPlayGif /></div>
 	<div><ImageOptimization /></div>
 	<div><Notification /></div>
 	<div><UriScheme /></div>
