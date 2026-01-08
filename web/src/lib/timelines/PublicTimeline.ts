@@ -227,4 +227,8 @@ export class PublicTimeline extends NewTimeline {
 
 		return true;
 	}
+
+	public retrieve(): void {
+		// Noop
+	}
 }

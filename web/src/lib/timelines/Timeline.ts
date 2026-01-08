@@ -91,6 +91,19 @@ export abstract class NewTimeline {
 		this.eventsForView.set(this.eventsStore.slice(0, minTimelineLength));
 	}
 
+	//#region Reactivated
+
+	public clear(): void {
+		this.eventsStore.splice(0);
+		this.eventsForView.set([]);
+		this.latestId.set(undefined);
+		this._oldest.set(false);
+	}
+
+	public abstract retrieve(until: number, since: number): void;
+
+	//#endregion
+
 	public [Symbol.dispose](): void {
 		this.unsubscribe();
 	}

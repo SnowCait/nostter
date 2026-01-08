@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { now } from 'rx-nostr';
 	import { WebStorage } from '$lib/WebStorage';
-	import { activeAt, timeline as homeTimeline } from '$lib/timelines/HomeTimeline';
-	import { areConnectionsStable } from '$lib/timelines/MainTimeline';
+	import { timeline as homeTimeline } from '$lib/timelines/HomeTimeline';
 	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
@@ -11,6 +10,8 @@
 	import { onMount } from 'svelte';
 	import Gdpr from '$lib/components/Gdpr.svelte';
 	import '$lib/styles/menu.css';
+	import { fetchMinutes } from '$lib/Helper';
+	import { followees } from '$lib/stores/Author';
 
 	const konamiCode = [
 		'ArrowUp',
@@ -25,6 +26,7 @@
 		'a'
 	];
 	let konamiIndex = 0;
+	let hiddenAt: number | undefined;
 
 	function keyboardShortcut(event: KeyboardEvent) {
 		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
@@ -64,27 +66,25 @@
 	}
 
 	function onVisibilityChange() {
-		console.log('[visibilitychange]', document.visibilityState);
+		console.debug('[visibilitychange]', new Date().toLocaleString(), document.visibilityState);
 		switch (document.visibilityState) {
 			case 'hidden': {
+				hiddenAt = now();
 				break;
 			}
 			case 'visible': {
-				activeAt.set(now());
-				setTimeout(() => reconnectIfConnectionsAreUnstable(), 1000);
+				if (hiddenAt !== undefined) {
+					const visibleAt = now();
+					if (visibleAt - hiddenAt > fetchMinutes($followees.length) * 60) {
+						homeTimeline.clear();
+						homeTimeline.older();
+					} else if (visibleAt > hiddenAt) {
+						homeTimeline.retrieve(visibleAt, hiddenAt);
+					}
+				}
 				break;
 			}
 		}
-	}
-
-	function reconnectIfConnectionsAreUnstable(): void {
-		if (areConnectionsStable()) {
-			return;
-		}
-
-		// TODO: Clear timeline and reconnect WebSocket without reload
-		console.debug('[reload]');
-		location.reload();
 	}
 
 	onMount(() => {

@@ -33,7 +33,6 @@ import workerUrl from '$lib/Worker?worker&url';
 import { Signer } from '$lib/Signer';
 import { createTie } from '$lib/RxNostrTie';
 import { isReplaceableKind } from 'nostr-tools/kinds';
-import { getDefaultReadRelays } from '$lib/RxNostrHelper';
 
 Nip11Registry.setDefault({
 	limitation: {
@@ -123,23 +122,6 @@ rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 		}
 	}
 });
-
-const unstableStates: ConnectionState[] = [
-	'error',
-	'rejected',
-	'terminated',
-	'waiting-for-retrying',
-	'retrying'
-];
-
-export function areConnectionsStable(): boolean {
-	const defaultReadRelays = getDefaultReadRelays();
-	const states: [string, ConnectionState][] = Object.entries(rxNostr.getAllRelayStatus())
-		.filter(([relay]) => defaultReadRelays.includes(new URL(relay).href))
-		.map(([relay, status]) => [relay, status.connection]);
-	console.debug('[relay states]', states);
-	return states.filter(([, state]) => unstableStates.includes(state)).length * 2 < states.length;
-}
 
 //#endregion
 

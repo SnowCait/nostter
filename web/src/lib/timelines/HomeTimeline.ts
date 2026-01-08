@@ -14,7 +14,7 @@ import type { Event } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
 import { kinds as Kind } from 'nostr-tools';
-import { get, writable } from 'svelte/store';
+import { get } from 'svelte/store';
 import { bookmarkEvent } from '$lib/author/Bookmark';
 import {
 	authorActionReqEmit,
@@ -61,8 +61,6 @@ import { NewTimeline } from './Timeline';
 import { excludeKinds } from '$lib/TimelineFilter';
 import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 import { fetchMinutes } from '$lib/Helper';
-
-export const activeAt = writable(now());
 
 const maxTimelineLength = minTimelineLength * 2;
 
@@ -500,6 +498,67 @@ export class HomeTimeline extends NewTimeline {
 		req.emit(filters);
 		req.over();
 		return promise;
+	}
+
+	public retrieve(until: number, since: number): void {
+		const pubkeys = new Set<string>();
+		const req = createRxBackwardReq();
+		rxNostr
+			.use(req)
+			.pipe(
+				tie,
+				uniq(),
+				filter(({ event }) => !this.eventsStore.some((e) => e.id === event.id)),
+				tap(({ event }) => {
+					referencesReqEmit(event);
+					authorActionReqEmit(event);
+					pubkeys.add(event.pubkey);
+					if (event.kind === Kind.ShortTextNote) {
+						saveLastNote(event);
+					}
+				})
+			)
+			.subscribe({
+				next: ({ event }) => {
+					const index = this.eventsStore.findIndex(
+						(e) => e.created_at < event.created_at
+					);
+					const $eventsForView = get(this.eventsForView);
+					if (index < 0) {
+						this.eventsStore.push(event);
+						this.eventsForView.set([...$eventsForView, event]);
+					} else {
+						this.eventsStore.splice(index, 0, event);
+						const indexForView = $eventsForView.findIndex(
+							(e) => e.created_at < event.created_at
+						);
+						if (indexForView < 0) {
+							console.warn('[home timeline logic error');
+						} else {
+							$eventsForView.splice(indexForView, 0, event);
+							this.eventsForView.set($eventsForView);
+						}
+					}
+					if (get(this.latestId) === undefined) {
+						this.latestId.set(event.id);
+					}
+				},
+				complete: async () => {
+					console.debug('[home timeline retrieve complete]');
+					userStatusReqEmit([...pubkeys]);
+				},
+				error: (error) => {
+					console.error('[home timeline load retrieve error]', error);
+				}
+			});
+		const filters = this.#createBackwardFilters();
+		for (const filter of filters) {
+			filter.until = until;
+			filter.since = since;
+		}
+		console.debug('[home timeline retrieve REQ]', filters);
+		req.emit(filters);
+		req.over();
 	}
 }
 
