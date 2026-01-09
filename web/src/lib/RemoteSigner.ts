@@ -51,6 +51,7 @@ class RemoteSigner {
 
 	public disable(): void {
 		this.#secret.reset();
+		this.#clientPubkey.reset();
 		this.#unsubscribe();
 	}
 
