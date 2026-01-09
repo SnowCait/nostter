@@ -12,12 +12,14 @@ import { verificationClient } from './timelines/MainTimeline';
 class RemoteSigner {
 	#relays: string[];
 	#secret: Persisted<string>;
+	#clientPubkey: Persisted<string>;
 	#rxNostr: RxNostr;
 	#subscription?: Subscription;
 
 	constructor(relays: string[] = []) {
 		this.#relays = relays.length > 0 ? relays : ['wss://ephemeral.snowflare.cc/'];
-		this.#secret = persistedStore<string>('remote-signer-secret', '');
+		this.#secret = persistedStore<string>('remote-signer:secret', '');
+		this.#clientPubkey = persistedStore<string>('remote-signer:client-pubkey', '');
 		this.#rxNostr = createRxNostr({ verifier: verificationClient.verifier });
 		this.#rxNostr.setDefaultRelays(this.#relays);
 	}
@@ -67,7 +69,6 @@ class RemoteSigner {
 	#subscribe(): void {
 		const req = createRxForwardReq();
 		this.#subscription = this.#rxNostr!.use(req).subscribe(async ({ event: requestEvent }) => {
-			console.debug('[remote signer request]', requestEvent);
 			const content = await Signer.decryptNip44(requestEvent.pubkey, requestEvent.content);
 			try {
 				const { id, method, params } = JSON.parse(content) as {
@@ -75,7 +76,7 @@ class RemoteSigner {
 					method: string;
 					params: string[];
 				};
-				const { result, error } = await this.#call(method, params);
+				const { result, error } = await this.#call(method, params, requestEvent.pubkey);
 				const responseEvent = await Signer.signEvent({
 					kind: NostrConnect,
 					content: await Signer.encryptNip44(
@@ -85,15 +86,10 @@ class RemoteSigner {
 					tags: [['p', requestEvent.pubkey]],
 					created_at: now()
 				});
-				console.debug('[remote signer response]', responseEvent, {
-					method,
-					params,
-					result,
-					error
-				});
+				console.debug('[remote signer response]', { method, params, result, error });
 				this.#rxNostr?.send(responseEvent);
 			} catch (error) {
-				console.error('[remote signer response]', error);
+				console.error('[remote signer error]', error);
 			}
 		});
 		req.emit([{ kinds: [NostrConnect], '#p': [get(pubkey)] }]);
@@ -107,10 +103,19 @@ class RemoteSigner {
 
 	//#region Methods
 
-	async #call(method: string, params: string[]): Promise<{ result: string; error?: string }> {
+	async #call(
+		method: string,
+		params: string[],
+		clientPubkey: string
+	): Promise<{ result: string; error?: string }> {
+		if (method !== 'connect' && clientPubkey !== get(this.#clientPubkey)) {
+			return { result: '', error: 'not connected' };
+		}
+
 		switch (method) {
 			case 'connect': {
 				if (params[0] === get(pubkey) && params[1] === get(this.#secret)) {
+					this.#clientPubkey.set(clientPubkey);
 					return { result: 'ack' };
 				} else {
 					return { result: '', error: 'invalid params' };
