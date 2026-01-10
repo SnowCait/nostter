@@ -35,6 +35,7 @@
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",
+		"bunker": "バンカー URL でログイン",
 		"recommended": "推奨",
 		"key": "鍵でログイン",
 		"create_account": "アカウントを作成",

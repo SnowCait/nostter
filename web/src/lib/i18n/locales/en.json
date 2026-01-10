@@ -35,6 +35,7 @@
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",
+		"bunker": "Login with Bunker",
 		"recommended": "Recommended",
 		"key": "Login with key",
 		"create_account": "Create account",

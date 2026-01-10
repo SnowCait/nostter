@@ -77,6 +77,29 @@ export class Login {
 		console.timeEnd('NIP-07');
 	}
 
+	public async withNip46(bunker: string) {
+		console.log('Login with NIP-46');
+		console.time('NIP-46');
+
+		try {
+			await Signer.establishBunkerConnection(bunker);
+		} catch {
+			console.timeEnd('NIP-46 error');
+			console.error('Failed to connect to NIP-46 bunker');
+			return;
+		}
+
+		const storage = new WebStorage(localStorage);
+		storage.set('login', bunker);
+
+		loginType.set('NIP-46');
+
+		pubkey.set(await Signer.getPublicKey());
+		await this.fetchAuthor();
+
+		console.timeEnd('NIP-46');
+	}
+
 	public async withNsec(key: string) {
 		const { type, data: seckey } = nip19.decode(key);
 		if (type !== 'nsec') {
