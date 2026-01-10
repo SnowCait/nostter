@@ -26,7 +26,7 @@ export class Signer {
 		if (!bunkerPointer) throw new Error(`Failed to parse bunker URL`);
 
 		const storage = new WebStorage(localStorage);
-		let clientSeckeyHex = storage.get('login:bunker:client-seckey');
+		const clientSeckeyHex = storage.get('login:bunker:client-seckey');
 		let clientSeckey: Uint8Array;
 		if (clientSeckeyHex) {
 			clientSeckey = hexToBytes(clientSeckeyHex);

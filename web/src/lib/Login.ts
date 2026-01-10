@@ -83,7 +83,7 @@ export class Login {
 
 		try {
 			await Signer.establishBunkerConnection(bunker);
-		} catch (err) {
+		} catch {
 			console.timeEnd('NIP-46 error');
 			console.error('Failed to connect to NIP-46 bunker');
 			return;
