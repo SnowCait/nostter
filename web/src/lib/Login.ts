@@ -57,6 +57,7 @@ export class Login {
 		console.time('NIP-07');
 
 		loginType.set('NIP-07');
+
 		try {
 			pubkey.set(await Signer.getPublicKey());
 			const $pubkey = get(pubkey);
@@ -67,6 +68,7 @@ export class Login {
 		} catch (error) {
 			console.error('[NIP-07 getPublicKey()]', error);
 			console.timeEnd('NIP-07');
+			loginType.set(undefined);
 			return;
 		}
 
@@ -81,18 +83,20 @@ export class Login {
 		console.log('Login with NIP-46');
 		console.time('NIP-46');
 
+		loginType.set('NIP-46');
+
 		try {
 			await Signer.establishBunkerConnection(bunker);
 		} catch {
 			console.timeEnd('NIP-46 error');
 			console.error('Failed to connect to NIP-46 bunker');
+			await Signer.abolishBunkerConnection();
+			loginType.set(undefined);
 			return;
 		}
 
 		const storage = new WebStorage(localStorage);
 		storage.set('login', bunker);
-
-		loginType.set('NIP-46');
 
 		pubkey.set(await Signer.getPublicKey());
 		await this.fetchAuthor();

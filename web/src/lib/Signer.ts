@@ -42,6 +42,14 @@ export class Signer {
 		nip46CachedPublicKey = await bunkerSigner.getPublicKey();
 	}
 
+	public static async abolishBunkerConnection(): Promise<void> {
+		if (bunkerSigner) {
+			await bunkerSigner.close();
+			bunkerSigner = undefined;
+			nip46CachedPublicKey = undefined;
+		}
+	}
+
 	public static async getPublicKey(): Promise<string> {
 		const storage = new WebStorage(localStorage);
 		const login = storage.get('login');
