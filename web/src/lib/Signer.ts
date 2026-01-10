@@ -9,7 +9,7 @@ import {
 } from 'nostr-tools';
 import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';
 import { generateSecretKey } from 'nostr-tools/pure';
-import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
+import { bytesToHex, hexToBytes } from 'nostr-tools/utils';
 import { WebStorage } from './WebStorage';
 import type { Nip07, UnsignedEvent } from 'nostr-typedef';
 
@@ -22,20 +22,20 @@ let nip46CachedPublicKey: string | undefined;
 
 export class Signer {
 	public static async establishBunkerConnection(bunker: string): Promise<void> {
-		const bp = await parseBunkerInput(bunker);
-		if (!bp) throw new Error(`failed to parse '${bunker}'`);
+		const bunkerPointer = await parseBunkerInput(bunker);
+		if (!bunkerPointer) throw new Error(`Failed to parse bunker URL`);
 
 		const storage = new WebStorage(localStorage);
-		let kss = storage.get('login:bunker:client-seckey');
-		let ks: Uint8Array;
-		if (kss) {
-			ks = hexToBytes(kss);
+		let clientSeckeyHex = storage.get('login:bunker:client-seckey');
+		let clientSeckey: Uint8Array;
+		if (clientSeckeyHex) {
+			clientSeckey = hexToBytes(clientSeckeyHex);
 		} else {
-			ks = generateSecretKey();
-			storage.set('login:bunker:client-seckey', bytesToHex(ks));
+			clientSeckey = generateSecretKey();
+			storage.set('login:bunker:client-seckey', bytesToHex(clientSeckey));
 		}
 
-		bunkerSigner = BunkerSigner.fromBunker(ks, bp, {
+		bunkerSigner = BunkerSigner.fromBunker(clientSeckey, bunkerPointer, {
 			onauth: (url) => open(url, '_blank')
 		});
 		await bunkerSigner.connect();
