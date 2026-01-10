@@ -35,7 +35,9 @@ export class Signer {
 			storage.set('login:bunker:client-seckey', bytesToHex(ks));
 		}
 
-		bunkerSigner = BunkerSigner.fromBunker(ks, bp);
+		bunkerSigner = BunkerSigner.fromBunker(ks, bp, {
+			onauth: (url) => open(url, '_blank')
+		});
 		await bunkerSigner.connect();
 		nip46CachedPublicKey = await bunkerSigner.getPublicKey();
 	}
