@@ -7,8 +7,8 @@ import {
 	finalizeEvent,
 	nip44
 } from 'nostr-tools';
-import { BunkerSigner, parseBunkerInput } from '@nostr/tools/nip46';
-import { generateSecretKey } from '@nostr/tools/pure';
+import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';
+import { generateSecretKey } from 'nostr-tools/pure';
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
 import { WebStorage } from './WebStorage';
 import type { Nip07, UnsignedEvent } from 'nostr-typedef';
@@ -26,16 +26,17 @@ export class Signer {
 		if (!bp) throw new Error(`failed to parse '${bunker}'`);
 
 		const storage = new WebStorage(localStorage);
-		let kss = storage.get('nip46clientSecret');
+		let kss = storage.get('login:bunker:client-seckey');
 		let ks: Uint8Array;
 		if (kss) {
 			ks = hexToBytes(kss);
 		} else {
 			ks = generateSecretKey();
-			storage.set('nip46clientSecret', bytesToHex(ks));
+			storage.set('login:bunker:client-seckey', bytesToHex(ks));
 		}
 
-		bunkerSigner = new BunkerSigner(ks, bp);
+		bunkerSigner = BunkerSigner.fromBunker(ks, bp);
+		await bunkerSigner.connect();
 		nip46CachedPublicKey = await bunkerSigner.getPublicKey();
 	}
 
@@ -68,7 +69,7 @@ export class Signer {
 		if (login === 'NIP-07' && window.nostr !== undefined) {
 			return await window.nostr.signEvent(unsignedEvent);
 		} else if (login.startsWith('bunker://')) {
-			return await bunkerSigner!.signEvent(unsignedEvent as any);
+			return await bunkerSigner!.signEvent(unsignedEvent);
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
 			return finalizeEvent(unsignedEvent, seckey as Uint8Array);
@@ -87,7 +88,7 @@ export class Signer {
 		if (login === 'NIP-07' && window.nostr !== undefined && window.nostr.nip04 !== undefined) {
 			return await window.nostr.nip04.encrypt(pubkey, plaintext);
 		} else if (login.startsWith('bunker://')) {
-			return bunkerSigner!.nip04Encrypt(pubkey, plaintext);
+			return await bunkerSigner!.nip04Encrypt(pubkey, plaintext);
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
 			return await nip04.encrypt(seckey as string, pubkey, plaintext);
@@ -106,7 +107,7 @@ export class Signer {
 		if (login === 'NIP-07' && window.nostr !== undefined && window.nostr.nip04 !== undefined) {
 			return await window.nostr.nip04.decrypt(pubkey, ciphertext);
 		} else if (login.startsWith('bunker://')) {
-			return bunkerSigner!.nip04Decrypt(pubkey, ciphertext);
+			return await bunkerSigner!.nip04Decrypt(pubkey, ciphertext);
 		} else if (login.startsWith('nsec')) {
 			const { data: seckey } = nip19.decode(login);
 			return await nip04.decrypt(seckey as string, pubkey, ciphertext);
@@ -124,6 +125,8 @@ export class Signer {
 
 		if (login === 'NIP-07' && window.nostr !== undefined && window.nostr.nip44 !== undefined) {
 			return await window.nostr.nip44.encrypt(pubkey, plaintext);
+		} else if (login.startsWith('bunker://')) {
+			return await bunkerSigner!.nip44Encrypt(pubkey, plaintext);
 		} else if (login.startsWith('nsec')) {
 			const result = nip19.decode(login);
 			if (result.type !== 'nsec') {
@@ -146,6 +149,8 @@ export class Signer {
 
 		if (login === 'NIP-07' && window.nostr !== undefined && window.nostr.nip44 !== undefined) {
 			return await window.nostr.nip44.decrypt(pubkey, ciphertext);
+		} else if (login.startsWith('bunker://')) {
+			return await bunkerSigner!.nip44Decrypt(pubkey, ciphertext);
 		} else if (login.startsWith('nsec')) {
 			const result = nip19.decode(login);
 			if (result.type !== 'nsec') {
