@@ -62,7 +62,10 @@ async function tryLogin(): Promise<boolean> {
 		}
 		await login.withNip07();
 	} else if (savedLogin.startsWith('bunker://')) {
-		await login.withNip46(savedLogin);
+		const success = await login.withNip46(savedLogin);
+		if (!success) {
+			return false;
+		}
 	} else if (savedLogin.startsWith('nsec')) {
 		await login.withNsec(savedLogin);
 	} else if (savedLogin.startsWith('npub')) {

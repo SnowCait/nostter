@@ -79,7 +79,7 @@ export class Login {
 		console.timeEnd('NIP-07');
 	}
 
-	public async withNip46(bunker: string) {
+	public async withNip46(bunker: string): Promise<boolean> {
 		console.log('Login with NIP-46');
 		console.time('NIP-46');
 
@@ -92,7 +92,7 @@ export class Login {
 			console.error('Failed to connect to NIP-46 bunker');
 			await Signer.abolishBunkerConnection();
 			loginType.set(undefined);
-			return;
+			return false;
 		}
 
 		const storage = new WebStorage(localStorage);
@@ -102,6 +102,7 @@ export class Login {
 		await this.fetchAuthor();
 
 		console.timeEnd('NIP-46');
+		return true;
 	}
 
 	public async withNsec(key: string) {

@@ -31,7 +31,10 @@
 	}
 
 	async function loginWithNip46() {
-		await login.withNip46(bunker);
+		const success = await login.withNip46(bunker);
+		if (!success) {
+			return;
+		}
 		await gotoHome();
 	}
 
@@ -72,10 +75,8 @@
 		const savedLogin = storage.get('login');
 		console.log('[login]', savedLogin);
 
-		if (savedLogin === null) {
-			const { waitNostr } = await import('nip07-awaiter');
-			waitNostr(10000).then((n) => (nostr = n));
-		}
+		const { waitNostr } = await import('nip07-awaiter');
+		nostr = await waitNostr(10000);
 	});
 
 	async function gotoHome() {
