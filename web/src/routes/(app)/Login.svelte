@@ -69,30 +69,20 @@
 	}
 
 	onMount(async () => {
-		console.log('[login on mount]');
-
-		const storage = new WebStorage(localStorage);
-		const savedLogin = storage.get('login');
-		console.log('[login]', savedLogin);
-
 		const { waitNostr } = await import('nip07-awaiter');
 		nostr = await waitNostr(10000);
 	});
 
 	async function gotoHome() {
-		console.log('[goto home]', $authorProfile);
 		if ($authorProfile === undefined) {
 			console.error('[login failed]');
 			return;
 		}
 
-		const url = '/home';
-		console.log(`Redirect to ${url}`);
-		await goto(url);
+		await goto('/home');
 	}
 
 	afterNavigate(async () => {
-		console.log('afterNavigate');
 		const queryNpub = $page.url.searchParams.get('login');
 
 		if (queryNpub === null || !queryNpub.startsWith('npub') || $loginType !== undefined) {
