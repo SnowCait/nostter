@@ -6,10 +6,19 @@
 	import IconStar from '@tabler/icons-svelte/icons/star';
 	import IconStarFilled from '@tabler/icons-svelte/icons/star-filled';
 
-	export let defaultReaction: string;
-	export let reactioned: boolean;
-	export let isAprilFool: boolean;
-	export let size: number = 24;
+	interface Props {
+		defaultReaction: string;
+		reactioned: boolean;
+		isAprilFool: boolean;
+		size?: number;
+	}
+
+	let {
+		defaultReaction,
+		reactioned,
+		isAprilFool,
+		size = 24
+	}: Props = $props();
 </script>
 
 {#if defaultReaction === '🐾' || isAprilFool}

@@ -2,13 +2,22 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { robohash } from '$lib/Items';
 
-	export let pubkey: string;
-	export let width = '100%';
-	export let height = '100%';
-	export let tooltip = true;
+	interface Props {
+		pubkey: string;
+		width?: string;
+		height?: string;
+		tooltip?: boolean;
+	}
 
-	$: metadata = $metadataStore.get(pubkey);
-	$: name = metadata?.displayName ?? '';
+	let {
+		pubkey,
+		width = '100%',
+		height = '100%',
+		tooltip = true
+	}: Props = $props();
+
+	let metadata = $derived($metadataStore.get(pubkey));
+	let name = $derived(metadata?.displayName ?? '');
 
 	const onError = (event: Event) => {
 		const img = event.target as HTMLImageElement;
@@ -24,7 +33,7 @@
 	alt=""
 	title={tooltip ? name : ''}
 	style="width: {width}; height: {height};"
-	on:error={onError}
+	onerror={onError}
 />
 
 <style>

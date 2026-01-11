@@ -7,32 +7,40 @@
 	import IconQuestionMark from '@tabler/icons-svelte/icons/question-mark';
 	import IconLink from '@tabler/icons-svelte/icons/link';
 
-	export let item: Item;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	interface Props {
+		item: Item;
+		createdAtFormat?: 'auto' | 'time';
+	}
 
-	$: identifier = item.event.tags.find(([tagName]) => tagName === 'd')?.at(1) ?? '';
-	$: link = item.event.tags.find(([tagName, url]) => tagName === 'r' && url !== undefined)?.at(1);
+	let { item, createdAtFormat = 'auto' }: Props = $props();
+
+	let identifier = $derived(item.event.tags.find(([tagName]) => tagName === 'd')?.at(1) ?? '');
+	let link = $derived(item.event.tags.find(([tagName, url]) => tagName === 'r' && url !== undefined)?.at(1));
 </script>
 
 <EventMetadata {item} {createdAtFormat}>
-	<svelte:fragment slot="icon">
-		{#if identifier === 'general'}
-			<IconUser />
-		{:else if identifier === 'music'}
-			<IconMusic />
-		{:else}
-			<IconQuestionMark />
-		{/if}
-	</svelte:fragment>
-	<section slot="content">
-		<Content content={item.event.content} tags={item.event.tags} />
-		{#if link !== undefined}
-			<a href={link} target="_blank" rel="noopener noreferrer">
-				<IconLink size="1rem" />
-				<span>{link}</span>
-			</a>
-		{/if}
-	</section>
+	{#snippet icon()}
+	
+			{#if identifier === 'general'}
+				<IconUser />
+			{:else if identifier === 'music'}
+				<IconMusic />
+			{:else}
+				<IconQuestionMark />
+			{/if}
+		
+	{/snippet}
+	{#snippet content()}
+		<section >
+			<Content content={item.event.content} tags={item.event.tags} />
+			{#if link !== undefined}
+				<a href={link} target="_blank" rel="noopener noreferrer">
+					<IconLink size="1rem" />
+					<span>{link}</span>
+				</a>
+			{/if}
+		</section>
+	{/snippet}
 </EventMetadata>
 
 <style>

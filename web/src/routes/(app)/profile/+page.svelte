@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault, stopPropagation } from 'svelte/legacy';
+
 	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import Cropper from 'svelte-easy-crop';
@@ -17,8 +19,8 @@
 
 	type Pixels = { height: number; width: number; x: number; y: number };
 
-	let open = false;
-	let url = '';
+	let open = $state(false);
+	let url = $state('');
 	let pixels: Pixels | undefined;
 	let complete: (value: File | PromiseLike<File | undefined> | undefined) => void;
 
@@ -159,13 +161,13 @@
 		<Cropper image={url} aspect={1} maxZoom={10} on:cropcomplete={onCropComplete} />
 	</div>
 
-	<form class="apply" on:submit|preventDefault={applyCrop}>
+	<form class="apply" onsubmit={preventDefault(applyCrop)}>
 		<input type="submit" value={$_('media.upload.apply')} />
 	</form>
 </ModalDialog>
 
-<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<form class="card" on:submit|preventDefault={save} on:keyup|stopPropagation={console.debug}>
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<form class="card" onsubmit={preventDefault(save)} onkeyup={stopPropagation(console.debug)}>
 	<div class="picture">
 		<label for="picture">Picture</label>
 		<div>
@@ -238,7 +240,7 @@
 	</div>
 	<div class="about">
 		<label for="about">about</label>
-		<textarea id="about" bind:value={$authorProfile.about} />
+		<textarea id="about" bind:value={$authorProfile.about}></textarea>
 	</div>
 	{#if $author}
 		<div>

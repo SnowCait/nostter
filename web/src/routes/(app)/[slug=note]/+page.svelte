@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { createRxBackwardReq, createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
@@ -28,204 +30,37 @@
 	import BackButton from '$lib/components/BackButton.svelte';
 	import { IconHeartBroken } from '@tabler/icons-svelte';
 
-	export let data: LayoutData;
-
-	let focusedElement: HTMLDivElement | undefined;
-
-	let item: EventItem | undefined;
-	let items: EventItem[] = [];
-	let eventId: string | undefined;
-	let rootId: string | undefined;
-	let canonicalUrl: string | undefined;
-
-	$: metadata = item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined;
-
-	$: if (!browser && data.event !== undefined) {
-		item = new EventItem(data.event);
+	interface Props {
+		data: LayoutData;
 	}
 
-	$: if (item !== undefined) {
-		canonicalUrl = `${$page.url.origin}/${nip19.neventEncode({
-			id: item.event.id,
-			author: item.event.pubkey
-		})}`;
-	}
+	let { data }: Props = $props();
 
-	let replyToEventItems: EventItem[] = [];
-	let repliedToEventItems: EventItem[] = [];
+	let focusedElement: HTMLDivElement | undefined = $state();
+
+	let item: EventItem | undefined = $state();
+	let items: EventItem[] = $state([]);
+	let eventId: string | undefined = $state();
+	let rootId: string | undefined = $state();
+	let canonicalUrl: string | undefined = $state();
+
+
+
+
+	let replyToEventItems: EventItem[] = $state([]);
+	let repliedToEventItems: EventItem[] = $state([]);
 	let repliedToEventsMap = new Map<string, Event>();
-	let repostEventItems: EventItem[] = [];
-	let reactionEventItems: EventItem[] = [];
-	let zapEventItemsMap = new Map<number | undefined, ZapEventItem[]>();
+	let repostEventItems: EventItem[] = $state([]);
+	let reactionEventItems: EventItem[] = $state([]);
+	let zapEventItemsMap = $state(new Map<number | undefined, ZapEventItem[]>());
 
-	let customEmojiShortcode = new Map<string, string>();
+	let customEmojiShortcode = $state(new Map<string, string>());
 
-	$: repostMetadataList = repostEventItems
-		.map((x) => $metadataStore.get(x.event.pubkey))
-		.filter((x): x is Metadata => x !== undefined);
 
-	$: reactionMetadataMap = reactionEventItems.reduce((map, item) => {
-		let content = item.event.content;
-		if (content === '') {
-			content = '+';
-		} else if (content.startsWith(':')) {
-			const emojiTag = item.event.tags.find(
-				([tagName, shortcode, url]) =>
-					tagName === 'emoji' &&
-					`:${shortcode}:` === content &&
-					url !== undefined &&
-					url !== ''
-			);
-			if (emojiTag !== undefined) {
-				const [, shortcode, url] = emojiTag;
-				try {
-					new URL(url);
-					content = url;
-					if (!customEmojiShortcode.has(url)) {
-						customEmojiShortcode.set(url, shortcode);
-					}
-				} catch (error) {
-					console.error('[custom emoji invalid]', item, error);
-				}
-			}
-		}
-		const items = map.get(content);
-		if (items !== undefined) {
-			items.push(item);
-		} else {
-			map.set(content, [item]);
-		}
-		return map;
-	}, new Map<string, EventItem[]>());
 
-	$: if (eventId !== data.eventId && browser) {
-		eventId = data.eventId;
-		console.log('[thread event id]', eventId);
 
-		clear();
+	let id: string | undefined = $state();
 
-		item = $eventItemStore.get(eventId);
-
-		// Event
-		if (item === undefined) {
-			const eventReq = createRxOneshotReq({
-				filters: [
-					{
-						ids: [eventId]
-					}
-				]
-			});
-			rxNostr
-				.use(eventReq)
-				.pipe(
-					tie,
-					uniq(),
-					tap(({ event }) => {
-						referencesReqEmit(event);
-						authorActionReqEmit(event);
-					})
-				)
-				.subscribe((packet) => {
-					console.log('[thread event]', packet);
-					item = new EventItem(packet.event);
-				});
-		}
-
-		// Related Events
-		const relatedEventsReq = createRxOneshotReq({
-			filters: [
-				{
-					kinds: [1, 6, 7, 9735],
-					'#e': [eventId]
-				}
-			]
-		});
-		const observable = rxNostr.use(relatedEventsReq).pipe(
-			tie,
-			uniq(),
-			tap(({ event }) => {
-				referencesReqEmit(event);
-				authorActionReqEmit(event);
-			})
-		);
-
-		// Replies
-		merge(observable.pipe(filterByKind(1)), observable.pipe(filterByKind(42)))
-			.pipe(filter(({ event }) => !repliedToEventItems.some((x) => x.event.id === event.id)))
-			.subscribe((packet) => {
-				console.debug('[thread kind 1]', packet);
-				insertIntoAscendingTimeline(packet.event, repliedToEventItems);
-				repliedToEventItems = repliedToEventItems;
-			});
-
-		// Repost
-		observable.pipe(filterByKind(6)).subscribe((packet) => {
-			console.debug('[thread kind 6]', packet);
-			const eventItem = new EventItem(packet.event);
-			repostEventItems.sort(chronologicalItem);
-			repostEventItems.push(eventItem);
-			repostEventItems = repostEventItems;
-		});
-
-		// Reaction
-		observable
-			.pipe(
-				filterByKind(7),
-				filter(
-					({ event }) =>
-						event.tags.findLast(([tagName]) => tagName === 'e')?.at(1) === eventId
-				)
-			)
-			.subscribe((packet) => {
-				console.debug('[thread kind 7]', packet);
-				const eventItem = new EventItem(packet.event);
-				reactionEventItems.sort(chronologicalItem);
-				reactionEventItems.push(eventItem);
-				reactionEventItems = reactionEventItems;
-			});
-
-		// Zap
-		observable.pipe(filterByKind(9735)).subscribe((packet) => {
-			console.debug('[thread kind 9735]', packet);
-
-			let event: Event | undefined;
-			const description = packet.event.tags
-				.find(
-					([tagName, tagContent]) => tagName === 'description' && tagContent !== undefined
-				)
-				?.at(1);
-			if (description !== undefined) {
-				console.debug('[thread kind 9734]', description);
-				try {
-					event = JSON.parse(description) as Event;
-					referencesReqEmit(event, true);
-				} catch (error) {
-					console.log('[zap description parse error]', description, error);
-				}
-			}
-
-			if (event === undefined) {
-				return;
-			}
-
-			const eventItem = new ZapEventItem(packet.event);
-			let eventItems = zapEventItemsMap.get(eventItem.amount) ?? [];
-			eventItems.push(eventItem);
-			zapEventItemsMap.set(eventItem.amount, eventItems);
-			zapEventItemsMap = zapEventItemsMap;
-		});
-	}
-
-	let id: string | undefined;
-
-	$: if (item !== undefined && item.id !== id && browser) {
-		console.debug('[thread item]', item);
-		id = item.id;
-		const { root, reply } = referTags(item.event);
-		rootId = root?.at(1);
-		fetchReplies(reply?.at(1));
-		fetchThreads(rootId, item.event);
-	}
 
 	async function fetchReplies(originalReplyId: string | undefined): Promise<void> {
 		let replyId = originalReplyId;
@@ -324,6 +159,185 @@
 
 	onDestroy(() => {
 		$inThread = false;
+	});
+	run(() => {
+		if (!browser && data.event !== undefined) {
+			item = new EventItem(data.event);
+		}
+	});
+	run(() => {
+		if (eventId !== data.eventId && browser) {
+			eventId = data.eventId;
+			console.log('[thread event id]', eventId);
+
+			clear();
+
+			item = $eventItemStore.get(eventId);
+
+			// Event
+			if (item === undefined) {
+				const eventReq = createRxOneshotReq({
+					filters: [
+						{
+							ids: [eventId]
+						}
+					]
+				});
+				rxNostr
+					.use(eventReq)
+					.pipe(
+						tie,
+						uniq(),
+						tap(({ event }) => {
+							referencesReqEmit(event);
+							authorActionReqEmit(event);
+						})
+					)
+					.subscribe((packet) => {
+						console.log('[thread event]', packet);
+						item = new EventItem(packet.event);
+					});
+			}
+
+			// Related Events
+			const relatedEventsReq = createRxOneshotReq({
+				filters: [
+					{
+						kinds: [1, 6, 7, 9735],
+						'#e': [eventId]
+					}
+				]
+			});
+			const observable = rxNostr.use(relatedEventsReq).pipe(
+				tie,
+				uniq(),
+				tap(({ event }) => {
+					referencesReqEmit(event);
+					authorActionReqEmit(event);
+				})
+			);
+
+			// Replies
+			merge(observable.pipe(filterByKind(1)), observable.pipe(filterByKind(42)))
+				.pipe(filter(({ event }) => !repliedToEventItems.some((x) => x.event.id === event.id)))
+				.subscribe((packet) => {
+					console.debug('[thread kind 1]', packet);
+					insertIntoAscendingTimeline(packet.event, repliedToEventItems);
+					repliedToEventItems = repliedToEventItems;
+				});
+
+			// Repost
+			observable.pipe(filterByKind(6)).subscribe((packet) => {
+				console.debug('[thread kind 6]', packet);
+				const eventItem = new EventItem(packet.event);
+				repostEventItems.sort(chronologicalItem);
+				repostEventItems.push(eventItem);
+				repostEventItems = repostEventItems;
+			});
+
+			// Reaction
+			observable
+				.pipe(
+					filterByKind(7),
+					filter(
+						({ event }) =>
+							event.tags.findLast(([tagName]) => tagName === 'e')?.at(1) === eventId
+					)
+				)
+				.subscribe((packet) => {
+					console.debug('[thread kind 7]', packet);
+					const eventItem = new EventItem(packet.event);
+					reactionEventItems.sort(chronologicalItem);
+					reactionEventItems.push(eventItem);
+					reactionEventItems = reactionEventItems;
+				});
+
+			// Zap
+			observable.pipe(filterByKind(9735)).subscribe((packet) => {
+				console.debug('[thread kind 9735]', packet);
+
+				let event: Event | undefined;
+				const description = packet.event.tags
+					.find(
+						([tagName, tagContent]) => tagName === 'description' && tagContent !== undefined
+					)
+					?.at(1);
+				if (description !== undefined) {
+					console.debug('[thread kind 9734]', description);
+					try {
+						event = JSON.parse(description) as Event;
+						referencesReqEmit(event, true);
+					} catch (error) {
+						console.log('[zap description parse error]', description, error);
+					}
+				}
+
+				if (event === undefined) {
+					return;
+				}
+
+				const eventItem = new ZapEventItem(packet.event);
+				let eventItems = zapEventItemsMap.get(eventItem.amount) ?? [];
+				eventItems.push(eventItem);
+				zapEventItemsMap.set(eventItem.amount, eventItems);
+				zapEventItemsMap = zapEventItemsMap;
+			});
+		}
+	});
+	let metadata = $derived(item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined);
+	run(() => {
+		if (item !== undefined) {
+			canonicalUrl = `${$page.url.origin}/${nip19.neventEncode({
+				id: item.event.id,
+				author: item.event.pubkey
+			})}`;
+		}
+	});
+	let repostMetadataList = $derived(repostEventItems
+		.map((x) => $metadataStore.get(x.event.pubkey))
+		.filter((x): x is Metadata => x !== undefined));
+	let reactionMetadataMap = $derived(reactionEventItems.reduce((map, item) => {
+		let content = item.event.content;
+		if (content === '') {
+			content = '+';
+		} else if (content.startsWith(':')) {
+			const emojiTag = item.event.tags.find(
+				([tagName, shortcode, url]) =>
+					tagName === 'emoji' &&
+					`:${shortcode}:` === content &&
+					url !== undefined &&
+					url !== ''
+			);
+			if (emojiTag !== undefined) {
+				const [, shortcode, url] = emojiTag;
+				try {
+					new URL(url);
+					content = url;
+					if (!customEmojiShortcode.has(url)) {
+						customEmojiShortcode.set(url, shortcode);
+					}
+				} catch (error) {
+					console.error('[custom emoji invalid]', item, error);
+				}
+			}
+		}
+		const items = map.get(content);
+		if (items !== undefined) {
+			items.push(item);
+		} else {
+			map.set(content, [item]);
+		}
+		return map;
+	}, new Map<string, EventItem[]>()));
+	run(() => {
+		if (item !== undefined && item.id !== id && browser) {
+			console.debug('[thread item]', item);
+			id = item.id;
+			const { root, reply } = referTags(item.event);
+			rootId = root?.at(1);
+			fetchReplies(reply?.at(1));
+			fetchThreads(rootId, item.event);
+		}
 	});
 </script>
 

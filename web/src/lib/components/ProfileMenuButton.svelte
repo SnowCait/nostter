@@ -31,21 +31,25 @@
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 
-	export let pubkey: string;
+	interface Props {
+		pubkey: string;
+	}
+
+	let { pubkey }: Props = $props();
 
 	const {
 		elements: { menu, item, trigger, overlay, separator }
 	} = createDropdownMenu({ preventScroll: false });
 
-	$: metadata = $metadataStore.get(pubkey);
-	$: npub = nip19.npubEncode(pubkey);
-	$: nprofile = nip19.nprofileEncode({
+	let metadata = $derived($metadataStore.get(pubkey));
+	let npub = $derived(nip19.npubEncode(pubkey));
+	let nprofile = $derived(nip19.nprofileEncode({
 		pubkey,
 		relays: metadata ? getSeenOnRelays(metadata.event.id) : undefined
-	});
-	$: url = `${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`;
+	}));
+	let url = $derived(`${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`);
 
-	let listDialogOpen = false;
+	let listDialogOpen = $state(false);
 
 	function editLists(): void {
 		listDialogOpen = true;
@@ -170,33 +174,33 @@
 <button class="clear" use:melt={$trigger}>
 	<IconDots />
 </button>
-<div use:melt={$overlay} class="overlay" />
+<div use:melt={$overlay} class="overlay"></div>
 <div use:melt={$menu} class="menu">
 	{#if $authorPubkey && !$rom}
-		<div use:melt={$item} on:m-click={editLists} class="item">
+		<div use:melt={$item} onm-click={editLists} class="item">
 			<div class="icon"><IconList /></div>
 			<div>{$_('lists.edit')}</div>
 		</div>
 	{/if}
-	<div use:melt={$item} on:m-click={() => copy(npub)} class="item">
+	<div use:melt={$item} onm-click={() => copy(npub)} class="item">
 		<div class="icon"><IconClipboard /></div>
 		<div>{$_('actions.copy_npub.button')}</div>
 	</div>
-	<div use:melt={$item} on:m-click={() => copy(nprofile)} class="item">
+	<div use:melt={$item} onm-click={() => copy(nprofile)} class="item">
 		<div class="icon"><IconClipboard /></div>
 		<div>{$_('actions.copy_nprofile.button')}</div>
 	</div>
-	<div use:melt={$item} on:m-click={() => copy(url)} class="item">
+	<div use:melt={$item} onm-click={() => copy(url)} class="item">
 		<div class="icon"><IconLink /></div>
 		<div>{$_('actions.copy_url.button')}</div>
 	</div>
-	<div use:melt={$item} on:m-click={async () => await goto(`/${nprofile}/relays`)} class="item">
+	<div use:melt={$item} onm-click={async () => await goto(`/${nprofile}/relays`)} class="item">
 		<div class="icon"><IconAffiliate /></div>
 		<div>{$_('pages.relays')}</div>
 	</div>
 	<div
 		use:melt={$item}
-		on:m-click={() =>
+		onm-click={() =>
 			open(`https://nostr.com/${nprofile}.rss`, '_blank', 'noopener,noreferrer')}
 		class="item"
 	>
@@ -205,62 +209,62 @@
 		<div class="secondary-icon"><IconExternalLink /></div>
 	</div>
 	{#if $authorPubkey && !$rom}
-		<div use:melt={$separator} class="separator" />
+		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('preferences.mute.mute')}</div>
 		{#if $mutePubkeys.includes(pubkey)}
-			<div use:melt={$item} on:m-click={onUnmute} class="item undo">
+			<div use:melt={$item} onm-click={onUnmute} class="item undo">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.unmute.button')}</div>
 			</div>
 		{:else if pubkey !== $authorPubkey}
-			<div use:melt={$item} on:m-click={onMute} class="item">
+			<div use:melt={$item} onm-click={onMute} class="item">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.mute.button')}</div>
 			</div>
 		{/if}
 		{#if $mutedPubkeysByKindMap.get(6)?.has(pubkey)}
-			<div use:melt={$item} on:m-click={unmuteReposts} class="item undo">
+			<div use:melt={$item} onm-click={unmuteReposts} class="item undo">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.unmute.reposts')}</div>
 			</div>
 		{:else}
-			<div use:melt={$item} on:m-click={muteReposts} class="item">
+			<div use:melt={$item} onm-click={muteReposts} class="item">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.mute.reposts')}</div>
 			</div>
 		{/if}
 		{#if $mutedPubkeysByKindMap.get(7)?.has(pubkey)}
-			<div use:melt={$item} on:m-click={unmuteReactions} class="item undo">
+			<div use:melt={$item} onm-click={unmuteReactions} class="item undo">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.unmute.reactions')}</div>
 			</div>
 		{:else}
-			<div use:melt={$item} on:m-click={muteReactions} class="item">
+			<div use:melt={$item} onm-click={muteReactions} class="item">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.mute.reactions')}</div>
 			</div>
 		{/if}
 		{#if $mutedPubkeysByKindMap.get(9735)?.has(pubkey)}
-			<div use:melt={$item} on:m-click={unmuteZaps} class="item undo">
+			<div use:melt={$item} onm-click={unmuteZaps} class="item undo">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.unmute.zaps')}</div>
 			</div>
 		{:else}
-			<div use:melt={$item} on:m-click={muteZaps} class="item">
+			<div use:melt={$item} onm-click={muteZaps} class="item">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.mute.zaps')}</div>
 			</div>
 		{/if}
 		{#if $developerMode && pubkey === $authorPubkey}
-			<div use:melt={$separator} class="separator" />
+			<div use:melt={$separator} class="separator"></div>
 			<div class="text">{$_('menu.developer')}</div>
 			{#if $originalFollowees.includes(pubkey)}
-				<div use:melt={$item} on:m-click={onUnfollow} class="item">
+				<div use:melt={$item} onm-click={onUnfollow} class="item">
 					<div class="icon"><IconUserMinus /></div>
 					<div>{$_('actions.unfollow.myself')}</div>
 				</div>
 			{:else}
-				<div use:melt={$item} on:m-click={onFollow} class="item">
+				<div use:melt={$item} onm-click={onFollow} class="item">
 					<div class="icon"><IconUserPlus /></div>
 					<div>{$_('actions.follow.myself')}</div>
 				</div>

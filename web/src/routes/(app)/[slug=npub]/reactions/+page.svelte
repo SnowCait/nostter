@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { _ } from 'svelte-i18n';
 	import { createRxOneshotReq, now, uniq, type LazyFilter } from 'rx-nostr';
 	import { filter, tap } from 'rxjs';
@@ -10,14 +12,20 @@
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import type { LayoutData } from '../$types';
 
-	export let data: LayoutData;
-
-	let pubkey: string | undefined;
-	let showLoading = false;
-
-	$: if (pubkey !== data.pubkey) {
-		$items = [];
+	interface Props {
+		data: LayoutData;
 	}
+
+	let { data }: Props = $props();
+
+	let pubkey: string | undefined = $state();
+	let showLoading = $state(false);
+
+	run(() => {
+		if (pubkey !== data.pubkey) {
+			$items = [];
+		}
+	});
 
 	async function load() {
 		console.log('[npub reactions page load]', data.pubkey);

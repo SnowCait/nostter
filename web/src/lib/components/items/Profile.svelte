@@ -8,9 +8,13 @@
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
 	import EmojifiedContent from '../EmojifiedContent.svelte';
 
-	export let metadata: Metadata;
+	interface Props {
+		metadata: Metadata;
+	}
 
-	$: createdAt = $lastNotesMap.get(metadata.event.pubkey)?.created_at;
+	let { metadata }: Props = $props();
+
+	let createdAt = $derived($lastNotesMap.get(metadata.event.pubkey)?.created_at);
 </script>
 
 <article class="timeline-item">

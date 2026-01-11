@@ -19,22 +19,31 @@
 	import { inThread } from '$lib/Thread';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	export let item: Item;
-	export let readonly: boolean;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
-	export let full = false;
+	interface Props {
+		item: Item;
+		readonly: boolean;
+		createdAtFormat?: 'auto' | 'time';
+		full?: boolean;
+	}
 
-	$: eventItem = item as EventItem;
+	let {
+		item,
+		readonly = $bindable(),
+		createdAtFormat = 'auto',
+		full = false
+	}: Props = $props();
+
+	let eventItem = $derived(item as EventItem);
 
 	if ($rom) {
 		readonly = true;
 	}
 
-	let channelId: string | undefined;
-	let channelName: string | undefined;
+	let channelId: string | undefined = $state();
+	let channelName: string | undefined = $state();
 
 	let contentWarningTag = item.event.tags.find(([tagName]) => tagName === 'content-warning');
-	let showContent = contentWarningTag === undefined;
+	let showContent = $state(contentWarningTag === undefined);
 	const showWarningContent = () => {
 		showContent = true;
 	};
@@ -65,80 +74,82 @@
 {/if}
 
 <EventMetadata {item} {createdAtFormat}>
-	<section slot="content">
-		{#if isReply(item.event)}
-			<div class="reply">
-				<span>To</span>
-				<span>
-					@{eventItem.replyToPubkeys
-						.slice(0, full ? Infinity : 10)
-						.map((pubkey) => {
-							const metadata = $metadataStore.get(pubkey);
-							const name = metadata?.content?.name;
-							if (name !== undefined && name !== '') {
-								return name;
-							}
-							const displayName = metadata?.content?.display_name;
-							if (displayName !== undefined && displayName !== '') {
-								return displayName;
-							}
+	{#snippet content()}
+		<section >
+			{#if isReply(item.event)}
+				<div class="reply">
+					<span>To</span>
+					<span>
+						@{eventItem.replyToPubkeys
+							.slice(0, full ? Infinity : 10)
+							.map((pubkey) => {
+								const metadata = $metadataStore.get(pubkey);
+								const name = metadata?.content?.name;
+								if (name !== undefined && name !== '') {
+									return name;
+								}
+								const displayName = metadata?.content?.display_name;
+								if (displayName !== undefined && displayName !== '') {
+									return displayName;
+								}
 
-							try {
-								return nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7);
-							} catch (error) {
-								console.error('[npub encode error]', pubkey, error);
-								return '-';
-							}
-						})
-						.join(' @')}
-				</span>
-				{#if !full && eventItem.replyToPubkeys.length > 10}
-					<span>...</span>
-				{/if}
-			</div>
-		{/if}
-		{#if !showContent}
-			<div class="content-warning">
-				<div>{contentWarningTag?.at(1) ?? ''}</div>
-				<button on:click={showWarningContent}>Show</button>
-			</div>
-		{:else}
-			<div class="content" class:shorten={!full}>
-				{#if Number(item.event.kind) === 1063}
-					<Nip94 event={item.event} />
-				{:else}
-					<Content content={item.event.content} tags={item.event.tags} />
-				{/if}
-			</div>
-		{/if}
-		{#if item.event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdStore === undefined}
-			<div class="channel">
-				<IconMessages size={16} color={'gray'} />
-				<span>
-					<a
-						href="/channels/{nip19.neventEncode({
-							id: channelId,
-							relays: getSeenOnRelays(channelId)
-						})}"
-					>
-						{channelName ?? 'Channel'}
-					</a>
-				</span>
-			</div>
-		{/if}
-		{#each item.event.tags.filter(([tagName]) => tagName === 'proxy') as tag}
-			<div class="proxy"><ProxyLink {tag} /></div>
-		{/each}
-		{#if !readonly}
-			<ActionMenu item={eventItem} />
-		{/if}
-		{#if full}
-			<footer>
-				<CreatedAt createdAt={item.event.created_at} format="full" />
-				<Via tags={item.event.tags} />
-			</footer>
-		{/if}
-	</section>
+								try {
+									return nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7);
+								} catch (error) {
+									console.error('[npub encode error]', pubkey, error);
+									return '-';
+								}
+							})
+							.join(' @')}
+					</span>
+					{#if !full && eventItem.replyToPubkeys.length > 10}
+						<span>...</span>
+					{/if}
+				</div>
+			{/if}
+			{#if !showContent}
+				<div class="content-warning">
+					<div>{contentWarningTag?.at(1) ?? ''}</div>
+					<button onclick={showWarningContent}>Show</button>
+				</div>
+			{:else}
+				<div class="content" class:shorten={!full}>
+					{#if Number(item.event.kind) === 1063}
+						<Nip94 event={item.event} />
+					{:else}
+						<Content content={item.event.content} tags={item.event.tags} />
+					{/if}
+				</div>
+			{/if}
+			{#if item.event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdStore === undefined}
+				<div class="channel">
+					<IconMessages size={16} color={'gray'} />
+					<span>
+						<a
+							href="/channels/{nip19.neventEncode({
+								id: channelId,
+								relays: getSeenOnRelays(channelId)
+							})}"
+						>
+							{channelName ?? 'Channel'}
+						</a>
+					</span>
+				</div>
+			{/if}
+			{#each item.event.tags.filter(([tagName]) => tagName === 'proxy') as tag}
+				<div class="proxy"><ProxyLink {tag} /></div>
+			{/each}
+			{#if !readonly}
+				<ActionMenu item={eventItem} />
+			{/if}
+			{#if full}
+				<footer>
+					<CreatedAt createdAt={item.event.created_at} format="full" />
+					<Via tags={item.event.tags} />
+				</footer>
+			{/if}
+		</section>
+	{/snippet}
 </EventMetadata>
 
 <style>

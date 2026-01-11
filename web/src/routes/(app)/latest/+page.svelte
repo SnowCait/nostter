@@ -13,9 +13,9 @@
 		lastNoteReqEmit($followees);
 	}
 
-	$: items = [...$lastNotesMap]
+	let items = $derived([...$lastNotesMap]
 		.map(([, event]) => new EventItem(event))
-		.sort(reverseChronologicalItem);
+		.sort(reverseChronologicalItem));
 </script>
 
 <svelte:head>

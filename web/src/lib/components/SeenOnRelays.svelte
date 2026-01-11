@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { seenOn } from '$lib/timelines/MainTimeline';
 
-	export let id: string;
+	interface Props {
+		id: string;
+	}
 
-	$: relays = seenOn.get(id) ?? new Set<string>();
+	let { id }: Props = $props();
+
+	let relays = $derived(seenOn.get(id) ?? new Set<string>());
 </script>
 
 <h5>Seen on {relays.size} relays</h5>

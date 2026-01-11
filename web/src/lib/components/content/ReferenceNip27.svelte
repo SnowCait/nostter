@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { nip19 } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
@@ -19,18 +21,22 @@
 	import { goto } from '$app/navigation';
 	import ProfileName from '../profile/ProfileName.svelte';
 
-	export let text: string;
+	interface Props {
+		text: string;
+	}
 
-	let dataType: 'user' | 'event' | 'addr';
-	let pubkey: string | undefined;
-	let metadata: Metadata | undefined;
-	let eventId: string | undefined;
-	let item: EventItem | undefined;
-	let addressPointer: nip19.AddressPointer;
+	let { text }: Props = $props();
 
-	$: slug = text.substring('nostr:'.length);
+	let dataType: 'user' | 'event' | 'addr' = $state();
+	let pubkey: string | undefined = $state();
+	let metadata: Metadata | undefined = $state();
+	let eventId: string | undefined = $state();
+	let item: EventItem | undefined = $state();
+	let addressPointer: nip19.AddressPointer = $state();
 
-	$: {
+	let slug = $derived(text.substring('nostr:'.length));
+
+	run(() => {
 		try {
 			const { type, data } = nip19.decode(slug);
 			switch (type) {
@@ -67,15 +73,19 @@
 		} catch (e) {
 			console.warn('[decode failed]', text, e);
 		}
-	}
+	});
 
-	$: if (dataType === 'user' && pubkey !== undefined) {
-		metadata = $metadataStore.get(pubkey);
-	}
+	run(() => {
+		if (dataType === 'user' && pubkey !== undefined) {
+			metadata = $metadataStore.get(pubkey);
+		}
+	});
 
-	$: if (dataType === 'event' && item === undefined && eventId !== undefined) {
-		item = $eventItemStore.get(eventId);
-	}
+	run(() => {
+		if (dataType === 'event' && item === undefined && eventId !== undefined) {
+			item = $eventItemStore.get(eventId);
+		}
+	});
 
 	onMount(async () => {
 		if (dataType === 'addr') {
@@ -137,8 +147,8 @@
 		{:else if Number(item.event.kind) === pollKind}
 			<blockquote><EventComponent {item} readonly={true} /></blockquote>
 		{:else}
-			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-			<blockquote on:click={navigate} on:keydown={navigate}>
+			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+			<blockquote onclick={navigate} onkeydown={navigate}>
 				<EventComponent {item} readonly={true} />
 			</blockquote>
 		{/if}

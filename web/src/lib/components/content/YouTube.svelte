@@ -1,14 +1,20 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { page } from '$app/stores';
 	import { enablePreview } from '$lib/stores/Preference';
 	import ExternalLink from '../ExternalLink.svelte';
 
-	export let link: URL;
+	interface Props {
+		link: URL;
+	}
 
-	let id: string | undefined;
-	let short = false;
+	let { link }: Props = $props();
 
-	$: {
+	let id: string | undefined = $state();
+	let short = $state(false);
+
+	run(() => {
 		if (link.hostname === 'youtu.be') {
 			id = link.pathname.replace('/', '');
 		} else if (link.pathname.startsWith('/live/')) {
@@ -23,7 +29,7 @@
 				short = true;
 			}
 		}
-	}
+	});
 </script>
 
 {#if id !== undefined && $enablePreview}
@@ -35,7 +41,7 @@
 		frameborder="0"
 		allow="fullscreen; picture-in-picture; web-share"
 		referrerpolicy="strict-origin-when-cross-origin"
-	/>
+	></iframe>
 {:else}
 	<ExternalLink {link} />
 {/if}

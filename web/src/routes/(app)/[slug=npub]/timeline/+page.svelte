@@ -7,7 +7,7 @@
 	import { User } from '$lib/User';
 	import UserFollowingTimeline from './UserFollowingTimeline.svelte';
 
-	let pubkey: string | undefined;
+	let pubkey: string | undefined = $state();
 
 	afterNavigate(async () => {
 		const slug = $page.params.slug;

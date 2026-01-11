@@ -9,12 +9,16 @@
 	import IconPin from '@tabler/icons-svelte/icons/pin';
 	import IconPinnedFilled from '@tabler/icons-svelte/icons/pinned-filled';
 
-	export let channelId: string;
+	interface Props {
+		channelId: string;
+	}
+
+	let { channelId }: Props = $props();
 
 	let pinned =
-		$authorChannelsEventStore?.tags.some(
+		$state($authorChannelsEventStore?.tags.some(
 			([tagName, id]) => tagName === 'e' && id === channelId
-		) ?? false;
+		) ?? false);
 
 	async function pin() {
 		console.log('[channel pin]', channelId);
@@ -132,9 +136,9 @@
 </script>
 
 {#if pinned}
-	<button class="clear" on:click={unpin}><IconPinnedFilled /></button>
+	<button class="clear" onclick={unpin}><IconPinnedFilled /></button>
 {:else}
-	<button class="clear" on:click={pin}><IconPin /></button>
+	<button class="clear" onclick={pin}><IconPin /></button>
 {/if}
 
 <style>

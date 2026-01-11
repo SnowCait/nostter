@@ -1,6 +1,10 @@
 <script lang="ts">
-	export let text: string = '';
-	export let url: string;
+	interface Props {
+		text?: string;
+		url: string;
+	}
+
+	let { text = '', url }: Props = $props();
 </script>
 
 <img src={url} alt={text} title={text} />

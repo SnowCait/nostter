@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	let fetched = false;
 </script>
 
@@ -21,14 +21,18 @@
 	import { clearListTimelineIfActive } from '$lib/timelines/ListTimeline';
 	import ModalDialog from '../ModalDialog.svelte';
 
-	export let pubkey: string;
-	export let open = false;
+	interface Props {
+		pubkey: string;
+		open?: boolean;
+	}
 
-	$: lists = [...$peopleLists].map(([, event]) => event);
+	let { pubkey, open = $bindable(false) }: Props = $props();
+
+	let lists = $derived([...$peopleLists].map(([, event]) => event));
 
 	const changedLists = new Map<string, boolean>();
 
-	let title = '';
+	let title = $state('');
 
 	onMount(() => {
 		if (fetched) {
@@ -115,7 +119,7 @@
 								<input
 									type="checkbox"
 									checked={contained}
-									on:change={(e) => toggled(e, list)}
+									onchange={(e) => toggled(e, list)}
 									disabled={$processing}
 								/>
 							</td>
@@ -124,7 +128,7 @@
 				{/each}
 				<tr>
 					<td><input type="text" bind:value={title} /></td>
-					<td><button on:click={create}>{$_('lists.create')}</button></td>
+					<td><button onclick={create}>{$_('lists.create')}</button></td>
 				</tr>
 			</tbody>
 		</table>

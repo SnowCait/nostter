@@ -13,20 +13,24 @@
 		removeFromEmojiList
 	} from '$lib/author/CustomEmojis';
 
-	export let event: Event;
+	interface Props {
+		event: Event;
+	}
+
+	let { event }: Props = $props();
 
 	const {
 		elements: { menu, item, trigger, overlay }
 	} = createDropdownMenu({ preventScroll: false });
 
-	$: address = aTagContent(event);
-	$: naddr = nip19.naddrEncode({
+	let address = $derived(aTagContent(event));
+	let naddr = $derived(nip19.naddrEncode({
 		kind: event.kind,
 		pubkey: event.pubkey,
 		identifier: findIdentifier(event.tags) ?? '',
 		relays: getSeenOnRelays(event.id)
-	});
-	$: emojitoUrl = `https://emojito.meme/a/${naddr}`;
+	}));
+	let emojitoUrl = $derived(`https://emojito.meme/a/${naddr}`);
 
 	async function add(): Promise<void> {
 		try {
@@ -48,21 +52,21 @@
 <button class="clear" use:melt={$trigger}>
 	<IconDots size={20} />
 </button>
-<div use:melt={$overlay} class="overlay" />
+<div use:melt={$overlay} class="overlay"></div>
 <div use:melt={$menu} class="menu">
 	{#if !$customEmojiListEvent?.tags.some((tag) => tag[0] === 'a' && tag[1] === address)}
-		<div use:melt={$item} on:m-click={add} class="item">
+		<div use:melt={$item} onm-click={add} class="item">
 			<div class="icon"><IconLibraryPlus size={20} /></div>
 			<div>{$_('emoji.custom.add')}</div>
 		</div>
 	{/if}
 	{#if $customEmojiListEvent?.tags.some((tag) => tag[0] === 'a' && tag[1] === address)}
-		<div use:melt={$item} on:m-click={remove} class="item">
+		<div use:melt={$item} onm-click={remove} class="item">
 			<div class="icon"><IconLibraryMinus size={20} /></div>
 			<div>{$_('emoji.custom.remove')}</div>
 		</div>
 	{/if}
-	<div use:melt={$item} on:m-click={() => window.open(emojitoUrl)} class="item">
+	<div use:melt={$item} onm-click={() => window.open(emojitoUrl)} class="item">
 		<div class="icon"><IconExternalLink size={20} /></div>
 		<div>{$_('actions.open_url.button').replace('%s', 'emojito')}</div>
 	</div>

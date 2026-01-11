@@ -7,7 +7,7 @@
 	} from '$lib/author/MuteAutomatically';
 	import { developerMode } from '$lib/stores/Preference';
 
-	let enable = $preferencesStore.muteAutomatically;
+	let enable = $state($preferencesStore.muteAutomatically);
 
 	async function changed(): Promise<void> {
 		console.log('[preferences mute automatically changed]', enable);
@@ -21,7 +21,7 @@
 </script>
 
 <label>
-	<input type="checkbox" bind:checked={enable} on:change={changed} />
+	<input type="checkbox" bind:checked={enable} onchange={changed} />
 	<span>{$_('preferences.mute.automatically')}</span>
 	{#if enable && $developerMode}
 		<span>(followees: {$followeesOfFollowees.size})</span>

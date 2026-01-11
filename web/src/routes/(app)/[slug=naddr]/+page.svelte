@@ -12,13 +12,17 @@
 	import Loading from '$lib/components/Loading.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	let event: Event | undefined;
+	let { data }: Props = $props();
 
-	$: title = event?.tags.find(([t]) => t === 'title')?.at(1);
-	$: summary = event?.tags.find(([t]) => t === 'summary')?.at(1) ?? '';
-	$: link = new URL(`https://nostr.com/${data.slug}`);
+	let event: Event | undefined = $state();
+
+	let title = $derived(event?.tags.find(([t]) => t === 'title')?.at(1));
+	let summary = $derived(event?.tags.find(([t]) => t === 'summary')?.at(1) ?? '');
+	let link = $derived(new URL(`https://nostr.com/${data.slug}`));
 
 	afterNavigate(async () => {
 		console.log('[naddr page]', data);

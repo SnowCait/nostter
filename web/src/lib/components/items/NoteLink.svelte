@@ -5,9 +5,13 @@
 	import { developerMode } from '$lib/stores/Preference';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	export let eventId: string;
+	interface Props {
+		eventId: string;
+	}
 
-	$: nevent = nip19.neventEncode({ id: eventId, relays: getSeenOnRelays(eventId) });
+	let { eventId }: Props = $props();
+
+	let nevent = $derived(nip19.neventEncode({ id: eventId, relays: getSeenOnRelays(eventId) }));
 </script>
 
 <article class="timeline-item">

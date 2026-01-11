@@ -6,7 +6,7 @@
 	import IconTrash from '@tabler/icons-svelte/icons/trash';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	let unmuting = false;
+	let unmuting = $state(false);
 
 	async function onUnmute(eventId: string) {
 		console.log('[unmute event]', eventId);
@@ -31,7 +31,7 @@
 			<a href="/{nevent}">
 				<span>{nevent.slice(0, 'nevent1'.length + 7)}</span>
 			</a>
-			<button class="clear" disabled={unmuting} on:click={() => onUnmute(eventId)}>
+			<button class="clear" disabled={unmuting} onclick={() => onUnmute(eventId)}>
 				<IconTrash size={18} />
 			</button>
 		</li>

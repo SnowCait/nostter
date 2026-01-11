@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { appName } from '$lib/Constants';
 	import { intentContent } from '$lib/stores/NoteDialog';
 	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
 
-	const content = $page.url.searchParams.get('content');
+	const content = page.url.searchParams.get('content');
 
 	// Web Share Target API
-	const title = $page.url.searchParams.get('title');
-	const text = $page.url.searchParams.get('text');
-	const url = $page.url.searchParams.get('url');
+	const title = page.url.searchParams.get('title');
+	const text = page.url.searchParams.get('text');
+	const url = page.url.searchParams.get('url');
 	const sharedContent = [title ?? text, url]
 		.filter((param) => param !== null && param.trim() !== '')
 		.join('\n');
@@ -22,7 +22,7 @@
 		$intentContent = sharedContent;
 	}
 
-	let editor: NoteEditor | undefined;
+	let editor: NoteEditor | undefined = $state();
 
 	async function afterPost(): Promise<void> {
 		editor?.clear();

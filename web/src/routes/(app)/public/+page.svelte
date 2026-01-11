@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import Timeline from '$lib/components/Timeline.svelte';
 
-	let timeline: PublicTimeline | undefined;
+	let timeline: PublicTimeline | undefined = $state();
 
 	onMount(() => {
 		console.debug('[public timeline on mount]', $locale);

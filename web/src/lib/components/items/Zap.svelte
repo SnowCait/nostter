@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { onMount } from 'svelte';
 	import { nip19 } from 'nostr-tools';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
@@ -17,38 +19,46 @@
 	import MutedContent from './MutedContent.svelte';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 
-	export let item: Item;
-	export let readonly: boolean;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	interface Props {
+		item: Item;
+		readonly: boolean;
+		createdAtFormat?: 'auto' | 'time';
+	}
+
+	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
 
 	const event = item.event;
 	const zap = new ZapEventItem(event);
 
-	$: metadata = $metadataStore.get(event.pubkey);
-	$: nevent = nip19.neventEncode({
+	let metadata = $derived($metadataStore.get(event.pubkey));
+	let nevent = $derived(nip19.neventEncode({
 		id: event.id,
 		relays: getSeenOnRelays(event.id),
 		author: event.pubkey,
 		kind: event.kind
+	}));
+
+	let zapperMetadata: Metadata | undefined = $state();
+
+	run(() => {
+		if (zap.requestEvent !== undefined) {
+			zapperMetadata = $metadataStore.get(zap.requestEvent.pubkey);
+		}
 	});
 
-	let zapperMetadata: Metadata | undefined;
-
-	$: if (zap.requestEvent !== undefined) {
-		zapperMetadata = $metadataStore.get(zap.requestEvent.pubkey);
-	}
-
-	let originalEvent: EventItem | undefined;
-	let jsonDisplay = false;
+	let originalEvent: EventItem | undefined = $state();
+	let jsonDisplay = $state(false);
 
 	const originalTag = event.tags.find(
 		(tag) =>
 			tag.at(0) === 'e' && (tag.at(3) === 'mention' || tag.at(3) === 'root' || tag.length < 4)
 	);
 
-	$: if (originalTag !== undefined) {
-		originalEvent = $eventItemStore.get(originalTag[1]);
-	}
+	run(() => {
+		if (originalTag !== undefined) {
+			originalEvent = $eventItemStore.get(originalTag[1]);
+		}
+	});
 
 	onMount(() => {
 		if (zap.requestEvent !== undefined) {
@@ -85,7 +95,7 @@
 		{/if}
 		{#if $developerMode}
 			<div class="json-button right">
-				<button class="clear" on:click={toggleJsonDisplay}>
+				<button class="clear" onclick={toggleJsonDisplay}>
 					<IconCodeDots size={15} />
 				</button>
 			</div>

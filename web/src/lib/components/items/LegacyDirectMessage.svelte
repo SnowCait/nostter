@@ -6,9 +6,13 @@
 	import type { Event } from 'nostr-typedef';
 	import CreatedAt from '../CreatedAt.svelte';
 
-	export let event: Event;
+	interface Props {
+		event: Event;
+	}
 
-	$: link = new URL(`https://nostrapp.link/kind/${event.kind}`);
+	let { event }: Props = $props();
+
+	let link = $derived(new URL(`https://nostrapp.link/kind/${event.kind}`));
 </script>
 
 <SystemMessage>

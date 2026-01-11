@@ -14,15 +14,19 @@
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import TimelineView from '../../../TimelineView.svelte';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+	}
 
-	let item: EventItem | undefined;
-	let itemsMap = new Map<pubkey, EventItem>();
+	let { data }: Props = $props();
 
-	$: items = [...itemsMap]
+	let item: EventItem | undefined = $state();
+	let itemsMap = $state(new Map<pubkey, EventItem>());
+
+	let items = $derived([...itemsMap]
 		.map(([, item]) => item)
 		.filter((item) => filterTags('e', item.event.tags).length === 0)
-		.sort((x, y) => chronologicalItem(x, y));
+		.sort((x, y) => chronologicalItem(x, y)));
 
 	const eventReq = createRxBackwardReq();
 	rxNostr

@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { run, createBubbler, preventDefault, stopPropagation } from 'svelte/legacy';
+
+	const bubble = createBubbler();
 	import { createEventDispatcher, tick } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { kinds as Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
@@ -41,90 +44,106 @@
 		contentWarningReason = undefined;
 	}
 
-	export let afterPost: () => Promise<void> = async () => {};
 
-	export let content = '';
+	interface Props {
+		afterPost?: () => Promise<void>;
+		content?: string;
+	}
 
-	let tags: string[][] = [];
-	let posting = false;
-	let channelEvent: NostrEvent | undefined;
-	let emojiTags: string[][] = [];
-	let contentWarningReason: string | undefined;
+	let { afterPost = async () => {}, content = $bindable('') }: Props = $props();
 
-	let textarea: HTMLTextAreaElement;
-	let article: HTMLElement;
+	let tags: string[][] = $state([]);
+	let posting = $state(false);
+	let channelEvent: NostrEvent | undefined = $state();
+	let emojiTags: string[][] = $state([]);
+	let contentWarningReason: string | undefined = $state();
+
+	let textarea: HTMLTextAreaElement = $state();
+	let article: HTMLElement = $state();
 
 	//#region Mention complement
 
-	let mention: string | undefined;
-	let mentionPrevious = mention;
-	let mentionComplementList: Metadata[] = [];
-	let mentionComplementIndex = 0;
+	let mention: string | undefined = $state();
+	let mentionPrevious = $state(mention);
+	let mentionComplementList: Metadata[] = $state([]);
+	let mentionComplementIndex = $state(0);
 
-	$: if (mention !== undefined) {
-		const displayMax = 10;
-		const metadataList = [...$metadataStore].map(([, metadata]) => metadata);
-		const list = metadataList
-			.filter((metadata) => metadata.startsWith(mention ?? ''))
-			.slice(0, displayMax);
-		if (list.length < displayMax) {
-			list.push(
-				...metadataList
-					.filter((metadata) => metadata.includes(mention ?? ''))
-					.filter(
-						(metadata) => !list.some((m) => m.event.pubkey === metadata.event.pubkey)
-					)
-					.slice(0, displayMax - list.length)
-			);
+	run(() => {
+		if (mention !== undefined) {
+			const displayMax = 10;
+			const metadataList = [...$metadataStore].map(([, metadata]) => metadata);
+			const list = metadataList
+				.filter((metadata) => metadata.startsWith(mention ?? ''))
+				.slice(0, displayMax);
+			if (list.length < displayMax) {
+				list.push(
+					...metadataList
+						.filter((metadata) => metadata.includes(mention ?? ''))
+						.filter(
+							(metadata) => !list.some((m) => m.event.pubkey === metadata.event.pubkey)
+						)
+						.slice(0, displayMax - list.length)
+				);
+			}
+			if (list.length < displayMax) {
+				fetchFolloweesMetadata();
+			}
+			mentionComplementList = list;
+			console.debug('[complement mention list]', mention, mentionComplementList);
 		}
-		if (list.length < displayMax) {
-			fetchFolloweesMetadata();
+	});
+
+	run(() => {
+		if (mention === undefined) {
+			mentionComplementList = [];
 		}
-		mentionComplementList = list;
-		console.debug('[complement mention list]', mention, mentionComplementList);
-	}
+	});
 
-	$: if (mention === undefined) {
-		mentionComplementList = [];
-	}
-
-	$: if (mention !== mentionPrevious) {
-		mentionPrevious = mention;
-		mentionComplementIndex = 0;
-	}
+	run(() => {
+		if (mention !== mentionPrevious) {
+			mentionPrevious = mention;
+			mentionComplementIndex = 0;
+		}
+	});
 
 	//#endregion
 
 	//#region Custom Emoji
 
 	type Emoji = { shortcode: string; url: string };
-	let shortcode: string | undefined;
-	let shortcodePrevious = shortcode;
-	let shortcodeComplementList: Emoji[] = [];
-	let shortcodeComplementIndex = 0;
+	let shortcode: string | undefined = $state();
+	let shortcodePrevious = $state(shortcode);
+	let shortcodeComplementList: Emoji[] = $state([]);
+	let shortcodeComplementIndex = $state(0);
 
-	$: if (shortcode !== undefined) {
-		const customEmojiList = $customEmojiTags.map(([, shortcode, url]) => ({ shortcode, url }));
-		const list = customEmojiList.filter(({ shortcode: s }) =>
-			s.toLowerCase().startsWith((shortcode ?? '').toLowerCase())
-		);
-		list.push(
-			...customEmojiList.filter(({ shortcode: s }) =>
-				s.toLowerCase().includes((shortcode ?? '').toLowerCase())
-			)
-		);
-		shortcodeComplementList = list;
-		console.debug('[complement shortcode list]', shortcode, shortcodeComplementList);
-	}
+	run(() => {
+		if (shortcode !== undefined) {
+			const customEmojiList = $customEmojiTags.map(([, shortcode, url]) => ({ shortcode, url }));
+			const list = customEmojiList.filter(({ shortcode: s }) =>
+				s.toLowerCase().startsWith((shortcode ?? '').toLowerCase())
+			);
+			list.push(
+				...customEmojiList.filter(({ shortcode: s }) =>
+					s.toLowerCase().includes((shortcode ?? '').toLowerCase())
+				)
+			);
+			shortcodeComplementList = list;
+			console.debug('[complement shortcode list]', shortcode, shortcodeComplementList);
+		}
+	});
 
-	$: if (shortcode === undefined) {
-		shortcodeComplementList = [];
-	}
+	run(() => {
+		if (shortcode === undefined) {
+			shortcodeComplementList = [];
+		}
+	});
 
-	$: if (shortcode !== shortcodePrevious) {
-		shortcodePrevious = shortcode;
-		shortcodeComplementIndex = 0;
-	}
+	run(() => {
+		if (shortcode !== shortcodePrevious) {
+			shortcodePrevious = shortcode;
+			shortcodeComplementIndex = 0;
+		}
+	});
 
 	async function replaceShortcodeComplement(emoji: Emoji): Promise<void> {
 		if (shortcode === undefined) {
@@ -153,16 +172,16 @@
 
 	//#region Media
 
-	let onDrag = false;
-	let mediaUrls = new Map<File, string | undefined>();
+	let onDrag = $state(false);
+	let mediaUrls = $state(new Map<File, string | undefined>());
 
-	$: uploading = [...mediaUrls].some(([, url]) => url === undefined);
+	let uploading = $derived([...mediaUrls].some(([, url]) => url === undefined));
 
 	//#endregion
 
-	$: containsNsec = /nsec1\w{6,}/.test(content);
+	let containsNsec = $derived(/nsec1\w{6,}/.test(content));
 
-	$: {
+	run(() => {
 		const noteComposer = new NoteComposer();
 		noteComposer.emojiTags(content, emojiTags).then((emojiTags) => {
 			tags = [
@@ -172,7 +191,7 @@
 				...noteComposer.contentWarningTags(contentWarningReason)
 			];
 		});
-	}
+	});
 
 	const dispatch = createEventDispatcher();
 
@@ -505,21 +524,21 @@
 </script>
 
 <svelte:body
-	on:dragstart|preventDefault
-	on:dragend|preventDefault={() => {
+	ondragstart={preventDefault(bubble('dragstart'))}
+	ondragend={preventDefault(() => {
 		onDrag = false;
-	}}
-	on:dragover|preventDefault={() => {
+	})}
+	ondragover={preventDefault(() => {
 		if (!$openNoteDialog) {
 			$openNoteDialog = true;
 		}
-	}}
-	on:drop|preventDefault={() => {
+	})}
+	ondrop={preventDefault(() => {
 		onDrag = false;
-	}}
-	on:dragleave|preventDefault={() => {
+	})}
+	ondragleave={preventDefault(() => {
 		onDrag = false;
-	}}
+	})}
 />
 
 <article bind:this={article} class="note-editor">
@@ -541,13 +560,13 @@
 				class:dropzone={onDrag}
 				bind:value={content}
 				bind:this={textarea}
-				on:keydown={onKeydown}
-				on:keyup|stopPropagation={() => console.debug}
-				on:input={onInput}
-				on:paste={paste}
-				on:dragover|preventDefault={dragover}
-				on:drop|preventDefault={drop}
-			/>
+				onkeydown={onKeydown}
+				onkeyup={stopPropagation(() => console.debug)}
+				oninput={onInput}
+				onpaste={paste}
+				ondragover={preventDefault(dragover)}
+				ondrop={preventDefault(drop)}
+			></textarea>
 			{#if containsNsec}
 				<div class="warning">{$_('editor.warning.nsec')}</div>
 			{/if}
@@ -555,12 +574,12 @@
 			{#if mentionComplementList.length > 0 && textarea !== undefined}
 				<ul class="complement card" use:complementPosition={textarea}>
 					{#each mentionComplementList as metadata, i}
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 						<li
 							class:selected={i === mentionComplementIndex}
-							on:click|stopPropagation={async () =>
-								await replaceMentionComplement(mentionComplementList[i])}
+							onclick={stopPropagation(async () =>
+								await replaceMentionComplement(mentionComplementList[i]))}
 						>
 							<OnelineProfile pubkey={metadata.event.pubkey} />
 						</li>
@@ -571,12 +590,12 @@
 			{#if shortcodeComplementList.length > 0 && textarea !== undefined}
 				<ul class="complement card" use:complementPosition={textarea}>
 					{#each shortcodeComplementList as emoji, i}
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 						<li
 							class:selected={i === shortcodeComplementIndex}
-							on:click|stopPropagation={async () =>
-								await replaceShortcodeComplement(shortcodeComplementList[i])}
+							onclick={stopPropagation(async () =>
+								await replaceShortcodeComplement(shortcodeComplementList[i]))}
 						>
 							<CustomEmoji text={emoji.shortcode} url={emoji.url} />
 							<span>:{emoji.shortcode}:</span>
@@ -606,7 +625,7 @@
 			<button
 				title="{$_('editor.post.button')} (Ctrl + Enter)"
 				class="button-small"
-				on:click={postNote}
+				onclick={postNote}
 				disabled={$author === undefined || content === '' || $rom || posting || uploading}
 			>
 				{$_('editor.post.button')}

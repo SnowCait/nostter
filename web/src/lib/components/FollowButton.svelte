@@ -5,9 +5,13 @@
 	import { alternativeName } from '$lib/Items';
 	import { originalFollowees } from '$lib/stores/Author';
 
-	export let pubkey: string;
+	interface Props {
+		pubkey: string;
+	}
 
-	let processing = false;
+	let { pubkey }: Props = $props();
+
+	let processing = $state(false);
 
 	async function onFollow() {
 		console.log('[follow]');
@@ -48,11 +52,11 @@
 </script>
 
 {#if $originalFollowees.includes(pubkey)}
-	<button on:click={onUnfollow} class="button-small button-outlined" disabled={processing}>
+	<button onclick={onUnfollow} class="button-small button-outlined" disabled={processing}>
 		{$_('follow.following')}
 	</button>
 {:else}
-	<button on:click={onFollow} class="button-small" disabled={processing}>
+	<button onclick={onFollow} class="button-small" disabled={processing}>
 		{$_('follow.follow')}
 	</button>
 {/if}

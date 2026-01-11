@@ -10,12 +10,16 @@
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import TimelineView from '../../TimelineView.svelte';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+	}
+
+	let { data }: Props = $props();
 
 	let id: string | undefined;
-	let itemsMap = new Map<pubkey, EventItem>();
+	let itemsMap = $state(new Map<pubkey, EventItem>());
 
-	$: items = [...itemsMap].map(([, item]) => item).sort((x, y) => chronologicalItem(x, y));
+	let items = $derived([...itemsMap].map(([, item]) => item).sort((x, y) => chronologicalItem(x, y)));
 
 	const quotesReq = createRxBackwardReq();
 	rxNostr

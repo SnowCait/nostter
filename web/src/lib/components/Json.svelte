@@ -1,5 +1,9 @@
 <script lang="ts">
-	export let object: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+	interface Props {
+		object: any;
+	}
+
+	let { object }: Props = $props();
 </script>
 
 <code>{JSON.stringify(object, null, 2)}</code>

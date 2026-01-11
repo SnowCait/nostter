@@ -7,10 +7,14 @@
 	import { findIdentifier } from '$lib/EventHelper';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	export let naddr: string;
+	interface Props {
+		naddr: string;
+	}
+
+	let { naddr }: Props = $props();
 
 	let pointer: nip19.AddressPointer;
-	let event: Event | undefined;
+	let event: Event | undefined = $state();
 
 	try {
 		const { type, data } = nip19.decode(naddr);

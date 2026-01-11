@@ -1,14 +1,18 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 
-	export let createdAt: number;
-	export let format: 'auto' | 'time' | 'full' = 'auto';
+	interface Props {
+		createdAt: number;
+		format?: 'auto' | 'time' | 'full';
+	}
+
+	let { createdAt, format = 'auto' }: Props = $props();
 
 	const lang = browser ? navigator.language : 'en';
 	const date = new Date(createdAt * 1000);
 	const elapsedTime = Date.now() - date.getTime();
 	const oneDay = 24 * 60 * 60 * 1000;
-	let createdAtDisplay: string;
+	let createdAtDisplay: string = $state();
 	if (format === 'full') {
 		createdAtDisplay = date.toLocaleString(lang);
 	} else if (elapsedTime < oneDay || format === 'time') {

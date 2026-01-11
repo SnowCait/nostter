@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
@@ -26,60 +28,71 @@
 	import EmojifiedContent from '$lib/components/EmojifiedContent.svelte';
 	import { userStatusReqEmit } from '$lib/UserStatus';
 
-	export let slug: string;
-	export let pubkey: string;
-	export let metadata: Metadata | undefined;
-	export let relays: string[];
-
-	let p: string | undefined;
-	let followees: string[] | undefined;
-
-	$: user = metadata?.content;
-	$: url = user?.website ? newUrl(user.website) : undefined;
-
-	$: if (p !== pubkey && browser) {
-		console.debug('[npub profile]', nip19.npubEncode(pubkey), relays);
-
-		p = pubkey;
-		followees = undefined;
-
-		const contactsReq = createRxOneshotReq({
-			filters: [
-				{
-					kinds: [3],
-					authors: [pubkey],
-					limit: 1
-				}
-			]
-		});
-		rxNostr
-			.use(contactsReq)
-			.pipe(tie, uniq(), latest())
-			.subscribe({
-				next: (packet) => {
-					console.debug('[rx-nostr npub contacts]', packet);
-					followees = [...new Set(filterTags('p', packet.event.tags))];
-				},
-				complete: () => {
-					console.debug('[rx-nostr npub contacts complete]', followees);
-					if (followees === undefined) {
-						followees = [];
-					}
-				},
-				error: (error) => {
-					console.error('[rx-nostr npub contacts error]', error);
-				}
-			});
-
-		userStatusReqEmit([pubkey]);
+	interface Props {
+		slug: string;
+		pubkey: string;
+		metadata: Metadata | undefined;
+		relays: string[];
 	}
+
+	let {
+		slug,
+		pubkey,
+		metadata,
+		relays
+	}: Props = $props();
+
+	let p: string | undefined = $state();
+	let followees: string[] | undefined = $state();
+
+	let user = $derived(metadata?.content);
+	let url = $derived(user?.website ? newUrl(user.website) : undefined);
+
+	run(() => {
+		if (p !== pubkey && browser) {
+			console.debug('[npub profile]', nip19.npubEncode(pubkey), relays);
+
+			p = pubkey;
+			followees = undefined;
+
+			const contactsReq = createRxOneshotReq({
+				filters: [
+					{
+						kinds: [3],
+						authors: [pubkey],
+						limit: 1
+					}
+				]
+			});
+			rxNostr
+				.use(contactsReq)
+				.pipe(tie, uniq(), latest())
+				.subscribe({
+					next: (packet) => {
+						console.debug('[rx-nostr npub contacts]', packet);
+						followees = [...new Set(filterTags('p', packet.event.tags))];
+					},
+					complete: () => {
+						console.debug('[rx-nostr npub contacts complete]', followees);
+						if (followees === undefined) {
+							followees = [];
+						}
+					},
+					error: (error) => {
+						console.error('[rx-nostr npub contacts error]', error);
+					}
+				});
+
+			userStatusReqEmit([pubkey]);
+		}
+	});
 </script>
 
 <div class="banner">
 	{#if user?.banner}
 		<img src={user.banner} alt="" />
 	{:else}
-		<div class="blank" />
+		<div class="blank"></div>
 	{/if}
 </div>
 <div class="user-info">
@@ -100,7 +113,7 @@
 						<ProfileMenuButton {pubkey} />
 					</div>
 					{#if pubkey === $authorPubkey}
-						<button on:click={async () => await goto('/profile')}>
+						<button onclick={async () => await goto('/profile')}>
 							{$_('pages.profile_edit')}
 						</button>
 					{:else}

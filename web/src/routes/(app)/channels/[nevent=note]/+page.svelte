@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import {
 		createRxForwardReq,
 		createRxNostr,
@@ -35,19 +37,21 @@
 	import OnelineProfile from '$lib/components/profile/OnelineProfile.svelte';
 
 	let slug = $page.params.nevent!;
-	let channelId: string;
+	let channelId: string = $state();
 	// let author: string | undefined;
 	let relays: string[];
-	let kind40Event: Event | undefined;
+	let kind40Event: Event | undefined = $state();
 	let kind41Event: Event | undefined;
-	let channelMetadata: ChannelMetadata | undefined;
+	let channelMetadata: ChannelMetadata | undefined = $state();
 
 	let channelMessageSubscription: Subscription | undefined;
 
-	let showInformation = false;
+	let showInformation = $state(false);
 
-	$: metadata = kind40Event !== undefined ? $metadataStore.get(kind40Event.pubkey) : undefined;
-	$: console.log('[channel metadata]', channelMetadata);
+	let metadata = $derived(kind40Event !== undefined ? $metadataStore.get(kind40Event.pubkey) : undefined);
+	run(() => {
+		console.log('[channel metadata]', channelMetadata);
+	});
 
 	function updateChannelMetadata(): void {
 		console.log('[channel metadata update]', slug);
@@ -82,7 +86,7 @@
 
 	const rxNostr = createRxNostr({ verifier: verificationClient.verifier, eoseTimeout: timeout });
 
-	let items: EventItem[] = [];
+	let items: EventItem[] = $state([]);
 
 	afterNavigate(async () => {
 		slug = $page.params.nevent!;
@@ -224,7 +228,7 @@
 		<div>
 			<button
 				class="clear"
-				on:click={() => {
+				onclick={() => {
 					showInformation = !showInformation;
 				}}
 			>

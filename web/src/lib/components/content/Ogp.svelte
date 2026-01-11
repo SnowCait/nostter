@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import { writable } from 'svelte/store';
 
 	type Data = {
@@ -10,19 +10,17 @@
 </script>
 
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { httpProxy } from '$lib/Constants';
 
-	export let url: URL;
-
-	$: data = $cache.get(url.href);
-
-	$: if (!$cache.has(url.href)) {
-		fetchOgp(url, true).then((success) => {
-			if (!success) {
-				fetchOgp(url, false);
-			}
-		});
+	interface Props {
+		url: URL;
 	}
+
+	let { url }: Props = $props();
+
+
 
 	async function fetchOgp(url: URL, proxy: boolean): Promise<boolean> {
 		console.debug('[OGP url]', url.href, proxy);
@@ -103,6 +101,16 @@
 		const img = event.target as HTMLImageElement;
 		img.hidden = true;
 	}
+	let data = $derived($cache.get(url.href));
+	run(() => {
+		if (!$cache.has(url.href)) {
+			fetchOgp(url, true).then((success) => {
+				if (!success) {
+					fetchOgp(url, false);
+				}
+			});
+		}
+	});
 </script>
 
 {#if data?.title}
@@ -110,7 +118,7 @@
 		<blockquote>
 			{#if data.image}
 				{#if data.image.startsWith('https://')}
-					<img src={data.image} alt="" on:error={error} loading="lazy" />
+					<img src={data.image} alt="" onerror={error} loading="lazy" />
 				{:else if data.image.startsWith('http://')}
 					<!-- Don't show image due to mixed content -->
 				{:else}

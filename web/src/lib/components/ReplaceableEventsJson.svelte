@@ -3,14 +3,14 @@
 	import Json from './Json.svelte';
 	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
 
-	let showReplaceableEvents = false;
+	let showReplaceableEvents = $state(false);
 
 	function toggleReplaceableEvents() {
 		showReplaceableEvents = !showReplaceableEvents;
 	}
 </script>
 
-<button class="clear" on:click={toggleReplaceableEvents}>
+<button class="clear" onclick={toggleReplaceableEvents}>
 	<IconCodeDots />
 </button>
 {#if showReplaceableEvents}

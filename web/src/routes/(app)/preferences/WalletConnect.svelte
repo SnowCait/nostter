@@ -1,13 +1,16 @@
 <script lang="ts">
+	import { createBubbler, stopPropagation } from 'svelte/legacy';
+
+	const bubble = createBubbler();
 	import { browser } from '$app/environment';
 	import { WebStorage } from '$lib/WebStorage';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import { parseConnectionString } from '$lib/nostr-tools/nip47';
 	import IconCheck from '@tabler/icons-svelte/icons/check';
 
-	let uri = browser ? (new WebStorage(localStorage).get('nostr-wallet-connect') ?? '') : '';
+	let uri = $state(browser ? (new WebStorage(localStorage).get('nostr-wallet-connect') ?? '') : '');
 	let valid = true;
-	let saved = false;
+	let saved = $state(false);
 
 	function save(): void {
 		if (!isValid(uri)) {
@@ -50,8 +53,8 @@
 	type="url"
 	placeholder="nostr+walletconnect:"
 	bind:value={uri}
-	on:keyup|stopPropagation
-	on:change={save}
+	onkeyup={stopPropagation(bubble('keyup'))}
+	onchange={save}
 	class:invalid={!valid}
 />
 

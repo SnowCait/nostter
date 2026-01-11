@@ -1,18 +1,23 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { appName } from '$lib/Constants';
 	import '../app.css';
 	import Toaster from '$lib/components/Toaster.svelte';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 </script>
 
 <svelte:head>
-	<title>{$page.data.title}</title>
-	<meta name="description" content={$page.data.description} />
-	<meta property="og:title" content={$page.data.title} />
+	<title>{page.data.title}</title>
+	<meta name="description" content={page.data.description} />
+	<meta property="og:title" content={page.data.title} />
 	<meta property="og:type" content="website" />
-	<meta property="og:image" content={$page.data.image} />
-	<meta property="og:url" content={$page.url.href} />
-	<meta property="og:description" content={$page.data.description} />
+	<meta property="og:image" content={page.data.image} />
+	<meta property="og:url" content={page.url.href} />
+	<meta property="og:description" content={page.data.description} />
 	<meta property="og:site_name" content={appName} />
 	<meta name="twitter:card" content="summary" />
 	<style>
@@ -46,4 +51,4 @@
 </svelte:head>
 
 <Toaster />
-<slot />
+{@render children?.()}

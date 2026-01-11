@@ -2,11 +2,16 @@
 	import type { Event } from 'nostr-typedef';
 	import { getTagContent } from '$lib/EventHelper';
 
-	export let event: Event;
+	interface Props {
+		event: Event;
+		children?: import('svelte').Snippet;
+	}
 
-	$: name = getTagContent('name', event.tags);
-	$: description = getTagContent('description', event.tags);
-	$: url = getTagContent('image', event.tags);
+	let { event, children }: Props = $props();
+
+	let name = $derived(getTagContent('name', event.tags));
+	let description = $derived(getTagContent('description', event.tags));
+	let url = $derived(getTagContent('image', event.tags));
 </script>
 
 <article>
@@ -14,7 +19,7 @@
 	<main>
 		<h2>{name}</h2>
 		<p>{description}</p>
-		<slot />
+		{@render children?.()}
 	</main>
 </article>
 

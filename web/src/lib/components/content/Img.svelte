@@ -6,7 +6,11 @@
 	import { _ } from 'svelte-i18n';
 	import { Img, type ImgSrc } from 'svelte-remote-image';
 
-	export let url: URL;
+	interface Props {
+		url: URL;
+	}
+
+	let { url }: Props = $props();
 
 	const { href: src, pathname } = url;
 	const events = getContext<Event[] | undefined>('events');

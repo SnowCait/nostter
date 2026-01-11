@@ -1,5 +1,9 @@
 <script lang="ts">
-	export let tags: string[][];
+	interface Props {
+		tags: string[][];
+	}
+
+	let { tags }: Props = $props();
 </script>
 
 {#each tags.filter(([tagName, tagContent]) => tagName === 'client' && tagContent) as tag}

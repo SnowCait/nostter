@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { unfollowHashtag } from '$lib/Interest';
 
-	export let hashtag: string;
+	interface Props {
+		hashtag: string;
+	}
+
+	let { hashtag }: Props = $props();
 </script>
 
-<button on:click={() => unfollowHashtag(hashtag)}>Unfollow #{hashtag}</button>
+<button onclick={() => unfollowHashtag(hashtag)}>Unfollow #{hashtag}</button>

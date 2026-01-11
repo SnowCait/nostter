@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 
-	let show = false;
+	let show = $state(false);
 
 	async function requestPermission() {
 		await Notification.requestPermission();
@@ -18,5 +18,5 @@
 
 {#if show}
 	<span>{$_('notifications.toast.title')}</span>
-	<button on:click={requestPermission}>{$_('notifications.toast.enable')}</button>
+	<button onclick={requestPermission}>{$_('notifications.toast.enable')}</button>
 {/if}

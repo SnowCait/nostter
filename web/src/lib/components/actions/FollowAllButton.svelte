@@ -2,7 +2,11 @@
 	import { _ } from 'svelte-i18n';
 	import { follow } from '$lib/author/Follow';
 
-	export let pubkeys: string[];
+	interface Props {
+		pubkeys: string[];
+	}
+
+	let { pubkeys }: Props = $props();
 
 	async function onFollowAll(): Promise<void> {
 		console.log('[follow all]');
@@ -15,4 +19,4 @@
 	}
 </script>
 
-<button on:click={onFollowAll}>{$_('actions.follow.all.button')}</button>
+<button onclick={onFollowAll}>{$_('actions.follow.all.button')}</button>

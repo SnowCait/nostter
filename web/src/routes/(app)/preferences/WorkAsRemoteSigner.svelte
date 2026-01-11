@@ -5,8 +5,8 @@
 	import { IconCheck } from '@tabler/icons-svelte';
 	import { page } from '$app/state';
 
-	let enabled = remoteSigner.enabled;
-	let copied = false;
+	let enabled = $state(remoteSigner.enabled);
+	let copied = $state(false);
 
 	function enable(): void {
 		remoteSigner.enable();
@@ -35,12 +35,12 @@
 	{$_('remote-signer-service.extension')}
 </p>
 {#if enabled}
-	<button on:click={copy} disabled={copied}>
+	<button onclick={copy} disabled={copied}>
 		{$_('remote-signer-service.copy')}{#if copied}<IconCheck size={16} />{/if}
 	</button>
-	<button on:click={disable}>{$_('remote-signer-service.disable')}</button>
+	<button onclick={disable}>{$_('remote-signer-service.disable')}</button>
 {:else}
-	<button on:click={enable}>{$_('remote-signer-service.enable')}</button>
+	<button onclick={enable}>{$_('remote-signer-service.enable')}</button>
 {/if}
 
 <style>

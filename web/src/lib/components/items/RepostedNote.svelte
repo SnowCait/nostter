@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import type { EventItem, Item } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
@@ -16,29 +18,33 @@
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	export let item: Item;
-	export let readonly: boolean;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	interface Props {
+		item: Item;
+		readonly: boolean;
+		createdAtFormat?: 'auto' | 'time';
+	}
+
+	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
 
 	const { event } = item;
 
-	$: metadata = $metadataStore.get(event.pubkey);
-	$: nevent = nip19.neventEncode({
+	let metadata = $derived($metadataStore.get(event.pubkey));
+	let nevent = $derived(nip19.neventEncode({
 		id: event.id,
 		relays: getSeenOnRelays(event.id),
 		author: event.pubkey,
 		kind: event.kind
-	});
+	}));
 
-	let originalEvent: EventItem | undefined;
-	let jsonDisplay = false;
+	let originalEvent: EventItem | undefined = $state();
+	let jsonDisplay = $state(false);
 
-	let originalTag = event.tags.find(
+	let originalTag = $state(event.tags.find(
 		([tagName, eventId, , marker]) =>
 			tagName === 'e' &&
 			eventId !== undefined &&
 			(marker === 'mention' || marker === undefined)
-	);
+	));
 
 	// Workaround for some incorrect clients
 	if (originalTag === undefined) {
@@ -47,9 +53,11 @@
 		);
 	}
 
-	$: if (originalTag !== undefined) {
-		originalEvent = $eventItemStore.get(originalTag[1]);
-	}
+	run(() => {
+		if (originalTag !== undefined) {
+			originalEvent = $eventItemStore.get(originalTag[1]);
+		}
+	});
 
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
@@ -68,7 +76,7 @@
 	</div>
 	{#if $developerMode}
 		<div class="json-button right">
-			<button class="clear" on:click={toggleJsonDisplay}>
+			<button class="clear" onclick={toggleJsonDisplay}>
 				<IconCodeDots size={18} />
 			</button>
 		</div>

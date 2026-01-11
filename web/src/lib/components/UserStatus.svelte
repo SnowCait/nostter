@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import type { Event } from 'nostr-tools';
 	import { chronological } from '$lib/Constants';
 	import { findIdentifier } from '$lib/EventHelper';
@@ -10,22 +12,26 @@
 	import IconPencil from '@tabler/icons-svelte/icons/pencil';
 	import EmojifiedContent from './EmojifiedContent.svelte';
 
-	export let pubkey: string;
-	export let showLink = false;
+	interface Props {
+		pubkey: string;
+		showLink?: boolean;
+	}
 
-	let generalEvent: Event | undefined;
-	let musicEvent: Event | undefined;
-	let generalLink: URL | undefined;
-	let musicLink: URL | undefined;
+	let { pubkey, showLink = false }: Props = $props();
 
-	$: {
+	let generalEvent: Event | undefined = $state();
+	let musicEvent: Event | undefined = $state();
+	let generalLink: URL | undefined = $state();
+	let musicLink: URL | undefined = $state();
+
+	run(() => {
 		const statuses = $userStatusesMap.get(pubkey) ?? [];
 		statuses.sort(chronological);
 		generalEvent = statuses.findLast((event) => findIdentifier(event.tags) === 'general');
 		musicEvent = statuses.findLast((event) => findIdentifier(event.tags) === 'music');
-	}
+	});
 
-	$: {
+	run(() => {
 		const generalLinkTag = generalEvent?.tags.find(
 			([tagName, url]) => tagName === 'r' && url !== undefined
 		);
@@ -42,7 +48,7 @@
 		} catch (error) {
 			console.error('[user status link error]', error, generalLinkTag, musicLinkTag);
 		}
-	}
+	});
 </script>
 
 <section>

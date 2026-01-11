@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { _ } from 'svelte-i18n';
 	import { get } from 'svelte/store';
 	import type { Event } from 'nostr-typedef';
@@ -14,15 +16,14 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import { updateFolloweesStore } from '$lib/Contacts';
 
-	let cachedEvents: Event[] = [];
-	let loading = false;
+	let cachedEvents: Event[] = $state([]);
+	let loading = $state(false);
 
 	const {
 		elements: { root, content, trigger },
 		states: { open }
 	} = createCollapsible();
 
-	$: if ($open) loadCachedVersions();
 
 	async function loadCachedVersions() {
 		loading = true;
@@ -44,6 +45,9 @@
 		storage.setReplaceableEvent(event);
 		$open = false;
 	}
+	run(() => {
+		if ($open) loadCachedVersions();
+	});
 </script>
 
 <h3>{$_('preferences.backup.title')}</h3>
@@ -82,7 +86,7 @@
 									{#if i == 0}
 										<span>{$_('preferences.backup.latest')}</span>
 									{:else}
-										<button type="button" on:click={() => restore(event)}>
+										<button type="button" onclick={() => restore(event)}>
 											{$_('preferences.backup.restore')}
 										</button>
 									{/if}

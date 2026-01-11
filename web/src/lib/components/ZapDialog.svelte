@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { run, preventDefault, createBubbler, stopPropagation } from 'svelte/legacy';
+
+	const bubble = createBubbler();
 	import { nip57 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import QRCode from 'qrcode';
@@ -16,10 +19,14 @@
 	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 
-	export let pubkey: string;
-	export let event: Event | undefined;
+	interface Props {
+		pubkey: string;
+		event: Event | undefined;
+	}
 
-	$: metadata = $metadataStore.get(pubkey);
+	let { pubkey, event }: Props = $props();
+
+	let metadata = $derived($metadataStore.get(pubkey));
 
 	export function openZapDialog() {
 		console.debug('[zap open]');
@@ -28,20 +35,22 @@
 
 	const history = persistedStore<number[]>('zap:history', []);
 
-	let sats = $history.at(0) ?? 1;
-	let satsList: number[] = [];
-	let comment = '';
-	let invoice = '';
-	let open = false;
-	let sending = false;
+	let sats = $state($history.at(0) ?? 1);
+	let satsList: number[] = $state([]);
+	let comment = $state('');
+	let invoice = $state('');
+	let open = $state(false);
+	let sending = $state(false);
 
-	$: if (browser) {
-		const counts = new Map<number, number>();
-		for (const value of $history) {
-			counts.set(value, (counts.get(value) ?? 0) + 1);
+	run(() => {
+		if (browser) {
+			const counts = new Map<number, number>();
+			for (const value of $history) {
+				counts.set(value, (counts.get(value) ?? 0) + 1);
+			}
+			satsList = [...counts].toSorted(([, x], [, y]) => y - x).map(([value]) => value);
 		}
-		satsList = [...counts].toSorted(([, x], [, y]) => y - x).map(([value]) => value);
-	}
+	});
 
 	const dispatch = createEventDispatcher();
 
@@ -121,16 +130,16 @@
 					</article>
 				{/if}
 			</blockquote>
-			<form on:submit|preventDefault={zap}>
+			<form onsubmit={preventDefault(zap)}>
 				<div class="sats-input">
 					{#each satsList.slice(0, 5) as value}
-						<button type="button" on:click={() => (sats = value)}>
+						<button type="button" onclick={() => (sats = value)}>
 							{value.toLocaleString()}
 						</button>
 					{/each}
 				</div>
 				<div>
-					<input type="number" bind:value={sats} on:keyup|stopPropagation />
+					<input type="number" bind:value={sats} onkeyup={stopPropagation(bubble('keyup'))} />
 					<span>sats</span>
 				</div>
 				<div>
@@ -138,7 +147,7 @@
 						type="text"
 						placeholder={$_('zap.message')}
 						bind:value={comment}
-						on:keyup|stopPropagation
+						onkeyup={stopPropagation(bubble('keyup'))}
 					/>
 				</div>
 				<input type="submit" value={$_('zap.send')} disabled={sending} />
@@ -154,7 +163,7 @@
 					{/await}
 				</div>
 				<div class="text">{invoice}</div>
-				<iframe src={url} title="Lightning" width="0" height="0" />
+				<iframe src={url} title="Lightning" width="0" height="0"></iframe>
 			</section>
 		{/if}
 	</article>

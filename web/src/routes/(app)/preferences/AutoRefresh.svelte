@@ -2,11 +2,11 @@
 	import { _ } from 'svelte-i18n';
 	import { autoRefresh } from '$lib/stores/Preference';
 
-	let needRefresh = false;
+	let needRefresh = $state(false);
 </script>
 
 <label>
-	<input type="checkbox" bind:checked={$autoRefresh} on:change={() => (needRefresh = true)} />
+	<input type="checkbox" bind:checked={$autoRefresh} onchange={() => (needRefresh = true)} />
 	<span>{$_('preferences.auto_refresh')}</span>
 </label>
 {#if needRefresh}

@@ -32,15 +32,15 @@
 		$openNoteDialog = !$openNoteDialog;
 	}
 
-	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/public';
-	$: nprofile = nip19.nprofileEncode({ pubkey: $pubkey });
-	$: notificationsBadge =
-		$notifiedEventItems.filter(
+	let homeLink = $derived($followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/public');
+	let nprofile = $derived(nip19.nprofileEncode({ pubkey: $pubkey }));
+	let notificationsBadge =
+		$derived($notifiedEventItems.filter(
 			(item) =>
 				item.event.created_at > $lastReadAt &&
 				(!$preferencesStore.muteAutomatically ||
 					$followeesOfFollowees.has(item.event.pubkey))
-		).length > 0;
+		).length > 0);
 </script>
 
 <div class="header">
@@ -79,7 +79,7 @@
 					<a href="/notifications">
 						<IconBell size={30} />
 						{#if notificationsBadge}
-							<span class="notifications-icon-badge" />
+							<span class="notifications-icon-badge"></span>
 						{/if}
 						<p>{$_('layout.header.notifications')}</p>
 					</a>
@@ -152,7 +152,7 @@
 					<a href="/notifications">
 						<IconBell size={30} />
 						{#if notificationsBadge}
-							<span class="notifications-icon-badge" />
+							<span class="notifications-icon-badge"></span>
 						{/if}
 						<p>{$_('layout.header.notifications')}</p>
 					</a>
@@ -167,11 +167,11 @@
 					<button class="clear" use:melt={$trigger}>
 						<IconDots size={30} />
 					</button>
-					<div use:melt={$overlay} class="overlay" />
+					<div use:melt={$overlay} class="overlay"></div>
 					<div use:melt={$menu} class="menu">
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto(`/public`)}
+							onm-click={async () => await goto(`/public`)}
 							class="item"
 						>
 							<div class="icon"><IconWorld /></div>
@@ -179,7 +179,7 @@
 						</div>
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto(`/${nprofile}/lists`)}
+							onm-click={async () => await goto(`/${nprofile}/lists`)}
 							class="item"
 						>
 							<div class="icon"><IconList /></div>
@@ -187,7 +187,7 @@
 						</div>
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto(`/${nprofile}/bookmarks`)}
+							onm-click={async () => await goto(`/${nprofile}/bookmarks`)}
 							class="item"
 						>
 							<div class="icon"><IconBookmark /></div>
@@ -195,7 +195,7 @@
 						</div>
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto('/channels')}
+							onm-click={async () => await goto('/channels')}
 							class="item"
 						>
 							<div class="icon"><IconMessages /></div>
@@ -203,7 +203,7 @@
 						</div>
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto('/preferences')}
+							onm-click={async () => await goto('/preferences')}
 							class="item"
 						>
 							<div class="icon"><IconSettings /></div>
@@ -211,7 +211,7 @@
 						</div>
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto('/about')}
+							onm-click={async () => await goto('/about')}
 							class="item"
 						>
 							<div class="icon"><IconPaw /></div>
@@ -236,12 +236,12 @@
 		</ul>
 	</nav>
 	{#if $pubkey && !$rom}
-		<button title="{$_('post')} (N)" on:click={onClickPostButton}>
+		<button title="{$_('post')} (N)" onclick={onClickPostButton}>
 			<IconPencilPlus size={30} />
 			<p>{$_('post')}</p>
 		</button>
 	{:else if !$pubkey}
-		<button on:click={async () => await goto('/')}>
+		<button onclick={async () => await goto('/')}>
 			<IconLogin size={30} />
 			<p>{$_('login.login')}</p>
 		</button>

@@ -1,14 +1,16 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { _ } from 'svelte-i18n';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
 	import IconX from '@tabler/icons-svelte/icons/x';
 
-	let content: string;
+	let content: string = $state();
 
-	let dialog: HTMLDialogElement | undefined;
-	let editor: NoteEditor;
+	let dialog: HTMLDialogElement | undefined = $state();
+	let editor: NoteEditor = $state();
 
 	openNoteDialog.subscribe(async (open) => {
 		console.log('[note dialog open]', open);
@@ -41,18 +43,18 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <dialog
 	bind:this={dialog}
-	on:click={tryClose}
-	on:close={closed}
-	on:cancel|preventDefault={closeIfNotEmpty}
+	onclick={tryClose}
+	onclose={closed}
+	oncancel={preventDefault(closeIfNotEmpty)}
 >
 	<div class="dialog-content">
 		<button
 			class="clear close clickable"
-			on:click={closeIfNotEmpty}
+			onclick={closeIfNotEmpty}
 			title="{$_('editor.close.button')} (Esc)"
 		>
 			<IconX />

@@ -14,10 +14,14 @@
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import type { LayoutData } from '../$types';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+	}
 
-	let publicBookmarkEventItems: EventItem[] = [];
-	let privateBookmarkEventItems: EventItem[] = [];
+	let { data }: Props = $props();
+
+	let publicBookmarkEventItems: EventItem[] = $state([]);
+	let privateBookmarkEventItems: EventItem[] = $state([]);
 
 	console.log('[bookmark page]', $page.params.slug);
 

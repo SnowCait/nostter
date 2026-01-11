@@ -15,7 +15,11 @@
 	import type { PageData } from './$types';
 	import TimelineView from '../../../TimelineView.svelte';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
+
+	let { data }: Props = $props();
 
 	afterNavigate(async () => {
 		console.log('[list page]', data.naddr, data);
@@ -47,7 +51,7 @@
 		$ready = false;
 	});
 
-	$: title = $event === undefined ? '' : getListTitle($event.tags);
+	let title = $derived($event === undefined ? '' : getListTitle($event.tags));
 </script>
 
 <svelte:head>

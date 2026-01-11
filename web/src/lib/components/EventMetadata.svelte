@@ -7,11 +7,22 @@
 	import ProfileIcon from './profile/ProfileIcon.svelte';
 	import EmojifiedContent from './EmojifiedContent.svelte';
 
-	export let item: Item;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	interface Props {
+		item: Item;
+		createdAtFormat?: 'auto' | 'time';
+		icon?: import('svelte').Snippet;
+		content?: import('svelte').Snippet;
+	}
 
-	$: eventItem = item as EventItem;
-	$: metadata = $metadataStore.get(eventItem.event.pubkey);
+	let {
+		item,
+		createdAtFormat = 'auto',
+		icon,
+		content
+	}: Props = $props();
+
+	let eventItem = $derived(item as EventItem);
+	let metadata = $derived($metadataStore.get(eventItem.event.pubkey));
 </script>
 
 <article class="timeline-item">
@@ -20,7 +31,7 @@
 			<ProfileIcon pubkey={item.event.pubkey} width="48px" height="48px" />
 		</a>
 		<div class="icon">
-			<slot name="icon" />
+			{@render icon?.()}
 		</div>
 	</div>
 	<div class="note">
@@ -45,7 +56,7 @@
 		<div>
 			<UserStatus pubkey={item.event.pubkey} />
 		</div>
-		<slot name="content" />
+		{@render content?.()}
 	</div>
 </article>
 

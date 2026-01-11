@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { Event } from 'nostr-tools';
 
-	export let event: Event;
+	interface Props {
+		event: Event;
+	}
+
+	let { event }: Props = $props();
 
 	const url = event.tags
 		.find(([tagName, tagContent]) => tagName === 'url' && tagContent !== undefined)

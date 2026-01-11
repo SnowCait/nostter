@@ -12,14 +12,18 @@
 	import { Twitter } from '$lib/Twitter';
 	import { nicovideoRegexp } from '$lib/Constants';
 
-	export let content: string;
-	export let tags: string[][];
+	interface Props {
+		content: string;
+		tags: string[][];
+	}
 
-	$: tokens = Content.parse(content, tags);
-	$: urls = tokens
+	let { content, tags }: Props = $props();
+
+	let tokens = $derived(Content.parse(content, tags));
+	let urls = $derived(tokens
 		.filter((token) => token.name === 'url' && URL.canParse(token.text))
 		.map((token) => new URL(token.text))
-		.filter((url) => url.protocol === 'https:');
+		.filter((url) => url.protocol === 'https:'));
 </script>
 
 <p class="content">

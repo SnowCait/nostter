@@ -1,11 +1,17 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { createEventDispatcher } from 'svelte';
 	import IconPhoto from '@tabler/icons-svelte/icons/photo';
 
-	export let multiple = false;
+	interface Props {
+		multiple?: boolean;
+	}
 
-	let input: HTMLInputElement | undefined;
-	let files: FileList;
+	let { multiple = false }: Props = $props();
+
+	let input: HTMLInputElement | undefined = $state();
+	let files: FileList = $state();
 
 	const dispatch = createEventDispatcher();
 
@@ -17,7 +23,7 @@
 	}
 </script>
 
-<button on:click|preventDefault={() => input?.click()} class="clear">
+<button onclick={preventDefault(() => input?.click())} class="clear">
 	<IconPhoto size="30" />
 </button>
 <input
@@ -25,7 +31,7 @@
 	{multiple}
 	bind:this={input}
 	bind:files
-	on:change={onChange}
+	onchange={onChange}
 	accept="image/*,video/*,audio/*"
 	hidden
 />

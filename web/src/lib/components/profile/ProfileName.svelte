@@ -3,10 +3,14 @@
 	import { alternativeName } from '$lib/Items';
 	import EmojifiedContent from '../EmojifiedContent.svelte';
 
-	export let pubkey: string;
-	export let displayNameOnly: boolean = false;
+	interface Props {
+		pubkey: string;
+		displayNameOnly?: boolean;
+	}
 
-	$: metadata = $metadataStore.get(pubkey);
+	let { pubkey, displayNameOnly = false }: Props = $props();
+
+	let metadata = $derived($metadataStore.get(pubkey));
 </script>
 
 <span class="display_name">

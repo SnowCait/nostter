@@ -15,4 +15,4 @@
 	}
 </script>
 
-<button on:click={clear}>{$_('preferences.clear_emoji_cache')}</button>
+<button onclick={clear}>{$_('preferences.clear_emoji_cache')}</button>
