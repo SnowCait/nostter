@@ -111,6 +111,7 @@
 		},
 		"auto_refresh": "自動更新",
 		"media_preview": "メディアプレビュー",
+		"autoplay_gif": "GIF画像を自動再生",
 		"image_optimization": "画像最適化",
 		"image_optimization_none": "なし",
 		"media_uploader": {

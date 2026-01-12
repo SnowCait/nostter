@@ -5,6 +5,8 @@
 	import { getContext } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { Img, type ImgSrc } from 'svelte-remote-image';
+	import { onMount } from 'svelte';
+	import { WebStorage } from '$lib/WebStorage';
 
 	export let url: URL;
 
@@ -16,14 +18,33 @@
 		img: `${$imageOptimization}width=800,quality=60,format=webp/${src}`,
 		fallback: [src]
 	};
+
+	let imgElement: HTMLElement;
+
+	onMount(async () => {
+		const isAutoPlayGif =
+			new WebStorage(localStorage).get('preference:autoplay-gif') !== 'false';
+		if (/\.gif$/i.test(pathname) && imgElement && !isAutoPlayGif) {
+			const FreezeFrame = (await import('freezeframe')).default;
+			new FreezeFrame(imgElement, {
+				trigger: 'hover',
+				overlay: true,
+				responsive: false
+			});
+		}
+	});
 </script>
 
 <span class="img-wrapper">
-	{#if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith($imageOptimization)}
-		<Img class="global-content-image{blur ? ' blur' : ''}" src={imageSrc} alt={src} />
-	{:else}
-		<img class="global-content-image" class:blur {src} alt={src} />
-	{/if}
+	<span class:blur>
+		{#if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith($imageOptimization)}
+			<Img class="global-content-image" src={imageSrc} alt={src} />
+		{:else}
+			<div class="global-content-image">
+				<img bind:this={imgElement} {src} alt={src} />
+			</div>
+		{/if}
+	</span>
 	{#if blur}
 		<button>{$_('content.show')}</button>
 	{/if}
@@ -31,6 +52,8 @@
 
 <style>
 	.img-wrapper :global(.global-content-image) {
+		width: fit-content;
+		white-space: normal;
 		max-width: calc(100% - 1.5em);
 		max-height: 20em;
 		margin: 0.5em;
@@ -39,8 +62,14 @@
 		vertical-align: middle;
 	}
 
-	.img-wrapper :global(.global-content-image.blur),
-	img.blur {
+	.img-wrapper :global(.global-content-image img) {
+		max-width: 100%;
+		height: auto;
+		display: block;
+		border-radius: 5px;
+	}
+
+	.blur {
 		filter: blur(8px);
 	}
 
