@@ -21,8 +21,6 @@
 	let { text, tag }: Props = $props();
 
 	let item = $derived($eventItemStore.get(tag[1]));
-
-	console.debug('[deprecated reference]', tag[1]);
 </script>
 
 {#if tag.at(0) === 'p' && tag.at(1) !== undefined}

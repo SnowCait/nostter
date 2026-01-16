@@ -30,8 +30,10 @@
 
 	let { item, readonly, createdAtFormat = 'auto', full = false }: Props = $props();
 
-	const events = getContext<Event[] | undefined>('events') ?? [];
-	setContext('events', [...events, item.event]);
+	$effect(() => {
+		const events = getContext<Event[] | undefined>('events') ?? [];
+		setContext('events', [...events, item.event]);
+	});
 </script>
 
 {#if item.event.kind === Kind.Metadata}

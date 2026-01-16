@@ -71,6 +71,8 @@
 	</button>
 	<div use:melt={$overlay} class="overlay"></div>
 	<div use:melt={$menu} class="menu">
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div use:melt={$item} onclick={onReaction} class="item">
 			<div class="icon">
 				<ReactionIcon
@@ -84,6 +86,8 @@
 		</div>
 		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('menu.caution')}</div>
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div use:melt={$item} onclick={onDelete} class="item">
 			<div class="icon"><IconTrash size={iconSize} /></div>
 			<div>{$_('actions.reaction.undo')}</div>

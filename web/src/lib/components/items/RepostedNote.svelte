@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import type { EventItem, Item } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
@@ -26,7 +24,7 @@
 
 	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
 
-	const { event } = item;
+	let { event } = $derived(item);
 
 	let metadata = $derived($metadataStore.get(event.pubkey));
 	let nevent = $derived(
@@ -41,23 +39,18 @@
 	let originalEvent: EventItem | undefined = $state();
 	let jsonDisplay = $state(false);
 
-	let originalTag = $state(
+	let originalTag = $derived(
 		event.tags.find(
-			([tagName, eventId, , marker]) =>
+			([tagName, id, , marker]) =>
 				tagName === 'e' &&
-				eventId !== undefined &&
+				id !== undefined &&
 				(marker === 'mention' || marker === undefined)
-		)
+		) ??
+			// Workaround for some incorrect clients
+			event.tags.findLast(([tagName, id]) => tagName === 'e' && id !== undefined)
 	);
 
-	// Workaround for some incorrect clients
-	if (originalTag === undefined) {
-		originalTag = event.tags.findLast(
-			([tagName, eventId]) => tagName === 'e' && eventId !== undefined
-		);
-	}
-
-	run(() => {
+	$effect(() => {
 		if (originalTag !== undefined) {
 			originalEvent = $eventItemStore.get(originalTag[1]);
 		}

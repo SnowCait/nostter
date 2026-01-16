@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { run, createBubbler, preventDefault, stopPropagation } from 'svelte/legacy';
+	import { createBubbler, preventDefault, stopPropagation } from 'svelte/legacy';
 
 	const bubble = createBubbler();
-	import { createEventDispatcher, tick } from 'svelte';
+	import { createEventDispatcher, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { kinds as Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
 	import { uploadFiles } from '$lib/media/FileStorageServer';
@@ -62,12 +62,12 @@
 
 	//#region Mention complement
 
-	let mention: string | undefined = $state();
-	let mentionPrevious = $state(mention);
+	let mention = $state<string>();
+	let mentionPrevious = $state<string>();
 	let mentionComplementList: Metadata[] = $state([]);
 	let mentionComplementIndex = $state(0);
 
-	run(() => {
+	$effect(() => {
 		if (mention !== undefined) {
 			const displayMax = 10;
 			const metadataList = [...$metadataStore].map(([, metadata]) => metadata);
@@ -89,20 +89,22 @@
 				fetchFolloweesMetadata();
 			}
 			mentionComplementList = list;
-			console.debug('[complement mention list]', mention, mentionComplementList);
+			console.debug('[complement mention list]', mention, list);
 		}
 	});
 
-	run(() => {
+	$effect(() => {
 		if (mention === undefined) {
 			mentionComplementList = [];
 		}
 	});
 
-	run(() => {
+	$effect(() => {
 		if (mention !== mentionPrevious) {
-			mentionPrevious = mention;
-			mentionComplementIndex = 0;
+			untrack(() => {
+				mentionPrevious = mention;
+				mentionComplementIndex = 0;
+			});
 		}
 	});
 
@@ -111,12 +113,12 @@
 	//#region Custom Emoji
 
 	type Emoji = { shortcode: string; url: string };
-	let shortcode: string | undefined = $state();
-	let shortcodePrevious = $state(shortcode);
+	let shortcode = $state<string>();
+	let shortcodePrevious = $state<string>();
 	let shortcodeComplementList: Emoji[] = $state([]);
 	let shortcodeComplementIndex = $state(0);
 
-	run(() => {
+	$effect(() => {
 		if (shortcode !== undefined) {
 			const customEmojiList = $customEmojiTags.map(([, shortcode, url]) => ({
 				shortcode,
@@ -131,20 +133,22 @@
 				)
 			);
 			shortcodeComplementList = list;
-			console.debug('[complement shortcode list]', shortcode, shortcodeComplementList);
+			console.debug('[complement shortcode list]', shortcode, list);
 		}
 	});
 
-	run(() => {
+	$effect(() => {
 		if (shortcode === undefined) {
 			shortcodeComplementList = [];
 		}
 	});
 
-	run(() => {
+	$effect(() => {
 		if (shortcode !== shortcodePrevious) {
-			shortcodePrevious = shortcode;
-			shortcodeComplementIndex = 0;
+			untrack(() => {
+				shortcodePrevious = shortcode;
+				shortcodeComplementIndex = 0;
+			});
 		}
 	});
 
@@ -184,7 +188,7 @@
 
 	let containsNsec = $derived(/nsec1\w{6,}/.test(content));
 
-	run(() => {
+	$effect(() => {
 		const noteComposer = new NoteComposer();
 		noteComposer.emojiTags(content, emojiTags).then((emojiTags) => {
 			tags = [

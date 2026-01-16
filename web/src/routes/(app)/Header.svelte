@@ -172,6 +172,8 @@
 					</button>
 					<div use:melt={$overlay} class="overlay"></div>
 					<div use:melt={$menu} class="menu">
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
 							onclick={async () => await goto(`/public`)}
@@ -180,6 +182,8 @@
 							<div class="icon"><IconWorld /></div>
 							<div>{$_('pages.public')}</div>
 						</div>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
 							onclick={async () => await goto(`/${nprofile}/lists`)}
@@ -188,6 +192,8 @@
 							<div class="icon"><IconList /></div>
 							<div>{$_('lists.title')}</div>
 						</div>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
 							onclick={async () => await goto(`/${nprofile}/bookmarks`)}
@@ -196,6 +202,8 @@
 							<div class="icon"><IconBookmark /></div>
 							<div>{$_('layout.header.bookmarks')}</div>
 						</div>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
 							onclick={async () => await goto('/channels')}
@@ -204,6 +212,8 @@
 							<div class="icon"><IconMessages /></div>
 							<div>{$_('layout.header.channels')}</div>
 						</div>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
 							onclick={async () => await goto('/preferences')}
@@ -212,6 +222,8 @@
 							<div class="icon"><IconSettings /></div>
 							<div>{$_('layout.header.preferences')}</div>
 						</div>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
 							onclick={async () => await goto('/about')}

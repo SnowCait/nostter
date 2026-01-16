@@ -26,11 +26,11 @@
 		word: 'word'
 	};
 
-	const logTexts = {
+	let logTexts = $derived({
 		p: nip19.npubEncode(tagContent),
 		e: nip19.neventEncode({ id: tagContent }),
 		word: tagContent
-	};
+	});
 
 	async function onMute(): Promise<void> {
 		console.log('[mute]', logTexts[tagName]);

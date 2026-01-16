@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { onMount } from 'svelte';
 	import { nip19 } from 'nostr-tools';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
@@ -27,8 +25,8 @@
 
 	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
 
-	const event = item.event;
-	const zap = new ZapEventItem(event);
+	let event = $derived(item.event);
+	let zap = $derived(new ZapEventItem(event));
 
 	let metadata = $derived($metadataStore.get(event.pubkey));
 	let nevent = $derived(
@@ -42,7 +40,7 @@
 
 	let zapperMetadata: Metadata | undefined = $state();
 
-	run(() => {
+	$effect(() => {
 		if (zap.requestEvent !== undefined) {
 			zapperMetadata = $metadataStore.get(zap.requestEvent.pubkey);
 		}
@@ -51,12 +49,15 @@
 	let originalEvent: EventItem | undefined = $state();
 	let jsonDisplay = $state(false);
 
-	const originalTag = event.tags.find(
-		(tag) =>
-			tag.at(0) === 'e' && (tag.at(3) === 'mention' || tag.at(3) === 'root' || tag.length < 4)
+	let originalTag = $derived(
+		event.tags.find(
+			(tag) =>
+				tag.at(0) === 'e' &&
+				(tag.at(3) === 'mention' || tag.at(3) === 'root' || tag.length < 4)
+		)
 	);
 
-	run(() => {
+	$effect(() => {
 		if (originalTag !== undefined) {
 			originalEvent = $eventItemStore.get(originalTag[1]);
 		}

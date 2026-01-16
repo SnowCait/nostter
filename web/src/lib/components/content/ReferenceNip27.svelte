@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { nip19 } from 'nostr-tools';
 	import { onMount } from 'svelte';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
@@ -27,16 +25,16 @@
 
 	let { text }: Props = $props();
 
-	let dataType: 'user' | 'event' | 'addr' = $state();
+	let dataType = $state<'user' | 'event' | 'addr'>();
 	let pubkey: string | undefined = $state();
 	let metadata: Metadata | undefined = $state();
 	let eventId: string | undefined = $state();
 	let item: EventItem | undefined = $state();
-	let addressPointer: nip19.AddressPointer = $state();
+	let addressPointer = $state<nip19.AddressPointer>();
 
 	let slug = $derived(text.substring('nostr:'.length));
 
-	run(() => {
+	$effect(() => {
 		try {
 			const { type, data } = nip19.decode(slug);
 			switch (type) {
@@ -75,20 +73,20 @@
 		}
 	});
 
-	run(() => {
+	$effect(() => {
 		if (dataType === 'user' && pubkey !== undefined) {
 			metadata = $metadataStore.get(pubkey);
 		}
 	});
 
-	run(() => {
+	$effect(() => {
 		if (dataType === 'event' && item === undefined && eventId !== undefined) {
 			item = $eventItemStore.get(eventId);
 		}
 	});
 
 	onMount(async () => {
-		if (dataType === 'addr') {
+		if (dataType === 'addr' && addressPointer !== undefined) {
 			const e = await fetchLastEvent({
 				kinds: [addressPointer.kind],
 				authors: [addressPointer.pubkey],
@@ -180,9 +178,5 @@
 <style>
 	a {
 		display: inline-flex;
-	}
-
-	a:has(blockquote) {
-		text-decoration: none;
 	}
 </style>

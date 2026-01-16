@@ -20,7 +20,7 @@
 
 	let { item }: Props = $props();
 
-	const { event } = item;
+	let { event } = $derived(item);
 
 	let channelId = $derived(event.kind === 40 ? event.id : findChannelId(event.tags));
 	let nevent = $derived(

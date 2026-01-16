@@ -12,14 +12,14 @@
 
 	let { url }: Props = $props();
 
-	const { href: src, pathname } = url;
+	const { href: src, pathname } = $derived(url);
 	const events = getContext<Event[] | undefined>('events');
 	const blur = events !== undefined && !events.some((event) => $followees.includes(event.pubkey));
 
-	let imageSrc: ImgSrc = {
+	let imageSrc: ImgSrc = $derived({
 		img: `${$imageOptimization}width=800,quality=60,format=webp/${src}`,
 		fallback: [src]
-	};
+	});
 </script>
 
 <span class="img-wrapper">

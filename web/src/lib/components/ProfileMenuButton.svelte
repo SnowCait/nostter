@@ -181,27 +181,39 @@
 <div use:melt={$overlay} class="overlay"></div>
 <div use:melt={$menu} class="menu">
 	{#if $authorPubkey && !$rom}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div use:melt={$item} onclick={editLists} class="item">
 			<div class="icon"><IconList /></div>
 			<div>{$_('lists.edit')}</div>
 		</div>
 	{/if}
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div use:melt={$item} onclick={() => copy(npub)} class="item">
 		<div class="icon"><IconClipboard /></div>
 		<div>{$_('actions.copy_npub.button')}</div>
 	</div>
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div use:melt={$item} onclick={() => copy(nprofile)} class="item">
 		<div class="icon"><IconClipboard /></div>
 		<div>{$_('actions.copy_nprofile.button')}</div>
 	</div>
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div use:melt={$item} onclick={() => copy(url)} class="item">
 		<div class="icon"><IconLink /></div>
 		<div>{$_('actions.copy_url.button')}</div>
 	</div>
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div use:melt={$item} onclick={async () => await goto(`/${nprofile}/relays`)} class="item">
 		<div class="icon"><IconAffiliate /></div>
 		<div>{$_('pages.relays')}</div>
 	</div>
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		use:melt={$item}
 		onclick={() => open(`https://nostr.com/${nprofile}.rss`, '_blank', 'noopener,noreferrer')}
@@ -215,44 +227,60 @@
 		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('preferences.mute.mute')}</div>
 		{#if $mutePubkeys.includes(pubkey)}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={onUnmute} class="item undo">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.unmute.button')}</div>
 			</div>
 		{:else if pubkey !== $authorPubkey}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={onMute} class="item">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.mute.button')}</div>
 			</div>
 		{/if}
 		{#if $mutedPubkeysByKindMap.get(6)?.has(pubkey)}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={unmuteReposts} class="item undo">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.unmute.reposts')}</div>
 			</div>
 		{:else}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={muteReposts} class="item">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.mute.reposts')}</div>
 			</div>
 		{/if}
 		{#if $mutedPubkeysByKindMap.get(7)?.has(pubkey)}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={unmuteReactions} class="item undo">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.unmute.reactions')}</div>
 			</div>
 		{:else}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={muteReactions} class="item">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.mute.reactions')}</div>
 			</div>
 		{/if}
 		{#if $mutedPubkeysByKindMap.get(9735)?.has(pubkey)}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={unmuteZaps} class="item undo">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.unmute.zaps')}</div>
 			</div>
 		{:else}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={muteZaps} class="item">
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.mute.zaps')}</div>
@@ -262,11 +290,15 @@
 			<div use:melt={$separator} class="separator"></div>
 			<div class="text">{$_('menu.developer')}</div>
 			{#if $originalFollowees.includes(pubkey)}
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div use:melt={$item} onclick={onUnfollow} class="item">
 					<div class="icon"><IconUserMinus /></div>
 					<div>{$_('actions.unfollow.myself')}</div>
 				</div>
 			{:else}
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div use:melt={$item} onclick={onFollow} class="item">
 					<div class="icon"><IconUserPlus /></div>
 					<div>{$_('actions.follow.myself')}</div>

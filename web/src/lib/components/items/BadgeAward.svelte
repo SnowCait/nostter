@@ -24,8 +24,8 @@
 
 	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
 
-	const { event } = item;
-	const aTagContents = filterTags('a', event.tags);
+	let { event } = $derived(item);
+	let aTagContents = $derived(filterTags('a', event.tags));
 
 	let metadata = $derived($metadataStore.get(event.pubkey));
 	let nevent = $derived(

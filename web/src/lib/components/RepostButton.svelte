@@ -80,6 +80,8 @@
 <div use:melt={$overlay} class="overlay"></div>
 <div use:melt={$menu} class="menu">
 	{#if event.kind === ShortTextNote}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div use:melt={$item} onclick={onRepost} class="item">
 			<div class="icon"><IconRepeat size={iconSize} /></div>
 			{#if reposted}
@@ -89,6 +91,8 @@
 			{/if}
 		</div>
 	{/if}
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div use:melt={$item} onclick={onQuote} class="item">
 		<div class="icon"><IconQuote size={iconSize} /></div>
 		<div>{$_('actions.quote.button')}</div>
@@ -96,6 +100,8 @@
 	{#if event.kind === ShortTextNote && reposted}
 		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('menu.caution')}</div>
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div use:melt={$item} onclick={onUndoRepost} class="item">
 			<div class="icon"><IconTrash size={iconSize} /></div>
 			<div>{$_('actions.repost.undo')}</div>

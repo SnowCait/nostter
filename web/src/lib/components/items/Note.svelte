@@ -37,8 +37,10 @@
 	let channelId: string | undefined = $state();
 	let channelName: string | undefined = $state();
 
-	let contentWarningTag = item.event.tags.find(([tagName]) => tagName === 'content-warning');
-	let showContent = $state(contentWarningTag === undefined);
+	let contentWarningTag = $derived(
+		item.event.tags.find(([tagName]) => tagName === 'content-warning')
+	);
+	let showContent = $state(false);
 	const showWarningContent = () => {
 		showContent = true;
 	};
@@ -104,7 +106,7 @@
 					{/if}
 				</div>
 			{/if}
-			{#if !showContent}
+			{#if contentWarningTag !== undefined && !showContent}
 				<div class="content-warning">
 					<div>{contentWarningTag?.at(1) ?? ''}</div>
 					<button onclick={showWarningContent}>Show</button>

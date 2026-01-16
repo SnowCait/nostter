@@ -7,12 +7,16 @@
 
 	let { event }: Props = $props();
 
-	const url = event.tags
-		.find(([tagName, tagContent]) => tagName === 'url' && tagContent !== undefined)
-		?.at(1);
-	const mimeType = event.tags
-		.find(([tagName, tagContent]) => tagName === 'm' && tagContent !== undefined)
-		?.at(1);
+	let url = $derived(
+		event.tags
+			.find(([tagName, tagContent]) => tagName === 'url' && tagContent !== undefined)
+			?.at(1)
+	);
+	let mimeType = $derived(
+		event.tags
+			.find(([tagName, tagContent]) => tagName === 'm' && tagContent !== undefined)
+			?.at(1)
+	);
 </script>
 
 {#if mimeType !== undefined && /image\/(gif|jpg|jpeg|png|webp|bmp)/.test(mimeType)}
