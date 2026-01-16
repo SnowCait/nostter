@@ -14,7 +14,9 @@
 
 	let filter = browser ? getTimelineFilter() : defaultTimelineFilter;
 	let excludeCategories = filter.excludeCategories;
-	let includeCategories = $state(categories.filter((category) => !excludeCategories.includes(category)));
+	let includeCategories = $state(
+		categories.filter((category) => !excludeCategories.includes(category))
+	);
 
 	run(() => {
 		if (browser) {

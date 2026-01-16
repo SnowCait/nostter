@@ -22,7 +22,9 @@
 		elements: { menu, item, trigger, overlay, separator }
 	} = createDropdownMenu({ preventScroll: false });
 
-	let reactioned = $derived($reactionedEvents.has(event.id) && $reactionedEvents.get(event.id)!.length > 0);
+	let reactioned = $derived(
+		$reactionedEvents.has(event.id) && $reactionedEvents.get(event.id)!.length > 0
+	);
 
 	async function onReaction(): Promise<void> {
 		console.debug('[reaction]', event);
@@ -69,7 +71,7 @@
 	</button>
 	<div use:melt={$overlay} class="overlay"></div>
 	<div use:melt={$menu} class="menu">
-		<div use:melt={$item} onm-click={onReaction} class="item">
+		<div use:melt={$item} onclick={onReaction} class="item">
 			<div class="icon">
 				<ReactionIcon
 					defaultReaction={$preferencesStore.reactionEmoji.content}
@@ -82,7 +84,7 @@
 		</div>
 		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('menu.caution')}</div>
-		<div use:melt={$item} onm-click={onDelete} class="item">
+		<div use:melt={$item} onclick={onDelete} class="item">
 			<div class="icon"><IconTrash size={iconSize} /></div>
 			<div>{$_('actions.reaction.undo')}</div>
 		</div>

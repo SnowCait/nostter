@@ -13,6 +13,7 @@
 	import { metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
 	import FollowAllButton from '$lib/components/actions/FollowAllButton.svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	interface Props {
 		data: LayoutData;
@@ -21,11 +22,13 @@
 	let { data }: Props = $props();
 
 	let pubkey: string | undefined = $state();
-	let pubkeys = $state(new Set<string>());
+	let pubkeys = new SvelteSet<string>();
 
-	let items = $derived([...pubkeys]
-		.map((pubkey) => $metadataStore.get(pubkey))
-		.filter((metadata): metadata is Metadata => metadata !== undefined));
+	let items = $derived(
+		[...pubkeys]
+			.map((pubkey) => $metadataStore.get(pubkey))
+			.filter((metadata): metadata is Metadata => metadata !== undefined)
+	);
 
 	run(() => {
 		if (pubkey !== data.pubkey && browser) {
@@ -55,7 +58,6 @@
 					} of packets) {
 						pubkeys.add(pubkey);
 					}
-					pubkeys = pubkeys;
 					metadataReqEmit(packets.map((x) => x.event.pubkey));
 				});
 		}

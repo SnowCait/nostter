@@ -14,12 +14,7 @@
 		content?: import('svelte').Snippet;
 	}
 
-	let {
-		item,
-		createdAtFormat = 'auto',
-		icon,
-		content
-	}: Props = $props();
+	let { item, createdAtFormat = 'auto', icon, content }: Props = $props();
 
 	let eventItem = $derived(item as EventItem);
 	let metadata = $derived($metadataStore.get(eventItem.event.pubkey));

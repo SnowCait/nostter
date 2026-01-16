@@ -16,20 +16,23 @@
 	import { appName } from '$lib/Constants';
 	import CreateChannelButton from '$lib/components/actions/CreateChannelButton.svelte';
 	import { share } from 'rxjs';
+	import { SvelteSet } from 'svelte/reactivity';
 
-	let channelIds = $state(new Set<string>());
+	let channelIds = new SvelteSet<string>();
 	let keyword = $state('');
 
-	let items = $derived([...channelIds]
-		.map((channelId) => {
-			const event = cachedEvents.get(channelId);
-			if (event !== undefined) {
-				return new EventItem(event);
-			} else {
-				return undefined;
-			}
-		})
-		.filter((x): x is EventItem => x !== undefined));
+	let items = $derived(
+		[...channelIds]
+			.map((channelId) => {
+				const event = cachedEvents.get(channelId);
+				if (event !== undefined) {
+					return new EventItem(event);
+				} else {
+					return undefined;
+				}
+			})
+			.filter((x): x is EventItem => x !== undefined)
+	);
 
 	run(() => {
 		if ($authorChannelsEventStore !== undefined && channelIds.size === 0) {
@@ -54,7 +57,6 @@
 				const channelId = packet.event.id;
 				cachedEvents.set(channelId, packet.event);
 				channelIds.add(channelId);
-				channelIds = channelIds;
 			});
 			observable
 				.pipe(

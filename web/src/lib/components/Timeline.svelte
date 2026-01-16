@@ -1,7 +1,5 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
-	import { onMount, tick } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { EventItem } from '$lib/Items';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
@@ -43,15 +41,11 @@
 	}: Props = $props();
 
 	let items: EventItem[] = $state([]);
-	let innerHeight: number = $state();
+	let innerHeight = $state(0);
 	let scrollY = $state(0);
 	let isTop = $state(true);
 	let latest = $state(true);
 	let oldest = $state(false);
-
-
-
-
 
 	async function newer() {
 		const id = visibleItems.at(0)?.id;
@@ -210,40 +204,52 @@
 			unsubscribeOldest();
 		};
 	});
-	run(() => {
+
+	$effect(() => {
 		if (scrollY === 0 && !isTop) {
-			isTop = true;
-			timeline.setIsTop(isTop);
-			if (timeline.autoUpdate && !latest) {
-				newer();
-			}
+			untrack(() => {
+				isTop = true;
+				timeline.setIsTop(isTop);
+				if (timeline.autoUpdate && !latest) {
+					newer();
+				}
+			});
 		}
 	});
-	run(() => {
+
+	$effect(() => {
 		if (scrollY > 0 && isTop) {
-			isTop = false;
-			timeline.setIsTop(isTop);
+			untrack(() => {
+				isTop = false;
+				timeline.setIsTop(isTop);
+			});
 		}
 	});
-	run(() => {
+
+	$effect(() => {
 		if (
 			scrollY > 0 &&
 			scrollY + window.innerHeight * 1.2 >= document.documentElement.scrollHeight &&
 			!timeline.loading
 		) {
-			older();
+			untrack(() => {
+				older();
+			});
 		}
 	});
-	let visibleItems = $derived(items.filter(
-		(item) =>
-			!isMuteEvent(item.event) &&
-			!$deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id) &&
-			// TODO: Not to depend on HomeTimeline in Svelte 5
-			(!(timeline instanceof HomeTimeline) ||
-				(!$excludeKinds.includes(item.event.kind) &&
-					(!$preferencesStore.muteAutomatically ||
-						$followeesOfFollowees.has(item.event.pubkey))))
-	));
+
+	let visibleItems = $derived(
+		items.filter(
+			(item) =>
+				!isMuteEvent(item.event) &&
+				!$deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id) &&
+				// TODO: Not to depend on HomeTimeline in Svelte 5
+				(!(timeline instanceof HomeTimeline) ||
+					(!$excludeKinds.includes(item.event.kind) &&
+						(!$preferencesStore.muteAutomatically ||
+							$followeesOfFollowees.has(item.event.pubkey))))
+		)
+	);
 </script>
 
 <svelte:window bind:innerHeight bind:scrollY />

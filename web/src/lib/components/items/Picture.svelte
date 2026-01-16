@@ -21,7 +21,7 @@
 
 <EventMetadata {item} {createdAtFormat}>
 	{#snippet content()}
-		<section >
+		<section>
 			{#if title}
 				<h3>{title}</h3>
 			{/if}

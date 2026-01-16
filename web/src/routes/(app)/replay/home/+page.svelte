@@ -35,8 +35,6 @@
 
 	let localDate: Date | undefined = $state();
 
-
-
 	function clear(): void {
 		console.debug('[replay clear]', $subscription, $fetchTimeout, $eventTimeouts);
 		$subscription?.unsubscribe();

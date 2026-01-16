@@ -18,31 +18,40 @@
 	let { item, createdAtFormat = 'auto' }: Props = $props();
 
 	let optionTags = $derived(item.event.tags.filter(([tagName]) => tagName === 'option'));
-	let relays = $derived(item.event.tags
-		.filter(([tagName]) => tagName === 'relay')
-		.map(([, tagContent]) => tagContent));
-	let type =
-		$derived(item.event.tags
+	let relays = $derived(
+		item.event.tags
+			.filter(([tagName]) => tagName === 'relay')
+			.map(([, tagContent]) => tagContent)
+	);
+	let type = $derived(
+		item.event.tags
 			.filter(([tagName]) => tagName === 'polltype')
 			.at(0)
-			?.at(1) ?? 'singlechoice');
-	let endsAt = $derived(item.event.tags
-		.filter(([tagName]) => tagName === 'endsAt')
-		.at(0)
-		?.at(1));
+			?.at(1) ?? 'singlechoice'
+	);
+	let endsAt = $derived(
+		item.event.tags
+			.filter(([tagName]) => tagName === 'endsAt')
+			.at(0)
+			?.at(1)
+	);
 
 	let selected: string | string[] | undefined = $state();
 	let voted = $state(false);
 	let optionIds = $derived(!selected ? [] : Array.isArray(selected) ? selected : [selected]);
-	let ended = $derived(endsAt === undefined || Date.now() > new Date(Number(endsAt) * 1000).getTime());
+	let ended = $derived(
+		endsAt === undefined || Date.now() > new Date(Number(endsAt) * 1000).getTime()
+	);
 	let votable = $derived(!ended && optionIds.length > 0 && !voted);
 
-	let nevent = $derived(nip19.neventEncode({
-		id: item.event.id,
-		relays: relays.length > 0 ? relays : undefined,
-		author: item.event.pubkey,
-		kind: item.event.kind
-	}));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: item.event.id,
+			relays: relays.length > 0 ? relays : undefined,
+			author: item.event.pubkey,
+			kind: item.event.kind
+		})
+	);
 
 	function onSubmit(e: SubmitEvent): void {
 		e.preventDefault();
@@ -58,7 +67,7 @@
 
 <EventMetadata {item} {createdAtFormat}>
 	{#snippet content()}
-		<section >
+		<section>
 			<Content content={item.event.content} tags={item.event.tags} />
 			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<form onsubmit={onSubmit} onmouseup={stopPropagation(bubble('mouseup'))}>

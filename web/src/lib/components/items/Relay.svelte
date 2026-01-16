@@ -9,13 +9,7 @@
 		hostname: string;
 	}
 
-	let {
-		name,
-		description,
-		icon,
-		url,
-		hostname
-	}: Props = $props();
+	let { name, description, icon, url, hostname }: Props = $props();
 </script>
 
 <article class="timeline-item">

@@ -15,21 +15,20 @@
 		height?: string;
 	}
 
-	let {
-		pubkey,
-		size = 24,
-		width = '34px',
-		height = '34px'
-	}: Props = $props();
+	let { pubkey, size = 24, width = '34px', height = '34px' }: Props = $props();
 
 	let visited = $state(false);
 
 	let metadata = $derived($metadataStore.get(pubkey));
-	let nprofile = $derived(nip19.nprofileEncode({
-		pubkey,
-		relays: metadata ? getSeenOnRelays(metadata.event.id) : undefined
-	}));
-	let url = $derived(`${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`);
+	let nprofile = $derived(
+		nip19.nprofileEncode({
+			pubkey,
+			relays: metadata ? getSeenOnRelays(metadata.event.id) : undefined
+		})
+	);
+	let url = $derived(
+		`${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`
+	);
 	let data = $derived({ url });
 </script>
 

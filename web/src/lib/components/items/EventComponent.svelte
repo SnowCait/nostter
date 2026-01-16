@@ -28,12 +28,7 @@
 		full?: boolean;
 	}
 
-	let {
-		item,
-		readonly,
-		createdAtFormat = 'auto',
-		full = false
-	}: Props = $props();
+	let { item, readonly, createdAtFormat = 'auto', full = false }: Props = $props();
 
 	const events = getContext<Event[] | undefined>('events') ?? [];
 	setContext('events', [...events, item.event]);

@@ -13,12 +13,7 @@
 		size?: number;
 	}
 
-	let {
-		defaultReaction,
-		reactioned,
-		isAprilFool,
-		size = 24
-	}: Props = $props();
+	let { defaultReaction, reactioned, isAprilFool, size = 24 }: Props = $props();
 </script>
 
 {#if defaultReaction === '🐾' || isAprilFool}

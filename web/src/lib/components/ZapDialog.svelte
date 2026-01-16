@@ -139,7 +139,11 @@
 					{/each}
 				</div>
 				<div>
-					<input type="number" bind:value={sats} onkeyup={stopPropagation(bubble('keyup'))} />
+					<input
+						type="number"
+						bind:value={sats}
+						onkeyup={stopPropagation(bubble('keyup'))}
+					/>
 					<span>sats</span>
 				</div>
 				<div>

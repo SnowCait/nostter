@@ -14,6 +14,7 @@
 	import type { LayoutData } from '../$types';
 	import { pubkey } from '$lib/stores/Author';
 	import Loading from '$lib/components/Loading.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	interface Props {
 		data: LayoutData;
@@ -21,19 +22,19 @@
 
 	let { data }: Props = $props();
 
-	let listEvents = $state(new Map<string, Event>());
+	let listEvents = new SvelteMap<string, Event>();
 	let loading = $state(true);
 	let subscription: Subscription | undefined;
 
 	let metadata = $derived($metadataStore.get(data.pubkey));
-	let title =
-		$derived((metadata === undefined ? '' : `${metadata.displayName}${$_('lists.particle')}`) +
-		$_('lists.title'));
+	let title = $derived(
+		(metadata === undefined ? '' : `${metadata.displayName}${$_('lists.particle')}`) +
+			$_('lists.title')
+	);
 
 	afterNavigate(() => {
 		console.log('[lists page]', data.pubkey);
 		listEvents.clear();
-		listEvents = listEvents;
 		loading = true;
 		metadataReqEmit([data.pubkey]);
 
@@ -74,7 +75,6 @@
 					const last = listEvents.get(identifier);
 					if (last === undefined || last.created_at < event.created_at) {
 						listEvents.set(identifier, event);
-						listEvents = listEvents;
 					}
 				},
 				complete: () => {

@@ -32,15 +32,18 @@
 		$openNoteDialog = !$openNoteDialog;
 	}
 
-	let homeLink = $derived($followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/public');
+	let homeLink = $derived(
+		$followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/public'
+	);
 	let nprofile = $derived(nip19.nprofileEncode({ pubkey: $pubkey }));
-	let notificationsBadge =
-		$derived($notifiedEventItems.filter(
+	let notificationsBadge = $derived(
+		$notifiedEventItems.filter(
 			(item) =>
 				item.event.created_at > $lastReadAt &&
 				(!$preferencesStore.muteAutomatically ||
 					$followeesOfFollowees.has(item.event.pubkey))
-		).length > 0);
+		).length > 0
+	);
 </script>
 
 <div class="header">
@@ -171,7 +174,7 @@
 					<div use:melt={$menu} class="menu">
 						<div
 							use:melt={$item}
-							onm-click={async () => await goto(`/public`)}
+							onclick={async () => await goto(`/public`)}
 							class="item"
 						>
 							<div class="icon"><IconWorld /></div>
@@ -179,7 +182,7 @@
 						</div>
 						<div
 							use:melt={$item}
-							onm-click={async () => await goto(`/${nprofile}/lists`)}
+							onclick={async () => await goto(`/${nprofile}/lists`)}
 							class="item"
 						>
 							<div class="icon"><IconList /></div>
@@ -187,7 +190,7 @@
 						</div>
 						<div
 							use:melt={$item}
-							onm-click={async () => await goto(`/${nprofile}/bookmarks`)}
+							onclick={async () => await goto(`/${nprofile}/bookmarks`)}
 							class="item"
 						>
 							<div class="icon"><IconBookmark /></div>
@@ -195,7 +198,7 @@
 						</div>
 						<div
 							use:melt={$item}
-							onm-click={async () => await goto('/channels')}
+							onclick={async () => await goto('/channels')}
 							class="item"
 						>
 							<div class="icon"><IconMessages /></div>
@@ -203,7 +206,7 @@
 						</div>
 						<div
 							use:melt={$item}
-							onm-click={async () => await goto('/preferences')}
+							onclick={async () => await goto('/preferences')}
 							class="item"
 						>
 							<div class="icon"><IconSettings /></div>
@@ -211,7 +214,7 @@
 						</div>
 						<div
 							use:melt={$item}
-							onm-click={async () => await goto('/about')}
+							onclick={async () => await goto('/about')}
 							class="item"
 						>
 							<div class="icon"><IconPaw /></div>

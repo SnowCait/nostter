@@ -14,6 +14,7 @@
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { MouseButton } from '$lib/DomHelper';
+	import { innerHeight } from 'svelte/reactivity/window';
 
 	interface Props {
 		items?: Item[];
@@ -36,20 +37,21 @@
 	}: Props = $props();
 
 	let loading = false;
-	let innerHeight: number = $state();
 	let scrollY = writable(0);
 
-	let visibleItems = $derived(items.filter(
-		(item) =>
-			!isMuteEvent(item.event) &&
-			!$deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id)
-	));
+	let visibleItems = $derived(
+		items.filter(
+			(item) =>
+				!isMuteEvent(item.event) &&
+				!$deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id)
+		)
+	);
 
 	onMount(() => {
 		console.log('Timeline.onMount');
 		scrollY.subscribe(async (y) => {
 			const maxHeight = document.documentElement.scrollHeight;
-			const scrollRate = Math.floor((100 * (y + innerHeight)) / maxHeight);
+			const scrollRate = Math.floor((100 * (y + innerHeight.current!)) / maxHeight);
 
 			if (scrollRate > 80 && !loading) {
 				console.log('Load more timeline');
@@ -134,22 +136,20 @@
 	};
 </script>
 
-<svelte:window bind:innerHeight bind:scrollY={$scrollY} />
+<svelte:window bind:scrollY={$scrollY} />
 
 {#if visibleItems.length > 0}
 	<section class="card">
-		<VirtualScroll data={visibleItems} key="id"  pageMode={true} keeps={50}>
-			{#snippet children({ data })}
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div
-					class={canTransition ? 'canTransition-post' : ''}
-					class:related={$author?.isNotified(data.event)}
-					onmouseup={(e) => viewDetail(e, data.event)}
-				>
-					<EventComponent item={data} {readonly} {createdAtFormat} {full} />
-				</div>
-								{/snippet}
-				</VirtualScroll>
+		<VirtualScroll data={visibleItems} key="id" let:data pageMode={true} keeps={50}>
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class={canTransition ? 'canTransition-post' : ''}
+				class:related={$author?.isNotified(data.event)}
+				onmouseup={(e) => viewDetail(e, data.event)}
+			>
+				<EventComponent item={data} {readonly} {createdAtFormat} {full} />
+			</div>
+		</VirtualScroll>
 	</section>
 {/if}
 

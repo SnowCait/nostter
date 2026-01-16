@@ -26,17 +26,19 @@
 
 	let zapped = $state(false);
 	let jsonDisplay = $state(false);
-	let zapDialogComponent: ZapDialog = $state();
+	let zapDialogComponent = $state<ZapDialog>();
 
 	const iconSize = 20;
 
 	let metadata = $derived($metadataStore.get(item.event.pubkey));
-	let nevent = $derived(nip19.neventEncode({
-		id: item.event.id,
-		relays: metadata ? getSeenOnRelays(item.event.id) : undefined,
-		author: item.event.pubkey,
-		kind: item.event.kind
-	}));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: item.event.id,
+			relays: metadata ? getSeenOnRelays(item.event.id) : undefined,
+			author: item.event.pubkey,
+			kind: item.event.kind
+		})
+	);
 
 	function reply(item: Item) {
 		$replyTo = item as EventItem;
@@ -78,7 +80,7 @@
 		class="zap"
 		class:hidden={!metadata?.canZap}
 		disabled={zapped}
-		onclick={() => zapDialogComponent.openZapDialog()}
+		onclick={() => zapDialogComponent?.openZapDialog()}
 	>
 		<IconBolt size={iconSize} />
 	</button>

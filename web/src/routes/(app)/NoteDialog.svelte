@@ -7,10 +7,10 @@
 	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
 	import IconX from '@tabler/icons-svelte/icons/x';
 
-	let content: string = $state();
+	let content = $state('');
 
-	let dialog: HTMLDialogElement | undefined = $state();
-	let editor: NoteEditor = $state();
+	let dialog = $state<HTMLDialogElement>();
+	let editor = $state<NoteEditor>();
 
 	openNoteDialog.subscribe(async (open) => {
 		console.log('[note dialog open]', open);
@@ -33,7 +33,7 @@
 
 	function closed(): void {
 		console.log(`[note dialog close]`);
-		editor.clear();
+		editor?.clear();
 	}
 
 	function closeIfNotEmpty(): void {
@@ -43,8 +43,6 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <dialog
 	bind:this={dialog}
 	onclick={tryClose}

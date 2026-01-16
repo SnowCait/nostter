@@ -13,8 +13,9 @@
 
 	let isInternal = $derived(link.origin === $page.url.origin); // Exception
 	let content = $derived(link.hostname + link.pathname + link.search + link.hash);
-	let shortenedContent =
-		$derived(content.length < threshold ? content : content.substring(0, threshold) + '...');
+	let shortenedContent = $derived(
+		content.length < threshold ? content : content.substring(0, threshold) + '...'
+	);
 </script>
 
 {#if isInternal}

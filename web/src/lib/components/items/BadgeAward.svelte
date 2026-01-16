@@ -28,15 +28,19 @@
 	const aTagContents = filterTags('a', event.tags);
 
 	let metadata = $derived($metadataStore.get(event.pubkey));
-	let nevent = $derived(nip19.neventEncode({
-		id: event.id,
-		relays: getSeenOnRelays(event.id),
-		author: event.pubkey,
-		kind: event.kind
-	}));
-	let badgeDefinitions = $derived(aTagContents
-		.map((a) => $replaceableEventsStore.get(a))
-		.filter((event): event is Event => event !== undefined));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: event.id,
+			relays: getSeenOnRelays(event.id),
+			author: event.pubkey,
+			kind: event.kind
+		})
+	);
+	let badgeDefinitions = $derived(
+		aTagContents
+			.map((a) => $replaceableEventsStore.get(a))
+			.filter((event): event is Event => event !== undefined)
+	);
 	let myBadgeDefinitionsA = $derived(filterTags('a', $profileBadgesEvent?.tags ?? []));
 
 	let jsonDisplay = $state(false);

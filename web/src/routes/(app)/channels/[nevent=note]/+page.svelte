@@ -48,7 +48,9 @@
 
 	let showInformation = $state(false);
 
-	let metadata = $derived(kind40Event !== undefined ? $metadataStore.get(kind40Event.pubkey) : undefined);
+	let metadata = $derived(
+		kind40Event !== undefined ? $metadataStore.get(kind40Event.pubkey) : undefined
+	);
 	run(() => {
 		console.log('[channel metadata]', channelMetadata);
 	});

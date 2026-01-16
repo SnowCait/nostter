@@ -15,10 +15,11 @@
 
 	let { channelId }: Props = $props();
 
-	let pinned =
-		$state($authorChannelsEventStore?.tags.some(
+	let pinned = $state(
+		$authorChannelsEventStore?.tags.some(
 			([tagName, id]) => tagName === 'e' && id === channelId
-		) ?? false);
+		) ?? false
+	);
 
 	async function pin() {
 		console.log('[channel pin]', channelId);

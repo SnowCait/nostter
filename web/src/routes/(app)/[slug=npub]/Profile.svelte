@@ -35,12 +35,7 @@
 		relays: string[];
 	}
 
-	let {
-		slug,
-		pubkey,
-		metadata,
-		relays
-	}: Props = $props();
+	let { slug, pubkey, metadata, relays }: Props = $props();
 
 	let p: string | undefined = $state();
 	let followees: string[] | undefined = $state();

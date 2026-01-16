@@ -23,12 +23,14 @@
 	const { event } = item;
 
 	let channelId = $derived(event.kind === 40 ? event.id : findChannelId(event.tags));
-	let nevent = $derived(nip19.neventEncode({
-		id: event.id,
-		relays: getSeenOnRelays(event.id),
-		author: event.pubkey,
-		kind: event.kind
-	}));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: event.id,
+			relays: getSeenOnRelays(event.id),
+			author: event.pubkey,
+			kind: event.kind
+		})
+	);
 
 	let channelMetadataEvent: Event | undefined = $state();
 	let channelMetadata: ChannelMetadata | undefined = $state();

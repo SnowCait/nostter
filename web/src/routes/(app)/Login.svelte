@@ -165,8 +165,7 @@
 				</div>
 
 				<section>
-					<button class="button-outlined" onclick={showLogin}>{$_('login.login')}</button
-					>
+					<button class="button-outlined" onclick={showLogin}>{$_('login.login')}</button>
 					<ModalDialog bind:open={showLoginDialog}>
 						<article class="login-modal-content">
 							<section>

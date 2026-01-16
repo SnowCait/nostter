@@ -12,7 +12,7 @@
 	let nativeUrl = $derived(`nostr:${identifier}`);
 	let webUrl = $derived(`web+nostr:${identifier}`);
 
-	let open: boolean = $state();
+	let open = $state(false);
 </script>
 
 <button class="clear" onclick={() => (open = true)}>

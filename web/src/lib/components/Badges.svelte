@@ -11,6 +11,7 @@
 	import type { Event } from 'nostr-typedef';
 	import { aTagContent, findIdentifier } from '$lib/EventHelper';
 	import { nip19 } from 'nostr-tools';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	interface Props {
 		pubkey: string;
@@ -22,19 +23,19 @@
 	type AwardId = string;
 	type DefinitionAddress = string;
 
-	let profileBadges: { awards: Set<AwardId>; definitions: Set<DefinitionAddress> } | undefined = $state();
-	let badgeAwards = $state(new Map<AwardId, DefinitionAddress>());
-	let badgeDefinitions = $state(new Map<DefinitionAddress, Event>());
-
-
+	let profileBadges: { awards: Set<AwardId>; definitions: Set<DefinitionAddress> } | undefined =
+		$state();
+	let badgeAwards = new SvelteMap<AwardId, DefinitionAddress>();
+	let badgeDefinitions = new SvelteMap<DefinitionAddress, Event>();
 
 	function addToBadgeAwards(id: AwardId, address: DefinitionAddress): void {
-		badgeAwards = badgeAwards.set(id, address);
+		badgeAwards.set(id, address);
 	}
 
 	function updateBadgeDefinitions(address: DefinitionAddress, event: Event): void {
-		badgeDefinitions = badgeDefinitions.set(address, event);
+		badgeDefinitions.set(address, event);
 	}
+
 	run(() => {
 		if (browser) {
 			console.debug('[badges]', pubkey, relays);
@@ -144,13 +145,17 @@
 			profileBadgesReq.over();
 		}
 	});
-	let awardedDefinitions = $derived([...(profileBadges?.awards ?? new Set())]
-		.filter((id) => badgeAwards.has(id))
-		.map((id) => badgeAwards.get(id)!)
-		.filter(
-			(address) => profileBadges!.definitions.has(address) && badgeDefinitions.has(address)
-		)
-		.map((address) => badgeDefinitions.get(address)!));
+
+	let awardedDefinitions = $derived(
+		[...(profileBadges?.awards ?? new Set())]
+			.filter((id) => badgeAwards.has(id))
+			.map((id) => badgeAwards.get(id)!)
+			.filter(
+				(address) =>
+					profileBadges!.definitions.has(address) && badgeDefinitions.has(address)
+			)
+			.map((address) => badgeDefinitions.get(address)!)
+	);
 </script>
 
 <ul class="badges">

@@ -31,12 +31,14 @@
 	const { event } = item;
 
 	let metadata = $derived($metadataStore.get(event.pubkey));
-	let nevent = $derived(nip19.neventEncode({
-		id: event.id,
-		relays: getSeenOnRelays(event.id),
-		author: event.pubkey,
-		kind: event.kind
-	}));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: event.id,
+			relays: getSeenOnRelays(event.id),
+			author: event.pubkey,
+			kind: event.kind
+		})
+	);
 
 	let originalEvent: EventItem | undefined = $state();
 	let jsonDisplay = $state(false);

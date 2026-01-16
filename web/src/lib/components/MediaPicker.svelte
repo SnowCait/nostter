@@ -10,8 +10,8 @@
 
 	let { multiple = false }: Props = $props();
 
-	let input: HTMLInputElement | undefined = $state();
-	let files: FileList = $state();
+	let input = $state<HTMLInputElement>();
+	let files = $state<FileList>();
 
 	const dispatch = createEventDispatcher();
 

@@ -29,6 +29,7 @@
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import BackButton from '$lib/components/BackButton.svelte';
 	import { IconHeartBroken } from '@tabler/icons-svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	interface Props {
 		data: LayoutData;
@@ -44,23 +45,16 @@
 	let rootId: string | undefined = $state();
 	let canonicalUrl: string | undefined = $state();
 
-
-
-
 	let replyToEventItems: EventItem[] = $state([]);
 	let repliedToEventItems: EventItem[] = $state([]);
 	let repliedToEventsMap = new Map<string, Event>();
 	let repostEventItems: EventItem[] = $state([]);
 	let reactionEventItems: EventItem[] = $state([]);
-	let zapEventItemsMap = $state(new Map<number | undefined, ZapEventItem[]>());
+	let zapEventItemsMap = new SvelteMap<number | undefined, ZapEventItem[]>();
 
 	let customEmojiShortcode = $state(new Map<string, string>());
 
-
-
-
 	let id: string | undefined = $state();
-
 
 	async function fetchReplies(originalReplyId: string | undefined): Promise<void> {
 		let replyId = originalReplyId;
@@ -149,7 +143,6 @@
 		repostEventItems = [];
 		reactionEventItems = [];
 		zapEventItemsMap.clear();
-		zapEventItemsMap = zapEventItemsMap;
 		customEmojiShortcode = new Map<string, string>();
 	}
 
@@ -219,7 +212,9 @@
 
 			// Replies
 			merge(observable.pipe(filterByKind(1)), observable.pipe(filterByKind(42)))
-				.pipe(filter(({ event }) => !repliedToEventItems.some((x) => x.event.id === event.id)))
+				.pipe(
+					filter(({ event }) => !repliedToEventItems.some((x) => x.event.id === event.id))
+				)
 				.subscribe((packet) => {
 					console.debug('[thread kind 1]', packet);
 					insertIntoAscendingTimeline(packet.event, repliedToEventItems);
@@ -259,7 +254,8 @@
 				let event: Event | undefined;
 				const description = packet.event.tags
 					.find(
-						([tagName, tagContent]) => tagName === 'description' && tagContent !== undefined
+						([tagName, tagContent]) =>
+							tagName === 'description' && tagContent !== undefined
 					)
 					?.at(1);
 				if (description !== undefined) {
@@ -280,7 +276,6 @@
 				let eventItems = zapEventItemsMap.get(eventItem.amount) ?? [];
 				eventItems.push(eventItem);
 				zapEventItemsMap.set(eventItem.amount, eventItems);
-				zapEventItemsMap = zapEventItemsMap;
 			});
 		}
 	});
@@ -293,42 +288,46 @@
 			})}`;
 		}
 	});
-	let repostMetadataList = $derived(repostEventItems
-		.map((x) => $metadataStore.get(x.event.pubkey))
-		.filter((x): x is Metadata => x !== undefined));
-	let reactionMetadataMap = $derived(reactionEventItems.reduce((map, item) => {
-		let content = item.event.content;
-		if (content === '') {
-			content = '+';
-		} else if (content.startsWith(':')) {
-			const emojiTag = item.event.tags.find(
-				([tagName, shortcode, url]) =>
-					tagName === 'emoji' &&
-					`:${shortcode}:` === content &&
-					url !== undefined &&
-					url !== ''
-			);
-			if (emojiTag !== undefined) {
-				const [, shortcode, url] = emojiTag;
-				try {
-					new URL(url);
-					content = url;
-					if (!customEmojiShortcode.has(url)) {
-						customEmojiShortcode.set(url, shortcode);
+	let repostMetadataList = $derived(
+		repostEventItems
+			.map((x) => $metadataStore.get(x.event.pubkey))
+			.filter((x): x is Metadata => x !== undefined)
+	);
+	let reactionMetadataMap = $derived(
+		reactionEventItems.reduce((map, item) => {
+			let content = item.event.content;
+			if (content === '') {
+				content = '+';
+			} else if (content.startsWith(':')) {
+				const emojiTag = item.event.tags.find(
+					([tagName, shortcode, url]) =>
+						tagName === 'emoji' &&
+						`:${shortcode}:` === content &&
+						url !== undefined &&
+						url !== ''
+				);
+				if (emojiTag !== undefined) {
+					const [, shortcode, url] = emojiTag;
+					try {
+						new URL(url);
+						content = url;
+						if (!customEmojiShortcode.has(url)) {
+							customEmojiShortcode.set(url, shortcode);
+						}
+					} catch (error) {
+						console.error('[custom emoji invalid]', item, error);
 					}
-				} catch (error) {
-					console.error('[custom emoji invalid]', item, error);
 				}
 			}
-		}
-		const items = map.get(content);
-		if (items !== undefined) {
-			items.push(item);
-		} else {
-			map.set(content, [item]);
-		}
-		return map;
-	}, new Map<string, EventItem[]>()));
+			const items = map.get(content);
+			if (items !== undefined) {
+				items.push(item);
+			} else {
+				map.set(content, [item]);
+			}
+			return map;
+		}, new Map<string, EventItem[]>())
+	);
 	run(() => {
 		if (item !== undefined && item.id !== id && browser) {
 			console.debug('[thread item]', item);

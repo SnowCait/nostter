@@ -26,12 +26,7 @@
 		full?: boolean;
 	}
 
-	let {
-		item,
-		readonly = $bindable(),
-		createdAtFormat = 'auto',
-		full = false
-	}: Props = $props();
+	let { item, readonly = $bindable(), createdAtFormat = 'auto', full = false }: Props = $props();
 
 	let eventItem = $derived(item as EventItem);
 
@@ -75,7 +70,7 @@
 
 <EventMetadata {item} {createdAtFormat}>
 	{#snippet content()}
-		<section >
+		<section>
 			{#if isReply(item.event)}
 				<div class="reply">
 					<span>To</span>
@@ -94,7 +89,9 @@
 								}
 
 								try {
-									return nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7);
+									return nip19
+										.npubEncode(pubkey)
+										.substring(0, 'npub1'.length + 7);
 								} catch (error) {
 									console.error('[npub encode error]', pubkey, error);
 									return '-';

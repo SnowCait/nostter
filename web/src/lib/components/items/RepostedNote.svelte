@@ -29,22 +29,26 @@
 	const { event } = item;
 
 	let metadata = $derived($metadataStore.get(event.pubkey));
-	let nevent = $derived(nip19.neventEncode({
-		id: event.id,
-		relays: getSeenOnRelays(event.id),
-		author: event.pubkey,
-		kind: event.kind
-	}));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: event.id,
+			relays: getSeenOnRelays(event.id),
+			author: event.pubkey,
+			kind: event.kind
+		})
+	);
 
 	let originalEvent: EventItem | undefined = $state();
 	let jsonDisplay = $state(false);
 
-	let originalTag = $state(event.tags.find(
-		([tagName, eventId, , marker]) =>
-			tagName === 'e' &&
-			eventId !== undefined &&
-			(marker === 'mention' || marker === undefined)
-	));
+	let originalTag = $state(
+		event.tags.find(
+			([tagName, eventId, , marker]) =>
+				tagName === 'e' &&
+				eventId !== undefined &&
+				(marker === 'mention' || marker === undefined)
+		)
+	);
 
 	// Workaround for some incorrect clients
 	if (originalTag === undefined) {

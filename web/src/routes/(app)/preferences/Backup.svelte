@@ -24,12 +24,11 @@
 		states: { open }
 	} = createCollapsible();
 
-
 	async function loadCachedVersions() {
 		loading = true;
-		const $pubkey = get(pubkey);
-		if ($pubkey) {
-			cachedEvents = await eventCache.getReplaceableEvents(3, $pubkey);
+		const authorPubkey = get(pubkey);
+		if (authorPubkey) {
+			cachedEvents = await eventCache.getReplaceableEvents(3, authorPubkey);
 		}
 		loading = false;
 	}

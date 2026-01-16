@@ -15,13 +15,7 @@
 		height?: string;
 	}
 
-	let {
-		pubkey,
-		event = undefined,
-		size = 24,
-		width = '34px',
-		height = '34px'
-	}: Props = $props();
+	let { pubkey, event = undefined, size = 24, width = '34px', height = '34px' }: Props = $props();
 
 	let metadata = $derived($metadataStore.get(pubkey));
 	run(() => {

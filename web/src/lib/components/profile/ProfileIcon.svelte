@@ -9,12 +9,7 @@
 		tooltip?: boolean;
 	}
 
-	let {
-		pubkey,
-		width = '100%',
-		height = '100%',
-		tooltip = true
-	}: Props = $props();
+	let { pubkey, width = '100%', height = '100%', tooltip = true }: Props = $props();
 
 	let metadata = $derived($metadataStore.get(pubkey));
 	let name = $derived(metadata?.displayName ?? '');

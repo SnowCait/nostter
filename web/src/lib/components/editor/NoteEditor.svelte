@@ -31,6 +31,7 @@
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
 	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
 	import Loading from '$lib/components/Loading.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	export function clear(): void {
 		console.log('[note editor clear]');
@@ -43,7 +44,6 @@
 		emojiTags = [];
 		contentWarningReason = undefined;
 	}
-
 
 	interface Props {
 		afterPost?: () => Promise<void>;
@@ -58,8 +58,7 @@
 	let emojiTags: string[][] = $state([]);
 	let contentWarningReason: string | undefined = $state();
 
-	let textarea: HTMLTextAreaElement = $state();
-	let article: HTMLElement = $state();
+	let textarea = $state<HTMLTextAreaElement>();
 
 	//#region Mention complement
 
@@ -80,7 +79,8 @@
 					...metadataList
 						.filter((metadata) => metadata.includes(mention ?? ''))
 						.filter(
-							(metadata) => !list.some((m) => m.event.pubkey === metadata.event.pubkey)
+							(metadata) =>
+								!list.some((m) => m.event.pubkey === metadata.event.pubkey)
 						)
 						.slice(0, displayMax - list.length)
 				);
@@ -118,7 +118,10 @@
 
 	run(() => {
 		if (shortcode !== undefined) {
-			const customEmojiList = $customEmojiTags.map(([, shortcode, url]) => ({ shortcode, url }));
+			const customEmojiList = $customEmojiTags.map(([, shortcode, url]) => ({
+				shortcode,
+				url
+			}));
 			const list = customEmojiList.filter(({ shortcode: s }) =>
 				s.toLowerCase().startsWith((shortcode ?? '').toLowerCase())
 			);
@@ -146,7 +149,7 @@
 	});
 
 	async function replaceShortcodeComplement(emoji: Emoji): Promise<void> {
-		if (shortcode === undefined) {
+		if (shortcode === undefined || textarea === undefined) {
 			return;
 		}
 
@@ -173,7 +176,7 @@
 	//#region Media
 
 	let onDrag = $state(false);
-	let mediaUrls = $state(new Map<File, string | undefined>());
+	let mediaUrls = new SvelteMap<File, string | undefined>();
 
 	let uploading = $derived([...mediaUrls].some(([, url]) => url === undefined));
 
@@ -225,6 +228,9 @@
 			}
 
 			await tick();
+			if (textarea === undefined) {
+				return;
+			}
 			console.log(textarea, textarea.selectionStart);
 			textarea.setSelectionRange(0, 0);
 			textarea.focus();
@@ -296,6 +302,10 @@
 	}
 
 	async function onInput(inputEvent: Event) {
+		if (textarea === undefined) {
+			return;
+		}
+
 		const { selectionStart, selectionEnd } = textarea;
 		console.debug('[complement input]', inputEvent, content, selectionStart, selectionEnd);
 		if (!(inputEvent instanceof InputEvent)) {
@@ -321,7 +331,7 @@
 	}
 
 	async function replaceMentionComplement(metadata: Metadata): Promise<void> {
-		if (mention === undefined) {
+		if (mention === undefined || textarea === undefined) {
 			return;
 		}
 
@@ -347,6 +357,10 @@
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async function onEmojiPick({ detail: emoji }: { detail: any }): Promise<void> {
+		if (textarea === undefined) {
+			return;
+		}
+
 		console.debug('[emoji pick]', emoji);
 		const shortcode = emoji.id.replaceAll('+', '_');
 		const { selectionStart, selectionEnd } = textarea;
@@ -473,6 +487,7 @@
 
 	async function drop(event: DragEvent) {
 		console.log('[drop]', event.type, event.dataTransfer);
+		event.preventDefault();
 
 		if (event.dataTransfer === null) {
 			return;
@@ -498,14 +513,12 @@
 		for (const file of files) {
 			mediaUrls.set(file, undefined);
 		}
-		mediaUrls = mediaUrls;
 
 		const urls = await uploadFiles(files);
 
 		for (const { file, url } of urls) {
 			mediaUrls.set(file, url);
 		}
-		mediaUrls = mediaUrls;
 
 		addUrlsToContent(urls.map(({ url }) => url));
 
@@ -541,7 +554,7 @@
 	})}
 />
 
-<article bind:this={article} class="note-editor">
+<article class="note-editor">
 	{#if channelEvent !== undefined}
 		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
 	{/if}
@@ -565,7 +578,7 @@
 				oninput={onInput}
 				onpaste={paste}
 				ondragover={preventDefault(dragover)}
-				ondrop={preventDefault(drop)}
+				ondrop={drop}
 			></textarea>
 			{#if containsNsec}
 				<div class="warning">{$_('editor.warning.nsec')}</div>
@@ -578,8 +591,9 @@
 						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 						<li
 							class:selected={i === mentionComplementIndex}
-							onclick={stopPropagation(async () =>
-								await replaceMentionComplement(mentionComplementList[i]))}
+							onclick={stopPropagation(
+								async () => await replaceMentionComplement(mentionComplementList[i])
+							)}
 						>
 							<OnelineProfile pubkey={metadata.event.pubkey} />
 						</li>
@@ -594,8 +608,10 @@
 						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 						<li
 							class:selected={i === shortcodeComplementIndex}
-							onclick={stopPropagation(async () =>
-								await replaceShortcodeComplement(shortcodeComplementList[i]))}
+							onclick={stopPropagation(
+								async () =>
+									await replaceShortcodeComplement(shortcodeComplementList[i])
+							)}
 						>
 							<CustomEmoji text={emoji.shortcode} url={emoji.url} />
 							<span>:{emoji.shortcode}:</span>

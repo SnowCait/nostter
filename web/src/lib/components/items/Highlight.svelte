@@ -20,15 +20,21 @@
 
 	let event = $derived(item.event);
 
-	let sourceAddress = $derived(event.tags.find((tag) => tag[0] === 'a' && addressRegexp.test(tag[1]))?.[1]);
-	let sourceId = $derived(event.tags.find((tag) => tag[0] === 'e' && hexRegexp.test(tag[1]))?.[1]);
-	let sourceUrl = $derived(event.tags.find(
-		(tag) => tag[0] === 'r' && URL.canParse(tag[1]) && tag[2] === 'source'
-	)?.[1]);
+	let sourceAddress = $derived(
+		event.tags.find((tag) => tag[0] === 'a' && addressRegexp.test(tag[1]))?.[1]
+	);
+	let sourceId = $derived(
+		event.tags.find((tag) => tag[0] === 'e' && hexRegexp.test(tag[1]))?.[1]
+	);
+	let sourceUrl = $derived(
+		event.tags.find((tag) => tag[0] === 'r' && URL.canParse(tag[1]) && tag[2] === 'source')?.[1]
+	);
 
-	let authorsOrEditors = $derived(event.tags
-		.filter((tag) => tag[0] === 'p' && hexRegexp.test(tag[1]) && tag[3] !== 'mention')
-		.map(([, pubkey]) => pubkey));
+	let authorsOrEditors = $derived(
+		event.tags
+			.filter((tag) => tag[0] === 'p' && hexRegexp.test(tag[1]) && tag[3] !== 'mention')
+			.map(([, pubkey]) => pubkey)
+	);
 
 	let context = $derived(event.tags.find((tag) => tag[0] === 'context' && tag[1])?.[1]);
 	let comment = $derived(event.tags.find((tag) => tag[0] === 'comment' && tag[1])?.[1]);
@@ -36,7 +42,7 @@
 
 <EventMetadata {item} {createdAtFormat}>
 	{#snippet content()}
-		<section  class="highlight">
+		<section class="highlight">
 			{#if comment}
 				<div class="comment">
 					<Content content={comment} tags={event.tags} />

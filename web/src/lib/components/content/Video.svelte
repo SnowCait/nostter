@@ -11,7 +11,9 @@
 	let { url }: Props = $props();
 
 	const events = getContext<Event[] | undefined>('events');
-	let blur = $state(events !== undefined && !events.some((event) => $followees.includes(event.pubkey)));
+	let blur = $state(
+		events !== undefined && !events.some((event) => $followees.includes(event.pubkey))
+	);
 
 	function show(): void {
 		blur = false;

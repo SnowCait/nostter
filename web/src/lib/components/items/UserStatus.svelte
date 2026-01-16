@@ -15,23 +15,23 @@
 	let { item, createdAtFormat = 'auto' }: Props = $props();
 
 	let identifier = $derived(item.event.tags.find(([tagName]) => tagName === 'd')?.at(1) ?? '');
-	let link = $derived(item.event.tags.find(([tagName, url]) => tagName === 'r' && url !== undefined)?.at(1));
+	let link = $derived(
+		item.event.tags.find(([tagName, url]) => tagName === 'r' && url !== undefined)?.at(1)
+	);
 </script>
 
 <EventMetadata {item} {createdAtFormat}>
 	{#snippet icon()}
-	
-			{#if identifier === 'general'}
-				<IconUser />
-			{:else if identifier === 'music'}
-				<IconMusic />
-			{:else}
-				<IconQuestionMark />
-			{/if}
-		
+		{#if identifier === 'general'}
+			<IconUser />
+		{:else if identifier === 'music'}
+			<IconMusic />
+		{:else}
+			<IconQuestionMark />
+		{/if}
 	{/snippet}
 	{#snippet content()}
-		<section >
+		<section>
 			<Content content={item.event.content} tags={item.event.tags} />
 			{#if link !== undefined}
 				<a href={link} target="_blank" rel="noopener noreferrer">

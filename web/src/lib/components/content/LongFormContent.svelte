@@ -18,12 +18,14 @@
 	let title = $derived(event.tags.find(([tagName]) => tagName === 'title')?.at(1));
 	let image = $derived(event.tags.find(([tagName]) => tagName === 'image')?.at(1));
 	let summary = $derived(event.tags.find(([tagName]) => tagName === 'summary')?.at(1));
-	let naddr = $derived(nip19.naddrEncode({
-		kind: event.kind,
-		pubkey: event.pubkey,
-		identifier: findIdentifier(event.tags) ?? '',
-		relays: getSeenOnRelays(event.id)
-	}));
+	let naddr = $derived(
+		nip19.naddrEncode({
+			kind: event.kind,
+			pubkey: event.pubkey,
+			identifier: findIdentifier(event.tags) ?? '',
+			relays: getSeenOnRelays(event.id)
+		})
+	);
 
 	const iconSize = 20;
 	let jsonDisplay = $state(false);

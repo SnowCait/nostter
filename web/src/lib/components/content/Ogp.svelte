@@ -20,8 +20,6 @@
 
 	let { url }: Props = $props();
 
-
-
 	async function fetchOgp(url: URL, proxy: boolean): Promise<boolean> {
 		console.debug('[OGP url]', url.href, proxy);
 		$cache.set(url.href, undefined);

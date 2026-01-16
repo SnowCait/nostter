@@ -14,7 +14,9 @@
 
 	let { data }: Props = $props();
 
-	let homeLink = $derived($followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/public');
+	let homeLink = $derived(
+		$followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/public'
+	);
 
 	run(() => {
 		if (data.authenticated) {

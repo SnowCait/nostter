@@ -27,9 +27,11 @@
 	let pubkey: string | undefined = $state();
 	let pubkeys: Pubkey[] = $state([]);
 
-	let items = $derived(pubkeys
-		.map((pubkey) => $metadataStore.get(pubkey))
-		.filter((metadata): metadata is Metadata => metadata !== undefined));
+	let items = $derived(
+		pubkeys
+			.map((pubkey) => $metadataStore.get(pubkey))
+			.filter((metadata): metadata is Metadata => metadata !== undefined)
+	);
 
 	run(() => {
 		if (pubkey !== data.pubkey && browser) {

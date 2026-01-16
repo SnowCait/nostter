@@ -20,10 +20,12 @@
 	let { content, tags }: Props = $props();
 
 	let tokens = $derived(Content.parse(content, tags));
-	let urls = $derived(tokens
-		.filter((token) => token.name === 'url' && URL.canParse(token.text))
-		.map((token) => new URL(token.text))
-		.filter((url) => url.protocol === 'https:'));
+	let urls = $derived(
+		tokens
+			.filter((token) => token.name === 'url' && URL.canParse(token.text))
+			.map((token) => new URL(token.text))
+			.filter((url) => url.protocol === 'https:')
+	);
 </script>
 
 <p class="content">

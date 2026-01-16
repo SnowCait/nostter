@@ -22,7 +22,9 @@
 		elements: { menu, item, trigger, overlay, separator }
 	} = createDropdownMenu({ preventScroll: false });
 
-	let reposted = $derived($repostedEvents.has(event.id) && $repostedEvents.get(event.id)!.length > 0);
+	let reposted = $derived(
+		$repostedEvents.has(event.id) && $repostedEvents.get(event.id)!.length > 0
+	);
 
 	async function onRepost(): Promise<void> {
 		console.debug('[repost]', event);
@@ -78,7 +80,7 @@
 <div use:melt={$overlay} class="overlay"></div>
 <div use:melt={$menu} class="menu">
 	{#if event.kind === ShortTextNote}
-		<div use:melt={$item} onm-click={onRepost} class="item">
+		<div use:melt={$item} onclick={onRepost} class="item">
 			<div class="icon"><IconRepeat size={iconSize} /></div>
 			{#if reposted}
 				<div>{$_('actions.repost.again')}</div>
@@ -87,14 +89,14 @@
 			{/if}
 		</div>
 	{/if}
-	<div use:melt={$item} onm-click={onQuote} class="item">
+	<div use:melt={$item} onclick={onQuote} class="item">
 		<div class="icon"><IconQuote size={iconSize} /></div>
 		<div>{$_('actions.quote.button')}</div>
 	</div>
 	{#if event.kind === ShortTextNote && reposted}
 		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('menu.caution')}</div>
-		<div use:melt={$item} onm-click={onUndoRepost} class="item">
+		<div use:melt={$item} onclick={onUndoRepost} class="item">
 			<div class="icon"><IconTrash size={iconSize} /></div>
 			<div>{$_('actions.repost.undo')}</div>
 		</div>
