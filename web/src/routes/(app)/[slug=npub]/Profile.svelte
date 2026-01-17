@@ -15,7 +15,7 @@
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import FollowButton from '$lib/components/FollowButton.svelte';
 	import NostrAddress from '$lib/components/NostrAddress.svelte';
-	import UserStatus from '$lib/components/UserStatus.svelte';
+	import UserStatusEditor from '$lib/components/UserStatusFull.svelte';
 	import ReplaceableEventsJson from '$lib/components/ReplaceableEventsJson.svelte';
 	import Content from '$lib/components/Content.svelte';
 	import IconLink from '@tabler/icons-svelte/icons/link';
@@ -145,7 +145,7 @@
 
 		{#if pubkey !== undefined}
 			<div class="user-status">
-				<UserStatus {pubkey} showLink={true} />
+				<UserStatusEditor {pubkey} />
 			</div>
 		{/if}
 
