@@ -369,5 +369,8 @@
 		"enable": "有効化",
 		"disable": "無効化",
 		"copy": "Bunker URL をコピー"
+	},
+	"user_status": {
+		"edit": "ステータスを編集"
 	}
 }

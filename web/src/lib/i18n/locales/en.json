@@ -370,5 +370,8 @@
 		"enable": "Enable",
 		"disable": "Disable",
 		"copy": "Copy Bunker URL"
+	},
+	"user_status": {
+		"edit": "Edit status"
 	}
 }
