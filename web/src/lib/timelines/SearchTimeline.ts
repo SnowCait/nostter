@@ -6,7 +6,7 @@ import { minTimelineLength, searchRelays } from '$lib/Constants';
 import { EventItem } from '$lib/Items';
 import { fetchEvents } from '$lib/RxNostrHelper';
 import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
-import type { Timeline } from './Timeline';
+import type { Timeline } from './Timeline.svelte';
 import { oldestCreatedAt } from './TimelineHelper';
 
 export class SearchTimeline implements Timeline {

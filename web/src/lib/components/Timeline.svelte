@@ -6,7 +6,7 @@
 	import { author, isMuteEvent } from '$lib/stores/Author';
 	import Loading from './Loading.svelte';
 	import EventComponent from './items/EventComponent.svelte';
-	import type { NewTimeline } from '$lib/timelines/Timeline';
+	import type { NewTimeline } from '$lib/timelines/Timeline.svelte';
 	import { emojiPickerOpen } from './EmojiPicker.svelte';
 	import type { Event } from 'nostr-typedef';
 	import { channelIdStore } from '$lib/Channel';
@@ -40,12 +40,9 @@
 		canTransition = true
 	}: Props = $props();
 
-	let items: EventItem[] = $state([]);
 	let innerHeight = $state(0);
 	let scrollY = $state(0);
 	let isTop = $state(true);
-	let latest = $state(true);
-	let oldest = $state(false);
 
 	async function newer() {
 		const id = visibleItems.at(0)?.id;
@@ -176,20 +173,8 @@
 	};
 
 	onMount(() => {
-		const unsubscribeEvents = timeline.events.subscribe(($events) => {
-			items = $events.map((event) => new EventItem(event));
-		});
-
-		const unsubscribeLatest = timeline.latest.subscribe(($latest) => {
-			latest = $latest;
-		});
-
-		const unsubscribeOldest = timeline.oldest.subscribe(($oldest) => {
-			oldest = $oldest;
-		});
-
 		// Workaround for scroll position
-		if (!timeline.isLatest) {
+		if (!timeline.latest) {
 			setTimeout(() => {
 				if (scrollY > 0) {
 					return;
@@ -197,12 +182,6 @@
 				newer();
 			}, 1000);
 		}
-
-		return () => {
-			unsubscribeEvents();
-			unsubscribeLatest();
-			unsubscribeOldest();
-		};
 	});
 
 	$effect(() => {
@@ -210,7 +189,7 @@
 			untrack(() => {
 				isTop = true;
 				timeline.setIsTop(isTop);
-				if (timeline.autoUpdate && !latest) {
+				if (timeline.autoUpdate && !timeline.latest) {
 					newer();
 				}
 			});
@@ -239,22 +218,24 @@
 	});
 
 	let visibleItems = $derived(
-		items.filter(
-			(item) =>
-				!isMuteEvent(item.event) &&
-				!$deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id) &&
-				// TODO: Not to depend on HomeTimeline in Svelte 5
-				(!(timeline instanceof HomeTimeline) ||
-					(!$excludeKinds.includes(item.event.kind) &&
-						(!$preferencesStore.muteAutomatically ||
-							$followeesOfFollowees.has(item.event.pubkey))))
-		)
+		timeline.events
+			.filter(
+				(event) =>
+					!isMuteEvent(event) &&
+					!$deletedEventIdsByPubkey.get(event.pubkey)?.has(event.id) &&
+					// TODO: Not to depend on HomeTimeline in Svelte 5
+					(!(timeline instanceof HomeTimeline) ||
+						(!$excludeKinds.includes(event.kind) &&
+							(!$preferencesStore.muteAutomatically ||
+								$followeesOfFollowees.has(event.pubkey))))
+			)
+			.map((event) => new EventItem(event))
 	);
 </script>
 
 <svelte:window bind:innerHeight bind:scrollY />
 
-{#if !timeline.autoUpdate && !latest}
+{#if !timeline.autoUpdate && !timeline.latest}
 	<button onclick={newer} class="new">{$_('timeline.update')}</button>
 {/if}
 
@@ -280,7 +261,7 @@
 	{/each}
 </section>
 
-{#if showLoading && !oldest}
+{#if showLoading && !timeline.oldest}
 	<div class="loading"><Loading /></div>
 {/if}
 
