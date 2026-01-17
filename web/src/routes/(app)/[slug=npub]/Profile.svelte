@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
-	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
@@ -27,6 +24,7 @@
 	import ShareButton from '$lib/components/ShareButton.svelte';
 	import EmojifiedContent from '$lib/components/EmojifiedContent.svelte';
 	import { userStatusReqEmit } from '$lib/UserStatus';
+	import { untrack } from 'svelte';
 
 	interface Props {
 		slug: string;
@@ -37,49 +35,53 @@
 
 	let { slug, pubkey, metadata, relays }: Props = $props();
 
-	let p: string | undefined = $state();
+	let p: string | undefined;
 	let followees: string[] | undefined = $state();
 
 	let user = $derived(metadata?.content);
 	let url = $derived(user?.website ? newUrl(user.website) : undefined);
 
-	run(() => {
-		if (p !== pubkey && browser) {
-			console.debug('[npub profile]', nip19.npubEncode(pubkey), relays);
+	$effect(() => {
+		if (p === pubkey) {
+			return;
+		}
 
+		console.debug('[npub profile]', nip19.npubEncode(pubkey), relays);
+
+		untrack(() => {
 			p = pubkey;
 			followees = undefined;
+		});
 
-			const contactsReq = createRxOneshotReq({
-				filters: [
-					{
-						kinds: [3],
-						authors: [pubkey],
-						limit: 1
+		const contactsReq = createRxOneshotReq({
+			filters: [
+				{
+					kinds: [3],
+					authors: [pubkey],
+					limit: 1
+				}
+			]
+		});
+		rxNostr
+			.use(contactsReq)
+			.pipe(tie, uniq(), latest())
+			.subscribe({
+				next: (packet) => {
+					console.debug('[npub contacts]', packet);
+					followees = [...new Set(filterTags('p', packet.event.tags))];
+				},
+				complete: () => {
+					console.debug('[npub contacts complete]', $state.snapshot(followees));
+					if (followees === undefined) {
+						followees = [];
 					}
-				]
+				},
+				error: (error) => {
+					console.error('[npub contacts error]', error);
+				}
 			});
-			rxNostr
-				.use(contactsReq)
-				.pipe(tie, uniq(), latest())
-				.subscribe({
-					next: (packet) => {
-						console.debug('[rx-nostr npub contacts]', packet);
-						followees = [...new Set(filterTags('p', packet.event.tags))];
-					},
-					complete: () => {
-						console.debug('[rx-nostr npub contacts complete]', followees);
-						if (followees === undefined) {
-							followees = [];
-						}
-					},
-					error: (error) => {
-						console.error('[rx-nostr npub contacts error]', error);
-					}
-				});
 
-			userStatusReqEmit([pubkey]);
-		}
+		userStatusReqEmit([pubkey]);
 	});
 </script>
 

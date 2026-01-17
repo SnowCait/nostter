@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { nip05 } from 'nostr-tools';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
@@ -12,26 +12,22 @@
 	import { EventItem } from '$lib/Items';
 	import { minTimelineLength } from '$lib/Constants';
 	import { replaceableEvents, replaceableEventsReqEmit } from '$lib/Profile';
-	import type { LayoutData } from './$types';
+	import type { LayoutProps } from './$types';
 	import { developerMode } from '$lib/stores/Preference';
 	import Profile from './Profile.svelte';
 	import TimelineView from '../TimelineView.svelte';
 
-	interface Props {
-		data: LayoutData;
-	}
-
-	let { data }: Props = $props();
+	let { data }: LayoutProps = $props();
 
 	let metadata = $derived($metadataStore.get(data.pubkey));
 
-	let events: EventItem[] = $state([]);
-	let slug = $state($page.params.slug!);
+	let items = $state<EventItem[]>([]);
+	let slug = $derived(page.params.slug!);
 
 	afterNavigate(() => {
 		console.debug('[npub page]', data.pubkey);
 
-		events = [];
+		items = [];
 
 		if (metadata === undefined) {
 			if (data.metadataEvent !== undefined) {
@@ -72,26 +68,26 @@
 	}
 
 	async function load() {
-		console.log('[npub page timeline load]', data.pubkey);
+		console.debug('[npub page timeline load]', data.pubkey);
 
-		let firstLength = events.length;
+		let firstLength = items.length;
 		let count = 0;
 		let until =
-			events.length > 0 ? Math.min(...events.map((item) => item.event.created_at)) : now();
+			items.length > 0 ? Math.min(...items.map((item) => item.event.created_at)) : now();
 		let seconds = 12 * 60 * 60;
 
-		while (events.length - firstLength < minTimelineLength && count < 10) {
+		while (items.length - firstLength < minTimelineLength && count < 10) {
 			const since = until - seconds;
-			console.log(
+			console.debug(
 				'[rx-nostr user timeline period]',
 				new Date(since * 1000),
 				new Date(until * 1000)
 			);
 
 			const filters = Timeline.createChunkedFilters([data.pubkey], since, until);
-			console.log('[rx-nostr user timeline REQ]', filters, rxNostr.getAllRelayStatus());
+			console.debug('[rx-nostr user timeline REQ]', filters, rxNostr.getAllRelayStatus());
 			const pastEventsReq = createRxOneshotReq({ filters });
-			console.log('[rx-nostr user timeline req ID]', pastEventsReq);
+			console.debug('[rx-nostr user timeline req ID]', pastEventsReq);
 			await new Promise<void>((resolve, reject) => {
 				rxNostr
 					.use(pastEventsReq)
@@ -105,7 +101,7 @@
 					)
 					.subscribe({
 						next: (packet) => {
-							console.log('[rx-nostr user timeline packet]', packet);
+							console.debug('[rx-nostr user timeline packet]', packet);
 							if (
 								!(
 									since <= packet.event.created_at &&
@@ -120,23 +116,26 @@
 								);
 								return;
 							}
-							if (events.some((x) => x.event.id === packet.event.id)) {
+							if (items.some((x) => x.event.id === packet.event.id)) {
 								console.warn('[rx-nostr user timeline duplicate]', packet.event);
 								return;
 							}
 							const item = new EventItem(packet.event);
-							const index = events.findIndex(
+							const index = items.findIndex(
 								(x) => x.event.created_at < item.event.created_at
 							);
 							if (index < 0) {
-								events.push(item);
+								items.push(item);
 							} else {
-								events.splice(index, 0, item);
+								items.splice(index, 0, item);
 							}
-							events = events;
+							items = items;
 						},
 						complete: () => {
-							console.log('[rx-nostr user timeline complete]', pastEventsReq.rxReqId);
+							console.debug(
+								'[rx-nostr user timeline complete]',
+								pastEventsReq.rxReqId
+							);
 							resolve();
 						},
 						error: (error) => {
@@ -148,13 +147,13 @@
 			until -= seconds;
 			seconds *= 2;
 			count++;
-			console.log(
+			console.debug(
 				'[rx-nostr user timeline loaded]',
 				pastEventsReq.rxReqId,
 				count,
 				until,
 				seconds / 3600,
-				events.length
+				items.length
 			);
 		}
 	}
@@ -165,7 +164,7 @@
 </section>
 
 <section>
-	<TimelineView items={events} readonly={!$authorPubkey} {load} />
+	<TimelineView {items} readonly={!$authorPubkey} {load} />
 </section>
 
 <style>
