@@ -39,11 +39,9 @@
 
 	const [send, receive] = crossfade({ duration: 250, easing: cubicInOut });
 
-	let items = $derived(
-		$notifiedEventItems.filter(
-			(item) =>
-				!$preferencesStore.muteAutomatically || $followeesOfFollowees.has(item.event.pubkey)
-		)
+	$: items = $notifiedEventItems.filter(
+		(item) =>
+			!$preferencesStore.muteAutomatically || $followeesOfFollowees.has(item.event.pubkey)
 	);
 
 	afterNavigate(async () => {

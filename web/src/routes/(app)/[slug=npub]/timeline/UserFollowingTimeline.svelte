@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { Api } from '$lib/Api';
 	import TimelineView from '../../TimelineView.svelte';
 	import { pubkey as authorPubkey, followees as authorFollowees } from '$lib/stores/Author';
@@ -8,7 +6,8 @@
 		UserFollowingTimeline,
 		currentPubkey,
 		timelinesMap
-	} from '$lib/timelines/UserFollowingTimeline';
+	} from '$lib/timelines/UserFollowingTimeline.svelte';
+	import { untrack } from 'svelte';
 
 	interface Props {
 		pubkey: string;
@@ -19,15 +18,13 @@
 	let followees: string[] = $state([]);
 	let timeline: UserFollowingTimeline | undefined = $state();
 
-	let items = $derived(timeline?.items);
-
-	run(() => {
+	$effect(() => {
 		if (pubkey === $currentPubkey) {
 			timeline = timelinesMap.get(pubkey);
 		}
 	});
 
-	run(() => {
+	$effect(() => {
 		if (pubkey !== $currentPubkey) {
 			if ($currentPubkey !== undefined) {
 				timeline = timelinesMap.get($currentPubkey);
@@ -44,19 +41,24 @@
 		}
 	});
 
-	run(() => {
+	$effect(() => {
 		if (followees.length > 0) {
-			console.log('[user following timeline]', pubkey, followees.length, timelinesMap.keys());
-			timeline = new UserFollowingTimeline(pubkey, followees);
-			timeline.subscribe();
-			timeline.load();
-			timelinesMap.set(pubkey, timeline);
+			untrack(() => {
+				console.debug(
+					'[user following timeline]',
+					pubkey,
+					followees.length,
+					timelinesMap.keys()
+				);
+				timeline = new UserFollowingTimeline(pubkey, followees);
+				timeline.subscribe();
+				timeline.load();
+				timelinesMap.set(pubkey, timeline);
+			});
 		}
 	});
 </script>
 
-<TimelineView
-	items={$items ?? []}
-	readonly={!$authorPubkey}
-	load={async () => await timeline?.load()}
-/>
+{#if timeline !== undefined}
+	<TimelineView items={timeline.items} readonly={!$authorPubkey} load={timeline.load} />
+{/if}
