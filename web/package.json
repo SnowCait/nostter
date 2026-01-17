@@ -35,7 +35,7 @@
 		"html5-qrcode": "^2.3.8",
 		"nostr-typedef": "^0.13.0",
 		"prettier": "^3.7.4",
-		"prettier-plugin-svelte": "^3.2.6",
+		"prettier-plugin-svelte": "^3.4.1",
 		"rollup-plugin-visualizer": "^6.0.3",
 		"svelte": "^5.46.1",
 		"svelte-check": "^4.3.4",
