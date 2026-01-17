@@ -5,7 +5,7 @@
 	import { preferencesStore, savePreferences } from '$lib/Preferences';
 	import { fetchNip96 } from '$lib/media/FileStorageServer';
 
-	let server = getMediaUploader();
+	let server = $state(getMediaUploader());
 
 	async function save(): Promise<void> {
 		console.debug('[preferences media uploader changed]', server);
@@ -20,7 +20,7 @@
 </script>
 
 <label for="file-storage-server">{$_('preferences.media_uploader.title')}</label>
-<select id="file-storage-server" bind:value={server} on:change={save}>
+<select id="file-storage-server" bind:value={server} onchange={save}>
 	{#each fileStorageServers as server}
 		<option value={server}>{new URL(server).hostname}</option>
 	{/each}

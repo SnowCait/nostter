@@ -1,7 +1,11 @@
 <script lang="ts">
 	import IconEyeOff from '@tabler/icons-svelte/icons/eye-off';
 
-	export let reason: string | undefined = undefined;
+	interface Props {
+		reason?: string | undefined;
+	}
+
+	let { reason = $bindable(undefined) }: Props = $props();
 
 	function onClick() {
 		console.log('[content warning click]', reason);
@@ -14,7 +18,7 @@
 </script>
 
 <div>
-	<button on:click={onClick} class="clear" class:enable={reason !== undefined}>
+	<button onclick={onClick} class="clear" class:enable={reason !== undefined}>
 		<IconEyeOff size="30" />
 	</button>
 	{#if reason !== undefined}

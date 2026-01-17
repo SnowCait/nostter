@@ -7,23 +7,29 @@
 	import { findIdentifier } from '$lib/EventHelper';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	export let naddr: string;
+	interface Props {
+		naddr: string;
+	}
+
+	let { naddr }: Props = $props();
 
 	let pointer: nip19.AddressPointer;
-	let event: Event | undefined;
+	let event: Event | undefined = $state();
 
-	try {
-		const { type, data } = nip19.decode(naddr);
+	$effect(() => {
+		try {
+			const { type, data } = nip19.decode(naddr);
 
-		if (type !== 'naddr') {
-			throw new Error('Logic error');
+			if (type !== 'naddr') {
+				throw new Error('Logic error');
+			}
+
+			pointer = data as nip19.AddressPointer;
+			console.debug(pointer);
+		} catch (e) {
+			console.error('[decode failed]', naddr, e);
 		}
-
-		pointer = data as nip19.AddressPointer;
-		console.log(pointer);
-	} catch (e) {
-		console.error('[decode failed]', naddr, e);
-	}
+	});
 
 	onMount(async () => {
 		const { identifier, kind, pubkey, relays } = pointer;

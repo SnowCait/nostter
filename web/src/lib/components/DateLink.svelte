@@ -1,6 +1,11 @@
 <script lang="ts">
-	export let slug: string;
-	export let date: Date;
+	interface Props {
+		slug: string;
+		date: Date;
+		children?: import('svelte').Snippet;
+	}
+
+	let { slug, date, children }: Props = $props();
 </script>
 
 <a
@@ -9,7 +14,7 @@
 		.toString()
 		.padStart(2, '0')}"
 >
-	<slot />
+	{@render children?.()}
 </a>
 
 <style>

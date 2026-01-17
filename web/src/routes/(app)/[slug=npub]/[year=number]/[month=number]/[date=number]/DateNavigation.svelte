@@ -3,11 +3,15 @@
 	import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left';
 	import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right';
 
-	export let slug: string;
-	export let date: Date;
+	interface Props {
+		slug: string;
+		date: Date;
+	}
 
-	$: previous = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1);
-	$: next = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+	let { slug, date }: Props = $props();
+
+	let previous = $derived(new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1));
+	let next = $derived(new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1));
 </script>
 
 <nav>

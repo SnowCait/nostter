@@ -11,14 +11,20 @@
 	import ReactionIcon from './ReactionIcon.svelte';
 	import { IconTrash } from '@tabler/icons-svelte';
 
-	export let event: Event;
-	export let iconSize: number;
+	interface Props {
+		event: Event;
+		iconSize: number;
+	}
+
+	let { event, iconSize }: Props = $props();
 
 	const {
 		elements: { menu, item, trigger, overlay, separator }
 	} = createDropdownMenu({ preventScroll: false });
 
-	$: reactioned = $reactionedEvents.has(event.id) && $reactionedEvents.get(event.id)!.length > 0;
+	let reactioned = $derived(
+		$reactionedEvents.has(event.id) && $reactionedEvents.get(event.id)!.length > 0
+	);
 
 	async function onReaction(): Promise<void> {
 		console.debug('[reaction]', event);
@@ -63,9 +69,11 @@
 			size={iconSize}
 		/>
 	</button>
-	<div use:melt={$overlay} class="overlay" />
+	<div use:melt={$overlay} class="overlay"></div>
 	<div use:melt={$menu} class="menu">
-		<div use:melt={$item} on:m-click={onReaction} class="item">
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div use:melt={$item} onclick={onReaction} class="item">
 			<div class="icon">
 				<ReactionIcon
 					defaultReaction={$preferencesStore.reactionEmoji.content}
@@ -76,9 +84,11 @@
 			</div>
 			<div>{$_('actions.reaction.again')}</div>
 		</div>
-		<div use:melt={$separator} class="separator" />
+		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('menu.caution')}</div>
-		<div use:melt={$item} on:m-click={onDelete} class="item">
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div use:melt={$item} onclick={onDelete} class="item">
 			<div class="icon"><IconTrash size={iconSize} /></div>
 			<div>{$_('actions.reaction.undo')}</div>
 		</div>
@@ -90,7 +100,7 @@
 		class:paw-pad={$preferencesStore.reactionEmoji.content === '🐾'}
 		class:star={$preferencesStore.reactionEmoji.content === '⭐'}
 		class:reactioned
-		on:click={onReaction}
+		onclick={onReaction}
 	>
 		<ReactionIcon
 			defaultReaction={$preferencesStore.reactionEmoji.content}

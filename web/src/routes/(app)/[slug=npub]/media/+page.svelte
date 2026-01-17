@@ -12,12 +12,16 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+	}
 
-	$: pubkey = data.pubkey;
-	$: metadata = $metadataStore.get(pubkey);
+	let { data }: Props = $props();
 
-	let items: EventItem[] = [];
+	let pubkey = $derived(data.pubkey);
+	let metadata = $derived($metadataStore.get(pubkey));
+
+	let items: EventItem[] = $state([]);
 
 	async function load() {
 		console.log('[npub page timeline load]', data.pubkey);

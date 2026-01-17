@@ -11,9 +11,13 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import Relay from '$lib/components/items/Relay.svelte';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+	}
 
-	let events: EventItem[] = [];
+	let { data }: Props = $props();
+
+	let events: EventItem[] = $state([]);
 
 	afterNavigate(() => {
 		console.debug('[relay page]', data.url);

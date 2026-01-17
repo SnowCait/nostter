@@ -12,6 +12,11 @@
 	import '$lib/styles/menu.css';
 	import { fetchMinutes } from '$lib/Helper';
 	import { followees } from '$lib/stores/Author';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 
 	const konamiCode = [
 		'ArrowUp',
@@ -115,8 +120,8 @@
 	}
 </script>
 
-<svelte:window on:keyup={keyboardShortcut} />
-<svelte:document on:visibilitychange={onVisibilityChange} />
+<svelte:window onkeyup={keyboardShortcut} />
+<svelte:document onvisibilitychange={onVisibilityChange} />
 
 <svelte:head>
 	<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
@@ -134,7 +139,7 @@
 	</header>
 
 	<main>
-		<slot />
+		{@render children?.()}
 	</main>
 </div>
 

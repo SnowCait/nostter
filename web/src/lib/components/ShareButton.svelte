@@ -8,26 +8,34 @@
 	import { copy } from '$lib/Clipboard';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	export let pubkey: string;
-	export let size: number = 24;
-	export let width = '34px';
-	export let height = '34px';
+	interface Props {
+		pubkey: string;
+		size?: number;
+		width?: string;
+		height?: string;
+	}
 
-	let visited = false;
+	let { pubkey, size = 24, width = '34px', height = '34px' }: Props = $props();
 
-	$: metadata = $metadataStore.get(pubkey);
-	$: nprofile = nip19.nprofileEncode({
-		pubkey,
-		relays: metadata ? getSeenOnRelays(metadata.event.id) : undefined
-	});
-	$: url = `${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`;
-	$: data = { url };
+	let visited = $state(false);
+
+	let metadata = $derived($metadataStore.get(pubkey));
+	let nprofile = $derived(
+		nip19.nprofileEncode({
+			pubkey,
+			relays: metadata ? getSeenOnRelays(metadata.event.id) : undefined
+		})
+	);
+	let url = $derived(
+		`${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`
+	);
+	let data = $derived({ url });
 </script>
 
 {#if navigator.canShare !== undefined && navigator.canShare(data)}
 	<button
 		class="clear"
-		on:click={() => navigator.share(data)}
+		onclick={() => navigator.share(data)}
 		style="width: {width}; height: {height}"
 	>
 		<IconShare2 {size} />
@@ -35,7 +43,7 @@
 {:else}
 	<button
 		class="clear"
-		on:click={() => {
+		onclick={() => {
 			copy(url);
 			visited = true;
 		}}

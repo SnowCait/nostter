@@ -2,7 +2,11 @@
 	import { connectionStates } from '$lib/timelines/MainTimeline';
 	import type { ConnectionState } from 'rx-nostr';
 
-	export let relays: string[] | undefined = undefined;
+	interface Props {
+		relays?: string[] | undefined;
+	}
+
+	let { relays = undefined }: Props = $props();
 
 	const connectionStatesGroup = {
 		initialized: 'pending',

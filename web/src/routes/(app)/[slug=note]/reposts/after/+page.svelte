@@ -13,16 +13,23 @@
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import TimelineView from '../../../TimelineView.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+	}
 
-	let item: EventItem | undefined;
-	let itemsMap = new Map<pubkey, EventItem>();
+	let { data }: Props = $props();
 
-	$: items = [...itemsMap]
-		.map(([, item]) => item)
-		.filter((item) => filterTags('e', item.event.tags).length === 0)
-		.sort((x, y) => chronologicalItem(x, y));
+	let item: EventItem | undefined = $state();
+	let itemsMap = new SvelteMap<pubkey, EventItem>();
+
+	let items = $derived(
+		[...itemsMap]
+			.map(([, item]) => item)
+			.filter((item) => filterTags('e', item.event.tags).length === 0)
+			.sort((x, y) => chronologicalItem(x, y))
+	);
 
 	const eventReq = createRxBackwardReq();
 	rxNostr
@@ -79,10 +86,8 @@
 			const item = itemsMap.get(event.pubkey);
 			if (item === undefined) {
 				itemsMap.set(event.pubkey, new EventItem(event));
-				itemsMap = itemsMap;
 			} else if (item.event.created_at > event.created_at) {
 				itemsMap.set(event.pubkey, new EventItem(event));
-				itemsMap = itemsMap;
 			}
 		});
 

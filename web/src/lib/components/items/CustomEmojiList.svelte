@@ -6,9 +6,13 @@
 	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 
-	export let event: Event;
+	interface Props {
+		event: Event;
+	}
 
-	$: title = getListTitle(event.tags);
+	let { event }: Props = $props();
+
+	let title = $derived(getListTitle(event.tags));
 </script>
 
 <article class="timeline-item">

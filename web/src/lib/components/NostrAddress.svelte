@@ -5,9 +5,13 @@
 	import IconRosetteDiscountCheck from '@tabler/icons-svelte/icons/rosette-discount-check';
 	import IconAlertTriangle from '@tabler/icons-svelte/icons/alert-triangle';
 
-	export let metadata: Metadata;
+	interface Props {
+		metadata: Metadata;
+	}
 
-	$: normalizedNip05 = metadata.normalizedNip05;
+	let { metadata }: Props = $props();
+
+	let normalizedNip05 = $derived(metadata.normalizedNip05);
 </script>
 
 {#if normalizedNip05}

@@ -3,10 +3,14 @@
 	import IconClipboard from '@tabler/icons-svelte/icons/clipboard';
 	import IconClipboardCheck from '@tabler/icons-svelte/icons/clipboard-check';
 
-	export let text: string;
-	export let size = 18;
+	interface Props {
+		text: string;
+		size?: number;
+	}
 
-	let copied = false;
+	let { text, size = 18 }: Props = $props();
+
+	let copied = $state(false);
 
 	const copy = async () => {
 		copyText(text);
@@ -20,7 +24,7 @@
 	};
 </script>
 
-<button on:click={copy}>
+<button onclick={copy}>
 	{#if copied}
 		<IconClipboardCheck {size} />
 	{:else}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault, stopPropagation } from 'svelte/legacy';
+
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -19,15 +21,19 @@
 	import { sendEvent } from '$lib/RxNostrHelper';
 	import { unique } from '$lib/Array';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+	}
 
-	$: pubkey = data.pubkey;
-	$: metadata = $metadataStore.get(pubkey);
+	let { data }: Props = $props();
 
-	let relays: { url: string; read: boolean; write: boolean }[] = [];
-	let editable = false;
-	let addingRelay = '';
-	let saveToKind3 = false;
+	let pubkey = $derived(data.pubkey);
+	let metadata = $derived($metadataStore.get(pubkey));
+
+	let relays: { url: string; read: boolean; write: boolean }[] = $state([]);
+	let editable = $state(false);
+	let addingRelay = $state('');
+	let saveToKind3 = $state(false);
 
 	afterNavigate(async () => {
 		console.log('[relays page]', $page.params.slug);
@@ -140,7 +146,7 @@
 	<span>{$_('pages.relays')}</span>
 </h1>
 
-<form on:submit|preventDefault={save}>
+<form onsubmit={preventDefault(save)}>
 	<ul>
 		<li class="header">
 			<div class="relay">Relay</div>
@@ -167,9 +173,9 @@
 				<input
 					type="url"
 					bind:value={addingRelay}
-					on:keyup|stopPropagation={console.debug}
+					onkeyup={stopPropagation(console.debug)}
 				/>
-				<button on:click|preventDefault={add}>Add</button>
+				<button onclick={preventDefault(add)}>Add</button>
 			</div>
 		{/if}
 		<div class="edit-mode">
@@ -189,7 +195,7 @@
 			{:else}
 				<label>
 					<IconPencil />
-					<button class="edit" on:click|preventDefault={() => (editable = true)}>
+					<button class="edit" onclick={preventDefault(() => (editable = true))}>
 						<span>Edit</span>
 					</button>
 				</label>

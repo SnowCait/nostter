@@ -9,4 +9,4 @@
 	}
 </script>
 
-<button on:click={clearAndReload}>{$_('preferences.clear_event_cache')}</button>
+<button onclick={clearAndReload}>{$_('preferences.clear_event_cache')}</button>

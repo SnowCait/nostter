@@ -13,12 +13,14 @@
 	import MutedContent from '../items/MutedContent.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	export let text: string;
-	export let tag: string[];
+	interface Props {
+		text: string;
+		tag: string[];
+	}
 
-	$: item = $eventItemStore.get(tag[1]);
+	let { text, tag }: Props = $props();
 
-	console.debug('[deprecated reference]', tag[1]);
+	let item = $derived($eventItemStore.get(tag[1]));
 </script>
 
 {#if tag.at(0) === 'p' && tag.at(1) !== undefined}

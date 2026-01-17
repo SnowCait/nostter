@@ -6,7 +6,7 @@
 	}
 </script>
 
-<button on:click={back} class="clear clickable">
+<button onclick={back} class="clear clickable">
 	<IconArrowLeft />
 </button>
 

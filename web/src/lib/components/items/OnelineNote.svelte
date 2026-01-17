@@ -4,7 +4,11 @@
 	import OnelineContent from '../OnelineContent.svelte';
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
 
-	export let item: EventItem;
+	interface Props {
+		item: EventItem;
+	}
+
+	let { item }: Props = $props();
 </script>
 
 <article class="timeline-item">

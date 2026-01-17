@@ -1,10 +1,12 @@
 <script lang="ts">
+	import { preventDefault, stopPropagation } from 'svelte/legacy';
+
 	import { _ } from 'svelte-i18n';
 	import IconTrash from '@tabler/icons-svelte/icons/trash';
 	import { mute, unmute } from '$lib/author/Mute';
 	import { muteWords } from '$lib/stores/Author';
 
-	let word = '';
+	let word = $state('');
 
 	async function onMute(): Promise<void> {
 		console.log('[mute word]', word);
@@ -34,15 +36,15 @@
 	{#each $muteWords as word}
 		<li>
 			<span>{word}</span>
-			<button class="clear" on:click={() => onUnmute(word)}><IconTrash size={18} /></button>
+			<button class="clear" onclick={() => onUnmute(word)}><IconTrash size={18} /></button>
 		</li>
 	{:else}
 		<li>{$_('preferences.mute.none')}</li>
 	{/each}
 </ul>
 
-<form on:submit|preventDefault={onMute}>
-	<input type="text" required bind:value={word} on:keyup|stopPropagation={console.debug} />
+<form onsubmit={preventDefault(onMute)}>
+	<input type="text" required bind:value={word} onkeyup={stopPropagation(console.debug)} />
 	<input type="submit" value="Mute" />
 </form>
 

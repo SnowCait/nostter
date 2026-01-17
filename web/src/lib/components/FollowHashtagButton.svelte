@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { followHashtag } from '$lib/Interest';
 
-	export let hashtag: string;
+	interface Props {
+		hashtag: string;
+	}
+
+	let { hashtag }: Props = $props();
 </script>
 
-<button on:click={() => followHashtag(hashtag)}>Follow #{hashtag}</button>
+<button onclick={() => followHashtag(hashtag)}>Follow #{hashtag}</button>

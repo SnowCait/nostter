@@ -2,7 +2,11 @@
 	import ProfileIcon from './ProfileIcon.svelte';
 	import ProfileName from './ProfileName.svelte';
 
-	export let pubkey: string;
+	interface Props {
+		pubkey: string;
+	}
+
+	let { pubkey }: Props = $props();
 </script>
 
 <ProfileIcon {pubkey} width="1.2rem" height="1.2rem" />

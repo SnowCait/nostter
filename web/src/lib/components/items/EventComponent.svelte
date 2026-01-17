@@ -21,13 +21,19 @@
 	import { getContext, setContext } from 'svelte';
 	import type { Event } from 'nostr-typedef';
 
-	export let item: Item;
-	export let readonly: boolean;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
-	export let full = false;
+	interface Props {
+		item: Item;
+		readonly: boolean;
+		createdAtFormat?: 'auto' | 'time';
+		full?: boolean;
+	}
 
-	const events = getContext<Event[] | undefined>('events') ?? [];
-	setContext('events', [...events, item.event]);
+	let { item, readonly, createdAtFormat = 'auto', full = false }: Props = $props();
+
+	$effect(() => {
+		const events = getContext<Event[] | undefined>('events') ?? [];
+		setContext('events', [...events, item.event]);
+	});
 </script>
 
 {#if item.event.kind === Kind.Metadata}

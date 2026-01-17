@@ -1,24 +1,26 @@
 <script lang="ts">
+	import { preventDefault, stopPropagation } from 'svelte/legacy';
+
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import type { Nip07 } from 'nostr-typedef';
 	import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 	import { Login } from '$lib/Login';
 	import { loginType } from '$lib/stores/Author';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { authorProfile } from '$lib/stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 
-	let nostr: Nip07.Nostr | undefined;
-	let key = '';
-	let bunker = '';
-	let name = '';
+	let nostr: Nip07.Nostr | undefined = $state();
+	let key = $state('');
+	let bunker = $state('');
+	let name = $state('');
 
-	let showCreateAccountDialog = false;
-	let showLoginDialog = false;
+	let showCreateAccountDialog = $state(false);
+	let showLoginDialog = $state(false);
 
 	const login = new Login();
 
@@ -83,7 +85,7 @@
 	}
 
 	afterNavigate(async () => {
-		const queryNpub = $page.url.searchParams.get('login');
+		const queryNpub = page.url.searchParams.get('login');
 
 		if (queryNpub === null || !queryNpub.startsWith('npub') || $loginType !== undefined) {
 			return;
@@ -112,9 +114,9 @@
 
 			<div class="actions">
 				<section>
-					<button on:click={createAccount}>{$_('login.create_account')}</button>
+					<button onclick={createAccount}>{$_('login.create_account')}</button>
 					<ModalDialog bind:open={showCreateAccountDialog}>
-						{#if $page.url.hostname === 'nostter.vercel.app'}
+						{#if page.url.hostname === 'nostter.vercel.app'}
 							<div>
 								Site has been moved to <a href="https://nostter.app/">
 									https://nostter.app/
@@ -124,7 +126,7 @@
 							<div>
 								<h2>{$_('login.create_account')}</h2>
 								<article>
-									<form method="dialog" on:submit|preventDefault={register}>
+									<form method="dialog" onsubmit={preventDefault(register)}>
 										<div>
 											<input
 												type="text"
@@ -151,20 +153,19 @@
 				</section>
 
 				<section>
-					<button on:click={loginWithDemo} disabled={$loginType !== undefined}>
+					<button onclick={loginWithDemo} disabled={$loginType !== undefined}>
 						{$_('login.try_demo')}
 					</button>
 				</section>
 
 				<div class="divider-with-message">
-					<div />
+					<div></div>
 					<p>{$_('or')}</p>
-					<div />
+					<div></div>
 				</div>
 
 				<section>
-					<button class="button-outlined" on:click={showLogin}>{$_('login.login')}</button
-					>
+					<button class="button-outlined" onclick={showLogin}>{$_('login.login')}</button>
 					<ModalDialog bind:open={showLoginDialog}>
 						<article class="login-modal-content">
 							<section>
@@ -182,7 +183,7 @@
 								{/if}
 								<div>
 									<button
-										on:click={loginWithNip07}
+										onclick={loginWithNip07}
 										disabled={$loginType !== undefined || nostr === undefined}
 									>
 										{$_('login.browser_extension')}
@@ -191,21 +192,21 @@
 							</section>
 
 							<div class="divider-with-message">
-								<div />
+								<div></div>
 								<p>{$_('or')}</p>
-								<div />
+								<div></div>
 							</div>
 
 							<section>
 								<p class="login-recommend">{$_('login.recommended')}</p>
-								<form method="dialog" on:submit|preventDefault={loginWithNip46}>
+								<form method="dialog" onsubmit={preventDefault(loginWithNip46)}>
 									<div>
 										<input
 											type="text"
 											bind:value={bunker}
 											placeholder="bunker://..."
 											required
-											on:keyup|stopPropagation={() => console.debug()}
+											onkeyup={stopPropagation(() => console.debug())}
 										/>
 									</div>
 
@@ -220,13 +221,13 @@
 							</section>
 
 							<div class="divider-with-message">
-								<div />
+								<div></div>
 								<p>{$_('or')}</p>
-								<div />
+								<div></div>
 							</div>
 
 							<section>
-								<form method="dialog" on:submit|preventDefault={loginWithKey}>
+								<form method="dialog" onsubmit={preventDefault(loginWithKey)}>
 									<div>
 										<input
 											type="password"
@@ -234,7 +235,7 @@
 											placeholder="npub or nsec"
 											pattern="^(npub|nsec)1[a-z0-9]+$"
 											required
-											on:keyup|stopPropagation={() => console.debug()}
+											onkeyup={stopPropagation(() => console.debug())}
 										/>
 									</div>
 

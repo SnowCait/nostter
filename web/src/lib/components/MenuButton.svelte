@@ -31,23 +31,29 @@
 	import { get } from 'svelte/store';
 	import { metadataStore } from '$lib/cache/Events';
 
-	export let event: Event;
-	export let iconSize: number;
-	export let showDetails = false;
+	interface Props {
+		event: Event;
+		iconSize: number;
+		showDetails?: boolean;
+	}
+
+	let { event, iconSize, showDetails = $bindable(false) }: Props = $props();
 
 	const {
 		elements: { menu, item, trigger, overlay, separator }
 	} = createDropdownMenu({ preventScroll: false });
 
-	$: bookmarked = isBookmarked(event);
-	$: nevent = nip19.neventEncode({
-		id: event.id,
-		relays: getSeenOnRelays(event.id),
-		author: event.pubkey,
-		kind: event.kind
-	});
-	$: url = `${$page.url.origin}/${nevent}`;
-	$: rootId = referTags(event).root?.at(1) ?? event.id;
+	let bookmarked = $derived(isBookmarked(event));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: event.id,
+			relays: getSeenOnRelays(event.id),
+			author: event.pubkey,
+			kind: event.kind
+		})
+	);
+	let url = $derived(`${$page.url.origin}/${nevent}`);
+	let rootId = $derived(referTags(event).root?.at(1) ?? event.id);
 
 	async function onBookmark() {
 		console.log('[bookmark]', event, $rom);
@@ -200,87 +206,115 @@
 <button class="clear" use:melt={$trigger}>
 	<IconDots size={iconSize} />
 </button>
-<div use:melt={$overlay} class="overlay" />
+<div use:melt={$overlay} class="overlay"></div>
 <div use:melt={$menu} class="menu">
-	<div use:melt={$item} on:m-click={onTranslate} class="item">
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div use:melt={$item} onclick={onTranslate} class="item">
 		<div class="icon"><IconLanguage size={iconSize} /></div>
 		<div>{$_('thread.translation.title')}</div>
 		<div class="secondary-icon"><IconExternalLink /></div>
 	</div>
 	{#if !$rom && event.kind === ShortTextNote}
 		{#if bookmarked}
-			<div use:melt={$item} on:m-click={onUnbookmark} class="item undo">
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div use:melt={$item} onclick={onUnbookmark} class="item undo">
 				<div class="icon"><IconBookmarkFilled size={iconSize} /></div>
 				<div>{$_('actions.unbookmark.button')}</div>
 			</div>
 		{:else}
-			<div use:melt={$item} on:m-click={onBookmark} class="item">
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div use:melt={$item} onclick={onBookmark} class="item">
 				<div class="icon"><IconBookmark size={iconSize} /></div>
 				<div>{$_('actions.bookmark.button')}</div>
 			</div>
 		{/if}
 	{/if}
-	<div use:melt={$item} on:m-click={() => copy(nevent)} class="item">
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div use:melt={$item} onclick={() => copy(nevent)} class="item">
 		<div class="icon"><IconClipboard size={iconSize} /></div>
 		<div>{$_('actions.copy_id.button')}</div>
 	</div>
 	{#if navigator.canShare !== undefined}
-		<div use:melt={$item} on:m-click={onShare} class="item">
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div use:melt={$item} onclick={onShare} class="item">
 			<div class="icon"><IconLink size={iconSize} /></div>
 			<div>{$_('actions.share.button')}</div>
 		</div>
 	{:else}
-		<div use:melt={$item} on:m-click={() => copy(url)} class="item">
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div use:melt={$item} onclick={() => copy(url)} class="item">
 			<div class="icon"><IconLink size={iconSize} /></div>
 			<div>{$_('actions.copy_url.button')}</div>
 		</div>
 	{/if}
-	<div use:melt={$item} on:m-click={onEmbed} class="item">
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div use:melt={$item} onclick={onEmbed} class="item">
 		<div class="icon"><IconCode size={iconSize} /></div>
 		<div>{$_('actions.embed.button')}</div>
 	</div>
 	{#if !$rom}
-		<div use:melt={$separator} class="separator" />
+		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('preferences.mute.mute')}</div>
 		{#if $mutePubkeys.includes(event.pubkey)}
-			<div use:melt={$item} on:m-click={onUnmute} class="item undo">
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div use:melt={$item} onclick={onUnmute} class="item undo">
 				<div class="icon"><IconVolumeOff size={iconSize} /></div>
 				<div>{$_('actions.unmute.user')}</div>
 			</div>
 		{:else if event.pubkey !== $authorPubkey}
-			<div use:melt={$item} on:m-click={onMute} class="item">
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div use:melt={$item} onclick={onMute} class="item">
 				<div class="icon"><IconVolumeOff size={iconSize} /></div>
 				<div>{$_('actions.mute.user')}</div>
 			</div>
 		{/if}
 		{#if $muteEventIds.includes(rootId)}
-			<div use:melt={$item} on:m-click={onUnmuteThread} class="item undo">
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div use:melt={$item} onclick={onUnmuteThread} class="item undo">
 				<div class="icon"><IconVolumeOff size={iconSize} /></div>
 				<div>{$_('actions.unmute.thread')}</div>
 			</div>
 		{:else}
-			<div use:melt={$item} on:m-click={onMuteThread} class="item">
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div use:melt={$item} onclick={onMuteThread} class="item">
 				<div class="icon"><IconVolumeOff size={iconSize} /></div>
 				<div>{$_('actions.mute.thread')}</div>
 			</div>
 		{/if}
 		{#if event.pubkey === $authorPubkey}
-			<div use:melt={$separator} class="separator" />
+			<div use:melt={$separator} class="separator"></div>
 			<div class="text">{$_('menu.caution')}</div>
-			<div use:melt={$item} on:m-click={onDelete} class="item">
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div use:melt={$item} onclick={onDelete} class="item">
 				<div class="icon"><IconTrash size={iconSize} /></div>
 				<div>{$_('actions.delete.button')}</div>
 			</div>
 		{/if}
 	{/if}
 	{#if $developerMode}
-		<div use:melt={$separator} class="separator" />
+		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('menu.developer')}</div>
-		<div use:melt={$item} on:m-click={() => (showDetails = !showDetails)} class="item">
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div use:melt={$item} onclick={() => (showDetails = !showDetails)} class="item">
 			<div class="icon"><IconCodeDots size={iconSize} /></div>
 			<div>{$_('actions.details.button')}</div>
 		</div>
-		<div use:melt={$item} on:m-click={onBroadcast} class="item">
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div use:melt={$item} onclick={onBroadcast} class="item">
 			<div class="icon"><IconBroadcast size={iconSize} /></div>
 			<div>{$_('actions.broadcast.button')}</div>
 		</div>

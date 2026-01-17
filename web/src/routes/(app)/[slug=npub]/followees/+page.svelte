@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
@@ -16,41 +18,49 @@
 	import FollowAllButton from '$lib/components/actions/FollowAllButton.svelte';
 	import '@tabler/icons-webfont/dist/tabler-icons.min.css';
 
-	export let data: LayoutData;
-
-	let pubkey: string | undefined;
-	let pubkeys: Pubkey[] = [];
-
-	$: items = pubkeys
-		.map((pubkey) => $metadataStore.get(pubkey))
-		.filter((metadata): metadata is Metadata => metadata !== undefined);
-
-	$: if (pubkey !== data.pubkey && browser) {
-		console.log('[followees page]', nip19.npubEncode(data.pubkey));
-		pubkey = data.pubkey;
-
-		const contactsReq = createRxOneshotReq({
-			filters: [
-				{
-					kinds: [3],
-					authors: [data.pubkey],
-					limit: 1
-				}
-			]
-		});
-		rxNostr
-			.use(contactsReq)
-			.pipe(tie, uniq(), latest())
-			.subscribe((packet) => {
-				console.log('[rx-nostr contacts]', packet);
-				pubkeys = [...new Set(filterTags('p', packet.event.tags).reverse())];
-				metadataReqEmit(pubkeys);
-				if ($author === undefined) {
-					return;
-				}
-				lastNoteReqEmit(pubkeys);
-			});
+	interface Props {
+		data: LayoutData;
 	}
+
+	let { data }: Props = $props();
+
+	let pubkey: string | undefined = $state();
+	let pubkeys: Pubkey[] = $state([]);
+
+	let items = $derived(
+		pubkeys
+			.map((pubkey) => $metadataStore.get(pubkey))
+			.filter((metadata): metadata is Metadata => metadata !== undefined)
+	);
+
+	run(() => {
+		if (pubkey !== data.pubkey && browser) {
+			console.log('[followees page]', nip19.npubEncode(data.pubkey));
+			pubkey = data.pubkey;
+
+			const contactsReq = createRxOneshotReq({
+				filters: [
+					{
+						kinds: [3],
+						authors: [data.pubkey],
+						limit: 1
+					}
+				]
+			});
+			rxNostr
+				.use(contactsReq)
+				.pipe(tie, uniq(), latest())
+				.subscribe((packet) => {
+					console.log('[rx-nostr contacts]', packet);
+					pubkeys = [...new Set(filterTags('p', packet.event.tags).reverse())];
+					metadataReqEmit(pubkeys);
+					if ($author === undefined) {
+						return;
+					}
+					lastNoteReqEmit(pubkeys);
+				});
+		}
+	});
 </script>
 
 <svelte:head>
@@ -61,7 +71,7 @@
 	<h1>{$_('pages.followees')} ({pubkeys.length})</h1>
 	{#if pubkey === $authorPubkey}
 		<button
-			on:click={() =>
+			onclick={() =>
 				open('https://tsukemonogit.github.io/NFO/', '_blank', 'noopener,noreferrer')}
 		>
 			{$_('follow.organize')}

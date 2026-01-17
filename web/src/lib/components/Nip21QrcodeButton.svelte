@@ -3,15 +3,19 @@
 	import IconQrcode from '@tabler/icons-svelte/icons/qrcode';
 	import ModalDialog from './ModalDialog.svelte';
 
-	export let identifier: string;
+	interface Props {
+		identifier: string;
+	}
 
-	$: nativeUrl = `nostr:${identifier}`;
-	$: webUrl = `web+nostr:${identifier}`;
+	let { identifier }: Props = $props();
 
-	let open: boolean;
+	let nativeUrl = $derived(`nostr:${identifier}`);
+	let webUrl = $derived(`web+nostr:${identifier}`);
+
+	let open = $state(false);
 </script>
 
-<button class="clear" on:click={() => (open = true)}>
+<button class="clear" onclick={() => (open = true)}>
 	<IconQrcode />
 </button>
 

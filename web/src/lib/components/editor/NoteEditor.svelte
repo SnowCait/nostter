@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from 'svelte';
+	import { createBubbler, preventDefault, stopPropagation } from 'svelte/legacy';
+
+	const bubble = createBubbler();
+	import { createEventDispatcher, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { kinds as Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
 	import { uploadFiles } from '$lib/media/FileStorageServer';
@@ -28,6 +31,7 @@
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
 	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
 	import Loading from '$lib/components/Loading.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	export function clear(): void {
 		console.log('[note editor clear]');
@@ -41,93 +45,115 @@
 		contentWarningReason = undefined;
 	}
 
-	export let afterPost: () => Promise<void> = async () => {};
+	interface Props {
+		afterPost?: () => Promise<void>;
+		content?: string;
+	}
 
-	export let content = '';
+	let { afterPost = async () => {}, content = $bindable('') }: Props = $props();
 
-	let tags: string[][] = [];
-	let posting = false;
-	let channelEvent: NostrEvent | undefined;
-	let emojiTags: string[][] = [];
-	let contentWarningReason: string | undefined;
+	let tags: string[][] = $state([]);
+	let posting = $state(false);
+	let channelEvent: NostrEvent | undefined = $state();
+	let emojiTags: string[][] = $state([]);
+	let contentWarningReason: string | undefined = $state();
 
-	let textarea: HTMLTextAreaElement;
-	let article: HTMLElement;
+	let textarea = $state<HTMLTextAreaElement>();
 
 	//#region Mention complement
 
-	let mention: string | undefined;
-	let mentionPrevious = mention;
-	let mentionComplementList: Metadata[] = [];
-	let mentionComplementIndex = 0;
+	let mention = $state<string>();
+	let mentionPrevious = $state<string>();
+	let mentionComplementList: Metadata[] = $state([]);
+	let mentionComplementIndex = $state(0);
 
-	$: if (mention !== undefined) {
-		const displayMax = 10;
-		const metadataList = [...$metadataStore].map(([, metadata]) => metadata);
-		const list = metadataList
-			.filter((metadata) => metadata.startsWith(mention ?? ''))
-			.slice(0, displayMax);
-		if (list.length < displayMax) {
-			list.push(
-				...metadataList
-					.filter((metadata) => metadata.includes(mention ?? ''))
-					.filter(
-						(metadata) => !list.some((m) => m.event.pubkey === metadata.event.pubkey)
-					)
-					.slice(0, displayMax - list.length)
-			);
+	$effect(() => {
+		if (mention !== undefined) {
+			const displayMax = 10;
+			const metadataList = [...$metadataStore].map(([, metadata]) => metadata);
+			const list = metadataList
+				.filter((metadata) => metadata.startsWith(mention ?? ''))
+				.slice(0, displayMax);
+			if (list.length < displayMax) {
+				list.push(
+					...metadataList
+						.filter((metadata) => metadata.includes(mention ?? ''))
+						.filter(
+							(metadata) =>
+								!list.some((m) => m.event.pubkey === metadata.event.pubkey)
+						)
+						.slice(0, displayMax - list.length)
+				);
+			}
+			if (list.length < displayMax) {
+				fetchFolloweesMetadata();
+			}
+			mentionComplementList = list;
+			console.debug('[complement mention list]', mention, list);
 		}
-		if (list.length < displayMax) {
-			fetchFolloweesMetadata();
+	});
+
+	$effect(() => {
+		if (mention === undefined) {
+			mentionComplementList = [];
 		}
-		mentionComplementList = list;
-		console.debug('[complement mention list]', mention, mentionComplementList);
-	}
+	});
 
-	$: if (mention === undefined) {
-		mentionComplementList = [];
-	}
-
-	$: if (mention !== mentionPrevious) {
-		mentionPrevious = mention;
-		mentionComplementIndex = 0;
-	}
+	$effect(() => {
+		if (mention !== mentionPrevious) {
+			untrack(() => {
+				mentionPrevious = mention;
+				mentionComplementIndex = 0;
+			});
+		}
+	});
 
 	//#endregion
 
 	//#region Custom Emoji
 
 	type Emoji = { shortcode: string; url: string };
-	let shortcode: string | undefined;
-	let shortcodePrevious = shortcode;
-	let shortcodeComplementList: Emoji[] = [];
-	let shortcodeComplementIndex = 0;
+	let shortcode = $state<string>();
+	let shortcodePrevious = $state<string>();
+	let shortcodeComplementList: Emoji[] = $state([]);
+	let shortcodeComplementIndex = $state(0);
 
-	$: if (shortcode !== undefined) {
-		const customEmojiList = $customEmojiTags.map(([, shortcode, url]) => ({ shortcode, url }));
-		const list = customEmojiList.filter(({ shortcode: s }) =>
-			s.toLowerCase().startsWith((shortcode ?? '').toLowerCase())
-		);
-		list.push(
-			...customEmojiList.filter(({ shortcode: s }) =>
-				s.toLowerCase().includes((shortcode ?? '').toLowerCase())
-			)
-		);
-		shortcodeComplementList = list;
-		console.debug('[complement shortcode list]', shortcode, shortcodeComplementList);
-	}
+	$effect(() => {
+		if (shortcode !== undefined) {
+			const customEmojiList = $customEmojiTags.map(([, shortcode, url]) => ({
+				shortcode,
+				url
+			}));
+			const list = customEmojiList.filter(({ shortcode: s }) =>
+				s.toLowerCase().startsWith((shortcode ?? '').toLowerCase())
+			);
+			list.push(
+				...customEmojiList.filter(({ shortcode: s }) =>
+					s.toLowerCase().includes((shortcode ?? '').toLowerCase())
+				)
+			);
+			shortcodeComplementList = list;
+			console.debug('[complement shortcode list]', shortcode, list);
+		}
+	});
 
-	$: if (shortcode === undefined) {
-		shortcodeComplementList = [];
-	}
+	$effect(() => {
+		if (shortcode === undefined) {
+			shortcodeComplementList = [];
+		}
+	});
 
-	$: if (shortcode !== shortcodePrevious) {
-		shortcodePrevious = shortcode;
-		shortcodeComplementIndex = 0;
-	}
+	$effect(() => {
+		if (shortcode !== shortcodePrevious) {
+			untrack(() => {
+				shortcodePrevious = shortcode;
+				shortcodeComplementIndex = 0;
+			});
+		}
+	});
 
 	async function replaceShortcodeComplement(emoji: Emoji): Promise<void> {
-		if (shortcode === undefined) {
+		if (shortcode === undefined || textarea === undefined) {
 			return;
 		}
 
@@ -153,16 +179,16 @@
 
 	//#region Media
 
-	let onDrag = false;
-	let mediaUrls = new Map<File, string | undefined>();
+	let onDrag = $state(false);
+	let mediaUrls = new SvelteMap<File, string | undefined>();
 
-	$: uploading = [...mediaUrls].some(([, url]) => url === undefined);
+	let uploading = $derived([...mediaUrls].some(([, url]) => url === undefined));
 
 	//#endregion
 
-	$: containsNsec = /nsec1\w{6,}/.test(content);
+	let containsNsec = $derived(/nsec1\w{6,}/.test(content));
 
-	$: {
+	$effect(() => {
 		const noteComposer = new NoteComposer();
 		noteComposer.emojiTags(content, emojiTags).then((emojiTags) => {
 			tags = [
@@ -172,7 +198,7 @@
 				...noteComposer.contentWarningTags(contentWarningReason)
 			];
 		});
-	}
+	});
 
 	const dispatch = createEventDispatcher();
 
@@ -206,6 +232,9 @@
 			}
 
 			await tick();
+			if (textarea === undefined) {
+				return;
+			}
 			console.log(textarea, textarea.selectionStart);
 			textarea.setSelectionRange(0, 0);
 			textarea.focus();
@@ -277,6 +306,10 @@
 	}
 
 	async function onInput(inputEvent: Event) {
+		if (textarea === undefined) {
+			return;
+		}
+
 		const { selectionStart, selectionEnd } = textarea;
 		console.debug('[complement input]', inputEvent, content, selectionStart, selectionEnd);
 		if (!(inputEvent instanceof InputEvent)) {
@@ -302,7 +335,7 @@
 	}
 
 	async function replaceMentionComplement(metadata: Metadata): Promise<void> {
-		if (mention === undefined) {
+		if (mention === undefined || textarea === undefined) {
 			return;
 		}
 
@@ -328,6 +361,10 @@
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async function onEmojiPick({ detail: emoji }: { detail: any }): Promise<void> {
+		if (textarea === undefined) {
+			return;
+		}
+
 		console.debug('[emoji pick]', emoji);
 		const shortcode = emoji.id.replaceAll('+', '_');
 		const { selectionStart, selectionEnd } = textarea;
@@ -454,6 +491,7 @@
 
 	async function drop(event: DragEvent) {
 		console.log('[drop]', event.type, event.dataTransfer);
+		event.preventDefault();
 
 		if (event.dataTransfer === null) {
 			return;
@@ -479,14 +517,12 @@
 		for (const file of files) {
 			mediaUrls.set(file, undefined);
 		}
-		mediaUrls = mediaUrls;
 
 		const urls = await uploadFiles(files);
 
 		for (const { file, url } of urls) {
 			mediaUrls.set(file, url);
 		}
-		mediaUrls = mediaUrls;
 
 		addUrlsToContent(urls.map(({ url }) => url));
 
@@ -505,24 +541,24 @@
 </script>
 
 <svelte:body
-	on:dragstart|preventDefault
-	on:dragend|preventDefault={() => {
+	ondragstart={preventDefault(bubble('dragstart'))}
+	ondragend={preventDefault(() => {
 		onDrag = false;
-	}}
-	on:dragover|preventDefault={() => {
+	})}
+	ondragover={preventDefault(() => {
 		if (!$openNoteDialog) {
 			$openNoteDialog = true;
 		}
-	}}
-	on:drop|preventDefault={() => {
+	})}
+	ondrop={preventDefault(() => {
 		onDrag = false;
-	}}
-	on:dragleave|preventDefault={() => {
+	})}
+	ondragleave={preventDefault(() => {
 		onDrag = false;
-	}}
+	})}
 />
 
-<article bind:this={article} class="note-editor">
+<article class="note-editor">
 	{#if channelEvent !== undefined}
 		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
 	{/if}
@@ -541,13 +577,13 @@
 				class:dropzone={onDrag}
 				bind:value={content}
 				bind:this={textarea}
-				on:keydown={onKeydown}
-				on:keyup|stopPropagation={() => console.debug}
-				on:input={onInput}
-				on:paste={paste}
-				on:dragover|preventDefault={dragover}
-				on:drop|preventDefault={drop}
-			/>
+				onkeydown={onKeydown}
+				onkeyup={stopPropagation(() => console.debug)}
+				oninput={onInput}
+				onpaste={paste}
+				ondragover={preventDefault(dragover)}
+				ondrop={drop}
+			></textarea>
 			{#if containsNsec}
 				<div class="warning">{$_('editor.warning.nsec')}</div>
 			{/if}
@@ -555,12 +591,13 @@
 			{#if mentionComplementList.length > 0 && textarea !== undefined}
 				<ul class="complement card" use:complementPosition={textarea}>
 					{#each mentionComplementList as metadata, i}
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 						<li
 							class:selected={i === mentionComplementIndex}
-							on:click|stopPropagation={async () =>
-								await replaceMentionComplement(mentionComplementList[i])}
+							onclick={stopPropagation(
+								async () => await replaceMentionComplement(mentionComplementList[i])
+							)}
 						>
 							<OnelineProfile pubkey={metadata.event.pubkey} />
 						</li>
@@ -571,12 +608,14 @@
 			{#if shortcodeComplementList.length > 0 && textarea !== undefined}
 				<ul class="complement card" use:complementPosition={textarea}>
 					{#each shortcodeComplementList as emoji, i}
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 						<li
 							class:selected={i === shortcodeComplementIndex}
-							on:click|stopPropagation={async () =>
-								await replaceShortcodeComplement(shortcodeComplementList[i])}
+							onclick={stopPropagation(
+								async () =>
+									await replaceShortcodeComplement(shortcodeComplementList[i])
+							)}
 						>
 							<CustomEmoji text={emoji.shortcode} url={emoji.url} />
 							<span>:{emoji.shortcode}:</span>
@@ -606,7 +645,7 @@
 			<button
 				title="{$_('editor.post.button')} (Ctrl + Enter)"
 				class="button-small"
-				on:click={postNote}
+				onclick={postNote}
 				disabled={$author === undefined || content === '' || $rom || posting || uploading}
 			>
 				{$_('editor.post.button')}

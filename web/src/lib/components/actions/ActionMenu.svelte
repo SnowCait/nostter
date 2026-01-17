@@ -18,21 +18,27 @@
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	export let item: EventItem;
+	interface Props {
+		item: EventItem;
+	}
 
-	let zapped = false;
-	let jsonDisplay = false;
-	let zapDialogComponent: ZapDialog;
+	let { item }: Props = $props();
+
+	let zapped = $state(false);
+	let jsonDisplay = $state(false);
+	let zapDialogComponent = $state<ZapDialog>();
 
 	const iconSize = 20;
 
-	$: metadata = $metadataStore.get(item.event.pubkey);
-	$: nevent = nip19.neventEncode({
-		id: item.event.id,
-		relays: metadata ? getSeenOnRelays(item.event.id) : undefined,
-		author: item.event.pubkey,
-		kind: item.event.kind
-	});
+	let metadata = $derived($metadataStore.get(item.event.pubkey));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: item.event.id,
+			relays: metadata ? getSeenOnRelays(item.event.id) : undefined,
+			author: item.event.pubkey,
+			kind: item.event.kind
+		})
+	);
 
 	function reply(item: Item) {
 		$replyTo = item as EventItem;
@@ -62,7 +68,7 @@
 </script>
 
 <div class="action-menu">
-	<button class:hidden={!notesKinds.includes(item.event.kind)} on:click={() => reply(item)}>
+	<button class:hidden={!notesKinds.includes(item.event.kind)} onclick={() => reply(item)}>
 		<IconMessageCircle size={iconSize} />
 	</button>
 	<RepostButton event={item.event} {iconSize} />
@@ -74,7 +80,7 @@
 		class="zap"
 		class:hidden={!metadata?.canZap}
 		disabled={zapped}
-		on:click={() => zapDialogComponent.openZapDialog()}
+		onclick={() => zapDialogComponent?.openZapDialog()}
 	>
 		<IconBolt size={iconSize} />
 	</button>

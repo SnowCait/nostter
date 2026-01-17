@@ -3,8 +3,8 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import { loginType } from '$lib/stores/Author';
 
-	let saved = false;
-	let showNsec = false;
+	let saved = $state(false);
+	let showNsec = $state(false);
 
 	async function logout() {
 		new WebStorage(localStorage).clear();
@@ -21,11 +21,11 @@
 			value={new WebStorage(localStorage).get('login')}
 			readonly
 		/>
-		<button on:click={() => (showNsec = !showNsec)}>{$_('logout.show')}</button>
+		<button onclick={() => (showNsec = !showNsec)}>{$_('logout.show')}</button>
 	</div>
 {/if}
 
-<button on:click={logout} disabled={$loginType === 'nsec' && !saved}>{$_('logout.logout')}</button>
+<button onclick={logout} disabled={$loginType === 'nsec' && !saved}>{$_('logout.logout')}</button>
 {#if $loginType === 'nsec'}
 	<label>
 		<input type="checkbox" bind:checked={saved} />

@@ -9,13 +9,20 @@
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import TimelineView from '../../TimelineView.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+	}
+
+	let { data }: Props = $props();
 
 	let id: string | undefined;
-	let itemsMap = new Map<pubkey, EventItem>();
+	let itemsMap = new SvelteMap<pubkey, EventItem>();
 
-	$: items = [...itemsMap].map(([, item]) => item).sort((x, y) => chronologicalItem(x, y));
+	let items = $derived(
+		[...itemsMap].map(([, item]) => item).sort((x, y) => chronologicalItem(x, y))
+	);
 
 	const quotesReq = createRxBackwardReq();
 	rxNostr
@@ -24,7 +31,6 @@
 		.subscribe((packet) => {
 			console.debug('[rx-nostr quotes]', packet, packet.event.pubkey);
 			itemsMap.set(packet.event.id, new EventItem(packet.event));
-			itemsMap = itemsMap;
 		});
 
 	afterNavigate(() => {
@@ -33,7 +39,6 @@
 			return;
 		}
 		itemsMap.clear();
-		itemsMap = itemsMap;
 		quotesReq.emit([{ kinds: [1], '#q': [data.eventId] }]);
 	});
 </script>

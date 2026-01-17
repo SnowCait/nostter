@@ -1,19 +1,27 @@
 <script lang="ts">
+	import { run, createBubbler, stopPropagation } from 'svelte/legacy';
+
+	const bubble = createBubbler();
 	import { createEventDispatcher } from 'svelte';
 
-	export let open = false;
+	interface Props {
+		open?: boolean;
+		children?: import('svelte').Snippet;
+	}
 
-	let dialog: HTMLDialogElement | undefined;
+	let { open = $bindable(false), children }: Props = $props();
+
+	let dialog: HTMLDialogElement | undefined = $state();
 
 	const dispatch = createEventDispatcher();
 
-	$: {
+	run(() => {
 		if (open) {
 			dialog?.showModal();
 		} else {
 			dialog?.close();
 		}
-	}
+	});
 
 	function tryClose(e: MouseEvent): void {
 		const element = (e.target as Element).closest('.dialog-content');
@@ -31,16 +39,15 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <dialog
 	bind:this={dialog}
 	class="card"
-	on:click={tryClose}
-	on:keyup|stopPropagation
-	on:close={onClose}
+	onclick={tryClose}
+	onkeyup={stopPropagation(bubble('keyup'))}
+	onclose={onClose}
 >
 	<div class="dialog-content">
-		<slot />
+		{@render children?.()}
 	</div>
 </dialog>
 

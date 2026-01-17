@@ -16,26 +16,34 @@
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 
-	export let item: Item;
-	export let readonly: boolean;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	interface Props {
+		item: Item;
+		readonly: boolean;
+		createdAtFormat?: 'auto' | 'time';
+	}
 
-	const { event } = item;
-	const aTagContents = filterTags('a', event.tags);
+	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
 
-	$: metadata = $metadataStore.get(event.pubkey);
-	$: nevent = nip19.neventEncode({
-		id: event.id,
-		relays: getSeenOnRelays(event.id),
-		author: event.pubkey,
-		kind: event.kind
-	});
-	$: badgeDefinitions = aTagContents
-		.map((a) => $replaceableEventsStore.get(a))
-		.filter((event): event is Event => event !== undefined);
-	$: myBadgeDefinitionsA = filterTags('a', $profileBadgesEvent?.tags ?? []);
+	let { event } = $derived(item);
+	let aTagContents = $derived(filterTags('a', event.tags));
 
-	let jsonDisplay = false;
+	let metadata = $derived($metadataStore.get(event.pubkey));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: event.id,
+			relays: getSeenOnRelays(event.id),
+			author: event.pubkey,
+			kind: event.kind
+		})
+	);
+	let badgeDefinitions = $derived(
+		aTagContents
+			.map((a) => $replaceableEventsStore.get(a))
+			.filter((event): event is Event => event !== undefined)
+	);
+	let myBadgeDefinitionsA = $derived(filterTags('a', $profileBadgesEvent?.tags ?? []));
+
+	let jsonDisplay = $state(false);
 
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
@@ -62,7 +70,7 @@
 		</div>
 		{#if $developerMode}
 			<div class="json-button right">
-				<button on:click={toggleJsonDisplay} class="clear">
+				<button onclick={toggleJsonDisplay} class="clear">
 					<IconCodeDots size={18} />
 				</button>
 			</div>
@@ -76,7 +84,7 @@
 			<BadgeDefinition {event}>
 				{#if !readonly && !$rom}
 					{@const own = myBadgeDefinitionsA.includes(aTagContent(event))}
-					<button class="round" disabled={own} on:click={() => accept(event)}>
+					<button class="round" disabled={own} onclick={() => accept(event)}>
 						{#if own}
 							{$_('badge.accepted')}
 						{:else}

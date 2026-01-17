@@ -12,15 +12,16 @@
 	import { Signer } from '$lib/Signer';
 	import { EventItem } from '$lib/Items';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
-	import type { LayoutData } from '../$types';
+	import type { LayoutProps } from '../$types';
 
-	export let data: LayoutData;
+	let { data }: LayoutProps = $props();
 
-	let publicBookmarkEventItems: EventItem[] = [];
-	let privateBookmarkEventItems: EventItem[] = [];
+	let publicBookmarkEventItems: EventItem[] = $state([]);
+	let privateBookmarkEventItems: EventItem[] = $state([]);
 
 	console.log('[bookmark page]', $page.params.slug);
 
+	// Public bookmarks
 	if ($bookmarkEvent !== undefined) {
 		const ids = filterTags('e', $bookmarkEvent.tags);
 		if (ids.length > 0) {
@@ -48,8 +49,16 @@
 						publicBookmarkEventItems.sort(reverseChronologicalItem);
 				});
 		}
+	}
 
-		if (data.pubkey === $authorPubkey && !$rom && $bookmarkEvent.content !== '') {
+	// Private bookmarks
+	$effect(() => {
+		if (
+			data.pubkey === $authorPubkey &&
+			!$rom &&
+			$bookmarkEvent !== undefined &&
+			$bookmarkEvent.content !== ''
+		) {
 			Signer.decrypt($authorPubkey, $bookmarkEvent.content)
 				.then((json) => JSON.parse(json) as string[][])
 				.then((tags) => {
@@ -85,7 +94,7 @@
 					console.warn('[nip04.decrypt]', reason, $bookmarkEvent);
 				});
 		}
-	}
+	});
 </script>
 
 <svelte:head>

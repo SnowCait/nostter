@@ -3,7 +3,7 @@
 	import type { Unsubscriber } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { Search } from '$lib/Search';
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
@@ -32,20 +32,20 @@
 
 	const [send, receive] = crossfade({ duration: 250, easing: cubicInOut });
 
-	let query = '';
-	let mine = false;
+	let query = $state('');
+	let mine = $state(false);
 	let proxy = false;
-	let filter: Filter;
+	let filter: Filter = $state();
 	let sinceFilter: number | undefined;
 	let untilFilter: number | undefined;
-	let hashtags: string[] = [];
-	let items: EventItem[] = [];
+	let hashtags: string[] = $state([]);
+	let items: EventItem[] = $state([]);
 	let completed = false;
-	let showLoading = false;
-	let showUsersLoading = false;
+	let showLoading = $state(false);
+	let showUsersLoading = $state(false);
 	let usersSearch: SearchTimeline | undefined;
 	let unsubscribe: Unsubscriber | undefined;
-	let metadataItems: EventItem[] = [];
+	let metadataItems: EventItem[] = $state([]);
 	let tabKey = 'notes';
 
 	const search = new Search();
@@ -62,7 +62,7 @@
 	});
 
 	afterNavigate(async () => {
-		const params = $page.url.searchParams;
+		const params = page.url.searchParams;
 		if (
 			query === params.get('q') &&
 			mine === params.has('mine') &&

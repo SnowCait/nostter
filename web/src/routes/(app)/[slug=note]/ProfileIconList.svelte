@@ -4,7 +4,11 @@
 	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	export let metadataList: (Metadata | undefined)[];
+	interface Props {
+		metadataList: (Metadata | undefined)[];
+	}
+
+	let { metadataList }: Props = $props();
 </script>
 
 <ul class="clear">

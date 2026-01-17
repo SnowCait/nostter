@@ -1,32 +1,37 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 
-	export let createdAt: number;
-	export let format: 'auto' | 'time' | 'full' = 'auto';
+	interface Props {
+		createdAt: number;
+		format?: 'auto' | 'time' | 'full';
+	}
+
+	let { createdAt, format = 'auto' }: Props = $props();
 
 	const lang = browser ? navigator.language : 'en';
-	const date = new Date(createdAt * 1000);
-	const elapsedTime = Date.now() - date.getTime();
+	const date = $derived(new Date(createdAt * 1000));
+	const elapsedTime = $derived(Date.now() - date.getTime());
 	const oneDay = 24 * 60 * 60 * 1000;
-	let createdAtDisplay: string;
-	if (format === 'full') {
-		createdAtDisplay = date.toLocaleString(lang);
-	} else if (elapsedTime < oneDay || format === 'time') {
-		createdAtDisplay = date.toLocaleTimeString(lang, {
-			hour: 'numeric',
-			minute: '2-digit'
-		});
-	} else if (elapsedTime < 365 * oneDay) {
-		createdAtDisplay = date.toLocaleDateString(lang, {
-			month: 'numeric',
-			day: 'numeric'
-		});
-	} else {
-		createdAtDisplay = date.toLocaleDateString(lang, {
-			year: 'numeric',
-			month: 'numeric'
-		});
-	}
+	let createdAtDisplay = $derived.by(() => {
+		if (format === 'full') {
+			return date.toLocaleString(lang);
+		} else if (elapsedTime < oneDay || format === 'time') {
+			return date.toLocaleTimeString(lang, {
+				hour: 'numeric',
+				minute: '2-digit'
+			});
+		} else if (elapsedTime < 365 * oneDay) {
+			return date.toLocaleDateString(lang, {
+				month: 'numeric',
+				day: 'numeric'
+			});
+		} else {
+			return date.toLocaleDateString(lang, {
+				year: 'numeric',
+				month: 'numeric'
+			});
+		}
+	});
 </script>
 
 <span title={date.toLocaleString(lang)} class:full={format === 'full'}>

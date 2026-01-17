@@ -1,8 +1,11 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export let emojiPickerOpen = false;
 </script>
 
 <script lang="ts">
+	import { createBubbler, stopPropagation } from 'svelte/legacy';
+
+	const bubble = createBubbler();
 	import { createEventDispatcher } from 'svelte';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
@@ -10,11 +13,16 @@
 	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
 	import { customEmojiTags } from '../author/CustomEmojis';
 
-	export let containsDefaultEmoji = true;
-	export let autoClose = true;
+	interface Props {
+		containsDefaultEmoji?: boolean;
+		autoClose?: boolean;
+		children?: import('svelte').Snippet;
+	}
 
-	let button: HTMLButtonElement | undefined;
-	let emojiPicker: HTMLElement | undefined | null;
+	let { containsDefaultEmoji = true, autoClose = true, children }: Props = $props();
+
+	let button: HTMLButtonElement | undefined = $state();
+	let emojiPicker: HTMLElement | undefined | null = $state();
 	let stopAutoUpdate: (() => void) | undefined;
 
 	const dispatch = createEventDispatcher();
@@ -116,13 +124,13 @@
 	}
 </script>
 
-<button on:click={onClick} bind:this={button} class="clear">
-	<slot>
+<button onclick={onClick} bind:this={button} class="clear">
+	{#if children}{@render children()}{:else}
 		<IconMoodSmile size={20} />
-	</slot>
+	{/if}
 </button>
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div bind:this={emojiPicker} on:keyup|stopPropagation class="emoji-picker" />
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div bind:this={emojiPicker} onkeyup={stopPropagation(bubble('keyup'))} class="emoji-picker"></div>
 
 <style>
 	button {

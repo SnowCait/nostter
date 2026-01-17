@@ -1,9 +1,15 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { createEventDispatcher } from 'svelte';
 	import IconTrash from '@tabler/icons-svelte/icons/trash';
 
-	export let relay: { url: string; read: boolean; write: boolean };
-	export let readonly: boolean;
+	interface Props {
+		relay: { url: string; read: boolean; write: boolean };
+		readonly: boolean;
+	}
+
+	let { relay = $bindable(), readonly }: Props = $props();
 
 	const dispatch = createEventDispatcher();
 
@@ -23,7 +29,7 @@
 	</div>
 	{#if !readonly}
 		<div class="remove">
-			<button on:click|preventDefault={remove} class="clear">
+			<button onclick={preventDefault(remove)} class="clear">
 				<IconTrash size={17} />
 			</button>
 		</div>

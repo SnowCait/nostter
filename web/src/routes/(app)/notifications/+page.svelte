@@ -183,7 +183,7 @@
 	<div use:melt={$list} class="tabs">
 		{#each triggers as triggerItem}
 			<button use:melt={$trigger(triggerItem.id)} class="trigger">
-				<svelte:component this={triggerItem.icon} size={20} color={triggerItem.color} />
+				<triggerItem.icon size={20} color={triggerItem.color} />
 				{#if $value == triggerItem.id}
 					<div
 						in:send={{ key: 'trigger' }}

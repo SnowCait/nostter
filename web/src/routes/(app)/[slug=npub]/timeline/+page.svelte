@@ -2,19 +2,19 @@
 	import { _ } from 'svelte-i18n';
 	import { error } from '@sveltejs/kit';
 	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
 	import { appName } from '$lib/Constants';
 	import { User } from '$lib/User';
 	import UserFollowingTimeline from './UserFollowingTimeline.svelte';
+	import { page } from '$app/state';
 
-	let pubkey: string | undefined;
+	let pubkey = $state<string>();
 
 	afterNavigate(async () => {
-		const slug = $page.params.slug;
-		console.log('[timeline page]', slug);
+		const slug = page.params.slug!;
+		console.debug('[timeline page]', slug);
 
 		const data = await User.decode(slug);
-		console.log('[data]', data);
+		console.debug('[data]', data);
 
 		if (data.pubkey === undefined) {
 			error(404);

@@ -15,9 +15,13 @@
 	import { tie, verificationClient } from '$lib/timelines/MainTimeline';
 	import TimelineView from '../../TimelineView.svelte';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+	}
 
-	let items: EventItem[] = [];
+	let { data }: Props = $props();
+
+	let items: EventItem[] = $state([]);
 
 	const rxNostr = createRxNostr({ verifier: verificationClient.verifier });
 

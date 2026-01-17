@@ -4,7 +4,7 @@
 	import { trendRelays } from '$lib/Constants';
 	import { verificationClient } from '$lib/timelines/MainTimeline';
 
-	let phrases: Phrase[] = [];
+	let phrases: Phrase[] = $state([]);
 
 	onMount(() => {
 		console.log('[trend]', trendRelays);

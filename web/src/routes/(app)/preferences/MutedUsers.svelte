@@ -8,7 +8,7 @@
 	import IconTrash from '@tabler/icons-svelte/icons/trash';
 	import OnelineProfile from '$lib/components/profile/OnelineProfile.svelte';
 
-	let unmuting = false;
+	let unmuting = $state(false);
 
 	onMount(async () => {
 		metadataReqEmit($mutePubkeys);
@@ -36,7 +36,7 @@
 			<a href="/{nip19.npubEncode(pubkey)}">
 				<OnelineProfile {pubkey} />
 			</a>
-			<button class="clear" disabled={unmuting} on:click={() => onUnmute(pubkey)}>
+			<button class="clear" disabled={unmuting} onclick={() => onUnmute(pubkey)}>
 				<IconTrash size={18} />
 			</button>
 		</li>

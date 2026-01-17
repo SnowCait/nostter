@@ -1,4 +1,9 @@
 <script lang="ts">
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 </script>
 
 <article class="timeline-item">
@@ -6,7 +11,7 @@
 		<img src="/icon.192.png" alt="" title="" />
 	</div>
 	<div class="main">
-		<slot />
+		{@render children?.()}
 	</div>
 </article>
 

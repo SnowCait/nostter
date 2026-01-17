@@ -16,40 +16,45 @@
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	export let item: Item;
-	export let readonly: boolean;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	interface Props {
+		item: Item;
+		readonly: boolean;
+		createdAtFormat?: 'auto' | 'time';
+	}
 
-	const { event } = item;
+	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
 
-	$: metadata = $metadataStore.get(event.pubkey);
-	$: nevent = nip19.neventEncode({
-		id: event.id,
-		relays: getSeenOnRelays(event.id),
-		author: event.pubkey,
-		kind: event.kind
-	});
+	let { event } = $derived(item);
 
-	let originalEvent: EventItem | undefined;
-	let jsonDisplay = false;
-
-	let originalTag = event.tags.find(
-		([tagName, eventId, , marker]) =>
-			tagName === 'e' &&
-			eventId !== undefined &&
-			(marker === 'mention' || marker === undefined)
+	let metadata = $derived($metadataStore.get(event.pubkey));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: event.id,
+			relays: getSeenOnRelays(event.id),
+			author: event.pubkey,
+			kind: event.kind
+		})
 	);
 
-	// Workaround for some incorrect clients
-	if (originalTag === undefined) {
-		originalTag = event.tags.findLast(
-			([tagName, eventId]) => tagName === 'e' && eventId !== undefined
-		);
-	}
+	let originalEvent: EventItem | undefined = $state();
+	let jsonDisplay = $state(false);
 
-	$: if (originalTag !== undefined) {
-		originalEvent = $eventItemStore.get(originalTag[1]);
-	}
+	let originalTag = $derived(
+		event.tags.find(
+			([tagName, id, , marker]) =>
+				tagName === 'e' &&
+				id !== undefined &&
+				(marker === 'mention' || marker === undefined)
+		) ??
+			// Workaround for some incorrect clients
+			event.tags.findLast(([tagName, id]) => tagName === 'e' && id !== undefined)
+	);
+
+	$effect(() => {
+		if (originalTag !== undefined) {
+			originalEvent = $eventItemStore.get(originalTag[1]);
+		}
+	});
 
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
@@ -68,7 +73,7 @@
 	</div>
 	{#if $developerMode}
 		<div class="json-button right">
-			<button class="clear" on:click={toggleJsonDisplay}>
+			<button class="clear" onclick={toggleJsonDisplay}>
 				<IconCodeDots size={18} />
 			</button>
 		</div>

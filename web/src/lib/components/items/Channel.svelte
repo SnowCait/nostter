@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { nip19, type Event } from 'nostr-tools';
 	import { cachedEvents, channelMetadataEventsStore, eventItemStore } from '$lib/cache/Events';
 	import type { ChannelMetadata } from '$lib/Types';
@@ -12,36 +14,46 @@
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 
-	export let item: Item;
+	interface Props {
+		item: Item;
+	}
 
-	const { event } = item;
+	let { item }: Props = $props();
 
-	$: channelId = event.kind === 40 ? event.id : findChannelId(event.tags);
-	$: nevent = nip19.neventEncode({
-		id: event.id,
-		relays: getSeenOnRelays(event.id),
-		author: event.pubkey,
-		kind: event.kind
+	let { event } = $derived(item);
+
+	let channelId = $derived(event.kind === 40 ? event.id : findChannelId(event.tags));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: event.id,
+			relays: getSeenOnRelays(event.id),
+			author: event.pubkey,
+			kind: event.kind
+		})
+	);
+
+	let channelMetadataEvent: Event | undefined = $state();
+	let channelMetadata: ChannelMetadata | undefined = $state();
+
+	run(() => {
+		if (channelId !== undefined) {
+			channelMetadataEvent =
+				$channelMetadataEventsStore.get(channelId) ??
+				cachedEvents.get(channelId) ??
+				$eventItemStore.get(channelId)?.event ??
+				event;
+		}
 	});
 
-	let channelMetadataEvent: Event | undefined;
-	let channelMetadata: ChannelMetadata | undefined;
-
-	$: if (channelId !== undefined) {
-		channelMetadataEvent =
-			$channelMetadataEventsStore.get(channelId) ??
-			cachedEvents.get(channelId) ??
-			$eventItemStore.get(channelId)?.event ??
-			event;
-	}
-
-	$: if (channelMetadataEvent !== undefined) {
-		channelMetadata = Channel.parseMetadata(channelMetadataEvent);
-		console.log('[channel metadata]', channelMetadata, event);
-	}
+	run(() => {
+		if (channelMetadataEvent !== undefined) {
+			channelMetadata = Channel.parseMetadata(channelMetadataEvent);
+			console.log('[channel metadata]', channelMetadata, event);
+		}
+	});
 
 	const iconSize = 20;
-	let jsonDisplay = false;
+	let jsonDisplay = $state(false);
 
 	function quote(): void {
 		$intentContent = '\n' + nevent;
@@ -78,10 +90,10 @@
 				</a>
 			</div>
 			<div class="action-menu">
-				<button on:click={quote}>
+				<button onclick={quote}>
 					<IconQuote size={iconSize} />
 				</button>
-				<button on:click={toggleJsonDisplay}>
+				<button onclick={toggleJsonDisplay}>
 					<IconCodeDots size={iconSize} />
 				</button>
 			</div>

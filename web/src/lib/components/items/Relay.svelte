@@ -1,11 +1,15 @@
 <script lang="ts">
 	import Content from '$lib/components/Content.svelte';
 
-	export let name: string;
-	export let description: undefined | string;
-	export let icon: undefined | string;
-	export let url: string;
-	export let hostname: string;
+	interface Props {
+		name: string;
+		description: undefined | string;
+		icon: undefined | string;
+		url: string;
+		hostname: string;
+	}
+
+	let { name, description, icon, url, hostname }: Props = $props();
 </script>
 
 <article class="timeline-item">

@@ -10,11 +10,15 @@
 	} from '$lib/stores/Author';
 	import { mute, unmute } from '$lib/author/Mute';
 
-	export let tagName: 'p' | 'e' | 'word';
-	export let tagContent: string;
-	export let text: string | undefined = undefined;
+	interface Props {
+		tagName: 'p' | 'e' | 'word';
+		tagContent: string;
+		text?: string | undefined;
+	}
 
-	let executing = false;
+	let { tagName, tagContent, text = undefined }: Props = $props();
+
+	let executing = $state(false);
 
 	const texts = {
 		p: 'user',
@@ -22,11 +26,11 @@
 		word: 'word'
 	};
 
-	const logTexts = {
+	let logTexts = $derived({
 		p: nip19.npubEncode(tagContent),
 		e: nip19.neventEncode({ id: tagContent }),
 		word: tagContent
-	};
+	});
 
 	async function onMute(): Promise<void> {
 		console.log('[mute]', logTexts[tagName]);
@@ -72,10 +76,10 @@
 {#if (tagName === 'p' ? $mutePubkeys : tagName === 'e' ? $muteEventIds : $muteWords).some((c) => c === tagContent)}
 	<div class="muting">
 		<span>Muting</span>
-		<button on:click={onUnmute} disabled={executing}><IconTrash /></button>
+		<button onclick={onUnmute} disabled={executing}><IconTrash /></button>
 	</div>
 {:else if $authorPubkey !== ''}
-	<button on:click={onMute} disabled={executing}><IconVolumeOff /></button>
+	<button onclick={onMute} disabled={executing}><IconVolumeOff /></button>
 {/if}
 
 <style>

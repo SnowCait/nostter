@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { _ } from 'svelte-i18n';
 	import { createRxBackwardReq, uniq } from 'rx-nostr';
 	import { filter, tap } from 'rxjs';
@@ -25,31 +27,13 @@
 	import { followees } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
 
-	export let data: PageData;
-
-	let localDate: Date | undefined;
-
-	$: if (
-		data.since !== null &&
-		!Number.isNaN(data.since.getTime()) &&
-		(data.since.getTime() !== $sinceDate?.getTime() || data.speed !== $speed)
-	) {
-		console.log('[replay page]', data.since);
-		$sinceDate = data.since;
-		$speed = data.speed;
-
-		clear();
-
-		const since = Math.floor(data.since.getTime() / 1000);
-		$firstSince = since;
-		if (browser) {
-			fetchNext(since);
-		}
+	interface Props {
+		data: PageData;
 	}
 
-	$: if ($sinceDate !== undefined) {
-		localDate = new Date($sinceDate.getTime() - $sinceDate.getTimezoneOffset() * 60 * 1000);
-	}
+	let { data }: Props = $props();
+
+	let localDate: Date | undefined = $state();
 
 	function clear(): void {
 		console.debug('[replay clear]', $subscription, $fetchTimeout, $eventTimeouts);
@@ -141,6 +125,30 @@
 			fetchNext(until);
 		}, fetchOffset);
 	}
+	run(() => {
+		if (
+			data.since !== null &&
+			!Number.isNaN(data.since.getTime()) &&
+			(data.since.getTime() !== $sinceDate?.getTime() || data.speed !== $speed)
+		) {
+			console.log('[replay page]', data.since);
+			$sinceDate = data.since;
+			$speed = data.speed;
+
+			clear();
+
+			const since = Math.floor(data.since.getTime() / 1000);
+			$firstSince = since;
+			if (browser) {
+				fetchNext(since);
+			}
+		}
+	});
+	run(() => {
+		if ($sinceDate !== undefined) {
+			localDate = new Date($sinceDate.getTime() - $sinceDate.getTimezoneOffset() * 60 * 1000);
+		}
+	});
 </script>
 
 <svelte:head>

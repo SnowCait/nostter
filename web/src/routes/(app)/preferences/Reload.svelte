@@ -6,4 +6,4 @@
 	}
 </script>
 
-<button on:click={reload}>{$_('preferences.reload')}</button>
+<button onclick={reload}>{$_('preferences.reload')}</button>

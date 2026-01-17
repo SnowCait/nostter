@@ -6,26 +6,32 @@
 	import Imeta from '../content/Imeta.svelte';
 	import EventMetadata from '../EventMetadata.svelte';
 
-	export let item: Item;
-	export let readonly: boolean;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
+	interface Props {
+		item: Item;
+		readonly: boolean;
+		createdAtFormat?: 'auto' | 'time';
+	}
 
-	$: eventItem = item as EventItem;
-	$: title = getTitle(item.event.tags);
-	$: pictures = item.event.tags.filter(([tagName]) => tagName === 'imeta');
+	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
+
+	let eventItem = $derived(item as EventItem);
+	let title = $derived(getTitle(item.event.tags));
+	let pictures = $derived(item.event.tags.filter(([tagName]) => tagName === 'imeta'));
 </script>
 
 <EventMetadata {item} {createdAtFormat}>
-	<section slot="content">
-		{#if title}
-			<h3>{title}</h3>
-		{/if}
-		<Content content={item.event.content} tags={item.event.tags} />
-		{#each pictures as picture}
-			<Imeta tag={picture} />
-		{/each}
-		{#if !readonly}
-			<ActionMenu item={eventItem} />
-		{/if}
-	</section>
+	{#snippet content()}
+		<section>
+			{#if title}
+				<h3>{title}</h3>
+			{/if}
+			<Content content={item.event.content} tags={item.event.tags} />
+			{#each pictures as picture}
+				<Imeta tag={picture} />
+			{/each}
+			{#if !readonly}
+				<ActionMenu item={eventItem} />
+			{/if}
+		</section>
+	{/snippet}
 </EventMetadata>

@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import AsyncLock from 'async-lock';
 	import { httpProxy, nicovideoRegexp } from '$lib/Constants';
 
@@ -27,6 +27,8 @@
 </script>
 
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { _ } from 'svelte-i18n';
 	import { newUrl } from '$lib/Helper';
 	import { Twitter } from '$lib/Twitter';
@@ -38,19 +40,25 @@
 	import Nicovideo from './Nicovideo.svelte';
 	import Video from './Video.svelte';
 
-	export let text: string;
-	export let url: string | undefined = undefined;
-
-	$: link = newUrl(url ?? text);
-
-	let twitterWidget: HTMLDivElement | undefined;
-
-	$: if (twitterWidget !== undefined) {
-		console.debug('[twitter]', twitterWidget);
-		window.twttr?.widgets.load(twitterWidget);
+	interface Props {
+		text: string;
+		url?: string | undefined;
 	}
 
-	let preview = $enablePreview;
+	let { text, url = undefined }: Props = $props();
+
+	let link = $derived(newUrl(url ?? text));
+
+	let twitterWidget: HTMLDivElement | undefined = $state();
+
+	run(() => {
+		if (twitterWidget !== undefined) {
+			console.debug('[twitter]', twitterWidget);
+			window.twttr?.widgets.load(twitterWidget);
+		}
+	});
+
+	let preview = $state($enablePreview);
 </script>
 
 {#if link === undefined}
@@ -72,7 +80,7 @@
 		</div>
 	{:else}
 		<ExternalLink {link} />
-		<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+		<button onclick={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else if (link.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(link.hostname)) && !link.pathname.startsWith('/@')}
 	<YouTube {link} />
@@ -99,21 +107,21 @@
 				</div>
 			{:else}
 				<ExternalLink {link} />
-				<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+				<button onclick={() => (preview = true)}>{$_('content.show')}</button>
 			{/if}
 		{:else if contentType.startsWith('audio/')}
 			{#if preview}
-				<audio src={link.href} controls />
+				<audio src={link.href} controls></audio>
 			{:else}
 				<ExternalLink {link} />
-				<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+				<button onclick={() => (preview = true)}>{$_('content.show')}</button>
 			{/if}
 		{:else if contentType.startsWith('video/')}
 			{#if preview}
 				<Video url={link} />
 			{:else}
 				<ExternalLink {link} />
-				<button on:click={() => (preview = true)}>{$_('content.show')}</button>
+				<button onclick={() => (preview = true)}>{$_('content.show')}</button>
 			{/if}
 		{:else if url !== undefined && text !== url}
 			<ExternalLink {link}>{text}</ExternalLink>

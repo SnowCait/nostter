@@ -17,12 +17,16 @@
 	import Profile from './Profile.svelte';
 	import TimelineView from '../TimelineView.svelte';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+	}
 
-	$: metadata = $metadataStore.get(data.pubkey);
+	let { data }: Props = $props();
 
-	let events: EventItem[] = [];
-	let slug = $page.params.slug!;
+	let metadata = $derived($metadataStore.get(data.pubkey));
+
+	let events: EventItem[] = $state([]);
+	let slug = $state($page.params.slug!);
 
 	afterNavigate(() => {
 		console.debug('[npub page]', data.pubkey);

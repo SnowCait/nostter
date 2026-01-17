@@ -1,13 +1,19 @@
 <script lang="ts">
+	import { stopPropagation } from 'svelte/legacy';
+
 	import { _ } from 'svelte-i18n';
 
-	export let query: string;
-	export let mine = false;
-	export let proxy = false;
+	interface Props {
+		query: string;
+		mine?: boolean;
+		proxy?: boolean;
+	}
+
+	let { query, mine = false, proxy = false }: Props = $props();
 </script>
 
 <form action="/search">
-	<input type="search" name="q" value={query} on:keyup|stopPropagation={() => console.debug} />
+	<input type="search" name="q" value={query} onkeyup={stopPropagation(() => console.debug)} />
 	<input type="submit" value={$_('search.search')} />
 	<details>
 		<summary>{$_('search.options')}</summary>

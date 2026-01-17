@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { ChannelMetadata } from '$lib/Types';
 
-	export let channelMetadata: ChannelMetadata | undefined;
+	interface Props {
+		channelMetadata: ChannelMetadata | undefined;
+	}
+
+	let { channelMetadata }: Props = $props();
 </script>
 
 <div>

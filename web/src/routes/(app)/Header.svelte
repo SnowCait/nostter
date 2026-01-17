@@ -32,15 +32,18 @@
 		$openNoteDialog = !$openNoteDialog;
 	}
 
-	$: homeLink = $followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/public';
-	$: nprofile = nip19.nprofileEncode({ pubkey: $pubkey });
-	$: notificationsBadge =
+	let homeLink = $derived(
+		$followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/public'
+	);
+	let nprofile = $derived(nip19.nprofileEncode({ pubkey: $pubkey }));
+	let notificationsBadge = $derived(
 		$notifiedEventItems.filter(
 			(item) =>
 				item.event.created_at > $lastReadAt &&
 				(!$preferencesStore.muteAutomatically ||
 					$followeesOfFollowees.has(item.event.pubkey))
-		).length > 0;
+		).length > 0
+	);
 </script>
 
 <div class="header">
@@ -79,7 +82,7 @@
 					<a href="/notifications">
 						<IconBell size={30} />
 						{#if notificationsBadge}
-							<span class="notifications-icon-badge" />
+							<span class="notifications-icon-badge"></span>
 						{/if}
 						<p>{$_('layout.header.notifications')}</p>
 					</a>
@@ -152,7 +155,7 @@
 					<a href="/notifications">
 						<IconBell size={30} />
 						{#if notificationsBadge}
-							<span class="notifications-icon-badge" />
+							<span class="notifications-icon-badge"></span>
 						{/if}
 						<p>{$_('layout.header.notifications')}</p>
 					</a>
@@ -167,51 +170,63 @@
 					<button class="clear" use:melt={$trigger}>
 						<IconDots size={30} />
 					</button>
-					<div use:melt={$overlay} class="overlay" />
+					<div use:melt={$overlay} class="overlay"></div>
 					<div use:melt={$menu} class="menu">
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto(`/public`)}
+							onclick={async () => await goto(`/public`)}
 							class="item"
 						>
 							<div class="icon"><IconWorld /></div>
 							<div>{$_('pages.public')}</div>
 						</div>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto(`/${nprofile}/lists`)}
+							onclick={async () => await goto(`/${nprofile}/lists`)}
 							class="item"
 						>
 							<div class="icon"><IconList /></div>
 							<div>{$_('lists.title')}</div>
 						</div>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto(`/${nprofile}/bookmarks`)}
+							onclick={async () => await goto(`/${nprofile}/bookmarks`)}
 							class="item"
 						>
 							<div class="icon"><IconBookmark /></div>
 							<div>{$_('layout.header.bookmarks')}</div>
 						</div>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto('/channels')}
+							onclick={async () => await goto('/channels')}
 							class="item"
 						>
 							<div class="icon"><IconMessages /></div>
 							<div>{$_('layout.header.channels')}</div>
 						</div>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto('/preferences')}
+							onclick={async () => await goto('/preferences')}
 							class="item"
 						>
 							<div class="icon"><IconSettings /></div>
 							<div>{$_('layout.header.preferences')}</div>
 						</div>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							use:melt={$item}
-							on:m-click={async () => await goto('/about')}
+							onclick={async () => await goto('/about')}
 							class="item"
 						>
 							<div class="icon"><IconPaw /></div>
@@ -236,12 +251,12 @@
 		</ul>
 	</nav>
 	{#if $pubkey && !$rom}
-		<button title="{$_('post')} (N)" on:click={onClickPostButton}>
+		<button title="{$_('post')} (N)" onclick={onClickPostButton}>
 			<IconPencilPlus size={30} />
 			<p>{$_('post')}</p>
 		</button>
 	{:else if !$pubkey}
-		<button on:click={async () => await goto('/')}>
+		<button onclick={async () => await goto('/')}>
 			<IconLogin size={30} />
 			<p>{$_('login.login')}</p>
 		</button>

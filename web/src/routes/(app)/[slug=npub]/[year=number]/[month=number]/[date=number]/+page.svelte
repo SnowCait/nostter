@@ -13,9 +13,13 @@
 	import DateNavigation from './DateNavigation.svelte';
 	import TimelineView from '../../../../TimelineView.svelte';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	$: metadata = $metadataStore.get(data.pubkey);
+	let { data }: Props = $props();
+
+	let metadata = $derived($metadataStore.get(data.pubkey));
 
 	const splitNumber = 4;
 

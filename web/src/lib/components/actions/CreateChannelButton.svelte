@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { _ } from 'svelte-i18n';
 	import { now } from 'rx-nostr';
 	import { filter } from 'rxjs';
@@ -7,14 +9,14 @@
 	import { Signer } from '$lib/Signer';
 	import ModalDialog from '../ModalDialog.svelte';
 
-	let open = false;
+	let open = $state(false);
 
 	let kind = 40;
-	let name = '';
-	let about = '';
-	let picture = '';
+	let name = $state('');
+	let about = $state('');
+	let picture = $state('');
 
-	$: creatable = name !== '';
+	let creatable = $derived(name !== '');
 
 	function createChannel(): void {
 		console.log('[channel create]', name, about, picture);
@@ -52,11 +54,11 @@
 	}
 </script>
 
-<button on:click={() => (open = true)}>{$_('public_chat.create_channel')}</button>
+<button onclick={() => (open = true)}>{$_('public_chat.create_channel')}</button>
 
 <ModalDialog bind:open>
 	<h2>{$_('public_chat.create_channel')}</h2>
-	<form on:submit|preventDefault={createChannel}>
+	<form onsubmit={preventDefault(createChannel)}>
 		<div>
 			<label>
 				<div>{$_('public_chat.channel.name')}</div>
@@ -66,7 +68,7 @@
 		<div>
 			<label>
 				<div>{$_('public_chat.channel.about')}</div>
-				<div><textarea bind:value={about} /></div>
+				<div><textarea bind:value={about}></textarea></div>
 			</label>
 		</div>
 		<div>

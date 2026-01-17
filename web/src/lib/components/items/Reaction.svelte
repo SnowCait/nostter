@@ -18,31 +18,39 @@
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
-	export let item: Item;
-	export let readonly: boolean;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
-
-	const { event } = item;
-
-	$: metadata = $metadataStore.get(event.pubkey);
-	$: nevent = nip19.neventEncode({
-		id: event.id,
-		relays: getSeenOnRelays(event.id),
-		author: event.pubkey,
-		kind: event.kind
-	});
-
-	let originalEvent: EventItem | undefined;
-	let jsonDisplay = false;
-
-	const eTags = event.tags.filter(
-		([tagName, tagContent]) => tagName === 'e' && tagContent !== undefined
-	);
-	const originalTag = eTags.at(eTags.length - 1);
-
-	$: if (originalTag !== undefined) {
-		originalEvent = $eventItemStore.get(originalTag[1]);
+	interface Props {
+		item: Item;
+		readonly: boolean;
+		createdAtFormat?: 'auto' | 'time';
 	}
+
+	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
+
+	let { event } = $derived(item);
+
+	let metadata = $derived($metadataStore.get(event.pubkey));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: event.id,
+			relays: getSeenOnRelays(event.id),
+			author: event.pubkey,
+			kind: event.kind
+		})
+	);
+
+	let originalEvent: EventItem | undefined = $state();
+	let jsonDisplay = $state(false);
+
+	let eTags = $derived(
+		event.tags.filter(([tagName, tagContent]) => tagName === 'e' && tagContent !== undefined)
+	);
+	let originalTag = $derived(eTags.at(eTags.length - 1));
+
+	$effect(() => {
+		if (originalTag !== undefined) {
+			originalEvent = $eventItemStore.get(originalTag[1]);
+		}
+	});
 
 	const toggleJsonDisplay = () => {
 		jsonDisplay = !jsonDisplay;
@@ -67,7 +75,7 @@
 	</div>
 	{#if $developerMode}
 		<div class="json-button right">
-			<button class="clear" on:click={toggleJsonDisplay}>
+			<button class="clear" onclick={toggleJsonDisplay}>
 				<IconCodeDots size={18} />
 			</button>
 		</div>

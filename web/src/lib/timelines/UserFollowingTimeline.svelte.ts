@@ -1,4 +1,4 @@
-import { get, writable } from 'svelte/store';
+import { writable } from 'svelte/store';
 import {
 	createRxBackwardReq,
 	createRxForwardReq,
@@ -28,7 +28,7 @@ export const timelinesMap = new Map<string, UserFollowingTimeline>();
 export const currentPubkey = writable<string | undefined>();
 
 export class UserFollowingTimeline implements Timeline {
-	public readonly items = writable<EventItem[]>([]);
+	public readonly items = $state<EventItem[]>([]);
 	readonly #pubkey: string;
 	readonly #followees: string[];
 	#newest: number;
@@ -70,9 +70,7 @@ export class UserFollowingTimeline implements Timeline {
 			.subscribe(({ event }) => {
 				console.debug('[user following timeline subscribe event]', event);
 				const item = new EventItem(event);
-				const $items = get(this.items);
-				$items.unshift(item);
-				this.items.set($items);
+				this.items.unshift(item);
 			});
 		const followeesFilters = chunk(this.#followees, filterLimitItems).map((followees) => ({
 			kinds: [0, ...followeesFilterKinds],
@@ -92,7 +90,7 @@ export class UserFollowingTimeline implements Timeline {
 		this.#subscription?.unsubscribe();
 	}
 
-	async load(): Promise<void> {
+	load = async (): Promise<void> => {
 		console.log(
 			'[user following timeline load]',
 			this.#pubkey,
@@ -142,21 +140,19 @@ export class UserFollowingTimeline implements Timeline {
 					.subscribe({
 						next: async ({ event }) => {
 							console.debug('[user following timeline load event]', event);
-							const $items = get(this.items);
-							if ($items.some((x) => x.event.id === event.id)) {
+							if (this.items.some((x) => x.event.id === event.id)) {
 								console.warn('[user following timeline load duplicate]', event);
 								return;
 							}
 							const item = new EventItem(event);
-							const index = $items.findIndex(
+							const index = this.items.findIndex(
 								(x) => x.event.created_at < item.event.created_at
 							);
 							if (index < 0) {
-								$items.push(item);
+								this.items.push(item);
 							} else {
-								$items.splice(index, 0, item);
+								this.items.splice(index, 0, item);
 							}
-							this.items.set($items);
 							count++;
 						},
 						complete: () => {
@@ -179,5 +175,5 @@ export class UserFollowingTimeline implements Timeline {
 		}
 
 		this.#oldest = until;
-	}
+	};
 }

@@ -17,38 +17,51 @@
 	import MutedContent from './MutedContent.svelte';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 
-	export let item: Item;
-	export let readonly: boolean;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
-
-	const event = item.event;
-	const zap = new ZapEventItem(event);
-
-	$: metadata = $metadataStore.get(event.pubkey);
-	$: nevent = nip19.neventEncode({
-		id: event.id,
-		relays: getSeenOnRelays(event.id),
-		author: event.pubkey,
-		kind: event.kind
-	});
-
-	let zapperMetadata: Metadata | undefined;
-
-	$: if (zap.requestEvent !== undefined) {
-		zapperMetadata = $metadataStore.get(zap.requestEvent.pubkey);
+	interface Props {
+		item: Item;
+		readonly: boolean;
+		createdAtFormat?: 'auto' | 'time';
 	}
 
-	let originalEvent: EventItem | undefined;
-	let jsonDisplay = false;
+	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
 
-	const originalTag = event.tags.find(
-		(tag) =>
-			tag.at(0) === 'e' && (tag.at(3) === 'mention' || tag.at(3) === 'root' || tag.length < 4)
+	let event = $derived(item.event);
+	let zap = $derived(new ZapEventItem(event));
+
+	let metadata = $derived($metadataStore.get(event.pubkey));
+	let nevent = $derived(
+		nip19.neventEncode({
+			id: event.id,
+			relays: getSeenOnRelays(event.id),
+			author: event.pubkey,
+			kind: event.kind
+		})
 	);
 
-	$: if (originalTag !== undefined) {
-		originalEvent = $eventItemStore.get(originalTag[1]);
-	}
+	let zapperMetadata: Metadata | undefined = $state();
+
+	$effect(() => {
+		if (zap.requestEvent !== undefined) {
+			zapperMetadata = $metadataStore.get(zap.requestEvent.pubkey);
+		}
+	});
+
+	let originalEvent: EventItem | undefined = $state();
+	let jsonDisplay = $state(false);
+
+	let originalTag = $derived(
+		event.tags.find(
+			(tag) =>
+				tag.at(0) === 'e' &&
+				(tag.at(3) === 'mention' || tag.at(3) === 'root' || tag.length < 4)
+		)
+	);
+
+	$effect(() => {
+		if (originalTag !== undefined) {
+			originalEvent = $eventItemStore.get(originalTag[1]);
+		}
+	});
 
 	onMount(() => {
 		if (zap.requestEvent !== undefined) {
@@ -85,7 +98,7 @@
 		{/if}
 		{#if $developerMode}
 			<div class="json-button right">
-				<button class="clear" on:click={toggleJsonDisplay}>
+				<button class="clear" onclick={toggleJsonDisplay}>
 					<IconCodeDots size={15} />
 				</button>
 			</div>

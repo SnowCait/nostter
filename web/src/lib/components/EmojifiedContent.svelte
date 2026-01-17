@@ -2,8 +2,12 @@
 	import { emojify } from '$lib/Content';
 	import CustomEmoji from './content/CustomEmoji.svelte';
 
-	export let content: string;
-	export let tags: string[][];
+	interface Props {
+		content: string;
+		tags: string[][];
+	}
+
+	let { content, tags }: Props = $props();
 </script>
 
 {#each emojify(content, tags) as token}

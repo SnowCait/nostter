@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { stopPropagation } from 'svelte/legacy';
+
 	import { nip19, type Event } from 'nostr-tools';
 	import { intentContent, openNoteDialog } from '$lib/stores/NoteDialog';
 	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
@@ -7,20 +9,26 @@
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { findIdentifier } from '$lib/EventHelper';
 
-	export let event: Event;
+	interface Props {
+		event: Event;
+	}
 
-	$: title = event.tags.find(([tagName]) => tagName === 'title')?.at(1);
-	$: image = event.tags.find(([tagName]) => tagName === 'image')?.at(1);
-	$: summary = event.tags.find(([tagName]) => tagName === 'summary')?.at(1);
-	$: naddr = nip19.naddrEncode({
-		kind: event.kind,
-		pubkey: event.pubkey,
-		identifier: findIdentifier(event.tags) ?? '',
-		relays: getSeenOnRelays(event.id)
-	});
+	let { event }: Props = $props();
+
+	let title = $derived(event.tags.find(([tagName]) => tagName === 'title')?.at(1));
+	let image = $derived(event.tags.find(([tagName]) => tagName === 'image')?.at(1));
+	let summary = $derived(event.tags.find(([tagName]) => tagName === 'summary')?.at(1));
+	let naddr = $derived(
+		nip19.naddrEncode({
+			kind: event.kind,
+			pubkey: event.pubkey,
+			identifier: findIdentifier(event.tags) ?? '',
+			relays: getSeenOnRelays(event.id)
+		})
+	);
 
 	const iconSize = 20;
-	let jsonDisplay = false;
+	let jsonDisplay = $state(false);
 
 	function quote() {
 		$intentContent = `\nnostr:${naddr}`;
@@ -41,10 +49,10 @@
 			<h1>{title ?? '-'}</h1>
 			<p>{summary ?? ''}</p>
 			<div class="action-menu">
-				<button on:click|stopPropagation={quote}>
+				<button onclick={stopPropagation(quote)}>
 					<IconQuote size={iconSize} />
 				</button>
-				<button on:click|stopPropagation={toggleJsonDisplay}>
+				<button onclick={stopPropagation(toggleJsonDisplay)}>
 					<IconCodeDots size={iconSize} />
 				</button>
 			</div>

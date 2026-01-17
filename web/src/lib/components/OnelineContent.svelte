@@ -7,10 +7,14 @@
 	import OnelineText from './content/OnelineText.svelte';
 	import ReferenceNip27 from './content/ReferenceNip27.svelte';
 
-	export let content: string;
-	export let tags: string[][];
+	interface Props {
+		content: string;
+		tags: string[][];
+	}
 
-	$: tokens = Content.parse(content.split('\n')[0], tags);
+	let { content, tags }: Props = $props();
+
+	let tokens = $derived(Content.parse(content.split('\n')[0], tags));
 </script>
 
 <p class="content">

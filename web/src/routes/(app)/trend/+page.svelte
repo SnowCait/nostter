@@ -5,7 +5,7 @@
 	import { appName, japaneseBotNpub, trendingPeopleBotNpub } from '$lib/Constants';
 	import UserFollowingTimeline from '../[slug=npub]/timeline/UserFollowingTimeline.svelte';
 
-	let pubkey: string | undefined;
+	let pubkey: string | undefined = $state();
 
 	onMount(async () => {
 		const npub = navigator.language.startsWith('ja') ? japaneseBotNpub : trendingPeopleBotNpub;

@@ -1,17 +1,23 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import IconLink from '@tabler/icons-svelte/icons/link';
 
-	export let tag: string[];
+	interface Props {
+		tag: string[];
+	}
 
-	let url: URL | undefined;
+	let { tag }: Props = $props();
 
-	$: {
+	let url: URL | undefined = $state();
+
+	run(() => {
 		try {
 			url = new URL(tag[1]);
 		} catch (error) {
 			console.error('[proxy error]', tag, error);
 		}
-	}
+	});
 </script>
 
 {#if url !== undefined}

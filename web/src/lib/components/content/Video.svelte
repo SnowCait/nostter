@@ -4,10 +4,16 @@
 	import { getContext } from 'svelte';
 	import { _ } from 'svelte-i18n';
 
-	export let url: URL;
+	interface Props {
+		url: URL;
+	}
+
+	let { url }: Props = $props();
 
 	const events = getContext<Event[] | undefined>('events');
-	let blur = events !== undefined && !events.some((event) => $followees.includes(event.pubkey));
+	let blur = $state(
+		events !== undefined && !events.some((event) => $followees.includes(event.pubkey))
+	);
 
 	function show(): void {
 		blur = false;
@@ -15,10 +21,10 @@
 </script>
 
 <div class="wrapper">
-	<!-- svelte-ignore a11y-media-has-caption -->
-	<video src={url.href} controls class:blur on:click={show} />
+	<!-- svelte-ignore a11y_media_has_caption -->
+	<video src={url.href} controls class:blur onclick={show}></video>
 	{#if blur}
-		<button class="description" on:click={show}>{$_('content.show')}</button>
+		<button class="description" onclick={show}>{$_('content.show')}</button>
 	{/if}
 </div>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { EventItem } from '$lib/Items';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
@@ -22,51 +22,30 @@
 	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { MouseButton } from '$lib/DomHelper';
 
-	export let timeline: NewTimeline;
-	export let readonly = false;
-	export let showLoading = true;
-	export let createdAtFormat: 'auto' | 'time' = 'auto';
-	export let full = false;
-	export let canTransition = true;
-
-	let items: EventItem[] = [];
-	let innerHeight: number;
-	let scrollY = 0;
-	let isTop = true;
-	let latest = true;
-	let oldest = false;
-
-	$: if (scrollY === 0 && !isTop) {
-		isTop = true;
-		timeline.setIsTop(isTop);
-		if (timeline.autoUpdate && !latest) {
-			newer();
-		}
+	interface Props {
+		timeline: NewTimeline;
+		readonly?: boolean;
+		showLoading?: boolean;
+		createdAtFormat?: 'auto' | 'time';
+		full?: boolean;
+		canTransition?: boolean;
 	}
 
-	$: if (scrollY > 0 && isTop) {
-		isTop = false;
-		timeline.setIsTop(isTop);
-	}
+	let {
+		timeline,
+		readonly = false,
+		showLoading = true,
+		createdAtFormat = 'auto',
+		full = false,
+		canTransition = true
+	}: Props = $props();
 
-	$: if (
-		scrollY > 0 &&
-		scrollY + window.innerHeight * 1.2 >= document.documentElement.scrollHeight &&
-		!timeline.loading
-	) {
-		older();
-	}
-
-	$: visibleItems = items.filter(
-		(item) =>
-			!isMuteEvent(item.event) &&
-			!$deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id) &&
-			// TODO: Not to depend on HomeTimeline in Svelte 5
-			(!(timeline instanceof HomeTimeline) ||
-				(!$excludeKinds.includes(item.event.kind) &&
-					(!$preferencesStore.muteAutomatically ||
-						$followeesOfFollowees.has(item.event.pubkey))))
-	);
+	let items: EventItem[] = $state([]);
+	let innerHeight = $state(0);
+	let scrollY = $state(0);
+	let isTop = $state(true);
+	let latest = $state(true);
+	let oldest = $state(false);
 
 	async function newer() {
 		const id = visibleItems.at(0)?.id;
@@ -225,30 +204,76 @@
 			unsubscribeOldest();
 		};
 	});
+
+	$effect(() => {
+		if (scrollY === 0 && !isTop) {
+			untrack(() => {
+				isTop = true;
+				timeline.setIsTop(isTop);
+				if (timeline.autoUpdate && !latest) {
+					newer();
+				}
+			});
+		}
+	});
+
+	$effect(() => {
+		if (scrollY > 0 && isTop) {
+			untrack(() => {
+				isTop = false;
+				timeline.setIsTop(isTop);
+			});
+		}
+	});
+
+	$effect(() => {
+		if (
+			scrollY > 0 &&
+			scrollY + window.innerHeight * 1.2 >= document.documentElement.scrollHeight &&
+			!timeline.loading
+		) {
+			untrack(() => {
+				older();
+			});
+		}
+	});
+
+	let visibleItems = $derived(
+		items.filter(
+			(item) =>
+				!isMuteEvent(item.event) &&
+				!$deletedEventIdsByPubkey.get(item.event.pubkey)?.has(item.event.id) &&
+				// TODO: Not to depend on HomeTimeline in Svelte 5
+				(!(timeline instanceof HomeTimeline) ||
+					(!$excludeKinds.includes(item.event.kind) &&
+						(!$preferencesStore.muteAutomatically ||
+							$followeesOfFollowees.has(item.event.pubkey))))
+		)
+	);
 </script>
 
 <svelte:window bind:innerHeight bind:scrollY />
 
 {#if !timeline.autoUpdate && !latest}
-	<button on:click={newer} class="new">{$_('timeline.update')}</button>
+	<button onclick={newer} class="new">{$_('timeline.update')}</button>
 {/if}
 
 <section class="card">
 	{#if scrollY > 0}
 		<div class="scroll-to-top">
-			<button on:click={scrollToTop} class="scroll-to-top">
+			<button onclick={scrollToTop} class="scroll-to-top">
 				<IconChevronsUp size="24" />
 			</button>
 		</div>
 	{/if}
 
 	{#each visibleItems as item (item.id)}
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			id={item.id}
 			class={canTransition ? 'canTransition-post' : ''}
 			class:related={$author?.isNotified(item.event)}
-			on:mouseup={(e) => viewDetail(e, item.event)}
+			onmouseup={(e) => viewDetail(e, item.event)}
 		>
 			<EventComponent {item} {readonly} {createdAtFormat} {full} />
 		</div>
