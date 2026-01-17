@@ -28,7 +28,7 @@
 		"@types/twitter-text": "^3.1.10",
 		"@typescript-eslint/eslint-plugin": "^8.48.1",
 		"@typescript-eslint/parser": "^8.46.3",
-		"eslint": "^9.39.1",
+		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^2.45.1",
 		"fake-indexeddb": "^6.2.5",
