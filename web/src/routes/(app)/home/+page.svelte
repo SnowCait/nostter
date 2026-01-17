@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { followees, author } from '$lib/stores/Author';
-	import { timeline } from '$lib/timelines/HomeTimeline';
+	import { options, timeline } from '$lib/timelines/HomeTimeline';
 	import { applyTimelieFilter } from '$lib/TimelineFilter';
 	import { _ } from 'svelte-i18n';
 	import { IconAdjustmentsHorizontal } from '@tabler/icons-svelte';
@@ -41,6 +41,15 @@
 			<section>
 				<h2>{$_('preferences.timeline_filter.title')}</h2>
 				<TimelineFilter />
+			</section>
+			<section>
+				<h2>{$_('timeline.options.title')}</h2>
+				<div>
+					<label>
+						<input type="checkbox" bind:checked={$options.speech} />
+						<span>{$_('timeline.options.speech')}</span>
+					</label>
+				</div>
 			</section>
 
 			{#if $author !== undefined}
