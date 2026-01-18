@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { writable } from 'svelte/store';
-	import { onMount } from 'svelte';
 	import { nip19, type Event } from 'nostr-tools';
 	import { VirtualScroll } from 'svelte-virtual-scroll-list';
 	import { goto } from '$app/navigation';
@@ -14,7 +12,7 @@
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { MouseButton } from '$lib/DomHelper';
-	import { innerHeight } from 'svelte/reactivity/window';
+	import { innerHeight, scrollY } from 'svelte/reactivity/window';
 
 	interface Props {
 		items?: Item[];
@@ -37,7 +35,6 @@
 	}: Props = $props();
 
 	let loading = false;
-	let scrollY = writable(0);
 
 	let visibleItems = $derived(
 		items.filter(
@@ -47,20 +44,19 @@
 		)
 	);
 
-	onMount(() => {
-		console.log('Timeline.onMount');
-		scrollY.subscribe(async (y) => {
-			const maxHeight = document.documentElement.scrollHeight;
-			const scrollRate = Math.floor((100 * (y + innerHeight.current!)) / maxHeight);
+	$effect(() => {
+		const maxHeight = document.documentElement.scrollHeight;
+		const scrollRate = Math.floor(
+			(100 * (scrollY.current! + innerHeight.current!)) / maxHeight
+		);
 
-			if (scrollRate > 80 && !loading) {
-				console.log('Load more timeline');
-				loading = true;
-				await load();
-				console.log('Timeline loaded');
+		if (scrollRate > 80 && !loading) {
+			console.debug('[timeline load more]', scrollRate);
+			loading = true;
+			load().then(() => {
 				loading = false;
-			}
-		});
+			});
+		}
 	});
 
 	const getTargetETag = (tags: string[][]) => {
@@ -135,8 +131,6 @@
 		}
 	};
 </script>
-
-<svelte:window bind:scrollY={$scrollY} />
 
 {#if visibleItems.length > 0}
 	<section class="card">
