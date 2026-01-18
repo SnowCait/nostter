@@ -21,6 +21,7 @@
 	import { preferencesStore } from '$lib/Preferences';
 	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { MouseButton } from '$lib/DomHelper';
+	import { scrollY } from 'svelte/reactivity/window';
 
 	interface Props {
 		timeline: NewTimeline;
@@ -40,8 +41,6 @@
 		canTransition = true
 	}: Props = $props();
 
-	let innerHeight = $state(0);
-	let scrollY = $state(0);
 	let isTop = $state(true);
 
 	async function newer() {
@@ -58,7 +57,7 @@
 		await tick();
 		const after = latestElement.getBoundingClientRect();
 		window.scrollTo({
-			top: scrollY + after.top - before.top
+			top: scrollY.current! + after.top - before.top
 		});
 	}
 
@@ -76,7 +75,7 @@
 		await tick();
 		const after = oldestElement.getBoundingClientRect();
 		window.scrollTo({
-			top: scrollY + after.top - before.top
+			top: scrollY.current! + after.top - before.top
 		});
 		timeline.older();
 	}
@@ -176,7 +175,7 @@
 		// Workaround for scroll position
 		if (!timeline.latest) {
 			setTimeout(() => {
-				if (scrollY > 0) {
+				if (scrollY.current! > 0) {
 					return;
 				}
 				newer();
@@ -185,7 +184,7 @@
 	});
 
 	$effect(() => {
-		if (scrollY === 0 && !isTop) {
+		if (scrollY.current === 0 && !isTop) {
 			untrack(() => {
 				isTop = true;
 				timeline.setIsTop(isTop);
@@ -197,7 +196,7 @@
 	});
 
 	$effect(() => {
-		if (scrollY > 0 && isTop) {
+		if (scrollY.current! > 0 && isTop) {
 			untrack(() => {
 				isTop = false;
 				timeline.setIsTop(isTop);
@@ -207,8 +206,8 @@
 
 	$effect(() => {
 		if (
-			scrollY > 0 &&
-			scrollY + window.innerHeight * 1.2 >= document.documentElement.scrollHeight &&
+			scrollY.current! > 0 &&
+			scrollY.current! + window.innerHeight * 1.2 >= document.documentElement.scrollHeight &&
 			!timeline.loading
 		) {
 			untrack(() => {
@@ -233,14 +232,12 @@
 	);
 </script>
 
-<svelte:window bind:innerHeight bind:scrollY />
-
 {#if !timeline.autoUpdate && !timeline.latest}
 	<button onclick={newer} class="new">{$_('timeline.update')}</button>
 {/if}
 
 <section class="card">
-	{#if scrollY > 0}
+	{#if scrollY.current! > 0}
 		<div class="scroll-to-top">
 			<button onclick={scrollToTop} class="scroll-to-top">
 				<IconChevronsUp size="24" />
