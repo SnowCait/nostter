@@ -44,7 +44,11 @@ export class Signer {
 
 	public static async abolishBunkerConnection(): Promise<void> {
 		if (bunkerSigner) {
-			await bunkerSigner.close();
+			try {
+				await bunkerSigner.close();
+			} catch (e) {
+				console.debug('[NIP-46] close error', e);
+			}
 			bunkerSigner = undefined;
 			nip46CachedPublicKey = undefined;
 		}

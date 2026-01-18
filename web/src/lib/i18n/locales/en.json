@@ -44,7 +44,8 @@
 		"try_demo": "See timeline",
 		"login": "Login",
 		"hero-message": "Freedom is Here",
-		"hero-message-sub": "All you need is name. No e-mail address, no account suspension, open SNS. Play with Emoji Kitchen."
+		"hero-message-sub": "All you need is name. No e-mail address, no account suspension, open SNS. Play with Emoji Kitchen.",
+		"failed": "Failed to login."
 	},
 	"logout": {
 		"logout": "Logout",
