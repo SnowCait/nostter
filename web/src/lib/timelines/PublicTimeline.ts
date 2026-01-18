@@ -1,8 +1,7 @@
 import { createRxBackwardReq, createRxForwardReq, now, uniq } from 'rx-nostr';
-import { NewTimeline } from './Timeline';
+import { NewTimeline } from './Timeline.svelte';
 import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
 import type { Event } from 'nostr-typedef';
-import { get } from 'svelte/store';
 import { minTimelineLength, reverseChronological } from '$lib/Constants';
 import { filter, tap, type Subscription } from 'rxjs';
 import { authorActionReqEmit } from '$lib/author/Action';
@@ -34,7 +33,6 @@ export class PublicTimeline extends NewTimeline {
 	}
 
 	subscribe(): void {
-		console.debug('[public timeline subscribe]');
 		const req = createRxForwardReq();
 		this.#subscription = rxNostr
 			.use(req, { on: { relays: this.#relays } })
@@ -50,15 +48,9 @@ export class PublicTimeline extends NewTimeline {
 			.subscribe(({ event }) => {
 				const lastId = this.eventsStore.at(0)?.id;
 				this.eventsStore.unshift(event);
-				this.latestId.set(event.id);
-				if (
-					this.autoUpdate &&
-					this.#isTop &&
-					get(this.eventsForView).at(0)?.id === lastId
-				) {
-					this.eventsForView.set(
-						[event, ...get(this.eventsForView)].slice(0, maxTimelineLength)
-					);
+				this.latestId = event.id;
+				if (this.autoUpdate && this.#isTop && this.eventsForView.at(0)?.id === lastId) {
+					this.eventsForView = [event, ...this.eventsForView].slice(0, maxTimelineLength);
 				}
 			});
 		req.emit([{ kinds: [1], since: now }]);
@@ -70,23 +62,19 @@ export class PublicTimeline extends NewTimeline {
 	}
 
 	older(): void {
-		console.debug('[public timeline older]', get(this._oldest));
-
-		if (get(this._oldest)) {
+		if (this._oldest) {
 			return;
 		}
 
 		this._loading = true;
 		let count = 0;
 
-		const $eventsForView = get(this.eventsForView);
-
-		if ($eventsForView.length > 0) {
+		if (this.eventsForView.length > 0) {
 			const index = this.eventsStore.findIndex(
-				(event) => event.id === $eventsForView[$eventsForView.length - 1].id
+				(event) => event.id === this.eventsForView[this.eventsForView.length - 1].id
 			);
 			const events = this.eventsStore.slice(index + 1, index + 1 + minTimelineLength);
-			this.eventsForView.set([...$eventsForView, ...events]);
+			this.eventsForView = [...this.eventsForView, ...events];
 			count += events.length;
 			console.debug('[public timeline older from store]', count);
 		}
@@ -115,25 +103,23 @@ export class PublicTimeline extends NewTimeline {
 					const index = this.eventsStore.findIndex(
 						(e) => e.created_at < event.created_at
 					);
-					const $eventsForView = get(this.eventsForView);
 					if (index < 0) {
 						this.eventsStore.push(event);
-						this.eventsForView.set([...$eventsForView, event]);
+						this.eventsForView = [...this.eventsForView, event];
 					} else {
 						this.eventsStore.splice(index, 0, event);
-						const indexForView = $eventsForView.findIndex(
+						const indexForView = this.eventsForView.findIndex(
 							(e) => e.created_at < event.created_at
 						);
 						if (indexForView < 0) {
 							console.warn('[public timeline logic error]');
 						} else {
-							$eventsForView.splice(indexForView, 0, event);
-							this.eventsForView.set($eventsForView);
+							this.eventsForView.splice(indexForView, 0, event);
 						}
 					}
 					count++;
-					if (get(this.latestId) === undefined) {
-						this.latestId.set(event.id);
+					if (this.latestId === undefined) {
+						this.latestId = event.id;
 					}
 				},
 				complete: async () => {
@@ -141,7 +127,7 @@ export class PublicTimeline extends NewTimeline {
 					if (count < minTimelineLength) {
 						const events = await this.fetchEnough(minTimelineLength - count);
 						this.eventsStore.push(...events);
-						this.eventsForView.set([...get(this.eventsForView), ...events]);
+						this.eventsForView = [...this.eventsForView, ...events];
 						count += events.length;
 						console.debug(
 							'[public timeline fetch enough complete]',
@@ -151,7 +137,7 @@ export class PublicTimeline extends NewTimeline {
 					}
 					this._loading = false;
 					if (count === 0) {
-						this._oldest.set(true);
+						this._oldest = true;
 					}
 				},
 				error: (error) => {

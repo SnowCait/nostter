@@ -1,7 +1,7 @@
 import { minTimelineLength } from '$lib/Constants';
 import { autoRefresh } from '$lib/stores/Preference';
 import type { Event } from 'nostr-typedef';
-import { derived, get, writable } from 'svelte/store';
+import { get } from 'svelte/store';
 
 export interface Timeline {
 	subscribe(): void;
@@ -15,21 +15,14 @@ export abstract class NewTimeline {
 	//#region Events
 
 	protected readonly eventsStore: Event[] = [];
-	protected readonly eventsForView = writable<Event[]>([]);
-	public readonly events = derived(this.eventsForView, ($) => $);
+	protected eventsForView = $state<Event[]>([]);
+	public readonly events = $derived(this.eventsForView);
 
-	protected latestId = writable<string | undefined>();
-	public readonly latest = derived(
-		[this.latestId, this.eventsForView],
-		([$id, $events]) => $id === $events.at(0)?.id
-	);
+	protected latestId = $state<string | undefined>();
+	public readonly latest = $derived(this.latestId === this.eventsForView.at(0)?.id);
 
-	public get isLatest(): boolean {
-		return get(this.latest);
-	}
-
-	protected _oldest = writable(false);
-	public readonly oldest = derived(this._oldest, ($) => $);
+	protected _oldest = $state(false);
+	public readonly oldest = $derived(this._oldest);
 
 	//#endregion
 
@@ -60,44 +53,42 @@ export abstract class NewTimeline {
 	public abstract unsubscribe(): void;
 
 	public newer(): void {
-		if (get(this.latest)) {
+		if (this.latest) {
 			return;
 		}
 
-		const $eventsForView = get(this.eventsForView);
-		if ($eventsForView.length === 0) {
+		if (this.eventsForView.length === 0) {
 			return;
 		}
 
-		const latestEvent = $eventsForView[0];
+		const latestEvent = this.eventsForView[0];
 		const index = this.eventsStore.findIndex((event) => event.id === latestEvent.id);
 		if (index > minTimelineLength) {
 			const events = this.eventsStore.slice(index - minTimelineLength, index);
-			this.eventsForView.set([...events, ...$eventsForView].slice(0, maxTimelineLength));
+			this.eventsForView = [...events, ...this.eventsForView].slice(0, maxTimelineLength);
 		} else {
 			const events = this.eventsStore.slice(0, index);
-			this.eventsForView.set([...events, ...$eventsForView].slice(0, maxTimelineLength));
+			this.eventsForView = [...events, ...this.eventsForView].slice(0, maxTimelineLength);
 		}
 	}
 
 	public abstract older(): void;
 
 	public reduce(): void {
-		const $eventsForView = get(this.eventsForView);
-		this.eventsForView.set($eventsForView.slice(-minTimelineLength));
+		this.eventsForView = this.eventsForView.slice(-minTimelineLength);
 	}
 
 	public scrollToTop(): void {
-		this.eventsForView.set(this.eventsStore.slice(0, minTimelineLength));
+		this.eventsForView = this.eventsStore.slice(0, minTimelineLength);
 	}
 
 	//#region Reactivated
 
 	public clear(): void {
 		this.eventsStore.splice(0);
-		this.eventsForView.set([]);
-		this.latestId.set(undefined);
-		this._oldest.set(false);
+		this.eventsForView = [];
+		this.latestId = undefined;
+		this._oldest = false;
 	}
 
 	public abstract retrieve(until: number, since: number): void;
