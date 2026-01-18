@@ -21,10 +21,12 @@
 
 	let showCreateAccountDialog = $state(false);
 	let showLoginDialog = $state(false);
+	let failedToLogin = $state(false);
 
 	const login = new Login();
 
 	async function loginWithNip07() {
+		failedToLogin = false;
 		const storage = new WebStorage(localStorage);
 		storage.set('login', 'NIP-07');
 
@@ -33,14 +35,17 @@
 	}
 
 	async function loginWithNip46() {
+		failedToLogin = false;
 		const success = await login.withNip46(bunker);
 		if (!success) {
+			failedToLogin = true;
 			return;
 		}
 		await gotoHome();
 	}
 
 	async function loginWithKey() {
+		failedToLogin = false;
 		if (key.startsWith('nsec')) {
 			await login.withNsec(key);
 		} else {
@@ -218,6 +223,9 @@
 										/>
 									</div>
 								</form>
+								{#if failedToLogin}
+									<p>{$_('login.failed')}</p>
+								{/if}
 							</section>
 
 							<div class="divider-with-message">
