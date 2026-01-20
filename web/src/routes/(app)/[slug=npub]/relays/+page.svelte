@@ -187,7 +187,7 @@
 				{#if $developerMode}
 					<div>
 						<label>
-							<input type="checkbox" bind:value={saveToKind3} />
+							<input type="checkbox" bind:checked={saveToKind3} />
 							<span>Write to kind 3 also (usually to kind 10002 only)</span>
 						</label>
 					</div>
