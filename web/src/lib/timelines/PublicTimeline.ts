@@ -198,7 +198,8 @@ export class PublicTimeline extends NewTimeline {
 			return false;
 		}
 
-		if (event.tags.filter((tag) => tag[0] === 't').length > 5) {
+		const hashtagTags = event.tags.filter((tag) => tag[0] === 't');
+		if (hashtagTags.length > 5) {
 			return false;
 		}
 
@@ -206,8 +207,19 @@ export class PublicTimeline extends NewTimeline {
 			return false;
 		}
 
+		if (
+			hashtagTags.some(
+				(tag) =>
+					typeof tag[1] !== 'string' ||
+					tag[1] !== tag[1].toLowerCase() ||
+					!event.content.includes(`#${tag[1]}`)
+			)
+		) {
+			return false;
+		}
+
 		const hashtags = twitter.extractHashtags(event.content);
-		if (hashtags.length > event.tags.filter((tag) => tag[0] === 't').length) {
+		if (hashtags.length > hashtagTags.length) {
 			return false;
 		}
 
