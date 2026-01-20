@@ -85,7 +85,10 @@
 									{#if i == 0}
 										<span>{$_('preferences.backup.latest')}</span>
 									{:else}
-										<button type="button" onclick={() => restore(event)}>
+										<button
+											type="button"
+											onclick={() => restore($state.snapshot(event))}
+										>
 											{$_('preferences.backup.restore')}
 										</button>
 									{/if}
