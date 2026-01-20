@@ -235,7 +235,6 @@
 			if (textarea === undefined) {
 				return;
 			}
-			console.log(textarea, textarea.selectionStart);
 			textarea.setSelectionRange(0, 0);
 			textarea.focus();
 		}
@@ -377,7 +376,6 @@
 			!emojiTags.some(([, s]) => s === shortcode)
 		) {
 			emojiTags.push(['emoji', shortcode, emoji.src]);
-			emojiTags = emojiTags;
 		}
 		await tick();
 		const cursor = content.length - after.length;
@@ -402,7 +400,7 @@
 			[
 				...noteComposer.replyTags(content, $replyTo, $channelIdStore),
 				...noteComposer.hashtags(content),
-				...(await noteComposer.emojiTags(content, emojiTags)),
+				...(await noteComposer.emojiTags(content, $state.snapshot(emojiTags))),
 				...noteComposer.contentWarningTags(contentWarningReason)
 			]
 		);
