@@ -30,7 +30,7 @@
 		"@typescript-eslint/parser": "^8.46.3",
 		"eslint": "^9.39.1",
 		"eslint-config-prettier": "^10.0.1",
-		"eslint-plugin-svelte": "^2.45.1",
+		"eslint-plugin-svelte": "^3.14.0",
 		"fake-indexeddb": "^6.2.5",
 		"html5-qrcode": "^2.3.8",
 		"nostr-typedef": "^0.13.0",
@@ -50,7 +50,6 @@
 	"dependencies": {
 		"@emoji-mart/data": "^1.2.1",
 		"@floating-ui/dom": "^1.6.8",
-		"@noble/hashes": "^1.7.1",
 		"@rust-nostr/nostr-sdk": "^0.44.0",
 		"@tabler/icons-svelte": "^3.14.0",
 		"@tabler/icons-webfont": "^3.14.0",
