@@ -350,7 +350,11 @@
 		"send": "Zap"
 	},
 	"timeline": {
-		"update": "Show new posts"
+		"update": "Show new posts",
+		"options": {
+			"title": "Options",
+			"speech": "Speech"
+		}
 	},
 	"emoji": {
 		"custom": {
