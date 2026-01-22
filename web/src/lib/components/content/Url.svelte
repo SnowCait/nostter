@@ -27,8 +27,6 @@
 </script>
 
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { _ } from 'svelte-i18n';
 	import { newUrl } from '$lib/Helper';
 	import { Twitter } from '$lib/Twitter';
@@ -51,7 +49,7 @@
 
 	let twitterWidget: HTMLDivElement | undefined = $state();
 
-	run(() => {
+	$effect(() => {
 		if (twitterWidget !== undefined) {
 			console.debug('[twitter]', twitterWidget);
 			window.twttr?.widgets.load(twitterWidget);
