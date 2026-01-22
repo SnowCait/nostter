@@ -1,17 +1,15 @@
 <script lang="ts" module>
-	import { writable } from 'svelte/store';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	type Data = {
 		title?: string;
 		image?: string;
 	};
 
-	const cache = writable(new Map<string, Data | undefined>());
+	const cache = new SvelteMap<string, Data | undefined>();
 </script>
 
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { httpProxy } from '$lib/Constants';
 
 	interface Props {
@@ -22,8 +20,7 @@
 
 	async function fetchOgp(url: URL, proxy: boolean): Promise<boolean> {
 		console.debug('[OGP url]', url.href, proxy);
-		$cache.set(url.href, undefined);
-		cache.set($cache);
+		cache.set(url.href, undefined);
 
 		return await new Promise((resolve) => {
 			fetch(proxy ? `${httpProxy}/?url=${encodeURIComponent(url.href)}` : url)
@@ -81,15 +78,14 @@
 							})
 					);
 					console.debug('[OGP]', url.href, dom.title, ogp);
-					$cache.set(url.href, {
+					cache.set(url.href, {
 						title: ogp['og:title'] ?? dom.title,
 						image: ogp['og:image']
 					});
-					cache.set($cache);
 					resolve(true);
 				})
 				.catch((error) => {
-					console.info('[OGP network/CORS error]', url.href, error);
+					console.debug('[OGP network/CORS error]', url.href, error);
 					resolve(false);
 				});
 		});
@@ -99,9 +95,11 @@
 		const img = event.target as HTMLImageElement;
 		img.hidden = true;
 	}
-	let data = $derived($cache.get(url.href));
-	run(() => {
-		if (!$cache.has(url.href)) {
+
+	let data = $derived(cache.get(url.href));
+
+	$effect(() => {
+		if (!cache.has(url.href)) {
 			fetchOgp(url, true).then((success) => {
 				if (!success) {
 					fetchOgp(url, false);
