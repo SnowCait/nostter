@@ -381,6 +381,12 @@ article.timeline-item {
 		sans-serif;
 }
 
+@media screen and (max-width: 600px) {
+	article.timeline-item {
+		padding: 12px 8px;
+	}
+}
+
 article.timeline-item + article.timeline-item {
 	padding-top: 0;
 }

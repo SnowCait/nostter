@@ -22,9 +22,11 @@
 
 <article class="timeline-item">
 	<div>
-		<a href="/{nip19.npubEncode(item.event.pubkey)}">
-			<ProfileIcon pubkey={item.event.pubkey} width="48px" height="48px" />
-		</a>
+		<div class="picture">
+			<a href="/{nip19.npubEncode(item.event.pubkey)}">
+				<ProfileIcon pubkey={item.event.pubkey} />
+			</a>
+		</div>
 		<div class="icon">
 			{@render icon?.()}
 		</div>
@@ -60,6 +62,18 @@
 		display: flex;
 		flex-direction: row;
 		gap: 12px;
+	}
+
+	.picture {
+		width: 48px;
+		height: 48px;
+	}
+
+	@media screen and (max-width: 600px) {
+		.picture {
+			width: 40px;
+			height: 40px;
+		}
 	}
 
 	.icon {
