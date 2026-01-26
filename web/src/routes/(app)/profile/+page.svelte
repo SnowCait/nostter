@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault, stopPropagation } from 'svelte/legacy';
-
 	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import Cropper from 'svelte-easy-crop';
@@ -14,6 +12,7 @@
 	import { sendEvent } from '$lib/RxNostrHelper';
 	import { storeMetadata } from '$lib/cache/Events';
 	import { WebStorage } from '$lib/WebStorage';
+	import { onMount } from 'svelte';
 
 	//#region Cropper
 
@@ -23,6 +22,12 @@
 	let url = $state('');
 	let pixels: Pixels | undefined;
 	let complete: (value: File | PromiseLike<File | undefined> | undefined) => void;
+
+	onMount(async () => {
+		if (!$pubkey) {
+			await goto('/');
+		}
+	});
 
 	async function crop(file: File): Promise<File | undefined> {
 		console.debug('[profile picture crop]', file);
@@ -44,8 +49,9 @@
 		pixels = detail.pixels;
 	}
 
-	function applyCrop() {
+	function applyCrop(e: SubmitEvent): void {
 		console.debug('[profile picture apply]', pixels);
+		e.preventDefault();
 		const image = new Image();
 		image.addEventListener('load', () => {
 			console.debug('[profile picture apply load]', image);
@@ -125,8 +131,9 @@
 		}
 	}
 
-	async function save(): Promise<void> {
+	async function save(e: SubmitEvent): Promise<void> {
 		console.log('[save metadata]', $authorProfile);
+		e.preventDefault();
 
 		if ($authorProfile === undefined) {
 			console.error('[save failed]');
@@ -156,98 +163,100 @@
 
 <h1>{$_('pages.profile_edit')}</h1>
 
-<ModalDialog bind:open on:close={close}>
-	<div class="crop">
-		<Cropper image={url} aspect={1} maxZoom={10} on:cropcomplete={onCropComplete} />
-	</div>
+{#if $authorProfile}
+	<ModalDialog bind:open on:close={close}>
+		<div class="crop">
+			<Cropper image={url} aspect={1} maxZoom={10} on:cropcomplete={onCropComplete} />
+		</div>
 
-	<form class="apply" onsubmit={preventDefault(applyCrop)}>
-		<input type="submit" value={$_('media.upload.apply')} />
+		<form class="apply" onsubmit={applyCrop}>
+			<input type="submit" value={$_('media.upload.apply')} />
+		</form>
+	</ModalDialog>
+
+	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+	<form class="card" onsubmit={save}>
+		<div class="picture">
+			<label for="picture">Picture</label>
+			<div>
+				<input
+					type="url"
+					id="picture"
+					placeholder="https://example.com/picture.png"
+					bind:value={$authorProfile.picture}
+				/>
+				<MediaPicker on:pick={picturePicked} />
+			</div>
+			{#if $authorProfile.picture}
+				<img src={$authorProfile.picture} alt="preview" />
+			{/if}
+		</div>
+		<div class="banner">
+			<label for="banner">Banner</label>
+			<div>
+				<input
+					type="url"
+					id="banner"
+					placeholder="https://example.com/banner.webp"
+					bind:value={$authorProfile.banner}
+				/>
+				<MediaPicker on:pick={bannerPicked} />
+			</div>
+			{#if $authorProfile.banner}
+				<img src={$authorProfile.banner} alt="preview" />
+			{/if}
+		</div>
+		<div class="name">
+			<label for="name">@name</label>
+			<input type="text" id="name" placeholder="name" bind:value={$authorProfile.name} />
+		</div>
+		<div class="display-name">
+			<label for="display-name">Display name</label>
+			<input
+				type="text"
+				id="display-name"
+				placeholder="Display Name"
+				bind:value={$authorProfile.display_name}
+			/>
+		</div>
+		<div class="nip05">
+			<label for="nip05">Nostr Address</label>
+			<input
+				type="text"
+				id="nip05"
+				placeholder="name@example.com"
+				bind:value={$authorProfile.nip05}
+			/>
+		</div>
+		<div class="website">
+			<label for="website">Website</label>
+			<input
+				type="url"
+				id="website"
+				placeholder="https://example.com"
+				bind:value={$authorProfile.website}
+			/>
+		</div>
+		<div class="lud16">
+			<label for="lud16">Lightning Address</label>
+			<input
+				type="email"
+				id="lud16"
+				placeholder="satoshi@bitcoin.org"
+				bind:value={$authorProfile.lud16}
+			/>
+		</div>
+		<div class="about">
+			<label for="about">about</label>
+			<textarea id="about" bind:value={$authorProfile.about}></textarea>
+		</div>
+		{#if $author}
+			<div>
+				<input type="submit" value="Save" />
+			</div>
+		{/if}
 	</form>
-</ModalDialog>
-
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<form class="card" onsubmit={preventDefault(save)} onkeyup={stopPropagation(console.debug)}>
-	<div class="picture">
-		<label for="picture">Picture</label>
-		<div>
-			<input
-				type="url"
-				id="picture"
-				placeholder="https://example.com/picture.png"
-				bind:value={$authorProfile.picture}
-			/>
-			<MediaPicker on:pick={picturePicked} />
-		</div>
-		{#if $authorProfile.picture}
-			<img src={$authorProfile.picture} alt="preview" />
-		{/if}
-	</div>
-	<div class="banner">
-		<label for="banner">Banner</label>
-		<div>
-			<input
-				type="url"
-				id="banner"
-				placeholder="https://example.com/banner.webp"
-				bind:value={$authorProfile.banner}
-			/>
-			<MediaPicker on:pick={bannerPicked} />
-		</div>
-		{#if $authorProfile.banner}
-			<img src={$authorProfile.banner} alt="preview" />
-		{/if}
-	</div>
-	<div class="name">
-		<label for="name">@name</label>
-		<input type="text" id="name" placeholder="name" bind:value={$authorProfile.name} />
-	</div>
-	<div class="display-name">
-		<label for="display-name">Display name</label>
-		<input
-			type="text"
-			id="display-name"
-			placeholder="Display Name"
-			bind:value={$authorProfile.display_name}
-		/>
-	</div>
-	<div class="nip05">
-		<label for="nip05">Nostr Address</label>
-		<input
-			type="text"
-			id="nip05"
-			placeholder="name@example.com"
-			bind:value={$authorProfile.nip05}
-		/>
-	</div>
-	<div class="website">
-		<label for="website">Website</label>
-		<input
-			type="url"
-			id="website"
-			placeholder="https://example.com"
-			bind:value={$authorProfile.website}
-		/>
-	</div>
-	<div class="lud16">
-		<label for="lud16">Lightning Address</label>
-		<input
-			type="email"
-			id="lud16"
-			placeholder="satoshi@bitcoin.org"
-			bind:value={$authorProfile.lud16}
-		/>
-	</div>
-	<div class="about">
-		<label for="about">about</label>
-		<textarea id="about" bind:value={$authorProfile.about}></textarea>
-	</div>
-	{#if $author}
-		<div>
-			<input type="submit" value="Save" />
-		</div>
-	{/if}
-</form>
+{/if}
 
 <style>
 	div {
