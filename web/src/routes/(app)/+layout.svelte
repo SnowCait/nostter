@@ -34,10 +34,16 @@
 	let hiddenAt: number | undefined;
 
 	function keyboardShortcut(event: KeyboardEvent) {
+		const element = event.target as HTMLElement;
+		if (['INPUT', 'TEXTAREA'].includes(element.tagName)) {
+			return;
+		}
+
 		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
 
 		if (event.key === 'n') {
 			$openNoteDialog = true;
+			event.preventDefault();
 		}
 
 		if (event.key === '1') {
@@ -49,13 +55,13 @@
 
 		// Konami
 		if (event.key === konamiCode[konamiIndex]) {
-			console.log('[konami]', konamiIndex);
+			console.debug('[konami]', konamiIndex);
 			konamiIndex++;
 		} else {
 			konamiIndex = 0;
 		}
 		if (konamiIndex === konamiCode.length) {
-			console.log('[konami command]');
+			console.debug('[konami command]');
 			konamiIndex = 0;
 			rotateLogo();
 		}
@@ -110,17 +116,17 @@
 				}
 
 				if (e.matches) {
-					console.log('[theme system]', 'dark');
+					console.debug('[theme system]', 'dark');
 					document.documentElement.classList.add('dark');
 				} else {
-					console.log('[theme system]', 'light');
+					console.debug('[theme system]', 'light');
 					document.documentElement.classList.remove('dark');
 				}
 			});
 	}
 </script>
 
-<svelte:window onkeyup={keyboardShortcut} />
+<svelte:window onkeydown={keyboardShortcut} />
 <svelte:document onvisibilitychange={onVisibilityChange} />
 
 <svelte:head>
