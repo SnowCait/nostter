@@ -18,6 +18,7 @@
 	import OnelineNote from './OnelineNote.svelte';
 	import { inThread } from '$lib/Thread';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		item: Item;
@@ -109,7 +110,7 @@
 			{#if contentWarningTag !== undefined && !showContent}
 				<div class="content-warning">
 					<div>{contentWarningTag?.at(1) ?? ''}</div>
-					<button onclick={showWarningContent}>Show</button>
+					<button onclick={showWarningContent}>{$_('content.show')}</button>
 				</div>
 			{:else}
 				<div class="content" class:shorten={!full}>
@@ -174,7 +175,8 @@
 	.content-warning {
 		padding: 0.5em;
 		width: 100%;
-		height: 5em;
+		min-height: 5em;
+		color: black;
 		background-color: lightgray;
 	}
 
