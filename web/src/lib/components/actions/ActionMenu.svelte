@@ -40,8 +40,8 @@
 		})
 	);
 
-	function reply(item: Item) {
-		$replyTo = item as EventItem;
+	function reply() {
+		$replyTo = item;
 		$openNoteDialog = true;
 	}
 
@@ -68,7 +68,7 @@
 </script>
 
 <div class="action-menu">
-	<button class:hidden={!notesKinds.includes(item.event.kind)} onclick={() => reply(item)}>
+	<button class:hidden={!notesKinds.includes(item.event.kind)} onclick={reply}>
 		<IconMessageCircle size={iconSize} />
 	</button>
 	<RepostButton event={item.event} {iconSize} />
