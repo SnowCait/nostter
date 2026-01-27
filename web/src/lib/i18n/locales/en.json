@@ -334,10 +334,19 @@
 		"scan": "Load profile from QR code"
 	},
 	"profile": {
+		"name": "@Name",
+		"display_name": "Display Name",
 		"nip05": {
+			"title": "Nostr Address",
 			"unknown": "Unknown",
 			"impersonation": "Impersonation"
-		}
+		},
+		"lud16": "Lightning Address",
+		"about": "About Me",
+		"picture": "Picture URL",
+		"banner": "Banner URL",
+		"website": "Website URL",
+		"save": "Save"
 	},
 	"poll": {
 		"vote": "Vote",

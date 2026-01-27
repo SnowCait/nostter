@@ -176,7 +176,7 @@
 
 	<form class="card" onsubmit={save}>
 		<div class="picture">
-			<label for="picture">Picture</label>
+			<label for="picture">{$_('profile.picture')}</label>
 			<div>
 				<input
 					type="url"
@@ -191,7 +191,7 @@
 			{/if}
 		</div>
 		<div class="banner">
-			<label for="banner">Banner</label>
+			<label for="banner">{$_('profile.banner')}</label>
 			<div>
 				<input
 					type="url"
@@ -206,11 +206,11 @@
 			{/if}
 		</div>
 		<div class="name">
-			<label for="name">@name</label>
+			<label for="name">{$_('profile.name')}</label>
 			<input type="text" id="name" placeholder="name" bind:value={$authorProfile.name} />
 		</div>
 		<div class="display-name">
-			<label for="display-name">Display name</label>
+			<label for="display-name">{$_('profile.display_name')}</label>
 			<input
 				type="text"
 				id="display-name"
@@ -219,7 +219,7 @@
 			/>
 		</div>
 		<div class="nip05">
-			<label for="nip05">Nostr Address</label>
+			<label for="nip05">{$_('profile.nip05.title')}</label>
 			<input
 				type="text"
 				id="nip05"
@@ -228,7 +228,7 @@
 			/>
 		</div>
 		<div class="website">
-			<label for="website">Website</label>
+			<label for="website">{$_('profile.website')}</label>
 			<input
 				type="url"
 				id="website"
@@ -237,7 +237,7 @@
 			/>
 		</div>
 		<div class="lud16">
-			<label for="lud16">Lightning Address</label>
+			<label for="lud16">{$_('profile.lud16')}</label>
 			<input
 				type="email"
 				id="lud16"
@@ -246,12 +246,12 @@
 			/>
 		</div>
 		<div class="about">
-			<label for="about">about</label>
+			<label for="about">{$_('profile.about')}</label>
 			<textarea id="about" bind:value={$authorProfile.about}></textarea>
 		</div>
 		{#if $author}
 			<div>
-				<input type="submit" value="Save" />
+				<input type="submit" value={$_('profile.save')} />
 			</div>
 		{/if}
 	</form>
