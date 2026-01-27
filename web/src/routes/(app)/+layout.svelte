@@ -35,11 +35,21 @@
 
 	function keyboardShortcut(event: KeyboardEvent) {
 		const element = event.target as HTMLElement;
-		if (['INPUT', 'TEXTAREA'].includes(element.tagName)) {
+		if (
+			['INPUT', 'TEXTAREA'].includes(element.tagName) ||
+			element.closest('dialog[open]') !== null
+		) {
 			return;
 		}
 
-		console.debug(`[${event.type}]`, event.code, event.key, event.ctrlKey, event.metaKey);
+		console.debug(
+			`[${event.type}]`,
+			event.code,
+			event.key,
+			event.ctrlKey,
+			event.metaKey,
+			element.tagName
+		);
 
 		if (event.key === 'n') {
 			$openNoteDialog = true;
