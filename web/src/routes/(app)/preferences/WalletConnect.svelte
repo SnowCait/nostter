@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { createBubbler, stopPropagation } from 'svelte/legacy';
-
-	const bubble = createBubbler();
 	import { browser } from '$app/environment';
 	import { WebStorage } from '$lib/WebStorage';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
@@ -55,7 +52,6 @@
 	type="url"
 	placeholder="nostr+walletconnect:"
 	bind:value={uri}
-	onkeyup={stopPropagation(bubble('keyup'))}
 	onchange={save}
 	class:invalid={!valid}
 />

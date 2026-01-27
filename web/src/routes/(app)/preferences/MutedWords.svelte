@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault, stopPropagation } from 'svelte/legacy';
-
 	import { _ } from 'svelte-i18n';
 	import IconTrash from '@tabler/icons-svelte/icons/trash';
 	import { mute, unmute } from '$lib/author/Mute';
@@ -8,7 +6,8 @@
 
 	let word = $state('');
 
-	async function onMute(): Promise<void> {
+	async function onMute(e: SubmitEvent): Promise<void> {
+		e.preventDefault();
 		console.log('[mute word]', word);
 
 		try {
@@ -43,8 +42,8 @@
 	{/each}
 </ul>
 
-<form onsubmit={preventDefault(onMute)}>
-	<input type="text" required bind:value={word} onkeyup={stopPropagation(console.debug)} />
+<form onsubmit={onMute}>
+	<input type="text" required bind:value={word} />
 	<input type="submit" value="Mute" />
 </form>
 

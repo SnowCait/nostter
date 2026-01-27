@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { stopPropagation } from 'svelte/legacy';
-
 	import { _ } from 'svelte-i18n';
 
 	interface Props {
@@ -13,7 +11,7 @@
 </script>
 
 <form action="/search">
-	<input type="search" name="q" value={query} onkeyup={stopPropagation(() => console.debug)} />
+	<input type="search" name="q" value={query} />
 	<input type="submit" value={$_('search.search')} />
 	<details>
 		<summary>{$_('search.options')}</summary>
