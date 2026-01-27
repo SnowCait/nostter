@@ -174,7 +174,6 @@
 		</form>
 	</ModalDialog>
 
-	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<form class="card" onsubmit={save}>
 		<div class="picture">
 			<label for="picture">Picture</label>
