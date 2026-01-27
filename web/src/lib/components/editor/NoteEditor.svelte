@@ -664,7 +664,6 @@
 	{/if}
 	{#if uploading}
 		<div class="uploading">
-			<p>Uploading...</p>
 			<Loading />
 		</div>
 	{/if}
@@ -759,10 +758,6 @@
 	.uploading {
 		text-align: center;
 		padding-bottom: 0.7em;
-	}
-
-	.uploading p {
-		padding-bottom: 0.6em;
 	}
 
 	.emoji-picker {
