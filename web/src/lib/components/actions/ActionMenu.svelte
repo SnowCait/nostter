@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { EventItem, Item } from '$lib/Items';
+	import type { EventItem } from '$lib/Items';
 	import { nip19 } from 'nostr-tools';
 	import MenuButton from '../MenuButton.svelte';
 	import { metadataStore } from '$lib/cache/Events';
@@ -40,8 +40,8 @@
 		})
 	);
 
-	function reply(item: Item) {
-		$replyTo = item as EventItem;
+	function reply() {
+		$replyTo = item;
 		$openNoteDialog = true;
 	}
 
@@ -68,7 +68,7 @@
 </script>
 
 <div class="action-menu">
-	<button class:hidden={!notesKinds.includes(item.event.kind)} onclick={() => reply(item)}>
+	<button class:hidden={!notesKinds.includes(item.event.kind)} onclick={reply}>
 		<IconMessageCircle size={iconSize} />
 	</button>
 	<RepostButton event={item.event} {iconSize} />

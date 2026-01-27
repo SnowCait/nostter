@@ -4,7 +4,6 @@ import { now } from 'rx-nostr';
 import { Content } from './Content';
 import type { User } from '../routes/types';
 import { Api } from './Api';
-import type { EventItem } from './Items';
 import { referTags } from './EventHelper';
 import { getRelayHint } from './timelines/MainTimeline';
 import { unique } from './Array';
@@ -25,41 +24,41 @@ export class NoteComposer {
 
 	replyTags(
 		content: string,
-		$replyTo: EventItem | undefined = undefined,
-		$channelIdStore: string | undefined = undefined
+		replyTo: Event | undefined = undefined,
+		channelId: string | undefined = undefined
 	): string[][] {
 		let pubkeys = new Set<string>();
 		const tags: string[][] = [];
 
-		if ($channelIdStore) {
-			tags.push(['e', $channelIdStore, '', 'root']);
-			if ($replyTo !== undefined) {
-				tags.push(['e', $replyTo.event.id, '', 'reply']);
+		if (channelId) {
+			tags.push(['e', channelId, '', 'root']);
+			if (replyTo !== undefined) {
+				tags.push(['e', replyTo.id, '', 'reply']);
 				if (
-					$replyTo.event.tags.some(
-						([tagName, pubkey]) => tagName === 'p' && pubkey === $replyTo.event.pubkey
+					replyTo.tags.some(
+						([tagName, pubkey]) => tagName === 'p' && pubkey === replyTo.pubkey
 					)
 				) {
-					tags.push(...$replyTo.event.tags.filter(([tagName]) => tagName === 'p'));
+					tags.push(...replyTo.tags.filter(([tagName]) => tagName === 'p'));
 				} else {
-					tags.push(...$replyTo.event.tags.filter(([tagName]) => tagName === 'p'), [
+					tags.push(...replyTo.tags.filter(([tagName]) => tagName === 'p'), [
 						'p',
-						$replyTo.event.pubkey
+						replyTo.pubkey
 					]);
 				}
 			}
-		} else if ($replyTo !== undefined) {
-			const { root } = referTags($replyTo.event);
-			const relay = getRelayHint($replyTo.event.id);
+		} else if (replyTo !== undefined) {
+			const { root } = referTags(replyTo);
+			const relay = getRelayHint(replyTo.id);
 			if (root === undefined) {
-				tags.push(['e', $replyTo.event.id, relay ?? '', 'root', $replyTo.event.pubkey]);
+				tags.push(['e', replyTo.id, relay ?? '', 'root', replyTo.pubkey]);
 			} else {
 				tags.push(root);
-				tags.push(['e', $replyTo.event.id, relay ?? '', 'reply', $replyTo.event.pubkey]);
+				tags.push(['e', replyTo.id, relay ?? '', 'reply', replyTo.pubkey]);
 			}
 			pubkeys = new Set([
-				$replyTo.event.pubkey,
-				...$replyTo.event.tags.filter((x) => x[0] === 'p').map((x) => x[1])
+				replyTo.pubkey,
+				...replyTo.tags.filter((x) => x[0] === 'p').map((x) => x[1])
 			]);
 		}
 
