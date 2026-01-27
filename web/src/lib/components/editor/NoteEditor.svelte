@@ -192,7 +192,11 @@
 		const noteComposer = new NoteComposer();
 		noteComposer.emojiTags(content, emojiTags).then((emojiTags) => {
 			tags = [
-				...noteComposer.replyTags(content, $replyTo, $channelIdStore),
+				...noteComposer.replyTags(
+					content,
+					$state.snapshot($replyTo?.event),
+					$channelIdStore
+				),
 				...noteComposer.hashtags(content),
 				...emojiTags,
 				...noteComposer.contentWarningTags(contentWarningReason)
@@ -398,7 +402,11 @@
 				: Kind.ShortTextNote,
 			Content.replaceNip19(content),
 			[
-				...noteComposer.replyTags(content, $replyTo, $channelIdStore),
+				...noteComposer.replyTags(
+					content,
+					$state.snapshot($replyTo?.event),
+					$channelIdStore
+				),
 				...noteComposer.hashtags(content),
 				...(await noteComposer.emojiTags(content, $state.snapshot(emojiTags))),
 				...noteComposer.contentWarningTags(contentWarningReason)
