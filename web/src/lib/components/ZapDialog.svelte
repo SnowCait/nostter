@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { run, preventDefault, createBubbler, stopPropagation } from 'svelte/legacy';
-
-	const bubble = createBubbler();
 	import { nip57 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import QRCode from 'qrcode';
@@ -17,7 +14,6 @@
 	import ProfileIcon from './profile/ProfileIcon.svelte';
 	import ProfileName from './profile/ProfileName.svelte';
 	import { _ } from 'svelte-i18n';
-	import { browser } from '$app/environment';
 
 	interface Props {
 		pubkey: string;
@@ -42,19 +38,19 @@
 	let open = $state(false);
 	let sending = $state(false);
 
-	run(() => {
-		if (browser) {
-			const counts = new Map<number, number>();
-			for (const value of $history) {
-				counts.set(value, (counts.get(value) ?? 0) + 1);
-			}
-			satsList = [...counts].toSorted(([, x], [, y]) => y - x).map(([value]) => value);
+	$effect(() => {
+		const counts = new Map<number, number>();
+		for (const value of $history) {
+			counts.set(value, (counts.get(value) ?? 0) + 1);
 		}
+		satsList = [...counts].toSorted(([, x], [, y]) => y - x).map(([value]) => value);
 	});
 
 	const dispatch = createEventDispatcher();
 
-	async function zap() {
+	async function zap(e: SubmitEvent) {
+		e.preventDefault();
+
 		sending = true;
 
 		const amount = sats * 1000;
@@ -130,7 +126,7 @@
 					</article>
 				{/if}
 			</blockquote>
-			<form onsubmit={preventDefault(zap)}>
+			<form onsubmit={zap}>
 				<div class="sats-input">
 					{#each satsList.slice(0, 5) as value}
 						<button type="button" onclick={() => (sats = value)}>
@@ -139,20 +135,11 @@
 					{/each}
 				</div>
 				<div>
-					<input
-						type="number"
-						bind:value={sats}
-						onkeyup={stopPropagation(bubble('keyup'))}
-					/>
+					<input type="number" bind:value={sats} />
 					<span>sats</span>
 				</div>
 				<div>
-					<input
-						type="text"
-						placeholder={$_('zap.message')}
-						bind:value={comment}
-						onkeyup={stopPropagation(bubble('keyup'))}
-					/>
+					<input type="text" placeholder={$_('zap.message')} bind:value={comment} />
 				</div>
 				<input type="submit" value={$_('zap.send')} disabled={sending} />
 			</form>

@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { run, createBubbler, stopPropagation } from 'svelte/legacy';
-
-	const bubble = createBubbler();
 	import { createEventDispatcher } from 'svelte';
 
 	interface Props {
@@ -15,7 +12,7 @@
 
 	const dispatch = createEventDispatcher();
 
-	run(() => {
+	$effect(() => {
 		if (open) {
 			dialog?.showModal();
 		} else {
@@ -39,13 +36,7 @@
 	}
 </script>
 
-<dialog
-	bind:this={dialog}
-	class="card"
-	onclick={tryClose}
-	onkeyup={stopPropagation(bubble('keyup'))}
-	onclose={onClose}
->
+<dialog bind:this={dialog} class="card" onclick={tryClose} onclose={onClose}>
 	<div class="dialog-content">
 		{@render children?.()}
 	</div>

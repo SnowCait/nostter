@@ -576,7 +576,6 @@
 				bind:value={content}
 				bind:this={textarea}
 				onkeydown={onKeydown}
-				onkeyup={stopPropagation(() => console.debug)}
 				oninput={onInput}
 				onpaste={paste}
 				ondragover={preventDefault(dragover)}

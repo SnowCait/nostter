@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run, preventDefault, stopPropagation } from 'svelte/legacy';
-
 	import { createRxOneshotReq, filterByKind, latestEach, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
@@ -34,7 +32,7 @@
 			.filter((x): x is EventItem => x !== undefined)
 	);
 
-	run(() => {
+	$effect(() => {
 		if ($authorChannelsEventStore !== undefined && channelIds.size === 0) {
 			console.log('[channels page]', $authorChannelsEventStore);
 
@@ -79,7 +77,8 @@
 		}
 	});
 
-	async function search() {
+	async function search(e: SubmitEvent) {
+		e.preventDefault();
 		console.log('[channels search]', keyword);
 
 		if (keyword === '') {
@@ -97,8 +96,8 @@
 
 <h1>{$_('layout.header.channels')}</h1>
 
-<form onsubmit={preventDefault(search)}>
-	<input type="search" bind:value={keyword} onkeyup={stopPropagation(() => console.debug)} />
+<form onsubmit={search}>
+	<input type="search" bind:value={keyword} />
 	<input type="submit" value={$_('search.search')} />
 </form>
 

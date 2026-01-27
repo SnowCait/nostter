@@ -3,9 +3,6 @@
 </script>
 
 <script lang="ts">
-	import { createBubbler, stopPropagation } from 'svelte/legacy';
-
-	const bubble = createBubbler();
 	import { createEventDispatcher } from 'svelte';
 	import type { BaseEmoji } from '@types/emoji-mart';
 	import data from '@emoji-mart/data';
@@ -129,8 +126,7 @@
 		<IconMoodSmile size={20} />
 	{/if}
 </button>
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div bind:this={emojiPicker} onkeyup={stopPropagation(bubble('keyup'))} class="emoji-picker"></div>
+<div bind:this={emojiPicker} class="emoji-picker"></div>
 
 <style>
 	button {

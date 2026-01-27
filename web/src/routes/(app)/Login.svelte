@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault, stopPropagation } from 'svelte/legacy';
-
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import type { Nip07 } from 'nostr-typedef';
@@ -34,7 +32,8 @@
 		await gotoHome();
 	}
 
-	async function loginWithNip46() {
+	async function loginWithNip46(e: SubmitEvent) {
+		e.preventDefault();
 		failedToLogin = false;
 		const success = await login.withNip46(bunker);
 		if (!success) {
@@ -44,7 +43,8 @@
 		await gotoHome();
 	}
 
-	async function loginWithKey() {
+	async function loginWithKey(e: SubmitEvent) {
+		e.preventDefault();
 		failedToLogin = false;
 		if (key.startsWith('nsec')) {
 			await login.withNsec(key);
@@ -65,7 +65,8 @@
 		console.log('[pubkey]', getPublicKey(seckey));
 	}
 
-	async function register(): Promise<void> {
+	async function register(e: SubmitEvent): Promise<void> {
+		e.preventDefault();
 		await login.withNsec(key);
 		await login.saveBasicInfo(name);
 		await goto('/public');
@@ -131,7 +132,7 @@
 							<div>
 								<h2>{$_('login.create_account')}</h2>
 								<article>
-									<form method="dialog" onsubmit={preventDefault(register)}>
+									<form method="dialog" onsubmit={register}>
 										<div>
 											<input
 												type="text"
@@ -204,14 +205,13 @@
 
 							<section>
 								<p class="login-recommend">{$_('login.recommended')}</p>
-								<form method="dialog" onsubmit={preventDefault(loginWithNip46)}>
+								<form method="dialog" onsubmit={loginWithNip46}>
 									<div>
 										<input
 											type="text"
 											bind:value={bunker}
 											placeholder="bunker://..."
 											required
-											onkeyup={stopPropagation(() => console.debug())}
 										/>
 									</div>
 
@@ -235,7 +235,7 @@
 							</div>
 
 							<section>
-								<form method="dialog" onsubmit={preventDefault(loginWithKey)}>
+								<form method="dialog" onsubmit={loginWithKey}>
 									<div>
 										<input
 											type="password"
@@ -243,7 +243,6 @@
 											placeholder="npub or nsec"
 											pattern="^(npub|nsec)1[a-z0-9]+$"
 											required
-											onkeyup={stopPropagation(() => console.debug())}
 										/>
 									</div>
 

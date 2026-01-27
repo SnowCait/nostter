@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault, stopPropagation } from 'svelte/legacy';
-
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -71,7 +69,8 @@
 		}
 	});
 
-	function add() {
+	function add(e: MouseEvent) {
+		e.preventDefault();
 		console.log('[add relay]', addingRelay);
 		try {
 			const relay = new URL(addingRelay).href;
@@ -89,7 +88,8 @@
 		relays = relays.filter(({ url }) => url !== relay);
 	}
 
-	async function save() {
+	async function save(e: SubmitEvent) {
+		e.preventDefault();
 		console.log('[save relays]', relays);
 
 		rxNostr.setDefaultRelays(relays);
@@ -146,7 +146,7 @@
 	<span>{$_('pages.relays')}</span>
 </h1>
 
-<form onsubmit={preventDefault(save)}>
+<form onsubmit={save}>
 	<ul>
 		<li class="header">
 			<div class="relay">Relay</div>
@@ -170,12 +170,8 @@
 	{#if pubkey === $authorPubkey}
 		{#if editable}
 			<div>
-				<input
-					type="url"
-					bind:value={addingRelay}
-					onkeyup={stopPropagation(console.debug)}
-				/>
-				<button onclick={preventDefault(add)}>Add</button>
+				<input type="url" bind:value={addingRelay} />
+				<button onclick={add}>Add</button>
 			</div>
 		{/if}
 		<div class="edit-mode">
@@ -195,7 +191,13 @@
 			{:else}
 				<label>
 					<IconPencil />
-					<button class="edit" onclick={preventDefault(() => (editable = true))}>
+					<button
+						class="edit"
+						onclick={(e) => {
+							e.preventDefault();
+							editable = true;
+						}}
+					>
 						<span>Edit</span>
 					</button>
 				</label>
