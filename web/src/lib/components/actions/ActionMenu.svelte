@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { EventItem, Item } from '$lib/Items';
+	import type { EventItem } from '$lib/Items';
 	import { nip19 } from 'nostr-tools';
 	import MenuButton from '../MenuButton.svelte';
 	import { metadataStore } from '$lib/cache/Events';
