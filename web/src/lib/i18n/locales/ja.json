@@ -333,10 +333,19 @@
 		"scan": "QR コードからプロフィールを読み込む"
 	},
 	"profile": {
+		"name": "@名前",
+		"display_name": "表示名",
 		"nip05": {
+			"title": "Nostr アドレス",
 			"unknown": "不明",
 			"impersonation": "なりすまし"
-		}
+		},
+		"lud16": "ライトニングアドレス",
+		"about": "自己紹介",
+		"picture": "画像 URL",
+		"banner": "バナー URL",
+		"website": "Web サイト URL",
+		"save": "保存"
 	},
 	"poll": {
 		"vote": "投票",
