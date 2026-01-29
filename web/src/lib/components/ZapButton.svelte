@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { run } from 'svelte/legacy';
 
-	import type { Event } from 'nostr-typedef';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import ZapDialog from './ZapDialog.svelte';
@@ -9,13 +8,12 @@
 
 	interface Props {
 		pubkey: string;
-		event?: Event | undefined;
 		size?: number;
 		width?: string;
 		height?: string;
 	}
 
-	let { pubkey, event = undefined, size = 24, width = '34px', height = '34px' }: Props = $props();
+	let { pubkey, size = 24, width = '34px', height = '34px' }: Props = $props();
 
 	let metadata = $derived($metadataStore.get(pubkey));
 	run(() => {
@@ -36,7 +34,7 @@
 >
 	<IconBolt {size} />
 </button>
-<ZapDialog {pubkey} {event} bind:this={zapDialogComponent} />
+<ZapDialog {pubkey} bind:this={zapDialogComponent} />
 
 <style>
 	button {
