@@ -15,7 +15,7 @@ export abstract class NewTimeline {
 	//#region Events
 
 	protected readonly eventsStore: Event[] = [];
-	protected eventsForView = $state<Event[]>([]);
+	protected eventsForView = $state.raw<Event[]>([]);
 	public readonly events = $derived(this.eventsForView);
 
 	protected latestId = $state<string | undefined>();
