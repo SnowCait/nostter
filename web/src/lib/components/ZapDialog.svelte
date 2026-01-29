@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { nip57 } from 'nostr-tools';
-	import type { Event } from 'nostr-typedef';
 	import QRCode from 'qrcode';
 	import { writeRelays } from '$lib/stores/Author';
 	import { createEventDispatcher } from 'svelte';
@@ -17,10 +16,10 @@
 
 	interface Props {
 		pubkey: string;
-		event: Event | undefined;
+		item?: EventItem | undefined;
 	}
 
-	let { pubkey, event }: Props = $props();
+	let { pubkey, item }: Props = $props();
 
 	let metadata = $derived($metadataStore.get(pubkey));
 
@@ -56,9 +55,9 @@
 		const amount = sats * 1000;
 		const relays = $writeRelays;
 		const zapRequest = nip57.makeZapRequest(
-			event === undefined
+			item === undefined
 				? { pubkey, amount, comment, relays }
-				: { event, amount, comment, relays }
+				: { event: item.event, amount, comment, relays }
 		);
 		const zapRequestEvent = await Signer.signEvent(zapRequest);
 		console.debug('[zap request]', zapRequestEvent, metadata?.content);
@@ -113,8 +112,8 @@
 		<h1>{$_('zap.title')}</h1>
 		{#if invoice === ''}
 			<blockquote>
-				{#if event}
-					<EventComponent item={new EventItem(event)} readonly={true} />
+				{#if item}
+					<EventComponent {item} readonly={true} />
 				{:else}
 					<article class="profile timeline-item">
 						<div>

@@ -86,7 +86,7 @@
 	</button>
 	<ZapDialog
 		pubkey={item.event.pubkey}
-		event={item.event}
+		{item}
 		bind:this={zapDialogComponent}
 		on:zapped={onZapped}
 	/>
