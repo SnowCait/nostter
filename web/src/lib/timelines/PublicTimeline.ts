@@ -114,7 +114,11 @@ export class PublicTimeline extends NewTimeline {
 						if (indexForView < 0) {
 							console.warn('[public timeline logic error]');
 						} else {
-							this.eventsForView.splice(indexForView, 0, event);
+							this.eventsForView = this.eventsForView.toSpliced(
+								indexForView,
+								0,
+								event
+							);
 						}
 					}
 					count++;

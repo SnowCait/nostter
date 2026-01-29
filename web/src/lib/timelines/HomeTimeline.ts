@@ -417,7 +417,11 @@ export class HomeTimeline extends NewTimeline {
 						if (indexForView < 0) {
 							console.warn('[home timeline logic error');
 						} else {
-							this.eventsForView.splice(indexForView, 0, event);
+							this.eventsForView = this.eventsForView.toSpliced(
+								indexForView,
+								0,
+								event
+							);
 						}
 					}
 					count++;
@@ -528,7 +532,11 @@ export class HomeTimeline extends NewTimeline {
 						if (indexForView < 0) {
 							console.warn('[home timeline logic error');
 						} else {
-							this.eventsForView.splice(indexForView, 0, event);
+							this.eventsForView = this.eventsForView.toSpliced(
+								indexForView,
+								0,
+								event
+							);
 						}
 					}
 					if (this.latestId === undefined) {
