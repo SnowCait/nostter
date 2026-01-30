@@ -387,6 +387,9 @@
 	}
 
 	async function postNote() {
+		if (posting) {
+			return;
+		}
 		if (content === '' && !confirm($_('editor.post.empty'))) {
 			return;
 		}
