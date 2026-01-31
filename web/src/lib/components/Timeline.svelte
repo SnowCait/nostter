@@ -44,7 +44,7 @@
 	let isTop = $state(true);
 
 	async function newer() {
-		const id = visibleItems.at(0)?.id;
+		const id = visibleEvents.at(0)?.id;
 		timeline.newer();
 		if (id === undefined) {
 			return;
@@ -62,7 +62,7 @@
 	}
 
 	async function older(): Promise<void> {
-		const id = visibleItems.at(-1)?.id;
+		const id = visibleEvents.at(-1)?.id;
 		timeline.reduce();
 		if (id === undefined) {
 			return;
@@ -216,19 +216,17 @@
 		}
 	});
 
-	let visibleItems = $derived(
-		timeline.events
-			.filter(
-				(event) =>
-					!isMuteEvent(event) &&
-					!$deletedEventIdsByPubkey.get(event.pubkey)?.has(event.id) &&
-					// TODO: Not to depend on HomeTimeline in Svelte 5
-					(!(timeline instanceof HomeTimeline) ||
-						(!$excludeKinds.includes(event.kind) &&
-							(!$preferencesStore.muteAutomatically ||
-								$followeesOfFollowees.has(event.pubkey))))
-			)
-			.map((event) => new EventItem(event))
+	let visibleEvents = $derived(
+		timeline.events.filter(
+			(event) =>
+				!isMuteEvent(event) &&
+				!$deletedEventIdsByPubkey.get(event.pubkey)?.has(event.id) &&
+				// TODO: Not to depend on HomeTimeline in Svelte 5
+				(!(timeline instanceof HomeTimeline) ||
+					(!$excludeKinds.includes(event.kind) &&
+						(!$preferencesStore.muteAutomatically ||
+							$followeesOfFollowees.has(event.pubkey))))
+		)
 	);
 </script>
 
@@ -245,7 +243,8 @@
 		</div>
 	{/if}
 
-	{#each visibleItems as item (item.id)}
+	{#each visibleEvents as event (event.id)}
+		{@const item = new EventItem(event)}
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			id={item.id}
