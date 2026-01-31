@@ -128,6 +128,15 @@
 			"none": "-",
 			"automatically": "フォロー中のユーザーがフォローしていないユーザーからの通知を表示しない"
 		},
+		"notification": {
+			"visibility": {
+				"title": "通知の範囲",
+				"all": "すべて",
+				"follows_of_follows": "フォローのフォロー",
+				"follows": "フォロー",
+				"migration": "端末設定「通知の範囲」へ移動しました。"
+			}
+		},
 		"trouble_shooting": "トラブルシューティング",
 		"clear_emoji_cache": "絵文字キャッシュクリア",
 		"clear_event_cache": "イベントキャッシュクリア＆再読み込み",

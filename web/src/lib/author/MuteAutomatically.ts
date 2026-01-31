@@ -24,11 +24,14 @@ contactsOfFollowees.subscribe((events) => {
 	console.debug('[followees followees]', get(followeesOfFollowees));
 });
 
+let loaded = false;
 export function contactsOfFolloweesReqEmit(): void {
 	const $contactsOfFollowees = get(contactsOfFollowees);
-	if ($contactsOfFollowees.size > 0) {
+	if (loaded) {
 		return; // Already fetched
 	}
+
+	loaded = true;
 
 	const req = createRxBackwardReq();
 	rxNostr

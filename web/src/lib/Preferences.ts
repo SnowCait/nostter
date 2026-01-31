@@ -4,18 +4,29 @@ import { fileStorageServers } from './Constants';
 import type { Emoji } from './Emoji';
 import { Signer } from './Signer';
 import { rxNostr } from './timelines/MainTimeline';
+import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 
 let saving = false;
 let unsaved = false;
 
+type PreferencesContent = {
+	reactionEmoji?: Emoji;
+	media?: {
+		uploader: string;
+	};
+	/** @deprecated */
+	muteAutomatically?: boolean;
+};
+
 export class Preferences {
 	public reactionEmoji: Emoji = { content: '+' };
 	public mediaUploader: string | undefined;
-	public muteAutomatically = false;
+	/** @deprecated */
+	public muteAutomatically: boolean | undefined;
 
 	constructor(content: string) {
 		try {
-			const preferences = JSON.parse(content);
+			const preferences = JSON.parse(content) as PreferencesContent;
 			if (preferences.reactionEmoji !== undefined) {
 				this.reactionEmoji = preferences.reactionEmoji;
 			}
@@ -25,9 +36,7 @@ export class Preferences {
 					this.mediaUploader = server;
 				}
 			}
-			if (preferences.muteAutomatically !== undefined) {
-				this.muteAutomatically = preferences.muteAutomatically;
-			}
+			this.muteAutomatically = preferences.muteAutomatically;
 		} catch (error) {
 			console.error('[invalid preferences]', content, error);
 		}
@@ -46,7 +55,10 @@ export class Preferences {
 
 export const preferencesStore = writable(new Preferences('{}'));
 preferencesStore.subscribe((value) => {
-	console.log('[preferences]', value);
+	if (value.muteAutomatically && get(notificationVisibility) === 'all') {
+		console.debug('[notification visibility migration]', value.toJson());
+		notificationVisibility.set('follows_of_follows');
+	}
 });
 
 export async function savePreferences(): Promise<void> {

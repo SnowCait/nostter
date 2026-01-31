@@ -59,15 +59,14 @@ import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';
 import { storeDeletedEvents } from '$lib/author/Delete';
 import { NewTimeline } from './Timeline.svelte';
 import { excludeKinds } from '$lib/TimelineFilter';
-import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 import { fetchMinutes } from '$lib/Helper';
+import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
 
 const maxTimelineLength = minTimelineLength * 2;
 
 export class HomeTimeline extends NewTimeline {
 	public filter = (event: Event) =>
-		!get(excludeKinds).includes(event.kind) &&
-		(!get(preferencesStore).muteAutomatically || get(followeesOfFollowees).has(event.pubkey));
+		!get(excludeKinds).includes(event.kind) && isVisibleNotification(event.pubkey);
 
 	constructor() {
 		super();
