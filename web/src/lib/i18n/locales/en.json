@@ -129,6 +129,15 @@
 			"none": "-",
 			"automatically": "Hide notifications from someone who is not followees' followee"
 		},
+		"notification": {
+			"visibility": {
+				"title": "Notification Visibility",
+				"all": "All",
+				"follows_of_follows": "Follows of Follows",
+				"follows": "Follows",
+				"migration": "Moved to device preferences \"Notification Visibility\"."
+			}
+		},
 		"trouble_shooting": "Trouble Shooting",
 		"clear_emoji_cache": "Clear emoji cache",
 		"clear_event_cache": "Clear event cache and reload",

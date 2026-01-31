@@ -15,13 +15,12 @@
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import IconHeart from '@tabler/icons-svelte/icons/heart';
 	import IconBolt from '@tabler/icons-svelte/icons/bolt';
-	import { preferencesStore } from '$lib/Preferences';
-	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { Signer } from '$lib/Signer';
 	import { IconAsterisk, IconBell } from '@tabler/icons-svelte';
 	import { createTabs, melt } from '@melt-ui/svelte';
 	import { crossfade } from 'svelte/transition';
 	import { cubicInOut } from 'svelte/easing';
+	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
 
 	const {
 		elements: { root, list, content, trigger },
@@ -39,9 +38,8 @@
 
 	const [send, receive] = crossfade({ duration: 250, easing: cubicInOut });
 
-	$: items = $notifiedEventItems.filter(
-		(item) =>
-			!$preferencesStore.muteAutomatically || $followeesOfFollowees.has(item.event.pubkey)
+	let items = $derived(
+		$notifiedEventItems.filter((item) => isVisibleNotification(item.event.pubkey))
 	);
 
 	afterNavigate(async () => {

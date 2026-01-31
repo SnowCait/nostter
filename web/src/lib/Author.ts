@@ -32,6 +32,7 @@ import {
 import { bookmarkEvent } from './author/Bookmark';
 import { profileBadgesEvent, profileBadgesKey } from './author/ProfileBadges';
 import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
+import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 
 export class Author {
 	constructor(private pubkey: string) {}
@@ -121,7 +122,10 @@ export class Author {
 			const preferences = new Preferences(preferencesEvent.content);
 			preferencesStore.set(preferences);
 
-			if (preferences.muteAutomatically) {
+			if (
+				preferences.muteAutomatically ||
+				get(notificationVisibility) === 'follows_of_follows'
+			) {
 				contactsOfFolloweesReqEmit();
 			}
 		} else {

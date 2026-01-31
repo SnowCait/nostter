@@ -18,10 +18,9 @@
 	import { sleep } from '$lib/Helper';
 	import { HomeTimeline } from '$lib/timelines/HomeTimeline';
 	import { excludeKinds } from '$lib/TimelineFilter';
-	import { preferencesStore } from '$lib/Preferences';
-	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { MouseButton } from '$lib/DomHelper';
 	import { scrollY } from 'svelte/reactivity/window';
+	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
 
 	interface Props {
 		timeline: NewTimeline;
@@ -222,10 +221,9 @@
 				!isMuteEvent(event) &&
 				!$deletedEventIdsByPubkey.get(event.pubkey)?.has(event.id) &&
 				// TODO: Not to depend on HomeTimeline in Svelte 5
+				// NOTE: isVisibleNotification always includes followees
 				(!(timeline instanceof HomeTimeline) ||
-					(!$excludeKinds.includes(event.kind) &&
-						(!$preferencesStore.muteAutomatically ||
-							$followeesOfFollowees.has(event.pubkey))))
+					(!$excludeKinds.includes(event.kind) && isVisibleNotification(event.pubkey)))
 		)
 	);
 </script>

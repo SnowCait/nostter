@@ -29,6 +29,7 @@
 	import Language from './Language.svelte';
 	import Backup from './Backup.svelte';
 	import WorkAsRemoteSigner from './WorkAsRemoteSigner.svelte';
+	import NotificationVisibility from './NotificationVisibility.svelte';
 </script>
 
 <svelte:head>
@@ -91,6 +92,7 @@
 	<div><Language /></div>
 	<div><AutoRefresh /></div>
 	<div><EnablePreview /></div>
+	<div><NotificationVisibility /></div>
 	<div><ImageOptimization /></div>
 	<div><Notification /></div>
 	<div><UriScheme /></div>

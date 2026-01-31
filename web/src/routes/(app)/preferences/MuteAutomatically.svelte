@@ -20,10 +20,29 @@
 	}
 </script>
 
-<label>
-	<input type="checkbox" bind:checked={enable} onchange={changed} />
-	<span>{$_('preferences.mute.automatically')}</span>
-	{#if enable && $developerMode}
-		<span>(followees: {$followeesOfFollowees.size})</span>
-	{/if}
-</label>
+<div>
+	<p>{$_('preferences.notification.visibility.migration')}</p>
+	<label>
+		<input type="checkbox" bind:checked={enable} onchange={changed} disabled={true} />
+		<span>{$_('preferences.mute.automatically')}</span>
+		{#if enable && $developerMode}
+			<span>(followees: {$followeesOfFollowees.size})</span>
+		{/if}
+	</label>
+</div>
+
+<style>
+	div {
+		border: var(--default-border);
+		border-radius: 5px;
+		padding: 0.5rem;
+	}
+
+	p {
+		margin: 0.3rem;
+		padding: 0.5rem;
+		color: var(--accent-surface);
+		background-color: var(--accent-gray);
+		border-radius: 5px;
+	}
+</style>

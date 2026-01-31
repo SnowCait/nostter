@@ -15,14 +15,13 @@
 	import { nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import { preferencesStore } from '$lib/Preferences';
-	import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 	import { followees, pubkey, rom } from '$lib/stores/Author';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
+	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
 
 	const {
 		elements: { menu, item, trigger, overlay }
@@ -39,9 +38,7 @@
 	let notificationsBadge = $derived(
 		$notifiedEventItems.filter(
 			(item) =>
-				item.event.created_at > $lastReadAt &&
-				(!$preferencesStore.muteAutomatically ||
-					$followeesOfFollowees.has(item.event.pubkey))
+				item.event.created_at > $lastReadAt && isVisibleNotification(item.event.pubkey)
 		).length > 0
 	);
 </script>
