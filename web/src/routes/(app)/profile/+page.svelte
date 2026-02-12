@@ -175,21 +175,6 @@
 	</ModalDialog>
 
 	<form class="card" onsubmit={save}>
-		<div class="picture">
-			<label for="picture">{$_('profile.picture')}</label>
-			<div>
-				<input
-					type="url"
-					id="picture"
-					placeholder="https://example.com/picture.png"
-					bind:value={$authorProfile.picture}
-				/>
-				<MediaPicker on:pick={picturePicked} />
-			</div>
-			{#if $authorProfile.picture}
-				<img src={$authorProfile.picture} alt="preview" />
-			{/if}
-		</div>
 		<div class="banner">
 			<label for="banner">{$_('profile.banner')}</label>
 			<div>
@@ -205,9 +190,20 @@
 				<img src={$authorProfile.banner} alt="preview" />
 			{/if}
 		</div>
-		<div class="name">
-			<label for="name">{$_('profile.name')}</label>
-			<input type="text" id="name" placeholder="name" bind:value={$authorProfile.name} />
+		<div class="picture">
+			<label for="picture">{$_('profile.picture')}</label>
+			<div>
+				<input
+					type="url"
+					id="picture"
+					placeholder="https://example.com/picture.png"
+					bind:value={$authorProfile.picture}
+				/>
+				<MediaPicker on:pick={picturePicked} />
+			</div>
+			{#if $authorProfile.picture}
+				<img src={$authorProfile.picture} alt="preview" />
+			{/if}
 		</div>
 		<div class="display-name">
 			<label for="display-name">{$_('profile.display_name')}</label>
@@ -217,6 +213,10 @@
 				placeholder="Display Name"
 				bind:value={$authorProfile.display_name}
 			/>
+		</div>
+		<div class="name">
+			<label for="name">{$_('profile.name')}</label>
+			<input type="text" id="name" placeholder="name" bind:value={$authorProfile.name} />
 		</div>
 		<div class="nip05">
 			<label for="nip05">{$_('profile.nip05.title')}</label>
@@ -239,7 +239,7 @@
 		<div class="lud16">
 			<label for="lud16">{$_('profile.lud16')}</label>
 			<input
-				type="email"
+				type="text"
 				id="lud16"
 				placeholder="satoshi@bitcoin.org"
 				bind:value={$authorProfile.lud16}
@@ -263,7 +263,6 @@
 	}
 
 	input[type='url'],
-	input[type='email'],
 	input[type='text'],
 	textarea {
 		width: 100%;
@@ -280,6 +279,17 @@
 	.banner input {
 		width: calc(100% - 50px);
 		margin-right: 10px;
+	}
+
+	.picture img {
+		border-radius: 50%;
+		width: 128px;
+		height: 128px;
+		object-fit: cover;
+
+		border: 4px solid var(--surface);
+		border-radius: 50%;
+		background-color: var(--surface);
 	}
 
 	textarea {
