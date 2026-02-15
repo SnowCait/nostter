@@ -3,7 +3,6 @@
 	import { nip19 } from 'nostr-tools';
 	import MenuButton from '../MenuButton.svelte';
 	import { metadataStore } from '$lib/cache/Events';
-	import { getCodePoints } from '$lib/String';
 	import IconMessageCircle from '@tabler/icons-svelte/icons/message-circle';
 	import IconBolt from '@tabler/icons-svelte/icons/bolt';
 	import RepostButton from '../RepostButton.svelte';
@@ -17,6 +16,7 @@
 	import { rom } from '$lib/stores/Author';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import CodePoints from './CodePoints.svelte';
 
 	interface Props {
 		item: EventItem;
@@ -104,25 +104,7 @@
 		<div>{nip19.npubEncode(item.event.pubkey)}</div>
 		<h5>User JSON</h5>
 		<code>{JSON.stringify(metadata?.content, null, 2)}</code>
-		<h5>Code Points</h5>
-		<h6>display name</h6>
-		<p>
-			{getCodePoints(metadata?.content?.display_name ?? '')
-				.map((codePoint) => `0x${codePoint.toString(16)}`)
-				.join(' ')}
-		</p>
-		<h6>@name</h6>
-		<p>
-			{getCodePoints(metadata?.content?.name ?? '')
-				.map((codePoint) => `0x${codePoint.toString(16)}`)
-				.join(' ')}
-		</p>
-		<h6>content</h6>
-		<p>
-			{getCodePoints(item.event.content)
-				.map((codePoint) => `0x${codePoint.toString(16)}`)
-				.join(' ')}
-		</p>
+		<CodePoints content={item.event.content} {metadata} />
 		<SeenOnRelays id={item.event.id} />
 		<div>
 			Open in <a
