@@ -583,3 +583,12 @@ code {
 	border-radius: calc(infinity * 1px);
 	background-color: rgb(28, 126, 214);
 }
+
+h1 {
+	font-size: 1.5rem;
+	margin: 0.4rem;
+}
+
+h2 {
+	font-size: 1.4rem;
+}

@@ -164,7 +164,7 @@
 <style>
 	.app {
 		max-width: 926px;
-		margin: 1rem auto;
+		margin: 0 auto;
 		padding: 0 2.25rem;
 		display: grid;
 		grid-template-columns: 220px 598px;
@@ -178,6 +178,7 @@
 		height: 100%;
 		z-index: 3;
 		overflow-y: auto;
+		margin-top: 0.5rem;
 	}
 
 	main {
