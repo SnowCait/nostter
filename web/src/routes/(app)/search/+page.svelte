@@ -35,7 +35,7 @@
 	let query = $state('');
 	let mine = $state(false);
 	let proxy = false;
-	let filter: Filter = $state();
+	let filter = $state<Filter>();
 	let sinceFilter: number | undefined;
 	let untilFilter: number | undefined;
 	let hashtags: string[] = $state([]);
@@ -116,11 +116,10 @@
 				...hashtags.map((hashtag) => hashtag.toLowerCase())
 			]);
 		}
-		console.debug('[search filter base]', filter);
+		console.debug('[search filter base]', $state.snapshot(filter));
 
 		switch (tabKey) {
 			case 'notes': {
-				await load();
 				break;
 			}
 			case 'users': {
@@ -156,7 +155,7 @@
 				filter.since = sinceFilter;
 				completed = true;
 			}
-			const eventItems = await search.fetch(filter);
+			const eventItems = await search.fetch($state.snapshot(filter));
 			items.push(
 				...eventItems
 					.filter(
@@ -193,23 +192,25 @@
 	async function tabChanged(key: string): Promise<void> {
 		switch (key) {
 			case 'notes': {
-				console.debug('[search notes]', filter);
+				console.debug('[search notes]', $state.snapshot(filter));
 				if (items.length === 0) {
 					await load();
 				}
 				break;
 			}
 			case 'users': {
-				console.debug('[search users]', filter.search, usersSearch?.items);
-				if (filter.search) {
-					await initializeUsersSearch();
-				}
+				console.debug('[search users]', filter?.search, usersSearch?.items);
+				await initializeUsersSearch();
 				break;
 			}
 		}
 	}
 
 	async function initializeUsersSearch() {
+		if (!filter?.search) {
+			return;
+		}
+
 		if (usersSearch === undefined) {
 			usersSearch = new SearchTimeline({ kinds: [0], search: filter.search });
 			unsubscribe = usersSearch.items.subscribe((value) => {
@@ -276,7 +277,7 @@
 	<section use:melt={$content('notes')}>
 		<TimelineView {items} {load} {showLoading} />
 	</section>
-	{#if filter.search}
+	{#if filter?.search}
 		<section use:melt={$content('users')}>
 			<TimelineView items={metadataItems} load={loadUsers} showLoading={showUsersLoading} />
 		</section>
