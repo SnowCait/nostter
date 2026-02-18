@@ -178,10 +178,14 @@
 	"search": {
 		"search": "Search",
 		"options": "Search options",
-		"mine": "My notes",
-		"proxy": "Include external SNS notes",
 		"notes": "Notes",
-		"users": "Users"
+		"users": "Users",
+		"scope": {
+			"all": "All",
+			"nostr": "Exclude external SNS",
+			"following": "Following",
+			"mine": "Mine"
+		}
 	},
 	"public_chat": {
 		"create_channel": "Create channel",

@@ -4,7 +4,7 @@
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
-	import { Search } from '$lib/Search';
+	import { Search, searchScopes, type SearchScope } from '$lib/Search';
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
 	import { EventItem } from '$lib/Items';
@@ -33,15 +33,14 @@
 	const [send, receive] = crossfade({ duration: 250, easing: cubicInOut });
 
 	let query = $state('');
-	let mine = $state(false);
-	let proxy = false;
+	let scope = $state<SearchScope>('nostr');
 	let filter = $state<Filter>();
 	let sinceFilter: number | undefined;
 	let untilFilter: number | undefined;
 	let hashtags: string[] = $state([]);
 	let items: EventItem[] = $state([]);
 	let completed = false;
-	let showLoading = $state(false);
+	let loading = $state(false);
 	let showUsersLoading = $state(false);
 	let usersSearch: SearchTimeline | undefined;
 	let unsubscribe: Unsubscriber | undefined;
@@ -65,8 +64,9 @@
 		const params = page.url.searchParams;
 		if (
 			query === params.get('q') &&
-			mine === params.has('mine') &&
-			proxy === params.has('proxy')
+			// mine === params.has('mine') &&
+			// proxy === params.has('proxy') &&
+			scope === params.get('scope')
 		) {
 			return;
 		}
@@ -75,8 +75,11 @@
 		// `q` contains Filter parameters which is filtered by relays.
 		// Other parameters are filtered by client.
 		query = params.get('q') ?? '';
-		mine = params.has('mine');
-		proxy = params.has('proxy');
+		const _scope = params.get('scope');
+		scope =
+			typeof _scope === 'string' && searchScopes.includes(_scope as SearchScope)
+				? (_scope as SearchScope)
+				: 'nostr';
 
 		items = [];
 		completed = false;
@@ -89,7 +92,7 @@
 			keyword,
 			since,
 			until
-		} = search.parseQuery(query, mine);
+		} = search.parseQuery(query, scope === 'mine');
 		hashtags = _hashtags;
 		sinceFilter = since;
 		untilFilter = until;
@@ -120,21 +123,22 @@
 
 		switch (tabKey) {
 			case 'notes': {
+				await load();
 				break;
 			}
 			case 'users': {
-				initializeUsersSearch();
+				await initializeUsersSearch();
 				break;
 			}
 		}
 	});
 
 	async function load() {
-		if (query === '' || filter === undefined || completed || tabKey !== 'notes') {
+		if (loading || query === '' || filter === undefined || completed || tabKey !== 'notes') {
 			return;
 		}
 
-		showLoading = true;
+		loading = true;
 
 		let firstLength = items.length;
 		let count = 0;
@@ -160,7 +164,7 @@
 				...eventItems
 					.filter(
 						(item) =>
-							proxy ||
+							scope === 'all' ||
 							!item.event.tags.some(
 								([tagName, , protocol]) =>
 									tagName === 'proxy' && !['rss', 'web'].includes(protocol)
@@ -176,7 +180,7 @@
 			console.debug('[load]', count, until, seconds / 3600, items.length);
 		}
 
-		showLoading = false;
+		loading = false;
 	}
 
 	async function loadUsers(): Promise<void> {
@@ -238,7 +242,7 @@
 <h1><a href="/search">{$_('layout.header.search')}</a></h1>
 
 <section>
-	<SearchForm {query} {mine} />
+	<SearchForm {query} {scope} />
 </section>
 
 {#if hashtags.length > 0}
@@ -275,7 +279,7 @@
 		</div>
 	</div>
 	<section use:melt={$content('notes')}>
-		<TimelineView {items} {load} {showLoading} />
+		<TimelineView {items} {load} showLoading={loading} />
 	</section>
 	{#if filter?.search}
 		<section use:melt={$content('users')}>

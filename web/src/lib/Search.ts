@@ -7,6 +7,9 @@ import { pubkey, readRelays } from './stores/Author';
 import { referencesReqEmit } from './timelines/MainTimeline';
 import { fetchEvents } from './RxNostrHelper';
 
+export const searchScopes = ['all', 'nostr', 'following', 'mine'] as const;
+export type SearchScope = (typeof searchScopes)[number];
+
 export class Search {
 	parseQuery(
 		query: string,
