@@ -3,31 +3,26 @@
 
 	interface Props {
 		query: string;
-		mine?: boolean;
-		proxy?: boolean;
+		scope?: string;
 	}
 
-	let { query, mine = false, proxy = false }: Props = $props();
+	let { query, scope = 'nostr' }: Props = $props();
 </script>
 
 <form action="/search">
 	<input type="search" name="q" value={query} />
 	<input type="submit" value={$_('search.search')} />
+
 	<details>
 		<summary>{$_('search.options')}</summary>
 
 		<div>
-			<label>
-				<input type="checkbox" name="mine" checked={mine} />
-				<span>{$_('search.mine')}</span>
-			</label>
-		</div>
-
-		<div>
-			<label>
-				<input type="checkbox" name="proxy" checked={proxy} />
-				<span>{$_('search.proxy')}</span>
-			</label>
+			<select name="scope" bind:value={scope}>
+				<option value="all">{$_('search.scope.all')}</option>
+				<option value="nostr">{$_('search.scope.nostr')}</option>
+				<!-- <option value="following">{$_('search.scope.following')}</option> -->
+				<option value="mine">{$_('search.scope.mine')}</option>
+			</select>
 		</div>
 	</details>
 </form>
