@@ -4,7 +4,7 @@
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
-	import { Search, searchScopes, type SearchScope } from '$lib/Search';
+	import { parseSearchQuery, Search, searchScopes, type SearchScope } from '$lib/Search';
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
 	import { EventItem } from '$lib/Items';
@@ -62,12 +62,7 @@
 
 	afterNavigate(async () => {
 		const params = page.url.searchParams;
-		if (
-			query === params.get('q') &&
-			// mine === params.has('mine') &&
-			// proxy === params.has('proxy') &&
-			scope === params.get('scope')
-		) {
+		if (query === params.get('q') && scope === params.get('scope')) {
 			return;
 		}
 		console.debug('[search params]', params.toString());
@@ -92,7 +87,7 @@
 			keyword,
 			since,
 			until
-		} = search.parseQuery(query, scope === 'mine');
+		} = parseSearchQuery(query, scope === 'mine');
 		hashtags = _hashtags;
 		sinceFilter = since;
 		untilFilter = until;
