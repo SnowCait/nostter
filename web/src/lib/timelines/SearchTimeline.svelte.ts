@@ -1,6 +1,5 @@
 import { createRxBackwardReq, uniq, type LazyFilter } from 'rx-nostr';
 import { filter, tap } from 'rxjs';
-import { get, writable } from 'svelte/store';
 import { authorActionReqEmit } from '$lib/author/Action';
 import { minTimelineLength, searchRelays } from '$lib/Constants';
 import { EventItem } from '$lib/Items';
@@ -10,7 +9,7 @@ import type { Timeline } from './Timeline.svelte';
 import { oldestCreatedAt } from './TimelineHelper';
 
 export class SearchTimeline implements Timeline {
-	items = writable<EventItem[]>([]);
+	items = $state.raw<EventItem[]>([]);
 	#completed = false;
 
 	constructor(public readonly filter: LazyFilter) {}
@@ -21,7 +20,7 @@ export class SearchTimeline implements Timeline {
 
 	unsubscribe(): void {
 		console.debug('[search timeline unsubscribe]', this.filter);
-		this.items.set([]);
+		this.items = [];
 	}
 
 	async load(): Promise<void> {
@@ -30,8 +29,7 @@ export class SearchTimeline implements Timeline {
 		}
 
 		console.debug('[search timeline load]', this.filter);
-		const $items = get(this.items);
-		const firstLength = $items.length;
+		const firstLength = this.items.length;
 		const filterBase = { ...this.filter };
 		const { promise, resolve } = Promise.withResolvers<void>();
 		const req = createRxBackwardReq();
@@ -40,7 +38,7 @@ export class SearchTimeline implements Timeline {
 			.pipe(
 				tie,
 				uniq(),
-				filter(({ event }) => !$items.some((item) => item.event.id === event.id)),
+				filter(({ event }) => !this.items.some((item) => item.event.id === event.id)),
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
@@ -50,44 +48,42 @@ export class SearchTimeline implements Timeline {
 				next: ({ event }) => {
 					console.debug('[search next]', event);
 					const item = new EventItem(event);
-					const index = $items.findIndex(
+					const index = this.items.findIndex(
 						(x) => x.event.created_at < item.event.created_at
 					);
 					if (index < 0) {
-						$items.push(item);
+						this.items = [...this.items, item];
 					} else {
-						$items.splice(index, 0, item);
+						this.items = this.items.toSpliced(index, 0, item);
 					}
-					this.items.set($items);
 				},
 				complete: () => {
-					console.debug('[search complete]', firstLength, $items.length);
+					console.debug('[search complete]', firstLength, this.items.length);
 					resolve();
 				}
 			});
-		const until = oldestCreatedAt($items);
+		const until = oldestCreatedAt(this.items);
 		req.emit([{ ...filterBase, until, since: until - 15 * 60 }], { relays: searchRelays });
 		req.over();
 		await promise;
 
-		const length = $items.length - firstLength;
+		const length = this.items.length - firstLength;
 		if (length < minTimelineLength) {
 			const limit = minTimelineLength - length;
 			const events = await fetchEvents(
-				[{ ...filterBase, until: oldestCreatedAt($items), limit }],
+				[{ ...filterBase, until: oldestCreatedAt(this.items), limit }],
 				searchRelays
 			);
 			const _items = events
-				.filter((event) => !$items.some((item) => item.event.id === event.id))
+				.filter((event) => !this.items.some((item) => item.event.id === event.id))
 				.splice(0, limit)
 				.map((event) => new EventItem(event));
 			if (_items.length === 0) {
 				this.#completed = true;
 			}
-			$items.push(..._items);
-			this.items.set($items);
+			this.items = [...this.items, ..._items];
 		}
-		console.log('[search loaded]', firstLength, $items.length);
+		console.debug('[search loaded]', firstLength, this.items.length);
 	}
 
 	get completed() {

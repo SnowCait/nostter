@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { Filter } from 'nostr-tools';
-	import type { Unsubscriber } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
@@ -14,7 +13,7 @@
 	import FollowHashtagButton from '$lib/components/FollowHashtagButton.svelte';
 	import UnfollowHashtagButton from '$lib/components/UnfollowHashtagButton.svelte';
 	import { unique } from '$lib/Array';
-	import { SearchTimeline } from '$lib/timelines/SearchTimeline';
+	import { SearchTimeline } from '$lib/timelines/SearchTimeline.svelte';
 	import { createTabs, melt } from '@melt-ui/svelte';
 	import { crossfade } from 'svelte/transition';
 	import { cubicInOut } from 'svelte/easing';
@@ -42,9 +41,7 @@
 	let completed = false;
 	let loading = $state(false);
 	let showUsersLoading = $state(false);
-	let usersSearch: SearchTimeline | undefined;
-	let unsubscribe: Unsubscriber | undefined;
-	let metadataItems: EventItem[] = $state([]);
+	let usersSearch = $state<SearchTimeline>();
 	let tabKey = 'notes';
 
 	const search = new Search();
@@ -212,17 +209,10 @@
 
 		if (usersSearch === undefined) {
 			usersSearch = new SearchTimeline({ kinds: [0], search: filter.search });
-			unsubscribe = usersSearch.items.subscribe((value) => {
-				metadataItems = value;
-			});
 			await loadUsers();
 		} else if (usersSearch.filter.search !== filter.search) {
-			unsubscribe?.();
 			usersSearch.unsubscribe();
 			usersSearch = new SearchTimeline({ kinds: [0], search: filter.search });
-			unsubscribe = usersSearch.items.subscribe((value) => {
-				metadataItems = value;
-			});
 			await loadUsers();
 		}
 	}
@@ -278,7 +268,11 @@
 	</section>
 	{#if filter?.search}
 		<section use:melt={$content('users')}>
-			<TimelineView items={metadataItems} load={loadUsers} showLoading={showUsersLoading} />
+			<TimelineView
+				items={usersSearch?.items}
+				load={loadUsers}
+				showLoading={showUsersLoading}
+			/>
 		</section>
 	{/if}
 {/if}
