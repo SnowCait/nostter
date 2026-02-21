@@ -1,6 +1,5 @@
 import { createRxBackwardReq, uniq, type LazyFilter } from 'rx-nostr';
 import { filter, tap } from 'rxjs';
-import { get, writable } from 'svelte/store';
 import { authorActionReqEmit } from '$lib/author/Action';
 import { minTimelineLength, searchRelays } from '$lib/Constants';
 import { EventItem } from '$lib/Items';
