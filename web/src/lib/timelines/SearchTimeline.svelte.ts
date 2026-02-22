@@ -5,7 +5,7 @@ import { minTimelineLength, searchRelays } from '$lib/Constants';
 import { EventItem } from '$lib/Items';
 import { fetchEvents } from '$lib/RxNostrHelper';
 import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
-import type { Timeline } from './Timeline.svelte';
+import { TimelineSubscriber, type Timeline } from './Timeline.svelte';
 import { oldestCreatedAt } from './TimelineHelper';
 
 export class SearchTimeline implements Timeline {
@@ -90,3 +90,5 @@ export class SearchTimeline implements Timeline {
 		return this.#completed;
 	}
 }
+
+export const searchTimeline = new TimelineSubscriber(rxNostr);

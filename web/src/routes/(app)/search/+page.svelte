@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { Filter } from 'nostr-tools';
+	import type { Filter, NostrEvent } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { parseSearchQuery, Search, searchScopes, type SearchScope } from '$lib/Search';
-	import { appName, minTimelineLength } from '$lib/Constants';
+	import { appName, minTimelineLength, searchRelays } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
@@ -13,11 +13,12 @@
 	import FollowHashtagButton from '$lib/components/FollowHashtagButton.svelte';
 	import UnfollowHashtagButton from '$lib/components/UnfollowHashtagButton.svelte';
 	import { unique } from '$lib/Array';
-	import { SearchTimeline } from '$lib/timelines/SearchTimeline.svelte';
+	import { SearchTimeline, searchTimeline } from '$lib/timelines/SearchTimeline.svelte';
 	import { createTabs, melt } from '@melt-ui/svelte';
 	import { crossfade } from 'svelte/transition';
 	import { cubicInOut } from 'svelte/easing';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
+	import { now } from 'rx-nostr';
 
 	const {
 		elements: { root, list, content, trigger },
@@ -96,7 +97,8 @@
 		filter = {
 			kinds
 		};
-		if (keyword.length > 0) {
+		const hasKeyword = keyword.length > 0;
+		if (hasKeyword) {
 			filter.search = keyword;
 		}
 		if (fromPubkeys.length > 0) {
@@ -115,6 +117,13 @@
 
 		switch (tabKey) {
 			case 'notes': {
+				searchTimeline.unsubscribe();
+				searchTimeline.subscribe([{ ...filter, since: now }], {
+					on: {
+						defaultReadRelays: !hasKeyword,
+						relays: hasKeyword ? searchRelays : undefined
+					}
+				});
 				await load();
 				break;
 			}
@@ -123,6 +132,27 @@
 				break;
 			}
 		}
+	});
+
+	const clientFilter = (event: NostrEvent) =>
+		scope === 'all' ||
+		!event.tags.some(
+			([tagName, , protocol]) => tagName === 'proxy' && !['rss', 'web'].includes(protocol)
+		);
+
+	$effect(() => {
+		if (searchTimeline.events.length === 0) {
+			return;
+		}
+		untrack(() => {
+			items.unshift(
+				...searchTimeline.events
+					.filter(clientFilter)
+					.map((event) => new EventItem(event))
+					.filter((item) => !items.some((i) => i.id === item.id))
+			);
+			searchTimeline.events = [];
+		});
 	});
 
 	async function load() {
@@ -154,17 +184,9 @@
 			const eventItems = await search.fetch($state.snapshot(filter));
 			items.push(
 				...eventItems
-					.filter(
-						(item) =>
-							scope === 'all' ||
-							!item.event.tags.some(
-								([tagName, , protocol]) =>
-									tagName === 'proxy' && !['rss', 'web'].includes(protocol)
-							)
-					)
+					.filter((item) => clientFilter(item.event))
 					.filter((item) => !items.some((i) => i.id === item.id))
 			);
-			items = items;
 
 			until -= seconds;
 			seconds *= 2;

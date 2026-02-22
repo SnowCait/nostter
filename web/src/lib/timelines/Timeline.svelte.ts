@@ -1,7 +1,17 @@
 import { minTimelineLength } from '$lib/Constants';
 import { autoRefresh } from '$lib/stores/Preference';
 import type { Event } from 'nostr-typedef';
+import {
+	createRxForwardReq,
+	uniq,
+	type LazyFilter,
+	type RxNostr,
+	type RxNostrUseOptions
+} from 'rx-nostr';
 import { get } from 'svelte/store';
+import { filter, tap, type Subscription } from 'rxjs';
+import { referencesReqEmit, tie } from './MainTimeline';
+import { authorActionReqEmit } from '$lib/author/Action';
 
 export interface Timeline {
 	subscribe(): void;
@@ -97,5 +107,39 @@ export abstract class NewTimeline {
 
 	public [Symbol.dispose](): void {
 		this.unsubscribe();
+	}
+}
+
+export class TimelineSubscriber {
+	events = $state.raw<Event[]>([]);
+	#rxNostr: RxNostr;
+	#subscription: Subscription | undefined;
+
+	constructor(rxNostr: RxNostr) {
+		this.#rxNostr = rxNostr;
+	}
+
+	subscribe(filters: LazyFilter[], options?: Partial<RxNostrUseOptions>): void {
+		const req = createRxForwardReq();
+		this.#subscription = this.#rxNostr
+			.use(req, options)
+			.pipe(
+				tie,
+				uniq(),
+				filter(({ event }) => !this.events.some((e) => e.id === event.id)),
+				tap(({ event }) => {
+					referencesReqEmit(event);
+					authorActionReqEmit(event);
+				})
+			)
+			.subscribe(({ event }) => {
+				this.events = [event, ...this.events];
+			});
+		req.emit(filters);
+	}
+
+	unsubscribe(): void {
+		this.#subscription?.unsubscribe();
+		this.events = [];
 	}
 }
