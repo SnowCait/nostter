@@ -49,7 +49,7 @@
 	"type": "module",
 	"dependencies": {
 		"@emoji-mart/data": "^1.2.1",
-		"@floating-ui/dom": "^1.6.8",
+		"@floating-ui/dom": "^1.7.5",
 		"@rust-nostr/nostr-sdk": "^0.44.0",
 		"@tabler/icons-svelte": "^3.14.0",
 		"@tabler/icons-webfont": "^3.14.0",
