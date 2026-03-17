@@ -44,6 +44,15 @@
 						return;
 					}
 					const html = await response.text();
+
+					// Workaround for Chromium bug
+					// <meta name="text-scale" content="scale" /> cause STATUS_ACCESS_VIOLATION
+					if (html.includes('text-scale')) {
+						console.debug('[OGP workaround]', url.href);
+						resolve(true);
+						return;
+					}
+
 					const domParser = new DOMParser();
 					const dom = domParser.parseFromString(html, 'text/html');
 					const metaTags = [...dom.head.children].filter(
