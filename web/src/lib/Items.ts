@@ -108,6 +108,8 @@ export class Metadata implements Item {
 			return this.content.name;
 		} else if (this.content?.display_name) {
 			return this.content.display_name;
+		} else if (this.normalizedNip05) {
+			return this.normalizedNip05;
 		} else {
 			return alternativeName(this.event.pubkey);
 		}
@@ -118,6 +120,8 @@ export class Metadata implements Item {
 			return this.content.display_name;
 		} else if (this.content?.name) {
 			return this.content.name;
+		} else if (this.normalizedNip05) {
+			return this.normalizedNip05;
 		} else {
 			return alternativeName(this.event.pubkey);
 		}
