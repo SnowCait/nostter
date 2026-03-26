@@ -214,7 +214,8 @@
 		},
 		"reaction": {
 			"again": "もう一度",
-			"undo": "取り消す"
+			"undo": "取り消す",
+			"same": "同じ絵文字でリアクションする"
 		},
 		"copy_id": {
 			"button": "ID をコピー"

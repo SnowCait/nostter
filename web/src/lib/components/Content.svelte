@@ -6,18 +6,20 @@
 	import Hashtag from './content/Hashtag.svelte';
 	import Url from './content/Url.svelte';
 	import Text from './content/Text.svelte';
-	import CustomEmoji from './content/CustomEmoji.svelte';
+	import CustomEmojiLightbox from './content/CustomEmojiLightbox.svelte';
 	import Ogp from './content/Ogp.svelte';
 	import { enablePreview } from '$lib/stores/Preference';
 	import { Twitter } from '$lib/Twitter';
 	import { nicovideoRegexp } from '$lib/Constants';
+	import type { Event } from 'nostr-typedef';
 
 	interface Props {
 		content: string;
 		tags: string[][];
+		event?: Event;
 	}
 
-	let { content, tags }: Props = $props();
+	let { content, tags, event }: Props = $props();
 
 	let tokens = $derived(Content.parse(content, tags));
 	let urls = $derived(
@@ -37,7 +39,7 @@
 		{:else if token.name === 'hashtag'}
 			<Hashtag text={token.text} />
 		{:else if token.name === 'emoji' && token.url !== undefined}
-			<CustomEmoji text={token.text} url={token.url} />
+			<CustomEmojiLightbox text={token.text} url={token.url} {event} />
 		{:else if token.name === 'url'}
 			<Url text={token.text} />
 		{:else if token.name === 'relay'}
