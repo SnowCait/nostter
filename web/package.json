@@ -72,6 +72,7 @@
 		"twitter-text": "^3.1.0"
 	},
 	"engines": {
+		"node": ">= 24",
 		"npm": ">= 11"
 	}
 }
