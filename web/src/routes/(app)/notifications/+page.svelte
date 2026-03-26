@@ -173,6 +173,7 @@
 
 <svelte:head>
 	<title>{appName} - {$_('layout.header.notifications')}</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <h1>{$_('layout.header.notifications')}</h1>

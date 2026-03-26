@@ -32,6 +32,7 @@
 
 <svelte:head>
 	<title>{appName} - {$_('post')}</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <article class="card">
