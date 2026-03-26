@@ -215,7 +215,8 @@
 		},
 		"reaction": {
 			"again": "Again",
-			"undo": "Undo"
+			"undo": "Undo",
+			"same": "React with the same emoji"
 		},
 		"copy_id": {
 			"button": "Copy ID"

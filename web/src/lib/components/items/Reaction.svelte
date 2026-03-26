@@ -64,7 +64,7 @@
 		{:else if event.content === '-'}
 			<IconHeartBroken size={18} />
 		{:else}
-			<Content content={event.content} tags={event.tags} />
+			<Content content={event.content} tags={event.tags} event={originalEvent?.event} />
 		{/if}
 	</div>
 	<div>by</div>
