@@ -20,8 +20,6 @@ jobs:
         with:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref }}
