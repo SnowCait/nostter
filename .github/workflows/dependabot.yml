@@ -22,6 +22,7 @@ jobs:
         with:
           node-version: 24
       - run: npm install
+        working-directory: web
       - id: diff
         run: git diff --name-only --exit-code web/package-lock.json
         continue-on-error: true
