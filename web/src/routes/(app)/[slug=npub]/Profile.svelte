@@ -198,6 +198,9 @@
 		<div>
 			<a href="/{slug}/lists">{$_('lists.title')}</a>
 		</div>
+		<div>
+			<a href="/{slug}/polls">{$_('poll.title')}</a>
+		</div>
 	</nav>
 
 	{#if $developerMode}
