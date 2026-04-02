@@ -29,7 +29,6 @@
 	import ContentWarning from './ContentWarning.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
-	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
 	import Loading from '$lib/components/Loading.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 
@@ -642,17 +641,18 @@
 	<div class="actions">
 		<div class="options">
 			<MediaPicker multiple={true} on:pick={mediaPicked} />
-			<EmojiPicker containsDefaultEmoji={false} autoClose={false} on:pick={onEmojiPick}>
-				<span class="emoji-picker">
-					<IconMoodSmile size={30} />
-				</span>
-			</EmojiPicker>
+			<EmojiPicker
+				containsDefaultEmoji={false}
+				autoClose={false}
+				inEditor={true}
+				on:pick={onEmojiPick}
+			/>
 			<ContentWarning bind:reason={contentWarningReason} />
 		</div>
 		<div>
 			<button
 				title="{$_('editor.post.button')} (Ctrl + Enter)"
-				class="button-small"
+				class="active"
 				onclick={postNote}
 				disabled={$author === undefined || content === '' || $rom || posting || uploading}
 			>
@@ -729,6 +729,10 @@
 		background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
 	}
 
+	button {
+		padding: 0.4rem 1rem;
+	}
+
 	button:disabled {
 		color: lightgray;
 	}
@@ -761,10 +765,6 @@
 	.uploading {
 		text-align: center;
 		padding-bottom: 0.7em;
-	}
-
-	.emoji-picker {
-		color: var(--accent);
 	}
 
 	ul.complement {

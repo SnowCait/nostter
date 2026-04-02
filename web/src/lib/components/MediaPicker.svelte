@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { createEventDispatcher } from 'svelte';
 	import IconPhoto from '@tabler/icons-svelte/icons/photo';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		multiple?: boolean;
@@ -15,7 +14,12 @@
 
 	const dispatch = createEventDispatcher();
 
-	function onChange(): void {
+	function onclick(e: MouseEvent): void {
+		e.preventDefault();
+		input?.click();
+	}
+
+	function onchange(): void {
 		dispatch('pick', files);
 		if (input !== undefined) {
 			input.value = '';
@@ -23,21 +27,15 @@
 	}
 </script>
 
-<button onclick={preventDefault(() => input?.click())} class="clear">
-	<IconPhoto size="30" />
+<button {onclick} class="clear editor-option active" title={$_('media.title')}>
+	<IconPhoto size="20" />
 </button>
 <input
 	type="file"
 	{multiple}
 	bind:this={input}
 	bind:files
-	onchange={onChange}
+	{onchange}
 	accept="image/*,video/*,audio/*"
 	hidden
 />
-
-<style>
-	button {
-		color: var(--accent);
-	}
-</style>

@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { _ } from 'svelte-i18n';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
@@ -36,22 +34,18 @@
 		editor?.clear();
 	}
 
-	function closeIfNotEmpty(): void {
+	function closeIfNotEmpty(e?: Event): void {
+		e?.preventDefault();
 		if (content === '' || confirm($_('editor.close.confirm'))) {
 			dialog?.close();
 		}
 	}
 </script>
 
-<dialog
-	bind:this={dialog}
-	onclick={tryClose}
-	onclose={closed}
-	oncancel={preventDefault(closeIfNotEmpty)}
->
+<dialog bind:this={dialog} onclick={tryClose} onclose={closed} oncancel={closeIfNotEmpty}>
 	<div class="dialog-content">
 		<button
-			class="clear close clickable"
+			class="clear close clickable active"
 			onclick={closeIfNotEmpty}
 			title="{$_('editor.close.button')} (Esc)"
 		>
