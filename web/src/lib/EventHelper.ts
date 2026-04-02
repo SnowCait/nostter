@@ -1,5 +1,6 @@
 import type { Event } from 'nostr-tools';
 import type { id } from './Types';
+import { shortcodeRegexp } from './Constants';
 
 export function isReply(event: Event): boolean {
 	if (!event.tags.some(([tagName]) => tagName === 'p')) {
@@ -73,7 +74,7 @@ export const filterEmojiTags = (tags: string[][]): string[][] => {
 		if (shortcode === undefined || imageUrl === undefined) {
 			return false;
 		}
-		if (!/^\w+$/.test(shortcode)) {
+		if (!shortcodeRegexp.test(shortcode)) {
 			return false;
 		}
 		try {

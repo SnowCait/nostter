@@ -2,6 +2,7 @@ import { nip19 } from 'nostr-tools';
 import { unique } from './Array';
 import escapeStringRegexp from 'escape-string-regexp';
 import twitter from 'twitter-text';
+import { shortcodeRegexp } from './Constants';
 
 export class Token {
 	constructor(
@@ -34,6 +35,7 @@ export class Content {
 					([tagName, shortcode, url]) =>
 						tagName === 'emoji' &&
 						shortcode &&
+						shortcodeRegexp.test(shortcode) &&
 						url &&
 						url.startsWith('https://') &&
 						URL.canParse(url)
@@ -59,12 +61,7 @@ export class Content {
 		if (emojis.size > 0) {
 			foundTokens.push(
 				...[
-					...content.matchAll(
-						new RegExp(
-							`:(${[...emojis.keys()].filter((x) => /^\w+$/.test(x)).join('|')}):`,
-							'g'
-						)
-					)
+					...content.matchAll(new RegExp(`:(${[...emojis.keys()].join('|')}):`, 'g'))
 				].map(
 					(match) =>
 						new Token('emoji', match[0], match.index, undefined, emojis.get(match[1]))
@@ -201,7 +198,7 @@ export function emojify(content: string, tags: string[][]): Token[] {
 				([tagName, shortcode, url]) =>
 					tagName === 'emoji' &&
 					shortcode &&
-					/^\w+$/.test(shortcode) &&
+					shortcodeRegexp.test(shortcode) &&
 					url &&
 					url.startsWith('https://') &&
 					URL.canParse(url) &&
