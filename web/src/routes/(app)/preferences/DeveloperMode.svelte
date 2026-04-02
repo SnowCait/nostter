@@ -15,4 +15,5 @@
 <label>
 	<input type="checkbox" bind:checked={$developerMode} />
 	<span>{$_('preferences.developer_mode')}</span>
+	<span>{$_('preferences.developer_mode_description')}</span>
 </label>

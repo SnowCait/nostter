@@ -120,6 +120,7 @@
 		"uri_scheme": "web+nostr: を nostter で開く",
 		"enable_uri_scheme": "有効化",
 		"developer_mode": "開発者モード",
+		"developer_mode_description": "（追加の機能を提供しますが Nostr の知識が必要です）",
 		"mute": {
 			"mute": "ミュート",
 			"pubkeys": "ユーザー",
@@ -389,7 +390,7 @@
 	},
 	"remote-signer-service": {
 		"title": "Work as Remote Signer",
-		"description": "この機能は PC で %s が開かれているときのみ動作します。",
+		"description": "この機能は %s が開かれているときのみ動作します。",
 		"extension": "Nostr 拡張機能でログインしている場合は事前に操作を許可しておく必要があります。",
 		"enable": "有効化",
 		"disable": "無効化",
