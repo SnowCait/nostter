@@ -61,6 +61,10 @@
 		"warning": {
 			"nsec": "Contains private key (nsec). Never post your private key."
 		},
+		"content-warning": {
+			"title": "Content Warning",
+			"reason": "Reason"
+		},
 		"post": {
 			"button": "Post",
 			"empty": "Do you post empty note?",
@@ -322,6 +326,7 @@
 		"others": "Others"
 	},
 	"media": {
+		"title": "Media",
 		"upload": {
 			"failed": "Failed to upload.",
 			"apply": "Apply"
@@ -378,6 +383,7 @@
 		"update": "Show new posts"
 	},
 	"emoji": {
+		"title": "Emoji",
 		"custom": {
 			"add": "Add to my emoji list",
 			"remove": "Remove from my emoji list",

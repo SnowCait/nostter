@@ -128,28 +128,28 @@
 		</ul>
 		<ul class="fold">
 			<li>
-				<a href={homeLink}>
+				<a href={homeLink} class="active">
 					<IconHome size={30} />
 					<p>{$_('layout.header.home')}</p>
 				</a>
 			</li>
 			{#if !$pubkey}
 				<li>
-					<a href="/public">
+					<a href="/public" class="active">
 						<IconWorld size={30} />
 						<p>{$_('pages.public')}</p>
 					</a>
 				</li>
 			{/if}
 			<li>
-				<a href="/search">
+				<a href="/search" class="active">
 					<IconSearch size={30} />
 					<p>{$_('layout.header.search')}</p>
 				</a>
 			</li>
 			{#if $pubkey}
 				<li class="notifications-icon">
-					<a href="/notifications">
+					<a href="/notifications" class="active">
 						<IconBell size={30} />
 						{#if notificationsBadge}
 							<span class="notifications-icon-badge"></span>
@@ -158,13 +158,13 @@
 					</a>
 				</li>
 				<li>
-					<a href="/{nprofile}">
+					<a href="/{nprofile}" class="active">
 						<IconUser size={30} />
 						<p>{$_('layout.header.profile')}</p>
 					</a>
 				</li>
 				<li>
-					<button class="clear" use:melt={$trigger}>
+					<button class="clear active" use:melt={$trigger}>
 						<IconDots size={30} />
 					</button>
 					<div use:melt={$overlay} class="overlay"></div>
@@ -233,13 +233,13 @@
 				</li>
 			{:else}
 				<li>
-					<a href="/channels">
+					<a href="/channels" class="active">
 						<IconMessages size={30} />
 						<p>{$_('layout.header.channels')}</p>
 					</a>
 				</li>
 				<li>
-					<a href="/about">
+					<a href="/about" class="active">
 						<IconPaw size={30} />
 						<p>{$_('about.title')}</p>
 					</a>
@@ -463,11 +463,6 @@
 
 		ul.fold {
 			display: flex;
-		}
-
-		ul.fold li a:active {
-			transform: scale(0.9);
-			opacity: 0.7;
 		}
 
 		li p {

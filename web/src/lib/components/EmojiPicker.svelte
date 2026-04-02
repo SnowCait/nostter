@@ -9,14 +9,21 @@
 	import { autoUpdate, computePosition, shift } from '@floating-ui/dom';
 	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
 	import { customEmojiTags } from '../author/CustomEmojis';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		containsDefaultEmoji?: boolean;
 		autoClose?: boolean;
 		children?: import('svelte').Snippet;
+		inEditor?: boolean;
 	}
 
-	let { containsDefaultEmoji = true, autoClose = true, children }: Props = $props();
+	let {
+		containsDefaultEmoji = true,
+		autoClose = true,
+		children,
+		inEditor = false
+	}: Props = $props();
 
 	let button: HTMLButtonElement | undefined = $state();
 	let emojiPicker: HTMLElement | undefined | null = $state();
@@ -121,15 +128,24 @@
 	}
 </script>
 
-<button onclick={onClick} bind:this={button} class="clear">
-	{#if children}{@render children()}{:else}
+<button
+	onclick={onClick}
+	bind:this={button}
+	class="clear"
+	class:editor-option={inEditor}
+	class:active={inEditor}
+	title={$_('emoji.title')}
+>
+	{#if children}
+		{@render children()}
+	{:else}
 		<IconMoodSmile size={20} />
 	{/if}
 </button>
 <div bind:this={emojiPicker} class="emoji-picker"></div>
 
 <style>
-	button {
+	button:not(.editor-option) {
 		color: var(--accent-gray);
 		height: 20px;
 	}

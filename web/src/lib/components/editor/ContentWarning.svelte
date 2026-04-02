@@ -1,5 +1,6 @@
 <script lang="ts">
 	import IconEyeOff from '@tabler/icons-svelte/icons/eye-off';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		reason?: string | undefined;
@@ -18,19 +19,20 @@
 </script>
 
 <div>
-	<button onclick={onClick} class="clear" class:enable={reason !== undefined}>
-		<IconEyeOff size="30" />
+	<button
+		onclick={onClick}
+		class="clear editor-option active"
+		class:enable={reason !== undefined}
+		title={$_('editor.content-warning.title')}
+	>
+		<IconEyeOff size="20" />
 	</button>
 	{#if reason !== undefined}
-		<input type="text" bind:value={reason} placeholder="Reason" />
+		<input type="text" bind:value={reason} placeholder={$_('editor.content-warning.reason')} />
 	{/if}
 </div>
 
 <style>
-	button {
-		color: var(--accent);
-	}
-
 	.enable {
 		color: var(--accent-gray);
 	}

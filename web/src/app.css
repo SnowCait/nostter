@@ -334,7 +334,7 @@ progress {
 	--default-border: 1px solid #e1d8cb;
 	--separator-color: #e1d8cb;
 	--shadow: 0 0 0.25rem 0 rgba(0, 0, 0, 0.2);
-	--hover-background-color: rgba(0, 0, 0, 0.03);
+	--hover-background-color: rgba(0, 0, 0, 0.05);
 }
 
 .dark {
@@ -591,4 +591,21 @@ h1 {
 
 h2 {
 	font-size: 1.4rem;
+}
+
+.active:active {
+	transform: scale(0.9);
+	opacity: 0.7;
+}
+
+button.editor-option {
+	color: var(--accent);
+	width: 36px;
+	height: 36px;
+	padding: 8px;
+}
+
+button.editor-option:hover {
+	background-color: var(--hover-background-color);
+	opacity: inherit;
 }
