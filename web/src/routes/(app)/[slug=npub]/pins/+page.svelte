@@ -27,7 +27,7 @@
 
 	afterNavigate(async () => {
 		const slug = $page.params.slug;
-		console.log('[pin page]', slug);
+		console.debug('[pin page]', slug);
 
 		rxNostr.setDefaultRelays([...$readRelays, ...data.relays]);
 
@@ -35,14 +35,14 @@
 		if (data.pubkey === $authorPubkey) {
 			const storage = new WebStorage(localStorage);
 			event = storage.getReplaceableEvent(10001);
-			console.log('[pin event (author)]', event);
+			console.debug('[pin event (author)]', event);
 		} else {
 			try {
 				const pinReq = createRxOneshotReq({
 					filters: { kinds: [10001], authors: [data.pubkey], limit: 1 }
 				});
 				const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(tie, latest()));
-				console.log('[pin event]', packet);
+				console.debug('[pin event]', packet);
 				event = packet.event;
 			} catch (error) {
 				if (!(error instanceof EmptyError)) {
@@ -52,13 +52,13 @@
 		}
 
 		if (event === undefined) {
-			console.log('[pin no event]');
+			console.debug('[pin no event]');
 			return;
 		}
 
 		const ids = filterTags('e', event.tags);
 		if (ids.length === 0) {
-			console.log('[pin no tags]');
+			console.debug('[pin no tags]');
 			return;
 		}
 
@@ -67,7 +67,7 @@
 			.use(referenceReq)
 			.pipe(tie, uniq())
 			.subscribe((packet) => {
-				console.log('[pin e tag]', packet);
+				console.debug('[pin e tag]', packet);
 				items.push(new EventItem(packet.event));
 				items = items;
 			});
@@ -79,9 +79,9 @@
 </script>
 
 <svelte:head>
-	<title>{appName} - {$_('pages.pinned')}</title>
+	<title>{appName} - {$_('pinned-notes.title')}</title>
 </svelte:head>
 
-<h1>{$_('pages.pinned')}</h1>
+<h1>{$_('pinned-notes.title')}</h1>
 
 <TimelineView {items} showLoading={false} />

@@ -190,9 +190,6 @@
 			<a href="/{slug}/timeline">{$_('pages.timeline')}</a>
 		</div>
 		<div>
-			<a href="/{slug}/pins">{$_('pages.pinned')}</a>
-		</div>
-		<div>
 			<a href="/{slug}/reactions">{$_('pages.reactions')}</a>
 		</div>
 		<div>

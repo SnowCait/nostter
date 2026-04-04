@@ -609,3 +609,11 @@ button.editor-option:hover {
 	background-color: var(--hover-background-color);
 	opacity: inherit;
 }
+
+.navigation {
+	cursor: pointer;
+}
+
+.navigation:hover {
+	background: var(--accent-surface-low);
+}
