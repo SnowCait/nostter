@@ -16,6 +16,7 @@
 	import { developerMode } from '$lib/stores/Preference';
 	import Profile from './Profile.svelte';
 	import TimelineView from '../TimelineView.svelte';
+	import PinnedNote from '$lib/components/items/PinnedNote.svelte';
 
 	let { data }: LayoutProps = $props();
 
@@ -162,6 +163,8 @@
 <section class="card profile-wrapper">
 	<Profile {slug} pubkey={data.pubkey} {metadata} relays={data.relays} />
 </section>
+
+<PinnedNote pubkey={data.pubkey} {slug} />
 
 <section>
 	<TimelineView {items} readonly={!$authorPubkey} {load} />

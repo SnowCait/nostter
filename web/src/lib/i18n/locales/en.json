@@ -20,7 +20,6 @@
 		"followees": "Followees",
 		"followers": "Followers",
 		"followers_see": "See",
-		"pinned": "Pinned",
 		"reactions": "Reactions",
 		"relays": "Relays",
 		"relays_edit": "Edit relays",
@@ -405,5 +404,10 @@
 	},
 	"user_status": {
 		"edit": "Edit status"
+	},
+	"pinned-notes": {
+		"title": "Pinned Notes",
+		"profile": "Pinned",
+		"more": "View more"
 	}
 }

@@ -20,7 +20,6 @@
 		"followees": "フォロー中",
 		"followers": "フォロワー",
 		"followers_see": "確認",
-		"pinned": "ピン留め",
 		"reactions": "リアクション",
 		"relays": "リレー",
 		"relays_edit": "リレーを編集",
@@ -404,5 +403,10 @@
 	},
 	"user_status": {
 		"edit": "ステータスを編集"
+	},
+	"pinned-notes": {
+		"title": "固定された投稿",
+		"profile": "固定",
+		"more": "もっと見る"
 	}
 }
