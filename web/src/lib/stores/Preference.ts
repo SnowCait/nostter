@@ -32,9 +32,7 @@ export const enablePreview = writable(
 export const imageOptimization = writable(browser ? getImageOptimization() : '');
 
 function getImageOptimization(): string {
-	const value =
-		new WebStorage(localStorage).get('preference:image-optimization') ??
-		imageOptimizerServers[0];
+	const value = new WebStorage(localStorage).get('preference:image-optimization') ?? '';
 
 	if (value === 'true') {
 		return imageOptimizerServers[0];
