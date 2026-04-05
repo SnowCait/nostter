@@ -7,9 +7,42 @@ updates:
     cooldown:
       default-days: 14
     open-pull-requests-limit: 20
+    groups:
+      svelte:
+        applies-to: version-updates
+        patterns:
+          - "svelte"
+          - "svelte-check"
+          - "@sveltejs/*"
+      eslint:
+        applies-to: version-updates
+        patterns:
+          - "eslint*"
+          - "@typescript-eslint/*"
+      melt:
+        applies-to: version-updates
+        patterns:
+          - "melt"
+          - "@melt-ui/*"
+      tabler:
+        applies-to: version-updates
+        patterns:
+          - "@tabler/*"
+      rx-nostr:
+        applies-to: version-updates
+        patterns:
+          - "rx-nostr"
+          - "rx-nostr-crypto"
+          - "rxjs"
+          - "nostr-typedef"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
     cooldown:
       default-days: 14
+    groups:
+      all:
+        applies-to: version-updates
+        patterns:
+          - "*"
