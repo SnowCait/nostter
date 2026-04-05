@@ -34,7 +34,7 @@
 		"fake-indexeddb": "^6.2.5",
 		"html5-qrcode": "^2.3.8",
 		"nostr-typedef": "^0.13.0",
-		"prettier": "^3.7.4",
+		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.2.6",
 		"rollup-plugin-visualizer": "^6.0.3",
 		"svelte": "^5.53.11",
