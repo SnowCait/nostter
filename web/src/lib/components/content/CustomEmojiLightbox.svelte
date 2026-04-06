@@ -43,6 +43,8 @@
 	}
 
 	.popover {
+		color: var(--surface-foreground);
+		background-color: var(--surface);
 		border: var(--default-border);
 		border-radius: var(--radius);
 		padding: 1rem;
@@ -56,7 +58,6 @@
 	}
 
 	img {
-		max-width: 3rem;
 		max-height: 3rem;
 	}
 </style>
