@@ -4,7 +4,7 @@ import { filter, firstValueFrom } from 'rxjs';
 import type { Event } from 'nostr-typedef';
 import { chunk } from '$lib/Array';
 import { maxFilters } from '$lib/Constants';
-import { filterEmojiTags, findIdentifier } from '$lib/EventHelper';
+import { aTagContent, filterEmojiTags, findIdentifier } from '$lib/EventHelper';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { WebStorage } from '$lib/WebStorage';
@@ -18,6 +18,8 @@ export const customEmojiListEvent = writable<Event | undefined>();
 // kind 10030 + 30030
 export const customEmojiTags = writable<string[][]>([]);
 
+const customEmojiSetEventsMap = new Map<string, Event>();
+
 export function storeCustomEmojis(event: Event): void {
 	console.debug('[custom emoji]', event);
 
@@ -30,8 +32,6 @@ export function storeCustomEmojis(event: Event): void {
 	if (referenceTags.length === 0) {
 		return;
 	}
-
-	const customEmojiSetEventsMap = new Map<string, Event>();
 
 	const emojisReq = createRxBackwardReq();
 	rxNostr
@@ -85,6 +85,20 @@ export function storeCustomEmojis(event: Event): void {
 	for (const chunkedFilters of chunk(filters, maxFilters)) {
 		emojisReq.emit(chunkedFilters);
 	}
+}
+
+export function findCustomEmojiSetAddress(shortcode: string, url: string): string | undefined {
+	for (const event of customEmojiSetEventsMap.values()) {
+		const emojiTags = filterEmojiTags(event.tags);
+		if (
+			emojiTags.some(
+				([, _shortcode, _url]) => `:${_shortcode}:` === shortcode && _url === url
+			)
+		) {
+			return aTagContent(event);
+		}
+	}
+	return undefined;
 }
 
 //#region Publish
