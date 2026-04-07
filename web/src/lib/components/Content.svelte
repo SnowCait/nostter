@@ -38,7 +38,7 @@
 			<Reference text={token.text} tag={tags[token.tagIndex]} />
 		{:else if token.type === 'hashtag'}
 			<Hashtag text={token.text} />
-		{:else if token.type === 'emoji' && token.url !== undefined}
+		{:else if token.type === 'emoji'}
 			<CustomEmojiPopup text={token.text} url={token.url} {event} />
 		{:else if token.type === 'url'}
 			<Url text={token.text} />

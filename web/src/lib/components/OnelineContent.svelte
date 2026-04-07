@@ -33,7 +33,7 @@
 			<!-- <Reference text={token.text} tag={tags[token.tagIndex]} /> -->
 		{:else if token.type === 'hashtag'}
 			<Hashtag text={token.text} />
-		{:else if token.type === 'emoji' && token.url !== undefined}
+		{:else if token.type === 'emoji'}
 			<CustomEmoji text={token.text} url={token.url} />
 		{:else if token.type === 'url' && URL.canParse(token.text)}
 			<ExternalLink link={new URL(token.text)}>{token.text}</ExternalLink>

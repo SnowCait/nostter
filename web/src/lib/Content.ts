@@ -28,7 +28,7 @@ type EmojiToken = {
 	type: 'emoji';
 	text: string;
 	start: number;
-	url?: string;
+	url: string;
 	address?: string; // kind 30030 address
 };
 
@@ -104,13 +104,13 @@ export class Content {
 				...[
 					...content.matchAll(new RegExp(`:(${[...emojis.keys()].join('|')}):`, 'g'))
 				].map((match): EmojiToken => {
-					const tag = emojis.get(match[1]);
-					const address = tag?.[3];
+					const tag = emojis.get(match[1])!;
+					const address = tag.at(3);
 					return {
 						type: 'emoji',
 						text: match[0],
 						start: match.index,
-						url: tag?.[2],
+						url: tag[2],
 						address:
 							typeof address === 'string' &&
 							address.startsWith(`${Emojisets}:`) &&
@@ -277,18 +277,13 @@ export function emojify(content: string, tags: string[][]): Token[] {
 		foundTokens.push(
 			...[...content.matchAll(new RegExp(`:(${[...emojis.keys()].join('|')}):`, 'g'))].map(
 				(match): EmojiToken => {
-					const tag = emojis.get(match[1]);
-					const address = tag?.[3];
-					console.log(
-						address,
-						address?.startsWith(`${Emojisets}:`),
-						addressRegexp.test(address!)
-					);
+					const tag = emojis.get(match[1])!;
+					const address = tag.at(3);
 					return {
 						type: 'emoji',
 						text: match[0],
 						start: match.index,
-						url: tag?.[2],
+						url: tag[2],
 						address:
 							typeof address === 'string' &&
 							address.startsWith(`${Emojisets}:`) &&
