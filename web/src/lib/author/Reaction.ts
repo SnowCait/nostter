@@ -6,6 +6,7 @@ import { Signer } from '$lib/Signer';
 import { deleteEvent } from './Delete';
 import { sortEvents } from 'nostr-tools';
 import { get } from 'svelte/store';
+import { findCustomEmojiSetAddress } from './CustomEmojis';
 
 export async function sendReaction(
 	target: Event,
@@ -20,7 +21,12 @@ export async function sendReaction(
 	];
 
 	if (emojiUrl !== undefined && /^:.+:$/.test(content)) {
-		tags.push(['emoji', content.replaceAll(':', ''), emojiUrl]);
+		const emojiTag = ['emoji', content.replaceAll(':', ''), emojiUrl];
+		const address = findCustomEmojiSetAddress(content, emojiUrl);
+		if (address !== undefined) {
+			emojiTag.push(address);
+		}
+		tags.push(emojiTag);
 	}
 
 	const event = await Signer.signEvent({
