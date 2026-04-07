@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { run } from 'svelte/legacy';
 
-	import { nip19 } from 'nostr-tools';
+	import * as nip19 from 'nostr-tools/nip19';
 	import type { Event } from 'nostr-typedef';
 	import { createRxBackwardReq, createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
 	import { tap, merge, filter } from 'rxjs';
@@ -18,7 +18,12 @@
 	import { fetchEvent, inThread } from '$lib/Thread';
 	import { EventItem, Metadata, ZapEventItem } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';
-	import { appName, chronological, chronologicalItem } from '$lib/Constants';
+	import {
+		appName,
+		chronological,
+		chronologicalItem,
+		emojisetAddressRegexp
+	} from '$lib/Constants';
 	import { onDestroy, onMount, tick } from 'svelte';
 	import CustomEmojiPopup from '$lib/components/content/CustomEmojiPopup.svelte';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
@@ -52,7 +57,7 @@
 	let reactionEventItems: EventItem[] = $state([]);
 	let zapEventItemsMap = new SvelteMap<number | undefined, ZapEventItem[]>();
 
-	let customEmojiShortcode = $state(new Map<string, string>());
+	let customEmojiData = $state(new Map<string, { shortcode: string; address?: string }>());
 
 	let id: string | undefined = $state();
 
@@ -143,7 +148,7 @@
 		repostEventItems = [];
 		reactionEventItems = [];
 		zapEventItemsMap.clear();
-		customEmojiShortcode = new Map<string, string>();
+		customEmojiData = new Map<string, { shortcode: string; address?: string }>();
 	}
 
 	onMount(() => {
@@ -307,12 +312,19 @@
 						url !== ''
 				);
 				if (emojiTag !== undefined) {
-					const [, shortcode, url] = emojiTag;
+					const [, shortcode, url, address] = emojiTag;
 					try {
 						new URL(url);
 						content = url;
-						if (!customEmojiShortcode.has(url)) {
-							customEmojiShortcode.set(url, shortcode);
+						if (!customEmojiData.has(url)) {
+							customEmojiData.set(url, {
+								shortcode,
+								address:
+									typeof address === 'string' &&
+									emojisetAddressRegexp.test(address)
+										? address
+										: undefined
+							});
 						}
 					} catch (error) {
 						console.error('[custom emoji invalid]', item, error);
@@ -390,7 +402,8 @@
 			{:else if URL.canParse(content)}
 				<CustomEmojiPopup
 					url={content}
-					text={customEmojiShortcode.get(content)}
+					text={customEmojiData.get(content)!.shortcode}
+					address={customEmojiData.get(content)!.address}
 					event={item?.event}
 				/>
 			{:else}

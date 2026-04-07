@@ -5,20 +5,24 @@
 	import { rom } from '$lib/stores/Author';
 	import { sendReaction } from '$lib/author/Reaction';
 	import type { Event } from 'nostr-typedef';
+	import { developerMode } from '$lib/stores/Preference';
 
 	interface Props {
 		text?: string;
 		url: string;
+		address?: string; // kind 30030 address
 		event?: Event;
 	}
 
-	let { text = '', url, event }: Props = $props();
+	let { text = '', url, address, event }: Props = $props();
+
+	// Workaround for inconsistent shortcodes
+	let shortcode = $derived(text.startsWith(':') ? text : `:${text}:`);
 
 	const popover = new Popover();
 
 	async function reaction(): Promise<void> {
-		// Workaround for inconsistent shortcodes
-		await sendReaction(event!, text.startsWith(':') ? text : `:${text}:`, url);
+		await sendReaction(event!, shortcode, url);
 		popover.open = false;
 	}
 </script>
@@ -30,6 +34,11 @@
 		<div {...popover.arrow}></div>
 
 		<img src={url} alt={text} title={text} />
+
+		{#if $developerMode}
+			<div>{shortcode}</div>
+			<div>{address}</div>
+		{/if}
 
 		{#if event && !$rom}
 			<button onclick={reaction}>{$_('actions.reaction.same')}</button>

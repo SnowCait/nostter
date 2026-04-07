@@ -39,7 +39,7 @@
 		{:else if token.type === 'hashtag'}
 			<Hashtag text={token.text} />
 		{:else if token.type === 'emoji'}
-			<CustomEmojiPopup text={token.text} url={token.url} {event} />
+			<CustomEmojiPopup text={token.text} url={token.url} address={token.address} {event} />
 		{:else if token.type === 'url'}
 			<Url text={token.text} />
 		{:else if token.type === 'relay'}
