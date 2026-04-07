@@ -1,5 +1,6 @@
 import { kinds as Kind, type Event as NostrEvent } from 'nostr-tools';
 import { unique } from './Array';
+import { Emojisets } from 'nostr-tools/kinds';
 
 export const appName = __APP_NAME__;
 export const uriScheme = 'web+nostr';
@@ -16,6 +17,7 @@ export const timeout = 5000;
 
 export const hexRegexp = /^[0-9a-f]{64}$/;
 export const addressRegexp = /^[0-9]+:[0-9a-f]{64}:.*$/;
+export const emojisetAddressRegexp = new RegExp(`^${Emojisets}:[0-9a-f]{64}:.*$`);
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
 export const nicovideoRegexp = /^https:\/\/(www|sp).nicovideo.jp\/watch\/(?<id>[a-zA-Z0-9]+)/;
 export const shortcodeRegexp = /^[\w-]+$/;

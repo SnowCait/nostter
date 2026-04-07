@@ -2,8 +2,7 @@ import { nip19 } from 'nostr-tools';
 import { unique } from './Array';
 import escapeStringRegexp from 'escape-string-regexp';
 import twitter from 'twitter-text';
-import { addressRegexp, shortcodeRegexp } from './Constants';
-import { Emojisets } from 'nostr-tools/kinds';
+import { emojisetAddressRegexp, shortcodeRegexp } from './Constants';
 
 type TextToken = {
 	type: 'text';
@@ -112,9 +111,7 @@ export class Content {
 						start: match.index,
 						url: tag[2],
 						address:
-							typeof address === 'string' &&
-							address.startsWith(`${Emojisets}:`) &&
-							addressRegexp.test(address)
+							typeof address === 'string' && emojisetAddressRegexp.test(address)
 								? address
 								: undefined
 					};
@@ -285,9 +282,7 @@ export function emojify(content: string, tags: string[][]): Token[] {
 						start: match.index,
 						url: tag[2],
 						address:
-							typeof address === 'string' &&
-							address.startsWith(`${Emojisets}:`) &&
-							addressRegexp.test(address)
+							typeof address === 'string' && emojisetAddressRegexp.test(address)
 								? address
 								: undefined
 					};
