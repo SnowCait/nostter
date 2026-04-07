@@ -20,7 +20,7 @@
 	import ProfileIconList from './ProfileIconList.svelte';
 	import { appName, chronological, chronologicalItem } from '$lib/Constants';
 	import { onDestroy, onMount, tick } from 'svelte';
-	import CustomEmojiLightbox from '$lib/components/content/CustomEmojiLightbox.svelte';
+	import CustomEmojiPopup from '$lib/components/content/CustomEmojiPopup.svelte';
 	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
 	import IconHeart from '@tabler/icons-svelte/icons/heart';
 	import IconBolt from '@tabler/icons-svelte/icons/bolt';
@@ -388,7 +388,7 @@
 			{:else if content === '-'}
 				<IconHeartBroken />
 			{:else if URL.canParse(content)}
-				<CustomEmojiLightbox
+				<CustomEmojiPopup
 					url={content}
 					text={customEmojiShortcode.get(content)}
 					event={item?.event}

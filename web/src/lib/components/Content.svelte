@@ -6,7 +6,7 @@
 	import Hashtag from './content/Hashtag.svelte';
 	import Url from './content/Url.svelte';
 	import Text from './content/Text.svelte';
-	import CustomEmojiLightbox from './content/CustomEmojiLightbox.svelte';
+	import CustomEmojiPopup from './content/CustomEmojiPopup.svelte';
 	import Ogp from './content/Ogp.svelte';
 	import { enablePreview } from '$lib/stores/Preference';
 	import { Twitter } from '$lib/Twitter';
@@ -39,7 +39,7 @@
 		{:else if token.type === 'hashtag'}
 			<Hashtag text={token.text} />
 		{:else if token.type === 'emoji' && token.url !== undefined}
-			<CustomEmojiLightbox text={token.text} url={token.url} {event} />
+			<CustomEmojiPopup text={token.text} url={token.url} {event} />
 		{:else if token.type === 'url'}
 			<Url text={token.text} />
 		{:else if token.type === 'relay'}
