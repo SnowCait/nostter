@@ -24,7 +24,7 @@
 	let tokens = $derived(Content.parse(content, tags));
 	let urls = $derived(
 		tokens
-			.filter((token) => token.name === 'url' && URL.canParse(token.text))
+			.filter((token) => token.type === 'url' && URL.canParse(token.text))
 			.map((token) => new URL(token.text))
 			.filter((url) => url.protocol === 'https:')
 	);
@@ -32,21 +32,21 @@
 
 <p class="content">
 	{#each tokens as token}
-		{#if token.name === 'reference' && token.text.startsWith('nostr:')}
+		{#if token.type === 'reference' && token.text.startsWith('nostr:')}
 			<ReferenceNip27 text={token.text} />
-		{:else if token.name === 'reference' && token.tagIndex !== undefined && tags.at(token.tagIndex) !== undefined}
+		{:else if token.type === 'reference' && token.tagIndex !== undefined && tags.at(token.tagIndex) !== undefined}
 			<Reference text={token.text} tag={tags[token.tagIndex]} />
-		{:else if token.name === 'hashtag'}
+		{:else if token.type === 'hashtag'}
 			<Hashtag text={token.text} />
-		{:else if token.name === 'emoji' && token.url !== undefined}
+		{:else if token.type === 'emoji' && token.url !== undefined}
 			<CustomEmojiLightbox text={token.text} url={token.url} {event} />
-		{:else if token.name === 'url'}
+		{:else if token.type === 'url'}
 			<Url text={token.text} />
-		{:else if token.name === 'relay'}
+		{:else if token.type === 'relay'}
 			<a href="/relays/{encodeURIComponent(token.text)}">
 				{token.text}
 			</a>
-		{:else if token.name === 'nip'}
+		{:else if token.type === 'nip'}
 			<Url
 				text={token.text}
 				url="https://github.com/nostr-protocol/nips/blob/master/{token.text.substring(

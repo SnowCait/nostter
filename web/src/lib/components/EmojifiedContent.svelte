@@ -11,9 +11,9 @@
 </script>
 
 {#each emojify(content, tags) as token}
-	{#if token.name === 'text'}
+	{#if token.type === 'text'}
 		<span>{token.text}</span>
-	{:else if token.name === 'emoji' && token.url}
+	{:else if token.type === 'emoji' && token.url}
 		<CustomEmoji text={token.text} url={token.url} />
 	{/if}
 {/each}
