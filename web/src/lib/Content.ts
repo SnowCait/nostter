@@ -2,7 +2,7 @@ import { nip19 } from 'nostr-tools';
 import { unique } from './Array';
 import escapeStringRegexp from 'escape-string-regexp';
 import twitter from 'twitter-text';
-import { shortcodeRegexp } from './Constants';
+import { emojisetAddressRegexp, shortcodeRegexp } from './Constants';
 
 type TextToken = {
 	type: 'text';
@@ -27,7 +27,8 @@ type EmojiToken = {
 	type: 'emoji';
 	text: string;
 	start: number;
-	url?: string;
+	url: string;
+	address?: string; // kind 30030 address
 };
 
 type UrlToken = {
@@ -72,19 +73,7 @@ export class Content {
 		);
 		hashtags.sort((x, y) => y.length - x.length);
 
-		const emojis = new Map(
-			tags
-				.filter(
-					([tagName, shortcode, url]) =>
-						tagName === 'emoji' &&
-						shortcode &&
-						shortcodeRegexp.test(shortcode) &&
-						url &&
-						url.startsWith('https://') &&
-						URL.canParse(url)
-				)
-				.map(([, shortcode, url]) => [shortcode, url])
-		);
+		const emojis = indexEmojisByShortcode(content, tags);
 
 		const foundTokens: Token[] = [];
 		foundTokens.push(
@@ -113,14 +102,20 @@ export class Content {
 			foundTokens.push(
 				...[
 					...content.matchAll(new RegExp(`:(${[...emojis.keys()].join('|')}):`, 'g'))
-				].map(
-					(match): EmojiToken => ({
+				].map((match): EmojiToken => {
+					const tag = emojis.get(match[1])!;
+					const address = tag.at(3);
+					return {
 						type: 'emoji',
 						text: match[0],
 						start: match.index,
-						url: emojis.get(match[1])
-					})
-				)
+						url: tag[2],
+						address:
+							typeof address === 'string' && emojisetAddressRegexp.test(address)
+								? address
+								: undefined
+					};
+				})
 			);
 		}
 		foundTokens.push(
@@ -253,8 +248,8 @@ function composeTokens(content: string, foundTokens: Token[]): Token[] {
 	return tokens;
 }
 
-export function emojify(content: string, tags: string[][]): Token[] {
-	const emojis = new Map(
+function indexEmojisByShortcode(content: string, tags: string[][]) {
+	return new Map<string, string[]>(
 		tags
 			.filter(
 				([tagName, shortcode, url]) =>
@@ -266,20 +261,32 @@ export function emojify(content: string, tags: string[][]): Token[] {
 					URL.canParse(url) &&
 					content.includes(`:${shortcode}:`)
 			)
-			.map(([, shortcode, url]) => [shortcode, url])
+			.map((tag) => [tag[1], tag])
 	);
+}
+
+export function emojify(content: string, tags: string[][]): Token[] {
+	const emojis = indexEmojisByShortcode(content, tags);
 
 	const foundTokens: Token[] = [];
 
 	if (emojis.size > 0) {
 		foundTokens.push(
 			...[...content.matchAll(new RegExp(`:(${[...emojis.keys()].join('|')}):`, 'g'))].map(
-				(match): EmojiToken => ({
-					type: 'emoji',
-					text: match[0],
-					start: match.index,
-					url: emojis.get(match[1])
-				})
+				(match): EmojiToken => {
+					const tag = emojis.get(match[1])!;
+					const address = tag.at(3);
+					return {
+						type: 'emoji',
+						text: match[0],
+						start: match.index,
+						url: tag[2],
+						address:
+							typeof address === 'string' && emojisetAddressRegexp.test(address)
+								? address
+								: undefined
+					};
+				}
 			)
 		);
 	}

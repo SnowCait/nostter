@@ -50,7 +50,42 @@ describe('parse test', () => {
 				type: 'emoji',
 				text: ':pawprint:',
 				start: 0,
-				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png',
+				address: undefined
+			}
+		] as const satisfies readonly Token[]);
+	});
+	it('emoji with address', () => {
+		expect(
+			Content.parse(':pawprint::pawprint2:', [
+				[
+					'emoji',
+					'pawprint',
+					'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png',
+					'30030:0000000000000000000000000000000000000000000000000000000000000000:emoji-set'
+				],
+				[
+					'emoji',
+					'pawprint2',
+					'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png',
+					'10030:0000000000000000000000000000000000000000000000000000000000000000:emoji-set'
+				]
+			])
+		).toStrictEqual([
+			{
+				type: 'emoji',
+				text: ':pawprint:',
+				start: 0,
+				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png',
+				address:
+					'30030:0000000000000000000000000000000000000000000000000000000000000000:emoji-set'
+			},
+			{
+				type: 'emoji',
+				text: ':pawprint2:',
+				start: 10,
+				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png',
+				address: undefined
 			}
 		] as const satisfies readonly Token[]);
 	});
@@ -252,15 +287,51 @@ describe('emojify', () => {
 				type: 'emoji',
 				text: ':pawprint:',
 				start: 6,
-				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png',
+				address: undefined
 			},
 			{
 				type: 'emoji',
 				text: ':pawprint:',
 				start: 16,
-				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png',
+				address: undefined
 			},
 			{ type: 'text', text: ' text2', start: 26 }
+		] as const satisfies readonly Token[]);
+	});
+	it('emoji with address', () => {
+		expect(
+			emojify(':pawprint::pawprint2:', [
+				[
+					'emoji',
+					'pawprint',
+					'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png',
+					'30030:0000000000000000000000000000000000000000000000000000000000000000:emoji-set'
+				],
+				[
+					'emoji',
+					'pawprint2',
+					'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png',
+					'10030:0000000000000000000000000000000000000000000000000000000000000000:emoji-set'
+				]
+			])
+		).toStrictEqual([
+			{
+				type: 'emoji',
+				text: ':pawprint:',
+				start: 0,
+				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png',
+				address:
+					'30030:0000000000000000000000000000000000000000000000000000000000000000:emoji-set'
+			},
+			{
+				type: 'emoji',
+				text: ':pawprint2:',
+				start: 10,
+				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png',
+				address: undefined
+			}
 		] as const satisfies readonly Token[]);
 	});
 });

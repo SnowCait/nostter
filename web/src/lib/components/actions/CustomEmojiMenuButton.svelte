@@ -21,7 +21,23 @@
 
 	const {
 		elements: { menu, item, trigger, overlay }
-	} = createDropdownMenu({ preventScroll: false });
+	} = createDropdownMenu({
+		preventScroll: false,
+
+		// Workaround for top layer (menu is hidden behind the top layer)
+		onOpenChange: ({ next }) => {
+			setTimeout(() => {
+				if (next) {
+					menuElement?.showPopover();
+				} else {
+					menuElement?.hidePopover();
+				}
+			}, 0);
+			return next;
+		}
+	});
+
+	let menuElement: HTMLElement | undefined;
 
 	let address = $derived(aTagContent(event));
 	let naddr = $derived(
@@ -55,7 +71,7 @@
 	<IconDots size={20} />
 </button>
 <div use:melt={$overlay} class="overlay"></div>
-<div use:melt={$menu} class="menu">
+<div use:melt={$menu} class="menu" popover="auto" bind:this={menuElement}>
 	{#if !$customEmojiListEvent?.tags.some((tag) => tag[0] === 'a' && tag[1] === address)}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -83,5 +99,10 @@
 <style>
 	button {
 		color: var(--accent-gray);
+	}
+
+	[popover] {
+		color: inherit;
+		border-width: inherit;
 	}
 </style>
