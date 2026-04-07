@@ -4,15 +4,58 @@ import escapeStringRegexp from 'escape-string-regexp';
 import twitter from 'twitter-text';
 import { shortcodeRegexp } from './Constants';
 
-export class Token {
-	constructor(
-		readonly name: 'text' | 'reference' | 'hashtag' | 'emoji' | 'url' | 'relay' | 'nip',
-		readonly text: string,
-		readonly start: number,
-		readonly tagIndex?: number, // for legacy reference #[index]
-		readonly url?: string // for custom emoji
-	) {}
-}
+type TextToken = {
+	type: 'text';
+	text: string;
+	start: number;
+};
+
+type ReferenceToken = {
+	type: 'reference';
+	text: string;
+	start: number;
+	tagIndex?: number; // for legacy reference #[index]
+};
+
+type HashtagToken = {
+	type: 'hashtag';
+	text: string;
+	start: number;
+};
+
+type EmojiToken = {
+	type: 'emoji';
+	text: string;
+	start: number;
+	url?: string;
+};
+
+type UrlToken = {
+	type: 'url';
+	text: string;
+	start: number;
+};
+
+type RelayToken = {
+	type: 'relay';
+	text: string;
+	start: number;
+};
+
+type NipToken = {
+	type: 'nip';
+	text: string;
+	start: number;
+};
+
+export type Token =
+	| TextToken
+	| ReferenceToken
+	| HashtagToken
+	| EmojiToken
+	| UrlToken
+	| RelayToken
+	| NipToken;
 
 export class Content {
 	static parse(content: string, tags: string[][] = []): Token[] {
@@ -46,7 +89,9 @@ export class Content {
 		const foundTokens: Token[] = [];
 		foundTokens.push(
 			...urls
-				.map(({ url, indices }) => new Token('url', url, indices[0]))
+				.map(
+					({ url, indices }): UrlToken => ({ type: 'url', text: url, start: indices[0] })
+				)
 				.filter((token) => token.start === 0 || content[token.start - 1] !== '"') // ignore URLs in JSON
 		);
 		if (hashtags.length > 0) {
@@ -55,7 +100,13 @@ export class Content {
 					...content.matchAll(
 						new RegExp(`#(${hashtags.map(escapeStringRegexp).join('|')})`, 'gi')
 					)
-				].map((match) => new Token('hashtag', match[0], match.index))
+				].map(
+					(match): HashtagToken => ({
+						type: 'hashtag',
+						text: match[0],
+						start: match.index
+					})
+				)
 			);
 		}
 		if (emojis.size > 0) {
@@ -63,8 +114,12 @@ export class Content {
 				...[
 					...content.matchAll(new RegExp(`:(${[...emojis.keys()].join('|')}):`, 'g'))
 				].map(
-					(match) =>
-						new Token('emoji', match[0], match.index, undefined, emojis.get(match[1]))
+					(match): EmojiToken => ({
+						type: 'emoji',
+						text: match[0],
+						start: match.index,
+						url: emojis.get(match[1])
+					})
 				)
 			);
 		}
@@ -74,23 +129,30 @@ export class Content {
 					/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[(?<i>\d+)\]/g
 				)
 			].map(
-				(match) =>
-					new Token(
-						'reference',
-						match[0],
-						match.index,
-						match.groups?.i ? Number(match.groups.i) : undefined
-					)
+				(match): ReferenceToken => ({
+					type: 'reference',
+					text: match[0],
+					start: match.index,
+					tagIndex: match.groups?.i ? Number(match.groups.i) : undefined
+				})
 			)
 		);
 		foundTokens.push(
 			...[...content.matchAll(/(?<=^|\s)(wss|ws):\/\/\S+/g)].map(
-				(match) => new Token('relay', match[0], match.index)
+				(match): RelayToken => ({
+					type: 'relay',
+					text: match[0],
+					start: match.index
+				})
 			)
 		);
 		foundTokens.push(
 			...[...content.matchAll(/NIP-[0-9A-Z]{2,}/g)].map(
-				(match) => new Token('nip', match[0], match.index)
+				(match): NipToken => ({
+					type: 'nip',
+					text: match[0],
+					start: match.index
+				})
 			)
 		);
 
@@ -177,7 +239,7 @@ function composeTokens(content: string, foundTokens: Token[]): Token[] {
 		}
 
 		if (token.start > index) {
-			tokens.push(new Token('text', content.slice(index, token.start), index));
+			tokens.push({ type: 'text', text: content.slice(index, token.start), start: index });
 		}
 
 		tokens.push(token);
@@ -186,7 +248,7 @@ function composeTokens(content: string, foundTokens: Token[]): Token[] {
 	}
 
 	if (index < content.length) {
-		tokens.push(new Token('text', content.slice(index, content.length), index));
+		tokens.push({ type: 'text', text: content.slice(index, content.length), start: index });
 	}
 	return tokens;
 }
@@ -212,8 +274,12 @@ export function emojify(content: string, tags: string[][]): Token[] {
 	if (emojis.size > 0) {
 		foundTokens.push(
 			...[...content.matchAll(new RegExp(`:(${[...emojis.keys()].join('|')}):`, 'g'))].map(
-				(match) =>
-					new Token('emoji', match[0], match.index, undefined, emojis.get(match[1]))
+				(match): EmojiToken => ({
+					type: 'emoji',
+					text: match[0],
+					start: match.index,
+					url: emojis.get(match[1])
+				})
 			)
 		);
 	}

@@ -1,35 +1,40 @@
 import { describe, it, expect } from 'vitest';
-import { Content, emojify, Token } from './Content';
+import { Content, emojify, type Token } from './Content';
 
 describe('parse test', () => {
 	// Basic
 	it('empty', () => {
-		expect(Content.parse('')).toStrictEqual([]);
+		expect(Content.parse('')).toStrictEqual([] as const satisfies readonly Token[]);
 	});
 	it('text', () => {
-		expect(Content.parse('text')).toStrictEqual([new Token('text', 'text', 0)]);
+		expect(Content.parse('text')).toStrictEqual([
+			{ type: 'text', text: 'text', start: 0 }
+		] as const satisfies readonly Token[]);
 	});
 	it('reference #[index]', () => {
-		expect(Content.parse('#[0]')).toStrictEqual([new Token('reference', '#[0]', 0, 0)]);
+		expect(Content.parse('#[0]')).toStrictEqual([
+			{ type: 'reference', text: '#[0]', start: 0, tagIndex: 0 }
+		] as const satisfies readonly Token[]);
 	});
 	it('reference nostr:', () => {
 		expect(
 			Content.parse('nostr:npub19rfhux6gjsmu0rtyendlrazvyr3lqy7m506vy4emy4vehf3s3s3qhhje7x')
 		).toStrictEqual([
-			new Token(
-				'reference',
-				'nostr:npub19rfhux6gjsmu0rtyendlrazvyr3lqy7m506vy4emy4vehf3s3s3qhhje7x',
-				0
-			)
-		]);
+			{
+				type: 'reference',
+				text: 'nostr:npub19rfhux6gjsmu0rtyendlrazvyr3lqy7m506vy4emy4vehf3s3s3qhhje7x',
+				start: 0,
+				tagIndex: undefined
+			}
+		] as const satisfies readonly Token[]);
 	});
 	it('hashtag', () => {
 		expect(Content.parse('#nostter', [['t', 'nostter']])).toStrictEqual([
-			new Token('hashtag', '#nostter', 0)
-		]);
+			{ type: 'hashtag', text: '#nostter', start: 0 }
+		] as const satisfies readonly Token[]);
 		expect(Content.parse('#nostter', [['t', '']])).toStrictEqual([
-			new Token('text', '#nostter', 0)
-		]);
+			{ type: 'text', text: '#nostter', start: 0 }
+		] as const satisfies readonly Token[]);
 	});
 	it('emoji', () => {
 		expect(
@@ -41,14 +46,13 @@ describe('parse test', () => {
 				]
 			])
 		).toStrictEqual([
-			new Token(
-				'emoji',
-				':pawprint:',
-				0,
-				undefined,
-				'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
-			)
-		]);
+			{
+				type: 'emoji',
+				text: ':pawprint:',
+				start: 0,
+				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+			}
+		] as const satisfies readonly Token[]);
 	});
 	it('multi hashtags', () => {
 		expect(
@@ -57,16 +61,16 @@ describe('parse test', () => {
 				['t', 'nostr']
 			])
 		).toStrictEqual([
-			new Token('hashtag', '#nostter', 0),
-			new Token('text', ' ', 8),
-			new Token('hashtag', '#nostr', 9)
-		]);
+			{ type: 'hashtag', text: '#nostter', start: 0 },
+			{ type: 'text', text: ' ', start: 8 },
+			{ type: 'hashtag', text: '#nostr', start: 9 }
+		] as const satisfies readonly Token[]);
 	});
 	it('part hashtags', () => {
 		expect(Content.parse('#nostter #nostr', [['t', 'nostter']])).toStrictEqual([
-			new Token('hashtag', '#nostter', 0),
-			new Token('text', ' #nostr', 8)
-		]);
+			{ type: 'hashtag', text: '#nostter', start: 0 },
+			{ type: 'text', text: ' #nostr', start: 8 }
+		] as const satisfies readonly Token[]);
 	});
 	it('overlap hashtags', () => {
 		expect(
@@ -75,56 +79,58 @@ describe('parse test', () => {
 				['t', 'nostrich']
 			])
 		).toStrictEqual([
-			new Token('hashtag', '#nostr', 0),
-			new Token('text', ' ', 6),
-			new Token('hashtag', '#nostrich', 7)
-		]);
+			{ type: 'hashtag', text: '#nostr', start: 0 },
+			{ type: 'text', text: ' ', start: 6 },
+			{ type: 'hashtag', text: '#nostrich', start: 7 }
+		] as const satisfies readonly Token[]);
 	});
 	it('invalid hashtags', () => {
 		expect(Content.parse('#nostr', [['t', 'nostter']])).toStrictEqual([
-			new Token('text', '#nostr', 0)
-		]);
+			{ type: 'text', text: '#nostr', start: 0 }
+		] as const satisfies readonly Token[]);
 	});
 	it('url', () => {
 		expect(Content.parse('https://example.com/')).toStrictEqual([
-			new Token('url', 'https://example.com/', 0)
-		]);
+			{ type: 'url', text: 'https://example.com/', start: 0 }
+		] as const satisfies readonly Token[]);
 		expect(Content.parse('http://example.com/')).toStrictEqual([
-			new Token('url', 'http://example.com/', 0)
-		]);
+			{ type: 'url', text: 'http://example.com/', start: 0 }
+		] as const satisfies readonly Token[]);
 	});
 	it('url in JSON', () => {
 		expect(Content.parse('{"key":"https://example.com/"}')).toStrictEqual([
-			new Token('text', '{"key":"https://example.com/"}', 0)
-		]);
+			{ type: 'text', text: '{"key":"https://example.com/"}', start: 0 }
+		] as const satisfies readonly Token[]);
 	});
 	it('url', () => {
 		expect(Content.parse('(https://example.com/path)')).toStrictEqual([
-			new Token('text', '(', 0),
-			new Token('url', 'https://example.com/path', 1),
-			new Token('text', ')', 25)
-		]);
+			{ type: 'text', text: '(', start: 0 },
+			{ type: 'url', text: 'https://example.com/path', start: 1 },
+			{ type: 'text', text: ')', start: 25 }
+		] as const satisfies readonly Token[]);
 	});
 	it('nip', () => {
-		expect(Content.parse('NIP-01')).toStrictEqual([new Token('nip', 'NIP-01', 0)]);
+		expect(Content.parse('NIP-01')).toStrictEqual([
+			{ type: 'nip', text: 'NIP-01', start: 0 }
+		] as const satisfies readonly Token[]);
 	});
 	it('nips', () => {
 		expect(Content.parse(' NIP-01\nNIP-02\nNIP-3')).toStrictEqual([
-			new Token('text', ' ', 0),
-			new Token('nip', 'NIP-01', 1),
-			new Token('text', '\n', 7),
-			new Token('nip', 'NIP-02', 8),
-			new Token('text', '\nNIP-3', 14)
-		]);
+			{ type: 'text', text: ' ', start: 0 },
+			{ type: 'nip', text: 'NIP-01', start: 1 },
+			{ type: 'text', text: '\n', start: 7 },
+			{ type: 'nip', text: 'NIP-02', start: 8 },
+			{ type: 'text', text: '\nNIP-3', start: 14 }
+		] as const satisfies readonly Token[]);
 	});
 
 	// Complex
 	it('multi lines', () => {
 		expect(Content.parse('#[0]\n#nostter', [[], ['t', 'nostter']])).toStrictEqual([
-			new Token('reference', '#[0]', 0, 0),
-			new Token('text', '\n', 4),
-			new Token('hashtag', '#nostter', 5)
-		]);
+			{ type: 'reference', text: '#[0]', start: 0, tagIndex: 0 },
+			{ type: 'text', text: '\n', start: 4 },
+			{ type: 'hashtag', text: '#nostter', start: 5 }
+		] as const satisfies readonly Token[]);
 	});
 	it('multi lines', () => {
 		expect(
@@ -133,18 +139,18 @@ describe('parse test', () => {
 				[[], [], ['t', 'nostter'], ['t', 'nostr']]
 			)
 		).toStrictEqual([
-			new Token('reference', '#[1]', 0, 1),
-			new Token('text', ' 𠮷#test ', 4),
-			new Token('hashtag', '#nostter', 13),
-			new Token('text', ' ', 21),
-			new Token('hashtag', '#nostr', 22),
-			new Token('text', '\n', 28),
-			new Token('reference', '#[0]', 29, 0),
-			new Token('text', ' ', 33),
-			new Token('url', 'https://example.com/', 34),
-			new Token('text', ' ', 54),
-			new Token('url', 'https://example.com/#tag', 55)
-		]);
+			{ type: 'reference', text: '#[1]', start: 0, tagIndex: 1 },
+			{ type: 'text', text: ' 𠮷#test ', start: 4 },
+			{ type: 'hashtag', text: '#nostter', start: 13 },
+			{ type: 'text', text: ' ', start: 21 },
+			{ type: 'hashtag', text: '#nostr', start: 22 },
+			{ type: 'text', text: '\n', start: 28 },
+			{ type: 'reference', text: '#[0]', start: 29, tagIndex: 0 },
+			{ type: 'text', text: ' ', start: 33 },
+			{ type: 'url', text: 'https://example.com/', start: 34 },
+			{ type: 'text', text: ' ', start: 54 },
+			{ type: 'url', text: 'https://example.com/#tag', start: 55 }
+		] as const satisfies readonly Token[]);
 	});
 });
 
@@ -227,7 +233,9 @@ describe('emojify', () => {
 					'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
 				]
 			])
-		).toStrictEqual([new Token('text', 'text', 0)]);
+		).toStrictEqual([
+			{ type: 'text', text: 'text', start: 0 }
+		] as const satisfies readonly Token[]);
 	});
 	it('emoji', () => {
 		expect(
@@ -239,22 +247,20 @@ describe('emojify', () => {
 				]
 			])
 		).toStrictEqual([
-			new Token('text', 'text1 ', 0),
-			new Token(
-				'emoji',
-				':pawprint:',
-				6,
-				undefined,
-				'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
-			),
-			new Token(
-				'emoji',
-				':pawprint:',
-				16,
-				undefined,
-				'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
-			),
-			new Token('text', ' text2', 26)
-		]);
+			{ type: 'text', text: 'text1 ', start: 0 },
+			{
+				type: 'emoji',
+				text: ':pawprint:',
+				start: 6,
+				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+			},
+			{
+				type: 'emoji',
+				text: ':pawprint:',
+				start: 16,
+				url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43e.png'
+			},
+			{ type: 'text', text: ' text2', start: 26 }
+		] as const satisfies readonly Token[]);
 	});
 });
