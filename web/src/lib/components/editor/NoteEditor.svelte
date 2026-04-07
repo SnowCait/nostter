@@ -18,7 +18,7 @@
 	import { RelayList } from '$lib/RelayList';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '$lib/stores/NoteDialog';
 	import { author, pubkey, rom } from '$lib/stores/Author';
-	import { customEmojiTags } from '$lib/author/CustomEmojis';
+	import { customEmojiTags, findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
 	import { fetchFolloweesMetadata } from '$lib/author/Follow';
 	import Note from '../items/Note.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
@@ -159,7 +159,12 @@
 		console.debug('[complement shortcode replace]', emoji);
 
 		if (!emojiTags.some(([, s]) => s === emoji.shortcode)) {
-			emojiTags.push(['emoji', emoji.shortcode, emoji.url]);
+			const emojiTag = ['emoji', emoji.shortcode, emoji.url];
+			const address = findCustomEmojiSetAddress(`:${emoji.shortcode}:`, emoji.url);
+			if (address !== undefined) {
+				emojiTag.push(address);
+			}
+			emojiTags.push(emojiTag);
 		}
 
 		const { selectionStart } = textarea;
@@ -378,7 +383,12 @@
 			emoji.src !== undefined &&
 			!emojiTags.some(([, s]) => s === shortcode)
 		) {
-			emojiTags.push(['emoji', shortcode, emoji.src]);
+			const emojiTag = ['emoji', shortcode, emoji.src];
+			const address = findCustomEmojiSetAddress(`:${shortcode}:`, emoji.src);
+			if (address !== undefined) {
+				emojiTag.push(address);
+			}
+			emojiTags.push(emojiTag);
 		}
 		await tick();
 		const cursor = content.length - after.length;
