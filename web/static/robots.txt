@@ -22,4 +22,5 @@ Disallow: /nevent
 Disallow: /naddr
 
 User-agent: *
+Disallow: /cdn-cgi/
 Crawl-delay: 60
