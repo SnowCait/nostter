@@ -2,7 +2,7 @@
 	import { run } from 'svelte/legacy';
 
 	import { _ } from 'svelte-i18n';
-	import { getSeenOnRelays, rxNostr, tie } from '$lib/timelines/MainTimeline';
+	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { createRxBackwardReq, latest, latestEach, uniq } from 'rx-nostr';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { hexRegexp } from '$lib/Constants';
@@ -163,24 +163,25 @@
 		{@const name = event.tags.find(([tagName]) => tagName === 'name')?.at(1)}
 		{@const thumb = event.tags.find(([tagName]) => tagName === 'thumb')?.at(1)}
 		{@const image = event.tags.find(([tagName]) => tagName === 'image')?.at(1)}
-		{@const naddr = nip19.naddrEncode({
-			kind: event.kind,
-			pubkey: event.pubkey,
-			identifier: findIdentifier(event.tags) ?? '',
-			relays: getSeenOnRelays(event.id)
-		})}
+		{@const npub = nip19.npubEncode(event.pubkey)}
 		<li>
-			<a href="https://badges.page/a/{naddr}" target="_blank" rel="noreferrer">
+			<a
+				href="https://yakitofu.org/badge/{npub}:{findIdentifier(event.tags) ?? ''}"
+				target="_blank"
+				rel="noreferrer"
+			>
 				<img src={thumb ? thumb : image} alt={name} title={name} />
 			</a>
 		</li>
 	{:else}
-		<li>
-			<span>{$_('badge.none')}</span>
-			<ExternalLink link={new URL('https://badges.page/')}>
-				{$_('badge.create')}
-			</ExternalLink>
-		</li>
+		{#if pubkey === $authorPubkey}
+			<li>
+				<span>{$_('badge.none')}</span>
+				<ExternalLink link={new URL('https://yakitofu.org/')}>
+					{$_('badge.create')}
+				</ExternalLink>
+			</li>
+		{/if}
 	{/each}
 </ul>
 
