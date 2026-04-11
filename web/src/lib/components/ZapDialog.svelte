@@ -138,7 +138,7 @@
 					<span>sats</span>
 				</div>
 				<div>
-					<input type="text" placeholder={$_('zap.message')} bind:value={comment} />
+					<textarea placeholder={$_('zap.message')} bind:value={comment}></textarea>
 				</div>
 				<input type="submit" value={$_('zap.send')} disabled={sending} />
 			</form>
@@ -193,9 +193,11 @@
 		margin-top: 1rem;
 	}
 
-	input[type='text'] {
+	textarea {
 		width: 100%;
 		font-size: 1rem;
+		border: var(--default-border);
+		min-height: 5rem;
 	}
 
 	input[type='number'] {
