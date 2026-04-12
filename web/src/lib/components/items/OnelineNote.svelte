@@ -41,5 +41,6 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		text-wrap: nowrap;
+		color: var(--foreground);
 	}
 </style>
