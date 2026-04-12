@@ -9,7 +9,6 @@
 	let { reason = $bindable(undefined) }: Props = $props();
 
 	function onClick() {
-		console.log('[content warning click]', reason);
 		if (reason === undefined) {
 			reason = '';
 		} else {
@@ -19,31 +18,39 @@
 </script>
 
 <div>
-	<button
-		onclick={onClick}
-		class="clear editor-option active"
-		class:enable={reason !== undefined}
-		title={$_('editor.content-warning.title')}
-	>
-		<IconEyeOff size="20" />
-	</button>
-	{#if reason !== undefined}
-		<input type="text" bind:value={reason} placeholder={$_('editor.content-warning.reason')} />
-	{/if}
+	<span class="icon">
+		<IconEyeOff size="20" color="var(--accent)" />
+	</span>
+	<label>
+		<span>
+			{$_('editor.content-warning.title')}
+		</span>
+		<input type="checkbox" onchange={onClick} checked={reason !== undefined} />
+		{#if reason !== undefined}
+			<input
+				type="text"
+				bind:value={reason}
+				placeholder={$_('editor.content-warning.reason')}
+			/>
+		{/if}
+	</label>
 </div>
 
 <style>
-	.enable {
-		color: var(--accent-gray);
-	}
-
 	div {
 		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.icon {
+		display: inline-flex;
 	}
 
 	input[type='text'] {
-		padding: 0;
+		padding: 0 0.5rem;
 		margin-left: 0.5rem;
 		border: 1px solid var(--accent-gray);
+		height: 1.5rem;
 	}
 </style>

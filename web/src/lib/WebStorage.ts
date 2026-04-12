@@ -3,14 +3,15 @@ import { get } from 'svelte/store';
 import { findIdentifier } from './EventHelper';
 import { pubkey } from './stores/Author';
 import { appName } from './Constants';
-import { persisted, type Persisted } from 'svelte-persisted-store';
+import { persisted, type Options, type Persisted } from 'svelte-persisted-store';
 import { eventCache } from './cache/Events';
 
-export function persistedStore<StoreType>(
+export function persistedStore<StoreType, SerializerType = StoreType>(
 	key: string,
-	initialValue: StoreType
+	initialValue: StoreType,
+	options?: Options<StoreType, SerializerType>
 ): Persisted<StoreType> {
-	return persisted(`${appName}:${key}`, initialValue);
+	return persisted(`${appName}:${key}`, initialValue, options);
 }
 
 export class WebStorage {

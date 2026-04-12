@@ -72,6 +72,9 @@
 		"close": {
 			"button": "Close",
 			"confirm": "Draft exists. Do you close?"
+		},
+		"options": {
+			"advanced": "Options"
 		}
 	},
 	"gdpr": {
@@ -409,5 +412,10 @@
 		"title": "Pinned Notes",
 		"profile": "Pinned",
 		"more": "View more"
+	},
+	"via": {
+		"none": "None",
+		"once": "Once",
+		"always": "Always"
 	}
 }

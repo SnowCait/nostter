@@ -72,6 +72,9 @@
 		"close": {
 			"button": "閉じる",
 			"confirm": "下書きがあります。閉じますか？"
+		},
+		"options": {
+			"advanced": "オプション"
 		}
 	},
 	"gdpr": {
@@ -408,5 +411,10 @@
 		"title": "固定された投稿",
 		"profile": "固定",
 		"more": "もっと見る"
+	},
+	"via": {
+		"none": "なし",
+		"once": "一度だけ",
+		"always": "常に"
 	}
 }
