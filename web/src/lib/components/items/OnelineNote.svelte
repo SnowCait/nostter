@@ -9,14 +9,24 @@
 	}
 
 	let { item }: Props = $props();
+
+	let contentWarningTag = $derived(
+		item.event.tags.find(([tagName]) => tagName === 'content-warning')
+	);
 </script>
 
 <article class="timeline-item">
 	<div class="icon"><IconMessageCircle /></div>
 	<div class="picture"><ProfileIcon pubkey={item.event.pubkey} /></div>
-	<div class="content">
-		<OnelineContent content={item.event.content} tags={item.event.tags} />
-	</div>
+	{#if contentWarningTag !== undefined}
+		<div class="content-warning">
+			<div>{contentWarningTag?.at(1) ?? ''}</div>
+		</div>
+	{:else}
+		<div class="content">
+			<OnelineContent content={item.event.content} tags={item.event.tags} />
+		</div>
+	{/if}
 </article>
 
 <style>
