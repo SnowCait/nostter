@@ -31,6 +31,10 @@
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
 	import Loading from '$lib/components/Loading.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
+	import EnableVia from './EnableVia.svelte';
+	import Via from '../Via.svelte';
+	import { createViaTag } from '$lib/author/Via';
+	import { Collapsible } from 'melt/builders';
 
 	export function clear(): void {
 		console.log('[note editor clear]');
@@ -56,8 +60,11 @@
 	let channelEvent: NostrEvent | undefined = $state();
 	let emojiTags: string[][] = $state([]);
 	let contentWarningReason: string | undefined = $state();
+	let enableVia = $state(false);
 
 	let textarea = $state<HTMLTextAreaElement>();
+
+	const collapsible = new Collapsible();
 
 	//#region Mention complement
 
@@ -421,7 +428,8 @@
 				),
 				...noteComposer.hashtags(content),
 				...(await noteComposer.emojiTags(content, $state.snapshot(emojiTags))),
-				...noteComposer.contentWarningTags(contentWarningReason)
+				...noteComposer.contentWarningTags(contentWarningReason),
+				...(enableVia ? [createViaTag()] : [])
 			]
 		);
 
@@ -657,7 +665,9 @@
 				inEditor={true}
 				on:pick={onEmojiPick}
 			/>
-			<ContentWarning bind:reason={contentWarningReason} />
+			<button class="clear editor-option advanced" {...collapsible.trigger}>
+				{$_('editor.options.advanced')}
+			</button>
 		</div>
 		<div>
 			<button
@@ -670,6 +680,14 @@
 			</button>
 		</div>
 	</div>
+	{#if collapsible.open}
+		<div class="advanced-options" {...collapsible.content}>
+			<ContentWarning bind:reason={contentWarningReason} />
+			<div class="via">
+				<EnableVia bind:enable={enableVia} />
+			</div>
+		</div>
+	{/if}
 	{#if $quotes.length > 0}
 		{#each $quotes as quote}
 			<Note item={new EventItem(quote)} readonly={true} />
@@ -683,6 +701,11 @@
 	{#if content !== ''}
 		<section class="preview card">
 			<ContentComponent content={Content.replaceNip19(content)} {tags} />
+			{#if enableVia}
+				<div>
+					<Via tags={[createViaTag()]} />
+				</div>
+			{/if}
 		</section>
 	{/if}
 </article>
@@ -741,6 +764,7 @@
 
 	button {
 		padding: 0.4rem 1rem;
+		user-select: none;
 	}
 
 	button:disabled {
@@ -770,6 +794,27 @@
 	.options {
 		display: flex;
 		height: 30px;
+		align-items: center;
+	}
+
+	.options .advanced {
+		color: var(--accent);
+		background-color: inherit;
+		height: 36px;
+		width: inherit;
+		padding: 0 8px;
+	}
+
+	.advanced-options {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding: 1rem;
+	}
+
+	.via {
+		display: flex;
+		align-items: center;
 	}
 
 	.uploading {
