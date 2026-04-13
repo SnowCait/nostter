@@ -13,6 +13,7 @@ updates:
           - "svelte"
           - "svelte-check"
           - "@sveltejs/*"
+          - "vite"
       linter:
         patterns:
           - "eslint*"
