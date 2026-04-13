@@ -13,6 +13,7 @@ updates:
           - "svelte"
           - "svelte-check"
           - "@sveltejs/*"
+          - "typescript"
           - "vite"
       linter:
         patterns:
@@ -31,10 +32,6 @@ updates:
           - "rx-nostr-crypto"
           - "rxjs"
           - "nostr-typedef"
-      TypeScript:
-        patterns:
-          - "tslib"
-          - "typescript"
       async-lock:
         patterns:
           - "async-lock"
