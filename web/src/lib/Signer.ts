@@ -38,8 +38,11 @@ export class Signer {
 		bunkerSigner = BunkerSigner.fromBunker(clientSeckey, bunkerPointer, {
 			onauth: (url) => open(url, '_blank')
 		});
+		console.debug('[NIP-46 client pubkey]', getPublicKey(clientSeckey));
 		await bunkerSigner.connect();
+		console.debug('[NIP-46 connected]');
 		nip46CachedPublicKey = await bunkerSigner.getPublicKey();
+		console.debug('[NIP-46 user pubkey]', nip46CachedPublicKey);
 	}
 
 	public static async abolishBunkerConnection(): Promise<void> {
