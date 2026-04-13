@@ -8,33 +8,48 @@ updates:
       default-days: 14
     open-pull-requests-limit: 20
     groups:
-      svelte:
-        applies-to: version-updates
+      Svelte:
         patterns:
           - "svelte"
           - "svelte-check"
           - "@sveltejs/*"
-      eslint:
-        applies-to: version-updates
+      linter:
         patterns:
           - "eslint*"
           - "@typescript-eslint/*"
-      melt:
-        applies-to: version-updates
+          - "prettier*"
+      UI:
         patterns:
           - "melt"
           - "@melt-ui/*"
-      tabler:
-        applies-to: version-updates
-        patterns:
+          - "@floating-ui/dom"
           - "@tabler/*"
       rx-nostr:
-        applies-to: version-updates
         patterns:
           - "rx-nostr"
           - "rx-nostr-crypto"
           - "rxjs"
           - "nostr-typedef"
+      TypeScript:
+        patterns:
+          - "tslib"
+          - "typescript"
+      async-lock:
+        patterns:
+          - "async-lock"
+          - "@types/async-lock"
+      qrcode:
+        patterns:
+          - "qrcode"
+          - "@types/qrcode"
+      twitter-text:
+        patterns:
+          - "twitter-text"
+          - "@types/twitter-text"
+      gdpr-cookie-consent-banner:
+        patterns:
+          - "@beyonk/gdpr-cookie-consent-banner"
+          - "@types/beyonk__gdpr-cookie-consent-banner"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
