@@ -33,7 +33,7 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	import EnableVia from './EnableVia.svelte';
 	import Via from '../Via.svelte';
-	import { createViaTag } from '$lib/author/Via';
+	import { createViaTag, via } from '$lib/author/Via';
 	import { Collapsible } from 'melt/builders';
 
 	export function clear(): void {
@@ -60,7 +60,7 @@
 	let channelEvent: NostrEvent | undefined = $state();
 	let emojiTags: string[][] = $state([]);
 	let contentWarningReason: string | undefined = $state();
-	let enableVia = $state(false);
+	let enableVia = $state($via !== 'none');
 
 	let textarea = $state<HTMLTextAreaElement>();
 

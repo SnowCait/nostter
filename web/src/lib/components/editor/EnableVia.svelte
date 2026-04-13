@@ -1,6 +1,6 @@
 <script lang="ts">
+	import { via, ViaOption } from '$lib/author/Via';
 	import { appName } from '$lib/Constants';
-	import { persistedStore } from '$lib/WebStorage';
 	import { IconPaw } from '@tabler/icons-svelte';
 	import { _ } from 'svelte-i18n';
 
@@ -9,17 +9,6 @@
 	}
 
 	let { enable = $bindable() }: Props = $props();
-
-	const ViaOption = ['none', 'once', 'always'] as const;
-	type ViaOption = (typeof ViaOption)[number];
-	const via = persistedStore<ViaOption>('via:kind:1', 'none', {
-		beforeWrite: (value) => {
-			if (value === 'once') {
-				return 'none';
-			}
-			return value;
-		}
-	});
 
 	$effect(() => {
 		enable = $via !== 'none';
