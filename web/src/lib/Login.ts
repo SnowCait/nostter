@@ -12,7 +12,7 @@ import { remoteSigner } from './RemoteSigner';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
-		console.log('[relays]', rxNostr.getDefaultRelays());
+		console.debug('[relays]', rxNostr.getDefaultRelays());
 
 		const pubkey = await Signer.getPublicKey();
 		const user = {
@@ -26,9 +26,9 @@ export class Login {
 			tags: [],
 			created_at: now()
 		});
-		console.log('[kind 0]', metadataEvent);
+		console.debug('[kind 0]', metadataEvent);
 		rxNostr.send(metadataEvent).subscribe((packet) => {
-			console.log('[save metadata]', packet);
+			console.debug('[save metadata]', packet);
 		});
 		authorProfile.set(user);
 
@@ -46,14 +46,14 @@ export class Login {
 			}),
 			created_at: now()
 		});
-		console.log('[kind 10002]', relayListEvent);
+		console.debug('[kind 10002]', relayListEvent);
 		rxNostr.send(relayListEvent).subscribe((packet) => {
-			console.log('[save relay list]', packet);
+			console.debug('[save relay list]', packet);
 		});
 	}
 
 	public async withNip07() {
-		console.log('Login with NIP-07');
+		console.debug('Login with NIP-07');
 		console.time('NIP-07');
 
 		loginType.set('NIP-07');
@@ -64,7 +64,7 @@ export class Login {
 			if (!$pubkey) {
 				throw new Error('undefined');
 			}
-			console.log('[pubkey]', $pubkey);
+			console.debug('[pubkey]', $pubkey);
 		} catch (error) {
 			console.error('[NIP-07 getPublicKey()]', error);
 			console.timeEnd('NIP-07');
@@ -80,7 +80,7 @@ export class Login {
 	}
 
 	public async withNip46(bunker: string): Promise<boolean> {
-		console.log('Login with NIP-46');
+		console.debug('Login with NIP-46');
 		console.time('NIP-46');
 
 		loginType.set('NIP-46');
@@ -121,9 +121,9 @@ export class Login {
 	}
 
 	public async withNpub(key: string) {
-		console.log('npub', key);
+		console.debug('npub', key);
 		const { type, data } = nip19.decode(key);
-		console.log(type, data);
+		console.debug(type, data);
 		if (type !== 'npub' || typeof data !== 'string') {
 			console.error(`Invalid npub: ${key}`);
 			return;
