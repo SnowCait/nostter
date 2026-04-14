@@ -38,7 +38,6 @@
 	import ContinuePosting from './ContinuePosting.svelte';
 
 	export function clear(closed = false): void {
-		content = '';
 		$intentContent = '';
 		$replyTo = undefined;
 		$quotes = [];
@@ -47,10 +46,18 @@
 		contentWarningReason = undefined;
 
 		if (!continuePosting) {
+			content = '';
 			$openNoteDialog = false;
 			collapsible.open = false;
-		} else if (closed) {
-			continuePosting = false;
+		} else {
+			const hashtags = Content.findHashtags(content);
+			content = ' ' + hashtags.map((hashtag) => `#${hashtag}`).join(' ');
+			textarea?.focus();
+			tick().then(() => textarea?.setSelectionRange(0, 0));
+
+			if (closed) {
+				continuePosting = false;
+			}
 		}
 	}
 
