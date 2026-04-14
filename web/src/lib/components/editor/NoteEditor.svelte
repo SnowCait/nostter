@@ -46,6 +46,7 @@
 		mention = undefined;
 		emojiTags = [];
 		contentWarningReason = undefined;
+		collapsible.open = false;
 	}
 
 	interface Props {
