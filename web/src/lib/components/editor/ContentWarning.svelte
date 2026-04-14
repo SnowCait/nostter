@@ -48,6 +48,10 @@
 		display: inline-flex;
 	}
 
+	input[type='checkbox'] {
+		margin-left: 0.3rem;
+	}
+
 	input[type='text'] {
 		padding: 0 0.5rem;
 		margin-left: 0.5rem;

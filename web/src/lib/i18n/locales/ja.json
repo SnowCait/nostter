@@ -75,7 +75,8 @@
 		},
 		"options": {
 			"advanced": "オプション"
-		}
+		},
+		"continue-posting": "連続投稿"
 	},
 	"gdpr": {
 		"heading": "クッキー",

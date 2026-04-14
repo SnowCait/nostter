@@ -35,10 +35,9 @@
 	import Via from '../Via.svelte';
 	import { createViaTag, via } from '$lib/author/Via';
 	import { Collapsible } from 'melt/builders';
+	import ContinuePosting from './ContinuePosting.svelte';
 
-	export function clear(): void {
-		console.log('[note editor clear]');
-		$openNoteDialog = false;
+	export function clear(closed = false): void {
 		content = '';
 		$intentContent = '';
 		$replyTo = undefined;
@@ -46,7 +45,13 @@
 		mention = undefined;
 		emojiTags = [];
 		contentWarningReason = undefined;
-		collapsible.open = false;
+
+		if (!continuePosting) {
+			$openNoteDialog = false;
+			collapsible.open = false;
+		} else if (closed) {
+			continuePosting = false;
+		}
 	}
 
 	interface Props {
@@ -60,6 +65,7 @@
 	let posting = $state(false);
 	let channelEvent: NostrEvent | undefined = $state();
 	let emojiTags: string[][] = $state([]);
+	let continuePosting = $state(false);
 	let contentWarningReason: string | undefined = $state();
 	let enableVia = $state($via !== 'none');
 
@@ -451,8 +457,10 @@
 				if (packet.ok && posting) {
 					posting = false;
 					clear();
-					dispatch('sent');
-					await afterPost();
+					if (!continuePosting) {
+						dispatch('sent');
+						await afterPost();
+					}
 				}
 			},
 			complete: () => {
@@ -683,10 +691,9 @@
 	</div>
 	{#if collapsible.open}
 		<div class="advanced-options" {...collapsible.content}>
+			<ContinuePosting bind:continuePosting />
 			<ContentWarning bind:reason={contentWarningReason} />
-			<div class="via">
-				<EnableVia bind:enable={enableVia} />
-			</div>
+			<EnableVia bind:enable={enableVia} />
 		</div>
 	{/if}
 	{#if $quotes.length > 0}
@@ -811,11 +818,6 @@
 		flex-direction: column;
 		gap: 1rem;
 		padding: 1rem;
-	}
-
-	.via {
-		display: flex;
-		align-items: center;
 	}
 
 	.uploading {
