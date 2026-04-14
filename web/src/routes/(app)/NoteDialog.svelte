@@ -30,8 +30,7 @@
 	}
 
 	function closed(): void {
-		console.log(`[note dialog close]`);
-		editor?.clear();
+		editor?.clear(true);
 	}
 
 	function closeIfNotEmpty(e?: Event): void {

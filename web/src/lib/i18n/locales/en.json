@@ -75,7 +75,8 @@
 		},
 		"options": {
 			"advanced": "Options"
-		}
+		},
+		"continue-posting": "Continue posting"
 	},
 	"gdpr": {
 		"heading": "Cookie",

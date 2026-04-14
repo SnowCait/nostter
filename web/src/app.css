@@ -617,3 +617,9 @@ button.editor-option:hover {
 .navigation:hover {
 	background: var(--accent-surface-low);
 }
+
+label input[type='checkbox'] + span,
+label span:has(+ input[type='checkbox']) {
+	user-select: none;
+	cursor: pointer;
+}
