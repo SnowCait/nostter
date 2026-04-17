@@ -1,7 +1,5 @@
 .DS_Store
 node_modules
-/build
-/.svelte-kit
 /package
 .env
 .env.*
@@ -9,8 +7,10 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+# Output
+.wrangler
+/.svelte-kit
+/build
+
 # Playwright
 test-results/
-
-# Sentry Config File
-.sentryclirc
