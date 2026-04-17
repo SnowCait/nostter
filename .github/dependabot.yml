@@ -13,12 +13,14 @@ updates:
           - "svelte"
           - "svelte-check"
           - "@sveltejs/*"
-          - "typescript"
           - "vite"
+      TypeScript:
+        patterns:
+          - "typescript"
+          - "@typescript-eslint/*"
       linter:
         patterns:
           - "eslint*"
-          - "@typescript-eslint/*"
           - "prettier*"
       UI:
         patterns:
