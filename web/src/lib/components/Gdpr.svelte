@@ -35,7 +35,7 @@
 	cookieName="beyonk_gdpr"
 	heading={$_('gdpr.heading')}
 	description={$_('gdpr.description')}
-	acceptLabel={$_('gdpr.accept_label')}
+	acceptSelectedLabel={$_('gdpr.accept_label')}
 	settingsLabel={$_('gdpr.settings_label')}
 	closeLabel={$_('gdpr.close_label')}
 	showEditIcon={false}
