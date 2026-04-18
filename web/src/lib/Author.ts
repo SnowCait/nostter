@@ -17,7 +17,6 @@ import { filterTags, findIdentifier, parseRelayJson } from './EventHelper';
 import { customEmojiListEvent, storeCustomEmojis } from './author/CustomEmojis';
 import type { User } from '../routes/types';
 import { lastReadAt } from './author/Notifications';
-import { Mute } from './Mute';
 import { WebStorage } from './WebStorage';
 import { Preferences, preferencesStore } from './Preferences';
 import { rxNostr, tie } from './timelines/MainTimeline';
@@ -152,12 +151,8 @@ export class Author {
 		console.debug('[last read at]', new Date(get(lastReadAt) * 1000));
 
 		const muteEvent = replaceableEvents.get(10000);
-		const legacyMuteEvent = parameterizedReplaceableEvents.get(`${30000}:mute`);
-
 		if (muteEvent !== undefined) {
 			await storeMutedTagsByEvent(muteEvent);
-		} else if (legacyMuteEvent !== undefined) {
-			await new Mute().migrate(legacyMuteEvent, muteEvent);
 		}
 
 		const mutedByKindEvents = [...parameterizedReplaceableEvents]
