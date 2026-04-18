@@ -25,6 +25,7 @@
 	import EmojifiedContent from '$lib/components/EmojifiedContent.svelte';
 	import { userStatusReqEmit } from '$lib/UserStatus';
 	import { untrack } from 'svelte';
+	import { fold } from '$lib/components/shared/ViewMoreAttachment.svelte';
 
 	interface Props {
 		slug: string;
@@ -164,7 +165,7 @@
 			</div>
 		{/if}
 		{#if user?.about}
-			<div class="about">
+			<div class="about" {@attach fold}>
 				<Content content={user.about} tags={metadata?.event.tags ?? []} />
 			</div>
 		{/if}
@@ -301,8 +302,7 @@
 
 	.about {
 		margin: 1rem 0;
-		max-height: 20rem;
-		overflow-y: auto;
+		background-color: var(--surface);
 	}
 
 	.relationships {

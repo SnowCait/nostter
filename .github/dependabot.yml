@@ -17,10 +17,11 @@ updates:
       TypeScript:
         patterns:
           - "typescript"
-          - "@typescript-eslint/*"
+          - "typescript-eslint"
       linter:
         patterns:
           - "eslint*"
+          - "@eslint/*"
           - "prettier*"
       UI:
         patterns:

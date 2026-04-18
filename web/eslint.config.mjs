@@ -1,78 +1,46 @@
-import typescriptEslint from '@typescript-eslint/eslint-plugin';
-import globals from 'globals';
-import tsParser from '@typescript-eslint/parser';
-import parser from 'svelte-eslint-parser';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { includeIgnoreFile } from '@eslint/compat';
 import js from '@eslint/js';
-import { FlatCompat } from '@eslint/eslintrc';
+import svelte from 'eslint-plugin-svelte';
+import { defineConfig } from 'eslint/config';
+import globals from 'globals';
+import ts from 'typescript-eslint';
+import svelteConfig from './svelte.config.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-	baseDirectory: __dirname,
-	recommendedConfig: js.configs.recommended,
-	allConfig: js.configs.all
-});
+const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 
-export default [
+export default defineConfig([
+	includeIgnoreFile(gitignorePath),
+	js.configs.recommended,
+	ts.configs.recommended,
+	svelte.configs.recommended,
 	{
-		ignores: [
-			'**/.DS_Store',
-			'**/node_modules',
-			'build',
-			'.svelte-kit',
-			'package',
-			'**/.env',
-			'**/.env.*',
-			'!**/.env.example',
-			'**/pnpm-lock.yaml',
-			'**/package-lock.json',
-			'**/yarn.lock'
-		]
-	},
-	...compat.extends(
-		'eslint:recommended',
-		'plugin:@typescript-eslint/recommended',
-		'plugin:svelte/recommended',
-		'prettier'
-	),
-	{
-		plugins: {
-			'@typescript-eslint': typescriptEslint
-		},
-
-		languageOptions: {
-			globals: {
-				...globals.browser,
-				...globals.node
-			},
-
-			parser: tsParser,
-			ecmaVersion: 2020,
-			sourceType: 'module',
-
-			parserOptions: {
-				extraFileExtensions: ['.svelte']
-			}
-		},
-
+		languageOptions: { globals: { ...globals.browser, ...globals.node } },
 		rules: {
-			'svelte/valid-compile': 'warn',
-			'@typescript-eslint/no-explicit-any': 'warn'
+			// typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
+			// see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
+			'no-undef': 'off'
 		}
 	},
 	{
-		files: ['**/*.svelte'],
-
+		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 		languageOptions: {
-			parser: parser,
-			ecmaVersion: 5,
-			sourceType: 'script',
-
 			parserOptions: {
-				parser: '@typescript-eslint/parser'
+				projectService: true,
+				extraFileExtensions: ['.svelte'],
+				parser: ts.parser,
+				svelteConfig
 			}
+		}
+	},
+	{
+		// Override or add rule settings here, such as:
+		// 'svelte/button-has-type': 'error'
+		rules: {
+			'svelte/no-navigation-without-resolve': 'off',
+			'svelte/require-each-key': 'off',
+			'svelte/prefer-svelte-reactivity': 'off',
+			'svelte/no-dom-manipulating': 'warn'
 		}
 	}
-];
+]);

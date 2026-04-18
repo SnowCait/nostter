@@ -27,7 +27,7 @@
 <span>{$_('preferences.emoji.like')}:</span>
 <EmojiPicker on:pick={save}>
 	{#if $preferencesStore.reactionEmoji.content === '+'}
-		<IconHeart size={26} color={'lightpink'} />
+		<IconHeart size={26} color="lightpink" />
 	{:else if $preferencesStore.reactionEmoji.url !== undefined}
 		<CustomEmoji
 			url={$preferencesStore.reactionEmoji.url}

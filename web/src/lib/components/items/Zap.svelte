@@ -77,7 +77,7 @@
 <article class="timeline-item">
 	<div class="user">
 		<div style="display: flex;">
-			<IconBolt size={18} color={'#f59f00'} />
+			<IconBolt size={18} color="#f59f00" />
 			{#if zap?.amount !== undefined}
 				<span>{zap.amount.toLocaleString()}</span>
 			{/if}

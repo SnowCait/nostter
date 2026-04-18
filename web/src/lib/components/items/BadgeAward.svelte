@@ -60,7 +60,7 @@
 <article class="timeline-item">
 	<header>
 		<div>
-			<IconAward size={18} color={'orange'} />
+			<IconAward size={18} color="orange" />
 		</div>
 		<div>by</div>
 		<div class="profile">

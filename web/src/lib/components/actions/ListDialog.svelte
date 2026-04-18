@@ -92,7 +92,7 @@
 	async function create(): Promise<void> {
 		if (title === '') {
 			return;
-		} else if ($peopleLists.has(`30000:${authorPubkey}:${title}`)) {
+		} else if ($peopleLists.has(`30000:${$authorPubkey}:${title}`)) {
 			console.log('[people list create duplicate]', title);
 			title = '';
 			return;

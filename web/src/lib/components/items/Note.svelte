@@ -123,7 +123,7 @@
 			{/if}
 			{#if item.event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdStore === undefined}
 				<div class="channel">
-					<IconMessages size={16} color={'gray'} />
+					<IconMessages size={16} color="gray" />
 					<span>
 						<a
 							href="/channels/{nip19.neventEncode({
