@@ -63,7 +63,7 @@
 
 <article class="timeline-item">
 	<div>
-		<IconRepeat size={18} color={'lightgreen'} />
+		<IconRepeat size={18} color="lightgreen" />
 	</div>
 	<div>by</div>
 	<div class="profile">
