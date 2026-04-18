@@ -185,3 +185,5 @@ export function isNostrHex(hex: string): boolean {
 export function getTitle(tags: string[][]): string | undefined {
 	return filterTags('title', tags).at(0);
 }
+
+export const isLegacyEncryption = (content: string): boolean => content.includes('?iv=');

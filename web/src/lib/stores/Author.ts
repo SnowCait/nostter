@@ -5,7 +5,6 @@ import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
 import type { Author } from '$lib/Author';
 import { filterRelayTags, filterTags, findIdentifier, getZapperPubkey } from '$lib/EventHelper';
-import { Signer } from '$lib/Signer';
 import { decryptListContent } from '$lib/List';
 
 export const loginType: Writable<'NIP-07' | 'NIP-46' | 'nsec' | 'npub' | undefined> = writable();
@@ -112,7 +111,7 @@ export const storeMutedTagsByEvent = async (event: Event): Promise<void> => {
 		return;
 	}
 	muteEvent.set(event);
-	const privateTags = await decryptListContent(event.content);
+	const [privateTags] = await decryptListContent(event.pubkey, event.content);
 	await storeMutedTags([...event.tags, ...privateTags]);
 };
 
@@ -142,8 +141,7 @@ export const storeMutedPubkeysByKind = async (events: Event[]): Promise<void> =>
 		const privateTags: string[][] = [];
 		if (event.content !== '') {
 			try {
-				const content = await Signer.decrypt(event.pubkey, event.content);
-				const tags = JSON.parse(content) as string[][];
+				const [tags] = await decryptListContent(event.pubkey, event.content);
 				privateTags.push(...tags);
 			} catch (error) {
 				console.warn('[kind 30007 content parse error]', event, error);
