@@ -418,5 +418,9 @@
 		"none": "None",
 		"once": "Once",
 		"always": "Always"
+	},
+	"fold": {
+		"fold": "Undo",
+		"unfold": "View more"
 	}
 }
