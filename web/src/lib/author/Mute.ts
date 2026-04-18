@@ -51,8 +51,14 @@ async function publish(): Promise<void> {
 	const lastEvent = storage.getReplaceableEvent(kind);
 	let tags = lastEvent?.tags.concat() ?? [];
 	let privateTags: string[][] = [];
+	let legacy = false;
 	if (lastEvent !== undefined) {
-		privateTags = await decryptListContent(lastEvent.content);
+		const [_privateTags, _legacy] = await decryptListContent(
+			lastEvent.pubkey,
+			lastEvent.content
+		);
+		privateTags = _privateTags;
+		legacy = _legacy;
 	}
 
 	while (queue.length > 0) {
@@ -99,16 +105,17 @@ async function publish(): Promise<void> {
 
 	// Lazy validation for UX
 	if (!(await validate(lastEvent))) {
-		storeMutedTags([
-			...(lastEvent?.tags ?? []),
-			...(await decryptListContent(lastEvent?.content ?? ''))
-		]);
+		const [_privateTags] = await decryptListContent(
+			lastEvent?.pubkey ?? get(pubkey),
+			lastEvent?.content ?? ''
+		);
+		storeMutedTags([...(lastEvent?.tags ?? []), ..._privateTags]);
 		throw new Error('Cache is outdated.');
 	}
 
 	const event = await Signer.signEvent({
 		kind,
-		content: await encryptListContent(privateTags),
+		content: await encryptListContent(privateTags, legacy),
 		tags,
 		created_at: now()
 	});

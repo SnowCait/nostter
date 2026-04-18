@@ -70,9 +70,9 @@
 				<div>public</div>
 				<Json object={$muteEvent?.tags ?? []} />
 				<div>private</div>
-				{#await decryptListContent($muteEvent?.content ?? '')}
+				{#await decryptListContent($muteEvent?.pubkey ?? '', $muteEvent?.content ?? '')}
 					<Json object={[]} />
-				{:then tags}
+				{:then [tags]}
 					<Json object={tags} />
 				{/await}
 			</details>

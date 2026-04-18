@@ -3,8 +3,7 @@ import { createRxOneshotReq, latest } from 'rx-nostr';
 import { lastValueFrom } from 'rxjs';
 import type { Event } from 'nostr-typedef';
 import { rxNostr, tie } from './timelines/MainTimeline';
-import { filterTags, findIdentifier, getTitle } from './EventHelper';
-import { parsePrivateTags } from './Encryption';
+import { filterTags, findIdentifier, getTitle, isLegacyEncryption } from './EventHelper';
 import { pubkey } from './stores/Author';
 import { Signer } from './Signer';
 
@@ -34,7 +33,7 @@ export async function getListPubkeys(event: Event): Promise<string[]> {
 
 	const $pubkey = get(pubkey);
 	if (event.pubkey === $pubkey) {
-		const privateTags = await parsePrivateTags(event.pubkey, event.content);
+		const [privateTags] = await decryptListContent(event.pubkey, event.content);
 		tags.push(...privateTags);
 	}
 
@@ -42,27 +41,36 @@ export async function getListPubkeys(event: Event): Promise<string[]> {
 	return [...new Set(pubkeys)];
 }
 
-export async function decryptListContent(content: string): Promise<string[][]> {
+export async function decryptListContent(
+	pubkey: string,
+	content: string
+): Promise<[tags: string[][], legacy: boolean]> {
 	if (content === '') {
-		return [];
+		return [[], false];
 	}
 
-	const $pubkey = get(pubkey);
-
 	try {
-		const json = await Signer.decrypt($pubkey, content);
-		return JSON.parse(json);
+		const legacy = isLegacyEncryption(content);
+		const json = await (legacy
+			? Signer.decrypt(pubkey, content)
+			: Signer.decryptNip44(pubkey, content));
+		return [JSON.parse(json), legacy];
 	} catch (error) {
 		console.warn('[list parse error]', error);
-		return [];
+		return [[], false];
 	}
 }
 
-export async function encryptListContent(tags: string[][]): Promise<string> {
+export async function encryptListContent(
+	tags: string[][],
+	legacy: boolean = false
+): Promise<string> {
 	if (tags.length === 0) {
 		return '';
 	}
 
 	const $pubkey = get(pubkey);
-	return Signer.encrypt($pubkey, JSON.stringify(tags));
+	return legacy
+		? Signer.encrypt($pubkey, JSON.stringify(tags))
+		: Signer.encryptNip44($pubkey, JSON.stringify(tags));
 }

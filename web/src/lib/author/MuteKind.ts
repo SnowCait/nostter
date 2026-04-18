@@ -68,8 +68,14 @@ async function publish(muteKind: number): Promise<void> {
 	const lastEvent = storage.getParameterizedReplaceableEvent(kind, `${muteKind}`);
 	let tags = lastEvent?.tags.concat() ?? [['d', `${muteKind}`]];
 	let privateTags: string[][] = [];
+	let legacy = false;
 	if (lastEvent !== undefined) {
-		privateTags = await decryptListContent(lastEvent.content);
+		const [_privateTags, _legacy] = await decryptListContent(
+			lastEvent.pubkey,
+			lastEvent.content
+		);
+		privateTags = _privateTags;
+		legacy = _legacy;
 	}
 
 	while (queue.length > 0) {
@@ -112,7 +118,7 @@ async function publish(muteKind: number): Promise<void> {
 
 	const event = await Signer.signEvent({
 		kind,
-		content: await encryptListContent(privateTags),
+		content: await encryptListContent(privateTags, legacy),
 		tags,
 		created_at: now()
 	});
