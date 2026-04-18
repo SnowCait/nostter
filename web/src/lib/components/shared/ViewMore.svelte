@@ -51,4 +51,8 @@
 		bottom: 0;
 		background: linear-gradient(transparent, var(--surface));
 	}
+
+	button {
+		background-color: var(--surface);
+	}
 </style>
