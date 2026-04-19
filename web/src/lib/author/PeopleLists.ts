@@ -8,6 +8,7 @@ import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
+import { decryptListContent, encryptListContent } from '$lib/List';
 
 const kind = 30000;
 
@@ -76,8 +77,7 @@ export async function contains(pubkey: string, event: Event): Promise<boolean> {
 	const $authorPubkey = get(authorPubkey);
 
 	try {
-		const content = await Signer.decrypt($authorPubkey, event.content);
-		const privateTags = JSON.parse(content) as string[][];
+		const [privateTags] = await decryptListContent($authorPubkey, event.content);
 		return privateTags.some(([tagName, p]) => tagName === 'p' && p === pubkey);
 	} catch (error) {
 		console.warn('[people list decode error]', error);
@@ -129,13 +129,10 @@ export async function removeFromPeopleList(event: Event, pubkey: string): Promis
 
 	let content = event.content;
 	if (content !== '') {
-		const decryptedContent = await Signer.decrypt(event.pubkey, event.content);
-		const privateTags = JSON.parse(decryptedContent) as string[][];
+		const [privateTags, legacy] = await decryptListContent(event.pubkey, event.content);
 		if (privateTags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
-			const json = JSON.stringify(
-				privateTags.filter(([tagName, p]) => !(tagName === 'p' && p === pubkey))
-			);
-			content = await Signer.encrypt(event.pubkey, json);
+			const tags = privateTags.filter(([tagName, p]) => !(tagName === 'p' && p === pubkey));
+			content = await encryptListContent(tags, legacy);
 		}
 	}
 
