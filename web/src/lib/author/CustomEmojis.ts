@@ -4,11 +4,11 @@ import { filter, firstValueFrom } from 'rxjs';
 import type { Event } from 'nostr-typedef';
 import { chunk } from '$lib/Array';
 import { maxFilters } from '$lib/Constants';
-import { aTagContent, filterEmojiTags, findIdentifier } from '$lib/EventHelper';
+import { aTagContent, filterEmojiTags, findIdentifier, parseAddress } from '$lib/EventHelper';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { WebStorage } from '$lib/WebStorage';
-import { UserEmojiList } from 'nostr-tools/kinds';
+import { Emojisets, UserEmojiList } from 'nostr-tools/kinds';
 import { Signer } from '$lib/Signer';
 import { pubkey } from '$lib/stores/Author';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
@@ -28,8 +28,8 @@ export function storeCustomEmojis(event: Event): void {
 	const $customEmojiTags = get(customEmojiTags);
 
 	// a tags
-	const referenceTags = event.tags.filter(([tagName]) => tagName === 'a');
-	if (referenceTags.length === 0) {
+	const addressTags = event.tags.filter(([tagName]) => tagName === 'a');
+	if (addressTags.length === 0) {
 		return;
 	}
 
@@ -71,9 +71,10 @@ export function storeCustomEmojis(event: Event): void {
 			}
 		});
 
-	const filters: LazyFilter[] = referenceTags
-		.map(([, reference]) => reference.split(':'))
-		.filter(([kind]) => kind === `${30030}`)
+	const filters: LazyFilter[] = addressTags
+		.map(([, address]) => parseAddress(address))
+		.filter((parsed): parsed is [number, string, string] => parsed !== undefined)
+		.filter(([kind]) => kind === Emojisets)
 		.map(([kind, pubkey, identifier]) => {
 			return {
 				kinds: [Number(kind)],
@@ -81,7 +82,7 @@ export function storeCustomEmojis(event: Event): void {
 				'#d': [identifier]
 			};
 		});
-	console.debug('[custom emoji #a]', referenceTags, filters);
+	console.debug('[custom emoji #a]', addressTags, filters);
 	for (const chunkedFilters of chunk(filters, maxFilters)) {
 		emojisReq.emit(chunkedFilters);
 	}

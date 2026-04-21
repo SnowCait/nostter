@@ -10,6 +10,7 @@
 	import { metadataStore, replaceableEventsStore } from '$lib/cache/Events';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { IconQuoteFilled } from '@tabler/icons-svelte';
+	import { parseAddress } from '$lib/EventHelper';
 
 	interface Props {
 		item: Item;
@@ -84,9 +85,9 @@
 								</div>
 							{/if}
 							{#if sourceAddress}
-								{@const [kind, pubkey, identifier] = sourceAddress.split(':')}
+								{@const [kind, pubkey, identifier] = parseAddress(sourceAddress)!}
 								{@const naddr = nip19.naddrEncode({
-									kind: Number(kind),
+									kind,
 									pubkey,
 									identifier,
 									relays: $replaceableEventsStore.has(sourceAddress)

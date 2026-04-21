@@ -11,6 +11,7 @@
 	import EventComponent from '../items/EventComponent.svelte';
 	import { EventItem } from '$lib/Items';
 	import { tap } from 'rxjs';
+	import { parseAddress } from '$lib/EventHelper';
 
 	interface Props {
 		text?: string;
@@ -33,7 +34,11 @@
 			return;
 		}
 
-		const [kind, pubkey, identifier] = address.split(':');
+		const parsed = parseAddress(address);
+		if (!parsed) {
+			return;
+		}
+		const [kind, pubkey, identifier] = parsed;
 		const req = createRxBackwardReq();
 		rxNostr
 			.use(req)
@@ -45,7 +50,7 @@
 			.subscribe(({ event }) => {
 				emojisetEvent = event;
 			});
-		req.emit([{ kinds: [Number(kind)], authors: [pubkey], '#d': [identifier] }]);
+		req.emit([{ kinds: [kind], authors: [pubkey], '#d': [identifier] }]);
 		req.over();
 	});
 

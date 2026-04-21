@@ -16,7 +16,7 @@ import { createNoopClient, createVerificationServiceClient } from 'rx-nostr-cryp
 import { tap, bufferTime } from 'rxjs';
 import { browser } from '$app/environment';
 import { addressRegexp, filterLimitItems, hexRegexp, timeout } from '$lib/Constants';
-import { aTagContent, filterTags } from '$lib/EventHelper';
+import { aTagContent, filterTags, parseAddress } from '$lib/EventHelper';
 import { Metadata } from '$lib/Items';
 import {
 	eventItemStore,
@@ -211,7 +211,10 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 	const $replaceableEventsStore = get(replaceableEventsStore);
 	const aTags = event.tags.filter(
 		([tagName, address]) =>
-			tagName === 'a' && address !== undefined && !$replaceableEventsStore.has(address)
+			tagName === 'a' &&
+			address !== undefined &&
+			addressRegexp.test(address) &&
+			!$replaceableEventsStore.has(address)
 	);
 	const qTags = event.tags.filter(
 		([tagName, address]) =>
@@ -222,15 +225,15 @@ export function referencesReqEmit(event: Event, metadataOnly: boolean = false): 
 	);
 	aTags.push(...qTags);
 	if (aTags.length > 0) {
-		const filters: LazyFilter[] = aTags.map(([, a]) => {
-			const [kind, pubkey, identifier] = a.split(':');
-			return isReplaceableKind(Number(kind))
+		const filters: LazyFilter[] = aTags.map(([, address]) => {
+			const [kind, pubkey, identifier] = parseAddress(address)!;
+			return isReplaceableKind(kind)
 				? {
-						kinds: [Number(kind)],
+						kinds: [kind],
 						authors: [pubkey]
 					}
 				: {
-						kinds: [Number(kind)],
+						kinds: [kind],
 						authors: [pubkey],
 						'#d': [identifier]
 					};

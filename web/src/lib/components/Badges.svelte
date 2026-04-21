@@ -9,7 +9,7 @@
 	import { browser } from '$app/environment';
 	import ExternalLink from './ExternalLink.svelte';
 	import type { Event } from 'nostr-typedef';
-	import { aTagContent, findIdentifier } from '$lib/EventHelper';
+	import { aTagContent, findIdentifier, parseAddress } from '$lib/EventHelper';
 	import { nip19 } from 'nostr-tools';
 	import { SvelteMap } from 'svelte/reactivity';
 
@@ -95,7 +95,11 @@
 
 						const definitionAddressesGroupedByPubkey = definitionAddresses.reduce(
 							(definitions, address) => {
-								const [, pubkey, identifier] = address.split(':');
+								const parsed = parseAddress(address);
+								if (!parsed) {
+									return definitions;
+								}
+								const [, pubkey, identifier] = parsed;
 								if (!definitions.has(pubkey)) {
 									definitions.set(pubkey, new Set());
 								}

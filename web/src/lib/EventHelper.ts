@@ -1,6 +1,6 @@
 import type { Event } from 'nostr-tools';
 import type { id } from './Types';
-import { shortcodeRegexp } from './Constants';
+import { hexRegexp, shortcodeRegexp } from './Constants';
 
 export function isReply(event: Event): boolean {
 	if (!event.tags.some(([tagName]) => tagName === 'p')) {
@@ -187,3 +187,11 @@ export function getTitle(tags: string[][]): string | undefined {
 }
 
 export const isLegacyEncryption = (content: string): boolean => content.includes('?iv=');
+
+export const parseAddress = (address: string): [number, string, string] | undefined => {
+	const [kind, pubkey, ...identifier] = address.split(':');
+	if (!kind || isNaN(Number(kind)) || !pubkey || !hexRegexp.test(pubkey)) {
+		return undefined;
+	}
+	return [Number(kind), pubkey, identifier.join(':')];
+};
