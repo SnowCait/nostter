@@ -23,4 +23,17 @@
 	});
 </script>
 
-<div bind:this={playerElement}></div>
+<div class="player" bind:this={playerElement}></div>
+
+<style>
+	.player {
+		width: 100%;
+		max-width: 100%;
+		overflow: hidden;
+	}
+
+	.player :global(iframe) {
+		display: block;
+		max-width: 100%;
+	}
+</style>

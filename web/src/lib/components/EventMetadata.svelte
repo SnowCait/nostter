@@ -62,6 +62,7 @@
 		display: flex;
 		flex-direction: row;
 		gap: 12px;
+		min-width: 0;
 	}
 
 	.picture {
@@ -90,6 +91,7 @@
 		font-size: 15px;
 		font-weight: 400;
 		width: calc(100% - 60px);
+		min-width: 0;
 
 		/* Workaround for unnecessary space */
 		display: flex;
@@ -100,6 +102,7 @@
 		display: flex;
 		flex-direction: row;
 		gap: 0.3rem;
+		min-width: 0;
 	}
 
 	.display_name {

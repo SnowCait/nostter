@@ -49,12 +49,15 @@
 <style>
 	iframe {
 		width: 100%;
+		max-width: 100%;
+		display: block;
 		aspect-ratio: 640 / 360;
 	}
 
 	iframe.short {
 		height: 28rem;
-		width: 22rem;
+		width: min(22rem, 100%);
+		margin: 0 auto;
 	}
 
 	@media (max-width: 600px) {

@@ -167,7 +167,7 @@
 		margin: 0 auto;
 		padding: 0 2.25rem;
 		display: grid;
-		grid-template-columns: 220px 598px;
+		grid-template-columns: 220px minmax(0, 598px);
 		gap: 2.25rem;
 	}
 
@@ -185,6 +185,7 @@
 		margin: 0 auto;
 		grid-column: 2 / 3;
 		max-width: 598px;
+		min-width: 0;
 		width: 100%;
 	}
 
@@ -201,7 +202,7 @@
 		.app {
 			max-width: calc(926px - (220px - 2.25rem));
 			gap: 1.5rem;
-			grid-template-columns: 3.125rem auto;
+			grid-template-columns: 3.125rem minmax(0, 1fr);
 		}
 
 		header {

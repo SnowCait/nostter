@@ -160,7 +160,17 @@
 
 	.content {
 		margin: 0.2rem 0 0 0;
+		min-width: 0;
 		overflow: auto;
+	}
+
+	.content :global(blockquote),
+	.content :global(iframe) {
+		max-width: 100%;
+	}
+
+	.content :global(iframe) {
+		display: block;
 	}
 
 	.content.shorten {
