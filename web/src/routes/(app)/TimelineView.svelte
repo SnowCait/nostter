@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { nip19, type Event } from 'nostr-tools';
-	import { VirtualScroll } from 'svelte-virtual-scroll-list';
 	import { goto } from '$app/navigation';
 	import type { Item } from '$lib/Items';
 	import { channelIdStore } from '$lib/Channel';
@@ -13,6 +12,7 @@
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { MouseButton } from '$lib/DomHelper';
 	import { innerHeight, scrollY } from 'svelte/reactivity/window';
+	import { WindowVirtualizer } from 'virtua/svelte';
 
 	interface Props {
 		items?: Item[];
@@ -134,16 +134,18 @@
 
 {#if visibleItems.length > 0}
 	<section class="card">
-		<VirtualScroll data={visibleItems} key="id" let:data pageMode={true} keeps={50}>
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div
-				class={canTransition ? 'canTransition-post' : ''}
-				class:related={$author?.isNotified(data.event)}
-				onmouseup={(e) => viewDetail(e, data.event)}
-			>
-				<EventComponent item={data} {readonly} {createdAtFormat} {full} />
-			</div>
-		</VirtualScroll>
+		<WindowVirtualizer data={visibleItems} getKey={(item) => item.event.id}>
+			{#snippet children(data)}
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div
+					class={canTransition ? 'canTransition-post' : ''}
+					class:related={$author?.isNotified(data.event)}
+					onmouseup={(e) => viewDetail(e, data.event)}
+				>
+					<EventComponent item={data} {readonly} {createdAtFormat} {full} />
+				</div>
+			{/snippet}
+		</WindowVirtualizer>
 	</section>
 {/if}
 
