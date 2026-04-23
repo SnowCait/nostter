@@ -65,7 +65,7 @@
 	<ExternalLink {link} />
 {:else if Twitter.isTweetUrl(link)}
 	{#if preview}
-		<div bind:this={twitterWidget}>
+		<div class="twitter-widget" bind:this={twitterWidget}>
 			<blockquote class="twitter-tweet">
 				<a
 					href={link.href.replace('x.com', 'twitter.com')}
@@ -130,3 +130,20 @@
 		<ExternalLink {link} />
 	{/await}
 {/if}
+
+<style>
+	.twitter-widget {
+		width: 100%;
+		max-width: 100%;
+		overflow: hidden;
+	}
+
+	.twitter-widget :global(.twitter-tweet),
+	.twitter-widget :global(iframe) {
+		max-width: 100%;
+	}
+
+	.twitter-widget :global(iframe) {
+		display: block;
+	}
+</style>
