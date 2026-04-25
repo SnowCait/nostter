@@ -10,8 +10,9 @@
 	let url = $derived(
 		tag.find((entry) => entry.startsWith('url '))?.substring('url '.length) ?? ''
 	);
+	let mimeType = $derived(tag.find((entry) => entry.startsWith('m '))?.substring('m '.length));
 </script>
 
 {#if URL.canParse(url)}
-	<Img url={new URL(url)} />
+	<Img url={new URL(url)} {mimeType} />
 {/if}

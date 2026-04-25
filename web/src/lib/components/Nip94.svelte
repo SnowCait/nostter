@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Event } from 'nostr-tools';
+	import Img from './content/Img.svelte';
 
 	interface Props {
 		event: Event;
@@ -19,18 +20,10 @@
 	);
 </script>
 
-{#if mimeType !== undefined && /image\/(gif|jpg|jpeg|png|webp|bmp)/.test(mimeType)}
+{#if url !== undefined && URL.canParse(url) && mimeType !== undefined && /image\/(avif|gif|jpg|jpeg|png|webp|bmp|apng)/.test(mimeType)}
 	<a href={url} target="_blank" rel="noopener noreferrer">
-		<img src={url} alt={event.content} />
+		<Img url={new URL(url)} {mimeType} />
 	</a>
-{:else}
+{:else if url !== undefined}
 	<a href={url} target="_blank" rel="noopener noreferrer">{url}</a>
 {/if}
-
-<style>
-	img {
-		max-width: 100%;
-		max-height: 20em;
-		margin: 0.5em;
-	}
-</style>

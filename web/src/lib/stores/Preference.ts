@@ -29,7 +29,16 @@ export const enablePreview = writable(
 	browser ? new WebStorage(localStorage).get('preference:preview') !== 'false' : true
 );
 
+export const enableAutoPlayAnimatedImages = writable(
+	browser ? getEnableAutoPlayAnimatedImages() : true
+);
+
 export const imageOptimization = writable(browser ? getImageOptimization() : '');
+
+function getEnableAutoPlayAnimatedImages(): boolean {
+	const storage = new WebStorage(localStorage);
+	return storage.get('preference:autoplay-animated-images') !== 'false';
+}
 
 function getImageOptimization(): string {
 	const value = new WebStorage(localStorage).get('preference:image-optimization') ?? '';

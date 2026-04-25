@@ -120,6 +120,7 @@
 		},
 		"auto_refresh": "Auto refresh",
 		"media_preview": "Media preview",
+		"autoplay_animated_images": "Auto-play animated images",
 		"image_optimization": "Image size reduction",
 		"image_optimization_none": "None",
 		"media_uploader": {
