@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { getAnimatedImageType } from '$lib/media/AnimatedImage';
+	import { createAnimatedImageState } from '$lib/media/AnimatedImageState.svelte';
 	import { followees } from '$lib/stores/Author';
 	import { enableAutoPlayAnimatedImages, imageOptimization } from '$lib/stores/Preference';
 	import type { Event } from 'nostr-typedef';
@@ -15,14 +17,12 @@
 	let { url, mimeType = undefined }: Props = $props();
 
 	const { href: src, pathname } = $derived(url);
-	const normalizedMimeType = $derived(mimeType?.split(';', 1)[0]?.trim().toLowerCase());
-	const animatedImageMimeType = $derived(
-		normalizedMimeType === 'image/gif' ||
-			normalizedMimeType === 'image/webp' ||
-			normalizedMimeType === 'image/apng'
-	);
-	const animatedImagePath = $derived(/\.(gif|webp|apng)$/i.test(pathname));
-	const animatedImage = $derived(animatedImageMimeType || animatedImagePath);
+	const animatedImageType = $derived(getAnimatedImageType(mimeType, pathname));
+	const animatedImage = createAnimatedImageState({
+		src: () => src,
+		type: () => animatedImageType,
+		autoPlay: () => $enableAutoPlayAnimatedImages
+	});
 	const events = getContext<Event[] | undefined>('events');
 	const blur = events !== undefined && !events.some((event) => $followees.includes(event.pubkey));
 
@@ -33,8 +33,10 @@
 </script>
 
 <span class="img-wrapper">
-	{#if !$enableAutoPlayAnimatedImages && animatedImage}
+	{#if !$enableAutoPlayAnimatedImages && animatedImage.animated}
 		<FreezeframeImage {src} alt={src} {blur} />
+	{:else if !$enableAutoPlayAnimatedImages && animatedImage.checking}
+		<span class="global-content-image animated-image-checking"></span>
 	{:else if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith($imageOptimization)}
 		<Img class="global-content-image{blur ? ' blur' : ''}" src={imageSrc} alt={src} />
 	{:else}
@@ -54,6 +56,13 @@
 		border-radius: 5px;
 		box-sizing: border-box;
 		vertical-align: middle;
+	}
+
+	.img-wrapper :global(.global-content-image.animated-image-checking) {
+		display: inline-block;
+		width: min(16em, calc(100% - 1.5em));
+		height: 10em;
+		background: var(--accent-surface-low);
 	}
 
 	.img-wrapper :global(.global-content-image.blur),
