@@ -1,4 +1,3 @@
-.DS_Store
 node_modules
 /package
 .env
@@ -14,3 +13,11 @@ vite.config.ts.timestamp-*
 
 # Playwright
 test-results/
+
+# Other Package Manager
+pnpm-lock.yaml
+yarn.lock
+
+# OS
+.DS_Store
+Thumbs.db
