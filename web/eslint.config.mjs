@@ -6,6 +6,7 @@ import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import ts from 'typescript-eslint';
 import svelteConfig from './svelte.config.js';
+import importPlugin from 'eslint-plugin-import';
 
 const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 
@@ -32,6 +33,10 @@ export default defineConfig([
 				svelteConfig
 			}
 		}
+	},
+	{
+		plugins: { import: importPlugin },
+		rules: { 'import/no-extraneous-dependencies': 'error' }
 	},
 	{
 		// Override or add rule settings here, such as:
