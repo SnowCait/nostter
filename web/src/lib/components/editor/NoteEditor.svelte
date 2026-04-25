@@ -2,6 +2,8 @@
 	import { createBubbler, preventDefault, stopPropagation } from 'svelte/legacy';
 
 	const bubble = createBubbler();
+	import data from '@emoji-mart/data';
+	import { init, SearchIndex } from 'emoji-kitchen-mart';
 	import { createEventDispatcher, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { kinds as Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
@@ -132,14 +134,22 @@
 
 	//#region Custom Emoji
 
-	type Emoji = { shortcode: string; url: string };
+	type Emoji = { shortcode: string; url?: string; native?: string };
+	type SearchEmoji = { skins: { shortcodes: string; native: string }[] };
 	let shortcode = $state<string>();
 	let shortcodePrevious = $state<string>();
 	let shortcodeComplementList: Emoji[] = $state([]);
 	let shortcodeComplementIndex = $state(0);
+	let emojiMartInit: Promise<void> | undefined;
+
+	function initEmojiMart(): Promise<void> {
+		emojiMartInit ??= init({ data }, { caller: 'NoteEditor' });
+		return emojiMartInit;
+	}
 
 	$effect(() => {
 		if (shortcode !== undefined) {
+			const query = shortcode;
 			const customEmojiList = $customEmojiTags.map(([, shortcode, url]) => ({
 				shortcode,
 				url
@@ -153,6 +163,21 @@
 				)
 			);
 			shortcodeComplementList = list;
+			initEmojiMart()
+				.then(() => SearchIndex.search(query, { maxResults: 20, caller: 'NoteEditor' }))
+				.then((emojis) => {
+					if (shortcode !== query || !Array.isArray(emojis)) {
+						return;
+					}
+
+					shortcodeComplementList = [
+						...list,
+						...emojis.map((emoji: SearchEmoji) => ({
+							shortcode: emoji.skins[0].shortcodes,
+							native: emoji.skins[0].native
+						}))
+					];
+				});
 			console.debug('[complement shortcode list]', shortcode, list);
 		}
 	});
@@ -179,7 +204,7 @@
 
 		console.debug('[complement shortcode replace]', emoji);
 
-		if (!emojiTags.some(([, s]) => s === emoji.shortcode)) {
+		if (emoji.url !== undefined && !emojiTags.some(([, s]) => s === emoji.shortcode)) {
 			const emojiTag = ['emoji', emoji.shortcode, emoji.url];
 			const address = findCustomEmojiSetAddress(`:${emoji.shortcode}:`, emoji.url);
 			if (address !== undefined) {
@@ -192,7 +217,7 @@
 		const index = content.substring(0, selectionStart).lastIndexOf(':');
 		const before = content.substring(0, index);
 		const after = content.substring(index + ':'.length + shortcode.length);
-		content = before + ':' + emoji.shortcode + ':' + after;
+		content = before + (emoji.native ?? `:${emoji.shortcode}:`) + after;
 		const cursor = content.length - after.length;
 		await tick();
 		textarea.setSelectionRange(cursor, cursor);
@@ -658,8 +683,13 @@
 									await replaceShortcodeComplement(shortcodeComplementList[i])
 							)}
 						>
-							<CustomEmoji text={emoji.shortcode} url={emoji.url} />
-							<span>:{emoji.shortcode}:</span>
+							{#if emoji.url !== undefined}
+								<CustomEmoji text={emoji.shortcode} url={emoji.url} />
+								<span>:{emoji.shortcode}:</span>
+							{:else}
+								<span class="emoji">{emoji.native}</span>
+								<span>{emoji.shortcode}</span>
+							{/if}
 						</li>
 					{/each}
 					<li class="add-custom-emojis">
