@@ -9,6 +9,7 @@
 	import CustomEmojiPopup from './content/CustomEmojiPopup.svelte';
 	import Ogp from './content/Ogp.svelte';
 	import { enablePreview } from '$lib/stores/Preference';
+	import { Spotify } from '$lib/Spotify';
 	import { Twitter } from '$lib/Twitter';
 	import { nicovideoRegexp } from '$lib/Constants';
 	import type { Event } from 'nostr-typedef';
@@ -61,6 +62,8 @@
 		{#each urls as url}
 			{#if Twitter.isTweetUrl(url)}
 				<!-- Twitter -->
+			{:else if Spotify.isSpotifyUrl(url)}
+				<!-- Spotify -->
 			{:else if (url.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(url.hostname)) && !url.pathname.startsWith('/@')}
 				<!-- YouTube -->
 			{:else if url.hostname.endsWith('nicovideo.jp') && nicovideoRegexp.test(url.href)}

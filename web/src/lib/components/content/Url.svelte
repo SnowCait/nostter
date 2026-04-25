@@ -29,10 +29,12 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { newUrl } from '$lib/Helper';
+	import { Spotify } from '$lib/Spotify';
 	import { Twitter } from '$lib/Twitter';
 	import { enablePreview } from '$lib/stores/Preference';
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
+	import SpotifyPlayer from '$lib/components/content/Spotify.svelte';
 	import YouTube from '$lib/components/content/YouTube.svelte';
 	import Img from '$lib/components/content/Img.svelte';
 	import Nicovideo from './Nicovideo.svelte';
@@ -76,6 +78,13 @@
 				</a>
 			</blockquote>
 		</div>
+	{:else}
+		<ExternalLink {link} />
+		<button onclick={() => (preview = true)}>{$_('content.show')}</button>
+	{/if}
+{:else if Spotify.isSpotifyUrl(link)}
+	{#if preview}
+		<SpotifyPlayer {link} />
 	{:else}
 		<ExternalLink {link} />
 		<button onclick={() => (preview = true)}>{$_('content.show')}</button>
