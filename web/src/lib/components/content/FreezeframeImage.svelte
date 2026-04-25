@@ -25,6 +25,7 @@
 >
 	<canvas
 		class="global-content-image freezeframe-canvas"
+		class:playing={freezeframe.playing}
 		class:blur
 		hidden={freezeframe.failed}
 		bind:this={canvas}
@@ -78,6 +79,10 @@
 		object-fit: contain;
 	}
 
+	.freezeframe-canvas.playing {
+		opacity: 0;
+	}
+
 	.freezeframe-player {
 		display: block;
 		box-sizing: border-box;
@@ -92,6 +97,10 @@
 
 	.freezeframe-player.playing {
 		opacity: 1;
+	}
+
+	.freezeframe-image .freezeframe-player.playing {
+		border-color: lightgray;
 	}
 
 	.freezeframe-control {
