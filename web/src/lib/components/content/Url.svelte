@@ -100,7 +100,7 @@
 			{#if preview}
 				<div>
 					<a href={link.href} target="_blank" rel="noopener noreferrer">
-						<Img url={link} />
+						<Img url={link} mimeType={contentType} />
 					</a>
 				</div>
 			{:else}
