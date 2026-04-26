@@ -3,7 +3,6 @@
 
 	const bubble = createBubbler();
 	import data from '@emoji-mart/data';
-	import { init, SearchIndex } from 'emoji-kitchen-mart';
 	import { createEventDispatcher, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { kinds as Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
@@ -142,7 +141,8 @@
 	let shortcodeComplementIndex = $state(0);
 	let emojiMartInit: Promise<void> | undefined;
 
-	function initEmojiMart(): Promise<void> {
+	async function initEmojiMart(): Promise<void> {
+		const { init } = await import('emoji-kitchen-mart');
 		emojiMartInit ??= init({ data }, { caller: 'NoteEditor' });
 		return emojiMartInit;
 	}
@@ -164,7 +164,10 @@
 			);
 			shortcodeComplementList = list;
 			initEmojiMart()
-				.then(() => SearchIndex.search(query, { maxResults: 20, caller: 'NoteEditor' }))
+				.then(async () => {
+					const { SearchIndex } = await import('emoji-kitchen-mart');
+					return SearchIndex.search(query, { maxResults: 20, caller: 'NoteEditor' });
+				})
 				.then((emojis) => {
 					if (shortcode !== query || !Array.isArray(emojis)) {
 						return;
