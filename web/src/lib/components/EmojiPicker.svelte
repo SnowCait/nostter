@@ -4,12 +4,12 @@
 
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import type { BaseEmoji } from '@types/emoji-mart';
+	import type { BaseEmoji } from 'emoji-mart';
 	import data from '@emoji-mart/data';
-	import { autoUpdate, computePosition, shift } from '@floating-ui/dom';
 	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
 	import { customEmojiTags } from '../author/CustomEmojis';
 	import { _ } from 'svelte-i18n';
+	import { Popover } from 'melt/builders';
 
 	interface Props {
 		containsDefaultEmoji?: boolean;
@@ -25,19 +25,27 @@
 		inEditor = false
 	}: Props = $props();
 
-	let button: HTMLButtonElement | undefined = $state();
 	let emojiPicker: HTMLElement | undefined | null = $state();
-	let stopAutoUpdate: (() => void) | undefined;
+
+	const popover = new Popover({
+		onOpenChange: (open) => {
+			console.debug('[emoji picker open]', open);
+			if (open) {
+				init();
+			} else {
+				clear();
+			}
+		}
+	});
 
 	const dispatch = createEventDispatcher();
 
-	async function onClick(e: MouseEvent): Promise<void> {
+	async function init(): Promise<void> {
 		console.debug('[emoji picker click]', emojiPicker);
-		if (button === undefined || !emojiPicker || emojiPicker.firstChild !== null) {
+		if (!emojiPicker || emojiPicker.firstChild !== null) {
 			return;
 		}
 
-		e.stopPropagation();
 		emojiPickerOpen = true;
 
 		const customEmojis = $customEmojiTags.map(([, shortcode, url]) => {
@@ -89,23 +97,8 @@
 			onClickOutside,
 			custom
 		});
-		emojiPicker.appendChild(picker as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-		console.debug('[emoji picker child]', emojiPicker.firstChild);
-		stopAutoUpdate = autoUpdate(button, emojiPicker, render);
-	}
-
-	async function render(): Promise<void> {
-		console.debug('[emoji picker render]', emojiPicker?.firstChild);
-		if (button === undefined || !emojiPicker || emojiPicker.firstChild === null) {
-			return;
-		}
-
-		const { x, y } = await computePosition(button, emojiPicker, {
-			placement: 'bottom',
-			middleware: [shift()]
-		});
-		emojiPicker.style.left = `${x}px`;
-		emojiPicker.style.top = `${y}px`;
+		// eslint-disable-next-line svelte/no-dom-manipulating, @typescript-eslint/no-explicit-any
+		emojiPicker.appendChild(picker as any);
 	}
 
 	function onClickOutside(event: PointerEvent) {
@@ -122,19 +115,18 @@
 	}
 
 	function clear(): void {
-		stopAutoUpdate?.();
+		console.debug('[emoji picker clear]');
 		emojiPicker?.firstChild?.remove();
 		emojiPickerOpen = false;
 	}
 </script>
 
 <button
-	onclick={onClick}
-	bind:this={button}
 	class="clear"
 	class:editor-option={inEditor}
 	class:active={inEditor}
 	title={$_('emoji.title')}
+	{...popover.trigger}
 >
 	{#if children}
 		{@render children()}
@@ -142,7 +134,13 @@
 		<IconMoodSmile size={20} />
 	{/if}
 </button>
-<div bind:this={emojiPicker} class="emoji-picker"></div>
+<!-- Outside div is the workaround for .options height -->
+<div>
+	<div {...popover.content}>
+		<div {...popover.arrow}></div>
+		<main bind:this={emojiPicker}></main>
+	</div>
+</div>
 
 <style>
 	button:not(.editor-option) {
@@ -150,8 +148,12 @@
 		height: 20px;
 	}
 
-	div {
-		position: absolute;
-		z-index: 1;
+	[popover] {
+		background-color: transparent;
+	}
+
+	main {
+		border: var(--default-border);
+		border-radius: var(--radius);
 	}
 </style>

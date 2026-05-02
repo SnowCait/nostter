@@ -623,3 +623,7 @@ label span:has(+ input[type='checkbox']) {
 	user-select: none;
 	cursor: pointer;
 }
+
+[popover] {
+	border: none;
+}
