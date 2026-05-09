@@ -18,6 +18,7 @@
 
 	let swiper: Swiper | undefined;
 	const dialog = new Dialog({
+		closeOnOutsideClick: false,
 		onOpenChange: (open) => {
 			const index = urls.findIndex((u) => u.href === url.href);
 			if (open && swiper !== undefined) {
@@ -59,7 +60,7 @@
 		<div class="swiper-wrapper">
 			{#each urls as url}
 				<div class="swiper-slide">
-					<img src={url.href} alt={url.href} />
+					<img src={url.href} alt={url.href} class:single={urls.length === 1} />
 				</div>
 			{/each}
 		</div>
@@ -103,5 +104,9 @@
 		display: block;
 		color: white;
 		user-select: none;
+	}
+
+	img.single {
+		max-width: 100vw;
 	}
 </style>
