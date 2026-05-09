@@ -20,42 +20,92 @@
 	let showCreateAccountDialog = $state(false);
 	let showLoginDialog = $state(false);
 	let failedToLogin = $state(false);
+	let registering = $state(false);
+	let loggingInWith: 'nip07' | 'nip46' | 'key' | 'demo' | undefined = $state();
 
 	const login = new Login();
 
 	async function loginWithNip07() {
+		if (loggingInWith !== undefined) {
+			return;
+		}
+
+		loggingInWith = 'nip07';
 		failedToLogin = false;
 		const storage = new WebStorage(localStorage);
 		storage.set('login', 'NIP-07');
 
-		await login.withNip07();
-		await gotoHome();
+		try {
+			await login.withNip07();
+			if (!(await gotoHome())) {
+				loggingInWith = undefined;
+			}
+		} catch (error) {
+			console.error('[NIP-07 login failed]', error);
+			loggingInWith = undefined;
+		}
 	}
 
 	async function loginWithNip46(e: SubmitEvent) {
 		e.preventDefault();
-		failedToLogin = false;
-		const success = await login.withNip46(bunker);
-		if (!success) {
-			failedToLogin = true;
+		if (loggingInWith !== undefined) {
 			return;
 		}
-		await gotoHome();
+
+		loggingInWith = 'nip46';
+		failedToLogin = false;
+		try {
+			const success = await login.withNip46(bunker);
+			if (!success) {
+				failedToLogin = true;
+				loggingInWith = undefined;
+				return;
+			}
+			if (!(await gotoHome())) {
+				loggingInWith = undefined;
+			}
+		} catch (error) {
+			console.error('[NIP-46 login failed]', error);
+			failedToLogin = true;
+			loggingInWith = undefined;
+		}
 	}
 
 	async function loginWithKey(e: SubmitEvent) {
 		e.preventDefault();
-		failedToLogin = false;
-		if (key.startsWith('nsec')) {
-			await login.withNsec(key);
-		} else {
-			await login.withNpub(key);
+		if (loggingInWith !== undefined) {
+			return;
 		}
-		await gotoHome();
+
+		loggingInWith = 'key';
+		failedToLogin = false;
+		try {
+			if (key.startsWith('nsec')) {
+				await login.withNsec(key);
+			} else {
+				await login.withNpub(key);
+			}
+			if (!(await gotoHome())) {
+				loggingInWith = undefined;
+			}
+		} catch (error) {
+			console.error('[key login failed]', error);
+			loggingInWith = undefined;
+		}
 	}
 
 	async function loginWithDemo() {
-		await goto('/public');
+		if (loggingInWith !== undefined) {
+			return;
+		}
+
+		loggingInWith = 'demo';
+		try {
+			await goto('/public');
+		} catch (error) {
+			console.error('[demo login failed]', error);
+			loggingInWith = undefined;
+		}
 	}
 
 	function createAccount(): void {
@@ -67,9 +117,19 @@
 
 	async function register(e: SubmitEvent): Promise<void> {
 		e.preventDefault();
-		await login.withNsec(key);
-		await login.saveBasicInfo(name);
-		await goto('/public');
+		if (registering) {
+			return;
+		}
+
+		registering = true;
+		try {
+			await login.withNsec(key);
+			await login.saveBasicInfo(name);
+			await goto('/public');
+		} catch (error) {
+			console.error('[register failed]', error);
+			registering = false;
+		}
 	}
 
 	function showLogin(): void {
@@ -81,13 +141,14 @@
 		nostr = await waitNostr(10000);
 	});
 
-	async function gotoHome() {
+	async function gotoHome(): Promise<boolean> {
 		if ($authorProfile === undefined) {
 			console.error('[login failed]');
-			return;
+			return false;
 		}
 
 		await goto('/home');
+		return true;
 	}
 
 	afterNavigate(async () => {
@@ -139,17 +200,25 @@
 												name="name"
 												placeholder={$_('login.name')}
 												bind:value={name}
+												disabled={registering}
 											/>
 										</div>
 										<div class="hidden">
 											<input type="password" bind:value={key} readonly />
 										</div>
 										<div>
-											<input
+											<button
 												type="submit"
-												value={$_('login.create')}
-												disabled={$loginType !== undefined}
-											/>
+												class="submit-button"
+												disabled={$loginType !== undefined || registering}
+												aria-busy={registering}
+											>
+												{#if registering}
+													<span class="button-spinner" aria-hidden="true"
+													></span>
+												{/if}
+												<span>{$_('login.create')}</span>
+											</button>
 										</div>
 									</form>
 								</article>
@@ -159,8 +228,16 @@
 				</section>
 
 				<section>
-					<button onclick={loginWithDemo} disabled={$loginType !== undefined}>
-						{$_('login.try_demo')}
+					<button
+						onclick={loginWithDemo}
+						class="submit-button"
+						disabled={$loginType !== undefined || loggingInWith !== undefined}
+						aria-busy={loggingInWith === 'demo'}
+					>
+						{#if loggingInWith === 'demo'}
+							<span class="button-spinner" aria-hidden="true"></span>
+						{/if}
+						<span>{$_('login.try_demo')}</span>
 					</button>
 				</section>
 
@@ -190,9 +267,16 @@
 								<div>
 									<button
 										onclick={loginWithNip07}
-										disabled={$loginType !== undefined || nostr === undefined}
+										class="submit-button"
+										disabled={$loginType !== undefined ||
+											loggingInWith !== undefined ||
+											nostr === undefined}
+										aria-busy={loggingInWith === 'nip07'}
 									>
-										{$_('login.browser_extension')}
+										{#if loggingInWith === 'nip07'}
+											<span class="button-spinner" aria-hidden="true"></span>
+										{/if}
+										<span>{$_('login.browser_extension')}</span>
 									</button>
 								</div>
 							</section>
@@ -211,16 +295,25 @@
 											type="text"
 											bind:value={bunker}
 											placeholder="bunker://..."
+											disabled={loggingInWith !== undefined}
 											required
 										/>
 									</div>
 
 									<div>
-										<input
+										<button
 											type="submit"
-											value={$_('login.bunker')}
-											disabled={$loginType !== undefined}
-										/>
+											class="submit-button"
+											disabled={$loginType !== undefined ||
+												loggingInWith !== undefined}
+											aria-busy={loggingInWith === 'nip46'}
+										>
+											{#if loggingInWith === 'nip46'}
+												<span class="button-spinner" aria-hidden="true"
+												></span>
+											{/if}
+											<span>{$_('login.bunker')}</span>
+										</button>
 									</div>
 								</form>
 								{#if failedToLogin}
@@ -242,16 +335,25 @@
 											bind:value={key}
 											placeholder="npub or nsec"
 											pattern="^(npub|nsec)1[a-z0-9]+$"
+											disabled={loggingInWith !== undefined}
 											required
 										/>
 									</div>
 
 									<div>
-										<input
+										<button
 											type="submit"
-											value={$_('login.key')}
-											disabled={$loginType !== undefined}
-										/>
+											class="submit-button"
+											disabled={$loginType !== undefined ||
+												loggingInWith !== undefined}
+											aria-busy={loggingInWith === 'key'}
+										>
+											{#if loggingInWith === 'key'}
+												<span class="button-spinner" aria-hidden="true"
+												></span>
+											{/if}
+											<span>{$_('login.key')}</span>
+										</button>
 									</div>
 								</form>
 							</section>
@@ -371,6 +473,35 @@
 
 	button {
 		width: 100%;
+	}
+
+	.submit-button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		min-height: 2.5rem;
+	}
+
+	.submit-button:disabled,
+	input:disabled {
+		cursor: progress;
+		opacity: 0.72;
+	}
+
+	.button-spinner {
+		width: 1rem;
+		height: 1rem;
+		border: 2px solid currentColor;
+		border-right-color: transparent;
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	article {
