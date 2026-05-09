@@ -55,7 +55,7 @@
 	<Img {url} />
 </button>
 
-<dialog {...dialog.content} onclick={close}>
+<dialog {...dialog.content} onclick={close} autofocus>
 	<div class="swiper swiper-{id}">
 		<div class="swiper-wrapper">
 			{#each urls as url}
