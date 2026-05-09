@@ -41,7 +41,6 @@
 		const target = e.target as HTMLElement;
 		if (
 			target.closest('img') ||
-			target.closest('button') ||
 			target.closest('.swiper-button-prev') ||
 			target.closest('.swiper-button-next')
 		) {
@@ -103,7 +102,6 @@
 		margin: auto;
 		display: block;
 		color: white;
-		user-select: none;
 	}
 
 	img.single {
