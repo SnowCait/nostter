@@ -87,7 +87,6 @@
 		<SpotifyPlayer {link} />
 	{:else}
 		<ExternalLink {link} />
-		<button onclick={() => (preview = true)}>{$_('content.show')}</button>
 	{/if}
 {:else if (link.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(link.hostname)) && !link.pathname.startsWith('/@')}
 	<YouTube {link} />
