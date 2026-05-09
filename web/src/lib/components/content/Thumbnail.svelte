@@ -1,0 +1,114 @@
+<script lang="ts">
+	import { Dialog } from 'melt/builders';
+	import Img from './Img.svelte';
+	import { IconX } from '@tabler/icons-svelte';
+	import Swiper from 'swiper';
+	import { Navigation } from 'swiper/modules';
+	import 'swiper/css';
+	import 'swiper/css/navigation';
+	import { onMount } from 'svelte';
+
+	interface Props {
+		url: URL;
+		urls: URL[];
+	}
+
+	let { url, urls }: Props = $props();
+	const id = $props.id();
+
+	let swiper: Swiper | undefined;
+	const dialog = new Dialog({
+		closeOnOutsideClick: false,
+		onOpenChange: (open) => {
+			const index = urls.findIndex((u) => u.href === url.href);
+			if (open && swiper !== undefined) {
+				swiper.activeIndex = index >= 0 ? index : 0;
+			}
+		}
+	});
+
+	onMount(() => {
+		swiper = new Swiper(`.swiper-${id}`, {
+			zoom: true,
+			modules: [Navigation],
+			navigation: {
+				nextEl: '.swiper-button-next',
+				prevEl: '.swiper-button-prev'
+			}
+		});
+	});
+
+	function close(e: MouseEvent): void {
+		const target = e.target as HTMLElement;
+		if (
+			target.closest('img') ||
+			target.closest('.swiper-button-prev') ||
+			target.closest('.swiper-button-next')
+		) {
+			return;
+		}
+		dialog.open = false;
+	}
+</script>
+
+<button class="clear" {...dialog.trigger}>
+	<Img {url} />
+</button>
+
+<dialog {...dialog.content} onclick={close} autofocus>
+	<div class="swiper swiper-{id}">
+		<div class="swiper-wrapper">
+			{#each urls as url}
+				<div class="swiper-slide">
+					<div class="swiper-zoom-container">
+						<img src={url.href} alt={url.href} class:single={urls.length === 1} />
+					</div>
+				</div>
+			{/each}
+		</div>
+		<div class="swiper-button-prev"></div>
+		<div class="swiper-button-next"></div>
+	</div>
+	<button class="close" onclick={close}>
+		<IconX size="2rem" />
+	</button>
+</dialog>
+
+<style>
+	dialog {
+		border: none;
+		background-color: transparent;
+		outline: none;
+	}
+
+	dialog::backdrop {
+		background-color: rgba(0, 0, 0, 0.9);
+	}
+
+	button.close {
+		position: fixed;
+		top: 0;
+		right: 0;
+		background: none;
+		border: none;
+		color: white;
+		font-size: 2em;
+		cursor: pointer;
+		margin: 0.5rem;
+		padding: 0.5rem;
+		width: 3rem;
+		height: 3rem;
+	}
+
+	img {
+		max-width: calc(100vw - 128px);
+		max-height: 90vh;
+		margin: auto;
+		display: block;
+		color: white;
+	}
+
+	img.single {
+		max-width: 100vw;
+	}
+</style>
