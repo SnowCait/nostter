@@ -29,6 +29,7 @@
 
 	onMount(() => {
 		swiper = new Swiper(`.swiper-${id}`, {
+			zoom: true,
 			modules: [Navigation],
 			navigation: {
 				nextEl: '.swiper-button-next',
@@ -59,7 +60,9 @@
 		<div class="swiper-wrapper">
 			{#each urls as url}
 				<div class="swiper-slide">
-					<img src={url.href} alt={url.href} class:single={urls.length === 1} />
+					<div class="swiper-zoom-container">
+						<img src={url.href} alt={url.href} class:single={urls.length === 1} />
+					</div>
 				</div>
 			{/each}
 		</div>
