@@ -78,6 +78,7 @@
 	dialog {
 		border: none;
 		background-color: transparent;
+		outline: none;
 	}
 
 	dialog::backdrop {
