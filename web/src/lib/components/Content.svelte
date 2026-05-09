@@ -41,7 +41,7 @@
 		{:else if token.type === 'emoji'}
 			<CustomEmojiPopup text={token.text} url={token.url} address={token.address} {event} />
 		{:else if token.type === 'url'}
-			<Url text={token.text} />
+			<Url text={token.text} {urls} />
 		{:else if token.type === 'relay'}
 			<a href="/relays/{encodeURIComponent(token.text)}">
 				{token.text}

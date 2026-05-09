@@ -1,6 +1,7 @@
 <script lang="ts" module>
 	import AsyncLock from 'async-lock';
 	import { httpProxy, nicovideoRegexp } from '$lib/Constants';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	declare global {
 		interface Window {
@@ -8,7 +9,7 @@
 		}
 	}
 
-	const cache = new Map<string, string | null>();
+	const cache = new SvelteMap<string, string | null>();
 	const lock = new AsyncLock();
 
 	async function fetchContentType(url: string): Promise<string | null> {
@@ -34,18 +35,22 @@
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import YouTube from '$lib/components/content/YouTube.svelte';
-	import Img from '$lib/components/content/Img.svelte';
 	import Nicovideo from './Nicovideo.svelte';
 	import Video from './Video.svelte';
+	import Thumbnail from './Thumbnail.svelte';
 
 	interface Props {
 		text: string;
 		url?: string | undefined;
+		urls?: URL[];
 	}
 
-	let { text, url = undefined }: Props = $props();
+	let { text, url = undefined, urls = [] }: Props = $props();
 
 	let link = $derived(newUrl(url ?? text));
+	let imageUrls = $derived(urls.filter((url) => cache.get(url.href)?.startsWith('image/')));
+
+	//#region Twitter Widget
 
 	let twitterWidget: HTMLDivElement | undefined = $state();
 
@@ -55,6 +60,8 @@
 			window.twttr?.widgets.load(twitterWidget);
 		}
 	});
+
+	//#endregion
 
 	let preview = $state($enablePreview);
 </script>
@@ -99,9 +106,7 @@
 		{:else if contentType.startsWith('image/')}
 			{#if preview}
 				<div>
-					<a href={link.href} target="_blank" rel="noopener noreferrer">
-						<Img url={link} />
-					</a>
+					<Thumbnail url={link} urls={imageUrls} />
 				</div>
 			{:else}
 				<ExternalLink {link} />
