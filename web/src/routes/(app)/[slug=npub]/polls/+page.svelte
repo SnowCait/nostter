@@ -9,7 +9,7 @@
 	import { isMuteEvent } from '$lib/stores/Author';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import { EventItem } from '$lib/Items';
-	import { filter, Subscription, tap } from 'rxjs';
+	import { filter, type Subscription, tap } from 'rxjs';
 	import { onDestroy } from 'svelte';
 
 	const { data }: LayoutProps = $props();

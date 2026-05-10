@@ -1,6 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { createRxForwardReq, createRxOneshotReq, now, uniq } from 'rx-nostr';
-import { Subscription, filter, tap } from 'rxjs';
+import { type Subscription, filter, tap } from 'rxjs';
 import type { Event } from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
 import { authorActionReqEmit } from '../author/Action';
