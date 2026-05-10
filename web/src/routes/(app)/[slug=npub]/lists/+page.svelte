@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { createRxBackwardReq, latestEach } from 'rx-nostr';
-	import { Subscription, filter } from 'rxjs';
+	import { type Subscription, filter } from 'rxjs';
 	import type { Event } from 'nostr-typedef';
 	import { nip19 } from 'nostr-tools';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
