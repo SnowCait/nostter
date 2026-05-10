@@ -627,3 +627,13 @@ label span:has(+ input[type='checkbox']) {
 [popover] {
 	border: none;
 }
+
+dialog.media-dialog {
+	border: none;
+	background-color: transparent;
+	outline: none;
+}
+
+dialog.media-dialog::backdrop {
+	background-color: rgba(0, 0, 0, 0.9);
+}

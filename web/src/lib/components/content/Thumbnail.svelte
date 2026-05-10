@@ -55,7 +55,7 @@
 	<Img {url} />
 </button>
 
-<dialog {...dialog.content} onclick={close} autofocus>
+<dialog {...dialog.content} onclick={close} class="media-dialog" autofocus>
 	<div class="swiper swiper-{id}">
 		<div class="swiper-wrapper">
 			{#each urls as url}
@@ -75,16 +75,6 @@
 </dialog>
 
 <style>
-	dialog {
-		border: none;
-		background-color: transparent;
-		outline: none;
-	}
-
-	dialog::backdrop {
-		background-color: rgba(0, 0, 0, 0.9);
-	}
-
 	button.close {
 		position: fixed;
 		top: 0;
