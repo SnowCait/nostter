@@ -20,12 +20,12 @@
 	import Content from '$lib/components/Content.svelte';
 	import IconLink from '@tabler/icons-svelte/icons/link';
 	import ProfileMenuButton from '$lib/components/ProfileMenuButton.svelte';
-	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
 	import ShareButton from '$lib/components/ShareButton.svelte';
 	import EmojifiedContent from '$lib/components/EmojifiedContent.svelte';
 	import { userStatusReqEmit } from '$lib/UserStatus';
 	import { untrack } from 'svelte';
 	import { fold } from '$lib/components/shared/ViewMoreAttachment.svelte';
+	import ProfileIconThumbnail from '$lib/components/profile/ProfileIconThumbnail.svelte';
 
 	interface Props {
 		slug: string;
@@ -97,7 +97,7 @@
 	<div class="profile">
 		<div class="actions">
 			<div class="picture">
-				<ProfileIcon {pubkey} />
+				<ProfileIconThumbnail {pubkey} />
 			</div>
 			<div class="buttons">
 				<div>
