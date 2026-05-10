@@ -21,9 +21,14 @@
 	let showLoginDialog = $state(false);
 	let failedToLogin = $state(false);
 	let registering = $state(false);
-	let loggingInWith: 'nip07' | 'nip46' | 'key' | 'demo' | undefined = $state();
+	let loggingInWith: 'nip07' | 'nip46' | 'key' | undefined = $state();
 
 	const login = new Login();
+
+	function resetLoginProgress() {
+		loggingInWith = undefined;
+		loginType.set(undefined);
+	}
 
 	async function loginWithNip07() {
 		if (loggingInWith !== undefined) {
@@ -38,11 +43,11 @@
 		try {
 			await login.withNip07();
 			if (!(await gotoHome())) {
-				loggingInWith = undefined;
+				resetLoginProgress();
 			}
 		} catch (error) {
 			console.error('[NIP-07 login failed]', error);
-			loggingInWith = undefined;
+			resetLoginProgress();
 		}
 	}
 
@@ -58,16 +63,16 @@
 			const success = await login.withNip46(bunker);
 			if (!success) {
 				failedToLogin = true;
-				loggingInWith = undefined;
+				resetLoginProgress();
 				return;
 			}
 			if (!(await gotoHome())) {
-				loggingInWith = undefined;
+				resetLoginProgress();
 			}
 		} catch (error) {
 			console.error('[NIP-46 login failed]', error);
 			failedToLogin = true;
-			loggingInWith = undefined;
+			resetLoginProgress();
 		}
 	}
 
@@ -86,26 +91,16 @@
 				await login.withNpub(key);
 			}
 			if (!(await gotoHome())) {
-				loggingInWith = undefined;
+				resetLoginProgress();
 			}
 		} catch (error) {
 			console.error('[key login failed]', error);
-			loggingInWith = undefined;
+			resetLoginProgress();
 		}
 	}
 
 	async function loginWithDemo() {
-		if (loggingInWith !== undefined) {
-			return;
-		}
-
-		loggingInWith = 'demo';
-		try {
-			await goto('/public');
-		} catch (error) {
-			console.error('[demo login failed]', error);
-			loggingInWith = undefined;
-		}
+		await goto('/public');
 	}
 
 	function createAccount(): void {
@@ -129,6 +124,7 @@
 		} catch (error) {
 			console.error('[register failed]', error);
 			registering = false;
+			loginType.set(undefined);
 		}
 	}
 
@@ -228,16 +224,8 @@
 				</section>
 
 				<section>
-					<button
-						onclick={loginWithDemo}
-						class="submit-button"
-						disabled={$loginType !== undefined || loggingInWith !== undefined}
-						aria-busy={loggingInWith === 'demo'}
-					>
-						{#if loggingInWith === 'demo'}
-							<span class="button-spinner" aria-hidden="true"></span>
-						{/if}
-						<span>{$_('login.try_demo')}</span>
+					<button onclick={loginWithDemo} disabled={$loginType !== undefined}>
+						{$_('login.try_demo')}
 					</button>
 				</section>
 
