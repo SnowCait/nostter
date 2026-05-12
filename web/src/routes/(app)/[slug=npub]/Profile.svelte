@@ -151,9 +151,15 @@
 			<NostrAddress {metadata} />
 		{/if}
 
+		{#if user?.about}
+			<div class="about" {@attach fold}>
+				<Content content={user.about} tags={metadata?.event.tags ?? []} />
+			</div>
+		{/if}
+
 		{#if user?.website}
-			<div>
-				<IconLink size="1rem" />
+			<div class="website">
+				<IconLink size="18" />
 				{#if url}
 					<ExternalLink link={url} />
 				{:else}
@@ -161,13 +167,7 @@
 				{/if}
 			</div>
 		{/if}
-		{#if user?.about}
-			<div class="about" {@attach fold}>
-				<Content content={user.about} tags={metadata?.event.tags ?? []} />
-			</div>
-		{/if}
 	</div>
-	<Badges {pubkey} {relays} />
 	<div class="relationships">
 		<div>
 			{$_('pages.followees')}: {#if followees === undefined}
@@ -180,6 +180,7 @@
 			{$_('pages.followers')}: <a href={`/${slug}/followers`}>{$_('pages.followers_see')}</a>
 		</div>
 	</div>
+	<Badges {pubkey} {relays} />
 	<nav>
 		<div>
 			<a href="/{slug}/media">{$_('pages.media')}</a>
@@ -307,6 +308,12 @@
 	.about {
 		margin: 1rem 0;
 		background-color: var(--surface);
+	}
+
+	.website {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
 	}
 
 	.relationships {
