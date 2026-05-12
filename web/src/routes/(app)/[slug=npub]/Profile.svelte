@@ -217,11 +217,15 @@
 	.banner .blank {
 		object-fit: cover;
 		width: 100%;
-		height: 200px;
+		height: 100%;
 		border-radius: 0.5rem 0.5rem 0 0;
 	}
 
 	@media screen and (max-width: 600px) {
+		.banner {
+			height: 100px;
+		}
+
 		.banner img,
 		.banner .blank {
 			border-radius: 0;
