@@ -640,3 +640,28 @@ dialog.media-dialog {
 dialog.media-dialog::backdrop {
 	background-color: rgba(0, 0, 0, 0.9);
 }
+
+.rounded-medium {
+	--link-size: 36px;
+	border: var(--default-border);
+	border-radius: calc(infinity * 1px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: var(--link-size);
+	padding: 0 calc(var(--link-size) / 2);
+	font-weight: bold;
+	text-decoration: none;
+	user-select: none;
+	color: var(--accent-gray);
+	background-color: inherit;
+}
+
+.rounded-medium:hover {
+	background-color: var(--accent-surface);
+}
+
+.rounded-medium.primary {
+	color: var(--accent-foreground);
+	background-color: var(--accent);
+}

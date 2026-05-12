@@ -52,11 +52,11 @@
 </script>
 
 {#if $originalFollowees.includes(pubkey)}
-	<button onclick={onUnfollow} class="button-small button-outlined" disabled={processing}>
+	<button onclick={onUnfollow} class="rounded-medium" disabled={processing}>
 		{$_('follow.following')}
 	</button>
 {:else}
-	<button onclick={onFollow} class="button-small" disabled={processing}>
+	<button onclick={onFollow} class="rounded-medium primary" disabled={processing}>
 		{$_('follow.follow')}
 	</button>
 {/if}
@@ -66,6 +66,7 @@
 		display: flex;
 		row-gap: 2px;
 	}
+
 	:global(button .loader > svg) {
 		fill: white;
 	}

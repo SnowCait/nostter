@@ -2,7 +2,6 @@
 	import { nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
-	import { goto } from '$app/navigation';
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { newUrl } from '$lib/Helper';
@@ -111,9 +110,7 @@
 						<ProfileMenuButton {pubkey} />
 					</div>
 					{#if pubkey === $authorPubkey}
-						<button onclick={async () => await goto('/profile')}>
-							{$_('pages.profile_edit')}
-						</button>
+						<a href="/profile" class="rounded-medium">{$_('pages.profile_edit')}</a>
 					{:else}
 						<FollowButton {pubkey} />
 					{/if}
@@ -154,9 +151,15 @@
 			<NostrAddress {metadata} />
 		{/if}
 
+		{#if user?.about}
+			<div class="about" {@attach fold}>
+				<Content content={user.about} tags={metadata?.event.tags ?? []} />
+			</div>
+		{/if}
+
 		{#if user?.website}
-			<div>
-				<IconLink size="1rem" />
+			<div class="website">
+				<IconLink size="18" />
 				{#if url}
 					<ExternalLink link={url} />
 				{:else}
@@ -164,13 +167,7 @@
 				{/if}
 			</div>
 		{/if}
-		{#if user?.about}
-			<div class="about" {@attach fold}>
-				<Content content={user.about} tags={metadata?.event.tags ?? []} />
-			</div>
-		{/if}
 	</div>
-	<Badges {pubkey} {relays} />
 	<div class="relationships">
 		<div>
 			{$_('pages.followees')}: {#if followees === undefined}
@@ -183,6 +180,7 @@
 			{$_('pages.followers')}: <a href={`/${slug}/followers`}>{$_('pages.followers_see')}</a>
 		</div>
 	</div>
+	<Badges {pubkey} {relays} />
 	<nav>
 		<div>
 			<a href="/{slug}/media">{$_('pages.media')}</a>
@@ -217,11 +215,15 @@
 	.banner .blank {
 		object-fit: cover;
 		width: 100%;
-		height: 200px;
+		height: 100%;
 		border-radius: 0.5rem 0.5rem 0 0;
 	}
 
 	@media screen and (max-width: 600px) {
+		.banner {
+			height: 100px;
+		}
+
 		.banner img,
 		.banner .blank {
 			border-radius: 0;
@@ -233,9 +235,10 @@
 	}
 
 	.picture {
-		min-width: 128px;
-		width: 128px;
-		height: 128px;
+		--picture-size: 128px;
+		min-width: var(--picture-size);
+		width: var(--picture-size);
+		height: var(--picture-size);
 		object-fit: cover;
 
 		border: 4px solid var(--surface);
@@ -270,6 +273,8 @@
 		align-items: center;
 		justify-content: flex-end;
 		gap: 1rem;
+
+		margin-bottom: 16px;
 	}
 
 	.actions .buttons div {
@@ -303,6 +308,12 @@
 	.about {
 		margin: 1rem 0;
 		background-color: var(--surface);
+	}
+
+	.website {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
 	}
 
 	.relationships {
