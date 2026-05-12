@@ -660,3 +660,8 @@ dialog.media-dialog::backdrop {
 .rounded-medium:hover {
 	background-color: var(--accent-surface);
 }
+
+.rounded-medium.primary {
+	color: var(--accent-foreground);
+	background-color: var(--accent);
+}
