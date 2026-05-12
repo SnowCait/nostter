@@ -237,9 +237,10 @@
 	}
 
 	.picture {
-		min-width: 128px;
-		width: 128px;
-		height: 128px;
+		--picture-size: 128px;
+		min-width: var(--picture-size);
+		width: var(--picture-size);
+		height: var(--picture-size);
 		object-fit: cover;
 
 		border: 4px solid var(--surface);
