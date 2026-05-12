@@ -28,5 +28,6 @@
 	dialog :global(img) {
 		max-width: 60vw;
 		max-height: 60vh;
+		aspect-ratio: 1 / 1;
 	}
 </style>
