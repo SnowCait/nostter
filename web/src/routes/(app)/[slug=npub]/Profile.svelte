@@ -272,6 +272,8 @@
 		align-items: center;
 		justify-content: flex-end;
 		gap: 1rem;
+
+		margin-bottom: 16px;
 	}
 
 	.actions .buttons div {
