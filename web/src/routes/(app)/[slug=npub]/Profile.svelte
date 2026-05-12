@@ -2,7 +2,6 @@
 	import { nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
-	import { goto } from '$app/navigation';
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { newUrl } from '$lib/Helper';
@@ -111,9 +110,7 @@
 						<ProfileMenuButton {pubkey} />
 					</div>
 					{#if pubkey === $authorPubkey}
-						<button onclick={async () => await goto('/profile')}>
-							{$_('pages.profile_edit')}
-						</button>
+						<a href="/profile" class="rounded-medium">{$_('pages.profile_edit')}</a>
 					{:else}
 						<FollowButton {pubkey} />
 					{/if}
