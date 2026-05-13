@@ -9,20 +9,39 @@
 		}
 	}
 
+	const proxyRequiredOrigins = new Set<string>();
 	const cache = new SvelteMap<string, string | null>();
 	const lock = new AsyncLock();
 
 	async function fetchContentType(url: string): Promise<string | null> {
-		return await lock.acquire(url, async () => {
+		const origin = new URL(url).origin;
+		return await lock.acquire(origin, async () => {
 			if (cache.has(url)) {
 				return cache.get(url) ?? null;
 			}
-			const response = await fetch(`${httpProxy}/?url=${encodeURIComponent(url)}`, {
-				method: 'HEAD'
-			});
-			const contentType = response.headers.get('Content-Type');
-			cache.set(url, contentType);
-			return contentType;
+
+			if (!proxyRequiredOrigins.has(origin)) {
+				try {
+					const response = await fetch(url, { method: 'HEAD' });
+					const contentType = response.headers.get('Content-Type');
+					cache.set(url, contentType);
+					return contentType;
+				} catch {
+					proxyRequiredOrigins.add(origin);
+				}
+			}
+
+			try {
+				const response = await fetch(`${httpProxy}/?url=${encodeURIComponent(url)}`, {
+					method: 'HEAD'
+				});
+				const contentType = response.headers.get('Content-Type');
+				cache.set(url, contentType);
+				return contentType;
+			} catch {
+				cache.set(url, null);
+				return null;
+			}
 		});
 	}
 </script>
