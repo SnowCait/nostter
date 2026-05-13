@@ -52,11 +52,11 @@
 </script>
 
 {#if $originalFollowees.includes(pubkey)}
-	<button onclick={onUnfollow} class="rounded-medium" disabled={processing}>
+	<button onclick={onUnfollow} class="rounded-button" disabled={processing}>
 		{$_('follow.following')}
 	</button>
 {:else}
-	<button onclick={onFollow} class="rounded-medium primary" disabled={processing}>
+	<button onclick={onFollow} class="rounded-button primary" disabled={processing}>
 		{$_('follow.follow')}
 	</button>
 {/if}

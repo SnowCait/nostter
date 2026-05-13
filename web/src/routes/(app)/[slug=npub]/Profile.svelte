@@ -110,7 +110,7 @@
 						<ProfileMenuButton {pubkey} />
 					</div>
 					{#if pubkey === $authorPubkey}
-						<a href="/profile" class="rounded-medium">{$_('pages.profile_edit')}</a>
+						<a href="/profile" class="rounded-button">{$_('pages.profile_edit')}</a>
 					{:else}
 						<FollowButton {pubkey} />
 					{/if}
