@@ -641,11 +641,11 @@ dialog.media-dialog::backdrop {
 	background-color: rgba(0, 0, 0, 0.9);
 }
 
-.rounded-medium {
+.rounded-button {
 	--link-size: 36px;
 	border: var(--default-border);
 	border-radius: calc(infinity * 1px);
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	min-height: var(--link-size);
@@ -657,11 +657,16 @@ dialog.media-dialog::backdrop {
 	background-color: inherit;
 }
 
-.rounded-medium:hover {
+.rounded-button:hover {
 	background-color: var(--accent-surface);
 }
 
-.rounded-medium.primary {
+.rounded-button.primary {
 	color: var(--accent-foreground);
 	background-color: var(--accent);
+}
+
+.rounded-button.small {
+	--link-size: 32px;
+	font-weight: initial;
 }

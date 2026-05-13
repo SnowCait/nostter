@@ -24,7 +24,7 @@
 </script>
 
 <div class:folded bind:this={element}>
-	<button {onclick} class="button-outlined">
+	<button {onclick} class="rounded-button small">
 		{#if folded}
 			{$_('fold.unfold')}
 		{:else}
