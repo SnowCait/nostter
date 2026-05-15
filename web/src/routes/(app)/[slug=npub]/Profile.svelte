@@ -181,23 +181,6 @@
 		</div>
 	</div>
 	<Badges {pubkey} {relays} />
-	<nav>
-		<div>
-			<a href="/{slug}/media">{$_('pages.media')}</a>
-		</div>
-		<div>
-			<a href="/{slug}/timeline">{$_('pages.timeline')}</a>
-		</div>
-		<div>
-			<a href="/{slug}/reactions">{$_('pages.reactions')}</a>
-		</div>
-		<div>
-			<a href="/{slug}/lists">{$_('lists.title')}</a>
-		</div>
-		<div>
-			<a href="/{slug}/polls">{$_('poll.title')}</a>
-		</div>
-	</nav>
 
 	{#if $developerMode}
 		<ReplaceableEventsJson />

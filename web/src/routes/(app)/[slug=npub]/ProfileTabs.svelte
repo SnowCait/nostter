@@ -10,26 +10,35 @@
 </script>
 
 <nav class="tabs">
-	<a href={`/${slug}`} class:active={tab === 'notes'}>{$_('Notes')}</a>
-	<a href={`/${slug}/media`} class:active={tab === 'media'}>{$_('Media')}</a>
-	<a href={`/${slug}/timeline`} class:active={tab === 'timeline'}>{$_('Timeline')}</a>
-	<a href={`/${slug}/reactions`} class:active={tab === 'reactions'}>{$_('Reactions')}</a>
-	<a href={`/${slug}/lists`} class:active={tab === 'lists'}>{$_('Lists')}</a>
-	<a href={`/${slug}/polls`} class:active={tab === 'polls'}>{$_('Polls')}</a>
+	<a href={`/${slug}`} class:active={tab === 'notes'}>{$_('pages.notes')}</a>
+	<a href={`/${slug}/media`} class:active={tab === 'media'}>{$_('pages.media')}</a>
+	<a href={`/${slug}/timeline`} class:active={tab === 'timeline'}>{$_('pages.timeline')}</a>
+	<a href={`/${slug}/reactions`} class:active={tab === 'reactions'}>{$_('pages.reactions')}</a>
+	<a href={`/${slug}/lists`} class:active={tab === 'lists'}>{$_('lists.title')}</a>
+	<a href={`/${slug}/polls`} class:active={tab === 'polls'}>{$_('poll.title')}</a>
 </nav>
 
 <style>
 	.tabs {
-		justify-content: space-between;
+		display: flex;
+		gap: 0.5rem;
 		border-bottom: var(--default-border);
 		user-select: none;
+		overflow-x: auto;
+		overflow-y: hidden;
 	}
 
 	.tabs a {
-		padding: 0.5rem 0;
-		border-bottom: 2px solid transparent;
-		color: var(--text);
+		padding: 0.75rem 1rem;
+		border-bottom: 3px solid transparent;
+		color: var(--foreground);
 		text-decoration: none;
+		transition: all 0.2s ease;
+		white-space: nowrap;
+	}
+
+	.tabs a:hover {
+		background-color: var(--hover-background-color);
 	}
 
 	.tabs a.active {
