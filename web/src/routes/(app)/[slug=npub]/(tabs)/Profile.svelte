@@ -305,8 +305,4 @@
 		font-size: 0.95rem;
 		margin: 1rem 0;
 	}
-
-	nav div {
-		margin: 1rem 0;
-	}
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Api } from '$lib/Api';
-	import TimelineView from '../../TimelineView.svelte';
+	import TimelineView from '../../../TimelineView.svelte';
 	import { pubkey as authorPubkey, followees as authorFollowees } from '$lib/stores/Author';
 	import {
 		UserFollowingTimeline,

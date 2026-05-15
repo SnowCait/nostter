@@ -11,21 +11,20 @@
 	import { isDecodable } from '$lib/Encryption';
 	import { findIdentifier } from '$lib/EventHelper';
 	import { getListTitle } from '$lib/List';
-	import type { LayoutData } from '../$types';
+	import type { LayoutProps } from '../$types';
 	import { pubkey } from '$lib/stores/Author';
 	import Loading from '$lib/components/Loading.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
+	import { page } from '$app/state';
+	import ProfileTabs from '../ProfileTabs.svelte';
 
-	interface Props {
-		data: LayoutData;
-	}
-
-	let { data }: Props = $props();
+	let { data }: LayoutProps = $props();
 
 	let listEvents = new SvelteMap<string, Event>();
 	let loading = $state(true);
 	let subscription: Subscription | undefined;
 
+	let slug = $derived(page.params.slug!);
 	let metadata = $derived($metadataStore.get(data.pubkey));
 	let title = $derived(
 		(metadata === undefined ? '' : `${metadata.displayName}${$_('lists.particle')}`) +
@@ -95,7 +94,7 @@
 	<title>{appName} - {title}</title>
 </svelte:head>
 
-<h1>{title}</h1>
+<ProfileTabs tab="lists" {slug} />
 
 <ul>
 	{#each [...listEvents].map(([, event]) => event).sort(reverseChronological) as event}

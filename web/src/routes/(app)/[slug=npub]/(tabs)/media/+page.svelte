@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import type { Filter } from 'nostr-typedef';
 	import { tap, filter } from 'rxjs';
@@ -7,17 +6,16 @@
 	import { appName, minTimelineLength } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
-	import type { LayoutData } from '../$types';
+	import type { LayoutProps } from '../$types';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
-	import TimelineView from '../../TimelineView.svelte';
+	import TimelineView from '../../../TimelineView.svelte';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
+	import ProfileTabs from '../ProfileTabs.svelte';
+	import { page } from '$app/state';
 
-	interface Props {
-		data: LayoutData;
-	}
+	let { data }: LayoutProps = $props();
 
-	let { data }: Props = $props();
-
+	let slug = $derived(page.params.slug!);
 	let pubkey = $derived(data.pubkey);
 	let metadata = $derived($metadataStore.get(pubkey));
 
@@ -170,11 +168,7 @@
 	{/if}
 </svelte:head>
 
-{#if metadata !== undefined}
-	<h1>{metadata?.displayName} {$_('pages.media')}</h1>
-{:else}
-	<h1>{$_('pages.media')}</h1>
-{/if}
+<ProfileTabs tab="media" {slug} />
 
 <section>
 	<TimelineView {items} readonly={!$authorPubkey} {load} />

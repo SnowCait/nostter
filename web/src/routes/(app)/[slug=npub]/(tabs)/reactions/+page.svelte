@@ -4,19 +4,19 @@
 	import { _ } from 'svelte-i18n';
 	import { createRxOneshotReq, now, uniq, type LazyFilter } from 'rx-nostr';
 	import { filter, tap } from 'rxjs';
-	import TimelineView from '../../TimelineView.svelte';
+	import TimelineView from '../../../TimelineView.svelte';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { items } from '$lib/timelines/ReactionsTimeline.svelte';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { EventItem } from '$lib/Items';
 	import { appName, minTimelineLength } from '$lib/Constants';
-	import type { LayoutData } from '../$types';
+	import type { LayoutProps } from '../$types';
+	import { page } from '$app/state';
+	import ProfileTabs from '../ProfileTabs.svelte';
 
-	interface Props {
-		data: LayoutData;
-	}
+	let { data }: LayoutProps = $props();
 
-	let { data }: Props = $props();
+	let slug = $derived(page.params.slug!);
 
 	let pubkey: string | undefined = $state();
 	let showLoading = $state(false);
@@ -126,6 +126,6 @@
 	<title>{appName} - {$_('pages.reactions')}</title>
 </svelte:head>
 
-<h1>{$_('pages.reactions')}</h1>
+<ProfileTabs tab="reactions" {slug} />
 
 <TimelineView {items} {load} {showLoading} />

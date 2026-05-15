@@ -12,14 +12,14 @@
 	import { appName } from '$lib/Constants';
 	import { findIdentifier } from '$lib/EventHelper';
 	import { fetchListEvent, getListPubkeys, getListTitle } from '$lib/List';
-	import type { PageData } from './$types';
-	import TimelineView from '../../../TimelineView.svelte';
+	import type { PageProps } from './$types';
+	import TimelineView from '../../../../TimelineView.svelte';
+	import ProfileTabs from '../../ProfileTabs.svelte';
+	import { page } from '$app/state';
 
-	interface Props {
-		data: PageData;
-	}
+	let { data }: PageProps = $props();
 
-	let { data }: Props = $props();
+	let slug = $derived(page.params.slug!);
 
 	afterNavigate(async () => {
 		console.log('[list page]', data.naddr, data);
@@ -57,6 +57,8 @@
 <svelte:head>
 	<title>{appName} - {title}</title>
 </svelte:head>
+
+<ProfileTabs tab="lists" {slug} />
 
 <h1>
 	<span>{title}</span>

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { _ } from 'svelte-i18n';
 	import type { LayoutProps } from '../$types';
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { createRxBackwardReq, uniq } from 'rx-nostr';
@@ -11,8 +10,12 @@
 	import { EventItem } from '$lib/Items';
 	import { filter, type Subscription, tap } from 'rxjs';
 	import { onDestroy } from 'svelte';
+	import ProfileTabs from '../ProfileTabs.svelte';
+	import { page } from '$app/state';
 
 	const { data }: LayoutProps = $props();
+
+	let slug = $derived(page.params.slug!);
 
 	const limit = 50;
 	const events = $state<Event[]>([]);
@@ -40,8 +43,9 @@
 	});
 </script>
 
-<h1>{$_('poll.title')}</h1>
-<section class="card">
+<ProfileTabs tab="polls" {slug} />
+
+<section class="card polls">
 	{#each events.slice(0, limit) as event (event.id)}
 		{@const item = new EventItem(event)}
 		<div>
@@ -51,12 +55,12 @@
 </section>
 
 <style>
-	section {
+	section.polls {
 		margin: 0;
 		padding: 0;
 	}
 
-	section div {
+	section.polls div {
 		border-bottom: var(--default-border);
 
 		overflow-x: hidden;

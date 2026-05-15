@@ -3,7 +3,7 @@
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { appName, japaneseBotNpub, trendingPeopleBotNpub } from '$lib/Constants';
-	import UserFollowingTimeline from '../[slug=npub]/timeline/UserFollowingTimeline.svelte';
+	import UserFollowingTimeline from '../[slug=npub]/(tabs)/timeline/UserFollowingTimeline.svelte';
 
 	let pubkey: string | undefined = $state();
 
