@@ -30,7 +30,8 @@
 		"trend": {
 			"message": "トレンドはパブリックに統合されました。",
 			"message2": "このページは将来的に削除されます。"
-		}
+		},
+		"notes": "投稿"
 	},
 	"login": {
 		"browser_extension": "拡張機能でログイン",

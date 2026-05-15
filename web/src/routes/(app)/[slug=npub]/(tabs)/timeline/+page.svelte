@@ -6,6 +6,9 @@
 	import { User } from '$lib/User';
 	import UserFollowingTimeline from './UserFollowingTimeline.svelte';
 	import { page } from '$app/state';
+	import ProfileTabs from '../ProfileTabs.svelte';
+
+	let slug = $derived(page.params.slug!);
 
 	let pubkey = $state<string>();
 
@@ -31,6 +34,8 @@
 <svelte:head>
 	<title>{appName} - {$_('pages.timeline')}</title>
 </svelte:head>
+
+<ProfileTabs tab="timeline" {slug} />
 
 {#if pubkey !== undefined}
 	<UserFollowingTimeline {pubkey} />

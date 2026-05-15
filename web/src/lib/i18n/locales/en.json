@@ -30,7 +30,8 @@
 		"trend": {
 			"message": "Trend was integrated into Public.",
 			"message2": "This page will be removed in the future."
-		}
+		},
+		"notes": "Notes"
 	},
 	"login": {
 		"browser_extension": "Login with Browser Extension",
