@@ -556,7 +556,7 @@ code {
 
 .tabs {
 	display: flex;
-	margin-bottom: 1rem;
+	margin-bottom: 0.5rem;
 	flex-wrap: nowrap;
 }
 

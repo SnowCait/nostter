@@ -17,6 +17,7 @@
 	import Profile from './Profile.svelte';
 	import TimelineView from '../TimelineView.svelte';
 	import PinnedNote from '$lib/components/items/PinnedNote.svelte';
+	import ProfileTabs from './ProfileTabs.svelte';
 
 	let { data }: LayoutProps = $props();
 
@@ -164,6 +165,8 @@
 	<Profile {slug} pubkey={data.pubkey} {metadata} relays={data.relays} />
 </section>
 
+<ProfileTabs tab="notes" {slug} />
+
 <PinnedNote pubkey={data.pubkey} {slug} />
 
 <section>
@@ -173,10 +176,6 @@
 <style>
 	.profile-wrapper {
 		position: relative;
-	}
-
-	section + section {
-		margin-top: 1rem;
 	}
 
 	@media screen and (max-width: 600px) {
