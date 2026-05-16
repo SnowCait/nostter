@@ -10,7 +10,7 @@ export default defineConfig({
 	build: {
 		target: 'esnext'
 	},
-	plugins: [sveltekit(), visualizer({ emitFile: true, template: 'sunburst' })],
+	plugins: [sveltekit(), visualizer({ emitFile: true, template: 'markdown' })],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}']
 	}

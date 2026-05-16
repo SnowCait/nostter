@@ -1,0 +1,33 @@
+name: Stats
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6.3.0
+        with:
+          node-version: "24.x"
+      - run: npm ci
+      - run: npm run build
+      - run: |
+          echo "# Bundle Report\n\n" >> $GITHUB_STEP_SUMMARY
+
+          echo "<details>\n\n" >> $GITHUB_STEP_SUMMARY
+          echo "<summary>Client</summary>\n\n" >> $GITHUB_STEP_SUMMARY
+          cat .svelte-kit/output/client/stats.md >> $GITHUB_STEP_SUMMARY
+          echo "\n\n</details>\n\n" >> $GITHUB_STEP_SUMMARY
+
+          echo "<details>\n\n" >> $GITHUB_STEP_SUMMARY
+          echo "<summary>Server</summary>\n\n" >> $GITHUB_STEP_SUMMARY
+          cat .svelte-kit/output/server/stats.md >> $GITHUB_STEP_SUMMARY
+          echo "\n\n</details>\n" >> $GITHUB_STEP_SUMMARY
