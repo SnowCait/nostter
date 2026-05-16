@@ -58,7 +58,7 @@
 </script>
 
 <article class="timeline-item">
-	<div class:heart={event.content === '+' || event.content === '-'}>
+	<div class:heart={event.content === '+' || event.content === '' || event.content === '-'}>
 		{#if event.content === '+' || event.content === ''}
 			<IconHeart size={18} />
 		{:else if event.content === '-'}
