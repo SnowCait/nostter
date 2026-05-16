@@ -87,23 +87,15 @@ export const categoriesKinds = {
 
 export const categories = Object.keys(categoriesKinds);
 
-export const defaultRelays = [
-	{
-		url: 'wss://relay.nostr.band/',
-		read: true,
-		write: true
-	},
-	{
-		url: 'wss://nos.lol/',
-		read: true,
-		write: true
-	},
-	{
-		url: 'wss://relay.damus.io/',
-		read: true,
-		write: true
-	}
-];
+const defaultRelayUrls = import.meta.env.VITE_DEFAULT_RELAYS
+	? import.meta.env.VITE_DEFAULT_RELAYS.split(',')
+	: ['wss://nos.lol/', 'wss://relay.damus.io/'];
+
+export const defaultRelays = defaultRelayUrls.map((url) => ({
+	url: url.trim(),
+	read: true,
+	write: true
+}));
 
 export const localizedRelays = {
 	ja: [
