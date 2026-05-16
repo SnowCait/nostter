@@ -21,14 +21,19 @@ jobs:
       - run: cp .env.example .env
       - run: npm run build
       - run: |
-          echo "# Bundle Report\n\n" >> $GITHUB_STEP_SUMMARY
+          head -n 10 .svelte-kit/output/client/stats.md >> $GITHUB_STEP_SUMMARY
+          head -n 10 .svelte-kit/output/server/stats.md >> $GITHUB_STEP_SUMMARY
 
-          echo "<details>\n\n" >> $GITHUB_STEP_SUMMARY
-          echo "<summary>Client</summary>\n\n" >> $GITHUB_STEP_SUMMARY
+          echo "<details>" >> $GITHUB_STEP_SUMMARY
+          echo "<summary>Client Details</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           cat .svelte-kit/output/client/stats.md >> $GITHUB_STEP_SUMMARY
-          echo "\n\n</details>\n\n" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
 
-          echo "<details>\n\n" >> $GITHUB_STEP_SUMMARY
-          echo "<summary>Server</summary>\n\n" >> $GITHUB_STEP_SUMMARY
+          echo "<details>" >> $GITHUB_STEP_SUMMARY
+          echo "<summary>Server Details</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           cat .svelte-kit/output/server/stats.md >> $GITHUB_STEP_SUMMARY
-          echo "\n\n</details>\n" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
