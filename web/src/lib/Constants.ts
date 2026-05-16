@@ -122,13 +122,17 @@ export const localizedRelays = {
 	]
 };
 
-export const metadataRelays = [
-	'wss://purplepag.es/',
-	'wss://user.kindpag.es/',
-	'wss://directory.yabu.me/'
-];
+const metadataRelayUrls = import.meta.env.VITE_METADATA_RELAYS
+	? import.meta.env.VITE_METADATA_RELAYS.split(',')
+	: ['wss://purplepag.es/', 'wss://user.kindpag.es/', 'wss://directory.yabu.me/'];
 
-export const searchRelays = ['wss://relay.nostr.band/', 'wss://search.nos.today/'];
+export const metadataRelays = metadataRelayUrls.map((url) => url.trim());
+
+const searchRelayUrls = import.meta.env.VITE_SEARCH_RELAYS
+	? import.meta.env.VITE_SEARCH_RELAYS.split(',')
+	: ['wss://nostr.wine/', 'wss://search.nos.today/'];
+
+export const searchRelays = searchRelayUrls.map((url) => url.trim());
 
 export const trendRelays = ['wss://nostrbuzzs-relay.fly.dev/'];
 

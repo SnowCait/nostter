@@ -6,6 +6,8 @@ interface ViteTypeOptions {
 
 interface ImportMetaEnv {
 	readonly VITE_DEFAULT_RELAYS?: string;
+	readonly VITE_METADATA_RELAYS?: string;
+	readonly VITE_SEARCH_RELAYS?: string;
 }
 
 interface ImportMeta {
