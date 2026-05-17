@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
-	import { appName } from '$lib/Constants';
+	import { appName, emojiEditorUrl } from '$lib/Constants';
 	import { decryptListContent } from '$lib/List';
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';
@@ -30,6 +30,7 @@
 	import Backup from './Backup.svelte';
 	import WorkAsRemoteSigner from './WorkAsRemoteSigner.svelte';
 	import NotificationVisibility from './NotificationVisibility.svelte';
+	import ExternalLink from '$lib/components/ExternalLink.svelte';
 </script>
 
 <svelte:head>
@@ -46,9 +47,9 @@
 		</div>
 		<div><ReactionEmoji /></div>
 		<div>
-			<a href="https://emojito.meme/" target="_blank" rel="noopener noreferrer">
+			<ExternalLink link={new URL(emojiEditorUrl)}>
 				{$_('preferences.emoji.custom')}
-			</a>
+			</ExternalLink>
 		</div>
 		<div><MediaUploader /></div>
 		<h3>{$_('preferences.mute.mute')}</h3>
