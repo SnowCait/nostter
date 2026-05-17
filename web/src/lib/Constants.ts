@@ -157,6 +157,8 @@ export const imageOptimizerServers = [
 	'https://nostr-image-optimizer.ocknamo.com/image/'
 ];
 
+export const emojiEditorUrl = 'https://ngrid-art.mono3.workers.dev/emoji-sets';
+
 export const httpProxy = 'https://proxy.nostter.app';
 
 export const chronological = (x: NostrEvent, y: NostrEvent) => x.created_at - y.created_at;

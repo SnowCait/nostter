@@ -37,6 +37,8 @@
 	import { createViaTag, via } from '$lib/author/Via';
 	import { Collapsible } from 'melt/builders';
 	import ContinuePosting from './ContinuePosting.svelte';
+	import ExternalLink from '../ExternalLink.svelte';
+	import { emojiEditorUrl } from '$lib/Constants';
 
 	export function clear(closed = false): void {
 		$intentContent = '';
@@ -696,9 +698,9 @@
 						</li>
 					{/each}
 					<li class="add-custom-emojis">
-						<a href="https://emojito.meme/" target="_blank" rel="noopener noreferrer">
-							Add custom emojis
-						</a>
+						<ExternalLink link={new URL(emojiEditorUrl)}>
+							{$_('preferences.emoji.custom')}
+						</ExternalLink>
 					</li>
 				</ul>
 			{/if}
