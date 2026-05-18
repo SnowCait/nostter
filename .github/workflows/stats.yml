@@ -21,8 +21,12 @@ jobs:
       - run: cp .env.example .env
       - run: npm run build
       - run: |
-          head -n 10 .svelte-kit/output/client/stats.md >> $GITHUB_STEP_SUMMARY
-          head -n 10 .svelte-kit/output/server/stats.md >> $GITHUB_STEP_SUMMARY
+          echo "# Bundle Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Client" >> $GITHUB_STEP_SUMMARY
+          sed -n "2,10p" .svelte-kit/output/client/stats.md >> $GITHUB_STEP_SUMMARY
+          echo "## Server" >> $GITHUB_STEP_SUMMARY
+          sed -n "2,10p" .svelte-kit/output/server/stats.md >> $GITHUB_STEP_SUMMARY
 
           echo "<details>" >> $GITHUB_STEP_SUMMARY
           echo "<summary>Client Details</summary>" >> $GITHUB_STEP_SUMMARY
