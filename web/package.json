@@ -44,6 +44,7 @@
 	"dependencies": {
 		"@emoji-mart/data": "^1.2.1",
 		"@floating-ui/dom": "^1.8.0",
+		"@noble/hashes": "^2.2.0",
 		"@nostter/nostr-kit": "^0.1.0",
 		"@nostter/nostr-protocol": "^0.1.0",
 		"@rust-nostr/nostr-sdk": "^0.44.0",
