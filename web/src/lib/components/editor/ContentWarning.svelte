@@ -1,5 +1,5 @@
 <script lang="ts">
-	import IconEyeOff from '@tabler/icons-svelte/icons/eye-off';
+	import IconEyeOff from '@tabler/icons-svelte-runes/icons/eye-off';
 	import { _ } from 'svelte-i18n';
 
 	interface Props {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import DateLink from '$lib/components/DateLink.svelte';
-	import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left';
-	import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right';
+	import IconChevronLeft from '@tabler/icons-svelte-runes/icons/chevron-left';
+	import IconChevronRight from '@tabler/icons-svelte-runes/icons/chevron-right';
 
 	interface Props {
 		slug: string;

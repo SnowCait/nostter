@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
-	import IconVolumeOff from '@tabler/icons-svelte/icons/volume-off';
-	import IconTrash from '@tabler/icons-svelte/icons/trash';
+	import IconVolumeOff from '@tabler/icons-svelte-runes/icons/volume-off';
+	import IconTrash from '@tabler/icons-svelte-runes/icons/trash';
 	import {
 		pubkey as authorPubkey,
 		mutePubkeys,

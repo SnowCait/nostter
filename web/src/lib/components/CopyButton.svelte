@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { copy as copyText } from '$lib/Clipboard';
-	import IconClipboard from '@tabler/icons-svelte/icons/clipboard';
-	import IconClipboardCheck from '@tabler/icons-svelte/icons/clipboard-check';
+	import IconClipboard from '@tabler/icons-svelte-runes/icons/clipboard';
+	import IconClipboardCheck from '@tabler/icons-svelte-runes/icons/clipboard-check';
 
 	interface Props {
 		text: string;

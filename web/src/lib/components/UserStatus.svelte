@@ -3,7 +3,7 @@
 	import { chronological } from '$lib/Constants';
 	import { findIdentifier } from '$lib/EventHelper';
 	import { userStatusesMap } from '$lib/UserStatus';
-	import { IconMusic, IconUser } from '@tabler/icons-svelte';
+	import { IconMusic, IconUser } from '@tabler/icons-svelte-runes';
 	import EmojifiedContent from './EmojifiedContent.svelte';
 
 	interface Props {

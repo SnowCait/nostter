@@ -26,14 +26,14 @@
 	} from '$lib/Constants';
 	import { onDestroy, onMount, tick } from 'svelte';
 	import CustomEmojiPopup from '$lib/components/content/CustomEmojiPopup.svelte';
-	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
-	import IconHeart from '@tabler/icons-svelte/icons/heart';
-	import IconBolt from '@tabler/icons-svelte/icons/bolt';
+	import IconRepeat from '@tabler/icons-svelte-runes/icons/repeat';
+	import IconHeart from '@tabler/icons-svelte-runes/icons/heart';
+	import IconBolt from '@tabler/icons-svelte-runes/icons/bolt';
 	import NotFound from '$lib/components/items/NotFound.svelte';
 	import DateLink from '$lib/components/DateLink.svelte';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import BackButton from '$lib/components/BackButton.svelte';
-	import { IconHeartBroken } from '@tabler/icons-svelte';
+	import { IconHeartBroken } from '@tabler/icons-svelte-runes';
 	import { SvelteMap } from 'svelte/reactivity';
 
 	interface Props {

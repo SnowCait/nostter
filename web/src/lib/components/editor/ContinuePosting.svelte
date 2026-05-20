@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconSend } from '@tabler/icons-svelte';
+	import { IconSend } from '@tabler/icons-svelte-runes';
 	import { _ } from 'svelte-i18n';
 
 	interface Props {

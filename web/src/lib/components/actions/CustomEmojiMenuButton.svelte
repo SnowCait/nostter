@@ -3,8 +3,8 @@
 	import { nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { aTagContent, findIdentifier } from '$lib/EventHelper';
-	import { IconDots, IconLibraryMinus, IconLibraryPlus } from '@tabler/icons-svelte';
-	import IconExternalLink from '@tabler/icons-svelte/icons/external-link';
+	import { IconDots, IconLibraryMinus, IconLibraryPlus } from '@tabler/icons-svelte-runes';
+	import IconExternalLink from '@tabler/icons-svelte-runes/icons/external-link';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import {

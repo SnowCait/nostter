@@ -17,7 +17,7 @@
 	import UserStatusEditor from '$lib/components/UserStatusFull.svelte';
 	import ReplaceableEventsJson from '$lib/components/ReplaceableEventsJson.svelte';
 	import Content from '$lib/components/Content.svelte';
-	import IconLink from '@tabler/icons-svelte/icons/link';
+	import IconLink from '@tabler/icons-svelte-runes/icons/link';
 	import ProfileMenuButton from '$lib/components/ProfileMenuButton.svelte';
 	import ShareButton from '$lib/components/ShareButton.svelte';
 	import EmojifiedContent from '$lib/components/EmojifiedContent.svelte';

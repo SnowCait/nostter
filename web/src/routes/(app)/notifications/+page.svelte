@@ -11,12 +11,12 @@
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import { pubkey, author } from '$lib/stores/Author';
 	import TimelineView from '../TimelineView.svelte';
-	import IconAt from '@tabler/icons-svelte/icons/at';
-	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
-	import IconHeart from '@tabler/icons-svelte/icons/heart';
-	import IconBolt from '@tabler/icons-svelte/icons/bolt';
+	import IconAt from '@tabler/icons-svelte-runes/icons/at';
+	import IconRepeat from '@tabler/icons-svelte-runes/icons/repeat';
+	import IconHeart from '@tabler/icons-svelte-runes/icons/heart';
+	import IconBolt from '@tabler/icons-svelte-runes/icons/bolt';
 	import { Signer } from '$lib/Signer';
-	import { IconAsterisk, IconBell } from '@tabler/icons-svelte';
+	import { IconAsterisk, IconBell } from '@tabler/icons-svelte-runes';
 	import { createTabs, melt } from '@melt-ui/svelte';
 	import { crossfade } from 'svelte/transition';
 	import { cubicInOut } from 'svelte/easing';

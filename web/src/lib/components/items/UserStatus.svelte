@@ -2,10 +2,10 @@
 	import type { Item } from '$lib/Items';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
 	import Content from '$lib/components/Content.svelte';
-	import IconUser from '@tabler/icons-svelte/icons/user';
-	import IconMusic from '@tabler/icons-svelte/icons/music';
-	import IconQuestionMark from '@tabler/icons-svelte/icons/question-mark';
-	import IconLink from '@tabler/icons-svelte/icons/link';
+	import IconUser from '@tabler/icons-svelte-runes/icons/user';
+	import IconMusic from '@tabler/icons-svelte-runes/icons/music';
+	import IconQuestionMark from '@tabler/icons-svelte-runes/icons/question-mark';
+	import IconLink from '@tabler/icons-svelte-runes/icons/link';
 
 	interface Props {
 		item: Item;

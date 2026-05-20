@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { run } from 'svelte/legacy';
 
-	import IconLink from '@tabler/icons-svelte/icons/link';
+	import IconLink from '@tabler/icons-svelte-runes/icons/link';
 
 	interface Props {
 		tag: string[];

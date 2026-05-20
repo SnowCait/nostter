@@ -4,7 +4,7 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import ZapDialog from './ZapDialog.svelte';
-	import IconBolt from '@tabler/icons-svelte/icons/bolt';
+	import IconBolt from '@tabler/icons-svelte-runes/icons/bolt';
 
 	interface Props {
 		pubkey: string;

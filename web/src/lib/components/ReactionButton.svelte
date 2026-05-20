@@ -9,7 +9,7 @@
 	import { isAprilFool } from '$lib/Helper';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import ReactionIcon from './ReactionIcon.svelte';
-	import { IconTrash } from '@tabler/icons-svelte';
+	import { IconTrash } from '@tabler/icons-svelte-runes';
 
 	interface Props {
 		event: Event;

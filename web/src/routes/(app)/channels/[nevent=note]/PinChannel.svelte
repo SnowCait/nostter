@@ -6,8 +6,8 @@
 	import { Signer } from '$lib/Signer';
 	import { pubkey } from '$lib/stores/Author';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
-	import IconPin from '@tabler/icons-svelte/icons/pin';
-	import IconPinnedFilled from '@tabler/icons-svelte/icons/pinned-filled';
+	import IconPin from '@tabler/icons-svelte-runes/icons/pin';
+	import IconPinnedFilled from '@tabler/icons-svelte-runes/icons/pinned-filled';
 
 	interface Props {
 		channelId: string;

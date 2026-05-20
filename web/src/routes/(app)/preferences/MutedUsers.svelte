@@ -5,7 +5,7 @@
 	import { unmute } from '$lib/author/Mute';
 	import { mutePubkeys } from '$lib/stores/Author';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
-	import IconTrash from '@tabler/icons-svelte/icons/trash';
+	import IconTrash from '@tabler/icons-svelte-runes/icons/trash';
 	import OnelineProfile from '$lib/components/profile/OnelineProfile.svelte';
 
 	let unmuting = $state(false);

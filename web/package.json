@@ -52,7 +52,7 @@
 		"@emoji-mart/data": "^1.2.1",
 		"@floating-ui/dom": "^1.7.6",
 		"@rust-nostr/nostr-sdk": "^0.44.0",
-		"@tabler/icons-svelte": "^3.41.1",
+		"@tabler/icons-svelte-runes": "^3.42.0",
 		"@tabler/icons-webfont": "^3.41.1",
 		"async-lock": "^1.4.1",
 		"dexie": "^4.2.1",

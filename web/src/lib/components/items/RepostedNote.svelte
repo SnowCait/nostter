@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { EventItem, Item } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
-	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
-	import IconRepeat from '@tabler/icons-svelte/icons/repeat';
+	import IconCodeDots from '@tabler/icons-svelte-runes/icons/code-dots';
+	import IconRepeat from '@tabler/icons-svelte-runes/icons/repeat';
 	import { nip19 } from 'nostr-tools';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
 	import { isMuteEvent } from '$lib/stores/Author';

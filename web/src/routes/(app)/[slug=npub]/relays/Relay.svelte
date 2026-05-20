@@ -2,7 +2,7 @@
 	import { preventDefault } from 'svelte/legacy';
 
 	import { createEventDispatcher } from 'svelte';
-	import IconTrash from '@tabler/icons-svelte/icons/trash';
+	import IconTrash from '@tabler/icons-svelte-runes/icons/trash';
 
 	interface Props {
 		relay: { url: string; read: boolean; write: boolean };
