@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { metadataStore } from '$lib/cache/Events';
-	import IconShare2 from '@tabler/icons-svelte/icons/share-2';
-	import IconClipboard from '@tabler/icons-svelte/icons/clipboard';
-	import IconClipboardCheck from '@tabler/icons-svelte/icons/clipboard-check';
+	import IconShare2 from '@tabler/icons-svelte-runes/icons/share-2';
+	import IconClipboard from '@tabler/icons-svelte-runes/icons/clipboard';
+	import IconClipboardCheck from '@tabler/icons-svelte-runes/icons/clipboard-check';
 	import { nip19 } from 'nostr-tools';
 	import { copy } from '$lib/Clipboard';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';

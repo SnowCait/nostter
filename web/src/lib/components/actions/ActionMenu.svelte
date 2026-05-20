@@ -3,8 +3,8 @@
 	import { nip19 } from 'nostr-tools';
 	import MenuButton from '../MenuButton.svelte';
 	import { metadataStore } from '$lib/cache/Events';
-	import IconMessageCircle from '@tabler/icons-svelte/icons/message-circle';
-	import IconBolt from '@tabler/icons-svelte/icons/bolt';
+	import IconMessageCircle from '@tabler/icons-svelte-runes/icons/message-circle';
+	import IconBolt from '@tabler/icons-svelte-runes/icons/bolt';
 	import RepostButton from '../RepostButton.svelte';
 	import ReactionButton from '../ReactionButton.svelte';
 	import EmojiPicker from '../EmojiPicker.svelte';

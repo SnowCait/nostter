@@ -16,7 +16,7 @@
 	import { nip19, type Event } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import { error } from '@sveltejs/kit';
-	import IconInfoCircle from '@tabler/icons-svelte/icons/info-circle';
+	import IconInfoCircle from '@tabler/icons-svelte-runes/icons/info-circle';
 	import { page } from '$app/stores';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { cachedEvents, channelMetadataEventsStore, metadataStore } from '$lib/cache/Events';

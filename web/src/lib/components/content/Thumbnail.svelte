@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Dialog } from 'melt/builders';
 	import Img from './Img.svelte';
-	import { IconX } from '@tabler/icons-svelte';
+	import { IconX } from '@tabler/icons-svelte-runes';
 	import Swiper from 'swiper';
 	import { Navigation } from 'swiper/modules';
 	import { onMount } from 'svelte';

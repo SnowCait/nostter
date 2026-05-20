@@ -13,8 +13,8 @@
 	import Relay from './Relay.svelte';
 	import { filterRelayTags, parseRelayJson } from '$lib/EventHelper';
 	import { Contacts } from '$lib/Contacts';
-	import IconPencil from '@tabler/icons-svelte/icons/pencil';
-	import IconDeviceFloppy from '@tabler/icons-svelte/icons/device-floppy';
+	import IconPencil from '@tabler/icons-svelte-runes/icons/pencil';
+	import IconDeviceFloppy from '@tabler/icons-svelte-runes/icons/device-floppy';
 	import Loading from '$lib/components/Loading.svelte';
 	import { sendEvent } from '$lib/RxNostrHelper';
 	import { unique } from '$lib/Array';

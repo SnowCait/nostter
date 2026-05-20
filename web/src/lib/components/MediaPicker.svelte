@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import IconPhoto from '@tabler/icons-svelte/icons/photo';
+	import IconPhoto from '@tabler/icons-svelte-runes/icons/photo';
 	import { _ } from 'svelte-i18n';
 
 	interface Props {

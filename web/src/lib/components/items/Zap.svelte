@@ -7,8 +7,8 @@
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import { isMuteEvent } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
-	import IconBolt from '@tabler/icons-svelte/icons/bolt';
-	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
+	import IconBolt from '@tabler/icons-svelte-runes/icons/bolt';
+	import IconCodeDots from '@tabler/icons-svelte-runes/icons/code-dots';
 	import CreatedAt from '../CreatedAt.svelte';
 	import NoteLink from './NoteLink.svelte';
 	import EventComponent from './EventComponent.svelte';

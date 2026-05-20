@@ -1,5 +1,5 @@
 <script lang="ts">
-	import IconArrowLeft from '@tabler/icons-svelte/icons/arrow-left';
+	import IconArrowLeft from '@tabler/icons-svelte-runes/icons/arrow-left';
 
 	function back(): void {
 		history.back();

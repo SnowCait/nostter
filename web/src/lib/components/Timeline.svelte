@@ -14,7 +14,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { findChannelId } from '$lib/EventHelper';
-	import IconChevronsUp from '@tabler/icons-svelte/icons/chevrons-up';
+	import IconChevronsUp from '@tabler/icons-svelte-runes/icons/chevrons-up';
 	import { sleep } from '$lib/Helper';
 	import { HomeTimeline } from '$lib/timelines/HomeTimeline';
 	import { excludeKinds } from '$lib/TimelineFilter';

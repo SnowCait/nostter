@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { remoteSigner } from '$lib/RemoteSigner';
 	import { copy as copyToClipboard } from '$lib/Clipboard';
-	import { IconCheck } from '@tabler/icons-svelte';
+	import { IconCheck } from '@tabler/icons-svelte-runes';
 	import { page } from '$app/state';
 
 	let enabled = $state(remoteSigner.enabled);

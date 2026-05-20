@@ -5,7 +5,7 @@
 	import { get } from 'svelte/store';
 	import type { Event } from 'nostr-typedef';
 	import { createCollapsible, melt } from '@melt-ui/svelte';
-	import IconChevronDown from '@tabler/icons-svelte/icons/chevron-down';
+	import IconChevronDown from '@tabler/icons-svelte-runes/icons/chevron-down';
 	import { eventCache } from '$lib/cache/Events';
 	import { pubkey } from '$lib/stores/Author';
 	import Loading from '$lib/components/Loading.svelte';

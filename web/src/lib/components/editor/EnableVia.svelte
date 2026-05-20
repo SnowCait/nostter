@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { via, ViaOption } from '$lib/author/Via';
 	import { appName } from '$lib/Constants';
-	import { IconPaw } from '@tabler/icons-svelte';
+	import { IconPaw } from '@tabler/icons-svelte-runes';
 	import { _ } from 'svelte-i18n';
 
 	interface Props {

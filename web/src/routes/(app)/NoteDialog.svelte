@@ -3,7 +3,7 @@
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
-	import IconX from '@tabler/icons-svelte/icons/x';
+	import IconX from '@tabler/icons-svelte-runes/icons/x';
 
 	let content = $state('');
 

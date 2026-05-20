@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { EventItem, Item } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
-	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
-	import IconHeart from '@tabler/icons-svelte/icons/heart';
-	import IconHeartBroken from '@tabler/icons-svelte/icons/heart-broken';
+	import IconCodeDots from '@tabler/icons-svelte-runes/icons/code-dots';
+	import IconHeart from '@tabler/icons-svelte-runes/icons/heart';
+	import IconHeartBroken from '@tabler/icons-svelte-runes/icons/heart-broken';
 	import { nip19 } from 'nostr-tools';
 	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
 	import { isMuteEvent } from '$lib/stores/Author';

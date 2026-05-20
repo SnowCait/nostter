@@ -4,7 +4,7 @@
 	import { findIdentifier } from '$lib/EventHelper';
 	import { userStatusesMap } from '$lib/UserStatus';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
-	import { IconMusic, IconUser } from '@tabler/icons-svelte';
+	import { IconMusic, IconUser } from '@tabler/icons-svelte-runes';
 	import EmojifiedContent from './EmojifiedContent.svelte';
 	import ExternalLink from './ExternalLink.svelte';
 	import { _ } from 'svelte-i18n';

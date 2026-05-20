@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { type EventItem } from '$lib/Items';
-	import IconMessageCircle from '@tabler/icons-svelte/icons/message-circle';
+	import IconMessageCircle from '@tabler/icons-svelte-runes/icons/message-circle';
 	import OnelineContent from '../OnelineContent.svelte';
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
 

@@ -3,8 +3,8 @@
 
 	import { nip19, type Event } from 'nostr-tools';
 	import { intentContent, openNoteDialog } from '$lib/stores/NoteDialog';
-	import IconCodeDots from '@tabler/icons-svelte/icons/code-dots';
-	import IconQuote from '@tabler/icons-svelte/icons/quote';
+	import IconCodeDots from '@tabler/icons-svelte-runes/icons/code-dots';
+	import IconQuote from '@tabler/icons-svelte-runes/icons/quote';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { findIdentifier } from '$lib/EventHelper';

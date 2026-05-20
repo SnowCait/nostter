@@ -3,7 +3,7 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import { parseConnectionString } from '$lib/nostr-tools/nip47';
-	import IconCheck from '@tabler/icons-svelte/icons/check';
+	import IconCheck from '@tabler/icons-svelte-runes/icons/check';
 
 	let uri = $state(
 		browser ? (new WebStorage(localStorage).get('nostr-wallet-connect') ?? '') : ''

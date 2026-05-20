@@ -3,7 +3,7 @@
 	import { hexRegexp } from '$lib/Constants';
 	import { fetchPinnedNoteEvent, pinnedNotesEvents } from '$lib/PinnedNotes';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
-	import { IconPinnedFilled } from '@tabler/icons-svelte';
+	import { IconPinnedFilled } from '@tabler/icons-svelte-runes';
 	import type { Event } from 'nostr-typedef';
 	import { createRxBackwardReq, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';

@@ -5,7 +5,7 @@
 	import { timeline } from '$lib/timelines/HomeTimeline';
 	import { applyTimelieFilter } from '$lib/TimelineFilter';
 	import { _ } from 'svelte-i18n';
-	import { IconAdjustmentsHorizontal } from '@tabler/icons-svelte';
+	import { IconAdjustmentsHorizontal } from '@tabler/icons-svelte-runes';
 	import { createCollapsible, melt } from '@melt-ui/svelte';
 	import { slide } from 'svelte/transition';
 	import TimelineFilter from '../preferences/TimelineFilter.svelte';

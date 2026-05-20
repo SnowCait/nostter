@@ -6,7 +6,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import type { BaseEmoji } from 'emoji-mart';
 	import data from '@emoji-mart/data';
-	import IconMoodSmile from '@tabler/icons-svelte/icons/mood-smile';
+	import IconMoodSmile from '@tabler/icons-svelte-runes/icons/mood-smile';
 	import { customEmojiTags } from '../author/CustomEmojis';
 	import { _ } from 'svelte-i18n';
 	import { Popover } from 'melt/builders';

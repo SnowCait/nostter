@@ -9,7 +9,7 @@
 	import { page } from '$app/stores';
 	import { metadataStore, replaceableEventsStore } from '$lib/cache/Events';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
-	import { IconQuoteFilled } from '@tabler/icons-svelte';
+	import { IconQuoteFilled } from '@tabler/icons-svelte-runes';
 	import { parseAddress } from '$lib/EventHelper';
 
 	interface Props {

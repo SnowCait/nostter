@@ -2,7 +2,7 @@
 	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import type { EventItem, Item } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
-	import IconMessages from '@tabler/icons-svelte/icons/messages';
+	import IconMessages from '@tabler/icons-svelte-runes/icons/messages';
 	import { rom } from '$lib/stores/Author';
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';

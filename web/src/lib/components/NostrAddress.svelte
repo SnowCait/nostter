@@ -2,8 +2,8 @@
 	import { _ } from 'svelte-i18n';
 	import { nip05 } from 'nostr-tools';
 	import type { Metadata } from '$lib/Items';
-	import IconRosetteDiscountCheck from '@tabler/icons-svelte/icons/rosette-discount-check';
-	import IconAlertTriangle from '@tabler/icons-svelte/icons/alert-triangle';
+	import IconRosetteDiscountCheck from '@tabler/icons-svelte-runes/icons/rosette-discount-check';
+	import IconAlertTriangle from '@tabler/icons-svelte-runes/icons/alert-triangle';
 
 	interface Props {
 		metadata: Metadata;
