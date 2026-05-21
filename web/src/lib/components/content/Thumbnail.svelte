@@ -3,7 +3,7 @@
 	import Img from './Img.svelte';
 	import { IconX } from '@tabler/icons-svelte-runes';
 	import Swiper from 'swiper';
-	import { Navigation } from 'swiper/modules';
+	import { Navigation, Zoom } from 'swiper/modules';
 	import { onMount } from 'svelte';
 
 	interface Props {
@@ -28,7 +28,7 @@
 	onMount(() => {
 		swiper = new Swiper(`.swiper-${id}`, {
 			zoom: true,
-			modules: [Navigation],
+			modules: [Navigation, Zoom],
 			navigation: {
 				nextEl: '.swiper-button-next',
 				prevEl: '.swiper-button-prev'
@@ -73,30 +73,49 @@
 </dialog>
 
 <style>
+	dialog {
+		--close-button-size: 3rem;
+		--close-button-offset: 0.5rem;
+		--viewer-safe-top: env(safe-area-inset-top, 0px);
+		--viewer-safe-right: env(safe-area-inset-right, 0px);
+		width: 100dvw;
+		height: 100dvh;
+	}
+
+	.swiper,
+	.swiper-wrapper,
+	.swiper-slide,
+	.swiper-zoom-container {
+		width: 100%;
+		height: 100%;
+	}
+
 	button.close {
 		position: fixed;
-		top: 0;
-		right: 0;
-		background: none;
+		top: calc(var(--viewer-safe-top) + var(--close-button-offset));
+		right: calc(var(--viewer-safe-right) + var(--close-button-offset));
+		z-index: 2;
+		background: rgb(0 0 0 / 0.45);
 		border: none;
+		border-radius: calc(infinity * 1px);
 		color: white;
 		font-size: 2em;
 		cursor: pointer;
-		margin: 0.5rem;
 		padding: 0.5rem;
-		width: 3rem;
-		height: 3rem;
+		width: var(--close-button-size);
+		height: var(--close-button-size);
 	}
 
 	img {
 		max-width: calc(100vw - 128px);
-		max-height: 90vh;
+		max-height: 100dvh;
 		margin: auto;
 		display: block;
 		color: white;
+		object-fit: contain;
 	}
 
 	img.single {
-		max-width: 100vw;
+		max-width: 100%;
 	}
 </style>
