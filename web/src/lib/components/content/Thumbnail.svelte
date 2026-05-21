@@ -74,6 +74,10 @@
 
 <style>
 	dialog {
+		--close-button-size: 3rem;
+		--close-button-offset: 0.5rem;
+		--viewer-safe-top: env(safe-area-inset-top, 0px);
+		--viewer-safe-right: env(safe-area-inset-right, 0px);
 		width: 100dvw;
 		height: 100dvh;
 	}
@@ -88,17 +92,18 @@
 
 	button.close {
 		position: fixed;
-		top: 0;
-		right: 0;
-		background: none;
+		top: calc(var(--viewer-safe-top) + var(--close-button-offset));
+		right: calc(var(--viewer-safe-right) + var(--close-button-offset));
+		z-index: 2;
+		background: rgb(0 0 0 / 0.45);
 		border: none;
+		border-radius: calc(infinity * 1px);
 		color: white;
 		font-size: 2em;
 		cursor: pointer;
-		margin: 0.5rem;
 		padding: 0.5rem;
-		width: 3rem;
-		height: 3rem;
+		width: var(--close-button-size);
+		height: var(--close-button-size);
 	}
 
 	img {
