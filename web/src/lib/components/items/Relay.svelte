@@ -2,7 +2,7 @@
 	import Content from '$lib/components/Content.svelte';
 
 	interface Props {
-		name: string;
+		name: string | undefined;
 		description: undefined | string;
 		icon: undefined | string;
 		url: string;
@@ -15,13 +15,17 @@
 <article class="timeline-item">
 	<div>
 		<a href="/{hostname}">
-			<img src={icon || url + '/favicon.ico'} alt={name} style="width: 48px; height: 48px;" />
+			<img
+				src={icon || url + '/favicon.ico'}
+				alt={name ?? hostname}
+				style="width: 48px; height: 48px;"
+			/>
 		</a>
 	</div>
 	<div class="text">
 		<div class="row">
 			<div class="display_name">
-				{name || hostname}
+				{name ?? hostname}
 			</div>
 		</div>
 		<div class="name">@{hostname}</div>
