@@ -73,6 +73,19 @@
 </dialog>
 
 <style>
+	dialog {
+		width: 100dvw;
+		height: 100dvh;
+	}
+
+	.swiper,
+	.swiper-wrapper,
+	.swiper-slide,
+	.swiper-zoom-container {
+		width: 100%;
+		height: 100%;
+	}
+
 	button.close {
 		position: fixed;
 		top: 0;
@@ -90,10 +103,11 @@
 
 	img {
 		max-width: calc(100vw - 128px);
-		max-height: 90vh;
+		max-height: 100dvh;
 		margin: auto;
 		display: block;
 		color: white;
+		object-fit: contain;
 	}
 
 	img.single {
