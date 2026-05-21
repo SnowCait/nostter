@@ -16,7 +16,7 @@
 </button>
 
 <dialog {...dialog.content} class="media-dialog">
-	<ProfileIcon {pubkey} />
+	<ProfileIcon {pubkey} width="auto" height="auto" />
 </dialog>
 
 <style>
@@ -28,5 +28,7 @@
 	dialog :global(img) {
 		max-width: 60vw;
 		max-height: 60vh;
+		border-radius: 0;
+		object-fit: contain;
 	}
 </style>
