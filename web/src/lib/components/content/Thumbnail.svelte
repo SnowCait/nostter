@@ -3,7 +3,7 @@
 	import Img from './Img.svelte';
 	import { IconX } from '@tabler/icons-svelte-runes';
 	import Swiper from 'swiper';
-	import { Navigation } from 'swiper/modules';
+	import { Navigation, Zoom } from 'swiper/modules';
 	import { onMount } from 'svelte';
 
 	interface Props {
@@ -28,7 +28,7 @@
 	onMount(() => {
 		swiper = new Swiper(`.swiper-${id}`, {
 			zoom: true,
-			modules: [Navigation],
+			modules: [Navigation, Zoom],
 			navigation: {
 				nextEl: '.swiper-button-next',
 				prevEl: '.swiper-button-prev'
