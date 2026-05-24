@@ -25,5 +25,5 @@
 <h1>{$_('pages.public')}</h1>
 
 {#if timeline !== undefined}
-	<Timeline {timeline} />
+	<Timeline {timeline} scrollToTopTarget="/public" />
 {/if}

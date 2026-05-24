@@ -21,6 +21,7 @@
 	import { MouseButton } from '$lib/DomHelper';
 	import { scrollY } from 'svelte/reactivity/window';
 	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
+	import { onTimelineScrollToTop } from '$lib/timelines/ScrollToTop';
 
 	interface Props {
 		timeline: NewTimeline;
@@ -29,6 +30,7 @@
 		createdAtFormat?: 'auto' | 'time';
 		full?: boolean;
 		canTransition?: boolean;
+		scrollToTopTarget?: string;
 	}
 
 	let {
@@ -37,7 +39,8 @@
 		showLoading = true,
 		createdAtFormat = 'auto',
 		full = false,
-		canTransition = true
+		canTransition = true,
+		scrollToTopTarget
 	}: Props = $props();
 
 	let isTop = $state(true);
@@ -171,6 +174,11 @@
 	};
 
 	onMount(() => {
+		const disposeTimelineScrollToTop =
+			scrollToTopTarget === undefined
+				? undefined
+				: onTimelineScrollToTop(scrollToTopTarget, scrollToTop);
+
 		// Workaround for scroll position
 		if (!timeline.latest) {
 			setTimeout(() => {
@@ -180,6 +188,8 @@
 				newer();
 			}, 1000);
 		}
+
+		return disposeTimelineScrollToTop;
 	});
 
 	$effect(() => {

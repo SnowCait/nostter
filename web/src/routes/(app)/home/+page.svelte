@@ -68,7 +68,7 @@
 </header>
 
 <div class="timeline">
-	<Timeline {timeline} />
+	<Timeline {timeline} scrollToTopTarget="/home" />
 </div>
 
 <style>
