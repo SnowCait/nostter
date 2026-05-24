@@ -15,6 +15,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { followees, pubkey, rom } from '$lib/stores/Author';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
@@ -22,6 +23,8 @@
 	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
+	import { MouseButton } from '$lib/DomHelper';
+	import { requestTimelineScrollToTop } from '$lib/timelines/ScrollToTop';
 
 	const {
 		elements: { menu, item, trigger, overlay }
@@ -29,6 +32,39 @@
 
 	async function onClickPostButton(): Promise<void> {
 		$openNoteDialog = !$openNoteDialog;
+	}
+
+	function requestTimelineScrollToTopForCurrentLink(event: MouseEvent, link: string): boolean {
+		if (
+			event.button !== MouseButton.Left ||
+			event.metaKey ||
+			event.ctrlKey ||
+			event.shiftKey ||
+			event.altKey ||
+			page.url.pathname !== link
+		) {
+			return false;
+		}
+
+		event.preventDefault();
+		requestTimelineScrollToTop(link);
+		return true;
+	}
+
+	function onClickHomeLink(event: MouseEvent): void {
+		requestTimelineScrollToTopForCurrentLink(event, homeLink);
+	}
+
+	function onClickPublicLink(event: MouseEvent): void {
+		requestTimelineScrollToTopForCurrentLink(event, '/public');
+	}
+
+	async function onClickPublicMenuItem(event: MouseEvent): Promise<void> {
+		if (requestTimelineScrollToTopForCurrentLink(event, '/public')) {
+			return;
+		}
+
+		await goto('/public');
 	}
 
 	let homeLink = $derived(
@@ -57,13 +93,13 @@
 	<nav>
 		<ul class="full">
 			<li class="clickable">
-				<a href={homeLink}>
+				<a href={homeLink} onclick={onClickHomeLink}>
 					<IconHome size={30} />
 					<p>{$_('layout.header.home')}</p>
 				</a>
 			</li>
 			<li class="clickable">
-				<a href="/public">
+				<a href="/public" onclick={onClickPublicLink}>
 					<IconWorld size={30} />
 					<p>{$_('pages.public')}</p>
 				</a>
@@ -128,14 +164,14 @@
 		</ul>
 		<ul class="fold">
 			<li>
-				<a href={homeLink} class="active">
+				<a href={homeLink} class="active" onclick={onClickHomeLink}>
 					<IconHome size={30} />
 					<p>{$_('layout.header.home')}</p>
 				</a>
 			</li>
 			{#if !$pubkey}
 				<li>
-					<a href="/public" class="active">
+					<a href="/public" class="active" onclick={onClickPublicLink}>
 						<IconWorld size={30} />
 						<p>{$_('pages.public')}</p>
 					</a>
@@ -171,11 +207,7 @@
 					<div use:melt={$menu} class="menu">
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<div
-							use:melt={$item}
-							onclick={async () => await goto(`/public`)}
-							class="item"
-						>
+						<div use:melt={$item} onclick={onClickPublicMenuItem} class="item">
 							<div class="icon"><IconWorld /></div>
 							<div>{$_('pages.public')}</div>
 						</div>
