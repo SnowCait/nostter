@@ -92,13 +92,9 @@
 
 	details.search-options summary {
 		cursor: pointer;
-		color: var(--accent-gray);
+		color: var(--accent);
 		font-size: 0.9rem;
 		user-select: none;
-	}
-
-	details.search-options summary:hover {
-		color: var(--accent);
 	}
 
 	details.search-options div {
@@ -115,12 +111,8 @@
 		cursor: pointer;
 		font-size: 0.8rem;
 		font-family: monospace;
-		color: var(--accent-gray);
-		user-select: none;
-	}
-
-	details.dev-filter summary:hover {
 		color: var(--accent);
+		user-select: none;
 	}
 
 	details.dev-filter code {
