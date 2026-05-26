@@ -44,11 +44,13 @@
 	});
 </script>
 
-<form action="/search">
-	<input type="search" name="q" bind:value={query} />
-	<input type="submit" value={$_('search.search')} />
+<form action="/search" class="card">
+	<div class="search-row">
+		<input type="search" name="q" bind:value={query} />
+		<input type="submit" value={$_('search.search')} />
+	</div>
 
-	<details>
+	<details class="search-options">
 		<summary>{$_('search.options')}</summary>
 
 		<div>
@@ -70,11 +72,41 @@
 {/if}
 
 <style>
-	details {
-		margin-top: 1rem;
+	.search-row {
+		display: flex;
+		gap: 0.5rem;
 	}
 
-	div {
-		margin: 0.75rem auto;
+	.search-row input[type='search'] {
+		flex: 1;
+	}
+
+	.search-row input[type='submit'] {
+		flex-shrink: 0;
+	}
+
+	details.search-options {
+		margin-top: 0.75rem;
+	}
+
+	details.search-options summary {
+		cursor: pointer;
+		color: var(--accent-gray);
+		font-size: 0.9rem;
+		user-select: none;
+	}
+
+	details.search-options summary:hover {
+		color: var(--accent);
+	}
+
+	details.search-options div {
+		margin: 0.5rem 0 0;
+	}
+
+	@media screen and (max-width: 600px) {
+		.search-row {
+			flex-direction: column;
+		}
 	}
 </style>
