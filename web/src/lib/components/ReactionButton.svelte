@@ -53,24 +53,41 @@
 	}
 </script>
 
-{#if reactioned}
+<div>
 	<button
 		class="clear"
-		class:hidden={event.kind === Kind.EncryptedDirectMessage}
 		class:paw-pad={$preferencesStore.reactionEmoji.content === '🐾'}
 		class:star={$preferencesStore.reactionEmoji.content === '⭐'}
 		class:reactioned
+		class:hidden={event.kind === Kind.EncryptedDirectMessage}
+		class:display-none={!reactioned}
 		use:melt={$trigger}
 	>
 		<ReactionIcon
 			defaultReaction={$preferencesStore.reactionEmoji.content}
-			{reactioned}
+			reactioned={true}
 			{isAprilFool}
 			size={iconSize}
 		/>
 	</button>
-	<div use:melt={$overlay} class="overlay"></div>
-	<div use:melt={$menu} class="menu">
+	<button
+		class="clear"
+		class:paw-pad={$preferencesStore.reactionEmoji.content === '🐾'}
+		class:star={$preferencesStore.reactionEmoji.content === '⭐'}
+		class:reactioned
+		class:hidden={event.kind === Kind.EncryptedDirectMessage}
+		class:display-none={reactioned}
+		onclick={onReaction}
+	>
+		<ReactionIcon
+			defaultReaction={$preferencesStore.reactionEmoji.content}
+			reactioned={false}
+			{isAprilFool}
+			size={iconSize}
+		/>
+	</button>
+	<div use:melt={$overlay} class="overlay" class:display-none={!reactioned}></div>
+	<div use:melt={$menu} class="menu" class:display-none={!reactioned}>
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div use:melt={$item} onclick={onReaction} class="item">
@@ -93,25 +110,17 @@
 			<div>{$_('actions.reaction.undo')}</div>
 		</div>
 	</div>
-{:else}
-	<button
-		class="clear"
-		class:hidden={event.kind === Kind.EncryptedDirectMessage}
-		class:paw-pad={$preferencesStore.reactionEmoji.content === '🐾'}
-		class:star={$preferencesStore.reactionEmoji.content === '⭐'}
-		class:reactioned
-		onclick={onReaction}
-	>
-		<ReactionIcon
-			defaultReaction={$preferencesStore.reactionEmoji.content}
-			{reactioned}
-			{isAprilFool}
-			size={iconSize}
-		/>
-	</button>
-{/if}
+</div>
 
 <style>
+	.hidden {
+		visibility: hidden;
+	}
+
+	.display-none {
+		display: none;
+	}
+
 	button {
 		color: var(--accent-gray);
 	}
