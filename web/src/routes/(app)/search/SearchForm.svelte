@@ -62,14 +62,15 @@
 			</select>
 		</div>
 	</details>
-</form>
 
-{#if $developerMode}
-	<details>
-		<summary>Generated REQ Filter</summary>
-		<code class="card">{JSON.stringify(filter, null, 2)}</code>
-	</details>
-{/if}
+	{#if $developerMode}
+		<hr class="dev-divider" />
+		<details class="dev-filter">
+			<summary>Generated REQ Filter</summary>
+			<code>{JSON.stringify(filter, null, 2)}</code>
+		</details>
+	{/if}
+</form>
 
 <style>
 	.search-row {
@@ -91,17 +92,31 @@
 
 	details.search-options summary {
 		cursor: pointer;
-		color: var(--accent-gray);
+		color: var(--accent);
 		font-size: 0.9rem;
 		user-select: none;
 	}
 
-	details.search-options summary:hover {
-		color: var(--accent);
-	}
-
 	details.search-options div {
 		margin: 0.5rem 0 0;
+	}
+
+	hr.dev-divider {
+		margin: 0.75rem 0;
+		border: none;
+		border-top: var(--default-border);
+	}
+
+	details.dev-filter summary {
+		cursor: pointer;
+		font-size: 0.8rem;
+		font-family: monospace;
+		color: var(--accent);
+		user-select: none;
+	}
+
+	details.dev-filter code {
+		margin-top: 0.5rem;
 	}
 
 	@media screen and (max-width: 600px) {
