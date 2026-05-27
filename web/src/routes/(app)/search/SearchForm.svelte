@@ -64,7 +64,7 @@
 	</details>
 
 	{#if $developerMode}
-		<hr class="dev-divider">
+		<hr class="dev-divider" />
 		<details class="dev-filter">
 			<summary>Generated REQ Filter</summary>
 			<code>{JSON.stringify(filter, null, 2)}</code>
