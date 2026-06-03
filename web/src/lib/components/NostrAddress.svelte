@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { nip05 } from 'nostr-tools';
+	import { queryProfile } from '$lib/Nip05';
 	import type { Metadata } from '$lib/Items';
 	import IconRosetteDiscountCheck from '@tabler/icons-svelte-runes/icons/rosette-discount-check';
 	import IconAlertTriangle from '@tabler/icons-svelte-runes/icons/alert-triangle';
@@ -17,7 +17,7 @@
 {#if normalizedNip05}
 	<div class="nip05">
 		<span>{normalizedNip05}</span>
-		{#await nip05.queryProfile(normalizedNip05) then pointer}
+		{#await queryProfile(normalizedNip05) then pointer}
 			{#if pointer === null}
 				<IconAlertTriangle color="orange" />
 				<span class="label">{$_('profile.nip05.unknown')}</span>
