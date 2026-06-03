@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: snow-actions/nostr@v1.8.3
+      - id: publish
+        uses: snow-actions/nostr@v1.8.3
         with:
           relays: ${{ vars.NOSTR_RELAYS }}
           private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
@@ -24,12 +25,22 @@ jobs:
           tags: |
             - ["t", "nostter"]
             - ["proxy", "${{ github.event.issue.html_url }}", "web"]
+      - name: Post published event to proxy
+        run: |
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d "$event" \
+            "$PROXY_URL"
+        env:
+          event: ${{ steps.publish.outputs.event }}
+          PROXY_URL: ${{ vars.NOSTR_PUBLISH_URL }}
   notify-pr:
     if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: snow-actions/nostr@v1.8.3
+      - id: publish
+        uses: snow-actions/nostr@v1.8.3
         with:
           relays: ${{ vars.NOSTR_RELAYS }}
           private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
@@ -39,13 +50,23 @@ jobs:
           tags: |
             - ["t", "nostter"]
             - ["proxy", "${{ github.event.pull_request.html_url }}", "web"]
+      - name: Post published event to proxy
+        run: |
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d "$event" \
+            "$PROXY_URL"
+        env:
+          event: ${{ steps.publish.outputs.event }}
+          PROXY_URL: ${{ vars.NOSTR_PUBLISH_URL }}
   user-status:
     if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - run: echo "expiration=$(date +%s --date '12 hours')" >> $GITHUB_ENV
-      - uses: snow-actions/nostr@v1.8.3
+      - id: publish
+        uses: snow-actions/nostr@v1.8.3
         with:
           relays: ${{ vars.NOSTR_RELAYS }}
           private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
@@ -57,3 +78,12 @@ jobs:
             - ["t", "nostter"]
             - ["r", "https://nostter.app/"]
             - ["expiration", "${{ env.expiration }}"]
+      - name: Post published event to proxy
+        run: |
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d "$event" \
+            "$PROXY_URL"
+        env:
+          event: ${{ steps.publish.outputs.event }}
+          PROXY_URL: ${{ vars.NOSTR_PUBLISH_URL }}
