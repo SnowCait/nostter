@@ -11,8 +11,8 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6.3.0
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version: "24.x"
       - run: npm ci
@@ -25,8 +25,8 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6.3.0
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version: "24.x"
       - run: npm ci
@@ -39,8 +39,8 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6.3.0
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version: "24.x"
       - run: npm ci
