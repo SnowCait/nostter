@@ -58,7 +58,7 @@ updates:
     cooldown:
       default-days: 14
     groups:
-      all:
+      github-actions:
         applies-to: version-updates
         patterns:
           - "*"
