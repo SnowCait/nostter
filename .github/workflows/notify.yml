@@ -27,7 +27,7 @@ jobs:
             - ["proxy", "${{ github.event.issue.html_url }}", "web"]
       - name: Post published event to proxy
         run: |
-          curl -X POST \
+          curl -X PUT \
             -H 'Content-Type: application/json' \
             -d "$event" \
             "$PROXY_URL"
@@ -52,7 +52,7 @@ jobs:
             - ["proxy", "${{ github.event.pull_request.html_url }}", "web"]
       - name: Post published event to proxy
         run: |
-          curl -X POST \
+          curl -X PUT \
             -H 'Content-Type: application/json' \
             -d "$event" \
             "$PROXY_URL"
@@ -80,7 +80,7 @@ jobs:
             - ["expiration", "${{ env.expiration }}"]
       - name: Post published event to proxy
         run: |
-          curl -X POST \
+          curl -X PUT \
             -H 'Content-Type: application/json' \
             -d "$event" \
             "$PROXY_URL"
