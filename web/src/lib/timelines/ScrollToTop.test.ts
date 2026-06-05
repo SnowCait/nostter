@@ -166,6 +166,54 @@ describe('scrollWindowToTopOnce', () => {
 		await first;
 	});
 
+	it('logs prepare errors, resolves, and clears the in-flight guard', async () => {
+		const browser = installWindowMock({ initialScrollY: 1000 });
+		const error = new Error('prepare failed');
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		await expect(
+			scrollWindowToTopOnce({
+				prepare: () => {
+					throw error;
+				}
+			})
+		).resolves.toBeUndefined();
+
+		expect(consoleError).toHaveBeenCalledWith('[window scroll-to-top]', error);
+		expect(browser.scrollTo).not.toHaveBeenCalled();
+
+		const later = scrollWindowToTopOnce();
+		expect(browser.scrollTo).toHaveBeenCalledTimes(1);
+
+		browser.setScrollY(0);
+		browser.flushRaf();
+		await later;
+	});
+
+	it('logs afterScroll errors, resolves, and performs final correction', async () => {
+		const browser = installWindowMock({ initialScrollY: 1000 });
+		const error = new Error('afterScroll failed');
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		const operation = scrollWindowToTopOnce({
+			afterScroll: () => {
+				browser.setScrollY(20);
+				return Promise.reject(error);
+			}
+		});
+
+		browser.setScrollY(0);
+		browser.flushRaf();
+
+		await expect(operation).resolves.toBeUndefined();
+
+		expect(consoleError).toHaveBeenCalledWith('[window scroll-to-top]', error);
+		expect(browser.scrollTo).toHaveBeenLastCalledWith({
+			top: 0,
+			behavior: 'auto'
+		});
+	});
+
 	it('allows a later call after the in-flight operation completes', async () => {
 		const browser = installWindowMock({ initialScrollY: 1000 });
 

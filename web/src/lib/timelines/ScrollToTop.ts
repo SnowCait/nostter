@@ -79,11 +79,19 @@ function reportTimelineScrollToTopError(error: unknown): void {
 	console.error('[timeline scroll-to-top]', error);
 }
 
+function reportWindowScrollToTopError(error: unknown): void {
+	console.error('[window scroll-to-top]', error);
+}
+
 /**
  * Starts one window scroll-to-top operation at a time. Calls made while another
  * operation is in flight return the same promise and intentionally keep the first
  * call's options. This prevents repeated UI input from queuing extra scrolls or
  * duplicate timeline mutations.
+ *
+ * The returned promise does not reject. Scroll-to-top is a best-effort UI action;
+ * failures are logged and the in-flight guard is cleared so future requests can
+ * still run.
  */
 export function scrollWindowToTopOnce(options: ScrollWindowToTopOnceOptions = {}): Promise<void> {
 	if (typeof window === 'undefined') {
@@ -94,9 +102,11 @@ export function scrollWindowToTopOnce(options: ScrollWindowToTopOnceOptions = {}
 		return scrollWindowToTopInFlight;
 	}
 
-	scrollWindowToTopInFlight = scrollWindowToTopOnceInternal(options).finally(() => {
-		scrollWindowToTopInFlight = undefined;
-	});
+	scrollWindowToTopInFlight = scrollWindowToTopOnceInternal(options)
+		.catch(reportWindowScrollToTopError)
+		.finally(() => {
+			scrollWindowToTopInFlight = undefined;
+		});
 
 	return scrollWindowToTopInFlight;
 }
@@ -126,12 +136,14 @@ async function scrollWindowToTopOnceInternal({
 
 	correctWindowScrollToTop(correctionThresholdPx);
 
-	const afterScrollOperation = afterScroll?.();
-	if (afterScrollOperation !== undefined) {
-		await afterScrollOperation;
+	try {
+		const afterScrollOperation = afterScroll?.();
+		if (afterScrollOperation !== undefined) {
+			await afterScrollOperation;
+		}
+	} finally {
+		correctWindowScrollToTop(correctionThresholdPx);
 	}
-
-	correctWindowScrollToTop(correctionThresholdPx);
 }
 
 function getPreferredScrollBehavior(maxSmoothScrollDistancePx: number): ScrollBehavior {
