@@ -74,6 +74,7 @@ function installWindowMock(options: { reducedMotion?: boolean; initialScrollY?: 
 }
 
 afterEach(() => {
+	vi.useRealTimers();
 	vi.unstubAllGlobals();
 	vi.restoreAllMocks();
 });
@@ -298,6 +299,35 @@ describe('scrollWindowToTopOnce', () => {
 			top: 0,
 			behavior: 'auto'
 		});
+	});
+
+	it('resolves via timeout if animation frames stop', async () => {
+		vi.useFakeTimers();
+		const browser = installWindowMock({ initialScrollY: 1000 });
+
+		const operation = scrollWindowToTopOnce({ timeoutMs: 10 });
+		expect(browser.scrollTo).toHaveBeenCalledTimes(1);
+		expect(browser.scrollTo).toHaveBeenLastCalledWith({
+			top: 0,
+			behavior: 'smooth'
+		});
+
+		await vi.advanceTimersByTimeAsync(10);
+		await operation;
+
+		expect(browser.scrollTo).toHaveBeenCalledTimes(2);
+		expect(browser.scrollTo).toHaveBeenLastCalledWith({
+			top: 0,
+			behavior: 'auto'
+		});
+
+		browser.setScrollY(500);
+		const later = scrollWindowToTopOnce({ timeoutMs: 10 });
+		expect(browser.scrollTo).toHaveBeenCalledTimes(3);
+
+		browser.setScrollY(0);
+		browser.flushRaf();
+		await later;
 	});
 
 	it('does nothing when window is unavailable', async () => {

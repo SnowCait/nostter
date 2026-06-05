@@ -167,17 +167,33 @@ function correctWindowScrollToTop(thresholdPx: number): void {
 
 function waitUntilWindowNearTop(timeoutMs: number, thresholdPx: number): Promise<void> {
 	return new Promise((resolve) => {
+		let resolved = false;
 		const startedAt = performance.now();
 
+		const finish = () => {
+			if (resolved) {
+				return;
+			}
+
+			resolved = true;
+			clearTimeout(timeoutId);
+			resolve();
+		};
+
 		const step = () => {
+			if (resolved) {
+				return;
+			}
+
 			if (window.scrollY <= thresholdPx || performance.now() - startedAt >= timeoutMs) {
-				resolve();
+				finish();
 				return;
 			}
 
 			window.requestAnimationFrame(step);
 		};
 
+		const timeoutId = setTimeout(finish, timeoutMs);
 		window.requestAnimationFrame(step);
 	});
 }
