@@ -11,7 +11,16 @@ type TimelineScrollToTopDetail = {
 };
 
 type ScrollWindowToTopOnceOptions = {
+	/**
+	 * Runs before the scroll starts. Only the first call's callback runs while a scroll is
+	 * already in flight; later calls are coalesced into that same operation.
+	 */
 	prepare?: () => void | Promise<void>;
+	/**
+	 * Runs once after the window reaches the top. This is useful for timeline DOM
+	 * pruning that would otherwise cause scroll anchoring/layout shifts at the start
+	 * of the animation. Only the first call's callback runs while coalescing.
+	 */
 	afterScroll?: () => void | Promise<void>;
 	timeoutMs?: number;
 	correctionThresholdPx?: number;
@@ -22,12 +31,16 @@ export function requestTimelineScrollToTop(target: string): boolean {
 	if (typeof window === 'undefined') {
 		return false;
 	}
-	return !window.dispatchEvent(
+
+	// dispatchEvent returns false when a cancelable event was prevented. Matching
+	// timeline listeners call preventDefault() to claim that they handled the request.
+	const wasHandled = !window.dispatchEvent(
 		new CustomEvent<TimelineScrollToTopDetail>(timelineScrollToTopEvent, {
 			detail: { target },
 			cancelable: true
 		})
 	);
+	return wasHandled;
 }
 
 export function onTimelineScrollToTop(
@@ -50,6 +63,12 @@ export function onTimelineScrollToTop(
 	return () => window.removeEventListener(timelineScrollToTopEvent, listener);
 }
 
+/**
+ * Starts one window scroll-to-top operation at a time. Calls made while another
+ * operation is in flight return the same promise and intentionally keep the first
+ * call's options. This prevents repeated UI input from queuing extra scrolls or
+ * duplicate timeline mutations.
+ */
 export function scrollWindowToTopOnce(options: ScrollWindowToTopOnceOptions = {}): Promise<void> {
 	if (typeof window === 'undefined') {
 		return Promise.resolve();

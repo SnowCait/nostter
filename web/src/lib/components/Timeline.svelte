@@ -85,6 +85,8 @@
 
 	async function scrollToTop(): Promise<void> {
 		await scrollWindowToTopOnce({
+			// Prune the timeline after reaching the top so the DOM update does not shift the
+			// starting scroll position or fight the browser's smooth-scroll animation.
 			afterScroll: async () => {
 				timeline.scrollToTop();
 				await tick();

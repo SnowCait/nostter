@@ -61,8 +61,11 @@
 		if (event.key === '1') {
 			event.preventDefault();
 
-			if (!event.repeat && !requestTimelineScrollToTop(page.url.pathname)) {
-				void scrollWindowToTopOnce();
+			if (!event.repeat) {
+				const handledByTimeline = requestTimelineScrollToTop(page.url.pathname);
+				if (!handledByTimeline) {
+					void scrollWindowToTopOnce();
+				}
 			}
 		}
 

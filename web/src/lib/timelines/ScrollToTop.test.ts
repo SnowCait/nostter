@@ -99,6 +99,24 @@ describe('scrollWindowToTopOnce', () => {
 		await first;
 	});
 
+	it('keeps the first call options while coalescing', async () => {
+		const browser = installWindowMock({ initialScrollY: 1000 });
+		const firstAfterScroll = vi.fn();
+		const secondAfterScroll = vi.fn();
+
+		const first = scrollWindowToTopOnce({ afterScroll: firstAfterScroll });
+		const second = scrollWindowToTopOnce({ afterScroll: secondAfterScroll });
+
+		expect(first).toBe(second);
+
+		browser.setScrollY(0);
+		browser.flushRaf();
+		await first;
+
+		expect(firstAfterScroll).toHaveBeenCalledTimes(1);
+		expect(secondAfterScroll).not.toHaveBeenCalled();
+	});
+
 	it('runs prepare only once during a burst', async () => {
 		const browser = installWindowMock({ initialScrollY: 1000 });
 		let resolvePrepare: (() => void) | undefined;
