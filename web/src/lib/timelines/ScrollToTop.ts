@@ -8,6 +8,7 @@ let scrollWindowToTopInFlight: Promise<void> | undefined;
 
 type TimelineScrollToTopDetail = {
 	target: string;
+	handled: boolean;
 };
 
 type ScrollWindowToTopOnceOptions = {
@@ -32,15 +33,13 @@ export function requestTimelineScrollToTop(target: string): boolean {
 		return false;
 	}
 
-	// dispatchEvent returns false when a cancelable event was prevented. Matching
-	// timeline listeners call preventDefault() to claim that they handled the request.
-	const wasHandled = !window.dispatchEvent(
+	const detail: TimelineScrollToTopDetail = { target, handled: false };
+	window.dispatchEvent(
 		new CustomEvent<TimelineScrollToTopDetail>(timelineScrollToTopEvent, {
-			detail: { target },
-			cancelable: true
+			detail
 		})
 	);
-	return wasHandled;
+	return detail.handled;
 }
 
 export function onTimelineScrollToTop(
@@ -52,15 +51,25 @@ export function onTimelineScrollToTop(
 	}
 	const listener = (event: Event) => {
 		const detail = event instanceof CustomEvent ? event.detail : undefined;
-		if ((detail as TimelineScrollToTopDetail | undefined)?.target !== target) {
+		const timelineScrollToTopDetail = detail as TimelineScrollToTopDetail | undefined;
+		if (timelineScrollToTopDetail?.target !== target) {
 			return;
 		}
 
-		event.preventDefault();
-		void handler();
+		try {
+			const result = handler();
+			timelineScrollToTopDetail.handled = true;
+			void Promise.resolve(result).catch(reportTimelineScrollToTopError);
+		} catch (error) {
+			reportTimelineScrollToTopError(error);
+		}
 	};
 	window.addEventListener(timelineScrollToTopEvent, listener);
 	return () => window.removeEventListener(timelineScrollToTopEvent, listener);
+}
+
+function reportTimelineScrollToTopError(error: unknown): void {
+	console.error('[timeline scroll-to-top]', error);
 }
 
 /**

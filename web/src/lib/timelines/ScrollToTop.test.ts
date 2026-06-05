@@ -258,4 +258,33 @@ describe('timeline scroll-to-top requests', () => {
 		dispose();
 		expect(requestTimelineScrollToTop('/home')).toBe(false);
 	});
+
+	it('does not report a request as handled when the matching handler throws synchronously', () => {
+		vi.stubGlobal('window', new EventTarget() as Window & typeof globalThis);
+		const error = new Error('scroll failed');
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		const dispose = onTimelineScrollToTop('/home', () => {
+			throw error;
+		});
+
+		expect(requestTimelineScrollToTop('/home')).toBe(false);
+		expect(consoleError).toHaveBeenCalledWith('[timeline scroll-to-top]', error);
+
+		dispose();
+	});
+
+	it('handles async handler rejections without unhandled promise rejections', async () => {
+		vi.stubGlobal('window', new EventTarget() as Window & typeof globalThis);
+		const error = new Error('scroll rejected');
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+		const dispose = onTimelineScrollToTop('/home', () => Promise.reject(error));
+
+		expect(requestTimelineScrollToTop('/home')).toBe(true);
+		await Promise.resolve();
+		expect(consoleError).toHaveBeenCalledWith('[timeline scroll-to-top]', error);
+
+		dispose();
+	});
 });

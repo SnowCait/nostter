@@ -59,6 +59,8 @@
 		}
 
 		if (event.key === '1') {
+			// Consume repeated keydown events as part of the shortcut, but do not start
+			// additional scroll operations for them.
 			event.preventDefault();
 
 			if (!event.repeat) {
