@@ -15,13 +15,12 @@
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { findChannelId } from '$lib/EventHelper';
 	import IconChevronsUp from '@tabler/icons-svelte-runes/icons/chevrons-up';
-	import { sleep } from '$lib/Helper';
 	import { HomeTimeline } from '$lib/timelines/HomeTimeline';
 	import { excludeKinds } from '$lib/TimelineFilter';
 	import { MouseButton } from '$lib/DomHelper';
 	import { scrollY } from 'svelte/reactivity/window';
 	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
-	import { onTimelineScrollToTop } from '$lib/timelines/ScrollToTop';
+	import { onTimelineScrollToTop, scrollWindowToTopOnce } from '$lib/timelines/ScrollToTop';
 
 	interface Props {
 		timeline: NewTimeline;
@@ -85,17 +84,11 @@
 	//#region Scroll to top
 
 	async function scrollToTop(): Promise<void> {
-		timeline.scrollToTop();
-		await tick();
-		window.scrollTo({
-			top: 0,
-			behavior: 'smooth'
-		});
-		// The reflection is not complete immediately after the tick
-		await sleep(500);
-		window.scrollTo({
-			top: 0,
-			behavior: 'smooth'
+		await scrollWindowToTopOnce({
+			afterScroll: async () => {
+				timeline.scrollToTop();
+				await tick();
+			}
 		});
 	}
 

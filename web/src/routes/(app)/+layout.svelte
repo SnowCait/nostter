@@ -8,10 +8,12 @@
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { fetchLastNotification } from '$lib/author/Notifications';
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import Gdpr from '$lib/components/Gdpr.svelte';
 	import '$lib/styles/menu.css';
 	import { fetchMinutes } from '$lib/Helper';
 	import { followees } from '$lib/stores/Author';
+	import { requestTimelineScrollToTop, scrollWindowToTopOnce } from '$lib/timelines/ScrollToTop';
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
@@ -57,10 +59,11 @@
 		}
 
 		if (event.key === '1') {
-			scrollTo({
-				top: 0,
-				behavior: 'smooth'
-			});
+			event.preventDefault();
+
+			if (!event.repeat && !requestTimelineScrollToTop(page.url.pathname)) {
+				void scrollWindowToTopOnce();
+			}
 		}
 
 		// Konami
