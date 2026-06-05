@@ -36,13 +36,10 @@
 	let hiddenAt: number | undefined;
 
 	function keyboardShortcut(event: KeyboardEvent) {
-		const element = event.target as HTMLElement;
-		if (
-			['INPUT', 'TEXTAREA'].includes(element.tagName) ||
-			element.closest('dialog[open]') !== null
-		) {
+		if (!(event.target instanceof Element) || shouldIgnoreKeyboardShortcut(event.target)) {
 			return;
 		}
+		const element = event.target;
 
 		console.debug(
 			`[${event.type}]`,
@@ -58,16 +55,12 @@
 			event.preventDefault();
 		}
 
-		if (event.key === '1') {
-			// Consume repeated keydown events as part of the shortcut, but do not start
-			// additional scroll operations for them.
+		if (event.key === '1' && !event.repeat) {
 			event.preventDefault();
 
-			if (!event.repeat) {
-				const handledByTimeline = requestTimelineScrollToTop(page.url.pathname);
-				if (!handledByTimeline) {
-					void scrollWindowToTopOnce();
-				}
+			const acceptedByTimeline = requestTimelineScrollToTop(page.url.pathname);
+			if (!acceptedByTimeline) {
+				void scrollWindowToTopOnce();
 			}
 		}
 
@@ -83,6 +76,18 @@
 			konamiIndex = 0;
 			rotateLogo();
 		}
+	}
+
+	function shouldIgnoreKeyboardShortcut(element: Element): boolean {
+		if (['INPUT', 'TEXTAREA', 'SELECT'].includes(element.tagName)) {
+			return true;
+		}
+
+		if (element instanceof HTMLElement && element.isContentEditable) {
+			return true;
+		}
+
+		return element.closest('dialog[open]') !== null;
 	}
 
 	function rotateLogo() {

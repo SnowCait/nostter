@@ -5,6 +5,23 @@ import {
 	scrollWindowToTopOnce
 } from './ScrollToTop';
 
+function installTimelineEventWindowMock(): void {
+	vi.stubGlobal('window', new EventTarget() as Window & typeof globalThis);
+
+	if (typeof CustomEvent === 'undefined') {
+		class TestCustomEvent<T = unknown> extends Event {
+			readonly detail: T;
+
+			constructor(type: string, eventInitDict?: CustomEventInit<T>) {
+				super(type, eventInitDict);
+				this.detail = eventInitDict?.detail as T;
+			}
+		}
+
+		vi.stubGlobal('CustomEvent', TestCustomEvent);
+	}
+}
+
 function installWindowMock(options: { reducedMotion?: boolean; initialScrollY?: number } = {}) {
 	let scrollY = options.initialScrollY ?? 1000;
 	let now = 0;
@@ -243,8 +260,8 @@ describe('scrollWindowToTopOnce', () => {
 });
 
 describe('timeline scroll-to-top requests', () => {
-	it('reports whether a target-specific timeline request was handled', () => {
-		vi.stubGlobal('window', new EventTarget() as Window & typeof globalThis);
+	it('reports whether a target-specific timeline request was accepted', () => {
+		installTimelineEventWindowMock();
 
 		const handler = vi.fn();
 		const dispose = onTimelineScrollToTop('/home', handler);
@@ -259,8 +276,8 @@ describe('timeline scroll-to-top requests', () => {
 		expect(requestTimelineScrollToTop('/home')).toBe(false);
 	});
 
-	it('does not report a request as handled when the matching handler throws synchronously', () => {
-		vi.stubGlobal('window', new EventTarget() as Window & typeof globalThis);
+	it('does not report a request as accepted when the matching handler throws synchronously', () => {
+		installTimelineEventWindowMock();
 		const error = new Error('scroll failed');
 		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -275,7 +292,7 @@ describe('timeline scroll-to-top requests', () => {
 	});
 
 	it('handles async handler rejections without unhandled promise rejections', async () => {
-		vi.stubGlobal('window', new EventTarget() as Window & typeof globalThis);
+		installTimelineEventWindowMock();
 		const error = new Error('scroll rejected');
 		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 

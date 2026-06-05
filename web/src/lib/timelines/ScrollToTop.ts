@@ -8,7 +8,7 @@ let scrollWindowToTopInFlight: Promise<void> | undefined;
 
 type TimelineScrollToTopDetail = {
 	target: string;
-	handled: boolean;
+	accepted: boolean;
 };
 
 type ScrollWindowToTopOnceOptions = {
@@ -28,18 +28,25 @@ type ScrollWindowToTopOnceOptions = {
 	maxSmoothScrollDistancePx?: number;
 };
 
+/**
+ * Dispatches a target-specific timeline scroll-to-top request.
+ *
+ * Returns true when a matching timeline listener accepts the request by invoking
+ * its handler without throwing synchronously. It does not mean that the async
+ * scroll operation has completed or cannot fail later.
+ */
 export function requestTimelineScrollToTop(target: string): boolean {
 	if (typeof window === 'undefined') {
 		return false;
 	}
 
-	const detail: TimelineScrollToTopDetail = { target, handled: false };
+	const detail: TimelineScrollToTopDetail = { target, accepted: false };
 	window.dispatchEvent(
 		new CustomEvent<TimelineScrollToTopDetail>(timelineScrollToTopEvent, {
 			detail
 		})
 	);
-	return detail.handled;
+	return detail.accepted;
 }
 
 export function onTimelineScrollToTop(
@@ -58,7 +65,7 @@ export function onTimelineScrollToTop(
 
 		try {
 			const result = handler();
-			timelineScrollToTopDetail.handled = true;
+			timelineScrollToTopDetail.accepted = true;
 			void Promise.resolve(result).catch(reportTimelineScrollToTopError);
 		} catch (error) {
 			reportTimelineScrollToTopError(error);
