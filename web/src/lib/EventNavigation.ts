@@ -17,38 +17,22 @@ const getTargetETag = (tags: string[][]): string => {
 };
 
 const shouldSkipNavigation = (clickEvent: MouseEvent): boolean => {
-	if (clickEvent.button !== MouseButton.Left) {
+	if (clickEvent.button !== MouseButton.Left || emojiPickerOpen) {
 		return true;
 	}
 
-	let target: HTMLElement | null = clickEvent.target as HTMLElement;
-	if (target.closest('.svelteui-Menu-root') || target.closest('a') || emojiPickerOpen) {
+	const target = clickEvent.target as HTMLElement;
+	if (target.closest('a, button, video, audio, dialog, .develop')) {
 		return true;
 	}
-	while (target && !target.classList.contains('timeline')) {
-		if (target.classList.contains('emoji-picker') || target.classList.contains('develop')) {
-			return true;
-		}
-		const tagName = target.tagName.toLocaleLowerCase();
-		if (
-			tagName === 'button' ||
-			tagName === 'video' ||
-			tagName === 'audio' ||
-			tagName === 'dialog'
-		) {
-			return true;
-		}
-		if (tagName === 'p' && String(document.getSelection()).length) {
-			return true;
-		}
-		target = target.parentElement;
-	}
-	return false;
+	return target.closest('p') !== null && String(document.getSelection()).length > 0;
 };
 
-const resolveDestination = (nostrEvent: Event): string => {
-	const channelId = get(channelIdStore);
-	if (nostrEvent.kind === 40 && channelId === undefined) {
+const resolveChannelDestination = (nostrEvent: Event): string | undefined => {
+	if (get(channelIdStore) !== undefined) {
+		return undefined;
+	}
+	if (nostrEvent.kind === 40) {
 		return `/channels/${nip19.neventEncode({
 			id: nostrEvent.id,
 			relays: getSeenOnRelays(nostrEvent.id),
@@ -56,26 +40,36 @@ const resolveDestination = (nostrEvent: Event): string => {
 			kind: nostrEvent.kind
 		})}`;
 	}
-	if ((nostrEvent.kind === 41 || nostrEvent.kind === 42) && channelId === undefined) {
+	if (nostrEvent.kind === 41 || nostrEvent.kind === 42) {
 		const foundChannelId = findChannelId(nostrEvent.tags);
 		if (foundChannelId !== undefined) {
 			return `/channels/${nip19.neventEncode({ id: foundChannelId, relays: getSeenOnRelays(foundChannelId) })}`;
 		}
 	}
-	if (nostrEvent.kind === 9735 && getTargetETag(nostrEvent.tags) === '') {
-		const recipient = filterTags('p', nostrEvent.tags).at(0);
-		const zapper = filterTags('P', nostrEvent.tags).at(0);
-		const target = recipient === get(pubkey) && zapper !== undefined ? zapper : recipient;
-		if (target !== undefined) {
-			return `/${nip19.npubEncode(target)}`;
-		}
+	return undefined;
+};
+
+const resolveZapDestination = (nostrEvent: Event): string | undefined => {
+	if (nostrEvent.kind !== 9735 || getTargetETag(nostrEvent.tags) !== '') {
+		return undefined;
 	}
+	const recipient = filterTags('p', nostrEvent.tags).at(0);
+	const zapper = filterTags('P', nostrEvent.tags).at(0);
+	const target = recipient === get(pubkey) && zapper !== undefined ? zapper : recipient;
+	return target !== undefined ? `/${nip19.npubEncode(target)}` : undefined;
+};
+
+const resolveEventDestination = (nostrEvent: Event): string => {
 	const eventId = [6, 7, 9735].includes(nostrEvent.kind)
 		? getTargetETag(nostrEvent.tags)
 		: nostrEvent.id;
-	const nevent = nip19.neventEncode({ id: eventId, relays: getSeenOnRelays(eventId) });
-	return `/${nevent}`;
+	return `/${nip19.neventEncode({ id: eventId, relays: getSeenOnRelays(eventId) })}`;
 };
+
+const resolveDestination = (nostrEvent: Event): string =>
+	resolveChannelDestination(nostrEvent) ??
+	resolveZapDestination(nostrEvent) ??
+	resolveEventDestination(nostrEvent);
 
 export async function navigateTo(
 	clickEvent: MouseEvent,
