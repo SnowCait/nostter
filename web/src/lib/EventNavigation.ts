@@ -1,4 +1,4 @@
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { goto } from '$app/navigation';
 import { nip19 } from 'nostr-tools';
 import { get } from 'svelte/store';
@@ -16,15 +16,12 @@ const getTargetETag = (tags: string[][]): string => {
 	return refEventId;
 };
 
-const shouldSkipNavigation = (clickEvent: MouseEvent | KeyboardEvent): boolean => {
-	if (
-		(clickEvent instanceof MouseEvent && clickEvent.button !== MouseButton.Left) ||
-		emojiPickerOpen
-	) {
+const shouldSkipNavigation = (e: MouseEvent | KeyboardEvent): boolean => {
+	if ((e instanceof MouseEvent && e.button !== MouseButton.Left) || emojiPickerOpen) {
 		return true;
 	}
 
-	const target = clickEvent.target as HTMLElement | null;
+	const target = e.target as HTMLElement | null;
 	if (target === null) {
 		return true;
 	}
@@ -34,7 +31,7 @@ const shouldSkipNavigation = (clickEvent: MouseEvent | KeyboardEvent): boolean =
 	return target.closest('p') !== null && String(document.getSelection()).length > 0;
 };
 
-const resolveChannelDestination = (nostrEvent: Event): string | undefined => {
+const resolveChannelDestination = (nostrEvent: Nostr.Event): string | undefined => {
 	if (get(channelIdStore) !== undefined) {
 		return undefined;
 	}
@@ -55,7 +52,7 @@ const resolveChannelDestination = (nostrEvent: Event): string | undefined => {
 	return undefined;
 };
 
-const resolveZapDestination = (nostrEvent: Event): string | undefined => {
+const resolveZapDestination = (nostrEvent: Nostr.Event): string | undefined => {
 	if (nostrEvent.kind !== 9735 || getTargetETag(nostrEvent.tags) !== '') {
 		return undefined;
 	}
@@ -65,24 +62,24 @@ const resolveZapDestination = (nostrEvent: Event): string | undefined => {
 	return target !== undefined ? `/${nip19.npubEncode(target)}` : undefined;
 };
 
-const resolveEventDestination = (nostrEvent: Event): string => {
+const resolveEventDestination = (nostrEvent: Nostr.Event): string => {
 	const eventId = [6, 7, 9735].includes(nostrEvent.kind)
 		? getTargetETag(nostrEvent.tags)
 		: nostrEvent.id;
 	return `/${nip19.neventEncode({ id: eventId, relays: getSeenOnRelays(eventId) })}`;
 };
 
-const resolveDestination = (nostrEvent: Event): string =>
+const resolveDestination = (nostrEvent: Nostr.Event): string =>
 	resolveChannelDestination(nostrEvent) ??
 	resolveZapDestination(nostrEvent) ??
 	resolveEventDestination(nostrEvent);
 
 export async function navigateTo(
-	clickEvent: MouseEvent | KeyboardEvent,
-	nostrEvent: Event,
+	e: MouseEvent | KeyboardEvent,
+	nostrEvent: Nostr.Event,
 	canTransition: boolean = true
 ): Promise<void> {
-	if (shouldSkipNavigation(clickEvent)) {
+	if (shouldSkipNavigation(e)) {
 		return;
 	}
 	if (!canTransition) {
