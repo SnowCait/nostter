@@ -3,9 +3,10 @@ import { goto } from '$app/navigation';
 import { nip19 } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { channelIdStore } from '$lib/Channel';
-import { findChannelId } from '$lib/EventHelper';
+import { findChannelId, filterTags } from '$lib/EventHelper';
 import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
+import { pubkey } from '$lib/stores/Author';
 import { MouseButton } from '$lib/DomHelper';
 
 const getTargetETag = (tags: string[][]): string => {
@@ -67,6 +68,15 @@ export async function viewDetail(
 				await goto(
 					`/channels/${nip19.neventEncode({ id: foundChannelId, relays: getSeenOnRelays(foundChannelId) })}`
 				);
+				return;
+			}
+		}
+		if (nostrEvent.kind === 9735 && getTargetETag(nostrEvent.tags) === '') {
+			const recipient = filterTags('p', nostrEvent.tags).at(0);
+			const zapper = filterTags('P', nostrEvent.tags).at(0);
+			const target = recipient === get(pubkey) && zapper !== undefined ? zapper : recipient;
+			if (target !== undefined) {
+				await goto(`/${nip19.npubEncode(target)}`);
 				return;
 			}
 		}
