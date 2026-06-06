@@ -16,12 +16,18 @@ const getTargetETag = (tags: string[][]): string => {
 	return refEventId;
 };
 
-const shouldSkipNavigation = (clickEvent: MouseEvent): boolean => {
-	if (clickEvent.button !== MouseButton.Left || emojiPickerOpen) {
+const shouldSkipNavigation = (clickEvent: MouseEvent | KeyboardEvent): boolean => {
+	if (
+		(clickEvent instanceof MouseEvent && clickEvent.button !== MouseButton.Left) ||
+		emojiPickerOpen
+	) {
 		return true;
 	}
 
-	const target = clickEvent.target as HTMLElement;
+	const target = clickEvent.target as HTMLElement | null;
+	if (target === null) {
+		return true;
+	}
 	if (target.closest('a, button, video, audio, dialog, .develop')) {
 		return true;
 	}
@@ -72,9 +78,9 @@ const resolveDestination = (nostrEvent: Event): string =>
 	resolveEventDestination(nostrEvent);
 
 export async function navigateTo(
-	clickEvent: MouseEvent,
+	clickEvent: MouseEvent | KeyboardEvent,
 	nostrEvent: Event,
-	canTransition: boolean
+	canTransition: boolean = true
 ): Promise<void> {
 	if (shouldSkipNavigation(clickEvent)) {
 		return;
