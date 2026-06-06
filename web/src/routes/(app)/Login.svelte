@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import type { Nip07 } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 	import { Login } from '$lib/Login';
 	import { loginType } from '$lib/stores/Author';
@@ -12,7 +12,7 @@
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 
-	let nostr: Nip07.Nostr | undefined = $state();
+	let nostr: Nostr.Nip07.Nostr | undefined = $state();
 	let key = $state('');
 	let bunker = $state('');
 	let name = $state('');

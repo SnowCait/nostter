@@ -1,5 +1,5 @@
 import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import {
 	createRxBackwardReq,
 	latest,
@@ -12,7 +12,7 @@ import { filter, firstValueFrom, tap } from 'rxjs';
 import { reverseChronological } from '$lib/Constants';
 import { Signer } from './Signer';
 
-export async function fetchFirstEvent(filter: LazyFilter): Promise<Event | undefined> {
+export async function fetchFirstEvent(filter: LazyFilter): Promise<Nostr.Event | undefined> {
 	try {
 		const req = createRxBackwardReq();
 		const promise = firstValueFrom(rxNostr.use(req).pipe(tie, uniq()));
@@ -29,9 +29,9 @@ export async function fetchFirstEvent(filter: LazyFilter): Promise<Event | undef
 export async function fetchLastEvent(
 	filter: LazyFilter,
 	on?: RxNostrOnParams | undefined
-): Promise<Event | undefined> {
+): Promise<Nostr.Event | undefined> {
 	return await new Promise((resolve) => {
-		let lastEvent: Event | undefined;
+		let lastEvent: Nostr.Event | undefined;
 		const req = createRxBackwardReq();
 		rxNostr
 			.use(req, { on })
@@ -58,9 +58,9 @@ export async function fetchLastEvent(
 export async function fetchEvents(
 	filters: LazyFilter[],
 	relays: string[] | undefined = undefined
-): Promise<Event[]> {
-	const { promise, resolve } = Promise.withResolvers<Event[]>();
-	const events: Event[] = [];
+): Promise<Nostr.Event[]> {
+	const { promise, resolve } = Promise.withResolvers<Nostr.Event[]>();
+	const events: Nostr.Event[] = [];
 	const req = createRxBackwardReq();
 	rxNostr
 		.use(req)
@@ -92,7 +92,11 @@ export async function fetchEvents(
 	return await promise;
 }
 
-export async function sendEvent(kind: number, content: string, tags: string[][]): Promise<Event> {
+export async function sendEvent(
+	kind: number,
+	content: string,
+	tags: string[][]
+): Promise<Nostr.Event> {
 	const { promise, resolve, reject } = Promise.withResolvers<void>();
 	const event = await Signer.signEvent({ kind, content, tags, created_at: now() });
 	rxNostr

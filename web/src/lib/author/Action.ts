@@ -1,7 +1,7 @@
 import { get, writable } from 'svelte/store';
 import { batch, createRxBackwardReq, filterByKind, uniq, type LazyFilter } from 'rx-nostr';
 import { bufferTime, bufferWhen, filter, interval, share } from 'rxjs';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { maxFilters } from '$lib/Constants';
 import { filterTags, findLastId } from '$lib/EventHelper';
@@ -10,10 +10,10 @@ import { pubkey } from '../stores/Author';
 import { deletedEventIdsByPubkey, storeDeletedEvents } from './Delete';
 import { Reaction, Repost } from 'nostr-tools/kinds';
 
-export const repostedEvents = writable(new Map<id, Event[]>());
-export const reactionedEvents = writable(new Map<id, Event[]>());
+export const repostedEvents = writable(new Map<id, Nostr.Event[]>());
+export const reactionedEvents = writable(new Map<id, Nostr.Event[]>());
 
-export function updateRepostedEvents(events: Event[]): void {
+export function updateRepostedEvents(events: Nostr.Event[]): void {
 	const $repostedEvents = get(repostedEvents);
 	for (const event of events.filter(
 		(event) => event.kind === Repost && event.pubkey === get(pubkey) // Ensure
@@ -34,7 +34,7 @@ export function updateRepostedEvents(events: Event[]): void {
 	repostedEvents.set($repostedEvents);
 }
 
-export function updateReactionedEvents(events: Event[]): void {
+export function updateReactionedEvents(events: Nostr.Event[]): void {
 	const $reactionedEvents = get(reactionedEvents);
 	for (const event of events.filter(
 		(event) => event.kind === Reaction && event.pubkey === get(pubkey) // Ensure
@@ -83,7 +83,7 @@ observable
 		console.debug('[rx-nostr author reaction next]', packets);
 		updateReactionedEvents(packets.map(({ event }) => event));
 	});
-export function authorActionReqEmit(event: Event): void {
+export function authorActionReqEmit(event: Nostr.Event): void {
 	const ids = [event.id, ...filterTags('e', event.tags)];
 	console.debug('[rx-nostr author action req]', ids);
 	const $pubkey = get(pubkey);

@@ -1,7 +1,7 @@
 import { get, writable } from 'svelte/store';
 import { createRxForwardReq, createRxOneshotReq, now, uniq } from 'rx-nostr';
 import { type Subscription, filter, tap } from 'rxjs';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
 import { authorActionReqEmit } from '../author/Action';
 import { chunk } from '../Array';
@@ -12,7 +12,7 @@ import { findIdentifier } from '$lib/EventHelper';
 
 let subscription: Subscription | undefined;
 
-export const event = writable<Event | undefined>();
+export const event = writable<Nostr.Event | undefined>();
 export const pubkeys = writable<string[]>([]);
 export const items = writable<EventItem[]>([]);
 export const ready = writable(false);
@@ -25,7 +25,7 @@ export function clear(): void {
 	subscription?.unsubscribe();
 }
 
-export function clearListTimelineIfActive(newEvent: Event): void {
+export function clearListTimelineIfActive(newEvent: Nostr.Event): void {
 	const $event = get(event);
 	if ($event === undefined) {
 		return;

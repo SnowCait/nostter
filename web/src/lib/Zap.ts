@@ -3,7 +3,7 @@ import { _ } from 'svelte-i18n';
 import { nip04 } from 'nostr-tools';
 import { createRxForwardReq, createRxNostr, noopSigner } from 'rx-nostr';
 import { seckeySigner } from 'rx-nostr-crypto';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
 import { verificationClient } from './timelines/MainTimeline';
 import { hexToBytes } from 'nostr-tools/utils';
@@ -27,7 +27,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 	});
 	nwcRxNostr.setDefaultRelays([walletRelay]);
 
-	const { promise, resolve, reject } = Promise.withResolvers<Event | null>();
+	const { promise, resolve, reject } = Promise.withResolvers<Nostr.Event | null>();
 
 	const timeout = setTimeout(() => {
 		console.debug('[NWC timeout]');

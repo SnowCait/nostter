@@ -1,5 +1,5 @@
 import { now } from 'rx-nostr';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { reactionedEvents, updateReactionedEvents } from './Action';
 import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
@@ -9,7 +9,7 @@ import { get } from 'svelte/store';
 import { findCustomEmojiSetAddress } from './CustomEmojis';
 
 export async function sendReaction(
-	target: Event,
+	target: Nostr.Event,
 	content: string,
 	emojiUrl: string | undefined
 ): Promise<void> {
@@ -41,7 +41,7 @@ export async function sendReaction(
 	updateReactionedEvents([event]);
 }
 
-export function deleteReaction(target: Event): void {
+export function deleteReaction(target: Nostr.Event): void {
 	const $reactionedEvents = get(reactionedEvents);
 	const events = $reactionedEvents.get(target.id);
 	if (events === undefined || events.length === 0) {

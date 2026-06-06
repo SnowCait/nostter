@@ -2,9 +2,9 @@ import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Dexie from 'dexie';
 import { EventCache, type CacheDB } from './db';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 
-const mockEvent = (overrides: Partial<Event> = {}): Event => ({
+const mockEvent = (overrides: Partial<Nostr.Event> = {}): Nostr.Event => ({
 	id: '0'.repeat(64),
 	kind: 1,
 	pubkey: 'a'.repeat(64),

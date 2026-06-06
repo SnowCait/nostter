@@ -1,11 +1,11 @@
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { createRxBackwardReq, latest, uniq } from 'rx-nostr';
 import { SvelteMap } from 'svelte/reactivity';
 import { rxNostr } from './timelines/MainTimeline';
 import { Pinlist } from 'nostr-tools/kinds';
 import { filter } from 'rxjs';
 
-export const pinnedNotesEvents = new SvelteMap<string, Event | undefined>();
+export const pinnedNotesEvents = new SvelteMap<string, Nostr.Event | undefined>();
 
 export function fetchPinnedNoteEvent(pubkey: string): void {
 	if (pinnedNotesEvents.has(pubkey)) {

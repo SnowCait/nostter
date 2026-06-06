@@ -1,7 +1,7 @@
 import { get, writable } from 'svelte/store';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { metadataStore, seenOnStore } from '$lib/cache/Events';
 import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
@@ -24,7 +24,7 @@ const queue = new Queue<Data>();
 let processing = false;
 
 export const profileBadgesKey = `${kind}:${identifier}`;
-export const profileBadgesEvent = writable<Event | undefined>();
+export const profileBadgesEvent = writable<Nostr.Event | undefined>();
 
 export async function acceptBadge(a: string, e: string): Promise<void> {
 	console.log('[badge accept]', a, e, queue.dump());
@@ -104,7 +104,7 @@ async function publish(): Promise<void> {
 	}
 }
 
-async function validate(event: Event | undefined): Promise<boolean> {
+async function validate(event: Nostr.Event | undefined): Promise<boolean> {
 	const $pubkey = get(pubkey);
 	const lastEvent = await fetchLastEvent({
 		kinds: [kind],

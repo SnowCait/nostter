@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import type { pubkey } from './Types';
 import type { Metadata } from './Items';
 import { metadataStore } from './cache/Events';
@@ -7,10 +7,10 @@ import { isMuteEvent } from './stores/Author';
 import { deletedEventIdsByPubkey } from './author/Delete';
 import { isVisibleNotification } from './preferences/NotificationVisibility.svelte';
 
-export const unsentToastNotifications = new Map<pubkey, Event[]>();
+export const unsentToastNotifications = new Map<pubkey, Nostr.Event[]>();
 
 export class ToastNotification {
-	public notify(event: Event) {
+	public notify(event: Nostr.Event) {
 		const $metadataStore = get(metadataStore);
 		const metadata = $metadataStore.get(event.pubkey);
 		if (metadata !== undefined) {
@@ -20,7 +20,7 @@ export class ToastNotification {
 		}
 	}
 
-	private send(event: Event) {
+	private send(event: Nostr.Event) {
 		if (window.Notification === undefined || Notification.permission !== 'granted') {
 			return;
 		}
@@ -70,7 +70,7 @@ export class ToastNotification {
 		});
 	}
 
-	private enqueue(event: Event) {
+	private enqueue(event: Nostr.Event) {
 		let unsentEvents = unsentToastNotifications.get(event.pubkey);
 		if (unsentEvents === undefined) {
 			unsentEvents = [];

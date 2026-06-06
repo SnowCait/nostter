@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { kinds as Kind } from 'nostr-tools';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { reactionedEvents } from '$lib/author/Action';
 	import { deleteReaction, sendReaction } from '$lib/author/Reaction';
 	import { preferencesStore } from '$lib/Preferences';
@@ -12,7 +12,7 @@
 	import { IconTrash } from '@tabler/icons-svelte-runes';
 
 	interface Props {
-		event: Event;
+		event: Nostr.Event;
 		iconSize: number;
 	}
 

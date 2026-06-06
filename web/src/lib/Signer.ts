@@ -11,10 +11,10 @@ import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';
 import { generateSecretKey } from 'nostr-tools/pure';
 import { bytesToHex, hexToBytes } from 'nostr-tools/utils';
 import { WebStorage } from './WebStorage';
-import type { Nip07, UnsignedEvent } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 
 declare const window: {
-	nostr: Nip07.Nostr | undefined;
+	nostr: Nostr.Nip07.Nostr | undefined;
 };
 
 let bunkerSigner: BunkerSigner | undefined;
@@ -76,7 +76,9 @@ export class Signer {
 		}
 	}
 
-	public static async signEvent(unsignedEvent: EventTemplate | UnsignedEvent): Promise<Event> {
+	public static async signEvent(
+		unsignedEvent: EventTemplate | Nostr.UnsignedEvent
+	): Promise<Event> {
 		const storage = new WebStorage(localStorage);
 		const login = storage.get('login');
 		if (login === null || login.startsWith('npub')) {

@@ -1,7 +1,7 @@
 import { get, writable, type Writable } from 'svelte/store';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
@@ -21,10 +21,10 @@ const queue = new Queue<Data>();
 
 let processing = false;
 
-export const bookmarkEvent: Writable<Event | undefined> = writable();
+export const bookmarkEvent: Writable<Nostr.Event | undefined> = writable();
 
 // TODO: Private bookmarks
-export const isBookmarked = (event: Event): boolean => {
+export const isBookmarked = (event: Nostr.Event): boolean => {
 	const $bookmarkEvent = get(bookmarkEvent);
 	if ($bookmarkEvent === undefined) {
 		return false;
@@ -104,7 +104,7 @@ async function publish(): Promise<void> {
 	}
 }
 
-async function validate(event: Event | undefined): Promise<boolean> {
+async function validate(event: Nostr.Event | undefined): Promise<boolean> {
 	const $pubkey = get(pubkey);
 	const lastEvent = await fetchLastEvent({
 		kinds: [kind],

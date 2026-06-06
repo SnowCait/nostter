@@ -19,7 +19,7 @@
 	import { pollKind } from '$lib/Poll';
 	import Highlight from './Highlight.svelte';
 	import { getContext, setContext } from 'svelte';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 
 	interface Props {
 		item: Item;
@@ -31,7 +31,7 @@
 	let { item, readonly, createdAtFormat = 'auto', full = false }: Props = $props();
 
 	$effect(() => {
-		const events = getContext<Event[] | undefined>('events') ?? [];
+		const events = getContext<Nostr.Event[] | undefined>('events') ?? [];
 		setContext('events', [...events, item.event]);
 	});
 </script>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { aTagContent, findIdentifier } from '$lib/EventHelper';
 	import { IconDots, IconLibraryMinus, IconLibraryPlus } from '@tabler/icons-svelte-runes';
 	import IconExternalLink from '@tabler/icons-svelte-runes/icons/external-link';
@@ -14,7 +14,7 @@
 	} from '$lib/author/CustomEmojis';
 
 	interface Props {
-		event: Event;
+		event: Nostr.Event;
 	}
 
 	let { event }: Props = $props();

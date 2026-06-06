@@ -1,11 +1,11 @@
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import type { pubkey } from './Types';
 import { rxNostr, tie } from './timelines/MainTimeline';
 
 export class RelayList {
-	static async fetchEvents(pubkeys: pubkey[]): Promise<Map<pubkey, Event>> {
-		const eventsMap = new Map<pubkey, Event>();
+	static async fetchEvents(pubkeys: pubkey[]): Promise<Map<pubkey, Nostr.Event>> {
+		const eventsMap = new Map<pubkey, Nostr.Event>();
 		if (pubkeys.length === 0) {
 			return eventsMap;
 		}

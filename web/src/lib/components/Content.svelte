@@ -12,12 +12,12 @@
 	import { Spotify } from '$lib/Spotify';
 	import { Twitter } from '$lib/Twitter';
 	import { nicovideoRegexp } from '$lib/Constants';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 
 	interface Props {
 		content: string;
 		tags: string[][];
-		event?: Event;
+		event?: Nostr.Event;
 	}
 
 	let { content, tags, event }: Props = $props();

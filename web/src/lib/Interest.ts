@@ -1,6 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, latest, type EventPacket, now } from 'rx-nostr';
-import type { Event, UnsignedEvent } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { browser } from '$app/environment';
 import { rxNostr, tie } from './timelines/MainTimeline';
 import { WebStorage } from './WebStorage';
@@ -75,7 +75,7 @@ async function save(): Promise<void> {
 	}
 
 	// Send
-	const event: UnsignedEvent = {
+	const event: Nostr.UnsignedEvent = {
 		kind: interestKind,
 		pubkey: $pubkey,
 		content: latest?.content ?? '',
@@ -121,7 +121,7 @@ async function save(): Promise<void> {
 	processing = false;
 }
 
-async function fetch(pubkey: string): Promise<Event | undefined> {
+async function fetch(pubkey: string): Promise<Nostr.Event | undefined> {
 	return await new Promise((resolve) => {
 		let latestPacket: EventPacket | undefined;
 		const req = createRxBackwardReq();
@@ -149,7 +149,7 @@ async function fetch(pubkey: string): Promise<Event | undefined> {
 	});
 }
 
-export function getCache(): Event | undefined {
+export function getCache(): Nostr.Event | undefined {
 	const storage = new WebStorage(localStorage);
 	return storage.getReplaceableEvent(interestKind);
 }

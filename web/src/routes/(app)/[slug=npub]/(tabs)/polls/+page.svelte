@@ -3,7 +3,7 @@
 	import { referencesReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { createRxBackwardReq, uniq } from 'rx-nostr';
 	import { Poll } from 'nostr-tools/kinds';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { insertEventIntoDescendingList } from 'nostr-tools/utils';
 	import { isMuteEvent } from '$lib/stores/Author';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
@@ -18,7 +18,7 @@
 	let slug = $derived(page.params.slug!);
 
 	const limit = 50;
-	const events = $state<Event[]>([]);
+	const events = $state<Nostr.Event[]>([]);
 
 	let subscription: Subscription | undefined;
 

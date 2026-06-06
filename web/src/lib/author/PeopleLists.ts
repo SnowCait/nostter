@@ -1,6 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, filterAsync, latestEach, now, uniq } from 'rx-nostr';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { isDecodable } from '$lib/Encryption';
 import { aTagContent, findIdentifier } from '$lib/EventHelper';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
@@ -12,10 +12,10 @@ import { decryptListContent, encryptListContent } from '$lib/List';
 
 const kind = 30000;
 
-export const peopleLists = writable(new Map<string, Event>());
+export const peopleLists = writable(new Map<string, Nostr.Event>());
 export const processing = writable(false);
 
-export function storePeopleList(event: Event): void {
+export function storePeopleList(event: Nostr.Event): void {
 	const $peopleLists = get(peopleLists);
 	const key = aTagContent(event);
 	const cache = $peopleLists.get(key);
@@ -50,7 +50,7 @@ export function fetchPeopleLists(): void {
 }
 
 // For legacy clients
-export async function isPeopleList(event: Event): Promise<boolean> {
+export async function isPeopleList(event: Nostr.Event): Promise<boolean> {
 	if (event.kind !== kind) {
 		return false;
 	}
@@ -65,7 +65,7 @@ export async function isPeopleList(event: Event): Promise<boolean> {
 	);
 }
 
-export async function contains(pubkey: string, event: Event): Promise<boolean> {
+export async function contains(pubkey: string, event: Nostr.Event): Promise<boolean> {
 	if (event.tags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
 		return true;
 	}
@@ -104,7 +104,7 @@ export async function createPeopleList(title: string, pubkey: string): Promise<v
 	});
 }
 
-export async function addToPeopleList(event: Event, pubkey: string): Promise<void> {
+export async function addToPeopleList(event: Nostr.Event, pubkey: string): Promise<void> {
 	if (!(await validate(event))) {
 		return;
 	}
@@ -122,7 +122,7 @@ export async function addToPeopleList(event: Event, pubkey: string): Promise<voi
 	});
 }
 
-export async function removeFromPeopleList(event: Event, pubkey: string): Promise<void> {
+export async function removeFromPeopleList(event: Nostr.Event, pubkey: string): Promise<void> {
 	if (!(await validate(event))) {
 		return;
 	}
@@ -149,7 +149,7 @@ export async function removeFromPeopleList(event: Event, pubkey: string): Promis
 	});
 }
 
-async function validate(event: Event): Promise<boolean> {
+async function validate(event: Nostr.Event): Promise<boolean> {
 	const $authorPubkey = get(authorPubkey);
 	const identifier = findIdentifier(event.tags);
 	if (event.kind !== kind || event.pubkey !== $authorPubkey || identifier === undefined) {

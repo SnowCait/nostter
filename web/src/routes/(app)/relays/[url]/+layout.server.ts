@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
-import type { Nip11 } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 
 export const load: LayoutServerLoad = async ({ params }) => {
 	console.log('[relay page load]', params.url);
@@ -18,7 +18,7 @@ export const load: LayoutServerLoad = async ({ params }) => {
 			throw new Error('NIP-11 is not supported.');
 		}
 
-		const nip11: Nip11.RelayInfo = await response.json();
+		const nip11: Nostr.Nip11.RelayInfo = await response.json();
 		console.log('[relay page NIP-11]', nip11, response.url);
 		return {
 			name: nip11.name,

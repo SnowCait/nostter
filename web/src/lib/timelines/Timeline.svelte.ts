@@ -1,6 +1,6 @@
 import { minTimelineLength } from '$lib/Constants';
 import { autoRefresh } from '$lib/stores/Preference';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import {
 	createRxForwardReq,
 	uniq,
@@ -24,8 +24,8 @@ const maxTimelineLength = minTimelineLength * 2;
 export abstract class NewTimeline {
 	//#region Events
 
-	protected readonly eventsStore: Event[] = [];
-	protected eventsForView = $state.raw<Event[]>([]);
+	protected readonly eventsStore: Nostr.Event[] = [];
+	protected eventsForView = $state.raw<Nostr.Event[]>([]);
 	public readonly events = $derived(this.eventsForView);
 
 	protected latestId = $state<string | undefined>();
@@ -54,7 +54,7 @@ export abstract class NewTimeline {
 
 	//#endregion
 
-	public abstract filter: ((event: Event) => boolean) | undefined;
+	public abstract filter: ((event: Nostr.Event) => boolean) | undefined;
 
 	public abstract setIsTop(isTop: boolean): void;
 
@@ -111,7 +111,7 @@ export abstract class NewTimeline {
 }
 
 export class TimelineSubscriber {
-	events = $state.raw<Event[]>([]);
+	events = $state.raw<Nostr.Event[]>([]);
 	#rxNostr: RxNostr;
 	#subscription: Subscription | undefined;
 

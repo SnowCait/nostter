@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { followees } from '$lib/stores/Author';
 	import { imageOptimization } from '$lib/stores/Preference';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { getContext } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { Img, type ImgSrc } from 'svelte-remote-image';
@@ -13,7 +13,7 @@
 	let { url }: Props = $props();
 
 	const { href: src, pathname } = $derived(url);
-	const events = getContext<Event[] | undefined>('events');
+	const events = getContext<Nostr.Event[] | undefined>('events');
 	const blur = events !== undefined && !events.some((event) => $followees.includes(event.pubkey));
 
 	let imageSrc: ImgSrc = $derived({
