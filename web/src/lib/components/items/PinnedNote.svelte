@@ -11,7 +11,7 @@
 	import EventComponent from './EventComponent.svelte';
 	import { EventItem } from '$lib/Items';
 	import NoteLink from './NoteLink.svelte';
-	import { navigateTo } from '$lib/Navigation';
+	import { navigateTo } from '$lib/EventNavigation';
 
 	interface Props {
 		pubkey: string;

@@ -14,7 +14,7 @@
 	import { scrollY } from 'svelte/reactivity/window';
 	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
 	import { onTimelineScrollToTop } from '$lib/timelines/ScrollToTop';
-	import { viewDetail } from '$lib/EventNavigation';
+	import { navigateTo } from '$lib/EventNavigation';
 
 	interface Props {
 		timeline: NewTimeline;
@@ -179,7 +179,7 @@
 			id={item.id}
 			class={canTransition ? 'canTransition-post' : ''}
 			class:related={$author?.isNotified(item.event)}
-			onmouseup={(e) => viewDetail(e, item.event, canTransition)}
+			onmouseup={(e) => navigateTo(e, item.event, canTransition)}
 		>
 			<EventComponent {item} {readonly} {createdAtFormat} {full} />
 		</div>
