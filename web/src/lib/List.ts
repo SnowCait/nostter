@@ -1,7 +1,7 @@
 import { get } from 'svelte/store';
 import { createRxOneshotReq, latest } from 'rx-nostr';
 import { lastValueFrom } from 'rxjs';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { rxNostr, tie } from './timelines/MainTimeline';
 import { filterTags, findIdentifier, getTitle, isLegacyEncryption } from './EventHelper';
 import { pubkey } from './stores/Author';
@@ -11,7 +11,7 @@ export async function fetchListEvent(
 	kind: number,
 	pubkey: string,
 	identifier: string
-): Promise<Event | undefined> {
+): Promise<Nostr.Event | undefined> {
 	try {
 		const req = createRxOneshotReq({
 			filters: [{ kinds: [kind], authors: [pubkey], '#d': [identifier] }]
@@ -28,7 +28,7 @@ export function getListTitle(tags: string[][]): string {
 	return getTitle(tags) ?? findIdentifier(tags) ?? '-';
 }
 
-export async function getListPubkeys(event: Event): Promise<string[]> {
+export async function getListPubkeys(event: Nostr.Event): Promise<string[]> {
 	const tags = event.tags;
 
 	const $pubkey = get(pubkey);

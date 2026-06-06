@@ -1,7 +1,7 @@
 import { get } from 'svelte/store';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { pubkey, storeMutedPubkeysByKind } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
@@ -131,7 +131,7 @@ async function publish(muteKind: number): Promise<void> {
 	}
 }
 
-async function validate(event: Event | undefined, muteKind: number): Promise<boolean> {
+async function validate(event: Nostr.Event | undefined, muteKind: number): Promise<boolean> {
 	const $pubkey = get(pubkey);
 	const lastEvent = await fetchLastEvent({
 		kinds: [kind],

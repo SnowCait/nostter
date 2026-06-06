@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { ShortTextNote, EncryptedDirectMessage, Repost } from 'nostr-tools/kinds';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { repostedEvents, updateRepostedEvents } from '$lib/author/Action';
 	import { Signer } from '$lib/Signer';
 	import { rom } from '$lib/stores/Author';
@@ -12,7 +12,7 @@
 	import { undoRepost } from '$lib/author/Repost';
 
 	interface Props {
-		event: Event;
+		event: Nostr.Event;
 		iconSize: number;
 	}
 

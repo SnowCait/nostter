@@ -3,7 +3,7 @@
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { ShortTextNote } from 'nostr-tools/kinds';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { page } from '$app/stores';
 	import { bookmark, unbookmark, isBookmarked } from '$lib/author/Bookmark';
 	import { broadcast } from '$lib/Broadcast';
@@ -32,7 +32,7 @@
 	import { metadataStore } from '$lib/cache/Events';
 
 	interface Props {
-		event: Event;
+		event: Nostr.Event;
 		iconSize: number;
 		showDetails?: boolean;
 	}

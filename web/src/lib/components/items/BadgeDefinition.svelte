@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { getTagContent } from '$lib/EventHelper';
 
 	interface Props {
-		event: Event;
+		event: Nostr.Event;
 		children?: import('svelte').Snippet;
 	}
 

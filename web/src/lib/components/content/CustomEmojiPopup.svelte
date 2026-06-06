@@ -4,7 +4,7 @@
 	import { Popover } from 'melt/builders';
 	import { rom } from '$lib/stores/Author';
 	import { sendReaction } from '$lib/author/Reaction';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { developerMode } from '$lib/stores/Preference';
 	import { createRxBackwardReq, uniq } from 'rx-nostr';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
@@ -17,7 +17,7 @@
 		text?: string;
 		url: string;
 		address?: string; // kind 30030 address
-		event?: Event;
+		event?: Nostr.Event;
 	}
 
 	let { text = '', url, address, event }: Props = $props();
@@ -27,7 +27,7 @@
 
 	//#region Emoji set
 
-	let emojisetEvent = $state<Event>();
+	let emojisetEvent = $state<Nostr.Event>();
 
 	$effect(() => {
 		if (address === undefined) {

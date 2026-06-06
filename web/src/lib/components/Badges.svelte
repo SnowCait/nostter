@@ -8,7 +8,7 @@
 	import { hexRegexp } from '$lib/Constants';
 	import { browser } from '$app/environment';
 	import ExternalLink from './ExternalLink.svelte';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { aTagContent, findIdentifier, parseAddress } from '$lib/EventHelper';
 	import { nip19 } from 'nostr-tools';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -26,13 +26,13 @@
 	let profileBadges: { awards: Set<AwardId>; definitions: Set<DefinitionAddress> } | undefined =
 		$state();
 	let badgeAwards = new SvelteMap<AwardId, DefinitionAddress>();
-	let badgeDefinitions = new SvelteMap<DefinitionAddress, Event>();
+	let badgeDefinitions = new SvelteMap<DefinitionAddress, Nostr.Event>();
 
 	function addToBadgeAwards(id: AwardId, address: DefinitionAddress): void {
 		badgeAwards.set(id, address);
 	}
 
-	function updateBadgeDefinitions(address: DefinitionAddress, event: Event): void {
+	function updateBadgeDefinitions(address: DefinitionAddress, event: Nostr.Event): void {
 		badgeDefinitions.set(address, event);
 	}
 

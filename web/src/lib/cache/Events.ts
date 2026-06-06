@@ -1,5 +1,5 @@
 import { get, writable, type Writable } from 'svelte/store';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import type { id, pubkey } from '$lib/Types';
 import { EventItem, Metadata } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
@@ -7,18 +7,18 @@ import { db, EventCache } from './db';
 
 export const metadataStore = writable(new Map<pubkey, Metadata>());
 export const eventItemStore = writable(new Map<id, EventItem>());
-export const replaceableEventsStore = writable(new Map<string, Event>());
-export const channelMetadataEventsStore = writable(new Map<id, Event>());
+export const replaceableEventsStore = writable(new Map<string, Nostr.Event>());
+export const channelMetadataEventsStore = writable(new Map<id, Nostr.Event>());
 
 // <id | a, [url]>
 export const seenOnStore = writable(new Map<string, Set<string>>());
 
-export const authorChannelsEventStore: Writable<Event | undefined> = writable();
+export const authorChannelsEventStore: Writable<Nostr.Event | undefined> = writable();
 
 // <event.id, event>
-export const cachedEvents = new Map<id, Event>();
+export const cachedEvents = new Map<id, Nostr.Event>();
 
-export function storeMetadata(event: Event): void {
+export function storeMetadata(event: Nostr.Event): void {
 	const $metadataStore = get(metadataStore);
 	const cache = $metadataStore.get(event.pubkey);
 	if (cache === undefined || cache.event.created_at < event.created_at) {
@@ -32,7 +32,7 @@ export function storeMetadata(event: Event): void {
 	}
 }
 
-export function storeEventItem(event: Event): void {
+export function storeEventItem(event: Nostr.Event): void {
 	console.debug('[store event]', event);
 	const $eventItemStore = get(eventItemStore);
 	if (!$eventItemStore.has(event.id)) {

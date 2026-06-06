@@ -10,7 +10,7 @@
 	import EmojiPicker from '../EmojiPicker.svelte';
 	import ZapDialog from '../ZapDialog.svelte';
 	import { sendReaction } from '$lib/author/Reaction';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { notesKinds } from '$lib/Constants';
 	import { openNoteDialog, replyTo } from '$lib/stores/NoteDialog';
 	import { rom } from '$lib/stores/Author';
@@ -46,7 +46,7 @@
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async function emojiReaction(note: Event, emoji: any) {
+	async function emojiReaction(note: Nostr.Event, emoji: any) {
 		console.log('[reaction with emoji]', note, emoji);
 
 		if ($rom) {

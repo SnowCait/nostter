@@ -1,6 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { now } from 'rx-nostr';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
@@ -9,7 +9,7 @@ import { filterTags } from '$lib/EventHelper';
 export const deletedEventIds = writable(new Set<string>());
 export const deletedEventIdsByPubkey = writable(new Map<string, Set<string>>());
 
-export function storeDeletedEvents(event: Event): void {
+export function storeDeletedEvents(event: Nostr.Event): void {
 	const pubkey = event.pubkey;
 	const ids = filterTags('e', event.tags);
 
@@ -29,7 +29,7 @@ export function storeDeletedEvents(event: Event): void {
 	}
 }
 
-export async function deleteEvent(events: Event[], reason = ''): Promise<void> {
+export async function deleteEvent(events: Nostr.Event[], reason = ''): Promise<void> {
 	if (events.length === 0) {
 		return;
 	}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { nip19 } from 'nostr-tools';
 	import { acceptBadge, profileBadgesEvent } from '$lib/author/ProfileBadges';
 	import { replaceableEventsStore, metadataStore } from '$lib/cache/Events';
@@ -39,7 +39,7 @@
 	let badgeDefinitions = $derived(
 		aTagContents
 			.map((a) => $replaceableEventsStore.get(a))
-			.filter((event): event is Event => event !== undefined)
+			.filter((event): event is Nostr.Event => event !== undefined)
 	);
 	let myBadgeDefinitionsA = $derived(filterTags('a', $profileBadgesEvent?.tags ?? []));
 
@@ -49,7 +49,7 @@
 		jsonDisplay = !jsonDisplay;
 	};
 
-	function accept(badgeDefinitionEvent: Event): void {
+	function accept(badgeDefinitionEvent: Nostr.Event): void {
 		console.log('[badge accept]', badgeDefinitionEvent, event);
 
 		const a = aTagContent(badgeDefinitionEvent);

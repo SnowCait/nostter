@@ -2,7 +2,7 @@
 	import { run } from 'svelte/legacy';
 
 	import * as nip19 from 'nostr-tools/nip19';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { createRxBackwardReq, createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
 	import { tap, merge, filter } from 'rxjs';
 	import { _ } from 'svelte-i18n';
@@ -52,7 +52,7 @@
 
 	let replyToEventItems: EventItem[] = $state([]);
 	let repliedToEventItems: EventItem[] = $state([]);
-	let repliedToEventsMap = new Map<string, Event>();
+	let repliedToEventsMap = new Map<string, Nostr.Event>();
 	let repostEventItems: EventItem[] = $state([]);
 	let reactionEventItems: EventItem[] = $state([]);
 	let zapEventItemsMap = new SvelteMap<number | undefined, ZapEventItem[]>();
@@ -99,7 +99,7 @@
 		focusedElement?.scrollIntoView();
 	}
 
-	function fetchThreads(rootId: string | undefined, original: Event): void {
+	function fetchThreads(rootId: string | undefined, original: Nostr.Event): void {
 		if (rootId === undefined) {
 			return;
 		}
@@ -256,7 +256,7 @@
 			observable.pipe(filterByKind(9735)).subscribe((packet) => {
 				console.debug('[thread kind 9735]', packet);
 
-				let event: Event | undefined;
+				let event: Nostr.Event | undefined;
 				const description = packet.event.tags
 					.find(
 						([tagName, tagContent]) =>
@@ -266,7 +266,7 @@
 				if (description !== undefined) {
 					console.debug('[thread kind 9734]', description);
 					try {
-						event = JSON.parse(description) as Event;
+						event = JSON.parse(description) as Nostr.Event;
 						referencesReqEmit(event, true);
 					} catch (error) {
 						console.log('[zap description parse error]', description, error);

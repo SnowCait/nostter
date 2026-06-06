@@ -1,7 +1,7 @@
 import { createRxBackwardReq, createRxForwardReq, now, uniq } from 'rx-nostr';
 import { NewTimeline } from './Timeline.svelte';
 import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { minTimelineLength, reverseChronological } from '$lib/Constants';
 import { filter, tap, type Subscription } from 'rxjs';
 import { authorActionReqEmit } from '$lib/author/Action';
@@ -153,12 +153,12 @@ export class PublicTimeline extends NewTimeline {
 		req.over();
 	}
 
-	protected async fetchEnough(limit: number): Promise<Event[]> {
+	protected async fetchEnough(limit: number): Promise<Nostr.Event[]> {
 		console.debug('[public timeline fetch enough]', limit);
-		const { promise, resolve } = Promise.withResolvers<Event[]>();
+		const { promise, resolve } = Promise.withResolvers<Nostr.Event[]>();
 		const until = this.eventsStore.at(-1)?.created_at ?? now();
 		const req = createRxBackwardReq();
-		const events: Event[] = [];
+		const events: Nostr.Event[] = [];
 		rxNostr
 			.use(req, { on: { relays: this.#relays } })
 			.pipe(
@@ -187,7 +187,7 @@ export class PublicTimeline extends NewTimeline {
 		return promise;
 	}
 
-	#fine(event: Event): boolean {
+	#fine(event: Nostr.Event): boolean {
 		if (this.eventsStore.some((e) => e.id === event.id)) {
 			return false;
 		}

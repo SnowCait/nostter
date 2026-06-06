@@ -10,7 +10,7 @@ import {
 	type LazyFilter
 } from 'rx-nostr';
 import { filter, share, tap } from 'rxjs';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
 import { kinds as Kind } from 'nostr-tools';
@@ -65,7 +65,7 @@ import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.s
 const maxTimelineLength = minTimelineLength * 2;
 
 export class HomeTimeline extends NewTimeline {
-	public filter = (event: Event) =>
+	public filter = (event: Nostr.Event) =>
 		!get(excludeKinds).includes(event.kind) && isVisibleNotification(event.pubkey);
 
 	constructor() {
@@ -458,10 +458,10 @@ export class HomeTimeline extends NewTimeline {
 		req.over();
 	}
 
-	async #fetchEnough(limit: number): Promise<Event[]> {
-		const { promise, resolve } = Promise.withResolvers<Event[]>();
+	async #fetchEnough(limit: number): Promise<Nostr.Event[]> {
+		const { promise, resolve } = Promise.withResolvers<Nostr.Event[]>();
 		const req = createRxBackwardReq();
-		const events: Event[] = [];
+		const events: Nostr.Event[] = [];
 		rxNostr
 			.use(req)
 			.pipe(

@@ -5,7 +5,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { onMount } from 'svelte';
-	import * as Nostr from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import {
 		addToPeopleList,
 		contains,

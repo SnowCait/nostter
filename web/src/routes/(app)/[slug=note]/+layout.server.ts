@@ -1,5 +1,5 @@
 import { nip19 } from 'nostr-tools';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { error } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import { defaultRelays } from '$lib/Constants';
@@ -9,7 +9,7 @@ import { checkRestriction } from '$lib/server/Restriction';
 export const load: LayoutServerLoad<{
 	eventId: string;
 	relays: string[];
-	event: Event | undefined;
+	event: Nostr.Event | undefined;
 }> = async ({ params }) => {
 	console.debug('[thread page load]', params.slug);
 	try {

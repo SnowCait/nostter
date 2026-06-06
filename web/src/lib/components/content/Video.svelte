@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { followees } from '$lib/stores/Author';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { getContext } from 'svelte';
 	import { _ } from 'svelte-i18n';
 
@@ -10,7 +10,7 @@
 
 	let { url }: Props = $props();
 
-	const events = getContext<Event[] | undefined>('events');
+	const events = getContext<Nostr.Event[] | undefined>('events');
 	let blur = $state(
 		events !== undefined && !events.some((event) => $followees.includes(event.pubkey))
 	);

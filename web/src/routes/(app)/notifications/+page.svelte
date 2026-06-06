@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Filter } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { _ } from 'svelte-i18n';
@@ -82,7 +82,7 @@
 				new Date(until * 1000)
 			);
 
-			const filters: Filter[] = [
+			const filters: Nostr.Filter[] = [
 				{
 					kinds: notificationsFilterKinds,
 					'#p': [$pubkey],

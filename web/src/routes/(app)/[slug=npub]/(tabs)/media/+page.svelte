@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
-	import type { Filter } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { tap, filter } from 'rxjs';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { appName, minTimelineLength } from '$lib/Constants';
@@ -38,7 +38,7 @@
 				new Date(until * 1000)
 			);
 
-			const filters: Filter[] = [
+			const filters: Nostr.Filter[] = [
 				{
 					kinds: [1, 42],
 					authors: [pubkey],

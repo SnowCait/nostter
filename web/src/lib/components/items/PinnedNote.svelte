@@ -4,7 +4,7 @@
 	import { fetchPinnedNoteEvent, pinnedNotesEvents } from '$lib/PinnedNotes';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { IconPinnedFilled } from '@tabler/icons-svelte-runes';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { createRxBackwardReq, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { _ } from 'svelte-i18n';
@@ -24,7 +24,7 @@
 		tag[0] === 'e' && typeof tag[1] === 'string' && hexRegexp.test(tag[1]);
 	let pinnedNotes = $derived(pinnedNotesEvents.get(pubkey)?.tags.filter(isEventTag) ?? []);
 	let eventId = $derived(pinnedNotes.at(-1)?.[1]);
-	let event = $state<Event>();
+	let event = $state<Nostr.Event>();
 
 	$effect(() => {
 		if (eventId === undefined) {

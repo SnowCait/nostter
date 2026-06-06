@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { get } from 'svelte/store';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import type { LayoutServerLoad } from './$types';
 import { metadataStore, storeMetadata } from '$lib/cache/Events';
 import { checkRestriction } from '$lib/server/Restriction';
@@ -11,7 +11,7 @@ import { User } from '$lib/User';
 type Data = {
 	pubkey: string;
 	relays: string[];
-	metadataEvent: Event | undefined;
+	metadataEvent: Nostr.Event | undefined;
 	title: string;
 	description: string;
 	image?: string;

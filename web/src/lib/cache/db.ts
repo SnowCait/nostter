@@ -1,8 +1,8 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 
 export type CacheDB = Dexie & {
-	events: EntityTable<Event, 'id'>;
+	events: EntityTable<Nostr.Event, 'id'>;
 };
 
 const db = new Dexie('cache') as CacheDB;
@@ -17,7 +17,7 @@ export { db };
 export class EventCache {
 	constructor(private readonly db: CacheDB) {}
 
-	async addIfNotExists(event: Event): Promise<void> {
+	async addIfNotExists(event: Nostr.Event): Promise<void> {
 		await this.db.transaction('rw', [this.db.events], async () => {
 			const cachedEvent = await this.db.events.get(event.id);
 			if (cachedEvent === undefined) {
@@ -26,7 +26,7 @@ export class EventCache {
 		});
 	}
 
-	async getReplaceableEvents(kind: number, pubkey: string): Promise<Event[]> {
+	async getReplaceableEvents(kind: number, pubkey: string): Promise<Nostr.Event[]> {
 		return this.db.events.where({ kind, pubkey }).reverse().sortBy('created_at');
 	}
 }

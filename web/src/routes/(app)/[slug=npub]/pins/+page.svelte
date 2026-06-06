@@ -2,7 +2,7 @@
 	import { onDestroy } from 'svelte';
 	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { firstValueFrom, EmptyError } from 'rxjs';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -31,7 +31,7 @@
 
 		rxNostr.setDefaultRelays([...$readRelays, ...data.relays]);
 
-		let event: Event | undefined;
+		let event: Nostr.Event | undefined;
 		if (data.pubkey === $authorPubkey) {
 			const storage = new WebStorage(localStorage);
 			event = storage.getReplaceableEvent(10001);

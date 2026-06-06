@@ -3,11 +3,11 @@
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import SystemMessage from '../SystemMessage.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import CreatedAt from '../CreatedAt.svelte';
 
 	interface Props {
-		event: Event;
+		event: Nostr.Event;
 	}
 
 	let { event }: Props = $props();

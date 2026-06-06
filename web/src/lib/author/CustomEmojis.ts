@@ -1,7 +1,7 @@
 import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, latestEach, now, uniq, type LazyFilter } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { chunk } from '$lib/Array';
 import { maxFilters } from '$lib/Constants';
 import { aTagContent, filterEmojiTags, findIdentifier, parseAddress } from '$lib/EventHelper';
@@ -14,13 +14,13 @@ import { pubkey } from '$lib/stores/Author';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 
 // kind 10030
-export const customEmojiListEvent = writable<Event | undefined>();
+export const customEmojiListEvent = writable<Nostr.Event | undefined>();
 // kind 10030 + 30030
 export const customEmojiTags = writable<string[][]>([]);
 
-const customEmojiSetEventsMap = new Map<string, Event>();
+const customEmojiSetEventsMap = new Map<string, Nostr.Event>();
 
-export function storeCustomEmojis(event: Event): void {
+export function storeCustomEmojis(event: Nostr.Event): void {
 	console.debug('[custom emoji]', event);
 
 	// emoji tags
@@ -177,7 +177,7 @@ async function publish(): Promise<void> {
 	}
 }
 
-async function validate(event: Event | undefined): Promise<boolean> {
+async function validate(event: Nostr.Event | undefined): Promise<boolean> {
 	const $pubkey = get(pubkey);
 	const lastEvent = await fetchLastEvent({
 		kinds: [UserEmojiList],

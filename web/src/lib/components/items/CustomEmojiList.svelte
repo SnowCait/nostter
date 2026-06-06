@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { getListTitle } from '$lib/List';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import CustomEmojiMenuButton from '../actions/CustomEmojiMenuButton.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import IconMoodSmile from '@tabler/icons-svelte-runes/icons/mood-smile';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 
 	interface Props {
-		event: Event;
+		event: Nostr.Event;
 	}
 
 	let { event }: Props = $props();

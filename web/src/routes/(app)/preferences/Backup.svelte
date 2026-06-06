@@ -3,7 +3,7 @@
 
 	import { _ } from 'svelte-i18n';
 	import { get } from 'svelte/store';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { createCollapsible, melt } from '@melt-ui/svelte';
 	import IconChevronDown from '@tabler/icons-svelte-runes/icons/chevron-down';
 	import { eventCache } from '$lib/cache/Events';
@@ -16,7 +16,7 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import { updateFolloweesStore } from '$lib/Contacts';
 
-	let cachedEvents: Event[] = $state([]);
+	let cachedEvents: Nostr.Event[] = $state([]);
 	let loading = $state(false);
 
 	const {
@@ -33,7 +33,7 @@
 		loading = false;
 	}
 
-	async function restore(oldEvent: Event): Promise<void> {
+	async function restore(oldEvent: Nostr.Event): Promise<void> {
 		if (!confirm($_('preferences.backup.confirm'))) {
 			return;
 		}

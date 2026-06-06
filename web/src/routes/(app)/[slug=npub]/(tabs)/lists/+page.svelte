@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { createRxBackwardReq, latestEach } from 'rx-nostr';
 	import { type Subscription, filter } from 'rxjs';
-	import type { Event } from 'nostr-typedef';
+	import type * as Nostr from 'nostr-typedef';
 	import { nip19 } from 'nostr-tools';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { metadataStore } from '$lib/cache/Events';
@@ -20,7 +20,7 @@
 
 	let { data }: LayoutProps = $props();
 
-	let listEvents = new SvelteMap<string, Event>();
+	let listEvents = new SvelteMap<string, Nostr.Event>();
 	let loading = $state(true);
 	let subscription: Subscription | undefined;
 

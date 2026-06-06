@@ -1,5 +1,5 @@
 import { get, writable } from 'svelte/store';
-import type { Event, EventParameters } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import {
 	Nip11Registry,
 	batch,
@@ -57,9 +57,11 @@ export const rxNostr = createRxNostr({
 	authenticator: 'auto',
 	signer: {
 		getPublicKey: () => Signer.getPublicKey(),
-		signEvent: async <K extends number>(params: EventParameters<K>): Promise<Event<K>> => {
+		signEvent: async <K extends number>(
+			params: Nostr.EventParameters<K>
+		): Promise<Nostr.Event<K>> => {
 			if (params.sig) {
-				return params as Event<K>;
+				return params as Nostr.Event<K>;
 			}
 
 			const event = await Signer.signEvent({
@@ -67,7 +69,7 @@ export const rxNostr = createRxNostr({
 				tags: params.tags ?? [],
 				created_at: params.created_at ?? now()
 			});
-			return event as Event<K>;
+			return event as Nostr.Event<K>;
 		}
 	}
 }); // Based on NIP-65
@@ -152,7 +154,7 @@ export async function metadataReqEmit(pubkeys: string[]): Promise<void> {
 	}
 }
 
-export function referencesReqEmit(event: Event, metadataOnly: boolean = false): void {
+export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = false): void {
 	console.debug('[rx-nostr references REQ emit]', event);
 	const content = event.kind > 0 ? event.content : (new Metadata(event).content?.about ?? '');
 	metadataReqEmit([

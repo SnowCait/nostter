@@ -1,6 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
-import type { Event } from 'nostr-typedef';
+import type * as Nostr from 'nostr-typedef';
 import { chunk } from '$lib/Array';
 import { filterLimit, maxFilters } from '$lib/Constants';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
@@ -8,7 +8,7 @@ import { followees } from '$lib/stores/Author';
 
 export const followeesOfFollowees = writable<Set<string>>(new Set());
 
-const contactsOfFollowees = writable<Map<string, Event>>(new Map());
+const contactsOfFollowees = writable<Map<string, Nostr.Event>>(new Map());
 contactsOfFollowees.subscribe((events) => {
 	if (events.size === 0) {
 		return;
