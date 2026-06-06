@@ -7,21 +7,14 @@
 	import Loading from './Loading.svelte';
 	import EventComponent from './items/EventComponent.svelte';
 	import type { NewTimeline } from '$lib/timelines/Timeline.svelte';
-	import { emojiPickerOpen } from './EmojiPicker.svelte';
-	import type { Event } from 'nostr-typedef';
-	import { channelIdStore } from '$lib/Channel';
-	import { goto } from '$app/navigation';
-	import { nip19 } from 'nostr-tools';
-	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
-	import { findChannelId } from '$lib/EventHelper';
 	import IconChevronsUp from '@tabler/icons-svelte-runes/icons/chevrons-up';
 	import { sleep } from '$lib/Helper';
 	import { HomeTimeline } from '$lib/timelines/HomeTimeline';
 	import { excludeKinds } from '$lib/TimelineFilter';
-	import { MouseButton } from '$lib/DomHelper';
 	import { scrollY } from 'svelte/reactivity/window';
 	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
 	import { onTimelineScrollToTop } from '$lib/timelines/ScrollToTop';
+	import { viewDetail } from '$lib/EventNavigation';
 
 	interface Props {
 		timeline: NewTimeline;
@@ -100,78 +93,6 @@
 	}
 
 	//#endregion
-
-	const getTargetETag = (tags: string[][]) => {
-		const [, refEventId] = tags.findLast(
-			([tagName, tagContent]) =>
-				(tagName === 'e' || tagName === 'q') && tagContent !== undefined
-		) ?? ['', ''];
-		return refEventId;
-	};
-
-	const viewDetail = async (clickEvent: MouseEvent, nostrEvent: Event) => {
-		if (clickEvent.button !== MouseButton.Left) {
-			return;
-		}
-
-		let target: HTMLElement | null = clickEvent.target as HTMLElement;
-		if (target.closest('.svelteui-Menu-root') || target.closest('a') || emojiPickerOpen) {
-			return;
-		}
-		if (target) {
-			while (target && !target.classList.contains('timeline')) {
-				if (
-					target.classList.contains('emoji-picker') ||
-					target.classList.contains('develop')
-				) {
-					return;
-				}
-				const tagName = target.tagName.toLocaleLowerCase();
-				if (
-					tagName === 'button' ||
-					tagName === 'video' ||
-					tagName === 'audio' ||
-					tagName === 'dialog'
-				) {
-					return;
-				}
-				if (tagName === 'p' && String(document.getSelection()).length) {
-					return;
-				}
-				target = target.parentElement;
-			}
-		}
-		if (canTransition) {
-			if (nostrEvent.kind === 40 && $channelIdStore === undefined) {
-				await goto(
-					`/channels/${nip19.neventEncode({
-						id: nostrEvent.id,
-						relays: getSeenOnRelays(nostrEvent.id),
-						author: nostrEvent.pubkey,
-						kind: nostrEvent.kind
-					})}`
-				);
-				return;
-			}
-			if (
-				(nostrEvent.kind === 41 || nostrEvent.kind === 42) &&
-				$channelIdStore === undefined
-			) {
-				const channelId = findChannelId(nostrEvent.tags);
-				if (channelId !== undefined) {
-					await goto(
-						`/channels/${nip19.neventEncode({ id: channelId, relays: getSeenOnRelays(channelId) })}`
-					);
-					return;
-				}
-			}
-			const eventId = [6, 7, 9735].includes(nostrEvent.kind)
-				? getTargetETag(nostrEvent.tags)
-				: nostrEvent.id;
-			const nevent = nip19.neventEncode({ id: eventId, relays: getSeenOnRelays(eventId) });
-			await goto(`/${nevent}`);
-		}
-	};
 
 	onMount(() => {
 		const disposeTimelineScrollToTop =
@@ -258,7 +179,7 @@
 			id={item.id}
 			class={canTransition ? 'canTransition-post' : ''}
 			class:related={$author?.isNotified(item.event)}
-			onmouseup={(e) => viewDetail(e, item.event)}
+			onmouseup={(e) => viewDetail(e, item.event, canTransition)}
 		>
 			<EventComponent {item} {readonly} {createdAtFormat} {full} />
 		</div>
