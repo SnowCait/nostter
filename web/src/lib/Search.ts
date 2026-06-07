@@ -141,7 +141,9 @@ export function parseSearchQuery(
 	if (untilMatch !== null) {
 		const date = new Date(untilMatch[1]);
 		if (!Number.isNaN(date.getTime())) {
-			until = Math.floor(date.getTime() / 1000) + date.getTimezoneOffset() * 60;
+			// Use the next day's 0:00 so the specified day is fully included.
+			until =
+				Math.floor(date.getTime() / 1000) + date.getTimezoneOffset() * 60 + 24 * 60 * 60;
 		}
 	}
 	console.debug('[search matches]', fromPubkeys, toPubkeys, hashtags, kinds, since, until);

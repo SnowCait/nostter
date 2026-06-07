@@ -28,6 +28,14 @@ describe('parseSearchQuery', () => {
 		const { fromPubkeys } = parseSearchQuery(`from:${nprofile}`);
 		expect(fromPubkeys).toStrictEqual([hex]);
 	});
+	it('uses since at 0:00 and until at the next day 0:00', () => {
+		const { since, until } = parseSearchQuery('since:2025-01-01 until:2025-06-06');
+		// until covers the whole specified day, so it is exactly one day after since's start unit.
+		const startOf = (date: string) =>
+			Math.floor(new Date(date).getTime() / 1000) + new Date(date).getTimezoneOffset() * 60;
+		expect(since).toBe(startOf('2025-01-01'));
+		expect(until).toBe(startOf('2025-06-06') + 24 * 60 * 60);
+	});
 	it('extracts kinds, hashtags and keyword', () => {
 		const { kinds, hashtags, keyword } = parseSearchQuery('kind:1 kind:6 #nostr hello world');
 		expect(kinds).toStrictEqual([1, 6]);
