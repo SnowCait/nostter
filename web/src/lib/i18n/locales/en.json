@@ -196,14 +196,13 @@
 			"from": "From (author)",
 			"to": "To (mention)",
 			"kinds": "Kinds",
-			"kindsCustom": "Other kind numbers",
+			"kindsCustom": "Other kind numbers (Enter to add)",
+			"pubkeyPlaceholder": "npub / nprofile (Enter to add)",
 			"since": "Since",
 			"until": "Until"
 		},
 		"kindPresets": {
 			"notes": "Notes",
-			"reposts": "Reposts",
-			"reactions": "Reactions",
 			"channelMessage": "Channel messages",
 			"article": "Articles",
 			"poll": "Polls"

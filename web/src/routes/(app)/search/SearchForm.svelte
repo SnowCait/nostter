@@ -6,17 +6,11 @@
 		extractDateInputs,
 		parseSearchQuery
 	} from '$lib/Search';
+	import { alternativeName } from '$lib/Items';
 	import { developerMode } from '$lib/stores/Preference';
 	import { createTagsInput, melt, type Tag } from '@melt-ui/svelte';
 	import { nip19, type Filter } from 'nostr-tools';
-	import {
-		ChannelMessage,
-		LongFormArticle,
-		Poll,
-		Reaction,
-		Repost,
-		ShortTextNote
-	} from 'nostr-tools/kinds';
+	import { ChannelMessage, LongFormArticle, Poll, ShortTextNote } from 'nostr-tools/kinds';
 	import { writable } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
 
@@ -29,8 +23,6 @@
 
 	const kindPresets = [
 		{ kind: ShortTextNote, label: () => $_('search.kindPresets.notes') },
-		{ kind: Repost, label: () => $_('search.kindPresets.reposts') },
-		{ kind: Reaction, label: () => $_('search.kindPresets.reactions') },
 		{ kind: ChannelMessage, label: () => $_('search.kindPresets.channelMessage') },
 		{ kind: LongFormArticle, label: () => $_('search.kindPresets.article') },
 		{ kind: Poll, label: () => $_('search.kindPresets.poll') }
@@ -60,13 +52,31 @@
 
 	const {
 		elements: { root: fromRoot, input: fromInput, tag: fromTag, deleteTrigger: fromDelete }
-	} = createTagsInput({ tags: fromTags, unique: true, editable: false, add: pubkeyAdd });
+	} = createTagsInput({
+		tags: fromTags,
+		unique: true,
+		editable: false,
+		addOnPaste: true,
+		add: pubkeyAdd
+	});
 	const {
 		elements: { root: toRoot, input: toInput, tag: toTag, deleteTrigger: toDelete }
-	} = createTagsInput({ tags: toTags, unique: true, editable: false, add: pubkeyAdd });
+	} = createTagsInput({
+		tags: toTags,
+		unique: true,
+		editable: false,
+		addOnPaste: true,
+		add: pubkeyAdd
+	});
 	const {
 		elements: { root: kindRoot, input: kindInput, tag: kindTag, deleteTrigger: kindDelete }
-	} = createTagsInput({ tags: customKindTags, unique: true, editable: false, add: kindAdd });
+	} = createTagsInput({
+		tags: customKindTags,
+		unique: true,
+		editable: false,
+		addOnPaste: true,
+		add: kindAdd
+	});
 
 	let selectedPresets = $state<Record<number, boolean>>({});
 	let sinceDate = $state('');
@@ -165,10 +175,6 @@
 			until
 		} satisfies Filter;
 	});
-
-	function shortNpub(npub: string): string {
-		return npub.length > 16 ? `${npub.slice(0, 10)}…${npub.slice(-4)}` : npub;
-	}
 </script>
 
 <form action="/search" class="card">
@@ -225,11 +231,15 @@
 			<div use:melt={$fromRoot} class="tags-input">
 				{#each $fromTags as tag (tag.id)}
 					<div use:melt={$fromTag(tag)} class="tag">
-						{shortNpub(tag.value)}
+						{alternativeName(tag.id)}
 						<button type="button" use:melt={$fromDelete(tag)} class="delete">×</button>
 					</div>
 				{/each}
-				<input use:melt={$fromInput} type="text" placeholder="npub / nprofile" />
+				<input
+					use:melt={$fromInput}
+					type="text"
+					placeholder={$_('search.fields.pubkeyPlaceholder')}
+				/>
 			</div>
 		</div>
 
@@ -238,11 +248,15 @@
 			<div use:melt={$toRoot} class="tags-input">
 				{#each $toTags as tag (tag.id)}
 					<div use:melt={$toTag(tag)} class="tag">
-						{shortNpub(tag.value)}
+						{alternativeName(tag.id)}
 						<button type="button" use:melt={$toDelete(tag)} class="delete">×</button>
 					</div>
 				{/each}
-				<input use:melt={$toInput} type="text" placeholder="npub / nprofile" />
+				<input
+					use:melt={$toInput}
+					type="text"
+					placeholder={$_('search.fields.pubkeyPlaceholder')}
+				/>
 			</div>
 		</div>
 

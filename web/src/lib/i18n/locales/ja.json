@@ -192,17 +192,16 @@
 		"notes": "投稿",
 		"users": "ユーザー",
 		"fields": {
-			"from": "差出人 (著者)",
-			"to": "宛先 (メンション)",
+			"from": "投稿者 (from)",
+			"to": "メンション (to)",
 			"kinds": "種別 (kind)",
-			"kindsCustom": "その他の種別番号",
-			"since": "開始日",
-			"until": "終了日"
+			"kindsCustom": "その他の種別番号（Enter で追加）",
+			"pubkeyPlaceholder": "npub / nprofile（Enter で追加）",
+			"since": "開始日 (since)",
+			"until": "終了日 (until)"
 		},
 		"kindPresets": {
 			"notes": "投稿",
-			"reposts": "リポスト",
-			"reactions": "リアクション",
 			"channelMessage": "チャンネルメッセージ",
 			"article": "記事",
 			"poll": "投票"
