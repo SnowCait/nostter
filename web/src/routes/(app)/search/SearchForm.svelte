@@ -44,7 +44,7 @@
 	};
 	const kindAdd = (input: string): Tag => {
 		const kind = Number(input.trim());
-		if (!Number.isInteger(kind) || kind < 0 || presetKinds.includes(kind)) {
+		if (!Number.isInteger(kind) || kind < 0) {
 			throw new Error('invalid kind');
 		}
 		return { id: String(kind), value: String(kind) };
@@ -86,6 +86,20 @@
 	// Re-sync all fields whenever the incoming query changes (initial mount + navigation).
 	$effect(() => {
 		applyQuery(query);
+	});
+
+	// Promote preset kinds typed into the custom field to their checkboxes.
+	$effect(() => {
+		const promoted = $customKindTags.filter((tag) => presetKinds.includes(Number(tag.value)));
+		if (promoted.length === 0) {
+			return;
+		}
+		for (const tag of promoted) {
+			selectedPresets[Number(tag.value)] = true;
+		}
+		customKindTags.update((tags) =>
+			tags.filter((tag) => !presetKinds.includes(Number(tag.value)))
+		);
 	});
 
 	function applyQuery(rawQuery: string): void {
