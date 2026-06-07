@@ -202,7 +202,10 @@
 		"kindPresets": {
 			"notes": "投稿",
 			"reposts": "リポスト",
-			"reactions": "リアクション"
+			"reactions": "リアクション",
+			"channelMessage": "チャンネルメッセージ",
+			"article": "記事",
+			"poll": "投票"
 		},
 		"scope": {
 			"label": "範囲",

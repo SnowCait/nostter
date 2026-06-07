@@ -203,7 +203,10 @@
 		"kindPresets": {
 			"notes": "Notes",
 			"reposts": "Reposts",
-			"reactions": "Reactions"
+			"reactions": "Reactions",
+			"channelMessage": "Channel messages",
+			"article": "Articles",
+			"poll": "Polls"
 		},
 		"scope": {
 			"label": "Scope",

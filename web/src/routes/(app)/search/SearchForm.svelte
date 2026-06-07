@@ -9,7 +9,14 @@
 	import { developerMode } from '$lib/stores/Preference';
 	import { createTagsInput, melt, type Tag } from '@melt-ui/svelte';
 	import { nip19, type Filter } from 'nostr-tools';
-	import { Reaction, Repost, ShortTextNote } from 'nostr-tools/kinds';
+	import {
+		ChannelMessage,
+		LongFormArticle,
+		Poll,
+		Reaction,
+		Repost,
+		ShortTextNote
+	} from 'nostr-tools/kinds';
 	import { writable } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
 
@@ -23,7 +30,10 @@
 	const kindPresets = [
 		{ kind: ShortTextNote, label: () => $_('search.kindPresets.notes') },
 		{ kind: Repost, label: () => $_('search.kindPresets.reposts') },
-		{ kind: Reaction, label: () => $_('search.kindPresets.reactions') }
+		{ kind: Reaction, label: () => $_('search.kindPresets.reactions') },
+		{ kind: ChannelMessage, label: () => $_('search.kindPresets.channelMessage') },
+		{ kind: LongFormArticle, label: () => $_('search.kindPresets.article') },
+		{ kind: Poll, label: () => $_('search.kindPresets.poll') }
 	];
 	const presetKinds = kindPresets.map((preset) => preset.kind);
 
@@ -81,15 +91,17 @@
 		fromTags.set(fromPubkeys.map((hex) => ({ id: hex, value: nip19.npubEncode(hex) })));
 		toTags.set(toPubkeys.map((hex) => ({ id: hex, value: nip19.npubEncode(hex) })));
 
+		// Default to kind 1 (Notes) when no kind is specified, matching the search page.
+		const effectiveKinds = kinds.length === 0 ? [ShortTextNote] : kinds;
 		const presets: Record<number, boolean> = {};
-		for (const kind of kinds) {
+		for (const kind of effectiveKinds) {
 			if (presetKinds.includes(kind)) {
 				presets[kind] = true;
 			}
 		}
 		selectedPresets = presets;
 		customKindTags.set(
-			unique(kinds.filter((kind) => !presetKinds.includes(kind))).map((kind) => ({
+			unique(effectiveKinds.filter((kind) => !presetKinds.includes(kind))).map((kind) => ({
 				id: String(kind),
 				value: String(kind)
 			}))
