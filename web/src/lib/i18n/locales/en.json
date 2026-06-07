@@ -192,7 +192,21 @@
 		"options": "Search options",
 		"notes": "Notes",
 		"users": "Users",
+		"fields": {
+			"from": "From (author)",
+			"to": "To (mention)",
+			"kinds": "Kinds",
+			"kindsCustom": "Other kind numbers",
+			"since": "Since",
+			"until": "Until"
+		},
+		"kindPresets": {
+			"notes": "Notes",
+			"reposts": "Reposts",
+			"reactions": "Reactions"
+		},
 		"scope": {
+			"label": "Scope",
 			"all": "All",
 			"nostr": "Exclude external SNS",
 			"following": "Following",
