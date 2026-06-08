@@ -57,6 +57,7 @@
 		unique: true,
 		editable: false,
 		addOnPaste: true,
+		blur: 'add',
 		add: pubkeyAdd
 	});
 	const {
@@ -66,6 +67,7 @@
 		unique: true,
 		editable: false,
 		addOnPaste: true,
+		blur: 'add',
 		add: pubkeyAdd
 	});
 	const {
@@ -75,6 +77,7 @@
 		unique: true,
 		editable: false,
 		addOnPaste: true,
+		blur: 'add',
 		add: kindAdd
 	});
 
