@@ -192,7 +192,23 @@
 		"options": "Search options",
 		"notes": "Notes",
 		"users": "Users",
+		"fields": {
+			"from": "From (author)",
+			"to": "To (mention)",
+			"kinds": "Kinds",
+			"kindsCustom": "Other kind numbers (Enter to add)",
+			"pubkeyPlaceholder": "npub / nprofile (Enter to add)",
+			"since": "Since",
+			"until": "Until"
+		},
+		"kindPresets": {
+			"notes": "Notes",
+			"channelMessage": "Channel messages",
+			"article": "Articles",
+			"poll": "Polls"
+		},
 		"scope": {
+			"label": "Scope",
 			"all": "All",
 			"nostr": "Exclude external SNS",
 			"following": "Following",

@@ -191,7 +191,23 @@
 		"options": "検索オプション",
 		"notes": "投稿",
 		"users": "ユーザー",
+		"fields": {
+			"from": "投稿者 (from)",
+			"to": "メンション (to)",
+			"kinds": "種別 (kind)",
+			"kindsCustom": "その他の種別番号（Enter で追加）",
+			"pubkeyPlaceholder": "npub / nprofile（Enter で追加）",
+			"since": "開始日 (since)",
+			"until": "終了日 (until)"
+		},
+		"kindPresets": {
+			"notes": "投稿",
+			"channelMessage": "チャンネルメッセージ",
+			"article": "記事",
+			"poll": "投票"
+		},
 		"scope": {
+			"label": "範囲",
 			"all": "すべて",
 			"nostr": "外部 SNS を除く",
 			"following": "フォロー",
