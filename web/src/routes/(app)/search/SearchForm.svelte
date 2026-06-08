@@ -9,10 +9,14 @@
 	import { alternativeName } from '$lib/Items';
 	import { developerMode } from '$lib/stores/Preference';
 	import { createTagsInput, melt, type Tag } from '@melt-ui/svelte';
+	import { Combobox } from 'melt/builders';
 	import { nip19, type Filter } from 'nostr-tools';
 	import { ChannelMessage, LongFormArticle, Poll, ShortTextNote } from 'nostr-tools/kinds';
 	import { writable } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
+	import { persistedStore } from '$lib/WebStorage';
+	import { pushSearchHistory, rankSearchHistory } from '$lib/SearchHistory';
+	import { IconX, IconTrash } from '@tabler/icons-svelte-runes';
 
 	interface Props {
 		query: string;
@@ -81,10 +85,23 @@
 		add: kindAdd
 	});
 
+	const searchHistory = persistedStore<string[]>('search:history', []);
+	const combobox = new Combobox<string>();
+
 	let selectedPresets = $state<Record<number, boolean>>({});
 	let sinceDate = $state('');
 	let untilDate = $state('');
-	let keyword = $state('');
+	let keyword = $derived(combobox.inputValue);
+
+	let rankedHistory = $derived(rankSearchHistory($searchHistory));
+	let historySuggestions = $derived.by(() => {
+		const text = combobox.inputValue.trim().toLowerCase();
+		const list =
+			combobox.touched && text.length > 0
+				? rankedHistory.filter((item) => item.toLowerCase().includes(text))
+				: rankedHistory;
+		return list.slice(0, 10);
+	});
 
 	// Re-sync all fields whenever the incoming query changes (initial mount + navigation).
 	$effect(() => {
@@ -137,7 +154,9 @@
 		sinceDate = since ?? '';
 		untilDate = until ?? '';
 		// Keep hashtags inline in the keyword field (hashtags have no dedicated UI).
-		keyword = [parsedKeyword, ...hashtags.map((hashtag) => `#${hashtag}`)].join(' ').trim();
+		combobox.inputValue = [parsedKeyword, ...hashtags.map((hashtag) => `#${hashtag}`)]
+			.join(' ')
+			.trim();
 	}
 
 	let kinds = $derived(
@@ -201,20 +220,75 @@
 	function handleSubmit(): void {
 		// Submit the fully composed query (keyword + options) under name="q".
 		qInput.value = q;
+		searchHistory.update((history) => pushSearchHistory(history, keyword));
+	}
+
+	function onInputKeydown(event: KeyboardEvent): void {
+		if (event.key === 'Enter') {
+			combobox.open = false;
+			return;
+		}
+		combobox.input.onkeydown(event);
+	}
+
+	function selectHistory(item: string): void {
+		combobox.inputValue = item;
+		combobox.open = false;
+		qInput.form?.requestSubmit();
+	}
+
+	function deleteHistory(item: string): void {
+		searchHistory.update((history) => history.filter((entry) => entry !== item));
 	}
 </script>
 
 <form action="/search" class="card" onsubmit={handleSubmit}>
 	<div class="search-row">
 		<input
+			{...combobox.input}
 			type="search"
 			name="q"
-			bind:value={keyword}
 			bind:this={qInput}
+			onkeydown={onInputKeydown}
 			placeholder={$_('search.search')}
 		/>
 		<input type="submit" value={$_('search.search')} />
 	</div>
+
+	{#if combobox.open && historySuggestions.length > 0}
+		<div {...combobox.content} class="history">
+			<ul>
+				{#each historySuggestions as item (item)}
+					<li
+						{...combobox.getOption(item, item, () => selectHistory(item))}
+						class="history-option"
+					>
+						<span class="history-keyword">{item}</span>
+						<button
+							type="button"
+							class="history-delete"
+							onpointerdown={(event) => event.preventDefault()}
+							onclick={(event) => {
+								event.stopPropagation();
+								deleteHistory(item);
+							}}
+						>
+							<IconX size={16} />
+						</button>
+					</li>
+				{/each}
+			</ul>
+			<button
+				type="button"
+				class="history-clear"
+				onpointerdown={(event) => event.preventDefault()}
+				onclick={() => searchHistory.set([])}
+			>
+				<IconTrash size={16} />
+				{$_('search.history.clear')}
+			</button>
+		</div>
+	{/if}
 
 	<details class="search-options">
 		<summary>{$_('search.options')}</summary>
@@ -325,6 +399,69 @@
 
 	.search-row input[type='submit'] {
 		flex-shrink: 0;
+	}
+
+	.history {
+		color: var(--surface-foreground);
+		background-color: var(--surface);
+		border: var(--default-border);
+		border-radius: var(--radius, 4px);
+		padding: 0.25rem;
+		max-height: 16rem;
+		overflow-y: auto;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	}
+
+	.history ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.history-option {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 0.4rem 0.5rem;
+		border-radius: var(--radius, 4px);
+		cursor: pointer;
+	}
+
+	.history-option[data-highlighted] {
+		background: var(--accent-surface, rgba(127, 127, 127, 0.15));
+	}
+
+	.history-keyword {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.history-delete {
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
+		border: none;
+		background: transparent;
+		color: inherit;
+		cursor: pointer;
+		padding: 0.1rem;
+	}
+
+	.history-clear {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		width: 100%;
+		border: none;
+		border-top: var(--default-border);
+		background: transparent;
+		color: var(--accent);
+		cursor: pointer;
+		padding: 0.4rem 0.5rem;
+		margin-top: 0.25rem;
+		font-size: 0.85rem;
 	}
 
 	details.search-options {
