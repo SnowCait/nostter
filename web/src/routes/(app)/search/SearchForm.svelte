@@ -192,16 +192,26 @@
 			until
 		} satisfies Filter;
 	});
+
+	let qInput: HTMLInputElement;
+
+	function handleSubmit(): void {
+		// Submit the fully composed query (keyword + options) under name="q".
+		qInput.value = q;
+	}
 </script>
 
-<form action="/search" class="card">
+<form action="/search" class="card" onsubmit={handleSubmit}>
 	<div class="search-row">
-		<input type="search" bind:value={keyword} placeholder={$_('search.search')} />
+		<input
+			type="search"
+			name="q"
+			bind:value={keyword}
+			bind:this={qInput}
+			placeholder={$_('search.search')}
+		/>
 		<input type="submit" value={$_('search.search')} />
 	</div>
-
-	<!-- Composed from the UI fields below; the keyword above is appended as-is. -->
-	<input type="hidden" name="q" value={q} />
 
 	<details class="search-options">
 		<summary>{$_('search.options')}</summary>
@@ -227,6 +237,7 @@
 					use:melt={$kindInput}
 					type="text"
 					inputmode="numeric"
+					autocomplete="off"
 					placeholder={$_('search.fields.kindsCustom')}
 				/>
 			</div>
@@ -255,6 +266,7 @@
 				<input
 					use:melt={$fromInput}
 					type="text"
+					autocomplete="off"
 					placeholder={$_('search.fields.pubkeyPlaceholder')}
 				/>
 			</div>
@@ -272,6 +284,7 @@
 				<input
 					use:melt={$toInput}
 					type="text"
+					autocomplete="off"
 					placeholder={$_('search.fields.pubkeyPlaceholder')}
 				/>
 			</div>
