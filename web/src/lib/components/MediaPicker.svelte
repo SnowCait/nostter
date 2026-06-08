@@ -36,6 +36,6 @@
 	bind:this={input}
 	bind:files
 	{onchange}
-	accept="image/*,video/*,audio/*"
+	accept="image/png,image/jpeg,image/gif,image/webp,image/bmp,image/svg+xml,image/avif,image/heic,image/heif,video/mp4,video/webm,video/ogg,video/quicktime,audio/mpeg,audio/ogg,audio/wav,audio/webm,audio/mp4,audio/aac,audio/flac"
 	hidden
 />
