@@ -1,3 +1,11 @@
+<script lang="ts" module>
+	declare global {
+		interface Window {
+			dataLayer: unknown[];
+		}
+	}
+</script>
+
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import '@beyonk/gdpr-cookie-consent-banner/banner.css';
@@ -22,8 +30,8 @@
 		console.debug('[analytics init]');
 
 		window.dataLayer = window.dataLayer || [];
-		function gtag() {
-			window.dataLayer.push(arguments);
+		function gtag(...args: unknown[]) {
+			window.dataLayer.push(args);
 		}
 		gtag('js', new Date());
 
