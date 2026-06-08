@@ -147,16 +147,19 @@
 		])
 	);
 
-	let q = $derived(
-		buildSearchQuery({
-			kinds,
+	let q = $derived.by(() => {
+		// Omit kind:1 when only the default (Notes) is selected; the search page
+		// falls back to kind 1 when no kind is present, so results are unchanged.
+		const queryKinds = kinds.length === 1 && kinds[0] === ShortTextNote ? [] : kinds;
+		return buildSearchQuery({
+			kinds: queryKinds,
 			fromPubkeys: $fromTags.map((tag) => tag.id),
 			toPubkeys: $toTags.map((tag) => tag.id),
 			sinceDate: sinceDate || undefined,
 			untilDate: untilDate || undefined,
 			keyword
-		})
-	);
+		});
+	});
 
 	let filter = $derived.by(() => {
 		const {
