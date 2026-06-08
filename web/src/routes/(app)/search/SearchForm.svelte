@@ -33,12 +33,10 @@
 	];
 	const presetKinds = kindPresets.map((preset) => preset.kind);
 
-	// Tags Input external stores (id = hex pubkey / kind number, value = display).
 	const fromTags = writable<Tag[]>([]);
 	const toTags = writable<Tag[]>([]);
 	const customKindTags = writable<Tag[]>([]);
 
-	// Accept both npub and nprofile, store the hex pubkey, display the canonical npub.
 	const pubkeyAdd = (input: string): Tag => {
 		const pubkey = decodeToPubkey(input.trim());
 		if (pubkey === undefined) {
@@ -103,12 +101,10 @@
 		return list.slice(0, 10);
 	});
 
-	// Re-sync all fields whenever the incoming query changes (initial mount + navigation).
 	$effect(() => {
 		applyQuery(query);
 	});
 
-	// Promote preset kinds typed into the custom field to their checkboxes.
 	$effect(() => {
 		const promoted = $customKindTags.filter((tag) => presetKinds.includes(Number(tag.value)));
 		if (promoted.length === 0) {
@@ -135,7 +131,6 @@
 		fromTags.set(fromPubkeys.map((hex) => ({ id: hex, value: nip19.npubEncode(hex) })));
 		toTags.set(toPubkeys.map((hex) => ({ id: hex, value: nip19.npubEncode(hex) })));
 
-		// Default to kind 1 (Notes) when no kind is specified, matching the search page.
 		const effectiveKinds = kinds.length === 0 ? [ShortTextNote] : kinds;
 		const presets: Record<number, boolean> = {};
 		for (const kind of effectiveKinds) {
@@ -153,7 +148,6 @@
 
 		sinceDate = since ?? '';
 		untilDate = until ?? '';
-		// Keep hashtags inline in the keyword field (hashtags have no dedicated UI).
 		combobox.inputValue = [parsedKeyword, ...hashtags.map((hashtag) => `#${hashtag}`)]
 			.join(' ')
 			.trim();
@@ -167,8 +161,6 @@
 	);
 
 	let q = $derived.by(() => {
-		// Omit kind:1 when only the default (Notes) is selected; the search page
-		// falls back to kind 1 when no kind is present, so results are unchanged.
 		const queryKinds = kinds.length === 1 && kinds[0] === ShortTextNote ? [] : kinds;
 		return buildSearchQuery({
 			kinds: queryKinds,
@@ -218,9 +210,8 @@
 	let qInput: HTMLInputElement;
 
 	function handleSubmit(): void {
-		// Submit the fully composed query (keyword + options) under name="q".
 		qInput.value = q;
-		searchHistory.update((history) => pushSearchHistory(history, keyword));
+		searchHistory.update((history) => pushSearchHistory(history, q));
 	}
 
 	function onInputKeydown(event: KeyboardEvent): void {
@@ -232,7 +223,7 @@
 	}
 
 	function selectHistory(item: string): void {
-		combobox.inputValue = item;
+		applyQuery(item);
 		combobox.open = false;
 		qInput.form?.requestSubmit();
 	}
