@@ -37,7 +37,7 @@
 	import OnelineProfile from '$lib/components/profile/OnelineProfile.svelte';
 
 	let slug = $page.params.nevent!;
-	let channelId: string = $state();
+	let channelId = $state<string>();
 	// let author: string | undefined;
 	let relays: string[];
 	let kind40Event: Event | undefined = $state();
@@ -94,6 +94,10 @@
 		slug = $page.params.nevent!;
 		console.log('[channel page after navigate]', slug, channelId);
 		updateChannelMetadata();
+		if (channelId === undefined) {
+			return;
+		}
+		const _channelId = channelId;
 		rxNostr.setDefaultRelays([...$readRelays, ...relays]);
 		console.log('[channel relays]', rxNostr.getDefaultRelays());
 
@@ -116,7 +120,7 @@
 				console.log('[channel metadata event]', packet);
 
 				if (packet.event.kind === 41) {
-					$channelMetadataEventsStore.set(channelId, packet.event);
+					$channelMetadataEventsStore.set(_channelId, packet.event);
 				} else {
 					cachedEvents.set(packet.event.id, packet.event);
 				}
