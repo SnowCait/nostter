@@ -20,6 +20,11 @@
 	let generalLink = $state<URL>();
 	let musicLink = $state<URL>();
 
+	let isAuthor = $derived(pubkey === $authorPubkey);
+	let hasGeneral = $derived(generalEvent !== undefined && generalEvent.content !== '');
+	let hasMusic = $derived(musicEvent !== undefined && musicEvent.content !== '');
+	let visible = $derived(hasGeneral || hasMusic || isAuthor);
+
 	$effect(() => {
 		const statuses = $userStatusesMap.get(pubkey) ?? [];
 		statuses.sort(chronological);
@@ -53,41 +58,50 @@
 	</span>
 {/snippet}
 
-<section>
-	{#if generalEvent !== undefined && generalEvent.content !== ''}
-		<div class="general">
-			<span><IconUser size="14" /></span>
-			{#if generalLink !== undefined}
-				<ExternalLink link={generalLink}>
+{#if visible}
+	<h3 class="section-label">{$_('user_status.title')}</h3>
+	<section>
+		{#if hasGeneral && generalEvent !== undefined}
+			<div class="general">
+				<span><IconUser size="14" /></span>
+				{#if generalLink !== undefined}
+					<ExternalLink link={generalLink}>
+						{@render content(generalEvent)}
+					</ExternalLink>
+				{:else}
 					{@render content(generalEvent)}
-				</ExternalLink>
-			{:else}
-				{@render content(generalEvent)}
-			{/if}
-		</div>
-	{/if}
-	{#if musicEvent !== undefined && musicEvent.content !== ''}
-		<div class="music">
-			<span><IconMusic size="14" /></span>
-			{#if musicLink !== undefined}
-				<ExternalLink link={musicLink}>
+				{/if}
+			</div>
+		{/if}
+		{#if hasMusic && musicEvent !== undefined}
+			<div class="music">
+				<span><IconMusic size="14" /></span>
+				{#if musicLink !== undefined}
+					<ExternalLink link={musicLink}>
+						{@render content(musicEvent)}
+					</ExternalLink>
+				{:else}
 					{@render content(musicEvent)}
+				{/if}
+			</div>
+		{/if}
+		{#if isAuthor}
+			<div>
+				<ExternalLink link={new URL('https://nostatus.vercel.app/')}>
+					{$_('user_status.edit')}
 				</ExternalLink>
-			{:else}
-				{@render content(musicEvent)}
-			{/if}
-		</div>
-	{/if}
-	{#if pubkey === $authorPubkey}
-		<div>
-			<ExternalLink link={new URL('https://nostatus.vercel.app/')}>
-				{$_('user_status.edit')}
-			</ExternalLink>
-		</div>
-	{/if}
-</section>
+			</div>
+		{/if}
+	</section>
+{/if}
 
 <style>
+	.section-label {
+		margin: 1rem 0 0.5rem;
+		font-size: 0.95rem;
+		font-weight: 700;
+	}
+
 	div {
 		color: var(--accent-gray);
 

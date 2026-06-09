@@ -338,6 +338,7 @@
 		"message": "Not found or something wrong."
 	},
 	"badge": {
+		"title": "Badges",
 		"accept": "Accept",
 		"accepted": "Accepted",
 		"none": "No badge yet.",
@@ -430,6 +431,7 @@
 		"copy": "Copy Bunker URL"
 	},
 	"user_status": {
+		"title": "Status",
 		"edit": "Edit status"
 	},
 	"pinned-notes": {

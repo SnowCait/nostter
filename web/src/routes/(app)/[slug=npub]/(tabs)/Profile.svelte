@@ -141,12 +141,6 @@
 			{/if}
 		</div>
 
-		{#if pubkey !== undefined}
-			<div class="user-status">
-				<UserStatusEditor {pubkey} />
-			</div>
-		{/if}
-
 		{#if metadata !== undefined}
 			<NostrAddress {metadata} />
 		{/if}
@@ -180,6 +174,11 @@
 			{$_('pages.followers')}: <a href={`/${slug}/followers`}>{$_('pages.followers_see')}</a>
 		</div>
 	</div>
+
+	{#if pubkey !== undefined}
+		<UserStatusEditor {pubkey} />
+	{/if}
+
 	<Badges {pubkey} {relays} />
 
 	{#if $developerMode}
