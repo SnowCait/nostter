@@ -44,8 +44,7 @@ export default defineConfig([
 		rules: {
 			'svelte/no-navigation-without-resolve': 'off',
 			'svelte/require-each-key': 'off',
-			'svelte/prefer-svelte-reactivity': 'off',
-			'svelte/no-dom-manipulating': 'warn'
+			'svelte/prefer-svelte-reactivity': 'off'
 		}
 	}
 ]);
