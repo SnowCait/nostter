@@ -213,6 +213,9 @@
 			"nostr": "Exclude external SNS",
 			"following": "Following",
 			"mine": "Mine"
+		},
+		"history": {
+			"clear": "Clear history"
 		}
 	},
 	"public_chat": {

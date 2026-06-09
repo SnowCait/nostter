@@ -212,6 +212,9 @@
 			"nostr": "外部 SNS を除く",
 			"following": "フォロー",
 			"mine": "自分"
+		},
+		"history": {
+			"clear": "履歴を消去"
 		}
 	},
 	"public_chat": {
