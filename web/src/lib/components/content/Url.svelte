@@ -1,6 +1,7 @@
 <script lang="ts" module>
 	import AsyncLock from 'async-lock';
 	import { httpProxy, nicovideoRegexp } from '$lib/Constants';
+	import { mediaKindFromPathname } from '$lib/media/MediaType';
 	import { SvelteMap } from 'svelte/reactivity';
 
 	declare global {
@@ -69,7 +70,14 @@
 	let { text, url = undefined, urls = [] }: Props = $props();
 
 	let link = $derived(newUrl(url ?? text));
-	let imageUrls = $derived(urls.filter((url) => cache.get(url.href)?.startsWith('image/')));
+	let mediaKind = $derived(mediaKindFromPathname(link?.pathname ?? ''));
+	let imageUrls = $derived(
+		urls.filter(
+			(url) =>
+				mediaKindFromPathname(url.pathname) === 'image' ||
+				cache.get(url.href)?.startsWith('image/')
+		)
+	);
 
 	//#region Twitter Widget
 
@@ -120,6 +128,29 @@
 	<Nicovideo {link} />
 {:else if link.hostname === 'amzn.to' || link.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
 	<ExternalLink {link} />
+{:else if mediaKind === 'image'}
+	{#if preview}
+		<div>
+			<Thumbnail url={link} urls={imageUrls} />
+		</div>
+	{:else}
+		<ExternalLink {link} />
+		<button onclick={() => (preview = true)}>{$_('content.show')}</button>
+	{/if}
+{:else if mediaKind === 'audio'}
+	{#if preview}
+		<audio src={link.href} controls></audio>
+	{:else}
+		<ExternalLink {link} />
+		<button onclick={() => (preview = true)}>{$_('content.show')}</button>
+	{/if}
+{:else if mediaKind === 'video'}
+	{#if preview}
+		<Video url={link} />
+	{:else}
+		<ExternalLink {link} />
+		<button onclick={() => (preview = true)}>{$_('content.show')}</button>
+	{/if}
 {:else}
 	{#await fetchContentType(link.href)}
 		{#if url !== undefined && text !== url}
