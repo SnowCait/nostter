@@ -254,6 +254,12 @@
 		margin-bottom: 2rem;
 	}
 
+	.edit-mode > label {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
 	button.edit,
 	input[type='submit'] {
 		background-color: transparent;

@@ -53,7 +53,7 @@
 	}
 </script>
 
-<div>
+<div class="reaction">
 	<button
 		class="clear"
 		class:paw-pad={$preferencesStore.reactionEmoji.content === '🐾'}
@@ -113,6 +113,11 @@
 </div>
 
 <style>
+	.reaction {
+		display: flex;
+		align-items: center;
+	}
+
 	.hidden {
 		visibility: hidden;
 	}

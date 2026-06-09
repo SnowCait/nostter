@@ -136,9 +136,13 @@
 		color: var(--accent-gray);
 	}
 
+	.action-menu > span {
+		display: flex;
+		align-items: center;
+	}
+
 	.action-menu :global(button.clear),
 	.action-menu :global(button) {
-		display: block;
 		padding: 10px;
 		margin: -10px;
 		height: auto;
