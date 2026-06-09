@@ -84,14 +84,9 @@
 	>
 		<IconBolt size={iconSize} />
 	</button>
-	<ZapDialog
-		pubkey={item.event.pubkey}
-		{item}
-		bind:this={zapDialogComponent}
-		on:zapped={onZapped}
-	/>
 	<MenuButton event={item.event} {iconSize} bind:showDetails={jsonDisplay} />
 </div>
+<ZapDialog pubkey={item.event.pubkey} {item} bind:this={zapDialogComponent} on:zapped={onZapped} />
 {#if jsonDisplay}
 	<div class="develop">
 		<h5>Event ID</h5>
@@ -137,9 +132,14 @@
 		background-color: inherit;
 		cursor: pointer;
 		outline: none;
-		padding: 0;
-		height: 20px;
 		color: var(--accent-gray);
+	}
+
+	.action-menu :global(button.clear),
+	.action-menu :global(button) {
+		padding: 10px;
+		margin: -10px;
+		height: auto;
 	}
 
 	.action-menu button.hidden {
