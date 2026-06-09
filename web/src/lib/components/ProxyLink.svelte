@@ -26,19 +26,22 @@
 		<span>{url.hostname}</span>
 	</a>
 {:else}
-	<span>
+	<span class="fallback">
 		<IconLink size="20" color="gray" />
 		<span>{tag.at(1) ?? '-'}</span>
 	</span>
 {/if}
 
 <style>
-	a {
+	a,
+	.fallback {
 		display: flex;
 		flex-direction: row;
+		align-items: center;
 	}
 
-	span {
+	a span,
+	.fallback span {
 		margin-left: 0.2rem;
 	}
 </style>

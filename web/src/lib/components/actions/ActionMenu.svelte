@@ -123,6 +123,7 @@
 	.action-menu {
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
 
 		margin-top: 8px;
 	}
@@ -137,6 +138,7 @@
 
 	.action-menu :global(button.clear),
 	.action-menu :global(button) {
+		display: block;
 		padding: 10px;
 		margin: -10px;
 		height: auto;

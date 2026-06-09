@@ -145,7 +145,6 @@
 <style>
 	button:not(.editor-option) {
 		color: var(--accent-gray);
-		height: 20px;
 	}
 
 	[popover] {

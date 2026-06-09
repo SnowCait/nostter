@@ -23,6 +23,9 @@
 
 <style>
 	h1 {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
 		height: 2rem;
 		font-size: 2rem;
 	}

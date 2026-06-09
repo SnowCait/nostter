@@ -180,6 +180,12 @@
 		margin-top: 0.4rem;
 	}
 
+	.channel {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
 	.content-warning {
 		padding: 0.5em;
 		width: 100%;
