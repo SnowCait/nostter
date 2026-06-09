@@ -123,6 +123,7 @@
 	.action-menu {
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
 
 		margin-top: 8px;
 	}
@@ -133,6 +134,11 @@
 		cursor: pointer;
 		outline: none;
 		color: var(--accent-gray);
+	}
+
+	.action-menu > span {
+		display: flex;
+		align-items: center;
 	}
 
 	.action-menu :global(button.clear),

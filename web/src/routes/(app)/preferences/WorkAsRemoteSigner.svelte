@@ -47,4 +47,10 @@
 	p {
 		margin: 0.5rem 0;
 	}
+
+	button {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
 </style>

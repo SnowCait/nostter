@@ -104,6 +104,9 @@
 
 <style>
 	.trigger {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
 		border-radius: 10px;
 	}
 
