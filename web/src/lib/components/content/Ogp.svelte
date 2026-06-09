@@ -19,6 +19,14 @@
 		img.hidden = true;
 	}
 
+	function resolveImage(image: string, base: URL): URL | undefined {
+		try {
+			return new URL(image, base);
+		} catch {
+			return undefined;
+		}
+	}
+
 	let data = $derived(cache.get(url.href));
 
 	$effect(() => {
@@ -34,18 +42,11 @@
 	<a href={url.href} target="_blank" rel="noopener noreferrer">
 		<blockquote>
 			{#if data.image}
-				{#if data.image.startsWith('https://')}
-					<img src={data.image} alt="" onerror={error} loading="lazy" />
-				{:else if data.image.startsWith('http://')}
+				{@const image = resolveImage(data.image, url)}
+				{#if image?.protocol === 'https:'}
+					<img src={image.href} alt="" onerror={error} loading="lazy" />
+				{:else if image?.protocol === 'http:'}
 					<!-- Don't show image due to mixed content -->
-				{:else}
-					<img
-						src={data.image.startsWith('/')
-							? url.origin + data.image
-							: url.href + data.image}
-						alt=""
-						loading="lazy"
-					/>
 				{/if}
 			{/if}
 			<h1>{data.title}</h1>
