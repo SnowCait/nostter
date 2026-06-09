@@ -160,36 +160,45 @@
 			)
 			.map((address) => badgeDefinitions.get(address)!)
 	);
+
+	let visible = $derived(awardedDefinitions.length > 0 || pubkey === $authorPubkey);
 </script>
 
-<ul class="badges">
-	{#each awardedDefinitions as event (event.id)}
-		{@const name = event.tags.find(([tagName]) => tagName === 'name')?.at(1)}
-		{@const thumb = event.tags.find(([tagName]) => tagName === 'thumb')?.at(1)}
-		{@const image = event.tags.find(([tagName]) => tagName === 'image')?.at(1)}
-		{@const npub = nip19.npubEncode(event.pubkey)}
-		<li>
-			<a
-				href="https://yakitofu.org/badge/{npub}:{findIdentifier(event.tags) ?? ''}"
-				target="_blank"
-				rel="noreferrer"
-			>
-				<img src={thumb ? thumb : image} alt={name} title={name} />
-			</a>
-		</li>
-	{:else}
-		{#if pubkey === $authorPubkey}
+{#if visible}
+	<h3 class="section-label">{$_('badge.title')}</h3>
+	<ul class="badges">
+		{#each awardedDefinitions as event (event.id)}
+			{@const name = event.tags.find(([tagName]) => tagName === 'name')?.at(1)}
+			{@const thumb = event.tags.find(([tagName]) => tagName === 'thumb')?.at(1)}
+			{@const image = event.tags.find(([tagName]) => tagName === 'image')?.at(1)}
+			{@const npub = nip19.npubEncode(event.pubkey)}
+			<li>
+				<a
+					href="https://yakitofu.org/badge/{npub}:{findIdentifier(event.tags) ?? ''}"
+					target="_blank"
+					rel="noreferrer"
+				>
+					<img src={thumb ? thumb : image} alt={name} title={name} />
+				</a>
+			</li>
+		{:else}
 			<li>
 				<span>{$_('badge.none')}</span>
 				<ExternalLink link={new URL('https://yakitofu.org/')}>
 					{$_('badge.create')}
 				</ExternalLink>
 			</li>
-		{/if}
-	{/each}
-</ul>
+		{/each}
+	</ul>
+{/if}
 
 <style>
+	.section-label {
+		margin: 1rem 0 0.5rem;
+		font-size: 0.95rem;
+		font-weight: 700;
+	}
+
 	.badges {
 		list-style: none;
 		padding: 0;

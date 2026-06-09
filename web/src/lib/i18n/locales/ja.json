@@ -334,6 +334,7 @@
 		"message": "ページが見つからなかったかエラーが発生しました。"
 	},
 	"badge": {
+		"title": "バッジ",
 		"accept": "受け取る",
 		"accepted": "受取り済",
 		"none": "まだバッジはありません。",
@@ -426,6 +427,7 @@
 		"copy": "Bunker URL をコピー"
 	},
 	"user_status": {
+		"title": "ステータス",
 		"edit": "ステータスを編集"
 	},
 	"pinned-notes": {
