@@ -12,6 +12,7 @@
 	import { Spotify } from '$lib/Spotify';
 	import { Twitter } from '$lib/Twitter';
 	import { nicovideoRegexp } from '$lib/Constants';
+	import { mediaExtensionRegexp } from '$lib/media/MediaType';
 	import type * as Nostr from 'nostr-typedef';
 
 	interface Props {
@@ -70,7 +71,7 @@
 				<!-- Niconico -->
 			{:else if url.hostname === 'amzn.to' || url.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(url.hostname)}
 				<!-- Amazon -->
-			{:else if /\.(apng|avif|gif|jpg|jpeg|png|webp|bmp|mp3|m4a|wav|mp4|ogg|webm|ogv|mov|mkv|avi|m4v)$/i.test(url.pathname)}
+			{:else if mediaExtensionRegexp.test(url.pathname)}
 				<!-- Media -->
 			{:else}
 				<Ogp {url} />
