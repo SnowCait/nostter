@@ -35,7 +35,7 @@
 
 <style>
 	:global(*:has(> .folded)) {
-		max-height: 20rem;
+		max-height: var(--fold-max-height, 20rem);
 		overflow: hidden;
 		position: relative;
 	}

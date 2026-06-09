@@ -116,7 +116,7 @@
 					<button onclick={showWarningContent}>{$_('content.show')}</button>
 				</div>
 			{:else}
-				<div class="content" {@attach full ? noFold : fold}>
+				<div class="content" {@attach full ? noFold : fold(30)}>
 					{#if Number(item.event.kind) === 1063}
 						<Nip94 event={item.event} />
 					{:else}
