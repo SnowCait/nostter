@@ -146,7 +146,7 @@
 		{/if}
 
 		{#if user?.about}
-			<div class="about" {@attach fold}>
+			<div class="about" {@attach fold()}>
 				<Content content={user.about} tags={metadata?.event.tags ?? []} />
 			</div>
 		{/if}
