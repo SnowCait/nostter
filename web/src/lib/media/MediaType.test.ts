@@ -6,11 +6,16 @@ describe('mediaKindFromPathname', () => {
 		expect(mediaKindFromPathname('/photo.jpg')).toBe('image');
 		expect(mediaKindFromPathname('/photo.png')).toBe('image');
 		expect(mediaKindFromPathname('/photo.webp')).toBe('image');
+		expect(mediaKindFromPathname('/icon.svg')).toBe('image');
 	});
 
 	it('detects audio extensions', () => {
 		expect(mediaKindFromPathname('/sound.mp3')).toBe('audio');
 		expect(mediaKindFromPathname('/sound.ogg')).toBe('audio');
+		expect(mediaKindFromPathname('/sound.aac')).toBe('audio');
+		expect(mediaKindFromPathname('/sound.flac')).toBe('audio');
+		expect(mediaKindFromPathname('/sound.opus')).toBe('audio');
+		expect(mediaKindFromPathname('/sound.oga')).toBe('audio');
 	});
 
 	it('detects video extensions', () => {

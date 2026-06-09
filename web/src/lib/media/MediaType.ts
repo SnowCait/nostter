@@ -1,5 +1,5 @@
-const imageExtensions = ['apng', 'avif', 'gif', 'jpg', 'jpeg', 'png', 'webp', 'bmp'];
-const audioExtensions = ['mp3', 'm4a', 'wav', 'ogg'];
+const imageExtensions = ['apng', 'avif', 'gif', 'jpg', 'jpeg', 'png', 'webp', 'bmp', 'svg'];
+const audioExtensions = ['mp3', 'm4a', 'wav', 'ogg', 'aac', 'flac', 'opus', 'oga'];
 const videoExtensions = ['mp4', 'webm', 'ogv', 'mov', 'mkv', 'avi', 'm4v'];
 
 const extensionRegexp = (extensions: string[]): RegExp =>
