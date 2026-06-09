@@ -247,7 +247,7 @@ button:focus,
 input:focus,
 select:focus,
 textarea:focus {
-	outline-width: 0;
+	outline: none;
 }
 
 legend {
