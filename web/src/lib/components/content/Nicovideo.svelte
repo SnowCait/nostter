@@ -18,6 +18,7 @@
 			const scriptElement = document.createElement('script');
 			scriptElement.type = 'application/javascript';
 			scriptElement.src = `https://embed.nicovideo.jp/watch/${id}/script`;
+			// eslint-disable-next-line svelte/no-dom-manipulating
 			playerElement.append(scriptElement);
 		}
 	});
