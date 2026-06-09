@@ -18,6 +18,7 @@
 	import OnelineNote from './OnelineNote.svelte';
 	import { inThread } from '$lib/Thread';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import { fold } from '$lib/components/shared/ViewMoreAttachment.svelte';
 	import { _ } from 'svelte-i18n';
 
 	interface Props {
@@ -30,6 +31,8 @@
 	let { item, readonly = $bindable(), createdAtFormat = 'auto', full = false }: Props = $props();
 
 	let eventItem = $derived(item as EventItem);
+
+	const noFold = () => {};
 
 	if ($rom) {
 		readonly = true;
@@ -113,7 +116,7 @@
 					<button onclick={showWarningContent}>{$_('content.show')}</button>
 				</div>
 			{:else}
-				<div class="content" class:shorten={!full}>
+				<div class="content" {@attach full ? noFold : fold}>
 					{#if Number(item.event.kind) === 1063}
 						<Nip94 event={item.event} />
 					{:else}
@@ -161,7 +164,6 @@
 	.content {
 		margin: 0.2rem 0 0 0;
 		min-width: 0;
-		overflow: auto;
 	}
 
 	.content :global(blockquote),
@@ -171,10 +173,6 @@
 
 	.content :global(iframe) {
 		display: block;
-	}
-
-	.content.shorten {
-		max-height: 30rem;
 	}
 
 	.channel,
