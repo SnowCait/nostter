@@ -1,134 +1,18 @@
 <script lang="ts" module>
 	import { SvelteMap } from 'svelte/reactivity';
+	import type { Ogp } from '$lib/ogp';
 
-	type Data = {
-		title?: string;
-		image?: string;
-	};
-
-	const cache = new SvelteMap<string, Data | undefined>();
+	const cache = new SvelteMap<string, Ogp | undefined>();
 </script>
 
 <script lang="ts">
-	import { httpProxy } from '$lib/Constants';
+	import { fetchOgp } from '$lib/ogp';
 
 	interface Props {
 		url: URL;
 	}
 
 	let { url }: Props = $props();
-
-	async function fetchOgp(url: URL, proxy: boolean): Promise<boolean> {
-		console.debug('[OGP url]', url.href, proxy);
-		cache.set(url.href, undefined);
-
-		return await new Promise((resolve) => {
-			fetch(
-				proxy ? `${httpProxy}/?url=${encodeURIComponent(url.href)}` : url,
-				proxy ? { headers: { Accept: 'application/json' } } : undefined
-			)
-				.then(async (response) => {
-					const contentType = response.headers.get('Content-Type');
-					if (proxy) {
-						if (
-							!response.ok ||
-							response.status < 200 ||
-							300 <= response.status ||
-							contentType === null ||
-							!contentType.includes('application/json')
-						) {
-							console.debug(
-								'[OGP error]',
-								url.href,
-								response.ok,
-								response.status,
-								...response.headers
-							);
-							resolve(false);
-							return;
-						}
-						const ogp: Record<string, string> = await response.json();
-						console.debug('[OGP]', url.href, ogp);
-						cache.set(url.href, {
-							title: ogp['og:title'] ?? ogp['title'],
-							image: ogp['og:image']
-						});
-						resolve(true);
-						return;
-					}
-					if (
-						!response.ok ||
-						response.status < 200 ||
-						300 <= response.status ||
-						contentType === null ||
-						!contentType.includes('text/html')
-					) {
-						console.debug(
-							'[OGP error]',
-							url.href,
-							response.ok,
-							response.status,
-							...response.headers
-						);
-						resolve(false);
-						return;
-					}
-					const html = await response.text();
-
-					// Workaround for Chromium bug
-					// <meta name="text-scale" content="scale" /> cause STATUS_ACCESS_VIOLATION
-					if (html.includes('text-scale')) {
-						console.debug('[OGP workaround]', url.href);
-						resolve(true);
-						return;
-					}
-
-					const domParser = new DOMParser();
-					const dom = domParser.parseFromString(html, 'text/html');
-					const metaTags = [...dom.head.children].filter(
-						(element) => element.tagName === 'META'
-					);
-					if (
-						!/charset=utf-8/i.test(contentType) &&
-						!metaTags.some(
-							(element) => element.getAttribute('charset')?.toLowerCase() === 'utf-8'
-						)
-					) {
-						console.debug(
-							'[OGP charset is not utf-8]',
-							url.href,
-							metaTags.find((element) => element.getAttribute('charset') !== null)
-						);
-						resolve(true);
-						return;
-					}
-					const ogp = Object.fromEntries(
-						metaTags
-							.filter(
-								(element) =>
-									element.getAttribute('property')?.startsWith('og:') &&
-									element.getAttribute('content')
-							)
-							.map((element) => {
-								return [
-									element.getAttribute('property')!,
-									element.getAttribute('content')!
-								];
-							})
-					);
-					console.debug('[OGP]', url.href, dom.title, ogp);
-					cache.set(url.href, {
-						title: ogp['og:title'] ?? dom.title,
-						image: ogp['og:image']
-					});
-					resolve(true);
-				})
-				.catch((error) => {
-					console.debug('[OGP network/CORS error]', url.href, error);
-					resolve(false);
-				});
-		});
-	}
 
 	function error(event: Event): void {
 		const img = event.target as HTMLImageElement;
@@ -138,13 +22,11 @@
 	let data = $derived(cache.get(url.href));
 
 	$effect(() => {
-		if (!cache.has(url.href)) {
-			fetchOgp(url, true).then((success) => {
-				if (!success) {
-					fetchOgp(url, false);
-				}
-			});
+		if (cache.has(url.href)) {
+			return;
 		}
+		cache.set(url.href, undefined);
+		fetchOgp(url).then((ogp) => cache.set(url.href, ogp));
 	});
 </script>
 
