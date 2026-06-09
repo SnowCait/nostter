@@ -29,3 +29,16 @@ export function mediaKindFromPathname(pathname: string): MediaKind | undefined {
 	}
 	return undefined;
 }
+
+export function mediaKindFromContentType(contentType: string): MediaKind | undefined {
+	if (contentType.startsWith('image/')) {
+		return 'image';
+	}
+	if (contentType.startsWith('audio/')) {
+		return 'audio';
+	}
+	if (contentType.startsWith('video/')) {
+		return 'video';
+	}
+	return undefined;
+}

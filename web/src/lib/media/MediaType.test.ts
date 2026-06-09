@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mediaKindFromPathname } from './MediaType';
+import { mediaKindFromContentType, mediaKindFromPathname } from './MediaType';
 
 describe('mediaKindFromPathname', () => {
 	it('detects image extensions', () => {
@@ -32,5 +32,19 @@ describe('mediaKindFromPathname', () => {
 		expect(mediaKindFromPathname('/article')).toBeUndefined();
 		expect(mediaKindFromPathname('/file.txt')).toBeUndefined();
 		expect(mediaKindFromPathname('')).toBeUndefined();
+	});
+});
+
+describe('mediaKindFromContentType', () => {
+	it('detects the kind from the content type', () => {
+		expect(mediaKindFromContentType('image/png')).toBe('image');
+		expect(mediaKindFromContentType('audio/mpeg')).toBe('audio');
+		expect(mediaKindFromContentType('video/mp4')).toBe('video');
+	});
+
+	it('returns undefined for non-media content types', () => {
+		expect(mediaKindFromContentType('text/html')).toBeUndefined();
+		expect(mediaKindFromContentType('application/json')).toBeUndefined();
+		expect(mediaKindFromContentType('')).toBeUndefined();
 	});
 });

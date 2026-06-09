@@ -1,7 +1,11 @@
 <script lang="ts" module>
 	import AsyncLock from 'async-lock';
 	import { httpProxy, nicovideoRegexp } from '$lib/Constants';
-	import { mediaKindFromPathname } from '$lib/media/MediaType';
+	import {
+		mediaKindFromContentType,
+		mediaKindFromPathname,
+		type MediaKind
+	} from '$lib/media/MediaType';
 	import { SvelteMap } from 'svelte/reactivity';
 
 	declare global {
@@ -95,6 +99,27 @@
 	let preview = $state($enablePreview);
 </script>
 
+{#snippet showMore(link: URL)}
+	<ExternalLink {link} />
+	<button onclick={() => (preview = true)}>{$_('content.show')}</button>
+{/snippet}
+
+{#snippet media(link: URL, kind: MediaKind)}
+	{#if preview}
+		{#if kind === 'image'}
+			<div>
+				<Thumbnail url={link} urls={imageUrls} />
+			</div>
+		{:else if kind === 'audio'}
+			<audio src={link.href} controls></audio>
+		{:else}
+			<Video url={link} />
+		{/if}
+	{:else}
+		{@render showMore(link)}
+	{/if}
+{/snippet}
+
 {#if link === undefined}
 	<Text {text} />
 {:else if link.protocol === 'http:'}
@@ -113,8 +138,7 @@
 			</blockquote>
 		</div>
 	{:else}
-		<ExternalLink {link} />
-		<button onclick={() => (preview = true)}>{$_('content.show')}</button>
+		{@render showMore(link)}
 	{/if}
 {:else if Spotify.isSpotifyUrl(link)}
 	{#if preview}
@@ -128,29 +152,8 @@
 	<Nicovideo {link} />
 {:else if link.hostname === 'amzn.to' || link.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
 	<ExternalLink {link} />
-{:else if mediaKind === 'image'}
-	{#if preview}
-		<div>
-			<Thumbnail url={link} urls={imageUrls} />
-		</div>
-	{:else}
-		<ExternalLink {link} />
-		<button onclick={() => (preview = true)}>{$_('content.show')}</button>
-	{/if}
-{:else if mediaKind === 'audio'}
-	{#if preview}
-		<audio src={link.href} controls></audio>
-	{:else}
-		<ExternalLink {link} />
-		<button onclick={() => (preview = true)}>{$_('content.show')}</button>
-	{/if}
-{:else if mediaKind === 'video'}
-	{#if preview}
-		<Video url={link} />
-	{:else}
-		<ExternalLink {link} />
-		<button onclick={() => (preview = true)}>{$_('content.show')}</button>
-	{/if}
+{:else if mediaKind !== undefined}
+	{@render media(link, mediaKind)}
 {:else}
 	{#await fetchContentType(link.href)}
 		{#if url !== undefined && text !== url}
@@ -161,33 +164,15 @@
 	{:then contentType}
 		{#if contentType === null}
 			<ExternalLink {link} />
-		{:else if contentType.startsWith('image/')}
-			{#if preview}
-				<div>
-					<Thumbnail url={link} urls={imageUrls} />
-				</div>
-			{:else}
-				<ExternalLink {link} />
-				<button onclick={() => (preview = true)}>{$_('content.show')}</button>
-			{/if}
-		{:else if contentType.startsWith('audio/')}
-			{#if preview}
-				<audio src={link.href} controls></audio>
-			{:else}
-				<ExternalLink {link} />
-				<button onclick={() => (preview = true)}>{$_('content.show')}</button>
-			{/if}
-		{:else if contentType.startsWith('video/')}
-			{#if preview}
-				<Video url={link} />
-			{:else}
-				<ExternalLink {link} />
-				<button onclick={() => (preview = true)}>{$_('content.show')}</button>
-			{/if}
-		{:else if url !== undefined && text !== url}
-			<ExternalLink {link}>{text}</ExternalLink>
 		{:else}
-			<ExternalLink {link} />
+			{@const kind = mediaKindFromContentType(contentType)}
+			{#if kind !== undefined}
+				{@render media(link, kind)}
+			{:else if url !== undefined && text !== url}
+				<ExternalLink {link}>{text}</ExternalLink>
+			{:else}
+				<ExternalLink {link} />
+			{/if}
 		{/if}
 	{:catch}
 		<ExternalLink {link} />
