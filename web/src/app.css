@@ -314,6 +314,7 @@ progress {
 /* End reset css */
 
 :root {
+	color-scheme: light;
 	--background: #f9f5f1;
 	--foreground: #000f0f;
 	--surface: #ffffff;
@@ -342,6 +343,7 @@ progress {
 }
 
 .dark {
+	color-scheme: dark;
 	--background: #232323;
 	--foreground: #fffbf7;
 	--surface: #1e1e1e;
@@ -451,6 +453,7 @@ input[type='password'],
 input[type='search'],
 input[type='tel'],
 input[type='url'],
+input[type='date'],
 input[type='datetime-local'],
 textarea {
 	padding: 0.5rem 0.75rem;
@@ -467,6 +470,7 @@ input[type='password'],
 input[type='search'],
 input[type='tel'],
 input[type='url'],
+input[type='date'],
 input[type='datetime-local'] {
 	border: var(--default-border);
 }
