@@ -179,7 +179,9 @@
 		<UserStatusEditor {pubkey} />
 	{/if}
 
-	<Badges {pubkey} {relays} />
+	{#key pubkey}
+		<Badges {pubkey} {relays} />
+	{/key}
 
 	{#if $developerMode}
 		<ReplaceableEventsJson />
