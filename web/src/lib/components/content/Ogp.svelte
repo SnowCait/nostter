@@ -23,9 +23,39 @@
 		cache.set(url.href, undefined);
 
 		return await new Promise((resolve) => {
-			fetch(proxy ? `${httpProxy}/?url=${encodeURIComponent(url.href)}` : url)
+			fetch(
+				proxy ? `${httpProxy}/?url=${encodeURIComponent(url.href)}` : url,
+				proxy ? { headers: { Accept: 'application/json' } } : undefined
+			)
 				.then(async (response) => {
 					const contentType = response.headers.get('Content-Type');
+					if (proxy) {
+						if (
+							!response.ok ||
+							response.status < 200 ||
+							300 <= response.status ||
+							contentType === null ||
+							!contentType.includes('application/json')
+						) {
+							console.debug(
+								'[OGP error]',
+								url.href,
+								response.ok,
+								response.status,
+								...response.headers
+							);
+							resolve(false);
+							return;
+						}
+						const ogp: Record<string, string> = await response.json();
+						console.debug('[OGP]', url.href, ogp);
+						cache.set(url.href, {
+							title: ogp['og:title'] ?? ogp['title'],
+							image: ogp['og:image']
+						});
+						resolve(true);
+						return;
+					}
 					if (
 						!response.ok ||
 						response.status < 200 ||
