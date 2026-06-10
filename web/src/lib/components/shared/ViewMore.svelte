@@ -4,12 +4,17 @@
 
 	interface Props {
 		onclick?: () => void | Promise<void>;
+		onfold?: (folded: boolean) => void;
 	}
 
-	let { onclick = toggle }: Props = $props();
+	let { onclick = toggle, onfold }: Props = $props();
 
 	let element = $state<HTMLDivElement>();
 	let folded = $state(true);
+
+	$effect(() => {
+		onfold?.(folded);
+	});
 
 	async function toggle(): Promise<void> {
 		folded = !folded;
@@ -34,7 +39,7 @@
 </div>
 
 <style>
-	:global(*:has(> .folded)) {
+	:global(.folded-container) {
 		max-height: var(--fold-max-height, 20rem);
 		overflow: hidden;
 		position: relative;
