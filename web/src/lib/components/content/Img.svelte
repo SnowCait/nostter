@@ -95,7 +95,7 @@
 		{/if}
 	{/if}
 	{#if blur}
-		<button>{$_('content.show')}</button>
+		<button class="show">{$_('content.show')}</button>
 	{/if}
 </span>
 
@@ -107,7 +107,6 @@
 		margin: 0.5em;
 		border: 1px solid lightgray;
 		border-radius: 5px;
-		vertical-align: middle;
 	}
 
 	img.blur,
@@ -125,14 +124,24 @@
 	}
 
 	.img-wrapper {
-		position: relative;
+		display: inline-grid;
+		place-items: center;
+		vertical-align: middle;
 	}
 
-	button:not(.gif-badge) {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
+	/* Stack all children in the same cell so buttons overlay the image */
+	.img-wrapper > * {
+		grid-area: 1 / 1;
+	}
+
+	/* Blur's filter creates a stacking context that would otherwise paint over the buttons */
+	.img-wrapper > button {
+		z-index: 1;
+	}
+
+	/* Paint above the blur filter's stacking context */
+	.img-wrapper > button {
+		z-index: 1;
 	}
 
 	button:hover {
@@ -140,9 +149,9 @@
 	}
 
 	button.gif-badge {
-		position: absolute;
-		left: 1em;
-		bottom: 1em;
+		align-self: end;
+		justify-self: start;
+		margin: 1em;
 		padding: 0.1em 0.5em;
 		font-weight: bold;
 		color: white;
