@@ -25,14 +25,14 @@
 	let displaySrc = $derived(
 		optimize ? `${$imageOptimization}width=800,quality=60,format=webp/${src}` : src
 	);
-	let loaded = $derived(!optimize);
+	let loading = $derived(optimize);
 
 	const animated = $derived(/\.(gif|apng)$/i.test(pathname));
 	let playing = $state(false);
 	const frozen = $derived(animated && !$gifAutoplay && !playing);
 
-	let img: HTMLImageElement | undefined = $state();
-	let canvas: HTMLCanvasElement | undefined = $state();
+	let img = $state<HTMLImageElement>();
+	let canvas = $state<HTMLCanvasElement>();
 	let canvasDrawn = $state(false);
 
 	function freeze(): void {
@@ -69,13 +69,13 @@
 	<img
 		bind:this={img}
 		class:blur
-		class:loading={!loaded}
+		class:loading
 		class:frozen={frozen && canvasDrawn}
 		src={displaySrc}
 		alt={src}
 		loading="lazy"
 		onload={() => {
-			loaded = true;
+			loading = false;
 			if (frozen) {
 				freeze();
 			}
@@ -84,7 +84,7 @@
 			if (displaySrc !== src) {
 				displaySrc = src;
 			} else {
-				loaded = true;
+				loading = false;
 			}
 		}}
 	/>
