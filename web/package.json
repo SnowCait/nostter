@@ -69,7 +69,6 @@
 		"svelte-easy-crop": "^3.0.0",
 		"svelte-i18n": "^4.0.0",
 		"svelte-persisted-store": "^0.12.0",
-		"svelte-remote-image": "^0.4.4",
 		"swiper": "^12.1.4",
 		"twitter-text": "^3.1.0",
 		"virtua": "^0.49.1"

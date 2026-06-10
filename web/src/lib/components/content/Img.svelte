@@ -4,7 +4,6 @@
 	import type * as Nostr from 'nostr-typedef';
 	import { getContext } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { Img, type ImgSrc } from 'svelte-remote-image';
 
 	interface Props {
 		url: URL;
@@ -16,25 +15,42 @@
 	const events = getContext<Nostr.Event[] | undefined>('events');
 	const blur = events !== undefined && !events.some((event) => $followees.includes(event.pubkey));
 
-	let imageSrc: ImgSrc = $derived({
-		img: `${$imageOptimization}width=800,quality=60,format=webp/${src}`,
-		fallback: [src]
-	});
+	const optimize = $derived(
+		$imageOptimization !== '' &&
+			/\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) &&
+			!src.startsWith($imageOptimization)
+	);
+
+	// Writable $derived: reassigned on error/load, reset when url or preference changes
+	let displaySrc = $derived(
+		optimize ? `${$imageOptimization}width=800,quality=60,format=webp/${src}` : src
+	);
+	let loaded = $derived(!optimize);
 </script>
 
 <span class="img-wrapper">
-	{#if $imageOptimization && /\.(avif|jpg|jpeg|png|webp)$/i.test(pathname) && !src.startsWith($imageOptimization)}
-		<Img class="global-content-image{blur ? ' blur' : ''}" src={imageSrc} alt={src} />
-	{:else}
-		<img class="global-content-image" class:blur {src} alt={src} />
-	{/if}
+	<img
+		class:blur
+		class:loading={!loaded}
+		src={displaySrc}
+		alt={src}
+		loading="lazy"
+		onload={() => (loaded = true)}
+		onerror={() => {
+			if (displaySrc !== src) {
+				displaySrc = src;
+			} else {
+				loaded = true;
+			}
+		}}
+	/>
 	{#if blur}
 		<button>{$_('content.show')}</button>
 	{/if}
 </span>
 
 <style>
-	.img-wrapper :global(.global-content-image) {
+	img {
 		max-width: calc(100% - 1.5em);
 		max-height: 20em;
 		margin: 0.5em;
@@ -43,9 +59,12 @@
 		vertical-align: middle;
 	}
 
-	.img-wrapper :global(.global-content-image.blur),
 	img.blur {
 		filter: blur(8px);
+	}
+
+	img.loading {
+		opacity: 0;
 	}
 
 	.img-wrapper {
