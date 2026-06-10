@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { followees } from '$lib/stores/Author';
+	import { isAnimatedImage } from '$lib/media/AnimatedImage';
 	import { gifAutoplay, imageOptimization } from '$lib/stores/Preference';
 	import type * as Nostr from 'nostr-typedef';
 	import { getContext } from 'svelte';
@@ -27,9 +28,23 @@
 	);
 	let loading = $derived(optimize);
 
-	const animated = $derived(/\.(gif|apng)$/i.test(pathname));
+	const presumedAnimated = $derived(/\.(gif|apng)$/i.test(pathname));
+	const detectable = $derived(/\.(gif|apng|png|webp|avif)$/i.test(pathname));
+	// Writable $derived: updated by detection, reset when url changes
+	let animated = $derived(presumedAnimated);
 	let playing = $state(false);
 	const frozen = $derived(animated && !$gifAutoplay && !playing);
+
+	$effect(() => {
+		if (!$gifAutoplay && detectable) {
+			const target = src;
+			isAnimatedImage(target).then((result) => {
+				if (src === target) {
+					animated = result ?? presumedAnimated;
+				}
+			});
+		}
+	});
 
 	let img = $state<HTMLImageElement>();
 	let canvas = $state<HTMLCanvasElement>();
