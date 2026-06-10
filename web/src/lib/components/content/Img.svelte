@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { followees } from '$lib/stores/Author';
-	import { imageOptimization } from '$lib/stores/Preference';
+	import { gifAutoplay, imageOptimization } from '$lib/stores/Preference';
 	import type * as Nostr from 'nostr-typedef';
 	import { getContext } from 'svelte';
 	import { _ } from 'svelte-i18n';
@@ -26,16 +26,60 @@
 		optimize ? `${$imageOptimization}width=800,quality=60,format=webp/${src}` : src
 	);
 	let loaded = $derived(!optimize);
+
+	const animated = $derived(/\.(gif|apng)$/i.test(pathname));
+	let playing = $state(false);
+	const frozen = $derived(animated && !$gifAutoplay && !playing);
+
+	let img: HTMLImageElement | undefined = $state();
+	let canvas: HTMLCanvasElement | undefined = $state();
+	let canvasDrawn = $state(false);
+
+	function freeze(): void {
+		if (img === undefined || canvas === undefined || !img.complete || img.naturalWidth === 0) {
+			return;
+		}
+		canvas.width = img.naturalWidth;
+		canvas.height = img.naturalHeight;
+		// drawImage renders the first frame; the canvas gets tainted but pixels are never read back
+		canvas.getContext('2d')?.drawImage(img, 0, 0);
+		canvasDrawn = true;
+	}
+
+	// Fallback for images already complete before onload fires (cache) and for preference toggles
+	$effect(() => {
+		if (frozen) {
+			if (!canvasDrawn) {
+				freeze();
+			}
+		} else {
+			canvasDrawn = false;
+		}
+	});
+
+	function play(event: MouseEvent): void {
+		// Do not bubble to the gallery dialog trigger in Thumbnail.svelte
+		event.preventDefault();
+		event.stopPropagation();
+		playing = true;
+	}
 </script>
 
 <span class="img-wrapper">
 	<img
+		bind:this={img}
 		class:blur
 		class:loading={!loaded}
+		class:frozen={frozen && canvasDrawn}
 		src={displaySrc}
 		alt={src}
 		loading="lazy"
-		onload={() => (loaded = true)}
+		onload={() => {
+			loaded = true;
+			if (frozen) {
+				freeze();
+			}
+		}}
 		onerror={() => {
 			if (displaySrc !== src) {
 				displaySrc = src;
@@ -44,22 +88,29 @@
 			}
 		}}
 	/>
+	{#if frozen}
+		<canvas bind:this={canvas} class:blur class:pending={!canvasDrawn}></canvas>
+		{#if canvasDrawn}
+			<button class="gif-badge" onclick={play}>GIF</button>
+		{/if}
+	{/if}
 	{#if blur}
-		<button>{$_('content.show')}</button>
+		<button class="show">{$_('content.show')}</button>
 	{/if}
 </span>
 
 <style>
-	img {
+	img,
+	canvas {
 		max-width: calc(100% - 1.5em);
 		max-height: 20em;
 		margin: 0.5em;
 		border: 1px solid lightgray;
 		border-radius: 5px;
-		vertical-align: middle;
 	}
 
-	img.blur {
+	img.blur,
+	canvas.blur {
 		filter: blur(8px);
 	}
 
@@ -67,18 +118,46 @@
 		opacity: 0;
 	}
 
-	.img-wrapper {
-		position: relative;
+	img.frozen,
+	canvas.pending {
+		display: none;
 	}
 
-	button {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
+	.img-wrapper {
+		display: inline-grid;
+		place-items: center;
+		vertical-align: middle;
+	}
+
+	/* Stack all children in the same cell so buttons overlay the image */
+	.img-wrapper > * {
+		grid-area: 1 / 1;
+	}
+
+	/* Blur's filter creates a stacking context that would otherwise paint over the buttons */
+	.img-wrapper > button {
+		z-index: 1;
+	}
+
+	/* Paint above the blur filter's stacking context */
+	.img-wrapper > button {
+		z-index: 1;
 	}
 
 	button:hover {
 		opacity: inherit;
+	}
+
+	button.gif-badge {
+		align-self: end;
+		justify-self: start;
+		margin: 1em;
+		padding: 0.1em 0.5em;
+		font-weight: bold;
+		color: white;
+		background: rgb(0 0 0 / 0.6);
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
 	}
 </style>

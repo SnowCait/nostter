@@ -29,6 +29,10 @@ export const enablePreview = writable(
 	browser ? new WebStorage(localStorage).get('preference:preview') !== 'false' : true
 );
 
+export const gifAutoplay = writable(
+	browser ? new WebStorage(localStorage).get('preference:gif-autoplay') !== 'false' : true
+);
+
 export const imageOptimization = writable(browser ? getImageOptimization() : '');
 
 function getImageOptimization(): string {
