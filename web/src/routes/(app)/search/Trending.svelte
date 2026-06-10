@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
+	import { _, locale } from 'svelte-i18n';
 	import { createRxNostr, createRxOneshotReq } from 'rx-nostr';
 	import { trendRelays } from '$lib/Constants';
 	import { verificationClient } from '$lib/timelines/MainTimeline';
@@ -12,7 +14,7 @@
 		const rxNostr = createRxNostr({ verifier: verificationClient.verifier });
 		rxNostr.setDefaultRelays(trendRelays);
 
-		const lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+		const lang = get(locale)?.startsWith('ja') ? 'ja' : 'en';
 		console.log('[trend lang]', lang);
 
 		const rxReq = createRxOneshotReq({
@@ -38,7 +40,7 @@
 </script>
 
 <h2>
-	<span>Trending</span>
+	<span>{$_('search.trending')}</span>
 	<nav>
 		<span>by</span>
 		<a href="https://nostrbuzzs.deno.dev/" target="_blank" rel="noreferrer noopener">
