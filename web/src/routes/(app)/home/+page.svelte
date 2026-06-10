@@ -29,6 +29,10 @@
 	});
 </script>
 
+<svelte:head>
+	<meta name="robots" content="noindex" />
+</svelte:head>
+
 <header use:melt={$root}>
 	<div class="title">
 		<h1>{$_('layout.header.home')}</h1>

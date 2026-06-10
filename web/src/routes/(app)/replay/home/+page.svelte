@@ -153,6 +153,7 @@
 
 <svelte:head>
 	<title>{appName} - {$_('replay.title')}</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <h1>{$_('replay.title')}</h1>

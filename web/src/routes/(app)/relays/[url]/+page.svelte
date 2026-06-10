@@ -120,6 +120,7 @@
 
 <svelte:head>
 	<title>{appName} - {data.name} ~ {data.hostname}</title>
+	<meta name="robots" content="noindex" />
 	<meta property="og:title" content={data.name} />
 	<meta property="og:description" content={data.description} />
 	<meta property="og:image" content={data.icon} />

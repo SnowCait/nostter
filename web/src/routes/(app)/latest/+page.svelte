@@ -20,6 +20,7 @@
 
 <svelte:head>
 	<title>{appName} - {$_('pages.latest')}</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <h1>{$_('pages.latest')}</h1>

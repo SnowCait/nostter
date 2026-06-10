@@ -159,6 +159,7 @@
 
 <svelte:head>
 	<title>{appName} - {$_('pages.profile_edit')}</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <h1>{$_('pages.profile_edit')}</h1>
