@@ -191,6 +191,7 @@
 		"options": "検索オプション",
 		"notes": "投稿",
 		"users": "ユーザー",
+		"trending": "トレンド",
 		"fields": {
 			"from": "投稿者 (from)",
 			"to": "メンション (to)",
