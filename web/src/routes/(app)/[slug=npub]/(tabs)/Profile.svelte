@@ -23,7 +23,7 @@
 	import EmojifiedContent from '$lib/components/EmojifiedContent.svelte';
 	import { userStatusReqEmit } from '$lib/UserStatus';
 	import { untrack } from 'svelte';
-	import { fold } from '$lib/components/shared/ViewMoreAttachment.svelte';
+	import Foldable from '$lib/components/shared/Foldable.svelte';
 	import ProfileIconThumbnail from '$lib/components/profile/ProfileIconThumbnail.svelte';
 
 	interface Props {
@@ -146,9 +146,11 @@
 		{/if}
 
 		{#if user?.about}
-			<div class="about" {@attach fold()}>
-				<Content content={user.about} tags={metadata?.event.tags ?? []} />
-			</div>
+			<Foldable>
+				<div class="about">
+					<Content content={user.about} tags={metadata?.event.tags ?? []} />
+				</div>
+			</Foldable>
 		{/if}
 
 		{#if user?.website}

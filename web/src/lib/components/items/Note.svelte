@@ -18,7 +18,7 @@
 	import OnelineNote from './OnelineNote.svelte';
 	import { inThread } from '$lib/Thread';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
-	import { fold } from '$lib/components/shared/ViewMoreAttachment.svelte';
+	import Foldable from '$lib/components/shared/Foldable.svelte';
 	import { _ } from 'svelte-i18n';
 
 	interface Props {
@@ -31,8 +31,6 @@
 	let { item, readonly = $bindable(), createdAtFormat = 'auto', full = false }: Props = $props();
 
 	let eventItem = $derived(item as EventItem);
-
-	const noFold = () => {};
 
 	if ($rom) {
 		readonly = true;
@@ -116,13 +114,15 @@
 					<button onclick={showWarningContent}>{$_('content.show')}</button>
 				</div>
 			{:else}
-				<div class="content" {@attach full ? noFold : fold(30)}>
-					{#if Number(item.event.kind) === 1063}
-						<Nip94 event={item.event} />
-					{:else}
-						<Content content={item.event.content} tags={item.event.tags} />
-					{/if}
-				</div>
+				<Foldable maxHeightRem={30} enabled={!full}>
+					<div class="content">
+						{#if Number(item.event.kind) === 1063}
+							<Nip94 event={item.event} />
+						{:else}
+							<Content content={item.event.content} tags={item.event.tags} />
+						{/if}
+					</div>
+				</Foldable>
 			{/if}
 			{#if item.event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdStore === undefined}
 				<div class="channel">
