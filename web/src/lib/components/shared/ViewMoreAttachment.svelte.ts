@@ -44,6 +44,7 @@ export function fold(maxHeightRem = 20): Attachment<HTMLElement> {
 			if (component !== undefined) {
 				unmount(component);
 			}
+			element.classList.remove('folded-container');
 		};
 	};
 }
