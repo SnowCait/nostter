@@ -15,6 +15,7 @@
 
 <svelte:head>
 	<title>{appName} - {$_('layout.header.global')}</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <h1>{$_('layout.header.global')}</h1>

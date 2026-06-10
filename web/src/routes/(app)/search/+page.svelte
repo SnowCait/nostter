@@ -244,6 +244,7 @@
 	<title>
 		{appName} - {query ? `${$_('layout.header.search')}: ${query}` : $_('layout.header.search')}
 	</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <h1><a href="/search">{$_('layout.header.search')}</a></h1>

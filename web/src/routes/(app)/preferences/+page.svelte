@@ -35,6 +35,7 @@
 
 <svelte:head>
 	<title>{appName} - {$_('layout.header.preferences')}</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <h1>{$_('layout.header.preferences')}</h1>

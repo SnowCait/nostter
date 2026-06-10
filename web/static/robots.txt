@@ -20,6 +20,18 @@ Disallow: /nprofile
 Disallow: /note
 Disallow: /nevent
 Disallow: /naddr
+Disallow: /home
+Disallow: /latest
+Disallow: /notifications
+Disallow: /post
+Disallow: /preferences
+Disallow: /profile
+Disallow: /public
+Disallow: /qrcode
+Disallow: /relays
+Disallow: /replay
+Disallow: /search
+Disallow: /trend
 
 User-agent: *
 Disallow: /cdn-cgi/
