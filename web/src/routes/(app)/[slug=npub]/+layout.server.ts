@@ -17,7 +17,7 @@ type Data = {
 	image?: string;
 };
 
-export const load: LayoutServerLoad<Data> = async ({ params }) => {
+export const load: LayoutServerLoad<Data> = async ({ params, platform }) => {
 	console.log('[npub page load]', params.slug);
 	console.time('[npub decode]');
 	const { pubkey, relays } = await User.decode(params.slug);
@@ -26,7 +26,7 @@ export const load: LayoutServerLoad<Data> = async ({ params }) => {
 		error(404, 'Not Found');
 	}
 
-	await checkRestriction(pubkey);
+	await checkRestriction(pubkey, platform);
 
 	console.time('[metadata]');
 	const metadataEvent = await fetchMetadata(

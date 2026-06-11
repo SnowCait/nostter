@@ -10,7 +10,7 @@ export const load: LayoutServerLoad<{
 	eventId: string;
 	relays: string[];
 	event: Nostr.Event | undefined;
-}> = async ({ params }) => {
+}> = async ({ params, platform }) => {
 	console.debug('[thread page load]', params.slug);
 	try {
 		const { type, data } = nip19.decode(params.slug);
@@ -42,7 +42,7 @@ export const load: LayoutServerLoad<{
 		);
 
 		if (event !== undefined) {
-			await checkRestriction(event.pubkey);
+			await checkRestriction(event.pubkey, platform);
 		}
 
 		return {
