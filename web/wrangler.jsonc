@@ -7,5 +7,12 @@
 	"assets": {
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare"
-	}
+	},
+	"kv_namespaces": [
+		{
+			"binding": "RESTRICTION",
+			// Placeholder. Replace with the actual KV namespace ID when deploying.
+			"id": "00000000000000000000000000000000"
+		}
+	]
 }

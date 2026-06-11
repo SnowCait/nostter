@@ -1,26 +1,18 @@
-import {
-	CLOUDFLARE_ACCOUNT_ID,
-	CLOUDFLARE_API_TOKEN,
-	CLOUDFLARE_KV_NAMESPACE_ID
-} from '$env/static/private';
 import { error } from '@sveltejs/kit';
 
-export async function checkRestriction(pubkey: string): Promise<void> {
-	console.time('[npub restriction]');
-
-	if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN || !CLOUDFLARE_KV_NAMESPACE_ID) {
+export async function checkRestriction(
+	pubkey: string,
+	platform: App.Platform | undefined
+): Promise<void> {
+	const kv = platform?.env?.RESTRICTION;
+	if (kv === undefined) {
 		return;
 	}
 
-	const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/storage/kv/namespaces/${CLOUDFLARE_KV_NAMESPACE_ID}/values/${pubkey}`;
-	const response = await fetch(url, {
-		headers: {
-			Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`
-		}
-	});
+	console.time('[npub restriction]');
+	const restriction = await kv.get<Restriction>(pubkey, 'json');
 	console.timeEnd('[npub restriction]');
-	if (response.ok) {
-		const restriction = (await response.json()) as Restriction;
+	if (restriction !== null) {
 		console.error('[npub restriction]', restriction);
 		error(restriction.status, restriction.statusText);
 	}
