@@ -4,9 +4,7 @@
 	import { type Subscription, filter } from 'rxjs';
 	import type * as Nostr from 'nostr-typedef';
 	import { nip19 } from 'nostr-tools';
-	import IconList from '@tabler/icons-svelte-runes/icons/list';
-	import IconLock from '@tabler/icons-svelte-runes/icons/lock';
-	import IconUsers from '@tabler/icons-svelte-runes/icons/users';
+	import { IconList, IconLock, IconUsers } from '@tabler/icons-svelte-runes';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { metadataStore } from '$lib/cache/Events';
 	import { getSeenOnRelays, metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
@@ -73,21 +71,24 @@
 							? await decryptListContent(event.pubkey, event.content)
 							: [[] as string[][]];
 
-					const publicPubkeys = filterTags('p', event.tags);
-					const privatePubkeys = filterTags('p', privateTags);
+					const pubkeys = new Set([
+						...filterTags('p', event.tags),
+						...filterTags('p', privateTags)
+					]);
 
 					// For legacy clients
-					if (publicPubkeys.length === 0 && privateTags.length === 0) {
+					if (pubkeys.size === 0) {
 						return;
 					}
-
-					const memberCount = new Set([...publicPubkeys, ...privatePubkeys]).size;
-					const isPrivate = event.pubkey === $pubkey && event.content !== '';
 
 					const identifier = findIdentifier(event.tags) ?? '';
 					const last = listItems.get(identifier);
 					if (last === undefined || last.event.created_at < event.created_at) {
-						listItems.set(identifier, { event, memberCount, isPrivate });
+						listItems.set(identifier, {
+							event,
+							memberCount: pubkeys.size,
+							isPrivate: privateTags.length > 0
+						});
 					}
 				},
 				complete: () => {
@@ -148,7 +149,7 @@
 
 <style>
 	.content {
-		min-height: 100vh;
+		min-height: 80vh;
 	}
 
 	ul {
