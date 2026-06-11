@@ -122,6 +122,7 @@
 		"auto_refresh": "Auto refresh",
 		"media_preview": "Media preview",
 		"gif_autoplay": "GIF autoplay",
+		"user_status": "User status",
 		"image_optimization": "Image size reduction",
 		"image_optimization_none": "None",
 		"media_uploader": {
