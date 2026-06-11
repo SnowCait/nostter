@@ -110,41 +110,47 @@
 
 <ProfileTabs tab="lists" {slug} />
 
-{#if listItems.size > 0}
-	<ul class="clear">
-		{#each [...listItems.values()].sort(reverseChronologicalItem) as { event, memberCount, isPrivate } (event.id)}
-			<li>
-				<a
-					class="card"
-					href="/{nip19.npubEncode(data.pubkey)}/lists/{nip19.naddrEncode({
-						kind: event.kind,
-						pubkey: event.pubkey,
-						identifier: findIdentifier(event.tags) ?? '',
-						relays: getSeenOnRelays(event.id)
-					})}"
-				>
-					<div class="title">
-						<IconList size={20} />
-						<span class="name">{getListTitle(event.tags)}</span>
-						{#if isPrivate}
-							<IconLock size={16} />
-						{/if}
-					</div>
-					<div class="members">
-						<IconUsers size={16} />
-						<span>{memberCount}</span>
-					</div>
-				</a>
-			</li>
-		{/each}
-	</ul>
-{:else if loading}
-	<Loading />
-{:else}
-	<p class="card">{$_('lists.none')}</p>
-{/if}
+<div class="content">
+	{#if listItems.size > 0}
+		<ul class="clear">
+			{#each [...listItems.values()].sort(reverseChronologicalItem) as { event, memberCount, isPrivate } (event.id)}
+				<li>
+					<a
+						class="card"
+						href="/{nip19.npubEncode(data.pubkey)}/lists/{nip19.naddrEncode({
+							kind: event.kind,
+							pubkey: event.pubkey,
+							identifier: findIdentifier(event.tags) ?? '',
+							relays: getSeenOnRelays(event.id)
+						})}"
+					>
+						<div class="title">
+							<IconList size={20} />
+							<span class="name">{getListTitle(event.tags)}</span>
+							{#if isPrivate}
+								<IconLock size={16} />
+							{/if}
+						</div>
+						<div class="members">
+							<IconUsers size={16} />
+							<span>{memberCount}</span>
+						</div>
+					</a>
+				</li>
+			{/each}
+		</ul>
+	{:else if loading}
+		<Loading />
+	{:else}
+		<p class="card">{$_('lists.none')}</p>
+	{/if}
+</div>
 
 <style>
+	.content {
+		min-height: 100vh;
+	}
+
 	ul {
 		display: flex;
 		flex-direction: column;
