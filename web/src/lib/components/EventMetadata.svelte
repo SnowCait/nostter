@@ -2,6 +2,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { type EventItem, type Item, alternativeName } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
+	import { showUserStatus } from '$lib/preferences/UserStatus';
 	import UserStatus from './UserStatus.svelte';
 	import CreatedAt from './CreatedAt.svelte';
 	import ProfileIcon from './profile/ProfileIcon.svelte';
@@ -50,9 +51,11 @@
 				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
 			</div>
 		</div>
-		<div>
-			<UserStatus pubkey={item.event.pubkey} />
-		</div>
+		{#if $showUserStatus}
+			<div>
+				<UserStatus pubkey={item.event.pubkey} />
+			</div>
+		{/if}
 		{@render content?.()}
 	</div>
 </article>

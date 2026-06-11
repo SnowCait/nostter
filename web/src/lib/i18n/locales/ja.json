@@ -121,6 +121,7 @@
 		"auto_refresh": "自動更新",
 		"media_preview": "メディアプレビュー",
 		"gif_autoplay": "GIF アニメーションの自動再生",
+		"user_status": "ユーザーステータス",
 		"image_optimization": "画像軽量化",
 		"image_optimization_none": "なし",
 		"media_uploader": {

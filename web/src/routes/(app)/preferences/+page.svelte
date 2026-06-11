@@ -17,6 +17,7 @@
 	import UriScheme from './UriScheme.svelte';
 	import EnablePreview from './EnablePreview.svelte';
 	import GifAutoplay from './GifAutoplay.svelte';
+	import UserStatus from './UserStatus.svelte';
 	import DeveloperMode from './DeveloperMode.svelte';
 	import WebStorage from './WebStorage.svelte';
 	import RelayStates from './RelayStates.svelte';
@@ -96,6 +97,7 @@
 	<div><AutoRefresh /></div>
 	<div><EnablePreview /></div>
 	<div><GifAutoplay /></div>
+	<div><UserStatus /></div>
 	<div><NotificationVisibility /></div>
 	<div><ImageOptimization /></div>
 	<div><Notification /></div>
