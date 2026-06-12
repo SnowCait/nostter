@@ -5,7 +5,7 @@
 	import { page } from '$app/state';
 	import { appName } from '$lib/Constants';
 	import { fetchListEvent, getListPubkeys, getListTitle } from '$lib/List';
-	import type { Metadata } from '$lib/Items';
+	import { Metadata } from '$lib/Items';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
 	import { lastNoteReqEmit } from '$lib/LastNotes';
@@ -27,9 +27,7 @@
 	let title = $derived(listEvent === undefined ? '' : getListTitle(listEvent.tags));
 
 	let items = $derived(
-		pubkeys
-			.map((pubkey) => $metadataStore.get(pubkey))
-			.filter((metadata): metadata is Metadata => metadata !== undefined)
+		pubkeys.map((pubkey) => $metadataStore.get(pubkey) ?? Metadata.placeholder(pubkey))
 	);
 
 	afterNavigate(async () => {

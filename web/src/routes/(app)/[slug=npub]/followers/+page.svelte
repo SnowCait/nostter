@@ -8,7 +8,7 @@
 	import { browser } from '$app/environment';
 	import TimelineView from '../../TimelineView.svelte';
 	import { appName } from '$lib/Constants';
-	import type { Metadata } from '$lib/Items';
+	import { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
 	import { metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
@@ -25,9 +25,7 @@
 	let pubkeys = new SvelteSet<string>();
 
 	let items = $derived(
-		[...pubkeys]
-			.map((pubkey) => $metadataStore.get(pubkey))
-			.filter((metadata): metadata is Metadata => metadata !== undefined)
+		[...pubkeys].map((pubkey) => $metadataStore.get(pubkey) ?? Metadata.placeholder(pubkey))
 	);
 
 	run(() => {

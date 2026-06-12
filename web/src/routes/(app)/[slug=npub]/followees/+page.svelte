@@ -9,7 +9,7 @@
 	import TimelineView from '../../TimelineView.svelte';
 	import { author, pubkey as authorPubkey } from '$lib/stores/Author';
 	import { appName } from '$lib/Constants';
-	import type { Metadata } from '$lib/Items';
+	import { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
 	import { metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
@@ -28,9 +28,7 @@
 	let pubkeys: Pubkey[] = $state([]);
 
 	let items = $derived(
-		pubkeys
-			.map((pubkey) => $metadataStore.get(pubkey))
-			.filter((metadata): metadata is Metadata => metadata !== undefined)
+		pubkeys.map((pubkey) => $metadataStore.get(pubkey) ?? Metadata.placeholder(pubkey))
 	);
 
 	run(() => {
