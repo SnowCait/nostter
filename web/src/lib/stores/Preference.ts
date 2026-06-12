@@ -3,8 +3,6 @@ import { WebStorage } from '$lib/WebStorage';
 import { writable, type Writable } from 'svelte/store';
 import { imageOptimizerServers } from '$lib/Constants';
 
-console.log('[preference store]');
-
 // Persistent in relay => $lib/Preferences.ts
 
 // Persistent in local

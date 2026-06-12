@@ -145,7 +145,6 @@ export async function metadataReqEmit(pubkeys: string[]): Promise<void> {
 		filterLimitItems
 	);
 	for (const pubkeys of groupedPubkeys) {
-		console.debug('[rx-nostr metadata REQ emit]', pubkeys);
 		metadataReq.emit({
 			kinds: [0],
 			authors: pubkeys

@@ -11,7 +11,6 @@
 	let editor = $state<NoteEditor>();
 
 	openNoteDialog.subscribe(async (open) => {
-		console.log('[note dialog open]', open);
 		if (open) {
 			dialog?.showModal();
 		}

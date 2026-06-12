@@ -68,12 +68,6 @@ export class HomeTimeline extends NewTimeline {
 	public filter = (event: Nostr.Event) =>
 		!get(excludeKinds).includes(event.kind) && isVisibleNotification(event.pubkey);
 
-	constructor() {
-		super();
-
-		console.debug('[home timeline initialize]');
-	}
-
 	//#endregion
 
 	//#region setIsTop

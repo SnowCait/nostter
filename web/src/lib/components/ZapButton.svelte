@@ -18,7 +18,6 @@
 	let metadata = $derived($metadataStore.get(pubkey));
 	run(() => {
 		if (metadata === undefined) {
-			console.debug('[metadata undefined]', pubkey);
 			metadataReqEmit([pubkey]);
 		}
 	});

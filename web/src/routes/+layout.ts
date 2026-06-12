@@ -10,7 +10,6 @@ import type { LayoutLoad } from './$types';
 import { readRelays, writeRelays } from '$lib/stores/Author';
 
 export const load: LayoutLoad = async ({ url }) => {
-	console.debug('[layout load]');
 	let authenticated = false;
 	await initialize();
 	if (browser) {
