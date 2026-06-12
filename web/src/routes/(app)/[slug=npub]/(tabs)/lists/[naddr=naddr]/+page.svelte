@@ -9,6 +9,7 @@
 		ready,
 		subscribeListTimeline
 	} from '$lib/timelines/ListTimeline';
+	import { IconUsers } from '@tabler/icons-svelte-runes';
 	import { appName } from '$lib/Constants';
 	import { findIdentifier } from '$lib/EventHelper';
 	import { fetchListEvent, getListPubkeys, getListTitle } from '$lib/List';
@@ -63,8 +64,25 @@
 <h1>
 	<span>{title}</span>
 	{#if $event !== undefined}
-		<span>({$pubkeys.length})</span>
+		<a class="members" href="/{slug}/lists/{data.naddr}/members">
+			<IconUsers size={20} />
+			<span>({$pubkeys.length})</span>
+		</a>
 	{/if}
 </h1>
 
 <TimelineView items={$items} load={loadListTimeline} />
+
+<style>
+	.members {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: var(--accent-gray);
+		text-decoration: none;
+	}
+
+	.members:hover {
+		text-decoration: underline;
+	}
+</style>
