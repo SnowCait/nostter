@@ -19,8 +19,7 @@ export const load: PageLoad<{
 			identifier: pointer.identifier,
 			relays: pointer.relays ?? []
 		};
-	} catch (e) {
-		console.error('[naddr page decode error]', e);
+	} catch {
 		error(404, 'Not Found');
 	}
 };

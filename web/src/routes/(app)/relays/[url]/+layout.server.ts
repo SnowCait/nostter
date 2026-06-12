@@ -25,8 +25,7 @@ export const load: LayoutServerLoad = async ({ params }) => {
 			description: nip11.description,
 			icon: nip11.icon
 		};
-	} catch (e) {
-		console.error('[relay page error]', e);
+	} catch {
 		error(404, 'Not Found');
 	}
 };

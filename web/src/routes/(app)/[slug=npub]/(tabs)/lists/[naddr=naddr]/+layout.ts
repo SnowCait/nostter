@@ -24,8 +24,7 @@ export const load: LayoutLoad<{
 			identifier: pointer.identifier,
 			relays: pointer.relays ?? []
 		};
-	} catch (e) {
-		console.error('[list page naddr decode error]', e);
+	} catch {
 		error(404, 'Not Found');
 	}
 };

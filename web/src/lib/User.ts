@@ -33,7 +33,6 @@ export class User {
 				const url = `https://${domain}/.well-known/nostr.json?name=${name}`;
 				const response = await fetch(url);
 				if (!response.ok) {
-					console.error('[invalid NIP-05]', await response.text());
 					throw new Error('fetch failed');
 				}
 				const data = (await response.json()) as Nostr.Nip05.NostrAddress;
@@ -44,8 +43,8 @@ export class User {
 					relays = data.relays?.[pubkey] ?? [];
 				}
 			}
-		} catch (error) {
-			console.error('[decode failed]', slug, error);
+		} catch {
+			// Fall through with pubkey undefined
 		}
 
 		return {

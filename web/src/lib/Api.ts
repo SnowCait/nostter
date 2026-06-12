@@ -132,7 +132,9 @@ export const fetchEvent = async (id: string, relays: string[]): Promise<Event | 
 		}
 	});
 	if (!response.ok) {
-		console.warn('[api event not found]', await response.text());
+		if (response.status !== 404) {
+			console.error('[api event error]', response.status, await response.text());
+		}
 		return undefined;
 	}
 	return (await response.json()) as Event;
@@ -151,7 +153,9 @@ export const fetchMetadata = async (
 		}
 	);
 	if (!response.ok) {
-		console.warn('[api metadata not found]', await response.text());
+		if (response.status !== 404) {
+			console.error('[api metadata error]', response.status, await response.text());
+		}
 		return undefined;
 	}
 	return (await response.json()) as Event;
