@@ -9,10 +9,8 @@ export const load: PageLoad<{
 	identifier: string;
 	relays: string[];
 }> = async ({ params }) => {
-	console.log('[naddr page load]', params.slug);
 	try {
 		const { data } = nip19.decode(params.slug);
-		console.log('[naddr decode]', data);
 		const pointer = data as nip19.AddressPointer;
 		return {
 			slug: params.slug,

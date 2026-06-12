@@ -23,7 +23,6 @@ export function storeMetadata(event: Nostr.Event): void {
 	const cache = $metadataStore.get(event.pubkey);
 	if (cache === undefined || cache.event.created_at < event.created_at) {
 		const metadata = new Metadata(event);
-		console.debug('[store metadata]', event, metadata.content?.name);
 		$metadataStore.set(metadata.event.pubkey, metadata);
 		metadataStore.set($metadataStore);
 

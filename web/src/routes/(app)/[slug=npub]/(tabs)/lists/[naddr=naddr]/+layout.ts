@@ -9,10 +9,8 @@ export const load: LayoutLoad<{
 	identifier: string;
 	relays: string[];
 }> = async ({ params }) => {
-	console.log('[list page load]', params.slug, params.naddr);
 	try {
 		const { type, data } = nip19.decode(params.naddr);
-		console.log('[list page naddr decode]', data);
 		const pointer = data as nip19.AddressPointer;
 
 		if (type !== 'naddr' || pointer.kind !== 30000) {

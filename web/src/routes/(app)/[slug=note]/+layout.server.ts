@@ -11,10 +11,8 @@ export const load: LayoutServerLoad<{
 	relays: string[];
 	event: Nostr.Event | undefined;
 }> = async ({ params, platform }) => {
-	console.debug('[thread page load]', params.slug);
 	try {
 		const { type, data } = nip19.decode(params.slug);
-		console.debug('[thread decode]', type, data);
 
 		let id: string;
 		let relays: string[] = [];

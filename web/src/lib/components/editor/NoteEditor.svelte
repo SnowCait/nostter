@@ -272,7 +272,6 @@
 
 	// FIXME: Change trigger
 	openNoteDialog.subscribe(async (open) => {
-		console.log('[open]', open);
 		if (open) {
 			if ($quotes.length > 0) {
 				content =
@@ -300,8 +299,6 @@
 	});
 
 	intentContent.subscribe((value) => {
-		console.log('[content override]');
-
 		content = value;
 		value = '';
 	});
