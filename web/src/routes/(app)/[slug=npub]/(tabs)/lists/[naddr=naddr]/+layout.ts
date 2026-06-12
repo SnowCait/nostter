@@ -1,8 +1,8 @@
 import { nip19 } from 'nostr-tools';
 import { error } from '@sveltejs/kit';
-import type { PageLoad } from './$types';
+import type { LayoutLoad } from './$types';
 
-export const load: PageLoad<{
+export const load: LayoutLoad<{
 	naddr: string;
 	kind: number;
 	pubkey: string;
