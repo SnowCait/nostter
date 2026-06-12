@@ -11,7 +11,7 @@ export async function checkRestriction(
 
 	const restriction = await kv.get<Restriction>(pubkey, 'json');
 	if (restriction !== null) {
-		console.error('[npub restriction]', restriction);
+		console.warn('[npub restriction]', restriction);
 		error(restriction.status, restriction.statusText);
 	}
 }

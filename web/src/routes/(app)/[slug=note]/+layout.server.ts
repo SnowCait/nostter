@@ -48,8 +48,7 @@ export const load: LayoutServerLoad<{
 			relays,
 			event
 		};
-	} catch (e) {
-		console.error('[thread page decode error]', e);
+	} catch {
 		error(404, 'Not Found');
 	}
 };
