@@ -20,8 +20,8 @@
 
 	let slug = $derived(page.params.slug!);
 
-	let listEvent: Nostr.Event | undefined = $state();
-	let pubkeys: string[] = $state([]);
+	let listEvent = $state<Nostr.Event | undefined>();
+	let pubkeys = $state<string[]>([]);
 	let loading = $state(true);
 
 	let title = $derived(listEvent === undefined ? '' : getListTitle(listEvent.tags));
@@ -33,7 +33,7 @@
 	);
 
 	afterNavigate(async () => {
-		console.log('[list members page]', data.naddr, data);
+		console.debug('[list members page]', data.naddr, data);
 
 		listEvent = undefined;
 		pubkeys = [];
