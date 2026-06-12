@@ -62,6 +62,9 @@ const resolveZapDestination = (nostrEvent: Nostr.Event): string | undefined => {
 	return target !== undefined ? `/${nip19.npubEncode(target)}` : undefined;
 };
 
+const resolveProfileDestination = (nostrEvent: Nostr.Event): string | undefined =>
+	nostrEvent.kind === 0 ? `/${nip19.npubEncode(nostrEvent.pubkey)}` : undefined;
+
 const resolveEventDestination = (nostrEvent: Nostr.Event): string => {
 	const eventId = [6, 7, 9735].includes(nostrEvent.kind)
 		? getTargetETag(nostrEvent.tags)
@@ -72,6 +75,7 @@ const resolveEventDestination = (nostrEvent: Nostr.Event): string => {
 const resolveDestination = (nostrEvent: Nostr.Event): string =>
 	resolveChannelDestination(nostrEvent) ??
 	resolveZapDestination(nostrEvent) ??
+	resolveProfileDestination(nostrEvent) ??
 	resolveEventDestination(nostrEvent);
 
 export async function navigateTo(

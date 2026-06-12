@@ -28,10 +28,12 @@
 			<div class="display_name">
 				<EmojifiedContent content={metadata.displayName} tags={metadata.event.tags} />
 			</div>
-			<div class="name">
-				<span>@</span>
-				<EmojifiedContent content={metadata.name} tags={metadata.event.tags} />
-			</div>
+			{#if metadata.content?.name || metadata.content?.display_name || metadata.normalizedNip05}
+				<div class="name">
+					<span>@</span>
+					<EmojifiedContent content={metadata.name} tags={metadata.event.tags} />
+				</div>
+			{/if}
 			{#if !$rom}
 				<div class="follow">
 					<FollowButton pubkey={metadata.event.pubkey} />

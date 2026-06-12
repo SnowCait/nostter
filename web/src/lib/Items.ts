@@ -91,12 +91,31 @@ export class ZapEventItem extends EventItem {
 export class Metadata implements Item {
 	public readonly content: MetadataContent | undefined;
 	private _zapUrl: URL | null | undefined;
+	private static readonly placeholderCache = new Map<pubkey, Metadata>();
 	constructor(public readonly event: Event) {
 		try {
 			this.content = JSON.parse(event.content);
 		} catch (error) {
 			console.warn('[invalid metadata item]', error, event);
 		}
+	}
+
+	// For pubkeys whose kind 0 is missing; getters fall back to npub and robohash
+	public static placeholder(pubkey: pubkey): Metadata {
+		let metadata = Metadata.placeholderCache.get(pubkey);
+		if (metadata === undefined) {
+			metadata = new Metadata({
+				id: pubkey,
+				pubkey,
+				kind: 0,
+				tags: [],
+				content: '{}',
+				created_at: 0,
+				sig: ''
+			});
+			Metadata.placeholderCache.set(pubkey, metadata);
+		}
+		return metadata;
 	}
 
 	public get id(): string {
