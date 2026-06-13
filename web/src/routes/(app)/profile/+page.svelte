@@ -45,8 +45,8 @@
 		});
 	}
 
-	function onCropComplete({ detail }: { detail: { pixels: Pixels } }): void {
-		pixels = detail.pixels;
+	function onCropComplete(event: { pixels: Pixels }): void {
+		pixels = event.pixels;
 	}
 
 	function applyCrop(e: SubmitEvent): void {
@@ -167,7 +167,7 @@
 {#if $authorProfile}
 	<ModalDialog bind:open on:close={close}>
 		<div class="crop">
-			<Cropper image={url} aspect={1} maxZoom={10} on:cropcomplete={onCropComplete} />
+			<Cropper image={url} aspect={1} maxZoom={10} oncropcomplete={onCropComplete} />
 		</div>
 
 		<form class="apply" onsubmit={applyCrop}>
