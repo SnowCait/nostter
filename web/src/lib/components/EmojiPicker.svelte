@@ -91,6 +91,9 @@
 		}
 
 		const { Picker } = await import('emoji-kitchen-mart');
+		if (!popover.open || !emojiPicker || emojiPicker.firstChild !== null) {
+			return;
+		}
 		const picker = new Picker({
 			data,
 			onEmojiSelect,
@@ -103,14 +106,14 @@
 
 	function onClickOutside(event: PointerEvent) {
 		console.debug('[emoji picker outside]', event.target);
-		clear();
+		popover.open = false;
 	}
 
 	function onEmojiSelect(emoji: BaseEmoji): void {
 		console.debug('[emoji picker selected]', emoji);
 		dispatch('pick', emoji);
 		if (autoClose) {
-			clear();
+			popover.open = false;
 		}
 	}
 
