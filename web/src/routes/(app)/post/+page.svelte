@@ -9,11 +9,19 @@
 	const content = page.url.searchParams.get('content');
 
 	// Web Share Target API
+	// Android has no dedicated url field, so the shared URL arrives in text (or title).
 	const title = page.url.searchParams.get('title');
 	const text = page.url.searchParams.get('text');
 	const url = page.url.searchParams.get('url');
-	const sharedContent = [title ?? text, url]
-		.filter((param) => param !== null && param.trim() !== '')
+	const params = [
+		...new Set(
+			[title, text, url].filter(
+				(param): param is string => param !== null && param.trim() !== ''
+			)
+		)
+	];
+	const sharedContent = params
+		.filter((param) => !params.some((other) => other !== param && other.includes(param)))
 		.join('\n');
 
 	if (content !== null) {
