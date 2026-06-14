@@ -11,12 +11,14 @@
 	let { url }: Props = $props();
 
 	const events = getContext<Nostr.Event[] | undefined>('events');
-	let blur = $state(
+	const shouldBlur = $derived(
 		events !== undefined && !events.some((event) => $followees.includes(event.pubkey))
 	);
+	let revealed = $state(false);
+	const blur = $derived(shouldBlur && !revealed);
 
 	function show(): void {
-		blur = false;
+		revealed = true;
 	}
 </script>
 

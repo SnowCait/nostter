@@ -13,7 +13,9 @@
 
 	const { href: src, pathname } = $derived(url);
 	const events = getContext<Nostr.Event[] | undefined>('events');
-	const blur = events !== undefined && !events.some((event) => $followees.includes(event.pubkey));
+	const blur = $derived(
+		events !== undefined && !events.some((event) => $followees.includes(event.pubkey))
+	);
 
 	const optimize = $derived(
 		$imageOptimization !== '' &&
