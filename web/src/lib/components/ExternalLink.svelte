@@ -11,6 +11,7 @@
 
 	const threshold = 64;
 
+	let isSafe = $derived(link.protocol === 'http:' || link.protocol === 'https:');
 	let isInternal = $derived(link.origin === $page.url.origin); // Exception
 	let content = $derived(link.hostname + link.pathname + link.search + link.hash);
 	let shortenedContent = $derived(
@@ -18,7 +19,9 @@
 	);
 </script>
 
-{#if isInternal}
+{#if !isSafe}
+	{#if children}{@render children()}{:else}{link.href}{/if}
+{:else if isInternal}
 	<a href={link.href.substring(link.origin.length)}>
 		{#if children}{@render children()}{:else}{shortenedContent}{/if}
 	</a>

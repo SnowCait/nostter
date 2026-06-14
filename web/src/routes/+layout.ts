@@ -44,7 +44,6 @@ export const load: LayoutLoad = async ({ url }) => {
 async function tryLogin(): Promise<boolean> {
 	const storage = new WebStorage(localStorage);
 	const savedLogin = storage.get('login');
-	console.debug('[layout login]', savedLogin);
 
 	if (savedLogin === null) {
 		return false;
