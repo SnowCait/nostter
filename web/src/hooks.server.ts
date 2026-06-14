@@ -18,4 +18,46 @@ const lang: Handle = ({ event, resolve }) => {
 	});
 };
 
-export const handle: Handle = sequence(i18n, lang);
+const cspDirectives: Record<string, string[]> = {
+	'default-src': ["'self'"],
+	'script-src': [
+		"'self'",
+		"'unsafe-inline'",
+		"'wasm-unsafe-eval'",
+		'https://platform.twitter.com',
+		'https://www.googletagmanager.com',
+		'https://embed.nicovideo.jp'
+	],
+	'style-src': ["'self'", "'unsafe-inline'"],
+	'img-src': ["'self'", 'data:', 'blob:', 'https:'],
+	'media-src': ["'self'", 'blob:', 'https:'],
+	'font-src': ["'self'"],
+	'connect-src': ["'self'", 'https:', 'wss:', 'ws:'],
+	'frame-src': [
+		"'self'",
+		'https://www.youtube.com',
+		'https://www.youtube-nocookie.com',
+		'https://open.spotify.com',
+		'https://embed.nicovideo.jp',
+		'https://platform.twitter.com',
+		'https://syndication.twitter.com'
+	],
+	'worker-src': ["'self'", 'blob:'],
+	'object-src': ["'none'"],
+	'base-uri': ["'self'"],
+	'frame-ancestors': ["'self'"],
+	'form-action': ["'self'"],
+	'manifest-src': ["'self'"]
+};
+
+const contentSecurityPolicy = Object.entries(cspDirectives)
+	.map(([directive, values]) => `${directive} ${values.join(' ')}`)
+	.join('; ');
+
+const csp: Handle = async ({ event, resolve }) => {
+	const response = await resolve(event);
+	response.headers.set('Content-Security-Policy', contentSecurityPolicy);
+	return response;
+};
+
+export const handle: Handle = sequence(i18n, lang, csp);
