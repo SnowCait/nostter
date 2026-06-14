@@ -30,10 +30,9 @@
 
 	let { item, readonly, createdAtFormat = 'auto', full = false }: Props = $props();
 
-	$effect(() => {
-		const events = getContext<Nostr.Event[] | undefined>('events') ?? [];
-		setContext('events', [...events, item.event]);
-	});
+	const parentEvents = getContext<Nostr.Event[] | undefined>('events') ?? [];
+	// svelte-ignore state_referenced_locally
+	setContext('events', [...parentEvents, item.event]);
 </script>
 
 {#if item.event.kind === Kind.Metadata}
