@@ -45,7 +45,18 @@
 		"login": "ログイン",
 		"hero-message": "すべての自由が、ここに。",
 		"hero-message-sub": "必要なのは名前だけ。メールアドレスも要らない、凍結もない、オープンなSNS。絵文字キッチンで遊ぼう。",
-		"failed": "ログインできませんでした。"
+		"failed": "ログインできませんでした。",
+		"status": {
+			"checking": "保存済みのログイン情報を確認しています",
+			"waiting_extension": "拡張機能を待っています",
+			"extension_not_found": "拡張機能が見つかりませんでした",
+			"getting_pubkey": "公開鍵を取得しています",
+			"connecting_bunker": "リモート署名に接続しています",
+			"bunker_failed": "リモート署名に接続できませんでした",
+			"invalid_key": "鍵の形式が正しくありません",
+			"fetching_profile": "プロフィールを取得しています",
+			"failed": "ログインに失敗しました"
+		}
 	},
 	"logout": {
 		"logout": "ログアウト",

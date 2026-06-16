@@ -3,6 +3,7 @@
 	import { appName } from '$lib/Constants';
 	import '../app.css';
 	import Toaster from '$lib/components/Toaster.svelte';
+	import LoginStatus from '$lib/components/LoginStatus.svelte';
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
@@ -51,4 +52,5 @@
 </svelte:head>
 
 <Toaster />
+<LoginStatus />
 {@render children?.()}
