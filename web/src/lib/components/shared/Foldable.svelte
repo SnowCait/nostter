@@ -15,20 +15,26 @@
 	let overflowing = $state(false);
 	let folded = $state(true);
 
-	const observe: Attachment<HTMLElement> = (element) => {
+	const measure: Attachment<HTMLElement> = (element) => {
 		const maxHeight = maxHeightRem * parseFloat(getComputedStyle(element).fontSize);
 		let frame: number | undefined;
-		const observer = new ResizeObserver(() => {
+		const update = () => {
+			frame = undefined;
+			overflowing = element.scrollHeight > maxHeight;
+		};
+		const schedule = () => {
 			if (frame === undefined) {
-				frame = requestAnimationFrame(() => {
-					frame = undefined;
-					overflowing = element.scrollHeight > maxHeight;
-				});
+				frame = requestAnimationFrame(update);
 			}
-		});
-		observer.observe(element);
+		};
+
+		schedule();
+		element.addEventListener('load', schedule, true);
+		element.addEventListener('loadedmetadata', schedule, true);
+
 		return () => {
-			observer.disconnect();
+			element.removeEventListener('load', schedule, true);
+			element.removeEventListener('loadedmetadata', schedule, true);
 			if (frame !== undefined) {
 				cancelAnimationFrame(frame);
 			}
@@ -48,7 +54,7 @@
 	bind:this={container}
 	class:folded={enabled && overflowing && folded}
 	style:--fold-max-height="{maxHeightRem}rem"
-	{@attach observe}
+	{@attach measure}
 >
 	{@render children()}
 	{#if enabled && overflowing}

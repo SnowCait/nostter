@@ -37,6 +37,7 @@
 	}: Props = $props();
 
 	let isTop = $state(true);
+	let loadMoreAnchor = $state<HTMLElement>();
 
 	async function newer() {
 		const id = visibleEvents.at(0)?.id;
@@ -110,7 +111,22 @@
 			}, 1000);
 		}
 
-		return disposeTimelineScrollToTop;
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries.some((entry) => entry.isIntersecting) && !timeline.loading) {
+					older();
+				}
+			},
+			{ rootMargin: '0px 0px 20% 0px' }
+		);
+		if (loadMoreAnchor !== undefined) {
+			observer.observe(loadMoreAnchor);
+		}
+
+		return () => {
+			observer.disconnect();
+			disposeTimelineScrollToTop?.();
+		};
 	});
 
 	$effect(() => {
@@ -130,18 +146,6 @@
 			untrack(() => {
 				isTop = false;
 				timeline.setIsTop(isTop);
-			});
-		}
-	});
-
-	$effect(() => {
-		if (
-			scrollY.current! > 0 &&
-			scrollY.current! + window.innerHeight * 1.2 >= document.documentElement.scrollHeight &&
-			!timeline.loading
-		) {
-			untrack(() => {
-				older();
 			});
 		}
 	});
@@ -189,6 +193,8 @@
 {#if showLoading && !timeline.oldest}
 	<div class="loading"><Loading /></div>
 {/if}
+
+<div bind:this={loadMoreAnchor}></div>
 
 <style>
 	div.scroll-to-top {
