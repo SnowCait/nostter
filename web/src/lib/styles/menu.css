@@ -16,6 +16,7 @@
 		rgba(101, 119, 134, 0.15) 0px 0px 3px 1px;
 	overflow: hidden;
 	min-width: 8rem;
+	z-index: 20;
 }
 
 .menu .item {

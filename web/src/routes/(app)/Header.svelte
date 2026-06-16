@@ -25,6 +25,7 @@
 	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
 	import { MouseButton } from '$lib/DomHelper';
 	import { requestTimelineScrollToTop } from '$lib/timelines/ScrollToTop';
+	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
 
 	const {
 		elements: { menu, item, trigger, overlay }
@@ -280,7 +281,11 @@
 		</ul>
 	</nav>
 	{#if $pubkey && !$rom}
-		<button title="{$_('post')} (N)" onclick={onClickPostButton}>
+		<button
+			class:inline-composer-active={composerFocus.current !== undefined}
+			title="{$_('post')} (N)"
+			onclick={onClickPostButton}
+		>
 			<IconPencilPlus size={30} />
 			<p>{$_('post')}</p>
 		</button>
@@ -475,6 +480,10 @@
 			position: fixed;
 			bottom: calc(3.125rem + 0.75rem + env(safe-area-inset-bottom));
 			right: 0.75rem;
+		}
+
+		.header > button.inline-composer-active {
+			display: none;
 		}
 
 		nav {

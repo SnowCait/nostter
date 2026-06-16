@@ -246,6 +246,18 @@
 		"quote": {
 			"button": "引用"
 		},
+		"pin": {
+			"button": "ピン留め"
+		},
+		"unpin": {
+			"button": "ピン留め解除"
+		},
+		"information": {
+			"button": "情報"
+		},
+		"reply": {
+			"button": "返信"
+		},
 		"reaction": {
 			"again": "もう一度",
 			"undo": "取り消す",
@@ -318,6 +330,14 @@
 			"button": "削除",
 			"confirm": "本当にこの投稿を削除しますか？"
 		}
+	},
+	"channel": {
+		"reply_to": "返信先",
+		"unread": "件の新着",
+		"menu": "メニュー",
+		"about": "説明",
+		"placeholder": "メッセージを入力",
+		"send": "送信"
 	},
 	"thread": {
 		"date": "前後の投稿",
