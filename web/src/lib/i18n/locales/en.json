@@ -247,6 +247,18 @@
 		"quote": {
 			"button": "Quote"
 		},
+		"pin": {
+			"button": "Pin"
+		},
+		"unpin": {
+			"button": "Unpin"
+		},
+		"information": {
+			"button": "Information"
+		},
+		"reply": {
+			"button": "Reply"
+		},
 		"reaction": {
 			"again": "Again",
 			"undo": "Undo",
@@ -319,6 +331,14 @@
 			"button": "Delete",
 			"confirm": "Are you sure you want to delete this note?"
 		}
+	},
+	"channel": {
+		"reply_to": "Reply to",
+		"unread": "new",
+		"menu": "Menu",
+		"about": "Description",
+		"placeholder": "Message",
+		"send": "Send"
 	},
 	"thread": {
 		"date": "Previous and next notes",

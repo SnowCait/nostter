@@ -12,6 +12,7 @@
 	import '$lib/styles/menu.css';
 	import { fetchMinutes } from '$lib/Helper';
 	import { followees } from '$lib/stores/Author';
+	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
@@ -52,7 +53,11 @@
 		);
 
 		if (event.key === 'n') {
-			$openNoteDialog = true;
+			if (composerFocus.current !== undefined) {
+				composerFocus.current();
+			} else {
+				$openNoteDialog = true;
+			}
 			event.preventDefault();
 		}
 
