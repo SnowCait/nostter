@@ -15,24 +15,16 @@
 	let overflowing = $state(false);
 	let folded = $state(true);
 
-	const observe: Attachment<HTMLElement> = (element) => {
+	const measure: Attachment<HTMLElement> = (element) => {
 		const maxHeight = maxHeightRem * parseFloat(getComputedStyle(element).fontSize);
-		let frame: number | undefined;
-		const observer = new ResizeObserver(() => {
-			if (frame === undefined) {
-				frame = requestAnimationFrame(() => {
-					frame = undefined;
-					overflowing = element.scrollHeight > maxHeight;
-				});
+		const observer = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				const blockSize = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+				overflowing = blockSize > maxHeight;
 			}
 		});
 		observer.observe(element);
-		return () => {
-			observer.disconnect();
-			if (frame !== undefined) {
-				cancelAnimationFrame(frame);
-			}
-		};
+		return () => observer.disconnect();
 	};
 
 	async function toggle(): Promise<void> {
@@ -48,9 +40,10 @@
 	bind:this={container}
 	class:folded={enabled && overflowing && folded}
 	style:--fold-max-height="{maxHeightRem}rem"
-	{@attach observe}
 >
-	{@render children()}
+	<div class="fold-content" {@attach measure}>
+		{@render children()}
+	</div>
 	{#if enabled && overflowing}
 		<div class="view-more">
 			<button onclick={toggle} class="rounded-button small">
