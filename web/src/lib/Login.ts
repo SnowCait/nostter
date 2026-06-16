@@ -9,6 +9,7 @@ import { rxNostr } from './timelines/MainTimeline';
 import { now } from 'rx-nostr';
 import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
+import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -57,6 +58,7 @@ export class Login {
 		console.time('NIP-07');
 
 		loginType.set('NIP-07');
+		setLoginStatus('getting_pubkey');
 
 		try {
 			pubkey.set(await Signer.getPublicKey());
@@ -69,6 +71,7 @@ export class Login {
 			console.error('[NIP-07 getPublicKey()]', error);
 			console.timeEnd('NIP-07');
 			loginType.set(undefined);
+			setLoginStatus('failed', 'error');
 			return;
 		}
 
@@ -84,6 +87,7 @@ export class Login {
 		console.time('NIP-46');
 
 		loginType.set('NIP-46');
+		setLoginStatus('connecting_bunker');
 
 		try {
 			await Signer.establishBunkerConnection(bunker);
@@ -92,6 +96,7 @@ export class Login {
 			console.error('Failed to connect to NIP-46 bunker');
 			await Signer.abolishBunkerConnection();
 			loginType.set(undefined);
+			setLoginStatus('bunker_failed', 'error');
 			return false;
 		}
 
@@ -109,6 +114,7 @@ export class Login {
 		const { type, data: seckey } = nip19.decode(key);
 		if (type !== 'nsec') {
 			console.error('Invalid nsec');
+			setLoginStatus('invalid_key', 'error');
 			return;
 		}
 
@@ -126,6 +132,7 @@ export class Login {
 		console.debug(type, data);
 		if (type !== 'npub' || typeof data !== 'string') {
 			console.error(`Invalid npub: ${key}`);
+			setLoginStatus('invalid_key', 'error');
 			return;
 		}
 
@@ -140,6 +147,7 @@ export class Login {
 
 	private async fetchAuthor() {
 		console.time('fetch author');
+		setLoginStatus('fetching_profile');
 
 		const $author = new Author(get(pubkey));
 
@@ -150,6 +158,7 @@ export class Login {
 		console.timeEnd('fetch author');
 
 		author.set($author);
+		clearLoginStatus();
 
 		remoteSigner.subscribeIfEnabled();
 	}

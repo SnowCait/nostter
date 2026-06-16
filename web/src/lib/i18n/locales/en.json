@@ -45,7 +45,18 @@
 		"login": "Login",
 		"hero-message": "Freedom is Here",
 		"hero-message-sub": "All you need is name. No e-mail address, no account suspension, open SNS. Play with Emoji Kitchen.",
-		"failed": "Failed to login."
+		"failed": "Failed to login.",
+		"status": {
+			"checking": "Checking saved login information",
+			"waiting_extension": "Waiting for browser extension",
+			"extension_not_found": "Browser extension was not found",
+			"getting_pubkey": "Getting public key",
+			"connecting_bunker": "Connecting to remote signer",
+			"bunker_failed": "Failed to connect to remote signer",
+			"invalid_key": "Invalid key format",
+			"fetching_profile": "Fetching profile",
+			"failed": "Failed to login"
+		}
 	},
 	"logout": {
 		"logout": "Logout",

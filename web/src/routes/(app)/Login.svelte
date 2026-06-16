@@ -9,6 +9,7 @@
 	import { afterNavigate, goto } from '$app/navigation';
 	import { authorProfile } from '$lib/stores/Author';
 	import { WebStorage } from '$lib/WebStorage';
+	import { setLoginStatus } from '$lib/stores/LoginStatus';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 
@@ -47,6 +48,7 @@
 			}
 		} catch (error) {
 			console.error('[NIP-07 login failed]', error);
+			setLoginStatus('failed', 'error');
 			resetLoginProgress();
 		}
 	}
@@ -71,6 +73,7 @@
 			}
 		} catch (error) {
 			console.error('[NIP-46 login failed]', error);
+			setLoginStatus('failed', 'error');
 			failedToLogin = true;
 			resetLoginProgress();
 		}
@@ -95,6 +98,7 @@
 			}
 		} catch (error) {
 			console.error('[key login failed]', error);
+			setLoginStatus('failed', 'error');
 			resetLoginProgress();
 		}
 	}
@@ -123,6 +127,7 @@
 			await goto('/public');
 		} catch (error) {
 			console.error('[register failed]', error);
+			setLoginStatus('failed', 'error');
 			registering = false;
 			loginType.set(undefined);
 		}
@@ -140,6 +145,7 @@
 	async function gotoHome(): Promise<boolean> {
 		if ($authorProfile === undefined) {
 			console.error('[login failed]');
+			setLoginStatus('failed', 'error');
 			return false;
 		}
 

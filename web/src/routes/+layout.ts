@@ -8,6 +8,7 @@ import { rxNostr } from '$lib/timelines/MainTimeline';
 import { appName, defaultRelays, localizedRelays } from '$lib/Constants';
 import type { LayoutLoad } from './$types';
 import { readRelays, writeRelays } from '$lib/stores/Author';
+import { setLoginStatus } from '$lib/stores/LoginStatus';
 
 export const load: LayoutLoad = async ({ url }) => {
 	let authenticated = false;
@@ -49,13 +50,17 @@ async function tryLogin(): Promise<boolean> {
 		return false;
 	}
 
+	setLoginStatus('checking');
+
 	const login = new Login();
 	if (savedLogin === 'NIP-07') {
+		setLoginStatus('waiting_extension');
 		const { waitNostr } = await import('nip07-awaiter');
 		const nostr = await waitNostr(10000);
 		console.debug('[NIP-07]', nostr);
 		if (nostr === undefined) {
 			console.error('Browser Extension was not found');
+			setLoginStatus('extension_not_found', 'error');
 			return false;
 		}
 		await login.withNip07();
@@ -70,6 +75,7 @@ async function tryLogin(): Promise<boolean> {
 		await login.withNpub(savedLogin);
 	} else {
 		console.error('[login logic error]');
+		setLoginStatus('failed', 'error');
 		return false;
 	}
 
