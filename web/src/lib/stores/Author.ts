@@ -28,46 +28,7 @@ export const writeRelays: Writable<string[]> = writable(
 );
 export const rom = writable(false);
 
-let mutePubkeysSetRef: string[] | undefined;
-let mutePubkeysSet = new Set<string>();
-const getMutePubkeysSet = (): Set<string> => {
-	const $mutePubkeys = get(mutePubkeys);
-	if ($mutePubkeys !== mutePubkeysSetRef) {
-		mutePubkeysSetRef = $mutePubkeys;
-		mutePubkeysSet = new Set($mutePubkeys);
-	}
-	return mutePubkeysSet;
-};
-
-let muteEventIdsSetRef: string[] | undefined;
-let muteEventIdsSet = new Set<string>();
-const getMuteEventIdsSet = (): Set<string> => {
-	const $muteEventIds = get(muteEventIds);
-	if ($muteEventIds !== muteEventIdsSetRef) {
-		muteEventIdsSetRef = $muteEventIds;
-		muteEventIdsSet = new Set($muteEventIds);
-	}
-	return muteEventIdsSet;
-};
-
-let muteWordsRegExpRef: string[] | undefined;
-let muteWordsRegExp: RegExp | undefined;
-const getMuteWordsRegExp = (): RegExp | undefined => {
-	const $muteWords = get(muteWords);
-	if ($muteWords !== muteWordsRegExpRef) {
-		muteWordsRegExpRef = $muteWords;
-		muteWordsRegExp =
-			$muteWords.length > 0
-				? new RegExp(
-						`(${$muteWords.map((word) => escapeStringRegexp(word)).join('|')})`,
-						'i'
-					)
-				: undefined;
-	}
-	return muteWordsRegExp;
-};
-
-export const isMutePubkey = (pubkey: string) => getMutePubkeysSet().has(pubkey);
+export const isMutePubkey = (pubkey: string) => get(mutePubkeys).includes(pubkey);
 export const isMuteEvent = (event: Event) => {
 	// Avoid being muted if content contains muted words
 	if (event.pubkey === get(pubkey)) {
@@ -101,13 +62,21 @@ export const isMuteEvent = (event: Event) => {
 		}
 	}
 
-	const muteWordsPattern = getMuteWordsRegExp();
-	if (muteWordsPattern !== undefined && muteWordsPattern.test(event.content)) {
+	const $muteWords = get(muteWords);
+	if (
+		$muteWords.length > 0 &&
+		new RegExp(`(${$muteWords.map((word) => escapeStringRegexp(word)).join('|')})`, 'i').test(
+			event.content
+		)
+	) {
 		return true;
 	}
 
-	const ids = getMuteEventIdsSet();
-	return ids.has(event.id) || event.tags.some(([tagName, id]) => tagName === 'e' && ids.has(id));
+	const ids = get(muteEventIds);
+	return (
+		ids.includes(event.id) ||
+		event.tags.some(([tagName, id]) => tagName === 'e' && ids.includes(id))
+	);
 };
 
 export const updateRelays = (event: Event) => {
