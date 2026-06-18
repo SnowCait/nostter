@@ -10,11 +10,6 @@ export default defineConfig({
 	build: {
 		target: 'esnext'
 	},
-	css: {
-		lightningcss: {
-			errorRecovery: true
-		}
-	},
 	plugins: [sveltekit(), visualizer({ emitFile: true, template: 'markdown' })],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}']
