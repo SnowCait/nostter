@@ -4,7 +4,7 @@
 	import { IconX } from '@tabler/icons-svelte-runes';
 	import Swiper from 'swiper';
 	import { Navigation, Zoom } from 'swiper/modules';
-	import { onMount } from 'svelte';
+	import { onDestroy } from 'svelte';
 
 	interface Props {
 		url: URL;
@@ -18,23 +18,25 @@
 	const dialog = new Dialog({
 		closeOnOutsideClick: false,
 		onOpenChange: (open) => {
-			const index = urls.findIndex((u) => u.href === url.href);
-			if (open && swiper !== undefined) {
-				swiper.activeIndex = index >= 0 ? index : 0;
+			if (!open) {
+				return;
 			}
+			if (swiper === undefined) {
+				swiper = new Swiper(`.swiper-${id}`, {
+					zoom: true,
+					modules: [Navigation, Zoom],
+					navigation: {
+						nextEl: '.swiper-button-next',
+						prevEl: '.swiper-button-prev'
+					}
+				});
+			}
+			const index = urls.findIndex((u) => u.href === url.href);
+			swiper.activeIndex = index >= 0 ? index : 0;
 		}
 	});
 
-	onMount(() => {
-		swiper = new Swiper(`.swiper-${id}`, {
-			zoom: true,
-			modules: [Navigation, Zoom],
-			navigation: {
-				nextEl: '.swiper-button-next',
-				prevEl: '.swiper-button-prev'
-			}
-		});
-	});
+	onDestroy(() => swiper?.destroy());
 
 	function close(e: MouseEvent): void {
 		const target = e.target as HTMLElement;
