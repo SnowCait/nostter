@@ -39,8 +39,8 @@ export abstract class NewTimeline {
 	}
 
 	protected pushEvents(...events: Nostr.Event[]): void {
+		this.eventsStore.push(...events);
 		for (const event of events) {
-			this.eventsStore.push(event);
 			this.eventIdSet.add(event.id);
 		}
 	}
