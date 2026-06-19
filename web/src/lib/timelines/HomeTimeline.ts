@@ -211,13 +211,13 @@ export class HomeTimeline extends NewTimeline {
 					not: true
 				}
 			),
-			filter(({ event }) => !this.eventsStore.some((e) => e.id === event.id)),
+			filter(({ event }) => !this.hasEvent(event.id)),
 			tap(({ event }) => referencesReqEmit(event)),
 			share()
 		);
 		timeline$.subscribe(({ event }) => {
 			const lastId = this.eventsStore.at(0)?.id;
-			this.eventsStore.unshift(event);
+			this.unshiftEvent(event);
 			this.latestId = event.id;
 			if (this.autoUpdate && this.#isTop && this.eventsForView.at(0)?.id === lastId) {
 				this.eventsForView = [event, ...this.eventsForView].slice(0, maxTimelineLength);
@@ -384,7 +384,7 @@ export class HomeTimeline extends NewTimeline {
 			.pipe(
 				tie,
 				uniq(),
-				filter(({ event }) => !this.eventsStore.some((e) => e.id === event.id)),
+				filter(({ event }) => !this.hasEvent(event.id)),
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
@@ -400,10 +400,10 @@ export class HomeTimeline extends NewTimeline {
 						(e) => e.created_at < event.created_at
 					);
 					if (index < 0) {
-						this.eventsStore.push(event);
+						this.pushEvents(event);
 						this.eventsForView = [...this.eventsForView, event];
 					} else {
-						this.eventsStore.splice(index, 0, event);
+						this.insertEventAt(index, event);
 						const indexForView = this.eventsForView.findIndex(
 							(e) => e.created_at < event.created_at
 						);
@@ -427,7 +427,7 @@ export class HomeTimeline extends NewTimeline {
 					userStatusReqEmit([...pubkeys]);
 					if (count < minTimelineLength) {
 						const events = await this.#fetchEnough(minTimelineLength - count);
-						this.eventsStore.push(...events);
+						this.pushEvents(...events);
 						this.eventsForView = [...this.eventsForView, ...events];
 						count += events.length;
 						console.debug(
@@ -476,7 +476,7 @@ export class HomeTimeline extends NewTimeline {
 					const filteredEvents = events
 						.toSorted(reverseChronological)
 						.slice(0, limit * 2)
-						.filter((event) => !this.eventsStore.some((e) => e.id === event.id))
+						.filter((event) => !this.hasEvent(event.id))
 						.slice(0, limit);
 					const pubkeys = new Set<string>(filteredEvents.map((e) => e.pubkey));
 					userStatusReqEmit([...pubkeys]);
@@ -499,7 +499,7 @@ export class HomeTimeline extends NewTimeline {
 			.pipe(
 				tie,
 				uniq(),
-				filter(({ event }) => !this.eventsStore.some((e) => e.id === event.id)),
+				filter(({ event }) => !this.hasEvent(event.id)),
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
@@ -515,10 +515,10 @@ export class HomeTimeline extends NewTimeline {
 						(e) => e.created_at < event.created_at
 					);
 					if (index < 0) {
-						this.eventsStore.push(event);
+						this.pushEvents(event);
 						this.eventsForView = [...this.eventsForView, event];
 					} else {
-						this.eventsStore.splice(index, 0, event);
+						this.insertEventAt(index, event);
 						const indexForView = this.eventsForView.findIndex(
 							(e) => e.created_at < event.created_at
 						);
