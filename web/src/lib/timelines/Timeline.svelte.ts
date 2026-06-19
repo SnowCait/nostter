@@ -25,8 +25,30 @@ export abstract class NewTimeline {
 	//#region Events
 
 	protected readonly eventsStore: Nostr.Event[] = [];
+	protected readonly eventIdSet = new Set<string>();
 	protected eventsForView = $state.raw<Nostr.Event[]>([]);
 	public readonly events = $derived(this.eventsForView);
+
+	protected hasEvent(id: string): boolean {
+		return this.eventIdSet.has(id);
+	}
+
+	protected unshiftEvent(event: Nostr.Event): void {
+		this.eventsStore.unshift(event);
+		this.eventIdSet.add(event.id);
+	}
+
+	protected pushEvents(...events: Nostr.Event[]): void {
+		for (const event of events) {
+			this.eventsStore.push(event);
+			this.eventIdSet.add(event.id);
+		}
+	}
+
+	protected insertEventAt(index: number, event: Nostr.Event): void {
+		this.eventsStore.splice(index, 0, event);
+		this.eventIdSet.add(event.id);
+	}
 
 	protected latestId = $state<string | undefined>();
 	public readonly latest = $derived(this.latestId === this.eventsForView.at(0)?.id);
@@ -96,6 +118,7 @@ export abstract class NewTimeline {
 
 	public clear(): void {
 		this.eventsStore.splice(0);
+		this.eventIdSet.clear();
 		this.eventsForView = [];
 		this.latestId = undefined;
 		this._oldest = false;

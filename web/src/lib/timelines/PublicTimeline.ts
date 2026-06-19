@@ -47,7 +47,7 @@ export class PublicTimeline extends NewTimeline {
 			)
 			.subscribe(({ event }) => {
 				const lastId = this.eventsStore.at(0)?.id;
-				this.eventsStore.unshift(event);
+				this.unshiftEvent(event);
 				this.latestId = event.id;
 				if (this.autoUpdate && this.#isTop && this.eventsForView.at(0)?.id === lastId) {
 					this.eventsForView = [event, ...this.eventsForView].slice(0, maxTimelineLength);
@@ -104,10 +104,10 @@ export class PublicTimeline extends NewTimeline {
 						(e) => e.created_at < event.created_at
 					);
 					if (index < 0) {
-						this.eventsStore.push(event);
+						this.pushEvents(event);
 						this.eventsForView = [...this.eventsForView, event];
 					} else {
-						this.eventsStore.splice(index, 0, event);
+						this.insertEventAt(index, event);
 						const indexForView = this.eventsForView.findIndex(
 							(e) => e.created_at < event.created_at
 						);
@@ -130,7 +130,7 @@ export class PublicTimeline extends NewTimeline {
 					console.debug('[public timeline older complete]', count);
 					if (count < minTimelineLength) {
 						const events = await this.fetchEnough(minTimelineLength - count);
-						this.eventsStore.push(...events);
+						this.pushEvents(...events);
 						this.eventsForView = [...this.eventsForView, ...events];
 						count += events.length;
 						console.debug(
@@ -188,7 +188,7 @@ export class PublicTimeline extends NewTimeline {
 	}
 
 	#fine(event: Nostr.Event): boolean {
-		if (this.eventsStore.some((e) => e.id === event.id)) {
+		if (this.hasEvent(event.id)) {
 			return false;
 		}
 
