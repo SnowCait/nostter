@@ -11,6 +11,7 @@ import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';
 import { generateSecretKey } from 'nostr-tools/pure';
 import { bytesToHex, hexToBytes } from 'nostr-tools/utils';
 import { WebStorage } from './WebStorage';
+import { nip46ConnectTimeout } from './Constants';
 import type * as Nostr from 'nostr-typedef';
 
 declare const window: {
@@ -35,13 +36,34 @@ export class Signer {
 			storage.set('login:bunker:client-seckey', bytesToHex(clientSeckey));
 		}
 
+		let authRequested = false;
 		bunkerSigner = BunkerSigner.fromBunker(clientSeckey, bunkerPointer, {
-			onauth: (url) => open(url, '_blank')
+			onauth: (url) => {
+				authRequested = true;
+				open(url, '_blank');
+			}
 		});
 		console.debug('[NIP-46 client pubkey]', getPublicKey(clientSeckey));
-		await bunkerSigner.connect();
-		console.debug('[NIP-46 connected]');
-		nip46CachedPublicKey = await bunkerSigner.getPublicKey();
+
+		const signer = bunkerSigner;
+		const { promise: timeout, reject: rejectOnTimeout } = Promise.withResolvers<never>();
+		const timer = setTimeout(() => {
+			if (!authRequested) {
+				rejectOnTimeout(new Error('NIP-46 connection timed out'));
+			}
+		}, nip46ConnectTimeout);
+		try {
+			await Promise.race([
+				(async () => {
+					await signer.connect();
+					console.debug('[NIP-46 connected]');
+					nip46CachedPublicKey = await signer.getPublicKey();
+				})(),
+				timeout
+			]);
+		} finally {
+			clearTimeout(timer);
+		}
 		console.debug('[NIP-46 user pubkey]', nip46CachedPublicKey);
 	}
 
