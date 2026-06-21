@@ -181,7 +181,7 @@
 			"date": "Date",
 			"restore": "Restore",
 			"confirm": "Are you sure you want to restore this backup? Current data will be overwritten.",
-			"latest": "Latest",
+			"latest": "Latest (Broadcast)",
 			"followees": {
 				"list": "Followees list",
 				"count": "Followees count"
@@ -308,7 +308,15 @@
 		},
 		"broadcast": {
 			"button": "Broadcast",
-			"confirm": "This event is protected. Are you sure you want to broadcast it?"
+			"confirm": "This event is protected. Are you sure you want to broadcast it?",
+			"completed": {
+				"title": "Broadcast completed",
+				"description": "Accepted by {accepted} of {total} relays"
+			},
+			"failed": {
+				"title": "Broadcast failed",
+				"description": "Failed to broadcast the event."
+			}
 		},
 		"follow": {
 			"myself": "Follow myself",
