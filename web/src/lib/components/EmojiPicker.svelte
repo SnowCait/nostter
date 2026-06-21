@@ -29,15 +29,7 @@
 
 	let PickerConstructor = $state<typeof import('emoji-kitchen-mart').Picker>();
 
-	const popover = new Popover({
-		closeOnOutsideClick: (element): boolean => {
-			console.debug('[emoji picker outside]', element);
-			return true;
-		},
-		onOpenChange: (open) => {
-			console.debug('[emoji picker open]', open);
-		}
-	});
+	const popover = new Popover();
 
 	const dispatch = createEventDispatcher();
 
@@ -56,7 +48,6 @@
 		}
 		if (popover.open) {
 			if (PickerConstructor && emojiPicker.firstChild === null) {
-				console.debug('[emoji picker click]', emojiPicker);
 				const picker = new PickerConstructor({
 					data,
 					onEmojiSelect,
@@ -117,7 +108,6 @@
 	}
 
 	function onEmojiSelect(emoji: BaseEmoji): void {
-		console.debug('[emoji picker selected]', emoji);
 		dispatch('pick', emoji);
 		if (autoClose) {
 			popover.open = false;
@@ -125,7 +115,6 @@
 	}
 
 	function clear(): void {
-		console.debug('[emoji picker clear]');
 		emojiPicker?.firstChild?.remove();
 		emojiPickerOpen = false;
 	}
