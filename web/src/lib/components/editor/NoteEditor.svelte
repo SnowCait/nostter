@@ -7,8 +7,6 @@
 	import { _ } from 'svelte-i18n';
 	import { kinds as Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
 	import { uploadFiles } from '$lib/media/FileStorageServer';
-	import { complementPosition } from '$lib/styles/Complement';
-	import { adjustHeight } from '$lib/styles/Textarea';
 	import { getSeenOnRelays, rxNostr } from '$lib/timelines/MainTimeline';
 	import { NoteComposer } from '$lib/NoteComposer';
 	import { channelIdStore, Channel } from '$lib/Channel';
@@ -27,6 +25,7 @@
 	import MediaPicker from '../MediaPicker.svelte';
 	import ContentComponent from '../Content.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
+	import WysiwygInput from './WysiwygInput.svelte';
 	import ContentWarning from './ContentWarning.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
@@ -55,8 +54,8 @@
 		} else {
 			const hashtags = Content.findHashtags(content);
 			content = ' ' + hashtags.map((hashtag) => `#${hashtag}`).join(' ');
-			textarea?.focus();
-			tick().then(() => textarea?.setSelectionRange(0, 0));
+			editor?.focus();
+			tick().then(() => editor?.setSelection(0, 0));
 
 			if (closed) {
 				continuePosting = false;
@@ -79,7 +78,8 @@
 	let contentWarningReason: string | undefined = $state();
 	let enableVia = $state($via !== 'none');
 
-	let textarea = $state<HTMLTextAreaElement>();
+	let editor = $state<WysiwygInput>();
+	let complementCoords = $state<{ left: number; top: number }>();
 
 	const collapsible = new Collapsible();
 
@@ -203,7 +203,7 @@
 	});
 
 	async function replaceShortcodeComplement(emoji: Emoji): Promise<void> {
-		if (shortcode === undefined || textarea === undefined) {
+		if (shortcode === undefined || editor === undefined) {
 			return;
 		}
 
@@ -218,15 +218,15 @@
 			emojiTags.push(emojiTag);
 		}
 
-		const { selectionStart } = textarea;
+		const { from: selectionStart } = editor.getSelection();
 		const index = content.substring(0, selectionStart).lastIndexOf(':');
 		const before = content.substring(0, index);
 		const after = content.substring(index + ':'.length + shortcode.length);
 		content = before + (emoji.native ?? `:${emoji.shortcode}:`) + after;
 		const cursor = content.length - after.length;
 		await tick();
-		textarea.setSelectionRange(cursor, cursor);
-		textarea.focus();
+		editor.setSelection(cursor);
+		editor.focus();
 		shortcode = undefined;
 	}
 
@@ -290,11 +290,11 @@
 			}
 
 			await tick();
-			if (textarea === undefined) {
+			if (editor === undefined) {
 				return;
 			}
-			textarea.setSelectionRange(0, 0);
-			textarea.focus();
+			editor.setSelection(0, 0);
+			editor.focus();
 		}
 	});
 
@@ -308,6 +308,7 @@
 
 		// Submit
 		if (mention === undefined && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+			e.preventDefault();
 			await postNote();
 		}
 
@@ -360,42 +361,40 @@
 		}
 	}
 
-	async function onInput(inputEvent: Event) {
-		if (textarea === undefined) {
+	function onInput() {
+		if (editor === undefined) {
 			return;
 		}
 
-		const { selectionStart, selectionEnd } = textarea;
-		console.debug('[complement input]', inputEvent, content, selectionStart, selectionEnd);
-		if (!(inputEvent instanceof InputEvent)) {
-			console.warn('[complement input type]', typeof inputEvent);
-			return;
-		}
-
-		adjustHeight(textarea);
+		const { from: selectionStart } = editor.getSelection();
+		console.debug('[complement input]', content, selectionStart);
 
 		// Mention complement
-		const mentionMatches = textarea.value.matchAll(/(?<=@)\S+/g);
+		const mentionMatches = content.matchAll(/(?<=@)\S+/g);
 		mention = [...mentionMatches].find(
 			({ index, 0: mention }) =>
 				index <= selectionStart && selectionStart <= index + mention.length
 		)?.[0];
 
-		// Mention complement
-		const shortcodeMatches = textarea.value.matchAll(/(?<=:)[^\s:]+/g);
+		// Custom emoji complement
+		const shortcodeMatches = content.matchAll(/(?<=:)[^\s:]+/g);
 		shortcode = [...shortcodeMatches].find(
 			({ index, 0: mention }) =>
 				index <= selectionStart && selectionStart <= index + mention.length
 		)?.[0];
+
+		const coords = editor.getCursorCoords();
+		complementCoords =
+			coords !== undefined ? { left: coords.left, top: coords.bottom } : undefined;
 	}
 
 	async function replaceMentionComplement(metadata: Metadata): Promise<void> {
-		if (mention === undefined || textarea === undefined) {
+		if (mention === undefined || editor === undefined) {
 			return;
 		}
 
 		console.debug('[complement mention replace]', metadata);
-		const { selectionStart } = textarea;
+		const { from: selectionStart } = editor.getSelection();
 		const index = content.substring(0, selectionStart).lastIndexOf('@');
 		const before = content.substring(0, index);
 		const after = content.substring(index + '@'.length + mention.length);
@@ -409,20 +408,20 @@
 		const cursor = content.length - after.length + (after.startsWith(' ') ? 1 : 0);
 		console.debug('[complement]', after, content.length, cursor);
 		await tick();
-		textarea.setSelectionRange(cursor, cursor);
-		textarea.focus();
+		editor.setSelection(cursor);
+		editor.focus();
 		mention = undefined;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async function onEmojiPick({ detail: emoji }: { detail: any }): Promise<void> {
-		if (textarea === undefined) {
+		if (editor === undefined) {
 			return;
 		}
 
 		console.debug('[emoji pick]', emoji);
 		const shortcode = emoji.id.replaceAll('+', '_');
-		const { selectionStart, selectionEnd } = textarea;
+		const { from: selectionStart, to: selectionEnd } = editor.getSelection();
 		const before = content.substring(0, selectionStart);
 		const after = content.substring(selectionEnd);
 		content = before + (emoji.native ?? `:${shortcode}:`) + after;
@@ -440,7 +439,7 @@
 		}
 		await tick();
 		const cursor = content.length - after.length;
-		textarea.setSelectionRange(cursor, cursor);
+		editor.setSelection(cursor);
 	}
 
 	async function postNote() {
@@ -641,23 +640,31 @@
 			<ProfileIcon pubkey={$pubkey} width="40px" height="40px" />
 		</div>
 		<div class="input">
-			<textarea
-				placeholder={$_('editor.content.placeholder')}
-				class:dropzone={onDrag}
-				bind:value={content}
-				bind:this={textarea}
-				onkeydown={onKeydown}
-				oninput={onInput}
-				onpaste={paste}
-				ondragover={preventDefault(dragover)}
-				ondrop={drop}
-			></textarea>
+			<div class="input-area" class:dropzone={onDrag}>
+				<WysiwygInput
+					bind:this={editor}
+					bind:value={content}
+					{tags}
+					placeholder={$_('editor.content.placeholder')}
+					oninput={onInput}
+					onkeydown={onKeydown}
+					onpaste={paste}
+					ondragover={(event) => {
+						event.preventDefault();
+						dragover();
+					}}
+					ondrop={drop}
+				/>
+			</div>
 			{#if containsNsec}
 				<div class="warning">{$_('editor.warning.nsec')}</div>
 			{/if}
 
-			{#if mentionComplementList.length > 0 && textarea !== undefined}
-				<ul class="complement card" use:complementPosition={textarea}>
+			{#if mentionComplementList.length > 0 && complementCoords !== undefined}
+				<ul
+					class="complement card"
+					style="left: {complementCoords.left}px; top: {complementCoords.top}px;"
+				>
 					{#each mentionComplementList as metadata, i}
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -673,8 +680,11 @@
 				</ul>
 			{/if}
 
-			{#if shortcodeComplementList.length > 0 && textarea !== undefined}
-				<ul class="complement card" use:complementPosition={textarea}>
+			{#if shortcodeComplementList.length > 0 && complementCoords !== undefined}
+				<ul
+					class="complement card"
+					style="left: {complementCoords.left}px; top: {complementCoords.top}px;"
+				>
 					{#each shortcodeComplementList as emoji, i}
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -774,14 +784,8 @@
 		width: 100%;
 	}
 
-	textarea {
+	.input-area {
 		width: 100%;
-		padding: 0.25rem 0.5rem;
-		font-size: 1rem;
-		min-height: 5.5rem;
-		max-height: 20.5rem;
-		line-height: 1rem;
-		resize: none;
 	}
 
 	div.warning {
