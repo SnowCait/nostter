@@ -20,6 +20,9 @@ import { Channel } from '$lib/Channel';
 import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 import type { ChannelMetadata } from '$lib/Types';
 
+const recentWindow = 5 * 60;
+const recentWindowCount = 3;
+
 function contentRelays(event: Event | undefined): string[] {
 	if (event === undefined) {
 		return [];
@@ -90,6 +93,10 @@ export class ChannelChat {
 		this.loading = true;
 
 		const until = this.messages.length > 0 ? this.messages[0].created_at : now();
+
+		this.#subscribeRecentWindow(until);
+
+		let olderCount = 0;
 		const collected: Event[] = [];
 		const { promise, resolve } = Promise.withResolvers<void>();
 		const req = createRxBackwardReq();
@@ -102,6 +109,9 @@ export class ChannelChat {
 			)
 			.subscribe({
 				next: ({ event }) => {
+					if (event.created_at < until) {
+						olderCount++;
+					}
 					if (!this.#seen.has(event.id)) {
 						collected.push(event);
 					}
@@ -115,7 +125,7 @@ export class ChannelChat {
 		req.over();
 		await promise;
 
-		if (collected.length === 0) {
+		if (olderCount === 0) {
 			this.reachedStart = true;
 		} else {
 			this.#prependHistory(collected);
@@ -167,6 +177,26 @@ export class ChannelChat {
 		req.emit({ kinds: [ChannelMessage], '#e': [this.#channelId], since: now() });
 	}
 
+	#subscribeRecentWindow(until: number): void {
+		const req = createRxBackwardReq();
+		rxNostr
+			.use(req, this.#useOptions)
+			.pipe(
+				tie,
+				uniq(),
+				tap(({ event }) => referencesReqEmit(event))
+			)
+			.subscribe(({ event }) => this.#insertOlder(event));
+		const filters = Array.from({ length: recentWindowCount }, (_, i) => ({
+			kinds: [ChannelMessage],
+			'#e': [this.#channelId],
+			since: until - recentWindow * (i + 1),
+			until: until - recentWindow * i
+		}));
+		req.emit(filters);
+		req.over();
+	}
+
 	#appendLive(event: Event): void {
 		if (this.#seen.has(event.id)) {
 			return;
@@ -175,6 +205,17 @@ export class ChannelChat {
 		this.shift = false;
 		this.messages = [...this.messages, event];
 		this.liveSeq++;
+	}
+
+	#insertOlder(event: Event): void {
+		if (this.#seen.has(event.id)) {
+			return;
+		}
+		this.#seen.add(event.id);
+		const index = this.messages.findIndex((e) => e.created_at > event.created_at);
+		this.shift = true;
+		this.messages =
+			index < 0 ? [...this.messages, event] : this.messages.toSpliced(index, 0, event);
 	}
 
 	#prependHistory(events: Event[]): void {
