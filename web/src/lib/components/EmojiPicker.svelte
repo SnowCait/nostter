@@ -27,27 +27,42 @@
 
 	let emojiPicker: HTMLElement | undefined | null = $state();
 
-	const popover = new Popover({
-		onOpenChange: (open) => {
-			console.debug('[emoji picker open]', open);
-			if (open) {
-				init();
-			} else {
-				clear();
-			}
-		}
-	});
+	let PickerConstructor = $state<typeof import('emoji-kitchen-mart').Picker>();
+
+	const popover = new Popover();
 
 	const dispatch = createEventDispatcher();
 
-	async function init(): Promise<void> {
-		console.debug('[emoji picker click]', emojiPicker);
-		if (!emojiPicker || emojiPicker.firstChild !== null) {
+	$effect(() => {
+		if (PickerConstructor || !popover.open) {
 			return;
 		}
+		import('emoji-kitchen-mart').then(({ Picker }) => {
+			PickerConstructor = Picker;
+		});
+	});
 
-		emojiPickerOpen = true;
+	$effect(() => {
+		if (!emojiPicker) {
+			return;
+		}
+		if (popover.open) {
+			if (PickerConstructor && emojiPicker.firstChild === null) {
+				const picker = new PickerConstructor({
+					data,
+					onEmojiSelect,
+					custom: buildCustom()
+				});
+				// eslint-disable-next-line svelte/no-dom-manipulating, @typescript-eslint/no-explicit-any
+				emojiPicker.appendChild(picker as any);
+				emojiPickerOpen = true;
+			}
+		} else if (emojiPicker.firstChild !== null) {
+			clear();
+		}
+	});
 
+	function buildCustom() {
 		const customEmojis = $customEmojiTags.map(([, shortcode, url]) => {
 			return {
 				id: shortcode,
@@ -89,28 +104,10 @@
 				emojis: customEmojis
 			});
 		}
-
-		const { Picker } = await import('emoji-kitchen-mart');
-		if (!popover.open || !emojiPicker || emojiPicker.firstChild !== null) {
-			return;
-		}
-		const picker = new Picker({
-			data,
-			onEmojiSelect,
-			onClickOutside,
-			custom
-		});
-		// eslint-disable-next-line svelte/no-dom-manipulating, @typescript-eslint/no-explicit-any
-		emojiPicker.appendChild(picker as any);
-	}
-
-	function onClickOutside(event: PointerEvent) {
-		console.debug('[emoji picker outside]', event.target);
-		popover.open = false;
+		return custom;
 	}
 
 	function onEmojiSelect(emoji: BaseEmoji): void {
-		console.debug('[emoji picker selected]', emoji);
 		dispatch('pick', emoji);
 		if (autoClose) {
 			popover.open = false;
@@ -118,7 +115,6 @@
 	}
 
 	function clear(): void {
-		console.debug('[emoji picker clear]');
 		emojiPicker?.firstChild?.remove();
 		emojiPickerOpen = false;
 	}
