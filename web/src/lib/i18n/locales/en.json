@@ -308,7 +308,15 @@
 		},
 		"broadcast": {
 			"button": "Broadcast",
-			"confirm": "This event is protected. Are you sure you want to broadcast it?"
+			"confirm": "This event is protected. Are you sure you want to broadcast it?",
+			"completed": {
+				"title": "Broadcast completed",
+				"description": "Accepted by {accepted} of {total} relays"
+			},
+			"failed": {
+				"title": "Broadcast failed",
+				"description": "Failed to broadcast the event."
+			}
 		},
 		"follow": {
 			"myself": "Follow myself",

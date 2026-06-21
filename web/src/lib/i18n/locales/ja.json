@@ -307,7 +307,15 @@
 		},
 		"broadcast": {
 			"button": "ブロードキャスト",
-			"confirm": "このイベントは保護されています。本当にブロードキャストしますか？"
+			"confirm": "このイベントは保護されています。本当にブロードキャストしますか？",
+			"completed": {
+				"title": "ブロードキャスト完了",
+				"description": "{total} 件中 {accepted} 件のリレーが受理しました"
+			},
+			"failed": {
+				"title": "ブロードキャスト失敗",
+				"description": "ブロードキャストに失敗しました。"
+			}
 		},
 		"follow": {
 			"myself": "自分自身をフォローする",
