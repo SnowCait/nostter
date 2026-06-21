@@ -150,6 +150,10 @@
 		background-color: transparent;
 	}
 
+	[popover]:focus {
+		outline: none;
+	}
+
 	main {
 		border: var(--default-border);
 		border-radius: var(--radius);
