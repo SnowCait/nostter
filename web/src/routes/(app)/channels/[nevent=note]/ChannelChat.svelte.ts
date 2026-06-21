@@ -21,6 +21,7 @@ import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 import type { ChannelMetadata } from '$lib/Types';
 
 const recentWindow = 5 * 60;
+const recentWindowCount = 3;
 
 function contentRelays(event: Event | undefined): string[] {
 	if (event === undefined) {
@@ -186,9 +187,13 @@ export class ChannelChat {
 				tap(({ event }) => referencesReqEmit(event))
 			)
 			.subscribe(({ event }) => this.#insertOlder(event));
-		req.emit([
-			{ kinds: [ChannelMessage], '#e': [this.#channelId], since: until - recentWindow, until }
-		]);
+		const filters = Array.from({ length: recentWindowCount }, (_, i) => ({
+			kinds: [ChannelMessage],
+			'#e': [this.#channelId],
+			since: until - recentWindow * (i + 1),
+			until: until - recentWindow * i
+		}));
+		req.emit(filters);
 		req.over();
 	}
 
