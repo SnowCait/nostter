@@ -15,6 +15,7 @@
 	import { Signer } from '$lib/Signer';
 	import { WebStorage } from '$lib/WebStorage';
 	import { updateFolloweesStore } from '$lib/Contacts';
+	import { broadcast } from '$lib/Broadcast';
 
 	let cachedEvents: Nostr.Event[] = $state([]);
 	let loading = $state(false);
@@ -83,7 +84,12 @@
 								</td>
 								<td>
 									{#if i == 0}
-										<span>{$_('preferences.backup.latest')}</span>
+										<button
+											type="button"
+											onclick={() => broadcast($state.snapshot(event))}
+										>
+											{$_('preferences.backup.latest')}
+										</button>
 									{:else}
 										<button
 											type="button"
