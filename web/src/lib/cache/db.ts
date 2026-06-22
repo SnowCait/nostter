@@ -60,4 +60,8 @@ export class FolloweeReplaceableEventCache {
 		}
 		return eventsMap;
 	}
+
+	async pruneExcept(pubkeys: string[]): Promise<void> {
+		await this.db.followeeReplaceableEvents.where('pubkey').noneOf(pubkeys).delete();
+	}
 }

@@ -219,4 +219,34 @@ describe('FolloweeReplaceableEventCache', () => {
 			expect(map.get(pubkey1)?.kind).toBe(3);
 		});
 	});
+
+	describe('pruneExcept', () => {
+		it('should delete events whose pubkey is not in the list', async () => {
+			await cache.put(
+				mockEvent({ id: '1'.repeat(64), kind: 0, pubkey: pubkey1, created_at: 1000 })
+			);
+			await cache.put(
+				mockEvent({ id: '2'.repeat(64), kind: 0, pubkey: pubkey2, created_at: 2000 })
+			);
+
+			await cache.pruneExcept([pubkey1]);
+
+			expect(await testDb.followeeReplaceableEvents.get([0, pubkey1])).toBeDefined();
+			expect(await testDb.followeeReplaceableEvents.get([0, pubkey2])).toBeUndefined();
+			expect(await testDb.followeeReplaceableEvents.count()).toBe(1);
+		});
+
+		it('should keep all events when every pubkey is in the list', async () => {
+			await cache.put(
+				mockEvent({ id: '1'.repeat(64), kind: 0, pubkey: pubkey1, created_at: 1000 })
+			);
+			await cache.put(
+				mockEvent({ id: '2'.repeat(64), kind: 0, pubkey: pubkey2, created_at: 2000 })
+			);
+
+			await cache.pruneExcept([pubkey1, pubkey2]);
+
+			expect(await testDb.followeeReplaceableEvents.count()).toBe(2);
+		});
+	});
 });

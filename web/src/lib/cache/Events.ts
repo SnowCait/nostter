@@ -66,3 +66,10 @@ export async function loadFolloweesMetadataCache(pubkeys: string[]): Promise<voi
 	}
 	metadataStore.set($metadataStore);
 }
+
+export async function pruneFolloweeReplaceableEventsCache(pubkeys: string[]): Promise<void> {
+	if (pubkeys.length <= 1) {
+		return;
+	}
+	await followeeEventCache.pruneExcept(pubkeys);
+}

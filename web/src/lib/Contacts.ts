@@ -4,6 +4,7 @@ import { Api } from './Api';
 import { filterTags } from './EventHelper';
 import { followees, originalFollowees, pubkey } from './stores/Author';
 import { sendEvent } from './RxNostrHelper';
+import { pruneFolloweeReplaceableEventsCache } from './cache/Events';
 
 export class Contacts {
 	private readonly api: Api;
@@ -42,4 +43,5 @@ export function updateFolloweesStore(tags: string[][]): void {
 	pubkeys.add(get(pubkey)); // Add myself
 	followees.set([...pubkeys]);
 	console.log('[contacts]', pubkeys.size);
+	pruneFolloweeReplaceableEventsCache([...pubkeys]);
 }
