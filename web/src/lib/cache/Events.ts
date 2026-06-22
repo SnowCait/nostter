@@ -5,7 +5,7 @@ import type { id, pubkey } from '$lib/Types';
 import { EventItem, Metadata } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
 import { replaceableKinds } from '$lib/Constants';
-import { followees } from '$lib/stores/Author';
+import { followeesSet } from '$lib/stores/Author';
 import { db, EventCache, FolloweeReplaceableEventCache } from './db';
 
 export const metadataStore = writable(new Map<pubkey, Metadata>());
@@ -47,9 +47,6 @@ export function storeEventItem(event: Nostr.Event): void {
 
 export const eventCache = new EventCache(db);
 export const followeeEventCache = new FolloweeReplaceableEventCache(db);
-
-let followeesSet = new Set<string>();
-followees.subscribe(($followees) => (followeesSet = new Set($followees)));
 
 export function cacheFolloweeReplaceableEvent(event: Nostr.Event): void {
 	if (!replaceableKinds.includes(event.kind) || !followeesSet.has(event.pubkey)) {
