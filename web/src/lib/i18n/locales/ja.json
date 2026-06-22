@@ -142,6 +142,7 @@
 		"enable_uri_scheme": "有効化",
 		"developer_mode": "開発者モード",
 		"developer_mode_description": "（追加の機能を提供しますが Nostr の知識が必要です）",
+		"seen_on_relay_icon": "タイムラインに seen on リレーと via を表示",
 		"mute": {
 			"mute": "ミュート",
 			"pubkeys": "ユーザー",

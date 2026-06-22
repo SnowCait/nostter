@@ -21,6 +21,7 @@
 	import DeveloperMode from './DeveloperMode.svelte';
 	import WebStorage from './WebStorage.svelte';
 	import RelayStates from './RelayStates.svelte';
+	import SeenOnRelayIcon from './SeenOnRelayIcon.svelte';
 	import WalletConnect from './WalletConnect.svelte';
 	import Reload from './Reload.svelte';
 	import ClearEventCacheAndReload from './ClearEventCacheAndReload.svelte';
@@ -109,6 +110,7 @@
 		<div><WorkAsRemoteSigner /></div>
 		<div><RelayStates /></div>
 		<div><WebStorage /></div>
+		<div><SeenOnRelayIcon /></div>
 		<h3>{$_('preferences.trouble_shooting')}</h3>
 		<div><Reload /></div>
 		<div><ClearEventCacheAndReload /></div>
