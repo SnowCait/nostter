@@ -1,19 +1,12 @@
 <script lang="ts">
 	import { Nip11Registry } from 'rx-nostr';
+	import { hostname } from '$lib/Helper';
 
 	interface Props {
 		relay: string;
 	}
 
 	let { relay }: Props = $props();
-
-	function hostname(value: string): string {
-		try {
-			return new URL(value).hostname;
-		} catch {
-			return value;
-		}
-	}
 
 	let host = $derived(hostname(relay));
 	let initial = $derived(host.charAt(0).toUpperCase());
@@ -50,7 +43,7 @@
 		display: block;
 		width: 16px;
 		height: 16px;
-		border-radius: 2px;
+		border-radius: 50%;
 	}
 
 	img {

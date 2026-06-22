@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import { hostname } from '$lib/Helper';
 	import RelayIcon from './RelayIcon.svelte';
 
 	interface Props {
@@ -9,14 +10,6 @@
 	let { id }: Props = $props();
 
 	let relays = $derived(getSeenOnRelays(id) ?? []);
-
-	function hostname(relay: string): string {
-		try {
-			return new URL(relay).hostname;
-		} catch {
-			return relay;
-		}
-	}
 </script>
 
 <div class="relays">
