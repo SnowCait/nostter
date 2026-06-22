@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { followees } from '$lib/stores/Author';
+	import { isAnimatedImage } from '$lib/media/AnimatedImage';
 	import { gifAutoplay, imageOptimization } from '$lib/stores/Preference';
 	import type * as Nostr from 'nostr-typedef';
 	import { getContext } from 'svelte';
@@ -27,14 +28,28 @@
 	let displaySrc = $derived(
 		optimize ? `${$imageOptimization}width=800,quality=60,format=webp/${src}` : src
 	);
-	let loaded = $derived(!optimize);
+	let loading = $derived(optimize);
 
-	const animated = $derived(/\.(gif|apng)$/i.test(pathname));
+	const presumedAnimated = $derived(/\.(gif|apng)$/i.test(pathname));
+	const detectable = $derived(/\.(gif|apng|png|webp|avif)$/i.test(pathname));
+	// Writable $derived: updated by detection, reset when url changes
+	let animated = $derived(presumedAnimated);
 	let playing = $state(false);
 	const frozen = $derived(animated && !$gifAutoplay && !playing);
 
-	let img: HTMLImageElement | undefined = $state();
-	let canvas: HTMLCanvasElement | undefined = $state();
+	$effect(() => {
+		if (!$gifAutoplay && detectable) {
+			const target = src;
+			isAnimatedImage(target).then((result) => {
+				if (src === target) {
+					animated = result ?? presumedAnimated;
+				}
+			});
+		}
+	});
+
+	let img = $state<HTMLImageElement>();
+	let canvas = $state<HTMLCanvasElement>();
 	let canvasDrawn = $state(false);
 
 	function freeze(): void {
@@ -71,13 +86,13 @@
 	<img
 		bind:this={img}
 		class:blur
-		class:loading={!loaded}
+		class:loading
 		class:frozen={frozen && canvasDrawn}
 		src={displaySrc}
 		alt={src}
 		loading="lazy"
 		onload={() => {
-			loaded = true;
+			loading = false;
 			if (frozen) {
 				freeze();
 			}
@@ -86,7 +101,7 @@
 			if (displaySrc !== src) {
 				displaySrc = src;
 			} else {
-				loaded = true;
+				loading = false;
 			}
 		}}
 	/>
