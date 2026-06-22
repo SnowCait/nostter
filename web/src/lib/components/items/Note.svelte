@@ -20,6 +20,8 @@
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import Foldable from '$lib/components/shared/Foldable.svelte';
 	import { _ } from 'svelte-i18n';
+	import SeenOnRelayIcons from '../SeenOnRelayIcons.svelte';
+	import { seenOnRelayIcon } from '$lib/SeenOnRelayIcon';
 
 	interface Props {
 		item: Item;
@@ -150,6 +152,11 @@
 					<CreatedAt createdAt={item.event.created_at} format="full" />
 					<Via tags={item.event.tags} />
 				</footer>
+			{:else if $seenOnRelayIcon}
+				<footer class="relay-info">
+					<SeenOnRelayIcons id={item.event.id} />
+					<div class="via"><Via tags={item.event.tags} /></div>
+				</footer>
 			{/if}
 		</section>
 	{/snippet}
@@ -196,5 +203,16 @@
 
 	footer {
 		margin-top: 0.2rem;
+	}
+
+	footer.relay-info {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem 0.5rem;
+	}
+
+	footer.relay-info .via {
+		margin-left: auto;
 	}
 </style>
