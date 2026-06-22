@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Dexie from 'dexie';
-import { EventCache, type CacheDB } from './db';
+import { EventCache, FolloweeReplaceableEventCache, type CacheDB } from './db';
 import type * as Nostr from 'nostr-typedef';
 
 const mockEvent = (overrides: Partial<Nostr.Event> = {}): Nostr.Event => ({
@@ -118,6 +118,105 @@ describe('EventCache', () => {
 			expect(events.length).toBe(2);
 			expect(events[0].created_at).toBe(2000);
 			expect(events[1].created_at).toBe(1000);
+		});
+	});
+});
+
+describe('FolloweeReplaceableEventCache', () => {
+	let testDb: CacheDB;
+	let cache: FolloweeReplaceableEventCache;
+
+	const pubkey1 = 'a'.repeat(64);
+	const pubkey2 = 'b'.repeat(64);
+
+	beforeEach(async () => {
+		testDb = new Dexie(`followee-cache-test-${Date.now()}`) as CacheDB;
+		testDb.version(1).stores({
+			events: 'id, kind, pubkey, [kind+pubkey]',
+			followeeReplaceableEvents: '[kind+pubkey], pubkey'
+		});
+		await testDb.open();
+
+		cache = new FolloweeReplaceableEventCache(testDb);
+	});
+
+	afterEach(async () => {
+		await testDb.delete();
+	});
+
+	describe('put', () => {
+		it('should store an event', async () => {
+			const event = mockEvent({
+				id: '1'.repeat(64),
+				kind: 0,
+				pubkey: pubkey1,
+				created_at: 1000
+			});
+			await cache.put(event);
+
+			const stored = await testDb.followeeReplaceableEvents.get([0, pubkey1]);
+			expect(stored?.id).toBe(event.id);
+		});
+
+		it('should keep only the latest per kind and pubkey', async () => {
+			await cache.put(
+				mockEvent({ id: '1'.repeat(64), kind: 0, pubkey: pubkey1, created_at: 1000 })
+			);
+			await cache.put(
+				mockEvent({ id: '2'.repeat(64), kind: 0, pubkey: pubkey1, created_at: 2000 })
+			);
+
+			const stored = await testDb.followeeReplaceableEvents.get([0, pubkey1]);
+			expect(stored?.created_at).toBe(2000);
+			expect(await testDb.followeeReplaceableEvents.count()).toBe(1);
+		});
+
+		it('should ignore an older event', async () => {
+			await cache.put(
+				mockEvent({ id: '2'.repeat(64), kind: 0, pubkey: pubkey1, created_at: 2000 })
+			);
+			await cache.put(
+				mockEvent({ id: '1'.repeat(64), kind: 0, pubkey: pubkey1, created_at: 1000 })
+			);
+
+			const stored = await testDb.followeeReplaceableEvents.get([0, pubkey1]);
+			expect(stored?.created_at).toBe(2000);
+		});
+	});
+
+	describe('getLatest', () => {
+		beforeEach(async () => {
+			await cache.put(
+				mockEvent({ id: '1'.repeat(64), kind: 0, pubkey: pubkey1, created_at: 1000 })
+			);
+			await cache.put(
+				mockEvent({ id: '2'.repeat(64), kind: 0, pubkey: pubkey2, created_at: 2000 })
+			);
+			await cache.put(
+				mockEvent({ id: '3'.repeat(64), kind: 3, pubkey: pubkey1, created_at: 1500 })
+			);
+		});
+
+		it('should return the latest event per pubkey for a kind', async () => {
+			const map = await cache.getLatest(0, [pubkey1, pubkey2]);
+
+			expect(map.size).toBe(2);
+			expect(map.get(pubkey1)?.created_at).toBe(1000);
+			expect(map.get(pubkey2)?.created_at).toBe(2000);
+		});
+
+		it('should not include pubkeys without a cached event', async () => {
+			const map = await cache.getLatest(0, [pubkey1, 'c'.repeat(64)]);
+
+			expect(map.size).toBe(1);
+			expect(map.has(pubkey1)).toBe(true);
+		});
+
+		it('should filter by kind', async () => {
+			const map = await cache.getLatest(3, [pubkey1, pubkey2]);
+
+			expect(map.size).toBe(1);
+			expect(map.get(pubkey1)?.kind).toBe(3);
 		});
 	});
 });

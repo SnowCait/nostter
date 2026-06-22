@@ -1,14 +1,17 @@
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
+import { kinds as Kind } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
 import type { pubkey } from './Types';
 import { rxNostr, tie } from './timelines/MainTimeline';
+import { cacheFolloweeReplaceableEvent, followeeEventCache } from './cache/Events';
 
 export class RelayList {
 	static async fetchEvents(pubkeys: pubkey[]): Promise<Map<pubkey, Nostr.Event>> {
-		const eventsMap = new Map<pubkey, Nostr.Event>();
 		if (pubkeys.length === 0) {
-			return eventsMap;
+			return new Map();
 		}
+
+		const eventsMap = await followeeEventCache.getLatest(Kind.RelayList, pubkeys);
 
 		return new Promise((resolve) => {
 			const req = createRxBackwardReq();
@@ -20,12 +23,14 @@ export class RelayList {
 					latestEach(({ event }) => event.pubkey)
 				)
 				.subscribe({
-					next: (packet) => {
-						console.debug('[rx-nostr kind 10002 next]', pubkeys, packet);
-						eventsMap.set(packet.event.pubkey, packet.event);
+					next: ({ event }) => {
+						const current = eventsMap.get(event.pubkey);
+						if (current === undefined || current.created_at < event.created_at) {
+							eventsMap.set(event.pubkey, event);
+						}
+						cacheFolloweeReplaceableEvent(event);
 					},
 					complete: () => {
-						console.debug('[rx-nostr kind 10002 complete]', pubkeys);
 						resolve(eventsMap);
 					},
 					error: (error) => {
@@ -33,7 +38,7 @@ export class RelayList {
 						resolve(eventsMap);
 					}
 				});
-			req.emit([{ kinds: [10002], authors: pubkeys }]);
+			req.emit([{ kinds: [Kind.RelayList], authors: pubkeys }]);
 			req.over();
 		});
 	}

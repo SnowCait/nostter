@@ -1,9 +1,12 @@
 import { get, writable, type Writable } from 'svelte/store';
+import { kinds as Kind } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
 import type { id, pubkey } from '$lib/Types';
 import { EventItem, Metadata } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
-import { db, EventCache } from './db';
+import { replaceableKinds } from '$lib/Constants';
+import { followees } from '$lib/stores/Author';
+import { db, EventCache, FolloweeReplaceableEventCache } from './db';
 
 export const metadataStore = writable(new Map<pubkey, Metadata>());
 export const eventItemStore = writable(new Map<id, EventItem>());
@@ -29,6 +32,8 @@ export function storeMetadata(event: Nostr.Event): void {
 		const toast = new ToastNotification();
 		toast.dequeue(metadata);
 	}
+
+	cacheFolloweeReplaceableEvent(event);
 }
 
 export function storeEventItem(event: Nostr.Event): void {
@@ -41,3 +46,26 @@ export function storeEventItem(event: Nostr.Event): void {
 }
 
 export const eventCache = new EventCache(db);
+export const followeeEventCache = new FolloweeReplaceableEventCache(db);
+
+let followeesSet = new Set<string>();
+followees.subscribe(($followees) => (followeesSet = new Set($followees)));
+
+export function cacheFolloweeReplaceableEvent(event: Nostr.Event): void {
+	if (!replaceableKinds.includes(event.kind) || !followeesSet.has(event.pubkey)) {
+		return;
+	}
+	followeeEventCache.put(event);
+}
+
+export async function loadFolloweesMetadataCache(pubkeys: string[]): Promise<void> {
+	const eventsMap = await followeeEventCache.getLatest(Kind.Metadata, pubkeys);
+	const $metadataStore = get(metadataStore);
+	for (const [pubkey, event] of eventsMap) {
+		const cache = $metadataStore.get(pubkey);
+		if (cache === undefined || cache.event.created_at < event.created_at) {
+			$metadataStore.set(pubkey, new Metadata(event));
+		}
+	}
+	metadataStore.set($metadataStore);
+}

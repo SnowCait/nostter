@@ -1,10 +1,12 @@
 import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
+import { kinds as Kind } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
 import { chunk } from '$lib/Array';
 import { filterLimit, maxFilters } from '$lib/Constants';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { followees } from '$lib/stores/Author';
+import { cacheFolloweeReplaceableEvent, followeeEventCache } from '$lib/cache/Events';
 
 export const followeesOfFollowees = writable<Set<string>>(new Set());
 
@@ -33,6 +35,19 @@ export function contactsOfFolloweesReqEmit(): void {
 
 	loaded = true;
 
+	const $followees = get(followees);
+	followeesOfFollowees.set(new Set($followees)); // For UX
+
+	followeeEventCache.getLatest(Kind.Contacts, $followees).then((cached) => {
+		if (cached.size === 0) {
+			return;
+		}
+		for (const [pubkey, event] of cached) {
+			$contactsOfFollowees.set(pubkey, event);
+		}
+		contactsOfFollowees.set($contactsOfFollowees);
+	});
+
 	const req = createRxBackwardReq();
 	rxNostr
 		.use(req)
@@ -45,15 +60,17 @@ export function contactsOfFolloweesReqEmit(): void {
 			next: ({ event }) => {
 				console.debug('[followees contacts]', event);
 				$contactsOfFollowees.set(event.pubkey, event);
+				cacheFolloweeReplaceableEvent(event);
 			},
 			complete: () => {
 				contactsOfFollowees.set($contactsOfFollowees);
 			}
 		});
 
-	const $followees = get(followees);
-	followeesOfFollowees.set(new Set($followees)); // For UX
-	const filters = chunk($followees, filterLimit).map((authors) => ({ kinds: [3], authors }));
+	const filters = chunk($followees, filterLimit).map((authors) => ({
+		kinds: [Kind.Contacts],
+		authors
+	}));
 	for (const chunkedFilters of chunk(filters, maxFilters)) {
 		req.emit(chunkedFilters);
 		req.over();
