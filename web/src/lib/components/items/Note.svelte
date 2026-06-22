@@ -153,9 +153,9 @@
 					<Via tags={item.event.tags} />
 				</footer>
 			{:else if $seenOnRelayIcon}
-				<footer>
+				<footer class="relay-info">
 					<SeenOnRelayIcons id={item.event.id} />
-					<Via tags={item.event.tags} />
+					<div class="via"><Via tags={item.event.tags} /></div>
 				</footer>
 			{/if}
 		</section>
@@ -203,5 +203,16 @@
 
 	footer {
 		margin-top: 0.2rem;
+	}
+
+	footer.relay-info {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem 0.5rem;
+	}
+
+	footer.relay-info .via {
+		margin-left: auto;
 	}
 </style>
