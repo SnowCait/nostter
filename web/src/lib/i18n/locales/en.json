@@ -143,7 +143,8 @@
 		"enable_uri_scheme": "Enable",
 		"developer_mode": "Developer mode",
 		"developer_mode_description": "(Provide additional features, but they require knowledge of Nostr)",
-		"seen_on_relay_icon": "Show seen-on relays and via on timeline",
+		"seen_on_relay_icon": "Show seen-on relays on timeline",
+		"show_via": "Show via on timeline",
 		"mute": {
 			"mute": "Mute",
 			"pubkeys": "Users",

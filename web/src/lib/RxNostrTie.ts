@@ -1,5 +1,6 @@
 import type { EventPacket } from 'rx-nostr';
 import { map, pipe, type OperatorFunction } from 'rxjs';
+import { SvelteSet } from 'svelte/reactivity';
 
 export function createTie<P extends EventPacket>(): [
 	OperatorFunction<P, P & { seenOn: Set<string>; isNew: boolean }>,
@@ -10,7 +11,7 @@ export function createTie<P extends EventPacket>(): [
 	return [
 		pipe(
 			map((packet) => {
-				const seenOn = memo.get(packet.event.id) ?? new Set<string>();
+				const seenOn = memo.get(packet.event.id) ?? new SvelteSet<string>();
 				const isNew = seenOn.size <= 0;
 
 				if (!memo.get(packet.event.id)?.has(packet.from)) {

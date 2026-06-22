@@ -22,6 +22,7 @@
 	import { _ } from 'svelte-i18n';
 	import SeenOnRelayIcons from '../SeenOnRelayIcons.svelte';
 	import { seenOnRelayIcon } from '$lib/SeenOnRelayIcon';
+	import { showVia } from '$lib/ShowVia';
 
 	interface Props {
 		item: Item;
@@ -150,12 +151,19 @@
 			{#if full}
 				<footer>
 					<CreatedAt createdAt={item.event.created_at} format="full" />
-					<Via tags={item.event.tags} />
+					<div class="relay-info">
+						<SeenOnRelayIcons id={item.event.id} />
+						<div class="via"><Via tags={item.event.tags} /></div>
+					</div>
 				</footer>
-			{:else if $seenOnRelayIcon}
+			{:else if $seenOnRelayIcon || $showVia}
 				<footer class="relay-info">
-					<SeenOnRelayIcons id={item.event.id} />
-					<div class="via"><Via tags={item.event.tags} /></div>
+					{#if $seenOnRelayIcon}
+						<SeenOnRelayIcons id={item.event.id} />
+					{/if}
+					{#if $showVia}
+						<div class="via"><Via tags={item.event.tags} /></div>
+					{/if}
 				</footer>
 			{/if}
 		</section>
@@ -205,14 +213,18 @@
 		margin-top: 0.2rem;
 	}
 
-	footer.relay-info {
+	.relay-info {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.25rem 0.5rem;
 	}
 
-	footer.relay-info .via {
+	footer.relay-info {
+		margin-top: 0.5rem;
+	}
+
+	.relay-info .via {
 		margin-left: auto;
 	}
 </style>
