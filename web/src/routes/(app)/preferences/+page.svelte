@@ -107,10 +107,10 @@
 	<div><Backup /></div>
 	<div><DeveloperMode /></div>
 	{#if $developerMode}
+		<div><SeenOnRelayIcon /></div>
 		<div><WorkAsRemoteSigner /></div>
 		<div><RelayStates /></div>
 		<div><WebStorage /></div>
-		<div><SeenOnRelayIcon /></div>
 		<h3>{$_('preferences.trouble_shooting')}</h3>
 		<div><Reload /></div>
 		<div><ClearEventCacheAndReload /></div>
