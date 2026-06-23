@@ -19,6 +19,8 @@
 
 	let { children }: Props = $props();
 
+	let mounted = $state(false);
+
 	const konamiCode = [
 		'ArrowUp',
 		'ArrowUp',
@@ -114,6 +116,7 @@
 	}
 
 	onMount(() => {
+		mounted = true;
 		subscribeSystemTheme();
 		fetchLastNotification();
 		homeTimeline.subscribe();
@@ -151,7 +154,9 @@
 <Notice />
 
 <div class="app">
-	<NoteDialog />
+	{#if mounted}
+		<NoteDialog />
+	{/if}
 
 	<header>
 		<div>
