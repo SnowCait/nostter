@@ -21,7 +21,7 @@ import { WebStorage } from './WebStorage';
 import { Preferences, preferencesStore } from './Preferences';
 import { rxNostr, tie } from './timelines/MainTimeline';
 import { Signer } from './Signer';
-import { authorChannelsEventStore } from './cache/Events';
+import { authorChannelsEventStore, storeMetadata } from './cache/Events';
 import { updateFolloweesStore } from './Contacts';
 import {
 	authorReplaceableKinds,
@@ -95,6 +95,7 @@ export class Author {
 		const $metadataEvent = replaceableEvents.get(Kind.Metadata);
 		if ($metadataEvent !== undefined) {
 			metadataEvent.set($metadataEvent);
+			storeMetadata($metadataEvent);
 			try {
 				authorProfile.set(JSON.parse($metadataEvent.content));
 			} catch (error) {
