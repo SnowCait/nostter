@@ -1,11 +1,12 @@
 import { get } from 'svelte/store';
-import { author, authorProfile, loginType, pubkey, rom } from './stores/Author';
+import { author, authorProfile, followees, loginType, pubkey, rom } from './stores/Author';
 import { Signer } from './Signer';
 import { Author } from './Author';
 import { getPublicKey, nip19 } from 'nostr-tools';
 import { robohash } from './Items';
 import { WebStorage } from './WebStorage';
 import { rxNostr } from './timelines/MainTimeline';
+import { loadFolloweesMetadataCache } from './cache/Events';
 import { now } from 'rx-nostr';
 import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
@@ -156,6 +157,8 @@ export class Login {
 
 		await $author.fetchEvents();
 		console.timeEnd('fetch author');
+
+		await loadFolloweesMetadataCache(get(followees));
 
 		author.set($author);
 		clearLoginStatus();

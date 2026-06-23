@@ -28,6 +28,9 @@ export const writeRelays: Writable<string[]> = writable(
 );
 export const rom = writable(false);
 
+export let followeesSet = new Set<string>();
+followees.subscribe(($followees) => (followeesSet = new Set($followees)));
+
 let mutePubkeysSetRef: string[] | undefined;
 let mutePubkeysSet = new Set<string>();
 const getMutePubkeysSet = (): Set<string> => {
