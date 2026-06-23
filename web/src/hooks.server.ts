@@ -45,7 +45,7 @@ const cspDirectives: Record<string, string[]> = {
 	'worker-src': ["'self'", 'blob:'],
 	'object-src': ["'none'"],
 	'base-uri': ["'self'"],
-	'frame-ancestors': ["'self'"],
+	'frame-ancestors': ["'self'", 'https://deck.nostter.app'],
 	'form-action': ["'self'"],
 	'manifest-src': ["'self'"]
 };
