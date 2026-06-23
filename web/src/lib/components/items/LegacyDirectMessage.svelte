@@ -12,7 +12,7 @@
 
 	let { event }: Props = $props();
 
-	let link = $derived(new URL(`https://nostrapp.link/kind/${event.kind}`));
+	let link = $derived(new URL(`https://app-manager.nostter.app/kind/${event.kind}`));
 </script>
 
 <SystemMessage>
