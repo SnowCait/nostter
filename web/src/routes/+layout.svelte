@@ -4,11 +4,17 @@
 	import '../app.css';
 	import Toaster from '$lib/components/Toaster.svelte';
 	import LoginStatus from '$lib/components/LoginStatus.svelte';
+	import { onMount } from 'svelte';
+	import { tryLogin } from '$lib/Login';
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
 
 	let { children }: Props = $props();
+
+	onMount(() => {
+		void tryLogin();
+	});
 </script>
 
 <svelte:head>

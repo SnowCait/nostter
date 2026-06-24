@@ -1,6 +1,6 @@
 import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
 import { followees } from '$lib/stores/Author';
-import { persistedStore } from '$lib/WebStorage';
+import { persistedStore } from '$lib/persisted-store';
 import { get } from 'svelte/store';
 
 export const notificationVisibilities = ['all', 'follows_of_follows', 'follows'] as const;

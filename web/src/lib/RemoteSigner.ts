@@ -4,7 +4,7 @@ import { createRxForwardReq, createRxNostr, now, type RxNostr } from 'rx-nostr';
 import { get } from 'svelte/store';
 import { pubkey } from './stores/Author';
 import type { Subscription } from 'rxjs';
-import { persistedStore } from './WebStorage';
+import { persistedStore } from './persisted-store';
 import type { Persisted } from 'svelte-persisted-store';
 import { Signer } from './Signer';
 import { verificationClient } from './timelines/MainTimeline';

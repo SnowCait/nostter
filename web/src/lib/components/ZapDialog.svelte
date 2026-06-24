@@ -3,7 +3,8 @@
 	import QRCode from 'qrcode';
 	import { writeRelays } from '$lib/stores/Author';
 	import { createEventDispatcher } from 'svelte';
-	import { persistedStore, WebStorage } from '$lib/WebStorage';
+	import { persistedStore } from '$lib/persisted-store';
+	import { WebStorage } from '$lib/WebStorage';
 	import { Signer } from '$lib/Signer';
 	import { zapWithWalletConnect } from '$lib/Zap';
 	import { metadataStore } from '$lib/cache/Events';

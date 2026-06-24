@@ -2,17 +2,7 @@ import type { Event } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { findIdentifier } from './EventHelper';
 import { pubkey } from './stores/Author';
-import { appName } from './Constants';
-import { persisted, type Options, type Persisted } from 'svelte-persisted-store';
 import { eventCache } from './cache/Events';
-
-export function persistedStore<StoreType, SerializerType = StoreType>(
-	key: string,
-	initialValue: StoreType,
-	options?: Options<StoreType, SerializerType>
-): Persisted<StoreType> {
-	return persisted(`${appName}:${key}`, initialValue, options);
-}
 
 export class WebStorage {
 	public constructor(private readonly storage: Storage) {}
