@@ -11,7 +11,7 @@ import { now } from 'rx-nostr';
 import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
 import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
-import { authStatus } from './auth-status';
+import { auth } from './auth.svelte';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -162,7 +162,7 @@ export class Login {
 		await loadFolloweesMetadataCache(get(followees));
 
 		author.set($author);
-		authStatus.set('authenticated');
+		auth.setAuthenticated();
 		clearLoginStatus();
 
 		remoteSigner.subscribeIfEnabled();
@@ -178,7 +178,7 @@ export async function tryLogin(): Promise<boolean> {
 			return false;
 		}
 
-		authStatus.set('restoring');
+		auth.beginRestoring();
 		setLoginStatus('checking');
 
 		const login = new Login();
@@ -210,8 +210,8 @@ export async function tryLogin(): Promise<boolean> {
 
 		return true;
 	} finally {
-		if (get(authStatus) !== 'authenticated') {
-			authStatus.set('anonymous');
+		if (auth.status !== 'authenticated') {
+			auth.setAnonymous();
 		}
 	}
 }
