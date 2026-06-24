@@ -4,6 +4,10 @@ export type AuthStatus = 'idle' | 'restoring' | 'authenticating' | 'authenticate
 
 class Auth {
 	status = $state<AuthStatus>('idle');
+	pubkey = $state('');
+	followees = $state<string[]>([]);
+	originalFollowees = $state<string[]>([]);
+	followeesSet = $derived(new Set(this.followees));
 
 	isInitializing = $derived(this.status === 'idle' || this.status === 'restoring');
 	isReady = $derived(this.status === 'authenticated' || this.status === 'anonymous');
@@ -17,8 +21,16 @@ class Auth {
 		this.status = 'authenticating';
 	}
 
-	setAuthenticated(): void {
+	commit(pubkey: string, followees: string[], originalFollowees: string[]): void {
+		this.pubkey = pubkey;
+		this.followees = followees;
+		this.originalFollowees = originalFollowees;
 		this.status = 'authenticated';
+	}
+
+	updateFollowees(followees: string[], originalFollowees: string[]): void {
+		this.followees = followees;
+		this.originalFollowees = originalFollowees;
 	}
 
 	setAnonymous(): void {

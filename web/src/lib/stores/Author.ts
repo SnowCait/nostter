@@ -1,4 +1,4 @@
-import { get, writable, type Writable } from 'svelte/store';
+import { get, writable, toStore, type Writable } from 'svelte/store';
 import escapeStringRegexp from 'escape-string-regexp';
 import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
@@ -6,14 +6,15 @@ import { defaultRelays } from '$lib/Constants';
 import type { Author } from '$lib/Author';
 import { filterRelayTags, filterTags, findIdentifier, getZapperPubkey } from '$lib/EventHelper';
 import { decryptListContent } from '$lib/List';
+import { auth } from '$lib/auth.svelte';
 
 export const loginType: Writable<'NIP-07' | 'NIP-46' | 'nsec' | 'npub' | undefined> = writable();
-export const pubkey = writable('');
+export const pubkey = toStore(() => auth.pubkey);
 export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
-export const followees: Writable<string[]> = writable([]);
-export const originalFollowees = writable<string[]>([]);
+export const followees = toStore(() => auth.followees);
+export const originalFollowees = toStore(() => auth.originalFollowees);
 export const muteEvent = writable<Event | undefined>();
 export const mutePubkeys: Writable<string[]> = writable([]);
 export const mutedPubkeysByKindMap = writable(new Map<number, Set<string>>());
@@ -27,9 +28,6 @@ export const writeRelays: Writable<string[]> = writable(
 	defaultRelays.filter((relay) => relay.write).map((relay) => relay.url)
 );
 export const rom = writable(false);
-
-export let followeesSet = new Set<string>();
-followees.subscribe(($followees) => (followeesSet = new Set($followees)));
 
 let mutePubkeysSetRef: string[] | undefined;
 let mutePubkeysSet = new Set<string>();
