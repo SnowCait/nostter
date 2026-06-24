@@ -11,7 +11,7 @@ import { now } from 'rx-nostr';
 import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
 import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
-import { loginResolved } from './login-state';
+import { authStatus } from './auth-status';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -162,6 +162,7 @@ export class Login {
 		await loadFolloweesMetadataCache(get(followees));
 
 		author.set($author);
+		authStatus.set('authenticated');
 		clearLoginStatus();
 
 		remoteSigner.subscribeIfEnabled();
@@ -177,6 +178,7 @@ export async function tryLogin(): Promise<boolean> {
 			return false;
 		}
 
+		authStatus.set('restoring');
 		setLoginStatus('checking');
 
 		const login = new Login();
@@ -208,6 +210,8 @@ export async function tryLogin(): Promise<boolean> {
 
 		return true;
 	} finally {
-		loginResolved.set(true);
+		if (get(authStatus) !== 'authenticated') {
+			authStatus.set('anonymous');
+		}
 	}
 }
