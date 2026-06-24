@@ -14,7 +14,7 @@
 	import { ChannelMessage, LongFormArticle, Poll, ShortTextNote } from 'nostr-tools/kinds';
 	import { writable } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
-	import { persistedStore } from '$lib/WebStorage';
+	import { persistedStore } from '$lib/persisted-store';
 	import { pushSearchHistory, rankSearchHistory } from '$lib/SearchHistory';
 	import { IconX, IconTrash } from '@tabler/icons-svelte-runes';
 

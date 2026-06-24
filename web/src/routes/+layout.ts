@@ -1,17 +1,13 @@
 import { get } from 'svelte/store';
 import { _, locale, waitLocale } from 'svelte-i18n';
 import { browser } from '$app/environment';
-import { Login } from '$lib/Login';
-import { WebStorage } from '$lib/WebStorage';
 import { initialize } from '$lib/i18n';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { appName, defaultRelays, localizedRelays } from '$lib/Constants';
 import type { LayoutLoad } from './$types';
 import { readRelays, writeRelays } from '$lib/stores/Author';
-import { setLoginStatus } from '$lib/stores/LoginStatus';
 
 export const load: LayoutLoad = async ({ url }) => {
-	let authenticated = false;
 	await initialize();
 	if (browser) {
 		rxNostr.setDefaultRelays(defaultRelays);
@@ -29,55 +25,12 @@ export const load: LayoutLoad = async ({ url }) => {
 			);
 		}
 		console.debug('[default relays]', rxNostr.getDefaultRelays());
-		authenticated = await tryLogin();
 	}
 	await waitLocale();
 	const $_ = get(_);
 	return {
-		splash: !browser || authenticated,
-		authenticated,
 		title: appName,
 		description: $_('app.description'),
 		image: `${url.origin}/logo.png`
 	};
 };
-
-async function tryLogin(): Promise<boolean> {
-	const storage = new WebStorage(localStorage);
-	const savedLogin = storage.get('login');
-
-	if (savedLogin === null) {
-		return false;
-	}
-
-	setLoginStatus('checking');
-
-	const login = new Login();
-	if (savedLogin === 'NIP-07') {
-		setLoginStatus('waiting_extension');
-		const { waitNostr } = await import('nip07-awaiter');
-		const nostr = await waitNostr(10000);
-		console.debug('[NIP-07]', nostr);
-		if (nostr === undefined) {
-			console.error('Browser Extension was not found');
-			setLoginStatus('extension_not_found', 'error');
-			return false;
-		}
-		await login.withNip07();
-	} else if (savedLogin.startsWith('bunker://')) {
-		const success = await login.withNip46(savedLogin);
-		if (!success) {
-			return false;
-		}
-	} else if (savedLogin.startsWith('nsec')) {
-		await login.withNsec(savedLogin);
-	} else if (savedLogin.startsWith('npub')) {
-		await login.withNpub(savedLogin);
-	} else {
-		console.error('[login logic error]');
-		setLoginStatus('failed', 'error');
-		return false;
-	}
-
-	return true;
-}

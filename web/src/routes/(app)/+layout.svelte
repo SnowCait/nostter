@@ -11,15 +11,13 @@
 	import Gdpr from '$lib/components/Gdpr.svelte';
 	import '$lib/styles/menu.css';
 	import { fetchMinutes } from '$lib/Helper';
-	import { followees } from '$lib/stores/Author';
+	import { author, followees } from '$lib/stores/Author';
 	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
 
 	let { children }: Props = $props();
-
-	let mounted = $state(false);
 
 	const konamiCode = [
 		'ArrowUp',
@@ -116,8 +114,15 @@
 	}
 
 	onMount(() => {
-		mounted = true;
 		subscribeSystemTheme();
+	});
+
+	let initialized = false;
+	$effect(() => {
+		if ($author === undefined || initialized) {
+			return;
+		}
+		initialized = true;
 		fetchLastNotification();
 		homeTimeline.subscribe();
 	});
@@ -154,9 +159,7 @@
 <Notice />
 
 <div class="app">
-	{#if mounted}
-		<NoteDialog />
-	{/if}
+	<NoteDialog />
 
 	<header>
 		<div>

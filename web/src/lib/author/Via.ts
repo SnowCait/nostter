@@ -1,5 +1,5 @@
 import { appName } from '$lib/Constants';
-import { persistedStore } from '$lib/WebStorage';
+import { persistedStore } from '$lib/persisted-store';
 import { Handlerinformation } from 'nostr-tools/kinds';
 
 export const ViaOption = ['none', 'once', 'always'] as const;

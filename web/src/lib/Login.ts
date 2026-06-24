@@ -11,6 +11,7 @@ import { now } from 'rx-nostr';
 import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
 import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
+import { loginResolved } from './login-state';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -164,5 +165,49 @@ export class Login {
 		clearLoginStatus();
 
 		remoteSigner.subscribeIfEnabled();
+	}
+}
+
+export async function tryLogin(): Promise<boolean> {
+	try {
+		const storage = new WebStorage(localStorage);
+		const savedLogin = storage.get('login');
+
+		if (savedLogin === null) {
+			return false;
+		}
+
+		setLoginStatus('checking');
+
+		const login = new Login();
+		if (savedLogin === 'NIP-07') {
+			setLoginStatus('waiting_extension');
+			const { waitNostr } = await import('nip07-awaiter');
+			const nostr = await waitNostr(10000);
+			console.debug('[NIP-07]', nostr);
+			if (nostr === undefined) {
+				console.error('Browser Extension was not found');
+				setLoginStatus('extension_not_found', 'error');
+				return false;
+			}
+			await login.withNip07();
+		} else if (savedLogin.startsWith('bunker://')) {
+			const success = await login.withNip46(savedLogin);
+			if (!success) {
+				return false;
+			}
+		} else if (savedLogin.startsWith('nsec')) {
+			await login.withNsec(savedLogin);
+		} else if (savedLogin.startsWith('npub')) {
+			await login.withNpub(savedLogin);
+		} else {
+			console.error('[login logic error]');
+			setLoginStatus('failed', 'error');
+			return false;
+		}
+
+		return true;
+	} finally {
+		loginResolved.set(true);
 	}
 }

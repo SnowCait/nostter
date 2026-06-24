@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { loginResolved } from '$lib/login-state';
 	import { goto } from '$app/navigation';
 	import { followees, author } from '$lib/stores/Author';
 	import { timeline } from '$lib/timelines/HomeTimeline';
@@ -19,9 +19,15 @@
 		states: { open }
 	} = createCollapsible();
 
-	onMount(async () => {
+	let initialized = false;
+	$effect(() => {
+		if (!$loginResolved || initialized) {
+			return;
+		}
+		initialized = true;
 		if ($followees.length === 0) {
-			await goto('/public');
+			goto('/public');
+			return;
 		}
 
 		applyTimelieFilter();
