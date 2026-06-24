@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { loginResolved } from '$lib/login-state';
+	import { isReady } from '$lib/auth-status';
+	import { resolveLandingPath } from '$lib/post-login-navigation';
 	import { goto } from '$app/navigation';
-	import { followees, author } from '$lib/stores/Author';
+	import { author } from '$lib/stores/Author';
 	import { timeline } from '$lib/timelines/HomeTimeline';
 	import { applyTimelieFilter } from '$lib/TimelineFilter';
 	import { _ } from 'svelte-i18n';
@@ -21,11 +22,11 @@
 
 	let initialized = false;
 	$effect(() => {
-		if (!$loginResolved || initialized) {
+		if (!$isReady || initialized) {
 			return;
 		}
 		initialized = true;
-		if ($followees.length === 0) {
+		if (resolveLandingPath() === '/public') {
 			goto('/public');
 			return;
 		}

@@ -7,7 +7,9 @@
 	import { loginType } from '$lib/stores/Author';
 	import { page } from '$app/state';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { authorProfile } from '$lib/stores/Author';
+	import { get } from 'svelte/store';
+	import { authStatus } from '$lib/auth-status';
+	import { gotoAfterLogin } from '$lib/post-login-navigation';
 	import { WebStorage } from '$lib/WebStorage';
 	import { setLoginStatus } from '$lib/stores/LoginStatus';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
@@ -29,6 +31,7 @@
 	function resetLoginProgress() {
 		loggingInWith = undefined;
 		loginType.set(undefined);
+		authStatus.set('anonymous');
 	}
 
 	async function loginWithNip07() {
@@ -42,6 +45,7 @@
 		storage.set('login', 'NIP-07');
 
 		try {
+			authStatus.set('authenticating');
 			await login.withNip07();
 			if (!(await gotoHome())) {
 				resetLoginProgress();
@@ -62,6 +66,7 @@
 		loggingInWith = 'nip46';
 		failedToLogin = false;
 		try {
+			authStatus.set('authenticating');
 			const success = await login.withNip46(bunker);
 			if (!success) {
 				failedToLogin = true;
@@ -88,6 +93,7 @@
 		loggingInWith = 'key';
 		failedToLogin = false;
 		try {
+			authStatus.set('authenticating');
 			if (key.startsWith('nsec')) {
 				await login.withNsec(key);
 			} else {
@@ -122,6 +128,7 @@
 
 		registering = true;
 		try {
+			authStatus.set('authenticating');
 			await login.withNsec(key);
 			await login.saveBasicInfo(name);
 			await goto('/public');
@@ -130,6 +137,7 @@
 			setLoginStatus('failed', 'error');
 			registering = false;
 			loginType.set(undefined);
+			authStatus.set('anonymous');
 		}
 	}
 
@@ -143,13 +151,13 @@
 	});
 
 	async function gotoHome(): Promise<boolean> {
-		if ($authorProfile === undefined) {
+		if (get(authStatus) !== 'authenticated') {
 			console.error('[login failed]');
 			setLoginStatus('failed', 'error');
 			return false;
 		}
 
-		await goto('/home');
+		await gotoAfterLogin();
 		return true;
 	}
 
