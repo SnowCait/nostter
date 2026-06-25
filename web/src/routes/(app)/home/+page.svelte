@@ -78,9 +78,11 @@
 	{/if}
 </header>
 
-<div class="timeline">
-	<Timeline {timeline} scrollToTopTarget="/home" />
-</div>
+{#if $isReady}
+	<div class="timeline">
+		<Timeline {timeline} scrollToTopTarget="/home" />
+	</div>
+{/if}
 
 <style>
 	header div.title {
