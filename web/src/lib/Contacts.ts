@@ -1,8 +1,6 @@
-import { get } from 'svelte/store';
 import { kinds as Kind } from 'nostr-tools';
 import { Api } from './Api';
-import { filterTags } from './EventHelper';
-import { followees, originalFollowees, pubkey } from './stores/Author';
+import { auth } from './auth.svelte';
 import { sendEvent } from './RxNostrHelper';
 import { pruneFolloweeReplaceableEventsCache } from './cache/Events';
 
@@ -38,10 +36,6 @@ export class Contacts {
 }
 
 export function updateFolloweesStore(tags: string[][]): void {
-	const pubkeys = new Set(filterTags('p', tags).filter((pubkey) => /[0-9a-z]{64}/.test(pubkey)));
-	originalFollowees.set([...pubkeys]);
-	pubkeys.add(get(pubkey)); // Add myself
-	followees.set([...pubkeys]);
-	console.log('[contacts]', pubkeys.size);
-	pruneFolloweeReplaceableEventsCache([...pubkeys]);
+	auth.updateFollowees(tags);
+	pruneFolloweeReplaceableEventsCache(auth.followees);
 }

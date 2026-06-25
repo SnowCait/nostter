@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { isReady } from '$lib/auth-status';
+	import { isReady } from '$lib/auth.svelte';
 	import { resolveLandingPath } from '$lib/post-login-navigation';
 	import { goto } from '$app/navigation';
 	import { author } from '$lib/stores/Author';

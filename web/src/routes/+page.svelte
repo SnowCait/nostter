@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { isAuthenticated, isInitializing } from '$lib/auth-status';
+	import { isAuthenticated, isInitializing } from '$lib/auth.svelte';
 	import { gotoAfterLogin } from '$lib/post-login-navigation';
 	import Notice from '$lib/components/Notice.svelte';
 	import SplashScreen from './SplashScreen.svelte';

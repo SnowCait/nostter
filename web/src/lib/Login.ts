@@ -1,17 +1,16 @@
-import { get } from 'svelte/store';
-import { author, authorProfile, followees, loginType, pubkey, rom } from './stores/Author';
+import { author, authorProfile, loginType, rom } from './stores/Author';
 import { Signer } from './Signer';
 import { Author } from './Author';
 import { getPublicKey, nip19 } from 'nostr-tools';
 import { robohash } from './Items';
 import { WebStorage } from './WebStorage';
 import { rxNostr } from './timelines/MainTimeline';
-import { loadFolloweesMetadataCache } from './cache/Events';
+import { loadFolloweesMetadataCache, pruneFolloweeReplaceableEventsCache } from './cache/Events';
 import { now } from 'rx-nostr';
 import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
 import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
-import { authStatus } from './auth-status';
+import { auth } from './auth.svelte';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -63,8 +62,8 @@ export class Login {
 		setLoginStatus('getting_pubkey');
 
 		try {
-			pubkey.set(await Signer.getPublicKey());
-			const $pubkey = get(pubkey);
+			auth.pubkey = await Signer.getPublicKey();
+			const $pubkey = auth.pubkey;
 			if (!$pubkey) {
 				throw new Error('undefined');
 			}
@@ -105,7 +104,7 @@ export class Login {
 		const storage = new WebStorage(localStorage);
 		storage.set('login', bunker);
 
-		pubkey.set(await Signer.getPublicKey());
+		auth.pubkey = await Signer.getPublicKey();
 		await this.fetchAuthor();
 
 		console.timeEnd('NIP-46');
@@ -124,7 +123,7 @@ export class Login {
 		storage.set('login', key);
 
 		loginType.set('nsec');
-		pubkey.set(getPublicKey(seckey));
+		auth.pubkey = getPublicKey(seckey);
 		await this.fetchAuthor();
 	}
 
@@ -142,7 +141,7 @@ export class Login {
 		storage.set('login', key);
 
 		loginType.set('npub');
-		pubkey.set(data);
+		auth.pubkey = data;
 		rom.set(true);
 		await this.fetchAuthor();
 	}
@@ -151,18 +150,20 @@ export class Login {
 		console.time('fetch author');
 		setLoginStatus('fetching_profile');
 
-		const $author = new Author(get(pubkey));
+		const $author = new Author(auth.pubkey);
 
 		await $author.fetchRelays();
 		console.timeLog('fetch author');
 
-		await $author.fetchEvents();
+		const contactsTags = await $author.fetchEvents();
 		console.timeEnd('fetch author');
 
-		await loadFolloweesMetadataCache(get(followees));
+		auth.updateFollowees(contactsTags);
+		await loadFolloweesMetadataCache(auth.followees);
+		pruneFolloweeReplaceableEventsCache(auth.followees);
 
 		author.set($author);
-		authStatus.set('authenticated');
+		auth.setAuthenticated();
 		clearLoginStatus();
 
 		remoteSigner.subscribeIfEnabled();
@@ -178,7 +179,7 @@ export async function tryLogin(): Promise<boolean> {
 			return false;
 		}
 
-		authStatus.set('restoring');
+		auth.beginRestoring();
 		setLoginStatus('checking');
 
 		const login = new Login();
@@ -210,8 +211,8 @@ export async function tryLogin(): Promise<boolean> {
 
 		return true;
 	} finally {
-		if (get(authStatus) !== 'authenticated') {
-			authStatus.set('anonymous');
+		if (auth.status !== 'authenticated') {
+			auth.setAnonymous();
 		}
 	}
 }

@@ -7,8 +7,7 @@
 	import { loginType } from '$lib/stores/Author';
 	import { page } from '$app/state';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { get } from 'svelte/store';
-	import { authStatus } from '$lib/auth-status';
+	import { auth } from '$lib/auth.svelte';
 	import { gotoAfterLogin } from '$lib/post-login-navigation';
 	import { WebStorage } from '$lib/WebStorage';
 	import { setLoginStatus } from '$lib/stores/LoginStatus';
@@ -31,7 +30,7 @@
 	function resetLoginProgress() {
 		loggingInWith = undefined;
 		loginType.set(undefined);
-		authStatus.set('anonymous');
+		auth.setAnonymous();
 	}
 
 	async function loginWithNip07() {
@@ -45,7 +44,7 @@
 		storage.set('login', 'NIP-07');
 
 		try {
-			authStatus.set('authenticating');
+			auth.beginAuthenticating();
 			await login.withNip07();
 			if (!(await gotoHome())) {
 				resetLoginProgress();
@@ -66,7 +65,7 @@
 		loggingInWith = 'nip46';
 		failedToLogin = false;
 		try {
-			authStatus.set('authenticating');
+			auth.beginAuthenticating();
 			const success = await login.withNip46(bunker);
 			if (!success) {
 				failedToLogin = true;
@@ -93,7 +92,7 @@
 		loggingInWith = 'key';
 		failedToLogin = false;
 		try {
-			authStatus.set('authenticating');
+			auth.beginAuthenticating();
 			if (key.startsWith('nsec')) {
 				await login.withNsec(key);
 			} else {
@@ -128,7 +127,7 @@
 
 		registering = true;
 		try {
-			authStatus.set('authenticating');
+			auth.beginAuthenticating();
 			await login.withNsec(key);
 			await login.saveBasicInfo(name);
 			await goto('/public');
@@ -137,7 +136,7 @@
 			setLoginStatus('failed', 'error');
 			registering = false;
 			loginType.set(undefined);
-			authStatus.set('anonymous');
+			auth.setAnonymous();
 		}
 	}
 
@@ -151,7 +150,7 @@
 	});
 
 	async function gotoHome(): Promise<boolean> {
-		if (get(authStatus) !== 'authenticated') {
+		if (auth.status !== 'authenticated') {
 			console.error('[login failed]');
 			setLoginStatus('failed', 'error');
 			return false;
