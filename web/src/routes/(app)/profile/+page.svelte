@@ -12,7 +12,7 @@
 	import { sendEvent } from '$lib/RxNostrHelper';
 	import { storeMetadata } from '$lib/cache/Events';
 	import { WebStorage } from '$lib/WebStorage';
-	import { onMount } from 'svelte';
+	import { isReady } from '$lib/auth.svelte';
 
 	//#region Cropper
 
@@ -23,9 +23,9 @@
 	let pixels: Pixels | undefined;
 	let complete: (value: File | PromiseLike<File | undefined> | undefined) => void;
 
-	onMount(async () => {
-		if (!$pubkey) {
-			await goto('/');
+	$effect(() => {
+		if ($isReady && !$pubkey) {
+			goto('/');
 		}
 	});
 
