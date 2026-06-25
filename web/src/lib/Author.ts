@@ -13,6 +13,7 @@ import {
 	storeMutedTagsByEvent
 } from './stores/Author';
 import { RelayList } from './author/RelayList';
+import { auth } from './auth.svelte';
 import { filterTags, findIdentifier, parseRelayJson } from './EventHelper';
 import { customEmojiListEvent, storeCustomEmojis } from './author/CustomEmojis';
 import type { User } from '../routes/types';
@@ -85,7 +86,7 @@ export class Author {
 		return contactsEvent?.tags ?? [];
 	}
 
-	public async fetchEvents(): Promise<string[][]> {
+	public async fetchEvents(): Promise<void> {
 		const { replaceableEvents, parameterizedReplaceableEvents } =
 			await this.fetchAuthorEventsWithCache(this.pubkey);
 
@@ -104,6 +105,7 @@ export class Author {
 		console.log('[profile]', get(authorProfile));
 
 		const contactsTags = this.storeRelays(replaceableEvents);
+		auth.updateFollowees(contactsTags);
 
 		customEmojiListEvent.set(replaceableEvents.get(Kind.UserEmojiList));
 		const $customEmojiListEvent = get(customEmojiListEvent);
@@ -167,8 +169,6 @@ export class Author {
 		}
 
 		console.log('[relays]', get(readRelays), get(writeRelays));
-
-		return contactsTags;
 	}
 
 	private async fetchAuthorEventsWithCache(pubkey: string): Promise<{

@@ -155,10 +155,9 @@ export class Login {
 		await $author.fetchRelays();
 		console.timeLog('fetch author');
 
-		const contactsTags = await $author.fetchEvents();
+		await $author.fetchEvents();
 		console.timeEnd('fetch author');
 
-		auth.updateFollowees(contactsTags);
 		await loadFolloweesMetadataCache(auth.followees);
 		pruneFolloweeReplaceableEventsCache(auth.followees);
 
