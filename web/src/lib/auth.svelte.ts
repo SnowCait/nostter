@@ -1,42 +1,52 @@
 import { toStore } from 'svelte/store';
-import { filterTags } from './EventHelper';
+import { unique } from './Array';
+import { pubkeysFromTags } from './pubkey';
 
 export type AuthStatus = 'idle' | 'restoring' | 'authenticating' | 'authenticated' | 'anonymous';
 
 export class Auth {
-	status = $state<AuthStatus>('idle');
+	#status = $state<AuthStatus>('idle');
 	pubkey = $state('');
-	followees = $state<string[]>([]);
-	originalFollowees = $state<string[]>([]);
-	followeesSet = $derived(new Set(this.followees));
+	#followees = $state<string[]>([]);
+	#originalFollowees = $state<string[]>([]);
 
-	isInitializing = $derived(this.status === 'idle' || this.status === 'restoring');
-	isReady = $derived(this.status === 'authenticated' || this.status === 'anonymous');
-	isAuthenticated = $derived(this.status === 'authenticated');
+	get status(): AuthStatus {
+		return this.#status;
+	}
+
+	get followees(): string[] {
+		return this.#followees;
+	}
+
+	get originalFollowees(): string[] {
+		return this.#originalFollowees;
+	}
+
+	followeesSet = $derived(new Set(this.#followees));
+
+	isInitializing = $derived(this.#status === 'idle' || this.#status === 'restoring');
+	isReady = $derived(this.#status === 'authenticated' || this.#status === 'anonymous');
+	isAuthenticated = $derived(this.#status === 'authenticated');
 
 	beginRestoring(): void {
-		this.status = 'restoring';
+		this.#status = 'restoring';
 	}
 
 	beginAuthenticating(): void {
-		this.status = 'authenticating';
+		this.#status = 'authenticating';
 	}
 
 	updateFollowees(tags: string[][]): void {
-		const pubkeys = new Set(
-			filterTags('p', tags).filter((pubkey) => /[0-9a-z]{64}/.test(pubkey))
-		);
-		this.originalFollowees = [...pubkeys];
-		pubkeys.add(this.pubkey);
-		this.followees = [...pubkeys];
+		this.#originalFollowees = pubkeysFromTags(tags);
+		this.#followees = unique([...this.#originalFollowees, this.pubkey]);
 	}
 
 	setAuthenticated(): void {
-		this.status = 'authenticated';
+		this.#status = 'authenticated';
 	}
 
 	setAnonymous(): void {
-		this.status = 'anonymous';
+		this.#status = 'anonymous';
 	}
 }
 

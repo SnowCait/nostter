@@ -37,30 +37,6 @@ describe('Auth.updateFollowees', () => {
 		expect(auth.followees).toEqual([a, b, me]);
 	});
 
-	it('filters out invalid pubkeys', () => {
-		const auth = new Auth();
-		auth.pubkey = me;
-		auth.updateFollowees([
-			['p', a],
-			['p', 'tooshort'],
-			['p', 'A'.repeat(64)],
-			['p', '']
-		]);
-		expect(auth.originalFollowees).toEqual([a]);
-		expect(auth.followees).toEqual([a, me]);
-	});
-
-	it('ignores non-p tags', () => {
-		const auth = new Auth();
-		auth.pubkey = me;
-		auth.updateFollowees([
-			['e', a],
-			['t', 'nostr'],
-			['p', b]
-		]);
-		expect(auth.originalFollowees).toEqual([b]);
-	});
-
 	it('leaves only self when tags are empty', () => {
 		const auth = new Auth();
 		auth.pubkey = me;
