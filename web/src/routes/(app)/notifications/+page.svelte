@@ -3,13 +3,14 @@
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { _ } from 'svelte-i18n';
-	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { referencesReqEmit, rxNostr, storeSeenOn, tie } from '$lib/timelines/MainTimeline';
 	import { appName, minTimelineLength, notificationsFilterKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import { pubkey, author } from '$lib/stores/Author';
+	import { isReady } from '$lib/auth.svelte';
 	import TimelineView from '../TimelineView.svelte';
 	import IconAt from '@tabler/icons-svelte-runes/icons/at';
 	import IconRepeat from '@tabler/icons-svelte-runes/icons/repeat';
@@ -42,11 +43,9 @@
 		$notifiedEventItems.filter((item) => isVisibleNotification(item.event.pubkey))
 	);
 
-	afterNavigate(async () => {
-		console.debug('[notifications page]');
-
-		if ($author === undefined) {
-			await goto('/');
+	$effect(() => {
+		if ($isReady && $author === undefined) {
+			goto('/');
 		}
 	});
 
