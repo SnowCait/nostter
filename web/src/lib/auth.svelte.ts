@@ -1,4 +1,5 @@
 import { toStore } from 'svelte/store';
+import { filterTags } from './EventHelper';
 
 export type AuthStatus = 'idle' | 'restoring' | 'authenticating' | 'authenticated' | 'anonymous';
 
@@ -21,16 +22,17 @@ class Auth {
 		this.status = 'authenticating';
 	}
 
-	commit(pubkey: string, followees: string[], originalFollowees: string[]): void {
-		this.pubkey = pubkey;
-		this.followees = followees;
-		this.originalFollowees = originalFollowees;
-		this.status = 'authenticated';
+	updateFollowees(tags: string[][]): void {
+		const pubkeys = new Set(
+			filterTags('p', tags).filter((pubkey) => /[0-9a-z]{64}/.test(pubkey))
+		);
+		this.originalFollowees = [...pubkeys];
+		pubkeys.add(this.pubkey);
+		this.followees = [...pubkeys];
 	}
 
-	updateFollowees(followees: string[], originalFollowees: string[]): void {
-		this.followees = followees;
-		this.originalFollowees = originalFollowees;
+	setAuthenticated(): void {
+		this.status = 'authenticated';
 	}
 
 	setAnonymous(): void {

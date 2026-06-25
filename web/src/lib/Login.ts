@@ -6,7 +6,6 @@ import { robohash } from './Items';
 import { WebStorage } from './WebStorage';
 import { rxNostr } from './timelines/MainTimeline';
 import { loadFolloweesMetadataCache, pruneFolloweeReplaceableEventsCache } from './cache/Events';
-import { computeFollowees } from './Contacts';
 import { now } from 'rx-nostr';
 import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
@@ -159,12 +158,12 @@ export class Login {
 		const contactsTags = await $author.fetchEvents();
 		console.timeEnd('fetch author');
 
-		const { followees, originalFollowees } = computeFollowees(contactsTags, auth.pubkey);
-		await loadFolloweesMetadataCache(followees);
-		auth.commit(auth.pubkey, followees, originalFollowees);
-		pruneFolloweeReplaceableEventsCache(followees);
+		auth.updateFollowees(contactsTags);
+		await loadFolloweesMetadataCache(auth.followees);
+		pruneFolloweeReplaceableEventsCache(auth.followees);
 
 		author.set($author);
+		auth.setAuthenticated();
 		clearLoginStatus();
 
 		remoteSigner.subscribeIfEnabled();
