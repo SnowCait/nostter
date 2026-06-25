@@ -3,7 +3,7 @@ import { filterTags } from './EventHelper';
 
 export type AuthStatus = 'idle' | 'restoring' | 'authenticating' | 'authenticated' | 'anonymous';
 
-class Auth {
+export class Auth {
 	status = $state<AuthStatus>('idle');
 	pubkey = $state('');
 	followees = $state<string[]>([]);
