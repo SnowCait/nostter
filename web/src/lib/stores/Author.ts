@@ -1,4 +1,4 @@
-import { get, writable, toStore, type Writable } from 'svelte/store';
+import { get, writable, toStore, derived, type Writable } from 'svelte/store';
 import escapeStringRegexp from 'escape-string-regexp';
 import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
@@ -7,8 +7,9 @@ import type { Author } from '$lib/Author';
 import { filterRelayTags, filterTags, findIdentifier, getZapperPubkey } from '$lib/EventHelper';
 import { decryptListContent } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
+import { type LoginType, signerCanSign } from '$lib/signer-capability';
 
-export const loginType: Writable<'NIP-07' | 'NIP-46' | 'nsec' | 'npub' | undefined> = writable();
+export const loginType: Writable<LoginType | undefined> = writable();
 export const pubkey = toStore(() => auth.pubkey);
 export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
@@ -27,7 +28,10 @@ export const readRelays: Writable<string[]> = writable(
 export const writeRelays: Writable<string[]> = writable(
 	defaultRelays.filter((relay) => relay.write).map((relay) => relay.url)
 );
-export const rom = writable(false);
+export const rom = derived(
+	loginType,
+	($loginType) => $loginType !== undefined && !signerCanSign($loginType)
+);
 
 let mutePubkeysSetRef: string[] | undefined;
 let mutePubkeysSet = new Set<string>();

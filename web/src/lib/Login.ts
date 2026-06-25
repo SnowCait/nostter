@@ -1,4 +1,4 @@
-import { author, authorProfile, loginType, rom } from './stores/Author';
+import { author, authorProfile, loginType } from './stores/Author';
 import { Signer } from './Signer';
 import { Author } from './Author';
 import { getPublicKey, nip19 } from 'nostr-tools';
@@ -142,7 +142,6 @@ export class Login {
 
 		loginType.set('npub');
 		auth.pubkey = data;
-		rom.set(true);
 		await this.fetchAuthor();
 	}
 
