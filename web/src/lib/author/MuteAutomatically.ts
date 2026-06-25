@@ -5,7 +5,7 @@ import type * as Nostr from 'nostr-typedef';
 import { chunk } from '$lib/Array';
 import { filterLimit, maxFilters } from '$lib/Constants';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
-import { followees } from '$lib/stores/Author';
+import { auth } from '$lib/auth.svelte';
 import { cacheFolloweeReplaceableEvent, followeeEventCache } from '$lib/cache/Events';
 
 export const followeesOfFollowees = writable<Set<string>>(new Set());
@@ -16,7 +16,7 @@ contactsOfFollowees.subscribe((events) => {
 		return;
 	}
 
-	const $followees = get(followees);
+	const $followees = auth.followees;
 	const pubkeys = [...events]
 		.flatMap(([, event]) =>
 			event.tags.filter(([t, pubkey]) => t === 'p' && typeof pubkey === 'string')
@@ -35,7 +35,7 @@ export function contactsOfFolloweesReqEmit(): void {
 
 	loaded = true;
 
-	const $followees = get(followees);
+	const $followees = auth.followees;
 	followeesOfFollowees.set(new Set($followees)); // For UX
 
 	followeeEventCache.getLatest(Kind.Contacts, $followees).then((cached) => {
