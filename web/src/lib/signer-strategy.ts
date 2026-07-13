@@ -11,7 +11,7 @@ import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';
 import { generateSecretKey } from 'nostr-tools/pure';
 import { bytesToHex, hexToBytes } from 'nostr-tools/utils';
 import { WebStorage } from './WebStorage';
-import { nip46ConnectTimeout } from './Constants';
+import { nip46AuthTimeout, nip46ConnectTimeout } from './Constants';
 import type * as Nostr from 'nostr-typedef';
 import { type LoginType, signerCanSign } from './signer-capability';
 
@@ -36,21 +36,46 @@ export async function establishBunkerConnection(bunker: string): Promise<void> {
 		storage.set('login:bunker:client-seckey', bytesToHex(clientSeckey));
 	}
 
-	let authRequested = false;
+	let settled = false;
+	let connectTimer: ReturnType<typeof setTimeout> | undefined;
+	let authTimer: ReturnType<typeof setTimeout> | undefined;
+	const clearTimers = () => {
+		if (connectTimer !== undefined) {
+			clearTimeout(connectTimer);
+			connectTimer = undefined;
+		}
+		if (authTimer !== undefined) {
+			clearTimeout(authTimer);
+			authTimer = undefined;
+		}
+	};
+
+	let rejectOnTimeout: (error: Error) => void;
+	const timeout = new Promise<never>((_resolve, reject) => {
+		rejectOnTimeout = reject;
+	});
 	bunkerSigner = BunkerSigner.fromBunker(clientSeckey, bunkerPointer, {
 		onauth: (url) => {
-			authRequested = true;
+			if (settled) {
+				return;
+			}
+			if (authTimer === undefined) {
+				if (connectTimer !== undefined) {
+					clearTimeout(connectTimer);
+					connectTimer = undefined;
+				}
+				authTimer = setTimeout(() => {
+					rejectOnTimeout(new Error('NIP-46 authentication timed out'));
+				}, nip46AuthTimeout);
+			}
 			open(url, '_blank');
 		}
 	});
 	console.debug('[NIP-46 client pubkey]', getPublicKey(clientSeckey));
 
 	const signer = bunkerSigner;
-	const { promise: timeout, reject: rejectOnTimeout } = Promise.withResolvers<never>();
-	const timer = setTimeout(() => {
-		if (!authRequested) {
-			rejectOnTimeout(new Error('NIP-46 connection timed out'));
-		}
+	connectTimer = setTimeout(() => {
+		rejectOnTimeout(new Error('NIP-46 connection timed out'));
 	}, nip46ConnectTimeout);
 	try {
 		await Promise.race([
@@ -62,7 +87,8 @@ export async function establishBunkerConnection(bunker: string): Promise<void> {
 			timeout
 		]);
 	} finally {
-		clearTimeout(timer);
+		settled = true;
+		clearTimers();
 	}
 	console.debug('[NIP-46 user pubkey]', nip46CachedPublicKey);
 }
