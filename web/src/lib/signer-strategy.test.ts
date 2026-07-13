@@ -1,44 +1,80 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { nip46AuthTimeout, nip46ConnectTimeout } from './Constants';
-import { establishBunkerConnection, resolveSigner } from './signer-strategy';
+import {
+	abolishBunkerConnection,
+	establishBunkerConnection,
+	resolveSigner
+} from './signer-strategy';
 import { signerCanSign } from './signer-capability';
 
 const nip46Mock = vi.hoisted(() => {
-	let onauth: ((url: string) => void) | undefined;
-	let connectResolve: (() => void) | undefined;
-	let getPublicKeyResolve: ((pubkey: string) => void) | undefined;
+	type MockSigner = {
+		onauth: ((url: string) => void) | undefined;
+		connect: ReturnType<typeof vi.fn>;
+		getPublicKey: ReturnType<typeof vi.fn>;
+		close: ReturnType<typeof vi.fn>;
+		connectResolve: (() => void) | undefined;
+		connectReject: ((error: Error) => void) | undefined;
+		getPublicKeyResolve: ((pubkey: string) => void) | undefined;
+		getPublicKeyReject: ((error: Error) => void) | undefined;
+	};
+	const signers: MockSigner[] = [];
+
+	const getSigner = (index = signers.length - 1) => {
+		const signer = signers[index];
+		if (!signer) {
+			throw new Error(`missing signer at index ${index}`);
+		}
+		return signer;
+	};
 
 	return {
 		fromBunker: vi.fn((...args: unknown[]) => {
 			const options = args[2] as { onauth?: (url: string) => void };
-			onauth = options.onauth;
-			return {
-				connect: vi.fn(
-					() =>
-						new Promise<void>((resolve) => {
-							connectResolve = resolve;
-						})
-				),
-				getPublicKey: vi.fn(
-					() =>
-						new Promise<string>((resolve) => {
-							getPublicKeyResolve = resolve;
-						})
-				),
-				close: vi.fn()
+			const signer: MockSigner = {
+				onauth: options.onauth,
+				connect: vi.fn(),
+				getPublicKey: vi.fn(),
+				close: vi.fn(),
+				connectResolve: undefined,
+				connectReject: undefined,
+				getPublicKeyResolve: undefined,
+				getPublicKeyReject: undefined
 			};
+			signer.connect = vi.fn(
+				() =>
+					new Promise<void>((resolve, reject) => {
+						signer.connectResolve = resolve;
+						signer.connectReject = reject;
+					})
+			);
+			signer.getPublicKey = vi.fn(
+				() =>
+					new Promise<string>((resolve, reject) => {
+						signer.getPublicKeyResolve = resolve;
+						signer.getPublicKeyReject = reject;
+					})
+			);
+			signers.push(signer);
+			return signer;
 		}),
 		parseBunkerInput: vi.fn(async () => ({
 			pubkey: 'pubkey',
 			relays: ['wss://relay.example.com']
 		})),
-		auth: (url = 'https://auth.example.com') => onauth?.(url),
-		resolveConnect: () => connectResolve?.(),
-		resolveGetPublicKey: (pubkey = 'user-pubkey') => getPublicKeyResolve?.(pubkey),
+		auth: (index = signers.length - 1, url = 'https://auth.example.com') =>
+			getSigner(index).onauth?.(url),
+		resolveConnect: (index = signers.length - 1) => getSigner(index).connectResolve?.(),
+		rejectConnect: (index = signers.length - 1, error = new Error('connect failed')) =>
+			getSigner(index).connectReject?.(error),
+		resolveGetPublicKey: (index = signers.length - 1, pubkey = 'user-pubkey') =>
+			getSigner(index).getPublicKeyResolve?.(pubkey),
+		rejectGetPublicKey: (index = signers.length - 1, error = new Error('get pubkey failed')) =>
+			getSigner(index).getPublicKeyReject?.(error),
+		signer: getSigner,
+		signers: () => signers,
 		reset: () => {
-			onauth = undefined;
-			connectResolve = undefined;
-			getPublicKeyResolve = undefined;
+			signers.length = 0;
 		}
 	};
 });
@@ -75,7 +111,8 @@ beforeEach(() => {
 	vi.stubGlobal('open', vi.fn());
 });
 
-afterEach(() => {
+afterEach(async () => {
+	await abolishBunkerConnection();
 	vi.useRealTimers();
 	vi.unstubAllGlobals();
 });
@@ -94,37 +131,44 @@ describe('signerCanSign', () => {
 });
 
 describe('establishBunkerConnection', () => {
+	const flush = async () => {
+		await vi.advanceTimersByTimeAsync(0);
+	};
+
 	it('rejects on connection timeout when auth challenge is not requested', async () => {
 		vi.useFakeTimers();
 		stubBunkerStorage();
 
 		const promise = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
 		promise.catch(() => {});
+		await flush();
 		await vi.advanceTimersByTimeAsync(nip46ConnectTimeout);
 
 		await expect(promise).rejects.toThrow('NIP-46 connection timed out');
 		expect(vi.getTimerCount()).toBe(0);
+		expect(nip46Mock.signer(0).close).toHaveBeenCalledTimes(1);
 	});
 
-	it('rejects on auth timeout after an auth challenge without using the connection timeout', async () => {
+	it('does not settle at the connection timeout after an auth challenge', async () => {
 		vi.useFakeTimers();
 		stubBunkerStorage();
 
 		const promise = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
 		promise.catch(() => {});
-		await vi.advanceTimersByTimeAsync(0);
-		nip46Mock.auth();
+		let settled = false;
+		void promise.then(
+			() => {
+				settled = true;
+			},
+			() => {
+				settled = true;
+			}
+		);
+		await flush();
+		nip46Mock.auth(0);
 
 		await vi.advanceTimersByTimeAsync(nip46ConnectTimeout);
-		await expect(
-			Promise.race([
-				promise.then(
-					() => 'resolved',
-					() => 'rejected'
-				),
-				Promise.resolve('pending')
-			])
-		).resolves.toBe('pending');
+		expect(settled).toBe(false);
 
 		await vi.advanceTimersByTimeAsync(nip46AuthTimeout - nip46ConnectTimeout);
 		await expect(promise).rejects.toThrow('NIP-46 authentication timed out');
@@ -136,31 +180,215 @@ describe('establishBunkerConnection', () => {
 		stubBunkerStorage();
 
 		const promise = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
-		await vi.advanceTimersByTimeAsync(0);
-		nip46Mock.auth();
+		await flush();
+		nip46Mock.auth(0);
 		await vi.advanceTimersByTimeAsync(nip46AuthTimeout - 1);
-		nip46Mock.resolveConnect();
-		await vi.advanceTimersByTimeAsync(0);
-		nip46Mock.resolveGetPublicKey();
+		nip46Mock.resolveConnect(0);
+		await flush();
+		nip46Mock.resolveGetPublicKey(0);
 
 		await expect(promise).resolves.toBeUndefined();
 		expect(vi.getTimerCount()).toBe(0);
 	});
 
-	it('ignores delayed auth challenge callbacks after connection attempt is settled', async () => {
+	it('opens auth challenges after a successful login without starting login timers', async () => {
 		vi.useFakeTimers();
 		stubBunkerStorage();
 
 		const promise = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
-		await vi.advanceTimersByTimeAsync(0);
-		nip46Mock.resolveConnect();
-		await vi.advanceTimersByTimeAsync(0);
-		nip46Mock.resolveGetPublicKey();
+		await flush();
+		nip46Mock.resolveConnect(0);
+		await flush();
+		nip46Mock.resolveGetPublicKey(0);
 		await expect(promise).resolves.toBeUndefined();
 
-		nip46Mock.auth();
+		vi.mocked(open).mockClear();
+		nip46Mock.auth(0, 'https://auth.example.com/post-login');
+		expect(open).toHaveBeenCalledWith('https://auth.example.com/post-login', '_blank');
+		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it('ignores delayed auth challenge callbacks after connection timeout', async () => {
+		vi.useFakeTimers();
+		stubBunkerStorage();
+
+		const promise = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
+		promise.catch(() => {});
+		await flush();
+		await vi.advanceTimersByTimeAsync(nip46ConnectTimeout);
+		await expect(promise).rejects.toThrow('NIP-46 connection timed out');
+
+		nip46Mock.auth(0);
 		expect(open).not.toHaveBeenCalled();
 		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it('ignores delayed auth challenge callbacks after auth timeout', async () => {
+		vi.useFakeTimers();
+		stubBunkerStorage();
+
+		const promise = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
+		promise.catch(() => {});
+		await flush();
+		nip46Mock.auth(0, 'https://auth.example.com/first');
+		await vi.advanceTimersByTimeAsync(nip46AuthTimeout);
+		await expect(promise).rejects.toThrow('NIP-46 authentication timed out');
+		vi.mocked(open).mockClear();
+
+		nip46Mock.auth(0, 'https://auth.example.com/late');
+		expect(open).not.toHaveBeenCalled();
+		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it('opens multiple auth challenges in a phase without extending the auth deadline', async () => {
+		vi.useFakeTimers();
+		stubBunkerStorage();
+
+		const promise = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
+		promise.catch(() => {});
+		await flush();
+		nip46Mock.auth(0, 'https://auth.example.com/first');
+		await vi.advanceTimersByTimeAsync(nip46AuthTimeout - 1);
+		nip46Mock.auth(0, 'https://auth.example.com/second');
+
+		expect(open).toHaveBeenCalledWith('https://auth.example.com/first', '_blank');
+		expect(open).toHaveBeenCalledWith('https://auth.example.com/second', '_blank');
+		await vi.advanceTimersByTimeAsync(1);
+		await expect(promise).rejects.toThrow('NIP-46 authentication timed out');
+		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it('does not let the connect auth timer reject getPublicKey after connect succeeds', async () => {
+		vi.useFakeTimers();
+		stubBunkerStorage();
+
+		const promise = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
+		let settled = false;
+		void promise.then(
+			() => {
+				settled = true;
+			},
+			() => {
+				settled = true;
+			}
+		);
+		await flush();
+		nip46Mock.auth(0);
+		await vi.advanceTimersByTimeAsync(nip46AuthTimeout - 1);
+		nip46Mock.resolveConnect(0);
+		await flush();
+		expect(nip46Mock.signer(0).getPublicKey).toHaveBeenCalledTimes(1);
+
+		await vi.advanceTimersByTimeAsync(1);
+		expect(settled).toBe(false);
+		nip46Mock.resolveGetPublicKey(0);
+		await expect(promise).resolves.toBeUndefined();
+		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it('rejects when getPublicKey does not respond before its connection timeout', async () => {
+		vi.useFakeTimers();
+		stubBunkerStorage();
+
+		const promise = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
+		promise.catch(() => {});
+		await flush();
+		nip46Mock.resolveConnect(0);
+		await flush();
+		expect(nip46Mock.signer(0).getPublicKey).toHaveBeenCalledTimes(1);
+
+		await vi.advanceTimersByTimeAsync(nip46ConnectTimeout);
+		await expect(promise).rejects.toThrow('NIP-46 connection timed out');
+		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it('uses an independent auth timeout for getPublicKey auth challenges', async () => {
+		vi.useFakeTimers();
+		stubBunkerStorage();
+
+		const promise = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
+		await flush();
+		nip46Mock.resolveConnect(0);
+		await flush();
+		nip46Mock.auth(0, 'https://auth.example.com/get-pubkey');
+		await vi.advanceTimersByTimeAsync(nip46AuthTimeout - 1);
+		nip46Mock.resolveGetPublicKey(0, 'user-pubkey');
+
+		await expect(promise).resolves.toBeUndefined();
+		expect(open).toHaveBeenCalledWith('https://auth.example.com/get-pubkey', '_blank');
+		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it('rejects when getPublicKey auth challenge is not completed before auth timeout', async () => {
+		vi.useFakeTimers();
+		stubBunkerStorage();
+
+		const promise = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
+		promise.catch(() => {});
+		await flush();
+		nip46Mock.resolveConnect(0);
+		await flush();
+		nip46Mock.auth(0, 'https://auth.example.com/get-pubkey');
+
+		await vi.advanceTimersByTimeAsync(nip46AuthTimeout);
+		await expect(promise).rejects.toThrow('NIP-46 authentication timed out');
+		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it('does not overwrite the current public key when an old timed-out attempt completes late', async () => {
+		vi.useFakeTimers();
+		stubBunkerStorage();
+
+		const first = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
+		first.catch(() => {});
+		await flush();
+		nip46Mock.auth(0);
+		await vi.advanceTimersByTimeAsync(nip46AuthTimeout);
+		await expect(first).rejects.toThrow('NIP-46 authentication timed out');
+
+		const second = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
+		await flush();
+		nip46Mock.resolveConnect(1);
+		await flush();
+		nip46Mock.resolveGetPublicKey(1, 'second-pubkey');
+		await expect(second).resolves.toBeUndefined();
+
+		nip46Mock.resolveConnect(0);
+		await flush();
+		nip46Mock.resolveGetPublicKey(0, 'first-pubkey');
+		await flush();
+
+		stubLogin('bunker://relay.example.com?pubkey=abc');
+		const signer = resolveSigner();
+		await expect(signer.getPublicKey()).resolves.toBe('second-pubkey');
+	});
+
+	it('does not let an old connection attempt destroy the current signer', async () => {
+		vi.useFakeTimers();
+		stubBunkerStorage();
+
+		const first = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
+		first.catch(() => {});
+		await flush();
+		await vi.advanceTimersByTimeAsync(nip46ConnectTimeout);
+		await expect(first).rejects.toThrow('NIP-46 connection timed out');
+
+		const second = establishBunkerConnection('bunker://relay.example.com?pubkey=abc');
+		await flush();
+		nip46Mock.resolveConnect(1);
+		await flush();
+		nip46Mock.resolveGetPublicKey(1, 'second-pubkey');
+		await expect(second).resolves.toBeUndefined();
+
+		nip46Mock.resolveConnect(0);
+		await flush();
+		nip46Mock.resolveGetPublicKey(0, 'first-pubkey');
+		await flush();
+
+		stubLogin('bunker://relay.example.com?pubkey=abc');
+		await expect(resolveSigner().getPublicKey()).resolves.toBe('second-pubkey');
+		nip46Mock.auth(1, 'https://auth.example.com/current');
+		expect(open).toHaveBeenCalledWith('https://auth.example.com/current', '_blank');
 	});
 });
 
