@@ -196,7 +196,8 @@
 		"deleted": "Deleted content",
 		"not_found": "Not found",
 		"spotify": {
-			"play": "Play in new page"
+			"play": "Play in new page",
+			"player": "Spotify player"
 		}
 	},
 	"wallet": {

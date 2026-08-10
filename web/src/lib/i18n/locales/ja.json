@@ -195,7 +195,8 @@
 		"deleted": "削除されたコンテンツ",
 		"not_found": "見つかりませんでした",
 		"spotify": {
-			"play": "新しいページで再生"
+			"play": "新しいページで再生",
+			"player": "Spotifyプレーヤー"
 		}
 	},
 	"wallet": {
