@@ -22,7 +22,12 @@ import {
 	updateRepostedEvents
 } from '$lib/author/Action';
 import { customEmojiListEvent, storeCustomEmojis } from '$lib/author/CustomEmojis';
-import { profileBadgesEvent } from '$lib/author/ProfileBadges';
+import { getCachedProfileBadgesEvent, profileBadgesEvent } from '$lib/author/ProfileBadges';
+import {
+	isLegacyProfileBadgesEvent,
+	legacyProfileBadgesKind,
+	profileBadgesKind
+} from '$lib/ProfileBadgesEvent';
 import { authorChannelsEventStore, storeMetadata } from '$lib/cache/Events';
 import { updateFolloweesStore } from '$lib/Contacts';
 import { findIdentifier } from '$lib/EventHelper';
@@ -142,6 +147,9 @@ export class HomeTimeline extends NewTimeline {
 		replaceable$
 			.pipe(filterByKind(Kind.BlossomServerList))
 			.subscribe(({ event }) => updateBlossomServerList($pubkey, event));
+		replaceable$.pipe(filterByKind(profileBadgesKind)).subscribe(() => {
+			profileBadgesEvent.set(getCachedProfileBadgesEvent(new WebStorage(localStorage)));
+		});
 		const addressable$ = author$.pipe(
 			filterByKinds(parameterizedReplaceableKinds),
 			latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`),
@@ -176,8 +184,13 @@ export class HomeTimeline extends NewTimeline {
 			.pipe(filterByKind(30007))
 			.subscribe(({ event }) => storeMutedPubkeysByKind([event]));
 		addressable$
-			.pipe(filterByKind(Kind.ProfileBadges))
-			.subscribe(({ event }) => profileBadgesEvent.set(event));
+			.pipe(
+				filterByKind(legacyProfileBadgesKind),
+				filter(({ event }) => isLegacyProfileBadgesEvent(event))
+			)
+			.subscribe(() => {
+				profileBadgesEvent.set(getCachedProfileBadgesEvent(new WebStorage(localStorage)));
+			});
 		addressable$.pipe(filterByKind(Kind.Application)).subscribe(({ event }) => {
 			const identifier = findIdentifier(event.tags);
 			if (identifier === 'nostter-read') {

@@ -30,6 +30,7 @@ import {
 } from './Constants';
 import { bookmarkEvent } from './author/Bookmark';
 import { profileBadgesEvent, profileBadgesKey } from './author/ProfileBadges';
+import { profileBadgesKind, selectProfileBadgesEvent } from './ProfileBadgesEvent';
 import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 import {
@@ -119,7 +120,12 @@ export class Author {
 		}
 
 		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001}:bookmark`));
-		profileBadgesEvent.set(parameterizedReplaceableEvents.get(profileBadgesKey));
+		profileBadgesEvent.set(
+			selectProfileBadgesEvent(
+				replaceableEvents.get(profileBadgesKind),
+				parameterizedReplaceableEvents.get(profileBadgesKey)
+			)
+		);
 
 		const preferencesEvent = parameterizedReplaceableEvents.get(`${30078}:nostter-preferences`);
 		let legacyMediaUploader: string | undefined;
