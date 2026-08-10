@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { _ } from 'svelte-i18n';
 	import { Spotify } from '$lib/Spotify';
@@ -10,8 +11,14 @@
 
 	let { link }: Props = $props();
 
-	const supportsDirectInteraction = new MediaQuery('(hover: hover) and (pointer: fine)', false);
+	const directInteractionMediaQuery = new MediaQuery('(hover: hover) and (pointer: fine)', false);
+	let mounted = $state(false);
+	let supportsDirectInteraction = $derived(mounted && directInteractionMediaQuery.current);
 	let embedUrl = $derived(Spotify.getEmbedUrl(link));
+
+	onMount(() => {
+		mounted = true;
+	});
 </script>
 
 {#if embedUrl !== undefined}
@@ -22,11 +29,11 @@
 			title={$_('content.spotify.player')}
 			frameborder="0"
 			loading="lazy"
-			aria-hidden={supportsDirectInteraction.current ? undefined : 'true'}
-			tabindex={supportsDirectInteraction.current ? 0 : -1}
+			aria-hidden={supportsDirectInteraction ? undefined : 'true'}
+			tabindex={supportsDirectInteraction ? 0 : -1}
 		></iframe>
 
-		{#if !supportsDirectInteraction.current}
+		{#if !supportsDirectInteraction}
 			<a
 				class="spotify-embed-cover"
 				href={link.href}
