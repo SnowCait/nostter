@@ -38,6 +38,7 @@ const cspDirectives: Record<string, string[]> = {
 		'https://www.youtube.com',
 		'https://www.youtube-nocookie.com',
 		'https://open.spotify.com',
+		'https://w.soundcloud.com',
 		'https://embed.nicovideo.jp',
 		'https://platform.twitter.com',
 		'https://syndication.twitter.com'
