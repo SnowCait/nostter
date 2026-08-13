@@ -54,11 +54,13 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { newUrl } from '$lib/Helper';
+	import { SoundCloud } from '$lib/SoundCloud';
 	import { Spotify } from '$lib/Spotify';
 	import { Twitter } from '$lib/Twitter';
 	import { enablePreview } from '$lib/stores/Preference';
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
+	import SoundCloudPlayer from '$lib/components/content/SoundCloud.svelte';
 	import SpotifyPlayer from '$lib/components/content/Spotify.svelte';
 	import YouTube from '$lib/components/content/YouTube.svelte';
 	import Nicovideo from './Nicovideo.svelte';
@@ -143,6 +145,12 @@
 {:else if Spotify.isSpotifyUrl(link)}
 	{#if preview}
 		<SpotifyPlayer {link} />
+	{:else}
+		<ExternalLink {link} />
+	{/if}
+{:else if SoundCloud.isSoundCloudUrl(link)}
+	{#if preview}
+		<SoundCloudPlayer {link} />
 	{:else}
 		<ExternalLink {link} />
 	{/if}
