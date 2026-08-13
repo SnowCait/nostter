@@ -5,6 +5,11 @@ export type Ogp = {
 	image?: string;
 };
 
+function decodeHtml(value: string): string {
+	const dom = new DOMParser().parseFromString(value, 'text/html');
+	return dom.body.textContent ?? value;
+}
+
 export async function fetchOgp(url: URL): Promise<Ogp | undefined> {
 	return (await fetchOgpViaProxy(url)) ?? (await fetchOgpDirect(url));
 }
@@ -30,8 +35,9 @@ export async function fetchOgpViaProxy(url: URL): Promise<Ogp | undefined> {
 
 	const ogp: Record<string, string> = await response.json();
 	console.debug('[ogp proxy]', url.href, ogp);
+	const title = ogp['og:title'] ?? ogp['title'];
 	return {
-		title: ogp['og:title'] ?? ogp['title'],
+		title: title === undefined ? undefined : decodeHtml(title),
 		image: ogp['og:image']
 	};
 }

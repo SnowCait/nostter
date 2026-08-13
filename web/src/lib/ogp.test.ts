@@ -1,5 +1,16 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fetchOgp, fetchOgpViaProxy } from './ogp';
+
+beforeEach(() => {
+	vi.stubGlobal(
+		'DOMParser',
+		class {
+			parseFromString(value: string) {
+				return { body: { textContent: value } };
+			}
+		}
+	);
+});
 
 function jsonResponse(body: Record<string, string>, init?: { ok?: boolean; contentType?: string }) {
 	return {
