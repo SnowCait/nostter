@@ -85,6 +85,10 @@ describe('SoundCloud URL', () => {
 		expect(SoundCloud.isSoundCloudUrl(url)).toBe(true);
 	});
 
+	it('accepts an on.soundcloud.com URL', () => {
+		expect(SoundCloud.isSoundCloudUrl('https://on.soundcloud.com/AbCdEf123456')).toBe(true);
+	});
+
 	it.each([
 		'not a URL',
 		'http://soundcloud.com/user/track',

@@ -14,7 +14,9 @@ export class SoundCloud {
 			const parsed = typeof url === 'string' ? new URL(url) : url;
 			return (
 				parsed.protocol === 'https:' &&
-				['soundcloud.com', 'www.soundcloud.com'].includes(parsed.hostname) &&
+				['soundcloud.com', 'www.soundcloud.com', 'on.soundcloud.com'].includes(
+					parsed.hostname
+				) &&
 				parsed.username === '' &&
 				parsed.password === '' &&
 				parsed.port === '' &&
