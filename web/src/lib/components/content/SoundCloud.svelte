@@ -11,13 +11,17 @@
 
 	$effect(() => {
 		let cancelled = false;
+		const controller = new AbortController();
 		embed = undefined;
-		void SoundCloud.fetchEmbed(link).then((result) => {
+		void SoundCloud.fetchEmbed(link, controller.signal).then((result) => {
 			if (!cancelled) {
 				embed = result;
 			}
 		});
-		return () => (cancelled = true);
+		return () => {
+			cancelled = true;
+			controller.abort();
+		};
 	});
 </script>
 
