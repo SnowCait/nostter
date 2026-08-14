@@ -43,6 +43,10 @@ javascript:window.open(`https://nostter.app/post?content=${document.title}%20${l
 
 See full list at [package.json](web/package.json)
 
+## Browser compatibility
+
+Known not to work: Chrome 118 and earlier, Firefox 120 and earlier, Safari/iOS Safari 17.3 and earlier.
+
 ## Contribution
 
 Welcome issues, pull requests and discussions.
