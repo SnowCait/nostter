@@ -1,28 +1,30 @@
 <script lang="ts">
-	import IconHome from '@tabler/icons-svelte-runes/icons/home';
-	import IconHomeFilled from '@tabler/icons-svelte-runes/icons/home-filled';
-	import IconWorld from '@tabler/icons-svelte-runes/icons/world';
-	import IconWorldFilled from '@tabler/icons-svelte-runes/icons/world-filled';
-	import IconSearch from '@tabler/icons-svelte-runes/icons/search';
-	import IconSearchFilled from '@tabler/icons-svelte-runes/icons/search-filled';
-	import IconBell from '@tabler/icons-svelte-runes/icons/bell';
-	import IconBellFilled from '@tabler/icons-svelte-runes/icons/bell-filled';
-	import IconUser from '@tabler/icons-svelte-runes/icons/user';
-	import IconUserFilled from '@tabler/icons-svelte-runes/icons/user-filled';
-	import IconSettings from '@tabler/icons-svelte-runes/icons/settings';
-	import IconSettingsFilled from '@tabler/icons-svelte-runes/icons/settings-filled';
-	import IconList from '@tabler/icons-svelte-runes/icons/list';
-	import IconListFilled from '@tabler/icons-svelte-runes/icons/list-filled';
-	import IconBookmark from '@tabler/icons-svelte-runes/icons/bookmark';
-	import IconBookmarkFilled from '@tabler/icons-svelte-runes/icons/bookmark-filled';
-	import IconMessages from '@tabler/icons-svelte-runes/icons/messages';
-	import IconMessagesFilled from '@tabler/icons-svelte-runes/icons/messages-filled';
-	import IconPencilPlus from '@tabler/icons-svelte-runes/icons/pencil-plus';
-	import IconLogin from '@tabler/icons-svelte-runes/icons/login';
-	import IconDots from '@tabler/icons-svelte-runes/icons/dots';
-	import IconDotsFilled from '@tabler/icons-svelte-runes/icons/dots-filled';
-	import IconPaw from '@tabler/icons-svelte-runes/icons/paw';
-	import IconPawFilled from '@tabler/icons-svelte-runes/icons/paw-filled';
+	import {
+		IconBell,
+		IconBellFilled,
+		IconBookmark,
+		IconBookmarkFilled,
+		IconDots,
+		IconDotsFilled,
+		IconHome,
+		IconHomeFilled,
+		IconList,
+		IconListFilled,
+		IconLogin,
+		IconMessages,
+		IconMessagesFilled,
+		IconPaw,
+		IconPawFilled,
+		IconPencilPlus,
+		IconSearch,
+		IconSearchFilled,
+		IconSettings,
+		IconSettingsFilled,
+		IconUser,
+		IconUserFilled,
+		IconWorld,
+		IconWorldFilled
+	} from '@tabler/icons-svelte-runes';
 	import { nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
