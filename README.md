@@ -45,7 +45,7 @@ See full list at [package.json](web/package.json)
 
 ## Browser compatibility
 
-Known not to work: Chrome 118 and earlier, Firefox 120 and earlier, Safari/iOS Safari 17.3 and earlier.
+Known not to work correctly: Chrome 113 and earlier, Firefox 124 and earlier, Safari/iOS Safari before 17.0.
 
 ## Contribution
 
