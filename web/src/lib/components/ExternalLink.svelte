@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import '@tabler/icons-webfont/dist/tabler-icons.min.css';
+	import externalLinkIconUrl from '$lib/assets/icons/external-link.svg?url';
 
 	interface Props {
 		link: URL;
@@ -26,14 +26,25 @@
 		{#if children}{@render children()}{:else}{shortenedContent}{/if}
 	</a>
 {:else}
-	<a href={link.href} target="_blank" rel="noopener noreferrer" class="external">
+	<a
+		href={link.href}
+		target="_blank"
+		rel="noopener noreferrer"
+		class="external"
+		style:--external-link-icon={`url("${externalLinkIconUrl}")`}
+	>
 		{#if children}{@render children()}{:else}{shortenedContent}{/if}
 	</a>
 {/if}
 
 <style>
 	a.external::after {
-		font-family: 'tabler-icons';
-		content: '\ea99';
+		content: '';
+		display: inline-block;
+		width: 1em;
+		height: 1em;
+		background-color: currentColor;
+		mask: var(--external-link-icon) center / contain no-repeat;
+		-webkit-mask: var(--external-link-icon) center / contain no-repeat;
 	}
 </style>
