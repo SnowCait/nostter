@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config';
 import { name } from './package.json' with { type: 'json' };
 import { visualizer } from 'rollup-plugin-visualizer';
 
+// SvelteKit overrides build.cssMinify in its pre config hook, so reapply it afterward.
 const esbuildCssMinifier = {
 	name: 'esbuild-css-minifier',
 	config: () => ({ build: { cssMinify: 'esbuild' as const } })
