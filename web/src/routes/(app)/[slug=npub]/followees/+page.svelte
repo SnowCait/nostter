@@ -16,7 +16,7 @@
 	import { lastNoteReqEmit } from '$lib/LastNotes';
 	import type { pubkey as Pubkey } from '$lib/Types';
 	import FollowAllButton from '$lib/components/actions/FollowAllButton.svelte';
-	import '@tabler/icons-webfont/dist/tabler-icons.min.css';
+	import externalLinkIconUrl from '$lib/assets/icons/external-link.svg?url';
 
 	interface Props {
 		data: LayoutData;
@@ -71,6 +71,7 @@
 		<button
 			onclick={() =>
 				open('https://tsukemonogit.github.io/NFO/', '_blank', 'noopener,noreferrer')}
+			style:--external-link-icon={`url("${externalLinkIconUrl}")`}
 		>
 			{$_('follow.organize')}
 		</button>
@@ -89,7 +90,13 @@
 	}
 
 	button::after {
-		font-family: 'tabler-icons';
-		content: '\ea99';
+		content: '';
+		display: inline-block;
+		width: 1em;
+		height: 1em;
+		vertical-align: -0.125em;
+		background-color: currentColor;
+		mask: var(--external-link-icon) center / contain no-repeat;
+		-webkit-mask: var(--external-link-icon) center / contain no-repeat;
 	}
 </style>
