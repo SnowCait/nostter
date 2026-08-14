@@ -4,7 +4,6 @@
 
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import type { BaseEmoji } from 'emoji-mart';
 	import data from '@emoji-mart/data';
 	import IconMoodSmile from '@tabler/icons-svelte-runes/icons/mood-smile';
 	import { customEmojiTags } from '../author/CustomEmojis';
@@ -17,6 +16,8 @@
 		children?: import('svelte').Snippet;
 		inEditor?: boolean;
 	}
+
+	type PickerEmoji = { id: string; native?: string; src?: string };
 
 	let {
 		containsDefaultEmoji = true,
@@ -107,7 +108,7 @@
 		return custom;
 	}
 
-	function onEmojiSelect(emoji: BaseEmoji): void {
+	function onEmojiSelect(emoji: PickerEmoji): void {
 		dispatch('pick', emoji);
 		if (autoClose) {
 			popover.open = false;
