@@ -11,7 +11,7 @@ import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';
 import { generateSecretKey } from 'nostr-tools/pure';
 import { bytesToHex, hexToBytes } from 'nostr-tools/utils';
 import { WebStorage } from './WebStorage';
-import { nip46ConnectTimeout } from './Constants';
+import { nip46AuthTimeout, nip46ConnectTimeout } from './Constants';
 import type * as Nostr from 'nostr-typedef';
 import { type LoginType, signerCanSign } from './signer-capability';
 
@@ -21,6 +21,21 @@ declare const window: {
 
 let bunkerSigner: BunkerSigner | undefined;
 let nip46CachedPublicKey: string | undefined;
+let bunkerConnectionGeneration = 0;
+
+type ConnectionState = 'pending' | 'succeeded' | 'failed';
+
+type LoginPhase = {
+	onauth: (url: string) => void;
+};
+
+async function closeBunkerSigner(signer: BunkerSigner): Promise<void> {
+	try {
+		await signer.close();
+	} catch (e) {
+		console.debug('[NIP-46] close error', e);
+	}
+}
 
 export async function establishBunkerConnection(bunker: string): Promise<void> {
 	const bunkerPointer = await parseBunkerInput(bunker);
@@ -36,44 +51,100 @@ export async function establishBunkerConnection(bunker: string): Promise<void> {
 		storage.set('login:bunker:client-seckey', bytesToHex(clientSeckey));
 	}
 
-	let authRequested = false;
+	let connectionState: ConnectionState = 'pending';
+	let activeLoginPhase: LoginPhase | undefined;
+	const generation = ++bunkerConnectionGeneration;
 	bunkerSigner = BunkerSigner.fromBunker(clientSeckey, bunkerPointer, {
 		onauth: (url) => {
-			authRequested = true;
-			open(url, '_blank');
+			if (generation !== bunkerConnectionGeneration) {
+				return;
+			}
+			if (connectionState === 'failed') {
+				return;
+			}
+			if (connectionState === 'succeeded') {
+				open(url, '_blank');
+				return;
+			}
+			activeLoginPhase?.onauth(url);
 		}
 	});
 	console.debug('[NIP-46 client pubkey]', getPublicKey(clientSeckey));
 
 	const signer = bunkerSigner;
-	const { promise: timeout, reject: rejectOnTimeout } = Promise.withResolvers<never>();
-	const timer = setTimeout(() => {
-		if (!authRequested) {
+
+	const runRequestWithAuthTimeout = async <T>(request: () => Promise<T>): Promise<T> => {
+		let connectTimer: ReturnType<typeof setTimeout> | undefined;
+		let authTimer: ReturnType<typeof setTimeout> | undefined;
+		const clearTimers = () => {
+			if (connectTimer !== undefined) {
+				clearTimeout(connectTimer);
+				connectTimer = undefined;
+			}
+			if (authTimer !== undefined) {
+				clearTimeout(authTimer);
+				authTimer = undefined;
+			}
+		};
+
+		let rejectOnTimeout: (error: Error) => void;
+		const timeout = new Promise<never>((_resolve, reject) => {
+			rejectOnTimeout = reject;
+		});
+		const phase: LoginPhase = {
+			onauth: (url) => {
+				if (authTimer === undefined) {
+					if (connectTimer !== undefined) {
+						clearTimeout(connectTimer);
+						connectTimer = undefined;
+					}
+					authTimer = setTimeout(() => {
+						rejectOnTimeout(new Error('NIP-46 authentication timed out'));
+					}, nip46AuthTimeout);
+				}
+				open(url, '_blank');
+			}
+		};
+
+		activeLoginPhase = phase;
+		connectTimer = setTimeout(() => {
 			rejectOnTimeout(new Error('NIP-46 connection timed out'));
+		}, nip46ConnectTimeout);
+
+		try {
+			return await Promise.race([request(), timeout]);
+		} finally {
+			if (activeLoginPhase === phase) {
+				activeLoginPhase = undefined;
+			}
+			clearTimers();
 		}
-	}, nip46ConnectTimeout);
+	};
+
 	try {
-		await Promise.race([
-			(async () => {
-				await signer.connect();
-				console.debug('[NIP-46 connected]');
-				nip46CachedPublicKey = await signer.getPublicKey();
-			})(),
-			timeout
-		]);
-	} finally {
-		clearTimeout(timer);
+		await runRequestWithAuthTimeout(() => signer.connect());
+		console.debug('[NIP-46 connected]');
+		const publicKey = await runRequestWithAuthTimeout(() => signer.getPublicKey());
+		if (generation !== bunkerConnectionGeneration || bunkerSigner !== signer) {
+			throw new Error('NIP-46 connection was superseded');
+		}
+		nip46CachedPublicKey = publicKey;
+		connectionState = 'succeeded';
+	} catch (e) {
+		connectionState = 'failed';
+		await closeBunkerSigner(signer);
+		if (generation === bunkerConnectionGeneration && bunkerSigner === signer) {
+			bunkerSigner = undefined;
+			nip46CachedPublicKey = undefined;
+		}
+		throw e;
 	}
 	console.debug('[NIP-46 user pubkey]', nip46CachedPublicKey);
 }
 
 export async function abolishBunkerConnection(): Promise<void> {
 	if (bunkerSigner) {
-		try {
-			await bunkerSigner.close();
-		} catch (e) {
-			console.debug('[NIP-46] close error', e);
-		}
+		await closeBunkerSigner(bunkerSigner);
 		bunkerSigner = undefined;
 		nip46CachedPublicKey = undefined;
 	}

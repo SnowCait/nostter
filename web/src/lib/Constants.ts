@@ -15,6 +15,7 @@ export const maxFilters = 10;
 export const timelineBufferMs = 1500;
 export const timeout = 5000;
 export const nip46ConnectTimeout = 10000;
+export const nip46AuthTimeout = 5 * 60 * 1000;
 
 export const hexRegexp = /^[0-9a-f]{64}$/;
 export const addressRegexp = /^[0-9]+:[0-9a-f]{64}:.*$/;
