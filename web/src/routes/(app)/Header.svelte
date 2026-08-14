@@ -1,17 +1,28 @@
 <script lang="ts">
 	import IconHome from '@tabler/icons-svelte-runes/icons/home';
+	import IconHomeFilled from '@tabler/icons-svelte-runes/icons/home-filled';
 	import IconWorld from '@tabler/icons-svelte-runes/icons/world';
+	import IconWorldFilled from '@tabler/icons-svelte-runes/icons/world-filled';
 	import IconSearch from '@tabler/icons-svelte-runes/icons/search';
+	import IconSearchFilled from '@tabler/icons-svelte-runes/icons/search-filled';
 	import IconBell from '@tabler/icons-svelte-runes/icons/bell';
+	import IconBellFilled from '@tabler/icons-svelte-runes/icons/bell-filled';
 	import IconUser from '@tabler/icons-svelte-runes/icons/user';
+	import IconUserFilled from '@tabler/icons-svelte-runes/icons/user-filled';
 	import IconSettings from '@tabler/icons-svelte-runes/icons/settings';
+	import IconSettingsFilled from '@tabler/icons-svelte-runes/icons/settings-filled';
 	import IconList from '@tabler/icons-svelte-runes/icons/list';
+	import IconListFilled from '@tabler/icons-svelte-runes/icons/list-filled';
 	import IconBookmark from '@tabler/icons-svelte-runes/icons/bookmark';
+	import IconBookmarkFilled from '@tabler/icons-svelte-runes/icons/bookmark-filled';
 	import IconMessages from '@tabler/icons-svelte-runes/icons/messages';
+	import IconMessagesFilled from '@tabler/icons-svelte-runes/icons/messages-filled';
 	import IconPencilPlus from '@tabler/icons-svelte-runes/icons/pencil-plus';
 	import IconLogin from '@tabler/icons-svelte-runes/icons/login';
 	import IconDots from '@tabler/icons-svelte-runes/icons/dots';
+	import IconDotsFilled from '@tabler/icons-svelte-runes/icons/dots-filled';
 	import IconPaw from '@tabler/icons-svelte-runes/icons/paw';
+	import IconPawFilled from '@tabler/icons-svelte-runes/icons/paw-filled';
 	import { nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
@@ -26,6 +37,7 @@
 	import { MouseButton } from '$lib/DomHelper';
 	import { requestTimelineScrollToTop } from '$lib/timelines/ScrollToTop';
 	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
+	import { getCurrentHeaderNavigation, isMoreNavigationCurrent } from './HeaderNavigation';
 
 	const {
 		elements: { menu, item, trigger, overlay }
@@ -78,6 +90,29 @@
 				item.event.created_at > $lastReadAt && isVisibleNotification(item.event.pubkey)
 		).length > 0
 	);
+	let currentNavigation = $derived(
+		getCurrentHeaderNavigation(page.route.id, page.data.pubkey, $pubkey)
+	);
+	let moreNavigationCurrent = $derived(isMoreNavigationCurrent(currentNavigation));
+	let HomeIcon = $derived(currentNavigation === 'home' ? IconHomeFilled : IconHome);
+	let PublicIcon = $derived(currentNavigation === 'public' ? IconWorldFilled : IconWorld);
+	let SearchIcon = $derived(currentNavigation === 'search' ? IconSearchFilled : IconSearch);
+	let NotificationsIcon = $derived(
+		currentNavigation === 'notifications' ? IconBellFilled : IconBell
+	);
+	let ListsIcon = $derived(currentNavigation === 'lists' ? IconListFilled : IconList);
+	let BookmarksIcon = $derived(
+		currentNavigation === 'bookmarks' ? IconBookmarkFilled : IconBookmark
+	);
+	let ChannelsIcon = $derived(
+		currentNavigation === 'channels' ? IconMessagesFilled : IconMessages
+	);
+	let ProfileIcon = $derived(currentNavigation === 'profile' ? IconUserFilled : IconUser);
+	let PreferencesIcon = $derived(
+		currentNavigation === 'preferences' ? IconSettingsFilled : IconSettings
+	);
+	let AboutIcon = $derived(currentNavigation === 'about' ? IconPawFilled : IconPaw);
+	let MoreIcon = $derived(moreNavigationCurrent ? IconDotsFilled : IconDots);
 </script>
 
 <div class="header">
@@ -94,27 +129,41 @@
 	<nav>
 		<ul class="full">
 			<li class="clickable">
-				<a href={homeLink} onclick={onClickHomeLink}>
-					<IconHome size={30} />
+				<a
+					href={homeLink}
+					onclick={onClickHomeLink}
+					aria-current={currentNavigation === 'home' ? 'page' : undefined}
+				>
+					<HomeIcon size={30} />
 					<p>{$_('layout.header.home')}</p>
 				</a>
 			</li>
 			<li class="clickable">
-				<a href="/public" onclick={onClickPublicLink}>
-					<IconWorld size={30} />
+				<a
+					href="/public"
+					onclick={onClickPublicLink}
+					aria-current={currentNavigation === 'public' ? 'page' : undefined}
+				>
+					<PublicIcon size={30} />
 					<p>{$_('pages.public')}</p>
 				</a>
 			</li>
 			<li class="clickable">
-				<a href="/search">
-					<IconSearch size={30} />
+				<a
+					href="/search"
+					aria-current={currentNavigation === 'search' ? 'page' : undefined}
+				>
+					<SearchIcon size={30} />
 					<p>{$_('layout.header.search')}</p>
 				</a>
 			</li>
 			{#if $pubkey}
 				<li class="clickable notifications-icon">
-					<a href="/notifications">
-						<IconBell size={30} />
+					<a
+						href="/notifications"
+						aria-current={currentNavigation === 'notifications' ? 'page' : undefined}
+					>
+						<NotificationsIcon size={30} />
 						{#if notificationsBadge}
 							<span class="notifications-icon-badge"></span>
 						{/if}
@@ -124,70 +173,103 @@
 			{/if}
 			{#if $pubkey}
 				<li class="clickable">
-					<a href="/{nprofile}/lists">
-						<IconList size={30} />
+					<a
+						href="/{nprofile}/lists"
+						aria-current={currentNavigation === 'lists' ? 'page' : undefined}
+					>
+						<ListsIcon size={30} />
 						<p>{$_('lists.title')}</p>
 					</a>
 				</li>
 				<li class="clickable">
-					<a href="/{nprofile}/bookmarks">
-						<IconBookmark size={30} />
+					<a
+						href="/{nprofile}/bookmarks"
+						aria-current={currentNavigation === 'bookmarks' ? 'page' : undefined}
+					>
+						<BookmarksIcon size={30} />
 						<p>{$_('layout.header.bookmarks')}</p>
 					</a>
 				</li>
 			{/if}
 			<li class="clickable">
-				<a href="/channels">
-					<IconMessages size={30} />
+				<a
+					href="/channels"
+					aria-current={currentNavigation === 'channels' ? 'page' : undefined}
+				>
+					<ChannelsIcon size={30} />
 					<p>{$_('layout.header.channels')}</p>
 				</a>
 			</li>
 			{#if $pubkey}
 				<li class="clickable">
-					<a href="/{nprofile}">
-						<IconUser size={30} />
+					<a
+						href="/{nprofile}"
+						aria-current={currentNavigation === 'profile' ? 'page' : undefined}
+					>
+						<ProfileIcon size={30} />
 						<p>{$_('layout.header.profile')}</p>
 					</a>
 				</li>
 				<li class="clickable">
-					<a href="/preferences">
-						<IconSettings size={30} />
+					<a
+						href="/preferences"
+						aria-current={currentNavigation === 'preferences' ? 'page' : undefined}
+					>
+						<PreferencesIcon size={30} />
 						<p>{$_('layout.header.preferences')}</p>
 					</a>
 				</li>
 			{/if}
 			<li class="clickable">
-				<a href="/about">
-					<IconPaw size={30} />
+				<a href="/about" aria-current={currentNavigation === 'about' ? 'page' : undefined}>
+					<AboutIcon size={30} />
 					<p>{$_('about.title')}</p>
 				</a>
 			</li>
 		</ul>
 		<ul class="fold">
 			<li>
-				<a href={homeLink} class="active" onclick={onClickHomeLink}>
-					<IconHome size={30} />
+				<a
+					href={homeLink}
+					class="active"
+					onclick={onClickHomeLink}
+					aria-current={currentNavigation === 'home' ? 'page' : undefined}
+				>
+					<HomeIcon size={30} />
 					<p>{$_('layout.header.home')}</p>
 				</a>
 			</li>
 			{#if !$pubkey}
 				<li>
-					<a href="/public" class="active" onclick={onClickPublicLink}>
-						<IconWorld size={30} />
+					<a
+						href="/public"
+						class="active"
+						onclick={onClickPublicLink}
+						aria-current={currentNavigation === 'public' ? 'page' : undefined}
+					>
+						<PublicIcon size={30} />
 						<p>{$_('pages.public')}</p>
 					</a>
 				</li>
 			{/if}
 			<li>
-				<a href="/search" class="active">
-					<IconSearch size={30} />
+				<a
+					href="/search"
+					class="active"
+					aria-current={currentNavigation === 'search' ? 'page' : undefined}
+				>
+					<SearchIcon size={30} />
 					<p>{$_('layout.header.search')}</p>
 				</a>
 			</li>
 			{#if $pubkey}
 				<li class="notifications-icon">
-					<a href="/notifications" class="active">
-						<IconBell size={30} />
+					<a
+						href="/notifications"
+						class="active"
+						aria-current={currentNavigation === 'notifications' ? 'page' : undefined}
+					>
+						<NotificationsIcon size={30} />
 						{#if notificationsBadge}
 							<span class="notifications-icon-badge"></span>
 						{/if}
@@ -195,21 +277,25 @@
 					</a>
 				</li>
 				<li>
-					<a href="/{nprofile}" class="active">
-						<IconUser size={30} />
+					<a
+						href="/{nprofile}"
+						class="active"
+						aria-current={currentNavigation === 'profile' ? 'page' : undefined}
+					>
+						<ProfileIcon size={30} />
 						<p>{$_('layout.header.profile')}</p>
 					</a>
 				</li>
 				<li>
 					<button class="clear active" use:melt={$trigger}>
-						<IconDots size={30} />
+						<MoreIcon size={30} />
 					</button>
 					<div use:melt={$overlay} class="overlay"></div>
 					<div use:melt={$menu} class="menu">
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div use:melt={$item} onclick={onClickPublicMenuItem} class="item">
-							<div class="icon"><IconWorld /></div>
+							<div class="icon"><PublicIcon /></div>
 							<div>{$_('pages.public')}</div>
 						</div>
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -219,7 +305,7 @@
 							onclick={async () => await goto(`/${nprofile}/lists`)}
 							class="item"
 						>
-							<div class="icon"><IconList /></div>
+							<div class="icon"><ListsIcon /></div>
 							<div>{$_('lists.title')}</div>
 						</div>
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -229,7 +315,7 @@
 							onclick={async () => await goto(`/${nprofile}/bookmarks`)}
 							class="item"
 						>
-							<div class="icon"><IconBookmark /></div>
+							<div class="icon"><BookmarksIcon /></div>
 							<div>{$_('layout.header.bookmarks')}</div>
 						</div>
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -239,7 +325,7 @@
 							onclick={async () => await goto('/channels')}
 							class="item"
 						>
-							<div class="icon"><IconMessages /></div>
+							<div class="icon"><ChannelsIcon /></div>
 							<div>{$_('layout.header.channels')}</div>
 						</div>
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -249,7 +335,7 @@
 							onclick={async () => await goto('/preferences')}
 							class="item"
 						>
-							<div class="icon"><IconSettings /></div>
+							<div class="icon"><PreferencesIcon /></div>
 							<div>{$_('layout.header.preferences')}</div>
 						</div>
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -259,21 +345,29 @@
 							onclick={async () => await goto('/about')}
 							class="item"
 						>
-							<div class="icon"><IconPaw /></div>
+							<div class="icon"><AboutIcon /></div>
 							<div>{$_('about.title')}</div>
 						</div>
 					</div>
 				</li>
 			{:else}
 				<li>
-					<a href="/channels" class="active">
-						<IconMessages size={30} />
+					<a
+						href="/channels"
+						class="active"
+						aria-current={currentNavigation === 'channels' ? 'page' : undefined}
+					>
+						<ChannelsIcon size={30} />
 						<p>{$_('layout.header.channels')}</p>
 					</a>
 				</li>
 				<li>
-					<a href="/about" class="active">
-						<IconPaw size={30} />
+					<a
+						href="/about"
+						class="active"
+						aria-current={currentNavigation === 'about' ? 'page' : undefined}
+					>
+						<AboutIcon size={30} />
 						<p>{$_('about.title')}</p>
 					</a>
 				</li>
