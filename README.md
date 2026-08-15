@@ -47,10 +47,6 @@ See full list at [package.json](web/package.json)
 
 Known not to work correctly: Chrome 113 and earlier, Firefox 124 and earlier, Safari/iOS Safari before 17.0.
 
-## Contribution
-
-Welcome issues, pull requests and discussions.
-
 ## Special Thanks
 
 UI by [@kaiji](https://nostter.app/npub194qhhn5vzzyrsqaugfms8c7ycqjyvhyguurra450nhlweatfzxkqy8tgkd)
