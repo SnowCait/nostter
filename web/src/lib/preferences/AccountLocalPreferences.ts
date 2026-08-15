@@ -1,5 +1,5 @@
 import { persistedStore } from '$lib/persisted-store';
-import { defaultBlossomServerUrl } from '$lib/media/Blossom';
+import { defaultBlossomServerUrl } from '$lib/Constants';
 import type { Persisted } from 'svelte-persisted-store';
 import type { Writable } from 'svelte/store';
 

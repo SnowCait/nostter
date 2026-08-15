@@ -1,24 +1,11 @@
-import type { Event } from 'nostr-tools';
 import {
 	Actions,
 	createUploadAuth,
-	getServersFromServerListEvent,
 	type BlobDescriptor,
 	type Signer as BlossomSigner
 } from 'blossom-client-sdk';
 import { Signer } from '$lib/Signer';
 import type { Media, MediaResult } from './Media';
-
-export const defaultBlossomServerUrl = 'https://blossom.band';
-export const defaultBlossomServer = new URL(defaultBlossomServerUrl);
-
-export function resolveBlossomServer(event: Event | undefined): URL {
-	if (event === undefined) return new URL(defaultBlossomServer);
-	return (
-		getServersFromServerListEvent(event).find((server) => server.protocol === 'https:') ??
-		new URL(defaultBlossomServer)
-	);
-}
 
 const signer: BlossomSigner = (template) => Signer.signEvent(template);
 

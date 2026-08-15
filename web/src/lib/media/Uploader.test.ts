@@ -22,12 +22,14 @@ vi.mock('$lib/preferences/AccountLocalPreferences', () => ({
 	getAccountLocalPreferences: () => preferences
 }));
 vi.mock('./Blossom', () => ({
-	defaultBlossomServerUrl: 'https://blossom.band',
 	Blossom: class {
 		constructor(server: URL) {
 			blossomConstructor(server);
 		}
 	}
+}));
+vi.mock('$lib/Constants', () => ({
+	defaultBlossomServerUrl: 'https://blossom.band'
 }));
 vi.mock('./FileStorageServer', () => ({
 	FileStorageServer: class {
@@ -37,7 +39,14 @@ vi.mock('./FileStorageServer', () => ({
 	}
 }));
 
-import { getMediaUploader } from './Uploader';
+import { createMediaUploader, getMediaUploader } from './Uploader';
+
+describe('createMediaUploader', () => {
+	it('creates an uploader from an explicit preference', () => {
+		createMediaUploader({ type: 'blossom', server: 'https://cdn.example/path' });
+		expect(blossomConstructor).toHaveBeenCalledWith(new URL('https://cdn.example/path'));
+	});
+});
 
 describe('getMediaUploader', () => {
 	beforeEach(() => {

@@ -3,8 +3,7 @@
 	import { get } from 'svelte/store';
 	import { fileStorageServers } from '$lib/Constants';
 	import { auth } from '$lib/auth.svelte';
-	import { blossomServerListEvent } from '$lib/stores/Author';
-	import { defaultBlossomServerUrl, resolveBlossomServer } from '$lib/media/Blossom';
+	import { blossomServer, defaultBlossomServerUrl } from '$lib/author/BlossomServerList';
 	import {
 		getAccountLocalPreferences,
 		mediaUploaderPreferenceValue,
@@ -14,14 +13,13 @@
 	import { fetchNip96 } from '$lib/media/FileStorageServer';
 
 	const accountLocalPreferences = getAccountLocalPreferences(auth.pubkey);
-	const blossomServer = $derived(
-		$blossomServerListEvent !== undefined
-			? resolveBlossomServer($blossomServerListEvent)
-			: new URL(
-					$accountLocalPreferences.mediaUploader?.type === 'blossom'
-						? $accountLocalPreferences.mediaUploader.server
-						: defaultBlossomServerUrl
-				)
+	const displayedBlossomServer = $derived(
+		$blossomServer ??
+			new URL(
+				$accountLocalPreferences.mediaUploader?.type === 'blossom'
+					? $accountLocalPreferences.mediaUploader.server
+					: defaultBlossomServerUrl
+			)
 	);
 	let selection = $state(
 		mediaUploaderPreferenceValue(
@@ -35,7 +33,10 @@
 	async function save(): Promise<void> {
 		const preference: MediaUploaderPreference = selection.startsWith('nip96:')
 			? { type: 'nip96', server: selection.slice('nip96:'.length) }
-			: { type: 'blossom', server: blossomServer.href };
+			: {
+					type: 'blossom',
+					server: ($blossomServer ?? new URL(defaultBlossomServerUrl)).href
+				};
 		console.debug('[preferences media uploader changed]', preference);
 		try {
 			if (preference.type === 'nip96') await fetchNip96(preference.server);
@@ -49,7 +50,7 @@
 <label for="file-storage-server">{$_('preferences.media_uploader.title')}</label>
 <select id="file-storage-server" bind:value={selection} onchange={save}>
 	<optgroup label={$_('preferences.media_uploader.recommended_blossom')}>
-		<option value="blossom">{blossomServer.hostname}</option>
+		<option value="blossom">{displayedBlossomServer.hostname}</option>
 	</optgroup>
 	<optgroup label={$_('preferences.media_uploader.other')}>
 		{#each fileStorageServers as server}

@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Event } from 'nostr-tools';
 
 const { uploadBlob, uploadMedia, createUploadAuth, signEvent } = vi.hoisted(() => ({
 	uploadBlob: vi.fn(),
@@ -20,7 +19,7 @@ vi.mock('blossom-client-sdk', async (importOriginal) => ({
 }));
 vi.mock('$lib/Signer', () => ({ Signer: { signEvent } }));
 
-import { Blossom, resolveBlossomServer } from './Blossom';
+import { Blossom } from './Blossom';
 
 const descriptor = {
 	uploaded: 0,
@@ -29,28 +28,6 @@ const descriptor = {
 	size: 5,
 	url: 'https://cdn.example/abc123.png'
 };
-const serverList = (tags: string[][]): Event =>
-	({ kind: 10063, tags, content: '', created_at: 0, id: '', pubkey: '', sig: '' }) as Event;
-
-describe('resolveBlossomServer', () => {
-	it('uses SDK parsing and selects the first HTTPS server in tag order', () => {
-		const event = serverList([
-			['server', 'not a url'],
-			['server', 'http://insecure.example'],
-			['server', 'https://first.example/path'],
-			['server', 'https://second.example']
-		]);
-		expect(resolveBlossomServer(event).href).toBe('https://first.example/');
-	});
-
-	it('falls back when the SDK-parsed list has no HTTPS server', () => {
-		expect(resolveBlossomServer(serverList([['server', 'http://insecure.example']])).href).toBe(
-			'https://blossom.band/'
-		);
-		expect(resolveBlossomServer(undefined).href).toBe('https://blossom.band/');
-	});
-});
-
 describe('Blossom SDK adapter', () => {
 	afterEach(() => vi.useRealTimers());
 
