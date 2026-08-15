@@ -17,6 +17,7 @@
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import CodePoints from './CodePoints.svelte';
+	import type { PickerEmoji } from '$lib/Emoji';
 
 	interface Props {
 		item: EventItem;
@@ -45,8 +46,7 @@
 		$openNoteDialog = true;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async function emojiReaction(note: Nostr.Event, emoji: any) {
+	async function emojiReaction(note: Nostr.Event, emoji: PickerEmoji) {
 		console.log('[reaction with emoji]', note, emoji);
 
 		if ($rom) {
@@ -74,7 +74,7 @@
 	<RepostButton event={item.event} {iconSize} />
 	<ReactionButton event={item.event} {iconSize} />
 	<span>
-		<EmojiPicker on:pick={({ detail }) => emojiReaction(item.event, detail)} />
+		<EmojiPicker onPick={(emoji) => emojiReaction(item.event, emoji)} />
 	</span>
 	<button
 		class="zap"

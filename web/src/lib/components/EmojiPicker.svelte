@@ -3,11 +3,10 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-	import type { BaseEmoji } from 'emoji-mart';
 	import data from '@emoji-mart/data';
 	import IconMoodSmile from '@tabler/icons-svelte-runes/icons/mood-smile';
 	import { customEmojiTags } from '../author/CustomEmojis';
+	import type { PickerEmoji } from '$lib/Emoji';
 	import { _ } from 'svelte-i18n';
 	import { Popover } from 'melt/builders';
 
@@ -16,13 +15,15 @@
 		autoClose?: boolean;
 		children?: import('svelte').Snippet;
 		inEditor?: boolean;
+		onPick?: (emoji: PickerEmoji) => void;
 	}
 
 	let {
 		containsDefaultEmoji = true,
 		autoClose = true,
 		children,
-		inEditor = false
+		inEditor = false,
+		onPick
 	}: Props = $props();
 
 	let emojiPicker: HTMLElement | undefined | null = $state();
@@ -30,8 +31,6 @@
 	let PickerConstructor = $state<typeof import('emoji-kitchen-mart').Picker>();
 
 	const popover = new Popover();
-
-	const dispatch = createEventDispatcher();
 
 	$effect(() => {
 		if (PickerConstructor || !popover.open) {
@@ -107,8 +106,8 @@
 		return custom;
 	}
 
-	function onEmojiSelect(emoji: BaseEmoji): void {
-		dispatch('pick', emoji);
+	function onEmojiSelect(emoji: PickerEmoji): void {
+		onPick?.(emoji);
 		if (autoClose) {
 			popover.open = false;
 		}

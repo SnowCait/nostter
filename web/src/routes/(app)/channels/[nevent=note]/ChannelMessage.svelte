@@ -14,6 +14,7 @@
 	import ReactionButton from '$lib/components/ReactionButton.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import ZapDialog from '$lib/components/ZapDialog.svelte';
+	import type { PickerEmoji } from '$lib/Emoji';
 
 	interface Props {
 		event: Event;
@@ -40,8 +41,7 @@
 		onSelect?.(event.id);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	function emojiReaction(emoji: any): void {
+	function emojiReaction(emoji: PickerEmoji): void {
 		if ($rom) {
 			return;
 		}
@@ -87,7 +87,7 @@
 			{/if}
 			<ReactionButton {event} iconSize={20} />
 			<span class="emoji">
-				<EmojiPicker on:pick={({ detail }) => emojiReaction(detail)} />
+				<EmojiPicker onPick={emojiReaction} />
 			</span>
 			<button
 				class="clear"

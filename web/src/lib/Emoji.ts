@@ -3,8 +3,14 @@ export type Emoji = {
 	url?: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function toEmoji(emoji: any): Emoji {
+export type PickerEmoji = {
+	id: string;
+	native?: string;
+	shortcodes?: string;
+	src?: string;
+};
+
+export function toEmoji(emoji: PickerEmoji): Emoji {
 	if (emoji.native !== undefined) {
 		return {
 			content: emoji.native

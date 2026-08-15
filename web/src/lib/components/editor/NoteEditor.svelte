@@ -29,6 +29,7 @@
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import ContentWarning from './ContentWarning.svelte';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
+	import type { PickerEmoji } from '$lib/Emoji';
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
 	import Loading from '$lib/components/Loading.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -414,8 +415,7 @@
 		mention = undefined;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async function onEmojiPick({ detail: emoji }: { detail: any }): Promise<void> {
+	async function onEmojiPick(emoji: PickerEmoji): Promise<void> {
 		if (textarea === undefined) {
 			return;
 		}
@@ -711,7 +711,7 @@
 				containsDefaultEmoji={false}
 				autoClose={false}
 				inEditor={true}
-				on:pick={onEmojiPick}
+				onPick={onEmojiPick}
 			/>
 			<button class="clear editor-option advanced" {...collapsible.trigger}>
 				{$_('editor.options.advanced')}
