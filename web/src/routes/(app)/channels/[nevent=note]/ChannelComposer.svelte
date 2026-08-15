@@ -14,6 +14,7 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { alternativeName } from '$lib/Items';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
+	import type { PickerEmoji } from '$lib/Emoji';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
 	import { composerFocus } from './ComposerFocus.svelte';
 
@@ -90,8 +91,7 @@
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async function onEmojiPick({ detail: emoji }: { detail: any }): Promise<void> {
+	async function onEmojiPick(emoji: PickerEmoji): Promise<void> {
 		if (textarea === undefined) {
 			return;
 		}
@@ -186,7 +186,7 @@
 	{/if}
 	<div class="input">
 		<MediaPicker multiple={true} on:pick={mediaPicked} />
-		<EmojiPicker inEditor={true} on:pick={onEmojiPick} />
+		<EmojiPicker inEditor={true} onPick={onEmojiPick} />
 		<textarea
 			bind:this={textarea}
 			bind:value={content}
