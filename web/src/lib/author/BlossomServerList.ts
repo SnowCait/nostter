@@ -1,5 +1,5 @@
 import type { Event } from 'nostr-tools';
-import { getServersFromServerListEvent } from 'blossom-client-sdk';
+import { getServersFromServerListEvent } from 'blossom-client-sdk/nostr';
 import { writable } from 'svelte/store';
 import { defaultBlossomServerUrl } from '$lib/Constants';
 import {

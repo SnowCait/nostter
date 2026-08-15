@@ -12,11 +12,9 @@ const { uploadBlob, uploadMedia, createUploadAuth, signEvent } = vi.hoisted(() =
 	}))
 }));
 
-vi.mock('blossom-client-sdk', async (importOriginal) => ({
-	...(await importOriginal<typeof import('blossom-client-sdk')>()),
-	Actions: { uploadBlob, uploadMedia },
-	createUploadAuth
-}));
+vi.mock('blossom-client-sdk/actions/upload', () => ({ uploadBlob }));
+vi.mock('blossom-client-sdk/actions/media', () => ({ uploadMedia }));
+vi.mock('blossom-client-sdk/auth', () => ({ createUploadAuth }));
 vi.mock('$lib/Signer', () => ({ Signer: { signEvent } }));
 
 import { Blossom } from './Blossom';

@@ -1,11 +1,11 @@
-import {
-	Actions,
-	createUploadAuth,
-	type BlobDescriptor,
-	type Signer as BlossomSigner
-} from 'blossom-client-sdk';
+import { uploadMedia } from 'blossom-client-sdk/actions/media';
+import { uploadBlob } from 'blossom-client-sdk/actions/upload';
+import { createUploadAuth } from 'blossom-client-sdk/auth';
 import { Signer } from '$lib/Signer';
 import type { Media, MediaResult } from './Media';
+
+type BlobDescriptor = Awaited<ReturnType<typeof uploadBlob>>;
+type BlossomSigner = Parameters<typeof createUploadAuth>[0];
 
 const signer: BlossomSigner = (template) => Signer.signEvent(template);
 
@@ -22,8 +22,8 @@ export class Blossom implements Media {
 				})
 		};
 		const descriptor = await (file.type.startsWith('image/') || file.type.startsWith('video/')
-			? Actions.uploadMedia(this.server, file, options)
-			: Actions.uploadBlob(this.server, file, options));
+			? uploadMedia(this.server, file, options)
+			: uploadBlob(this.server, file, options));
 		return this.toMediaResult(descriptor);
 	}
 
