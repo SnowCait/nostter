@@ -31,7 +31,8 @@ export const replaceableKinds = [
 	Kind.RelayList,
 	10005,
 	10015,
-	10030
+	10030,
+	Kind.BlossomServerList
 ];
 export const parameterizedReplaceableKinds = [30000, 30001, 30007, 30008, 30078];
 

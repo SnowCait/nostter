@@ -51,7 +51,8 @@ import {
 	updateRelays,
 	followees,
 	storeMutedPubkeysByKind,
-	storeMutedTagsByEvent
+	storeMutedTagsByEvent,
+	blossomServerListEvent
 } from '../stores/Author';
 import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { saveLastNote } from '../stores/LastNotes';
@@ -138,6 +139,9 @@ export class HomeTimeline extends NewTimeline {
 			customEmojiListEvent.set(event);
 			storeCustomEmojis(event);
 		});
+		replaceable$
+			.pipe(filterByKind(Kind.BlossomServerList))
+			.subscribe(({ event }) => blossomServerListEvent.set(event));
 		const addressable$ = author$.pipe(
 			filterByKinds(parameterizedReplaceableKinds),
 			latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`),

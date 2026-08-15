@@ -8,6 +8,7 @@ import {
 	updateRelays,
 	authorProfile,
 	metadataEvent,
+	blossomServerListEvent,
 	isMuteEvent,
 	storeMutedPubkeysByKind,
 	storeMutedTagsByEvent
@@ -32,6 +33,10 @@ import { bookmarkEvent } from './author/Bookmark';
 import { profileBadgesEvent, profileBadgesKey } from './author/ProfileBadges';
 import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
+import {
+	getAccountLocalPreferences,
+	initializeMediaUploaderPreference
+} from './preferences/AccountLocalPreferences';
 
 export class Author {
 	constructor(private pubkey: string) {}
@@ -108,6 +113,7 @@ export class Author {
 		auth.updateFollowees(contactsTags);
 
 		customEmojiListEvent.set(replaceableEvents.get(Kind.UserEmojiList));
+		blossomServerListEvent.set(replaceableEvents.get(Kind.BlossomServerList));
 		const $customEmojiListEvent = get(customEmojiListEvent);
 		if ($customEmojiListEvent !== undefined) {
 			storeCustomEmojis($customEmojiListEvent);
@@ -117,8 +123,10 @@ export class Author {
 		profileBadgesEvent.set(parameterizedReplaceableEvents.get(profileBadgesKey));
 
 		const preferencesEvent = parameterizedReplaceableEvents.get(`${30078}:nostter-preferences`);
+		let legacyMediaUploader: string | undefined;
 		if (preferencesEvent !== undefined) {
 			const preferences = new Preferences(preferencesEvent.content);
+			legacyMediaUploader = preferences.mediaUploader;
 			preferencesStore.set(preferences);
 
 			if (
@@ -138,6 +146,10 @@ export class Author {
 				preferencesStore.set(preferences);
 			}
 		}
+		initializeMediaUploaderPreference(
+			getAccountLocalPreferences(this.pubkey),
+			legacyMediaUploader
+		);
 
 		const lastReadEvent = parameterizedReplaceableEvents.get(`${30078}:nostter-read`);
 		const regacyLastReadEvent = parameterizedReplaceableEvents.get(

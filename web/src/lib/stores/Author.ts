@@ -14,6 +14,7 @@ export const pubkey = toStore(() => auth.pubkey);
 export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
+export const blossomServerListEvent: Writable<Event | undefined> = writable();
 export const followees = toStore(() => auth.followees);
 export const originalFollowees = toStore(() => auth.originalFollowees);
 export const muteEvent = writable<Event | undefined>();
