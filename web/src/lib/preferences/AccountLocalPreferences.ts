@@ -1,8 +1,11 @@
 import { persistedStore } from '$lib/persisted-store';
+import { defaultBlossomServerUrl } from '$lib/media/Blossom';
 import type { Persisted } from 'svelte-persisted-store';
 import type { Writable } from 'svelte/store';
 
-export type MediaUploaderPreference = { type: 'blossom' } | { type: 'nip96'; server: string };
+export type MediaUploaderPreference =
+	| { type: 'blossom'; server: string }
+	| { type: 'nip96'; server: string };
 
 export type AccountLocalPreferences = {
 	mediaUploader?: MediaUploaderPreference;
@@ -16,9 +19,26 @@ export function getAccountLocalPreferences(pubkey: string): Persisted<AccountLoc
 	let store = stores.get(pubkey);
 	if (store === undefined) {
 		store = persistedStore(accountLocalPreferencesKey(pubkey), {});
+		store.update(normalizeAccountLocalPreferences);
 		stores.set(pubkey, store);
 	}
 	return store;
+}
+
+function normalizeAccountLocalPreferences(
+	preferences: AccountLocalPreferences
+): AccountLocalPreferences {
+	const mediaUploader = preferences.mediaUploader as
+		| MediaUploaderPreference
+		| { type: 'blossom'; server?: string }
+		| undefined;
+	if (mediaUploader?.type !== 'blossom' || typeof mediaUploader.server === 'string') {
+		return preferences;
+	}
+	return {
+		...preferences,
+		mediaUploader: { type: 'blossom', server: defaultBlossomServerUrl }
+	};
 }
 
 export function initializeMediaUploaderPreference(
@@ -27,13 +47,13 @@ export function initializeMediaUploaderPreference(
 ): void {
 	store.update((preferences) => {
 		if (preferences.mediaUploader !== undefined) {
-			return preferences;
+			return normalizeAccountLocalPreferences(preferences);
 		}
 		return {
 			...preferences,
 			mediaUploader:
 				legacyMediaUploader === undefined
-					? { type: 'blossom' }
+					? { type: 'blossom', server: defaultBlossomServerUrl }
 					: { type: 'nip96', server: legacyMediaUploader }
 		};
 	});

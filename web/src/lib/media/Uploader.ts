@@ -1,15 +1,14 @@
 import { get } from 'svelte/store';
 import { auth } from '$lib/auth.svelte';
-import { blossomServerListEvent } from '$lib/stores/Author';
 import { getAccountLocalPreferences } from '$lib/preferences/AccountLocalPreferences';
-import { Blossom, resolveBlossomServer } from './Blossom';
+import { Blossom, defaultBlossomServerUrl } from './Blossom';
 import { FileStorageServer } from './FileStorageServer';
 import type { Media } from './Media';
 
 export function getMediaUploader(): Media {
 	const preference = get(getAccountLocalPreferences(auth.pubkey)).mediaUploader;
 	if (preference?.type === 'nip96') return new FileStorageServer(preference.server);
-	return new Blossom(resolveBlossomServer(get(blossomServerListEvent)));
+	return new Blossom(new URL(preference?.server ?? defaultBlossomServerUrl));
 }
 
 export async function uploadFiles(

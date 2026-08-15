@@ -22,21 +22,46 @@ describe('account-local media uploader preferences', () => {
 		const store = writable<AccountLocalPreferences>({});
 		expect(get(store).mediaUploader).toBeUndefined();
 		initializeMediaUploaderPreference(store, undefined);
-		expect(get(store).mediaUploader).toEqual({ type: 'blossom' });
+		expect(get(store).mediaUploader).toEqual({
+			type: 'blossom',
+			server: 'https://blossom.band'
+		});
 	});
 
 	it('does not overwrite an existing local uploader', () => {
-		const store = writable<AccountLocalPreferences>({ mediaUploader: { type: 'blossom' } });
+		const store = writable<AccountLocalPreferences>({
+			mediaUploader: { type: 'blossom', server: 'https://cdn.example.com' }
+		});
 		initializeMediaUploaderPreference(store, 'https://nostr.build');
-		expect(get(store).mediaUploader).toEqual({ type: 'blossom' });
+		expect(get(store).mediaUploader).toEqual({
+			type: 'blossom',
+			server: 'https://cdn.example.com'
+		});
+	});
+
+	it('supplements the server missing from the old Blossom shape', () => {
+		const store = writable<AccountLocalPreferences>({
+			mediaUploader: { type: 'blossom' }
+		} as AccountLocalPreferences);
+		initializeMediaUploaderPreference(store, 'https://nostr.build');
+		expect(get(store).mediaUploader).toEqual({
+			type: 'blossom',
+			server: 'https://blossom.band'
+		});
 	});
 
 	it('preserves other account preferences when changing uploader', () => {
 		const store = writable<AccountLocalPreferences>({
 			futurePreference: true
 		} as AccountLocalPreferences);
-		setMediaUploaderPreference(store, { type: 'blossom' });
-		expect(get(store)).toEqual({ futurePreference: true, mediaUploader: { type: 'blossom' } });
+		setMediaUploaderPreference(store, {
+			type: 'blossom',
+			server: 'https://blossom.band'
+		});
+		expect(get(store)).toEqual({
+			futurePreference: true,
+			mediaUploader: { type: 'blossom', server: 'https://blossom.band' }
+		});
 	});
 
 	it('uses distinct persisted keys for each account', () => {
@@ -46,7 +71,9 @@ describe('account-local media uploader preferences', () => {
 	});
 
 	it('keeps Blossom and an existing uploader distinct at the same hostname', () => {
-		expect(mediaUploaderPreferenceValue({ type: 'blossom' })).toBe('blossom');
+		expect(
+			mediaUploaderPreferenceValue({ type: 'blossom', server: 'https://blossom.band' })
+		).toBe('blossom');
 		expect(
 			mediaUploaderPreferenceValue({ type: 'nip96', server: 'https://blossom.band' })
 		).toBe('nip96:https://blossom.band');

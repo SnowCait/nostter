@@ -3,7 +3,8 @@ import { now } from 'rx-nostr';
 import { Signer } from '$lib/Signer';
 import type { Media, MediaResult } from './Media';
 
-export const defaultBlossomServer = new URL('https://blossom.band');
+export const defaultBlossomServerUrl = 'https://blossom.band';
+export const defaultBlossomServer = new URL(defaultBlossomServerUrl);
 
 export function resolveBlossomServer(event: Event | undefined): URL {
 	for (const [name, value] of event?.tags ?? []) {

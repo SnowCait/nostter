@@ -17,14 +17,17 @@
 	const blossomServer = $derived(resolveBlossomServer($blossomServerListEvent));
 	let selection = $state(
 		mediaUploaderPreferenceValue(
-			get(accountLocalPreferences).mediaUploader ?? { type: 'blossom' }
+			get(accountLocalPreferences).mediaUploader ?? {
+				type: 'blossom',
+				server: resolveBlossomServer(get(blossomServerListEvent)).href
+			}
 		)
 	);
 
 	async function save(): Promise<void> {
 		const preference: MediaUploaderPreference = selection.startsWith('nip96:')
 			? { type: 'nip96', server: selection.slice('nip96:'.length) }
-			: { type: 'blossom' };
+			: { type: 'blossom', server: blossomServer.href };
 		console.debug('[preferences media uploader changed]', preference);
 		try {
 			if (preference.type === 'nip96') await fetchNip96(preference.server);
@@ -37,10 +40,10 @@
 
 <label for="file-storage-server">{$_('preferences.media_uploader.title')}</label>
 <select id="file-storage-server" bind:value={selection} onchange={save}>
-	<optgroup label="Recommended (Blossom)">
+	<optgroup label={$_('preferences.media_uploader.recommended_blossom')}>
 		<option value="blossom">{blossomServer.hostname}</option>
 	</optgroup>
-	<optgroup label="Other">
+	<optgroup label={$_('preferences.media_uploader.other')}>
 		{#each fileStorageServers as server}
 			<option value={`nip96:${server}`}>{new URL(server).hostname}</option>
 		{/each}

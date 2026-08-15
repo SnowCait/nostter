@@ -51,8 +51,7 @@ import {
 	updateRelays,
 	followees,
 	storeMutedPubkeysByKind,
-	storeMutedTagsByEvent,
-	blossomServerListEvent
+	storeMutedTagsByEvent
 } from '../stores/Author';
 import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { saveLastNote } from '../stores/LastNotes';
@@ -62,6 +61,7 @@ import { NewTimeline } from './Timeline.svelte';
 import { excludeKinds } from '$lib/TimelineFilter';
 import { fetchMinutes } from '$lib/Helper';
 import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
+import { updateBlossomServerList } from '$lib/author/BlossomServerList';
 
 const maxTimelineLength = minTimelineLength * 2;
 
@@ -141,7 +141,7 @@ export class HomeTimeline extends NewTimeline {
 		});
 		replaceable$
 			.pipe(filterByKind(Kind.BlossomServerList))
-			.subscribe(({ event }) => blossomServerListEvent.set(event));
+			.subscribe(({ event }) => updateBlossomServerList($pubkey, event));
 		const addressable$ = author$.pipe(
 			filterByKinds(parameterizedReplaceableKinds),
 			latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`),

@@ -137,7 +137,9 @@
 		"image_optimization": "Image size reduction",
 		"image_optimization_none": "None",
 		"media_uploader": {
-			"title": "Media uploader"
+			"title": "Media uploader",
+			"recommended_blossom": "Recommended (Blossom)",
+			"other": "Other"
 		},
 		"uri_scheme": "Open web+nostr: in nostter",
 		"enable_uri_scheme": "Enable",

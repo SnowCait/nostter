@@ -8,7 +8,6 @@ import {
 	updateRelays,
 	authorProfile,
 	metadataEvent,
-	blossomServerListEvent,
 	isMuteEvent,
 	storeMutedPubkeysByKind,
 	storeMutedTagsByEvent
@@ -37,6 +36,7 @@ import {
 	getAccountLocalPreferences,
 	initializeMediaUploaderPreference
 } from './preferences/AccountLocalPreferences';
+import { updateBlossomServerList } from './author/BlossomServerList';
 
 export class Author {
 	constructor(private pubkey: string) {}
@@ -113,7 +113,6 @@ export class Author {
 		auth.updateFollowees(contactsTags);
 
 		customEmojiListEvent.set(replaceableEvents.get(Kind.UserEmojiList));
-		blossomServerListEvent.set(replaceableEvents.get(Kind.BlossomServerList));
 		const $customEmojiListEvent = get(customEmojiListEvent);
 		if ($customEmojiListEvent !== undefined) {
 			storeCustomEmojis($customEmojiListEvent);
@@ -150,6 +149,7 @@ export class Author {
 			getAccountLocalPreferences(this.pubkey),
 			legacyMediaUploader
 		);
+		updateBlossomServerList(this.pubkey, replaceableEvents.get(Kind.BlossomServerList));
 
 		const lastReadEvent = parameterizedReplaceableEvents.get(`${30078}:nostter-read`);
 		const regacyLastReadEvent = parameterizedReplaceableEvents.get(
