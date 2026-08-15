@@ -17,7 +17,7 @@ export function resolveBlossomServer(event: Event): URL {
 	);
 }
 
-export function withBlossomServer(
+function withBlossomServer(
 	preferences: AccountLocalPreferences,
 	server: URL
 ): AccountLocalPreferences {

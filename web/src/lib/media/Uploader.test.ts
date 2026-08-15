@@ -39,14 +39,7 @@ vi.mock('./FileStorageServer', () => ({
 	}
 }));
 
-import { createMediaUploader, getMediaUploader } from './Uploader';
-
-describe('createMediaUploader', () => {
-	it('creates an uploader from an explicit preference', () => {
-		createMediaUploader({ type: 'blossom', server: 'https://cdn.example/path' });
-		expect(blossomConstructor).toHaveBeenCalledWith(new URL('https://cdn.example/path'));
-	});
-});
+import { getMediaUploader } from './Uploader';
 
 describe('getMediaUploader', () => {
 	beforeEach(() => {

@@ -13,7 +13,7 @@ export type AccountLocalPreferences = {
 
 const stores = new Map<string, Persisted<AccountLocalPreferences>>();
 
-export const accountLocalPreferencesKey = (pubkey: string) => `preferences:${pubkey}`;
+const accountLocalPreferencesKey = (pubkey: string) => `preferences:${pubkey}`;
 
 export function getAccountLocalPreferences(pubkey: string): Persisted<AccountLocalPreferences> {
 	let store = stores.get(pubkey);

@@ -12,9 +12,9 @@ const { uploadBlob, uploadMedia, createUploadAuth, signEvent } = vi.hoisted(() =
 	}))
 }));
 
-vi.mock('blossom-client-sdk/actions/upload', () => ({ uploadBlob }));
-vi.mock('blossom-client-sdk/actions/media', () => ({ uploadMedia }));
-vi.mock('blossom-client-sdk/auth', () => ({ createUploadAuth }));
+vi.mock(import('blossom-client-sdk/actions/upload'), () => ({ uploadBlob }));
+vi.mock(import('blossom-client-sdk/actions/media'), () => ({ uploadMedia }));
+vi.mock(import('blossom-client-sdk/auth'), () => ({ createUploadAuth }));
 vi.mock('$lib/Signer', () => ({ Signer: { signEvent } }));
 
 import { Blossom } from './Blossom';
@@ -32,19 +32,7 @@ describe('Blossom SDK adapter', () => {
 	beforeEach(() => {
 		uploadBlob.mockReset().mockResolvedValue(descriptor);
 		uploadMedia.mockReset().mockResolvedValue(descriptor);
-		createUploadAuth.mockReset().mockImplementation(async (signer, _sha256, options) =>
-			signer({
-				kind: 24242,
-				content: '',
-				created_at: Math.floor(Date.now() / 1000),
-				tags: [
-					['t', options.type],
-					['x', 'abc123'],
-					['expiration', String(options.expiration)],
-					['server', 'upload.example']
-				]
-			})
-		);
+		createUploadAuth.mockReset().mockResolvedValue({ auth: true });
 		signEvent.mockClear();
 	});
 
@@ -81,18 +69,19 @@ describe('Blossom SDK adapter', () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date('2026-08-15T00:00:00Z'));
 		const file = new File(['document'], 'document.pdf', { type: 'application/pdf' });
-		uploadBlob.mockImplementation(async (server, _file, options) => {
-			await options.onAuth(server, 'abc123', 'upload', file);
-			return descriptor;
-		});
-
 		await new Blossom(new URL('https://upload.example')).upload(file);
+		const onAuth = uploadBlob.mock.calls[0][2].onAuth;
+		await onAuth(new URL('https://upload.example'), 'abc123', 'upload', file);
 
 		expect(createUploadAuth).toHaveBeenCalledWith(expect.any(Function), 'abc123', {
 			type: 'upload',
 			servers: 'https://upload.example/',
 			expiration: 1_786_752_300
 		});
-		expect(signEvent).toHaveBeenCalledWith(expect.objectContaining({ kind: 24242 }));
+
+		const sdkSigner = createUploadAuth.mock.calls[0][0];
+		const template = { kind: 1, content: 'test', created_at: 123, tags: [] };
+		await sdkSigner(template);
+		expect(signEvent).toHaveBeenCalledWith(template);
 	});
 });

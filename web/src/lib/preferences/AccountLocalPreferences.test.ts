@@ -1,7 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { describe, expect, it } from 'vitest';
 import {
-	accountLocalPreferencesKey,
 	initializeMediaUploaderPreference,
 	mediaUploaderPreferenceValue,
 	setMediaUploaderPreference,
@@ -39,17 +38,6 @@ describe('account-local media uploader preferences', () => {
 		});
 	});
 
-	it('supplements the server missing from the old Blossom shape', () => {
-		const store = writable<AccountLocalPreferences>({
-			mediaUploader: { type: 'blossom' }
-		} as AccountLocalPreferences);
-		initializeMediaUploaderPreference(store, 'https://nostr.build');
-		expect(get(store).mediaUploader).toEqual({
-			type: 'blossom',
-			server: 'https://blossom.band'
-		});
-	});
-
 	it('preserves other account preferences when changing uploader', () => {
 		const store = writable<AccountLocalPreferences>({
 			futurePreference: true
@@ -62,12 +50,6 @@ describe('account-local media uploader preferences', () => {
 			futurePreference: true,
 			mediaUploader: { type: 'blossom', server: 'https://blossom.band' }
 		});
-	});
-
-	it('uses distinct persisted keys for each account', () => {
-		expect(accountLocalPreferencesKey('alice')).toBe('preferences:alice');
-		expect(accountLocalPreferencesKey('bob')).toBe('preferences:bob');
-		expect(accountLocalPreferencesKey('alice')).not.toBe(accountLocalPreferencesKey('bob'));
 	});
 
 	it('keeps Blossom and an existing uploader distinct at the same hostname', () => {

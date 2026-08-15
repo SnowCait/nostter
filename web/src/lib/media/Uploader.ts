@@ -9,7 +9,7 @@ import { Blossom } from './Blossom';
 import { FileStorageServer } from './FileStorageServer';
 import type { Media } from './Media';
 
-export function createMediaUploader(preference: MediaUploaderPreference): Media {
+function createMediaUploader(preference: MediaUploaderPreference): Media {
 	if (preference.type === 'nip96') return new FileStorageServer(preference.server);
 	return new Blossom(new URL(preference.server));
 }
