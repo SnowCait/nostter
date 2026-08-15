@@ -1,6 +1,5 @@
 import type { Event } from 'nostr-tools';
 import { getServersFromServerListEvent } from 'blossom-client-sdk/nostr';
-import { writable } from 'svelte/store';
 import { defaultBlossomServerUrl } from '$lib/Constants';
 import {
 	getAccountLocalPreferences,
@@ -8,7 +7,11 @@ import {
 } from '$lib/preferences/AccountLocalPreferences';
 
 export { defaultBlossomServerUrl } from '$lib/Constants';
-export const blossomServer = writable<URL | undefined>();
+let blossomServer = $state<URL | undefined>();
+
+export function getBlossomServer(): URL | undefined {
+	return blossomServer;
+}
 
 export function resolveBlossomServer(event: Event): URL {
 	return (
@@ -30,12 +33,12 @@ function withBlossomServer(
 
 export function updateBlossomServerList(pubkey: string, event: Event | undefined): void {
 	if (event === undefined) {
-		blossomServer.set(undefined);
+		blossomServer = undefined;
 		return;
 	}
 
 	const server = resolveBlossomServer(event);
-	blossomServer.set(server);
+	blossomServer = server;
 	getAccountLocalPreferences(pubkey).update((preferences) =>
 		withBlossomServer(preferences, server)
 	);

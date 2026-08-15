@@ -61,7 +61,7 @@ import { NewTimeline } from './Timeline.svelte';
 import { excludeKinds } from '$lib/TimelineFilter';
 import { fetchMinutes } from '$lib/Helper';
 import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
-import { updateBlossomServerList } from '$lib/author/BlossomServerList';
+import { updateBlossomServerList } from '$lib/author/BlossomServerList.svelte';
 
 const maxTimelineLength = minTimelineLength * 2;
 

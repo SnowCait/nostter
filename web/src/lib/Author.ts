@@ -36,7 +36,7 @@ import {
 	getAccountLocalPreferences,
 	initializeMediaUploaderPreference
 } from './preferences/AccountLocalPreferences';
-import { updateBlossomServerList } from './author/BlossomServerList';
+import { updateBlossomServerList } from './author/BlossomServerList.svelte';
 
 export class Author {
 	constructor(private pubkey: string) {}

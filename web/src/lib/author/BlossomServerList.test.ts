@@ -22,7 +22,11 @@ vi.mock('$lib/preferences/AccountLocalPreferences', () => ({
 }));
 vi.mock(import('blossom-client-sdk/nostr'), () => ({ getServersFromServerListEvent }));
 
-import { blossomServer, resolveBlossomServer, updateBlossomServerList } from './BlossomServerList';
+import {
+	getBlossomServer,
+	resolveBlossomServer,
+	updateBlossomServerList
+} from './BlossomServerList.svelte';
 
 const serverList = (tags: string[][]): Event =>
 	({ kind: 10063, tags, content: '', created_at: 0, id: '', pubkey: '', sig: '' }) as Event;
@@ -47,7 +51,7 @@ describe('resolveBlossomServer', () => {
 describe('Blossom server list state', () => {
 	beforeEach(() => {
 		preferencesByPubkey.clear();
-		blossomServer.set(undefined);
+		updateBlossomServerList('reset', undefined);
 		getServersFromServerListEvent.mockReset();
 	});
 
@@ -62,7 +66,7 @@ describe('Blossom server list state', () => {
 			} as never)
 		);
 		updateBlossomServerList(pubkey, serverList([]));
-		expect(get(blossomServer)?.href).toBe('https://cdn.example/');
+		expect(getBlossomServer()?.href).toBe('https://cdn.example/');
 		expect(get(preferencesByPubkey.get(pubkey)!)).toEqual({
 			mediaUploader: { type: 'blossom', server: 'https://cdn.example/' },
 			futurePreference: true
@@ -76,7 +80,7 @@ describe('Blossom server list state', () => {
 		});
 		preferencesByPubkey.set('alice', preferences);
 		updateBlossomServerList('alice', serverList([]));
-		expect(get(blossomServer)?.href).toBe('https://cdn.example/');
+		expect(getBlossomServer()?.href).toBe('https://cdn.example/');
 		expect(get(preferences)).toEqual({
 			mediaUploader: { type: 'nip96', server: 'https://nostr.build' }
 		});
@@ -87,9 +91,10 @@ describe('Blossom server list state', () => {
 			mediaUploader: { type: 'blossom', server: 'https://previous.example' }
 		});
 		preferencesByPubkey.set('alice', preferences);
-		blossomServer.set(new URL('https://current.example'));
+		getServersFromServerListEvent.mockReturnValue([new URL('https://current.example')]);
+		updateBlossomServerList('state-setup', serverList([]));
 		updateBlossomServerList('alice', undefined);
-		expect(get(blossomServer)).toBeUndefined();
+		expect(getBlossomServer()).toBeUndefined();
 		expect(get(preferences)).toEqual({
 			mediaUploader: { type: 'blossom', server: 'https://previous.example' }
 		});

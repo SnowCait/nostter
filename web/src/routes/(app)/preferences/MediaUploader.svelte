@@ -3,7 +3,10 @@
 	import { get } from 'svelte/store';
 	import { fileStorageServers } from '$lib/Constants';
 	import { auth } from '$lib/auth.svelte';
-	import { blossomServer, defaultBlossomServerUrl } from '$lib/author/BlossomServerList';
+	import {
+		getBlossomServer,
+		defaultBlossomServerUrl
+	} from '$lib/author/BlossomServerList.svelte';
 	import {
 		getAccountLocalPreferences,
 		mediaUploaderPreferenceValue,
@@ -14,7 +17,7 @@
 
 	const accountLocalPreferences = getAccountLocalPreferences(auth.pubkey);
 	const displayedBlossomServer = $derived(
-		$blossomServer ??
+		getBlossomServer() ??
 			new URL(
 				$accountLocalPreferences.mediaUploader?.type === 'blossom'
 					? $accountLocalPreferences.mediaUploader.server
@@ -35,7 +38,7 @@
 			? { type: 'nip96', server: selection.slice('nip96:'.length) }
 			: {
 					type: 'blossom',
-					server: ($blossomServer ?? new URL(defaultBlossomServerUrl)).href
+					server: (getBlossomServer() ?? new URL(defaultBlossomServerUrl)).href
 				};
 		console.debug('[preferences media uploader changed]', preference);
 		try {
