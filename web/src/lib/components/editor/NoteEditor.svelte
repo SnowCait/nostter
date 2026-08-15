@@ -662,12 +662,18 @@
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 						<li
+							class="mention-complement"
 							class:selected={i === mentionComplementIndex}
 							onclick={stopPropagation(
 								async () => await replaceMentionComplement(mentionComplementList[i])
 							)}
 						>
-							<OnelineProfile pubkey={metadata.event.pubkey} />
+							<span class="mention-profile">
+								<OnelineProfile pubkey={metadata.event.pubkey} />
+							</span>
+							{#if metadata.normalizedNip05 && metadata.normalizedNip05 !== metadata.displayName}
+								<span class="mention-nip05">{metadata.normalizedNip05}</span>
+							{/if}
 						</li>
 					{/each}
 				</ul>
@@ -878,6 +884,31 @@
 	ul.complement li.selected {
 		border: solid 1px var(--accent-surface);
 		background-color: var(--accent-foreground);
+	}
+
+	ul.complement li.mention-complement {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		min-width: 0;
+	}
+
+	.mention-profile,
+	.mention-nip05 {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.mention-profile {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.mention-nip05 {
+		color: var(--accent-gray);
+		font-size: 0.8rem;
+		max-width: 50%;
 	}
 
 	ul.complement li.add-custom-emojis {
