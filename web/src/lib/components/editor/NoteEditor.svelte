@@ -888,6 +888,7 @@
 
 	ul.complement li.mention-complement {
 		display: flex;
+		align-items: baseline;
 		gap: 0.5rem;
 		min-width: 0;
 	}
