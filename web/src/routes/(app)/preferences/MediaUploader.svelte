@@ -4,7 +4,7 @@
 	import { fileStorageServers } from '$lib/Constants';
 	import { auth } from '$lib/auth.svelte';
 	import { blossomServerListEvent } from '$lib/stores/Author';
-	import { resolveBlossomServer } from '$lib/media/Blossom';
+	import { defaultBlossomServerUrl, resolveBlossomServer } from '$lib/media/Blossom';
 	import {
 		getAccountLocalPreferences,
 		mediaUploaderPreferenceValue,
@@ -14,12 +14,20 @@
 	import { fetchNip96 } from '$lib/media/FileStorageServer';
 
 	const accountLocalPreferences = getAccountLocalPreferences(auth.pubkey);
-	const blossomServer = $derived(resolveBlossomServer($blossomServerListEvent));
+	const blossomServer = $derived(
+		$blossomServerListEvent !== undefined
+			? resolveBlossomServer($blossomServerListEvent)
+			: new URL(
+					$accountLocalPreferences.mediaUploader?.type === 'blossom'
+						? $accountLocalPreferences.mediaUploader.server
+						: defaultBlossomServerUrl
+				)
+	);
 	let selection = $state(
 		mediaUploaderPreferenceValue(
 			get(accountLocalPreferences).mediaUploader ?? {
 				type: 'blossom',
-				server: resolveBlossomServer(get(blossomServerListEvent)).href
+				server: defaultBlossomServerUrl
 			}
 		)
 	);

@@ -1,13 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from 'nostr-tools';
-import {
-	Blossom,
-	createBlossomAuthorizationTemplate,
-	getBlossomUploadAction,
-	resolveBlossomServer
-} from './Blossom';
 
-const { signEvent } = vi.hoisted(() => ({
+const { uploadBlob, uploadMedia, createUploadAuth, signEvent } = vi.hoisted(() => ({
+	uploadBlob: vi.fn(),
+	uploadMedia: vi.fn(),
+	createUploadAuth: vi.fn(),
 	signEvent: vi.fn(async (template) => ({
 		...template,
 		id: 'id',
@@ -16,23 +13,37 @@ const { signEvent } = vi.hoisted(() => ({
 	}))
 }));
 
+vi.mock('blossom-client-sdk', async (importOriginal) => ({
+	...(await importOriginal<typeof import('blossom-client-sdk')>()),
+	Actions: { uploadBlob, uploadMedia },
+	createUploadAuth
+}));
 vi.mock('$lib/Signer', () => ({ Signer: { signEvent } }));
 
+import { Blossom, resolveBlossomServer } from './Blossom';
+
+const descriptor = {
+	uploaded: 0,
+	type: 'image/png',
+	sha256: 'abc123',
+	size: 5,
+	url: 'https://cdn.example/abc123.png'
+};
 const serverList = (tags: string[][]): Event =>
 	({ kind: 10063, tags, content: '', created_at: 0, id: '', pubkey: '', sig: '' }) as Event;
 
 describe('resolveBlossomServer', () => {
-	it('uses the first valid HTTPS server in tag order', () => {
+	it('uses SDK parsing and selects the first HTTPS server in tag order', () => {
 		const event = serverList([
 			['server', 'not a url'],
 			['server', 'http://insecure.example'],
 			['server', 'https://first.example/path'],
 			['server', 'https://second.example']
 		]);
-		expect(resolveBlossomServer(event).href).toBe('https://first.example/path');
+		expect(resolveBlossomServer(event).href).toBe('https://first.example/');
 	});
 
-	it('falls back when no valid HTTPS server exists', () => {
+	it('falls back when the SDK-parsed list has no HTTPS server', () => {
 		expect(resolveBlossomServer(serverList([['server', 'http://insecure.example']])).href).toBe(
 			'https://blossom.band/'
 		);
@@ -40,61 +51,73 @@ describe('resolveBlossomServer', () => {
 	});
 });
 
-describe('Blossom authorization', () => {
-	it('scopes a media token to the hash, expiration, and lowercase server hostname', () => {
-		const template = createBlossomAuthorizationTemplate(
-			'media',
-			'abc123',
-			new URL('https://CDN.Example:443/path'),
-			1_000
-		);
-		expect(template.kind).toBe(24242);
-		expect(template.tags).toEqual([
-			['t', 'media'],
-			['x', 'abc123'],
-			['expiration', '1300'],
-			['server', 'cdn.example']
-		]);
-	});
+describe('Blossom SDK adapter', () => {
+	afterEach(() => vi.useRealTimers());
 
-	it('uses upload for non-media files', () => {
-		expect(getBlossomUploadAction('image/png')).toBe('media');
-		expect(getBlossomUploadAction('video/mp4')).toBe('media');
-		expect(getBlossomUploadAction('application/pdf')).toBe('upload');
-	});
-
-	it('uploads images directly to /media with BUD-11 authorization', async () => {
-		const fetchMock = vi.fn<
-			(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
-		>(
-			async () =>
-				new Response(JSON.stringify({ url: 'https://cdn.example/hash.png' }), {
-					status: 201
-				})
-		);
-		vi.stubGlobal('fetch', fetchMock);
-		const file = new File(['image'], 'image.png', { type: 'image/png' });
-
-		await expect(
-			new Blossom(new URL('https://upload.example/path')).upload(file)
-		).resolves.toEqual(expect.objectContaining({ url: 'https://cdn.example/hash.png' }));
-
-		const [url, options] = fetchMock.mock.calls[0]!;
-		const headers = options!.headers as Record<string, string>;
-		expect(String(url)).toBe('https://upload.example/media');
-		expect(options!.method).toBe('PUT');
-		expect(options!.body).toBe(file);
-		expect(headers.Authorization).toMatch(/^Nostr [A-Za-z0-9_-]+$/);
-		expect(headers.Authorization).not.toContain('=');
-		expect(headers['X-SHA-256']).toMatch(/^[0-9a-f]{64}$/);
-		expect(signEvent).toHaveBeenCalledWith(
-			expect.objectContaining({
+	beforeEach(() => {
+		uploadBlob.mockReset().mockResolvedValue(descriptor);
+		uploadMedia.mockReset().mockResolvedValue(descriptor);
+		createUploadAuth.mockReset().mockImplementation(async (signer, _sha256, options) =>
+			signer({
 				kind: 24242,
-				tags: expect.arrayContaining([
-					['t', 'media'],
+				content: '',
+				created_at: Math.floor(Date.now() / 1000),
+				tags: [
+					['t', options.type],
+					['x', 'abc123'],
+					['expiration', String(options.expiration)],
 					['server', 'upload.example']
-				])
+				]
 			})
 		);
+		signEvent.mockClear();
+	});
+
+	it.each([
+		['image', 'image/png'],
+		['video', 'video/mp4']
+	])('uses uploadMedia for an %s', async (_name, type) => {
+		const file = new File(['media'], 'media', { type });
+		const blossom = new Blossom(new URL('https://upload.example/path'));
+		await expect(blossom.upload(file)).resolves.toEqual({
+			url: descriptor.url,
+			data: descriptor
+		});
+		expect(uploadMedia).toHaveBeenCalledWith(
+			new URL('https://upload.example/path'),
+			file,
+			expect.objectContaining({ onAuth: expect.any(Function) })
+		);
+		expect(uploadBlob).not.toHaveBeenCalled();
+	});
+
+	it('uses uploadBlob for other files', async () => {
+		const file = new File(['document'], 'document.pdf', { type: 'application/pdf' });
+		await new Blossom(new URL('https://upload.example')).upload(file);
+		expect(uploadBlob).toHaveBeenCalledWith(
+			new URL('https://upload.example'),
+			file,
+			expect.objectContaining({ onAuth: expect.any(Function) })
+		);
+		expect(uploadMedia).not.toHaveBeenCalled();
+	});
+
+	it('connects the nostter signer through the SDK auth callback', async () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date('2026-08-15T00:00:00Z'));
+		const file = new File(['document'], 'document.pdf', { type: 'application/pdf' });
+		uploadBlob.mockImplementation(async (server, _file, options) => {
+			await options.onAuth(server, 'abc123', 'upload', file);
+			return descriptor;
+		});
+
+		await new Blossom(new URL('https://upload.example')).upload(file);
+
+		expect(createUploadAuth).toHaveBeenCalledWith(expect.any(Function), 'abc123', {
+			type: 'upload',
+			servers: 'https://upload.example/',
+			expiration: 1_786_752_300
+		});
+		expect(signEvent).toHaveBeenCalledWith(expect.objectContaining({ kind: 24242 }));
 	});
 });
