@@ -3,8 +3,7 @@
 	import { _ } from 'svelte-i18n';
 	import Cropper from 'svelte-easy-crop';
 	import { goto } from '$app/navigation';
-	import { FileStorageServer } from '$lib/media/FileStorageServer';
-	import { getMediaUploader } from '$lib/media/Media';
+	import { getMediaUploader } from '$lib/media/Uploader';
 	import { appName } from '$lib/Constants';
 	import { pubkey, author, authorProfile, metadataEvent } from '$lib/stores/Author';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
@@ -101,7 +100,7 @@
 		console.debug('[profile picture cropped file]', croppedFile);
 
 		try {
-			const media = new FileStorageServer(getMediaUploader());
+			const media = getMediaUploader();
 			const { url } = await media.upload(croppedFile);
 			if (url) {
 				$authorProfile.picture = url;
@@ -120,7 +119,7 @@
 
 		const file = files[0];
 		try {
-			const media = new FileStorageServer(getMediaUploader());
+			const media = getMediaUploader();
 			const { url } = await media.upload(file);
 			if (url) {
 				$authorProfile.banner = url;

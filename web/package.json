@@ -55,6 +55,7 @@
 		"@rust-nostr/nostr-sdk": "^0.44.0",
 		"@tabler/icons-svelte-runes": "^3.46.0",
 		"async-lock": "^1.4.1",
+		"blossom-client-sdk": "^5.0.0",
 		"dexie": "^4.4.2",
 		"emoji-kitchen-mart": "^6.0.5",
 		"escape-string-regexp": "^5.0.0",

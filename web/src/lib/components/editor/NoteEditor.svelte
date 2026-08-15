@@ -6,7 +6,7 @@
 	import { createEventDispatcher, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { kinds as Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
-	import { uploadFiles } from '$lib/media/FileStorageServer';
+	import { uploadFiles } from '$lib/media/Uploader';
 	import { complementPosition } from '$lib/styles/Complement';
 	import { adjustHeight } from '$lib/styles/Textarea';
 	import { getSeenOnRelays, rxNostr } from '$lib/timelines/MainTimeline';

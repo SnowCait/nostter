@@ -9,7 +9,7 @@
 	import { NoteComposer } from '$lib/NoteComposer';
 	import { Content } from '$lib/Content';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import { uploadFiles } from '$lib/media/FileStorageServer';
+	import { uploadFiles } from '$lib/media/Uploader';
 	import { findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
 	import { metadataStore } from '$lib/cache/Events';
 	import { alternativeName } from '$lib/Items';

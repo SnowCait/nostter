@@ -1,29 +1,65 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
+	import { get } from 'svelte/store';
 	import { fileStorageServers } from '$lib/Constants';
-	import { getMediaUploader } from '$lib/media/Media';
-	import { preferencesStore, savePreferences } from '$lib/Preferences';
+	import { auth } from '$lib/auth.svelte';
+	import {
+		getBlossomServer,
+		defaultBlossomServerUrl
+	} from '$lib/author/BlossomServerList.svelte';
+	import {
+		getAccountLocalPreferences,
+		mediaUploaderPreferenceValue,
+		setMediaUploaderPreference,
+		type MediaUploaderPreference
+	} from '$lib/preferences/AccountLocalPreferences';
 	import { fetchNip96 } from '$lib/media/FileStorageServer';
 
-	let server = $state(getMediaUploader());
+	const accountLocalPreferences = getAccountLocalPreferences(auth.pubkey);
+	const displayedBlossomServer = $derived(
+		getBlossomServer() ??
+			new URL(
+				$accountLocalPreferences.mediaUploader?.type === 'blossom'
+					? $accountLocalPreferences.mediaUploader.server
+					: defaultBlossomServerUrl
+			)
+	);
+	let selection = $state(
+		mediaUploaderPreferenceValue(
+			get(accountLocalPreferences).mediaUploader ?? {
+				type: 'blossom',
+				server: defaultBlossomServerUrl
+			}
+		)
+	);
 
 	async function save(): Promise<void> {
-		console.debug('[preferences media uploader changed]', server);
+		const preference: MediaUploaderPreference = selection.startsWith('nip96:')
+			? { type: 'nip96', server: selection.slice('nip96:'.length) }
+			: {
+					type: 'blossom',
+					server: (getBlossomServer() ?? new URL(defaultBlossomServerUrl)).href
+				};
+		console.debug('[preferences media uploader changed]', preference);
 		try {
-			await fetchNip96(server);
-			$preferencesStore.mediaUploader = server;
-			savePreferences();
+			if (preference.type === 'nip96') await fetchNip96(preference.server);
+			setMediaUploaderPreference(accountLocalPreferences, preference);
 		} catch (error) {
-			console.error('[preferences media uploader not found]', server, error);
+			console.error('[preferences media uploader not found]', preference, error);
 		}
 	}
 </script>
 
 <label for="file-storage-server">{$_('preferences.media_uploader.title')}</label>
-<select id="file-storage-server" bind:value={server} onchange={save}>
-	{#each fileStorageServers as server}
-		<option value={server}>{new URL(server).hostname}</option>
-	{/each}
+<select id="file-storage-server" bind:value={selection} onchange={save}>
+	<optgroup label={$_('preferences.media_uploader.recommended_blossom')}>
+		<option value="blossom">{displayedBlossomServer.hostname}</option>
+	</optgroup>
+	<optgroup label={$_('preferences.media_uploader.other')}>
+		{#each fileStorageServers as server}
+			<option value={`nip96:${server}`}>{new URL(server).hostname}</option>
+		{/each}
+	</optgroup>
 </select>
 
 <style>

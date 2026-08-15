@@ -1,7 +1,7 @@
 import { now } from 'rx-nostr';
 import { Signer } from '$lib/Signer';
 import { filterTags } from '$lib/EventHelper';
-import { getMediaUploader, type Media, type MediaResult } from './Media';
+import type { Media, MediaResult } from './Media';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchNip96(origin: string): Promise<any> {
@@ -106,21 +106,4 @@ export class FileStorageServer implements Media {
 			data
 		};
 	}
-}
-
-export async function uploadFiles(
-	files: FileList | File[]
-): Promise<{ file: File; url: string | undefined }[]> {
-	const media = new FileStorageServer(getMediaUploader());
-	return await Promise.all(
-		[...files].map(async (file) => {
-			try {
-				const { url } = await media.upload(file);
-				return { file, url };
-			} catch (error) {
-				console.error('[media upload error]', error);
-				return { file, url: undefined };
-			}
-		})
-	);
 }
