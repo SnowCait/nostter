@@ -3,7 +3,6 @@ import type * as Nostr from 'nostr-typedef';
 export const profileBadgesKind = 10008;
 export const legacyProfileBadgesKind = 30008;
 export const legacyProfileBadgesIdentifier = 'profile_badges';
-export const legacyProfileBadgesKey = `${legacyProfileBadgesKind}:${legacyProfileBadgesIdentifier}`;
 
 function isPreferredProfileBadgesEvent(candidate: Nostr.Event, current: Nostr.Event): boolean {
 	if (candidate.created_at !== current.created_at) {
@@ -28,7 +27,7 @@ export function selectProfileBadgesEvent(
 	return isPreferredProfileBadgesEvent(second, first) ? second : first;
 }
 
-export function isLegacyProfileBadgesEvent(event: Nostr.Event): boolean {
+function isLegacyProfileBadgesEvent(event: Nostr.Event): boolean {
 	return (
 		event.kind === legacyProfileBadgesKind &&
 		event.tags.some(([name, value]) => name === 'd' && value === legacyProfileBadgesIdentifier)

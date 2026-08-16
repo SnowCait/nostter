@@ -12,7 +12,6 @@ import {
 	addAcceptedBadgeTags,
 	legacyProfileBadgesIdentifier,
 	legacyProfileBadgesKind,
-	legacyProfileBadgesKey,
 	profileBadgesKind,
 	isProfileBadgesEvent,
 	selectProfileBadgesEvent
@@ -30,7 +29,8 @@ const queue = new Queue<Data>();
 
 let processing = false;
 
-export { isProfileBadgesEvent, legacyProfileBadgesKey };
+export { isProfileBadgesEvent };
+export const legacyProfileBadgesKey = `${legacyProfileBadgesKind}:${legacyProfileBadgesIdentifier}`;
 export const profileBadgesEvent = writable<Nostr.Event | undefined>();
 
 export function setProfileBadgesEvent(
@@ -52,7 +52,7 @@ export function updateProfileBadgesEvent(event: Nostr.Event): void {
 	profileBadgesEvent.update((current) => selectProfileBadgesEvent(current, event));
 }
 
-export function getCachedProfileBadgesEvent(storage: WebStorage): Nostr.Event | undefined {
+function getCachedProfileBadgesEvent(storage: WebStorage): Nostr.Event | undefined {
 	return selectProfileBadgesEvent(
 		storage.getReplaceableEvent(profileBadgesKind),
 		storage.getParameterizedReplaceableEvent(

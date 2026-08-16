@@ -3,7 +3,6 @@ import type * as Nostr from 'nostr-typedef';
 import {
 	addAcceptedBadgeTags,
 	isProfileBadgesEvent,
-	isLegacyProfileBadgesEvent,
 	legacyProfileBadgesKind,
 	profileBadgesKind,
 	selectProfileBadgesEvent
@@ -54,24 +53,6 @@ describe('selectProfileBadgesEvent', () => {
 		const higher = event(profileBadgesKind, 1, 'b');
 		expect(selectProfileBadgesEvent(higher, lower)).toBe(lower);
 		expect(selectProfileBadgesEvent(lower, higher)).toBe(lower);
-	});
-});
-
-describe('isLegacyProfileBadgesEvent', () => {
-	it('only accepts kind 30008 with d=profile_badges', () => {
-		expect(
-			isLegacyProfileBadgesEvent(
-				event(legacyProfileBadgesKind, 1, 'legacy', [['d', 'profile_badges']])
-			)
-		).toBe(true);
-		expect(
-			isLegacyProfileBadgesEvent(event(legacyProfileBadgesKind, 1, 'set', [['d', 'set']]))
-		).toBe(false);
-		expect(
-			isLegacyProfileBadgesEvent(
-				event(profileBadgesKind, 1, 'current', [['d', 'profile_badges']])
-			)
-		).toBe(false);
 	});
 });
 
