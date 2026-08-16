@@ -8,6 +8,14 @@ import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
+import {
+	addAcceptedBadgeTags,
+	legacyProfileBadgesIdentifier,
+	legacyProfileBadgesKind,
+	profileBadgesKind,
+	isProfileBadgesEvent,
+	selectProfileBadgesEvent
+} from '$lib/ProfileBadgesEvent';
 import { followees, pubkey } from '../stores/Author';
 
 type DataType = 'accept';
@@ -17,14 +25,42 @@ type Data = {
 	e: string;
 };
 
-const kind = 30008;
-const identifier = 'profile_badges';
 const queue = new Queue<Data>();
 
 let processing = false;
 
-export const profileBadgesKey = `${kind}:${identifier}`;
+export { isProfileBadgesEvent };
+export const legacyProfileBadgesKey = `${legacyProfileBadgesKind}:${legacyProfileBadgesIdentifier}`;
 export const profileBadgesEvent = writable<Nostr.Event | undefined>();
+
+export function setProfileBadgesEvent(
+	current: Nostr.Event | undefined,
+	legacy: Nostr.Event | undefined
+): void {
+	profileBadgesEvent.set(
+		selectProfileBadgesEvent(
+			current !== undefined && isProfileBadgesEvent(current) ? current : undefined,
+			legacy !== undefined && isProfileBadgesEvent(legacy) ? legacy : undefined
+		)
+	);
+}
+
+export function updateProfileBadgesEvent(event: Nostr.Event): void {
+	if (!isProfileBadgesEvent(event)) {
+		return;
+	}
+	profileBadgesEvent.update((current) => selectProfileBadgesEvent(current, event));
+}
+
+function getCachedProfileBadgesEvent(storage: WebStorage): Nostr.Event | undefined {
+	return selectProfileBadgesEvent(
+		storage.getReplaceableEvent(profileBadgesKind),
+		storage.getParameterizedReplaceableEvent(
+			legacyProfileBadgesKind,
+			legacyProfileBadgesIdentifier
+		)
+	);
+}
 
 export async function acceptBadge(a: string, e: string): Promise<void> {
 	console.log('[badge accept]', a, e, queue.dump());
@@ -43,8 +79,9 @@ async function save(type: DataType, a: string, e: string): Promise<void> {
 
 async function publish(): Promise<void> {
 	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getParameterizedReplaceableEvent(kind, identifier);
-	const tags = lastEvent?.tags.concat() ?? [['d', identifier]];
+	const lastEvent = getCachedProfileBadgesEvent(storage);
+	let tags = lastEvent?.tags ?? [];
+	let updated = false;
 
 	while (queue.length > 0) {
 		const data = queue.dequeue();
@@ -52,35 +89,31 @@ async function publish(): Promise<void> {
 			break;
 		}
 
-		if (
-			data.type === 'accept' &&
-			!tags.some(([tagName, a]) => tagName === 'a' && a === data.a)
-		) {
+		if (data.type === 'accept') {
 			const $seenOnStore = get(seenOnStore);
-
 			const aRelays = $seenOnStore.get(data.a);
-			const aTag = ['a', data.a];
-			if (aRelays !== undefined && aRelays.size > 0) {
-				aTag.push([...aRelays.values()][0]);
-			}
-
 			const eRelays = $seenOnStore.get(data.e);
-			const eTag = ['e', data.e];
-			if (eRelays !== undefined && eRelays.size > 0) {
-				eTag.push([...eRelays.values()][0]);
+			const nextTags = addAcceptedBadgeTags(
+				tags,
+				data.a,
+				data.e,
+				aRelays?.values().next().value,
+				eRelays?.values().next().value
+			);
+			if (nextTags !== undefined) {
+				tags = nextTags;
+				updated = true;
 			}
-
-			tags.push(aTag, eTag);
 		}
 	}
 
-	if (lastEvent !== undefined && lastEvent.tags.length === tags.length) {
+	if (!updated) {
 		console.warn('[badge not updated]');
 		return;
 	}
 
 	const event = await Signer.signEvent({
-		kind,
+		kind: profileBadgesKind,
 		content: lastEvent?.content ?? '',
 		tags,
 		created_at: now()
@@ -96,7 +129,7 @@ async function publish(): Promise<void> {
 		return;
 	}
 
-	storage.setParameterizedReplaceableEvent(event);
+	storage.setReplaceableEvent(event);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
@@ -106,22 +139,24 @@ async function publish(): Promise<void> {
 
 async function validate(event: Nostr.Event | undefined): Promise<boolean> {
 	const $pubkey = get(pubkey);
-	const lastEvent = await fetchLastEvent({
-		kinds: [kind],
-		authors: [$pubkey],
-		'#d': [identifier],
-		limit: 1
-	});
+	const [currentEvent, legacyEvent] = await Promise.all([
+		fetchLastEvent({ kinds: [profileBadgesKind], authors: [$pubkey], limit: 1 }),
+		fetchLastEvent({
+			kinds: [legacyProfileBadgesKind],
+			authors: [$pubkey],
+			'#d': [legacyProfileBadgesIdentifier],
+			limit: 1
+		})
+	]);
+	const relayEvent = selectProfileBadgesEvent(currentEvent, legacyEvent);
 
 	if (event === undefined) {
-		if (lastEvent !== undefined) {
-			return false;
-		}
-	} else if (lastEvent === undefined || event.created_at < lastEvent.created_at) {
+		return relayEvent === undefined;
+	}
+	if (relayEvent === undefined) {
 		return false;
 	}
-
-	return true;
+	return selectProfileBadgesEvent(event, relayEvent)?.id === event.id;
 }
 
 //#region Metadata

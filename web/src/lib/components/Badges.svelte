@@ -3,7 +3,7 @@
 
 	import { _ } from 'svelte-i18n';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
-	import { createRxBackwardReq, latest, latestEach, uniq } from 'rx-nostr';
+	import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { hexRegexp } from '$lib/Constants';
 	import { browser } from '$app/environment';
@@ -12,6 +12,12 @@
 	import { aTagContent, findIdentifier, parseAddress } from '$lib/EventHelper';
 	import { nip19 } from 'nostr-tools';
 	import { SvelteMap } from 'svelte/reactivity';
+	import {
+		legacyProfileBadgesIdentifier,
+		legacyProfileBadgesKind,
+		profileBadgesKind,
+		selectProfileBadgesEvent
+	} from '$lib/ProfileBadgesEvent';
 
 	interface Props {
 		pubkey: string;
@@ -42,13 +48,27 @@
 
 			const profileBadgesReq = createRxBackwardReq();
 			const isAuthor = pubkey === $authorPubkey;
+			let displayedEvent: Nostr.Event | undefined;
 			rxNostr
 				.use(profileBadgesReq, {
 					on: { defaultReadRelays: !isAuthor, defaultWriteRelays: isAuthor, relays }
 				})
-				.pipe(tie, uniq(), latest())
+				.pipe(
+					tie,
+					uniq(),
+					latestEach(({ event }) => event.kind)
+				)
 				.subscribe({
 					next: ({ event }) => {
+						const selectedEvent = selectProfileBadgesEvent(displayedEvent, event);
+						if (
+							selectedEvent === undefined ||
+							selectedEvent.id === displayedEvent?.id
+						) {
+							return;
+						}
+						displayedEvent = selectedEvent;
+						event = selectedEvent;
 						console.debug('[badges profile]', event);
 
 						const awardTags = event.tags.filter(
@@ -144,7 +164,13 @@
 					}
 				});
 			profileBadgesReq.emit([
-				{ kinds: [30008], authors: [pubkey], '#d': ['profile_badges'], limit: 1 }
+				{ kinds: [profileBadgesKind], authors: [pubkey], limit: 1 },
+				{
+					kinds: [legacyProfileBadgesKind],
+					authors: [pubkey],
+					'#d': [legacyProfileBadgesIdentifier],
+					limit: 1
+				}
 			]);
 			profileBadgesReq.over();
 		}

@@ -1,6 +1,7 @@
 import { kinds as Kind, type Event as NostrEvent } from 'nostr-tools';
 import { unique } from './Array';
 import { Emojisets } from 'nostr-tools/kinds';
+import { profileBadgesKind } from './ProfileBadgesEvent';
 
 export const appName = __APP_NAME__;
 export const uriScheme = 'web+nostr';
@@ -31,6 +32,7 @@ export const replaceableKinds = [
 	10001,
 	Kind.RelayList,
 	10005,
+	profileBadgesKind,
 	10015,
 	10030,
 	Kind.BlossomServerList
