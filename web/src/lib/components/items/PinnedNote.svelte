@@ -11,7 +11,7 @@
 	import EventComponent from './EventComponent.svelte';
 	import { EventItem } from '$lib/Items';
 	import NoteLink from './NoteLink.svelte';
-	import { navigateTo } from '$lib/EventNavigation';
+	import { navigateTo, preventMiddleClickDefault } from '$lib/EventNavigation';
 
 	interface Props {
 		pubkey: string;
@@ -69,8 +69,14 @@
 				role="link"
 				tabindex="0"
 				class="navigation"
+				onmousedown={preventMiddleClickDefault}
 				onclick={(e) => navigateTo(e, $state.snapshot(event!))}
-				onkeydown={(e) => navigateTo(e, $state.snapshot(event!))}
+				onauxclick={(e) => navigateTo(e, $state.snapshot(event!))}
+				onkeydown={(e) => {
+					if (e.key === 'Enter') {
+						navigateTo(e, $state.snapshot(event!));
+					}
+				}}
 			>
 				<EventComponent item={new EventItem(event)} readonly={false} />
 			</div>

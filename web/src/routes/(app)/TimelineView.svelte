@@ -6,7 +6,7 @@
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import { innerHeight, scrollY } from 'svelte/reactivity/window';
 	import { WindowVirtualizer } from 'virtua/svelte';
-	import { navigateTo } from '$lib/EventNavigation';
+	import { navigateTo, preventMiddleClickDefault } from '$lib/EventNavigation';
 
 	interface Props {
 		items?: Item[];
@@ -62,6 +62,7 @@
 				<div
 					class={canTransition ? 'canTransition-post' : ''}
 					class:related={$author?.isNotified(data.event)}
+					onmousedown={(e) => preventMiddleClickDefault(e, canTransition)}
 					onmouseup={(e) => navigateTo(e, data.event, canTransition)}
 				>
 					<EventComponent item={data} {readonly} {createdAtFormat} {full} />

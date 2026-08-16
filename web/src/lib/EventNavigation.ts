@@ -17,7 +17,12 @@ const getTargetETag = (tags: string[][]): string => {
 };
 
 const shouldSkipNavigation = (e: MouseEvent | KeyboardEvent): boolean => {
-	if ((e instanceof MouseEvent && e.button !== MouseButton.Left) || emojiPickerOpen) {
+	if (
+		(e instanceof MouseEvent &&
+			e.button !== MouseButton.Left &&
+			e.button !== MouseButton.Middle) ||
+		emojiPickerOpen
+	) {
 		return true;
 	}
 
@@ -78,6 +83,12 @@ const resolveDestination = (nostrEvent: Nostr.Event): string =>
 	resolveProfileDestination(nostrEvent) ??
 	resolveEventDestination(nostrEvent);
 
+export function preventMiddleClickDefault(e: MouseEvent, canTransition: boolean = true): void {
+	if (e.button === MouseButton.Middle && canTransition && !shouldSkipNavigation(e)) {
+		e.preventDefault();
+	}
+}
+
 export async function navigateTo(
 	e: MouseEvent | KeyboardEvent,
 	nostrEvent: Nostr.Event,
@@ -89,5 +100,14 @@ export async function navigateTo(
 	if (!canTransition) {
 		return;
 	}
-	await goto(resolveDestination(nostrEvent));
+	const destination = resolveDestination(nostrEvent);
+	if (
+		e instanceof MouseEvent &&
+		(e.button === MouseButton.Middle ||
+			(e.button === MouseButton.Left && (e.ctrlKey || e.metaKey)))
+	) {
+		window.open(destination, '_blank');
+		return;
+	}
+	await goto(destination);
 }
