@@ -15,7 +15,7 @@ import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
 import { kinds as Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { bookmarkEvent } from '$lib/author/Bookmark';
+import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark';
 import {
 	authorActionReqEmit,
 	updateReactionedEvents,
@@ -139,6 +139,7 @@ export class HomeTimeline extends NewTimeline {
 			customEmojiListEvent.set(event);
 			storeCustomEmojis(event);
 		});
+		replaceable$.pipe(filterByKind(10003)).subscribe(({ event }) => bookmarkEvent.set(event));
 		replaceable$
 			.pipe(filterByKind(Kind.BlossomServerList))
 			.subscribe(({ event }) => updateBlossomServerList($pubkey, event));
@@ -174,7 +175,7 @@ export class HomeTimeline extends NewTimeline {
 				filterByKind(Kind.Genericlists),
 				filter(({ event }) => findIdentifier(event.tags) === 'bookmark')
 			)
-			.subscribe(({ event }) => bookmarkEvent.set(event));
+			.subscribe(({ event }) => legacyBookmarkEvent.set(event));
 		addressable$
 			.pipe(filterByKind(30007))
 			.subscribe(({ event }) => storeMutedPubkeysByKind([event]));

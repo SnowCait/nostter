@@ -30,6 +30,7 @@ export const replaceableKinds = [
 	Kind.Contacts,
 	10000,
 	10001,
+	10003,
 	Kind.RelayList,
 	10005,
 	profileBadgesKind,

@@ -15,13 +15,31 @@ type Data = {
 	tag: string[];
 };
 
-const kind = 30001;
-const identifier = 'bookmark';
+export const bookmarkKind = 10003;
 const queue = new Queue<Data>();
 
 let processing = false;
 
 export const bookmarkEvent: Writable<Nostr.Event | undefined> = writable();
+export const legacyBookmarkEvent: Writable<Nostr.Event | undefined> = writable();
+
+export function updateBookmarkTags(tags: string[][], data: Data): string[][] {
+	if (
+		data.type === 'bookmark' &&
+		!tags.some(([tagName, value]) => tagName === data.tag[0] && value === data.tag[1])
+	) {
+		return [...tags, data.tag];
+	}
+	if (
+		data.type === 'unbookmark' &&
+		tags.some(([tagName, value]) => tagName === data.tag[0] && value === data.tag[1])
+	) {
+		return tags.filter(
+			([tagName, value]) => !(tagName === data.tag[0] && value === data.tag[1])
+		);
+	}
+	return tags;
+}
 
 // TODO: Private bookmarks
 export const isBookmarked = (event: Nostr.Event): boolean => {
@@ -57,8 +75,8 @@ async function save(type: DataType, tag: string[]): Promise<void> {
 
 async function publish(): Promise<void> {
 	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getParameterizedReplaceableEvent(kind, identifier);
-	let tags = lastEvent?.tags ?? [['d', identifier]];
+	const lastEvent = storage.getReplaceableEvent(bookmarkKind);
+	let tags = lastEvent?.tags ?? [];
 
 	while (queue.length > 0) {
 		const data = queue.dequeue();
@@ -66,23 +84,11 @@ async function publish(): Promise<void> {
 			break;
 		}
 
-		if (
-			data.type === 'bookmark' &&
-			!tags.some(([tagName, pubkey]) => tagName === data.tag[0] && pubkey === data.tag[1])
-		) {
-			tags.push(data.tag);
-		} else if (
-			data.type === 'unbookmark' &&
-			tags.some(([tagName, pubkey]) => tagName === data.tag[0] && pubkey === data.tag[1])
-		) {
-			tags = tags.filter(
-				([tagName, pubkey]) => !(tagName === data.tag[0] && pubkey === data.tag[1])
-			);
-		}
+		tags = updateBookmarkTags(tags, data);
 	}
 
 	const event = await Signer.signEvent({
-		kind,
+		kind: bookmarkKind,
 		content: lastEvent?.content ?? '',
 		tags,
 		created_at: now()
@@ -96,7 +102,7 @@ async function publish(): Promise<void> {
 		throw new Error('Cache is outdated.');
 	}
 
-	storage.setParameterizedReplaceableEvent(event);
+	storage.setReplaceableEvent(event);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
@@ -107,9 +113,8 @@ async function publish(): Promise<void> {
 async function validate(event: Nostr.Event | undefined): Promise<boolean> {
 	const $pubkey = get(pubkey);
 	const lastEvent = await fetchLastEvent({
-		kinds: [kind],
+		kinds: [bookmarkKind],
 		authors: [$pubkey],
-		'#d': [identifier],
 		limit: 1
 	});
 

@@ -28,7 +28,7 @@ import {
 	parameterizedReplaceableKinds,
 	replaceableKinds
 } from './Constants';
-import { bookmarkEvent } from './author/Bookmark';
+import { bookmarkEvent, legacyBookmarkEvent } from './author/Bookmark';
 import { legacyProfileBadgesKey, setProfileBadgesEvent } from './author/ProfileBadges';
 import { profileBadgesKind } from './ProfileBadgesEvent';
 import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
@@ -119,7 +119,8 @@ export class Author {
 			storeCustomEmojis($customEmojiListEvent);
 		}
 
-		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001}:bookmark`));
+		bookmarkEvent.set(replaceableEvents.get(10003));
+		legacyBookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001}:bookmark`));
 		setProfileBadgesEvent(
 			replaceableEvents.get(profileBadgesKind),
 			parameterizedReplaceableEvents.get(legacyProfileBadgesKey)

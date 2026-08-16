@@ -4,7 +4,7 @@
 	import { _ } from 'svelte-i18n';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
-	import { bookmarkEvent } from '$lib/author/Bookmark';
+	import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { appName, reverseChronologicalItem } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
@@ -17,6 +17,8 @@
 
 	let publicBookmarkEventItems: EventItem[] = $state([]);
 	let privateBookmarkEventItems: EventItem[] = $state([]);
+	let publicLegacyBookmarkEventItems: EventItem[] = $state([]);
+	let privateLegacyBookmarkEventItems: EventItem[] = $state([]);
 
 	// Public bookmarks
 	if ($bookmarkEvent !== undefined) {
@@ -44,6 +46,30 @@
 					publicBookmarkEventItems.push(new EventItem(packet.event));
 					publicBookmarkEventItems =
 						publicBookmarkEventItems.sort(reverseChronologicalItem);
+				});
+		}
+	}
+
+	// Public legacy bookmarks
+	if ($legacyBookmarkEvent !== undefined) {
+		const ids = filterTags('e', $legacyBookmarkEvent.tags);
+		if (ids.length > 0) {
+			const eventsReq = createRxOneshotReq({ filters: [{ ids }] });
+			rxNostr
+				.use(eventsReq)
+				.pipe(
+					tie,
+					uniq(),
+					tap(({ event }) => {
+						referencesReqEmit(event);
+						authorActionReqEmit(event);
+					})
+				)
+				.subscribe((packet) => {
+					console.debug('[legacy bookmark public]', packet);
+					publicLegacyBookmarkEventItems.push(new EventItem(packet.event));
+					publicLegacyBookmarkEventItems =
+						publicLegacyBookmarkEventItems.sort(reverseChronologicalItem);
 				});
 		}
 	}
@@ -87,6 +113,39 @@
 			});
 		}
 	});
+
+	// Private legacy bookmarks
+	$effect(() => {
+		if (
+			data.pubkey === $authorPubkey &&
+			!$rom &&
+			$legacyBookmarkEvent !== undefined &&
+			$legacyBookmarkEvent.content !== ''
+		) {
+			decryptListContent($authorPubkey, $legacyBookmarkEvent.content).then(([tags]) => {
+				const ids = filterTags('e', tags);
+				if (ids.length > 0) {
+					const eventsReq = createRxOneshotReq({ filters: [{ ids }] });
+					rxNostr
+						.use(eventsReq)
+						.pipe(
+							tie,
+							uniq(),
+							tap(({ event }) => {
+								referencesReqEmit(event);
+								authorActionReqEmit(event);
+							})
+						)
+						.subscribe((packet) => {
+							console.debug('[legacy bookmark private]', packet);
+							privateLegacyBookmarkEventItems.push(new EventItem(packet.event));
+							privateLegacyBookmarkEventItems =
+								privateLegacyBookmarkEventItems.sort(reverseChronologicalItem);
+						});
+				}
+			});
+		}
+	});
 </script>
 
 <svelte:head>
@@ -95,12 +154,30 @@
 
 <h1>{$_('layout.header.bookmarks')}</h1>
 
-<h2>Public</h2>
+{#if $bookmarkEvent !== undefined}
+	<h2>Bookmarks</h2>
 
-<TimelineView items={publicBookmarkEventItems} showLoading={false} />
+	<h3>Public</h3>
 
-{#if privateBookmarkEventItems.length > 0}
-	<h2>Private</h2>
+	<TimelineView items={publicBookmarkEventItems} showLoading={false} />
 
-	<TimelineView items={privateBookmarkEventItems} showLoading={false} />
+	{#if privateBookmarkEventItems.length > 0}
+		<h3>Private</h3>
+
+		<TimelineView items={privateBookmarkEventItems} showLoading={false} />
+	{/if}
+{/if}
+
+{#if $legacyBookmarkEvent !== undefined}
+	<h2>Legacy bookmarks</h2>
+
+	<h3>Public</h3>
+
+	<TimelineView items={publicLegacyBookmarkEventItems} showLoading={false} />
+
+	{#if privateLegacyBookmarkEventItems.length > 0}
+		<h3>Private</h3>
+
+		<TimelineView items={privateLegacyBookmarkEventItems} showLoading={false} />
+	{/if}
 {/if}
