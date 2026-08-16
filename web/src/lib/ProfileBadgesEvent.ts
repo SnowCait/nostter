@@ -35,6 +35,10 @@ export function isLegacyProfileBadgesEvent(event: Nostr.Event): boolean {
 	);
 }
 
+export function isProfileBadgesEvent(event: Nostr.Event): boolean {
+	return event.kind === profileBadgesKind || isLegacyProfileBadgesEvent(event);
+}
+
 export function addAcceptedBadgeTags(
 	sourceTags: string[][],
 	definitionAddress: string,

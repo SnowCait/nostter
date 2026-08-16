@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type * as Nostr from 'nostr-typedef';
 import {
 	addAcceptedBadgeTags,
+	isProfileBadgesEvent,
 	isLegacyProfileBadgesEvent,
 	legacyProfileBadgesKind,
 	profileBadgesKind,
@@ -21,10 +22,17 @@ function event(kind: number, created_at: number, id: string, tags: string[][] = 
 }
 
 describe('selectProfileBadgesEvent', () => {
-	it('returns the available event', () => {
+	it('returns a current event when only kind 10008 exists', () => {
 		const current = event(profileBadgesKind, 1, 'current');
 		expect(selectProfileBadgesEvent(current, undefined)).toBe(current);
-		expect(selectProfileBadgesEvent(undefined, current)).toBe(current);
+	});
+
+	it('returns a legacy event when only kind 30008/profile_badges exists', () => {
+		const legacy = event(legacyProfileBadgesKind, 1, 'legacy', [['d', 'profile_badges']]);
+		expect(selectProfileBadgesEvent(undefined, legacy)).toBe(legacy);
+	});
+
+	it('returns undefined when no event exists', () => {
 		expect(selectProfileBadgesEvent(undefined, undefined)).toBeUndefined();
 	});
 
@@ -64,6 +72,20 @@ describe('isLegacyProfileBadgesEvent', () => {
 				event(profileBadgesKind, 1, 'current', [['d', 'profile_badges']])
 			)
 		).toBe(false);
+	});
+});
+
+describe('isProfileBadgesEvent', () => {
+	it('accepts current and legacy profile badges but not badge sets', () => {
+		expect(isProfileBadgesEvent(event(profileBadgesKind, 1, 'current'))).toBe(true);
+		expect(
+			isProfileBadgesEvent(
+				event(legacyProfileBadgesKind, 1, 'legacy', [['d', 'profile_badges']])
+			)
+		).toBe(true);
+		expect(isProfileBadgesEvent(event(legacyProfileBadgesKind, 1, 'set', [['d', 'set']]))).toBe(
+			false
+		);
 	});
 });
 

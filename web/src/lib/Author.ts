@@ -29,8 +29,8 @@ import {
 	replaceableKinds
 } from './Constants';
 import { bookmarkEvent } from './author/Bookmark';
-import { profileBadgesEvent, profileBadgesKey } from './author/ProfileBadges';
-import { profileBadgesKind, selectProfileBadgesEvent } from './ProfileBadgesEvent';
+import { legacyProfileBadgesKey, setProfileBadgesEvent } from './author/ProfileBadges';
+import { profileBadgesKind } from './ProfileBadgesEvent';
 import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 import {
@@ -120,11 +120,9 @@ export class Author {
 		}
 
 		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001}:bookmark`));
-		profileBadgesEvent.set(
-			selectProfileBadgesEvent(
-				replaceableEvents.get(profileBadgesKind),
-				parameterizedReplaceableEvents.get(profileBadgesKey)
-			)
+		setProfileBadgesEvent(
+			replaceableEvents.get(profileBadgesKind),
+			parameterizedReplaceableEvents.get(legacyProfileBadgesKey)
 		);
 
 		const preferencesEvent = parameterizedReplaceableEvents.get(`${30078}:nostter-preferences`);

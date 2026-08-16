@@ -48,9 +48,7 @@
 
 			const profileBadgesReq = createRxBackwardReq();
 			const isAuthor = pubkey === $authorPubkey;
-			let currentEvent: Nostr.Event | undefined;
-			let legacyEvent: Nostr.Event | undefined;
-			let displayedEventId: string | undefined;
+			let displayedEvent: Nostr.Event | undefined;
 			rxNostr
 				.use(profileBadgesReq, {
 					on: { defaultReadRelays: !isAuthor, defaultWriteRelays: isAuthor, relays }
@@ -62,16 +60,14 @@
 				)
 				.subscribe({
 					next: ({ event }) => {
-						if (event.kind === profileBadgesKind) {
-							currentEvent = event;
-						} else {
-							legacyEvent = event;
-						}
-						const selectedEvent = selectProfileBadgesEvent(currentEvent, legacyEvent);
-						if (selectedEvent === undefined || selectedEvent.id === displayedEventId) {
+						const selectedEvent = selectProfileBadgesEvent(displayedEvent, event);
+						if (
+							selectedEvent === undefined ||
+							selectedEvent.id === displayedEvent?.id
+						) {
 							return;
 						}
-						displayedEventId = selectedEvent.id;
+						displayedEvent = selectedEvent;
 						event = selectedEvent;
 						console.debug('[badges profile]', event);
 

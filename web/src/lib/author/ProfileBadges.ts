@@ -14,6 +14,7 @@ import {
 	legacyProfileBadgesKind,
 	legacyProfileBadgesKey,
 	profileBadgesKind,
+	isProfileBadgesEvent,
 	selectProfileBadgesEvent
 } from '$lib/ProfileBadgesEvent';
 import { followees, pubkey } from '../stores/Author';
@@ -29,8 +30,27 @@ const queue = new Queue<Data>();
 
 let processing = false;
 
-export const profileBadgesKey = legacyProfileBadgesKey;
+export { isProfileBadgesEvent, legacyProfileBadgesKey };
 export const profileBadgesEvent = writable<Nostr.Event | undefined>();
+
+export function setProfileBadgesEvent(
+	current: Nostr.Event | undefined,
+	legacy: Nostr.Event | undefined
+): void {
+	profileBadgesEvent.set(
+		selectProfileBadgesEvent(
+			current !== undefined && isProfileBadgesEvent(current) ? current : undefined,
+			legacy !== undefined && isProfileBadgesEvent(legacy) ? legacy : undefined
+		)
+	);
+}
+
+export function updateProfileBadgesEvent(event: Nostr.Event): void {
+	if (!isProfileBadgesEvent(event)) {
+		return;
+	}
+	profileBadgesEvent.update((current) => selectProfileBadgesEvent(current, event));
+}
 
 export function getCachedProfileBadgesEvent(storage: WebStorage): Nostr.Event | undefined {
 	return selectProfileBadgesEvent(
