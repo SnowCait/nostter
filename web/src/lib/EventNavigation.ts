@@ -83,6 +83,12 @@ const resolveDestination = (nostrEvent: Nostr.Event): string =>
 	resolveProfileDestination(nostrEvent) ??
 	resolveEventDestination(nostrEvent);
 
+export function preventMiddleClickDefault(e: MouseEvent, canTransition: boolean = true): void {
+	if (e.button === MouseButton.Middle && canTransition && !shouldSkipNavigation(e)) {
+		e.preventDefault();
+	}
+}
+
 export async function navigateTo(
 	e: MouseEvent | KeyboardEvent,
 	nostrEvent: Nostr.Event,
