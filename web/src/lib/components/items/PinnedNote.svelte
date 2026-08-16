@@ -72,7 +72,11 @@
 				onmousedown={preventMiddleClickDefault}
 				onclick={(e) => navigateTo(e, $state.snapshot(event!))}
 				onauxclick={(e) => navigateTo(e, $state.snapshot(event!))}
-				onkeydown={(e) => navigateTo(e, $state.snapshot(event!))}
+				onkeydown={(e) => {
+					if (e.key === 'Enter') {
+						navigateTo(e, $state.snapshot(event!));
+					}
+				}}
 			>
 				<EventComponent item={new EventItem(event)} readonly={false} />
 			</div>
