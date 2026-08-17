@@ -14,6 +14,10 @@
 			"preferences": "設定"
 		}
 	},
+	"bookmarks": {
+		"old_format": "旧形式",
+		"private": "プライベート"
+	},
 	"pages": {
 		"profile_edit": "プロフィールを編集",
 		"thread": "スレッド",

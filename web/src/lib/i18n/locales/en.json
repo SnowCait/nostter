@@ -14,6 +14,10 @@
 			"preferences": "Preferences"
 		}
 	},
+	"bookmarks": {
+		"old_format": "Old format",
+		"private": "Private"
+	},
 	"pages": {
 		"profile_edit": "Edit profile",
 		"thread": "Thread",

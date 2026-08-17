@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createRxOneshotReq, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
+	import { tick } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
@@ -12,6 +13,13 @@
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import type { LayoutProps } from '../$types';
 	import { decryptListContent } from '$lib/List';
+	import {
+		getAdjacentBookmarkListTab,
+		getBookmarkListTabs,
+		legacyBookmarkListId,
+		resolveSelectedBookmarkList,
+		standardBookmarkListId
+	} from './BookmarkListTabs';
 
 	let { data }: LayoutProps = $props();
 
@@ -19,6 +27,45 @@
 	let privateBookmarkEventItems: EventItem[] = $state([]);
 	let publicLegacyBookmarkEventItems: EventItem[] = $state([]);
 	let privateLegacyBookmarkEventItems: EventItem[] = $state([]);
+	let selectedBookmarkListId = $state(standardBookmarkListId);
+
+	let bookmarkListTabs = $derived(
+		getBookmarkListTabs($bookmarkEvent !== undefined, $legacyBookmarkEvent !== undefined)
+	);
+	let selectedBookmarkList = $derived(
+		resolveSelectedBookmarkList(bookmarkListTabs, selectedBookmarkListId)
+	);
+
+	function getTabLabel(id: string): string {
+		return id === legacyBookmarkListId
+			? $_('bookmarks.old_format')
+			: $_('layout.header.bookmarks');
+	}
+
+	function selectBookmarkList(id: string): void {
+		selectedBookmarkListId = id;
+	}
+
+	async function handleTabKeydown(event: KeyboardEvent): Promise<void> {
+		if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+			return;
+		}
+
+		event.preventDefault();
+		const nextTab = getAdjacentBookmarkListTab(
+			bookmarkListTabs,
+			selectedBookmarkList?.id ?? selectedBookmarkListId,
+			event.key === 'ArrowLeft' ? -1 : 1
+		);
+		if (nextTab === undefined) {
+			return;
+		}
+
+		selectBookmarkList(nextTab.id);
+		await tick();
+		const tabList = (event.currentTarget as HTMLElement).closest('[role="tablist"]');
+		tabList?.querySelector<HTMLElement>(`[role="tab"][data-tab-id="${nextTab.id}"]`)?.focus();
+	}
 
 	// Public bookmarks
 	if ($bookmarkEvent !== undefined) {
@@ -154,30 +201,79 @@
 
 <h1>{$_('layout.header.bookmarks')}</h1>
 
-{#if $bookmarkEvent !== undefined}
-	<h2>Bookmarks</h2>
-
-	<h3>Public</h3>
-
-	<TimelineView items={publicBookmarkEventItems} showLoading={false} />
-
-	{#if privateBookmarkEventItems.length > 0}
-		<h3>Private</h3>
-
-		<TimelineView items={privateBookmarkEventItems} showLoading={false} />
-	{/if}
+{#if bookmarkListTabs.length > 1}
+	<div class="tabs" role="tablist" aria-label={$_('layout.header.bookmarks')}>
+		{#each bookmarkListTabs as tab}
+			<button
+				type="button"
+				role="tab"
+				id={`bookmark-tab-${tab.id}`}
+				data-tab-id={tab.id}
+				aria-controls={`bookmark-panel-${tab.id}`}
+				aria-selected={selectedBookmarkList?.id === tab.id}
+				tabindex={selectedBookmarkList?.id === tab.id ? 0 : -1}
+				onclick={() => selectBookmarkList(tab.id)}
+				onkeydown={handleTabKeydown}
+			>
+				{getTabLabel(tab.id)}
+			</button>
+		{/each}
+	</div>
 {/if}
 
-{#if $legacyBookmarkEvent !== undefined}
-	<h2>Legacy bookmarks</h2>
+{#each bookmarkListTabs as tab}
+	{@const publicItems =
+		tab.id === legacyBookmarkListId ? publicLegacyBookmarkEventItems : publicBookmarkEventItems}
+	{@const privateItems =
+		tab.id === legacyBookmarkListId
+			? privateLegacyBookmarkEventItems
+			: privateBookmarkEventItems}
+	<section
+		id={`bookmark-panel-${tab.id}`}
+		role={bookmarkListTabs.length > 1 ? 'tabpanel' : undefined}
+		aria-labelledby={bookmarkListTabs.length > 1 ? `bookmark-tab-${tab.id}` : undefined}
+		hidden={selectedBookmarkList?.id !== tab.id}
+	>
+		<h2>{$_('pages.public')}</h2>
 
-	<h3>Public</h3>
+		<TimelineView items={publicItems} showLoading={false} />
 
-	<TimelineView items={publicLegacyBookmarkEventItems} showLoading={false} />
+		{#if privateItems.length > 0}
+			<h2>{$_('bookmarks.private')}</h2>
 
-	{#if privateLegacyBookmarkEventItems.length > 0}
-		<h3>Private</h3>
+			<TimelineView items={privateItems} showLoading={false} />
+		{/if}
+	</section>
+{/each}
 
-		<TimelineView items={privateLegacyBookmarkEventItems} showLoading={false} />
-	{/if}
-{/if}
+<style>
+	.tabs {
+		display: flex;
+		gap: 0.5rem;
+		border-bottom: var(--default-border);
+		user-select: none;
+		overflow-x: auto;
+		overflow-y: hidden;
+	}
+
+	.tabs button {
+		padding: 0.75rem 1rem;
+		border: 0;
+		border-bottom: 3px solid transparent;
+		background: transparent;
+		color: var(--foreground);
+		font: inherit;
+		white-space: nowrap;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.tabs button:hover {
+		background-color: var(--hover-background-color);
+	}
+
+	.tabs button[aria-selected='true'] {
+		border-color: var(--accent);
+		font-weight: bold;
+	}
+</style>
