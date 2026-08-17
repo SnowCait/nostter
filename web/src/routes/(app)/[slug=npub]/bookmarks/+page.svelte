@@ -169,9 +169,10 @@
 
 <h1>{$_('layout.header.bookmarks')}</h1>
 
-<div class="tabs" role="tablist" aria-label={$_('layout.header.bookmarks')}>
+<div class="bookmark-tabs" role="tablist" aria-label={$_('layout.header.bookmarks')}>
 	{#each bookmarkListTabs as tab}
 		<button
+			class="bookmark-tab"
 			type="button"
 			role="tab"
 			id={`bookmark-tab-${tab.id}`}
@@ -215,33 +216,47 @@
 {/each}
 
 <style>
-	.tabs {
+	.bookmark-tabs {
 		display: flex;
 		gap: 0.5rem;
+		margin-bottom: 0.5rem;
 		border-bottom: var(--default-border);
 		user-select: none;
 		overflow-x: auto;
 		overflow-y: hidden;
+		flex-wrap: nowrap;
 	}
 
-	.tabs button {
+	.bookmark-tab {
+		flex: 0 0 auto;
 		padding: 0.75rem 1rem;
 		border: 0;
 		border-bottom: 3px solid transparent;
+		border-radius: 0;
 		background: transparent;
 		color: var(--foreground);
 		font: inherit;
+		font-weight: normal;
 		white-space: nowrap;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		opacity: 1;
+		transition:
+			background-color 0.2s ease,
+			border-color 0.2s ease;
 	}
 
-	.tabs button:hover {
+	.bookmark-tab:hover {
 		background-color: var(--hover-background-color);
+		opacity: 1;
 	}
 
-	.tabs button[aria-selected='true'] {
-		border-color: var(--accent);
+	.bookmark-tab:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: -2px;
+	}
+
+	.bookmark-tab[aria-selected='true'] {
+		border-bottom-color: var(--accent);
 		font-weight: bold;
 	}
 </style>
