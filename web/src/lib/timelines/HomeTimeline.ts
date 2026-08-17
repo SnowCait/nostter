@@ -15,7 +15,7 @@ import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
 import { kinds as Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { bookmarkEvent } from '$lib/author/Bookmark';
+import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark';
 import {
 	authorActionReqEmit,
 	updateReactionedEvents,
@@ -34,6 +34,7 @@ import { chunk } from '$lib/Array';
 import {
 	homeFolloweesFilterKinds,
 	filterLimitItems,
+	legacyBookmarkIdentifier,
 	parameterizedReplaceableKinds,
 	replaceableKinds,
 	authorFilterReplaceableKinds,
@@ -140,6 +141,9 @@ export class HomeTimeline extends NewTimeline {
 			storeCustomEmojis(event);
 		});
 		replaceable$
+			.pipe(filterByKind(Kind.BookmarkList))
+			.subscribe(({ event }) => bookmarkEvent.set(event));
+		replaceable$
 			.pipe(filterByKind(Kind.BlossomServerList))
 			.subscribe(({ event }) => updateBlossomServerList($pubkey, event));
 		replaceable$
@@ -172,9 +176,9 @@ export class HomeTimeline extends NewTimeline {
 		addressable$
 			.pipe(
 				filterByKind(Kind.Genericlists),
-				filter(({ event }) => findIdentifier(event.tags) === 'bookmark')
+				filter(({ event }) => findIdentifier(event.tags) === legacyBookmarkIdentifier)
 			)
-			.subscribe(({ event }) => bookmarkEvent.set(event));
+			.subscribe(({ event }) => legacyBookmarkEvent.set(event));
 		addressable$
 			.pipe(filterByKind(30007))
 			.subscribe(({ event }) => storeMutedPubkeysByKind([event]));

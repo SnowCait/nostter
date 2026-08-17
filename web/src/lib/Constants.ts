@@ -24,12 +24,14 @@ export const emojisetAddressRegexp = new RegExp(`^${Emojisets}:[0-9a-f]{64}:.*$`
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
 export const nicovideoRegexp = /^https:\/\/(www|sp).nicovideo.jp\/watch\/(?<id>[a-zA-Z0-9]+)/;
 export const shortcodeRegexp = /^[\w-]+$/;
+export const legacyBookmarkIdentifier = 'bookmark';
 
 export const replaceableKinds = [
 	Kind.Metadata,
 	Kind.Contacts,
 	10000,
 	10001,
+	Kind.BookmarkList,
 	Kind.RelayList,
 	10005,
 	profileBadgesKind,
@@ -37,7 +39,7 @@ export const replaceableKinds = [
 	10030,
 	Kind.BlossomServerList
 ];
-export const parameterizedReplaceableKinds = [30000, 30001, 30007, 30008, 30078];
+export const parameterizedReplaceableKinds = [30000, Kind.Genericlists, 30007, 30008, 30078];
 
 export const notesKinds = [1, 42];
 export const notesFilterKinds = [1, 6];
@@ -66,7 +68,7 @@ export const authorReplaceableKinds: AuthorReplaceableKind[] = [
 	...replaceableKinds.map((kind) => {
 		return { kind };
 	}),
-	{ kind: 30001, identifier: 'bookmark' },
+	{ kind: Kind.Genericlists, identifier: legacyBookmarkIdentifier },
 	{ kind: 30007, identifier: '6' },
 	{ kind: 30007, identifier: '7' },
 	{ kind: 30007, identifier: '9735' },

@@ -25,10 +25,11 @@ import { Signer } from './Signer';
 import { authorChannelsEventStore, storeMetadata } from './cache/Events';
 import {
 	authorReplaceableKinds,
+	legacyBookmarkIdentifier,
 	parameterizedReplaceableKinds,
 	replaceableKinds
 } from './Constants';
-import { bookmarkEvent } from './author/Bookmark';
+import { bookmarkEvent, legacyBookmarkEvent } from './author/Bookmark';
 import { legacyProfileBadgesKey, setProfileBadgesEvent } from './author/ProfileBadges';
 import { profileBadgesKind } from './ProfileBadgesEvent';
 import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
@@ -119,7 +120,10 @@ export class Author {
 			storeCustomEmojis($customEmojiListEvent);
 		}
 
-		bookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001}:bookmark`));
+		bookmarkEvent.set(replaceableEvents.get(Kind.BookmarkList));
+		legacyBookmarkEvent.set(
+			parameterizedReplaceableEvents.get(`${Kind.Genericlists}:${legacyBookmarkIdentifier}`)
+		);
 		setProfileBadgesEvent(
 			replaceableEvents.get(profileBadgesKind),
 			parameterizedReplaceableEvents.get(legacyProfileBadgesKey)
