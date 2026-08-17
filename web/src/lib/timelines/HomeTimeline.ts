@@ -34,6 +34,7 @@ import { chunk } from '$lib/Array';
 import {
 	homeFolloweesFilterKinds,
 	filterLimitItems,
+	legacyBookmarkIdentifier,
 	parameterizedReplaceableKinds,
 	replaceableKinds,
 	authorFilterReplaceableKinds,
@@ -175,7 +176,7 @@ export class HomeTimeline extends NewTimeline {
 		addressable$
 			.pipe(
 				filterByKind(Kind.Genericlists),
-				filter(({ event }) => findIdentifier(event.tags) === 'bookmark')
+				filter(({ event }) => findIdentifier(event.tags) === legacyBookmarkIdentifier)
 			)
 			.subscribe(({ event }) => legacyBookmarkEvent.set(event));
 		addressable$

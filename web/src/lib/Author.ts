@@ -25,6 +25,7 @@ import { Signer } from './Signer';
 import { authorChannelsEventStore, storeMetadata } from './cache/Events';
 import {
 	authorReplaceableKinds,
+	legacyBookmarkIdentifier,
 	parameterizedReplaceableKinds,
 	replaceableKinds
 } from './Constants';
@@ -121,7 +122,7 @@ export class Author {
 
 		bookmarkEvent.set(replaceableEvents.get(Kind.BookmarkList));
 		legacyBookmarkEvent.set(
-			parameterizedReplaceableEvents.get(`${Kind.Genericlists}:bookmark`)
+			parameterizedReplaceableEvents.get(`${Kind.Genericlists}:${legacyBookmarkIdentifier}`)
 		);
 		setProfileBadgesEvent(
 			replaceableEvents.get(profileBadgesKind),
