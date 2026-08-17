@@ -139,7 +139,9 @@ export class HomeTimeline extends NewTimeline {
 			customEmojiListEvent.set(event);
 			storeCustomEmojis(event);
 		});
-		replaceable$.pipe(filterByKind(10003)).subscribe(({ event }) => bookmarkEvent.set(event));
+		replaceable$
+			.pipe(filterByKind(Kind.BookmarkList))
+			.subscribe(({ event }) => bookmarkEvent.set(event));
 		replaceable$
 			.pipe(filterByKind(Kind.BlossomServerList))
 			.subscribe(({ event }) => updateBlossomServerList($pubkey, event));

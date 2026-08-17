@@ -119,8 +119,10 @@ export class Author {
 			storeCustomEmojis($customEmojiListEvent);
 		}
 
-		bookmarkEvent.set(replaceableEvents.get(10003));
-		legacyBookmarkEvent.set(parameterizedReplaceableEvents.get(`${30001}:bookmark`));
+		bookmarkEvent.set(replaceableEvents.get(Kind.BookmarkList));
+		legacyBookmarkEvent.set(
+			parameterizedReplaceableEvents.get(`${Kind.Genericlists}:bookmark`)
+		);
 		setProfileBadgesEvent(
 			replaceableEvents.get(profileBadgesKind),
 			parameterizedReplaceableEvents.get(legacyProfileBadgesKey)

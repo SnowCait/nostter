@@ -30,7 +30,7 @@ export const replaceableKinds = [
 	Kind.Contacts,
 	10000,
 	10001,
-	10003,
+	Kind.BookmarkList,
 	Kind.RelayList,
 	10005,
 	profileBadgesKind,
@@ -67,7 +67,7 @@ export const authorReplaceableKinds: AuthorReplaceableKind[] = [
 	...replaceableKinds.map((kind) => {
 		return { kind };
 	}),
-	{ kind: 30001, identifier: 'bookmark' },
+	{ kind: Kind.Genericlists, identifier: 'bookmark' },
 	{ kind: 30007, identifier: '6' },
 	{ kind: 30007, identifier: '7' },
 	{ kind: 30007, identifier: '9735' },

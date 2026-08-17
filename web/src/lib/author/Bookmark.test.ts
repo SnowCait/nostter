@@ -1,13 +1,37 @@
 import { describe, expect, it, vi } from 'vitest';
+import { of } from 'rxjs';
+import { kinds as Kind } from 'nostr-tools';
 
-vi.mock('$lib/timelines/MainTimeline', () => ({ rxNostr: {} }));
+const { signEvent } = vi.hoisted(() => ({
+	signEvent: vi.fn(async (event) => ({ ...event, id: 'signed', pubkey: 'pubkey', sig: 'sig' }))
+}));
 
-import { bookmarkEvent, bookmarkKind, legacyBookmarkEvent, updateBookmarkTags } from './Bookmark';
+vi.mock('$lib/timelines/MainTimeline', () => ({
+	rxNostr: { send: () => of({ ok: true }) }
+}));
+vi.mock('$lib/Signer', () => ({ Signer: { signEvent } }));
+vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: vi.fn(async () => undefined) }));
+vi.mock('$lib/WebStorage', () => ({
+	WebStorage: class {
+		getReplaceableEvent() {
+			return undefined;
+		}
+
+		setReplaceableEvent() {}
+	}
+}));
+vi.stubGlobal('localStorage', {});
+
+import { bookmark, bookmarkEvent, legacyBookmarkEvent, updateBookmarkTags } from './Bookmark';
 import { get } from 'svelte/store';
 
 describe('Bookmark', () => {
-	it('uses the standard NIP-51 bookmark kind', () => {
-		expect(bookmarkKind).toBe(10003);
+	it('publishes updates as the standard NIP-51 bookmark kind', async () => {
+		await bookmark(['e', 'event-id']);
+
+		expect(signEvent).toHaveBeenCalledWith(
+			expect.objectContaining({ kind: Kind.BookmarkList })
+		);
 	});
 
 	it('adds and removes bookmark tags without an addressable-event identifier', () => {

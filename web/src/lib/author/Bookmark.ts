@@ -2,6 +2,7 @@ import { get, writable, type Writable } from 'svelte/store';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
+import { kinds as Kind } from 'nostr-tools';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
@@ -15,7 +16,6 @@ type Data = {
 	tag: string[];
 };
 
-export const bookmarkKind = 10003;
 const queue = new Queue<Data>();
 
 let processing = false;
@@ -75,7 +75,7 @@ async function save(type: DataType, tag: string[]): Promise<void> {
 
 async function publish(): Promise<void> {
 	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(bookmarkKind);
+	const lastEvent = storage.getReplaceableEvent(Kind.BookmarkList);
 	let tags = lastEvent?.tags ?? [];
 
 	while (queue.length > 0) {
@@ -88,7 +88,7 @@ async function publish(): Promise<void> {
 	}
 
 	const event = await Signer.signEvent({
-		kind: bookmarkKind,
+		kind: Kind.BookmarkList,
 		content: lastEvent?.content ?? '',
 		tags,
 		created_at: now()
@@ -113,7 +113,7 @@ async function publish(): Promise<void> {
 async function validate(event: Nostr.Event | undefined): Promise<boolean> {
 	const $pubkey = get(pubkey);
 	const lastEvent = await fetchLastEvent({
-		kinds: [bookmarkKind],
+		kinds: [Kind.BookmarkList],
 		authors: [$pubkey],
 		limit: 1
 	});
