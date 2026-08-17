@@ -5,14 +5,20 @@ export type BookmarkListTab = {
 	id: string;
 };
 
-export function getBookmarkListTabs(
-	hasStandardBookmarks: boolean,
-	hasLegacyBookmarks: boolean
-): BookmarkListTab[] {
+export function getBookmarkListTabs(hasLegacyBookmarks: boolean): BookmarkListTab[] {
 	return [
-		...(hasStandardBookmarks ? [{ id: standardBookmarkListId }] : []),
+		{ id: standardBookmarkListId },
 		...(hasLegacyBookmarks ? [{ id: legacyBookmarkListId }] : [])
 	];
+}
+
+export function getInitialBookmarkListId(
+	hasStandardBookmarks: boolean,
+	hasLegacyBookmarks: boolean
+): string {
+	return !hasStandardBookmarks && hasLegacyBookmarks
+		? legacyBookmarkListId
+		: standardBookmarkListId;
 }
 
 export function resolveSelectedBookmarkList(

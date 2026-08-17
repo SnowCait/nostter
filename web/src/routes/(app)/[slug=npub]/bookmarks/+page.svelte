@@ -16,9 +16,9 @@
 	import {
 		getAdjacentBookmarkListTab,
 		getBookmarkListTabs,
+		getInitialBookmarkListId,
 		legacyBookmarkListId,
-		resolveSelectedBookmarkList,
-		standardBookmarkListId
+		resolveSelectedBookmarkList
 	} from './BookmarkListTabs';
 
 	let { data }: LayoutProps = $props();
@@ -27,11 +27,11 @@
 	let privateBookmarkEventItems: EventItem[] = $state([]);
 	let publicLegacyBookmarkEventItems: EventItem[] = $state([]);
 	let privateLegacyBookmarkEventItems: EventItem[] = $state([]);
-	let selectedBookmarkListId = $state(standardBookmarkListId);
-
-	let bookmarkListTabs = $derived(
-		getBookmarkListTabs($bookmarkEvent !== undefined, $legacyBookmarkEvent !== undefined)
+	let selectedBookmarkListId = $state(
+		getInitialBookmarkListId($bookmarkEvent !== undefined, $legacyBookmarkEvent !== undefined)
 	);
+
+	let bookmarkListTabs = $derived(getBookmarkListTabs($legacyBookmarkEvent !== undefined));
 	let selectedBookmarkList = $derived(
 		resolveSelectedBookmarkList(bookmarkListTabs, selectedBookmarkListId)
 	);
@@ -201,25 +201,23 @@
 
 <h1>{$_('layout.header.bookmarks')}</h1>
 
-{#if bookmarkListTabs.length > 1}
-	<div class="tabs" role="tablist" aria-label={$_('layout.header.bookmarks')}>
-		{#each bookmarkListTabs as tab}
-			<button
-				type="button"
-				role="tab"
-				id={`bookmark-tab-${tab.id}`}
-				data-tab-id={tab.id}
-				aria-controls={`bookmark-panel-${tab.id}`}
-				aria-selected={selectedBookmarkList?.id === tab.id}
-				tabindex={selectedBookmarkList?.id === tab.id ? 0 : -1}
-				onclick={() => selectBookmarkList(tab.id)}
-				onkeydown={handleTabKeydown}
-			>
-				{getTabLabel(tab.id)}
-			</button>
-		{/each}
-	</div>
-{/if}
+<div class="tabs" role="tablist" aria-label={$_('layout.header.bookmarks')}>
+	{#each bookmarkListTabs as tab}
+		<button
+			type="button"
+			role="tab"
+			id={`bookmark-tab-${tab.id}`}
+			data-tab-id={tab.id}
+			aria-controls={`bookmark-panel-${tab.id}`}
+			aria-selected={selectedBookmarkList?.id === tab.id}
+			tabindex={selectedBookmarkList?.id === tab.id ? 0 : -1}
+			onclick={() => selectBookmarkList(tab.id)}
+			onkeydown={handleTabKeydown}
+		>
+			{getTabLabel(tab.id)}
+		</button>
+	{/each}
+</div>
 
 {#each bookmarkListTabs as tab}
 	{@const publicItems =
@@ -228,10 +226,10 @@
 		tab.id === legacyBookmarkListId
 			? privateLegacyBookmarkEventItems
 			: privateBookmarkEventItems}
-	<section
+	<div
 		id={`bookmark-panel-${tab.id}`}
-		role={bookmarkListTabs.length > 1 ? 'tabpanel' : undefined}
-		aria-labelledby={bookmarkListTabs.length > 1 ? `bookmark-tab-${tab.id}` : undefined}
+		role="tabpanel"
+		aria-labelledby={`bookmark-tab-${tab.id}`}
 		hidden={selectedBookmarkList?.id !== tab.id}
 	>
 		<h2>{$_('pages.public')}</h2>
@@ -243,7 +241,7 @@
 
 			<TimelineView items={privateItems} showLoading={false} />
 		{/if}
-	</section>
+	</div>
 {/each}
 
 <style>
