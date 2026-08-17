@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createRxOneshotReq, uniq } from 'rx-nostr';
+	import type * as Nostr from 'nostr-typedef';
 	import { tap } from 'rxjs';
 	import { tick } from 'svelte';
 	import { _ } from 'svelte-i18n';
@@ -15,25 +16,46 @@
 	import { decryptListContent } from '$lib/List';
 	import {
 		getAdjacentBookmarkListTab,
-		getBookmarkListTabs,
-		getInitialBookmarkListId,
 		legacyBookmarkListId,
 		resolveSelectedBookmarkList
 	} from './BookmarkListTabs';
+	import { BookmarkPageState } from './BookmarkPageState.svelte';
 
 	let { data }: LayoutProps = $props();
 
-	let publicBookmarkEventItems: EventItem[] = $state([]);
 	let privateBookmarkEventItems: EventItem[] = $state([]);
-	let publicLegacyBookmarkEventItems: EventItem[] = $state([]);
 	let privateLegacyBookmarkEventItems: EventItem[] = $state([]);
-	let selectedBookmarkListId = $state(
-		getInitialBookmarkListId($bookmarkEvent !== undefined, $legacyBookmarkEvent !== undefined)
-	);
 
-	let bookmarkListTabs = $derived(getBookmarkListTabs($legacyBookmarkEvent !== undefined));
+	function loadPublicItems(event: Nostr.Event, addItem: (item: EventItem) => void): () => void {
+		const ids = filterTags('e', event.tags);
+		if (ids.length === 0) {
+			return () => {};
+		}
+		const eventsReq = createRxOneshotReq({ filters: [{ ids }] });
+		const subscription = rxNostr
+			.use(eventsReq)
+			.pipe(
+				tie,
+				uniq(),
+				tap(({ event }) => {
+					referencesReqEmit(event);
+					authorActionReqEmit(event);
+				})
+			)
+			.subscribe(({ event }) => addItem(new EventItem(event)));
+		return () => subscription.unsubscribe();
+	}
+
+	const pageState = new BookmarkPageState(
+		bookmarkEvent,
+		legacyBookmarkEvent,
+		loadPublicItems,
+		reverseChronologicalItem
+	);
+	$effect(() => pageState.destroy.bind(pageState));
+	let bookmarkListTabs = $derived(pageState.bookmarkListTabs);
 	let selectedBookmarkList = $derived(
-		resolveSelectedBookmarkList(bookmarkListTabs, selectedBookmarkListId)
+		resolveSelectedBookmarkList(bookmarkListTabs, pageState.selectedBookmarkListId)
 	);
 
 	function getTabLabel(id: string): string {
@@ -43,7 +65,7 @@
 	}
 
 	function selectBookmarkList(id: string): void {
-		selectedBookmarkListId = id;
+		pageState.selectBookmarkList(id);
 	}
 
 	async function handleTabKeydown(event: KeyboardEvent): Promise<void> {
@@ -54,7 +76,7 @@
 		event.preventDefault();
 		const nextTab = getAdjacentBookmarkListTab(
 			bookmarkListTabs,
-			selectedBookmarkList?.id ?? selectedBookmarkListId,
+			selectedBookmarkList?.id ?? pageState.selectedBookmarkListId,
 			event.key === 'ArrowLeft' ? -1 : 1
 		);
 		if (nextTab === undefined) {
@@ -65,60 +87,6 @@
 		await tick();
 		const tabList = (event.currentTarget as HTMLElement).closest('[role="tablist"]');
 		tabList?.querySelector<HTMLElement>(`[role="tab"][data-tab-id="${nextTab.id}"]`)?.focus();
-	}
-
-	// Public bookmarks
-	if ($bookmarkEvent !== undefined) {
-		const ids = filterTags('e', $bookmarkEvent.tags);
-		if (ids.length > 0) {
-			const eventsReq = createRxOneshotReq({
-				filters: [
-					{
-						ids
-					}
-				]
-			});
-			rxNostr
-				.use(eventsReq)
-				.pipe(
-					tie,
-					uniq(),
-					tap(({ event }) => {
-						referencesReqEmit(event);
-						authorActionReqEmit(event);
-					})
-				)
-				.subscribe((packet) => {
-					console.debug('[bookmark public]', packet);
-					publicBookmarkEventItems.push(new EventItem(packet.event));
-					publicBookmarkEventItems =
-						publicBookmarkEventItems.sort(reverseChronologicalItem);
-				});
-		}
-	}
-
-	// Public legacy bookmarks
-	if ($legacyBookmarkEvent !== undefined) {
-		const ids = filterTags('e', $legacyBookmarkEvent.tags);
-		if (ids.length > 0) {
-			const eventsReq = createRxOneshotReq({ filters: [{ ids }] });
-			rxNostr
-				.use(eventsReq)
-				.pipe(
-					tie,
-					uniq(),
-					tap(({ event }) => {
-						referencesReqEmit(event);
-						authorActionReqEmit(event);
-					})
-				)
-				.subscribe((packet) => {
-					console.debug('[legacy bookmark public]', packet);
-					publicLegacyBookmarkEventItems.push(new EventItem(packet.event));
-					publicLegacyBookmarkEventItems =
-						publicLegacyBookmarkEventItems.sort(reverseChronologicalItem);
-				});
-		}
 	}
 
 	// Private bookmarks
@@ -221,7 +189,9 @@
 
 {#each bookmarkListTabs as tab}
 	{@const publicItems =
-		tab.id === legacyBookmarkListId ? publicLegacyBookmarkEventItems : publicBookmarkEventItems}
+		tab.id === legacyBookmarkListId
+			? pageState.publicLegacyBookmarkEventItems
+			: pageState.publicBookmarkEventItems}
 	{@const privateItems =
 		tab.id === legacyBookmarkListId
 			? privateLegacyBookmarkEventItems
