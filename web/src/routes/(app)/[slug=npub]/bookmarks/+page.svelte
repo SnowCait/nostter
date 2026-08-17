@@ -2,7 +2,7 @@
 	import { createRxOneshotReq, uniq } from 'rx-nostr';
 	import type * as Nostr from 'nostr-typedef';
 	import { tap } from 'rxjs';
-	import { tick } from 'svelte';
+	import { onDestroy, tick } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
@@ -52,7 +52,7 @@
 		loadPublicItems,
 		reverseChronologicalItem
 	);
-	$effect(() => pageState.destroy.bind(pageState));
+	onDestroy(() => pageState.destroy());
 	let bookmarkListTabs = $derived(pageState.bookmarkListTabs);
 	let selectedBookmarkList = $derived(
 		resolveSelectedBookmarkList(bookmarkListTabs, pageState.selectedBookmarkListId)
