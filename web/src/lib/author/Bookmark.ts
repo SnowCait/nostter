@@ -3,7 +3,7 @@ import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { kinds as Kind } from 'nostr-tools';
-import { decryptListContent, encryptListContent } from '$lib/List';
+import { decryptListContentStrict, encryptListContent } from '$lib/List';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { Signer } from '$lib/Signer';
 import { pubkey } from '$lib/stores/Author';
@@ -70,11 +70,17 @@ export async function copyLegacyBookmarks(): Promise<Nostr.Event> {
 	const source = get(legacyBookmarkEvent);
 	if (source === undefined) throw new Error('Old-format bookmarks were not found.');
 	return serialize(async () => {
-		const [privateSourceTags] = await decryptListContent(source.pubkey, source.content);
-		return publishStandardBookmarks((publicTags, privateTags) => ({
-			publicTags: mergeBookmarkReferences(publicTags, source.tags),
-			privateTags: mergeBookmarkReferences(privateTags, privateSourceTags)
-		}));
+		const [privateSourceTags] = await decryptListContentStrict(source.pubkey, source.content);
+		return publishStandardBookmarks(async (base) => {
+			const [privateDestinationTags] = await decryptListContentStrict(
+				base?.pubkey ?? get(pubkey),
+				base?.content ?? ''
+			);
+			return {
+				publicTags: mergeBookmarkReferences(base?.tags ?? [], source.tags),
+				privateTags: mergeBookmarkReferences(privateDestinationTags, privateSourceTags)
+			};
+		});
 	});
 }
 
@@ -89,16 +95,18 @@ export async function deleteLegacyBookmarks(): Promise<void> {
 }
 
 async function updateStandardBookmarks(data: Data): Promise<void> {
-	await publishStandardBookmarks((publicTags, privateTags) => ({
-		publicTags: updateBookmarkTags(publicTags, data),
-		privateTags
+	await publishStandardBookmarks((base) => ({
+		publicTags: updateBookmarkTags(base?.tags ?? [], data),
+		content: base?.content ?? ''
 	}));
 }
 
-type BookmarkTags = { publicTags: string[][]; privateTags: string[][] };
+type BookmarkUpdate =
+	| { publicTags: string[][]; content: string }
+	| { publicTags: string[][]; privateTags: string[][] };
 
 async function publishStandardBookmarks(
-	update: (publicTags: string[][], privateTags: string[][]) => BookmarkTags
+	update: (base: Nostr.Event | undefined) => BookmarkUpdate | Promise<BookmarkUpdate>
 ): Promise<Nostr.Event> {
 	const storage = new WebStorage(localStorage);
 	const $pubkey = get(pubkey);
@@ -110,8 +118,7 @@ async function publishStandardBookmarks(
 	});
 	if (cached !== undefined && remote === undefined) throw new Error('Cache is outdated.');
 	const base = latestEvent(cached, remote);
-	const [privateTags] = await decryptListContent(base?.pubkey ?? $pubkey, base?.content ?? '');
-	const updated = update(base?.tags ?? [], privateTags);
+	const updated = await update(base);
 
 	// Check once more immediately before signing so an event observed during the merge is not lost.
 	const latestRemote = await fetchLastEvent({
@@ -129,7 +136,8 @@ async function publishStandardBookmarks(
 
 	const event = await Signer.signEvent({
 		kind: Kind.BookmarkList,
-		content: await encryptListContent(updated.privateTags),
+		content:
+			'content' in updated ? updated.content : await encryptListContent(updated.privateTags),
 		tags: updated.publicTags,
 		created_at: Math.max(now(), (base?.created_at ?? 0) + 1)
 	});
@@ -139,7 +147,7 @@ async function publishStandardBookmarks(
 	return event;
 }
 
-function latestEvent(
+export function latestEvent(
 	left: Nostr.Event | undefined,
 	right: Nostr.Event | undefined
 ): Nostr.Event | undefined {
@@ -147,5 +155,5 @@ function latestEvent(
 	if (right === undefined) return left;
 	if (left.created_at !== right.created_at)
 		return left.created_at > right.created_at ? left : right;
-	return left.id > right.id ? left : right;
+	return left.id < right.id ? left : right;
 }

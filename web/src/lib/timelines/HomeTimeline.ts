@@ -16,7 +16,7 @@ import { WebStorage } from '$lib/WebStorage';
 import { kinds as Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark';
-import { deletedEventCoordinates } from '$lib/author/Delete';
+import { isAddressableEventDeleted } from '$lib/author/Delete';
 import {
 	authorActionReqEmit,
 	updateReactionedEvents,
@@ -178,12 +178,7 @@ export class HomeTimeline extends NewTimeline {
 			.pipe(
 				filterByKind(Kind.Genericlists),
 				filter(({ event }) => findIdentifier(event.tags) === legacyBookmarkIdentifier),
-				filter(
-					({ event }) =>
-						!get(deletedEventCoordinates).has(
-							`${event.kind}:${event.pubkey}:${legacyBookmarkIdentifier}`
-						)
-				)
+				filter(({ event }) => !isAddressableEventDeleted(event))
 			)
 			.subscribe(({ event }) => legacyBookmarkEvent.set(event));
 		addressable$
@@ -208,9 +203,13 @@ export class HomeTimeline extends NewTimeline {
 				latestEach(({ event }) => event.pubkey)
 			)
 			.subscribe(({ event }) => storeMetadata(event));
-		observable$
-			.pipe(filterByKind(Kind.EventDeletion))
-			.subscribe(({ event }) => storeDeletedEvents(event));
+		observable$.pipe(filterByKind(Kind.EventDeletion)).subscribe(({ event }) => {
+			storeDeletedEvents(event);
+			const legacy = get(legacyBookmarkEvent);
+			if (legacy !== undefined && isAddressableEventDeleted(legacy)) {
+				legacyBookmarkEvent.set(undefined);
+			}
+		});
 		observable$
 			.pipe(filterByKind(Kind.BadgeAward))
 			.subscribe(({ event, from }) => storeSeenOn(event.id, from)); // TODO: Migrate to tie

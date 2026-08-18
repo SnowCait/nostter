@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
 	sendFails: false,
 	sent: [] as Nostr.Event[],
 	privateByContent: new Map<string, string[][]>(),
+	decryptFailures: new Set<string>(),
 	signCount: 0,
 	deleteAddressableEvent: vi.fn(),
 	removedLegacyCache: false
@@ -33,10 +34,10 @@ vi.mock('$lib/Signer', () => ({
 	}
 }));
 vi.mock('$lib/List', () => ({
-	decryptListContent: vi.fn(async (_pubkey: string, content: string) => [
-		mocks.privateByContent.get(content) ?? [],
-		content.startsWith('nip04:')
-	]),
+	decryptListContentStrict: vi.fn(async (_pubkey: string, content: string) => {
+		if (mocks.decryptFailures.has(content)) throw new Error('decrypt failed');
+		return [mocks.privateByContent.get(content) ?? [], content.startsWith('nip04:')];
+	}),
 	encryptListContent: vi.fn(
 		async (tags: string[][], legacy = false) =>
 			`${legacy ? 'nip04' : 'nip44'}:${JSON.stringify(tags)}`
@@ -71,7 +72,9 @@ import {
 	copyLegacyBookmarks,
 	deleteLegacyBookmarks,
 	legacyBookmarkEvent,
+	latestEvent,
 	mergeBookmarkReferences,
+	unbookmark,
 	updateBookmarkTags
 } from './Bookmark';
 
@@ -93,6 +96,7 @@ describe('Bookmark', () => {
 		mocks.sendFails = false;
 		mocks.sent = [];
 		mocks.privateByContent.clear();
+		mocks.decryptFailures.clear();
 		mocks.signCount = 0;
 		mocks.removedLegacyCache = false;
 		mocks.deleteAddressableEvent.mockReset();
@@ -197,6 +201,59 @@ describe('Bookmark', () => {
 			['e', 'legacy']
 		]);
 		expect(mocks.sent).toHaveLength(2);
+	});
+
+	it('preserves encrypted private content when adding a public bookmark', async () => {
+		mocks.stored = event({ content: 'opaque-encrypted-content' });
+
+		await bookmark(['e', 'normal']);
+
+		expect(mocks.sent[0].content).toBe('opaque-encrypted-content');
+	});
+
+	it('preserves encrypted private content when removing a public bookmark', async () => {
+		mocks.stored = event({
+			content: 'opaque-encrypted-content',
+			tags: [['e', 'normal']]
+		});
+
+		await unbookmark(['e', 'normal']);
+
+		expect(mocks.sent[0].content).toBe('opaque-encrypted-content');
+	});
+
+	it.each([
+		['source', 'broken-source', 'valid-destination'],
+		['destination', 'valid-source', 'broken-destination']
+	])(
+		'does not publish or change local state when copy %s private content cannot be decrypted',
+		async (location, sourceContent, destinationContent) => {
+			const standard = event({ id: 'standard', content: destinationContent });
+			const legacy = event({
+				id: 'legacy',
+				kind: Kind.Genericlists,
+				content: sourceContent
+			});
+			mocks.stored = standard;
+			bookmarkEvent.set(standard);
+			legacyBookmarkEvent.set(legacy);
+			mocks.decryptFailures.add(`broken-${location}`);
+
+			await expect(copyLegacyBookmarks()).rejects.toThrow('decrypt failed');
+
+			expect(mocks.sent).toHaveLength(0);
+			expect(mocks.stored).toBe(standard);
+			expect(get(bookmarkEvent)).toBe(standard);
+			expect(get(legacyBookmarkEvent)).toBe(legacy);
+		}
+	);
+
+	it('selects the lexicographically lower id when replaceable timestamps match', () => {
+		const higher = event({ id: 'bbbb', created_at: 20 });
+		const lower = event({ id: 'aaaa', created_at: 20 });
+
+		expect(latestEvent(higher, lower)).toBe(lower);
+		expect(latestEvent(lower, higher)).toBe(lower);
 	});
 
 	it('does not update standard or legacy local state when publish fails', async () => {

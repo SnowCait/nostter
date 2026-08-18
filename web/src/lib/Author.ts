@@ -30,7 +30,7 @@ import {
 	replaceableKinds
 } from './Constants';
 import { bookmarkEvent, legacyBookmarkEvent } from './author/Bookmark';
-import { deletedEventCoordinates } from './author/Delete';
+import { isAddressableEventDeleted } from './author/Delete';
 import { legacyProfileBadgesKey, setProfileBadgesEvent } from './author/ProfileBadges';
 import { profileBadgesKind } from './ProfileBadgesEvent';
 import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
@@ -126,9 +126,7 @@ export class Author {
 			`${Kind.Genericlists}:${legacyBookmarkIdentifier}`
 		);
 		legacyBookmarkEvent.set(
-			get(deletedEventCoordinates).has(
-				`${Kind.Genericlists}:${this.pubkey}:${legacyBookmarkIdentifier}`
-			)
+			legacyBookmark !== undefined && isAddressableEventDeleted(legacyBookmark)
 				? undefined
 				: legacyBookmark
 		);

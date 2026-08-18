@@ -6,12 +6,40 @@ import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
 import { filterTags } from '$lib/EventHelper';
 import { filter, firstValueFrom } from 'rxjs';
+import { isAddressableKind } from 'nostr-tools/kinds';
 
 export const deletedEventIds = writable(new Set<string>());
 export const deletedEventIdsByPubkey = writable(new Map<string, Set<string>>());
-export const deletedEventCoordinates = writable(new Set<string>());
+export const deletedEventCoordinates = writable(new Map<string, number>());
+
+const addressableCoordinate = /^(\d+):([0-9a-f]{64}):(.*)$/;
+
+function storeDeletedEventCoordinates(event: Nostr.Event): void {
+	const coordinates = filterTags('a', event.tags).filter((coordinate) => {
+		const match = addressableCoordinate.exec(coordinate);
+		return match !== null && isAddressableKind(Number(match[1])) && match[2] === event.pubkey;
+	});
+	if (coordinates.length === 0) return;
+
+	deletedEventCoordinates.update((stored) => {
+		const updated = new Map(stored);
+		for (const coordinate of coordinates) {
+			updated.set(coordinate, Math.max(updated.get(coordinate) ?? 0, event.created_at));
+		}
+		return updated;
+	});
+}
+
+export function isAddressableEventDeleted(event: Nostr.Event): boolean {
+	const identifier = event.tags.find(([name]) => name === 'd')?.[1] ?? '';
+	const deletedAt = get(deletedEventCoordinates).get(
+		`${event.kind}:${event.pubkey}:${identifier}`
+	);
+	return deletedAt !== undefined && event.created_at <= deletedAt;
+}
 
 export function storeDeletedEvents(event: Nostr.Event): void {
+	storeDeletedEventCoordinates(event);
 	const pubkey = event.pubkey;
 	const ids = filterTags('e', event.tags);
 
@@ -51,7 +79,7 @@ export async function deleteAddressableEvent(
 		created_at: now()
 	});
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
-	deletedEventCoordinates.update((coordinates) => new Set(coordinates).add(coordinate));
+	storeDeletedEventCoordinates(event);
 	return event;
 }
 
