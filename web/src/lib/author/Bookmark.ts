@@ -3,128 +3,149 @@ import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { kinds as Kind } from 'nostr-tools';
-import { rxNostr } from '$lib/timelines/MainTimeline';
-import { Queue } from '$lib/Queue';
+import { decryptListContent, encryptListContent } from '$lib/List';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { Signer } from '$lib/Signer';
+import { pubkey } from '$lib/stores/Author';
+import { rxNostr } from '$lib/timelines/MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
-import { pubkey } from '../stores/Author';
+import { deleteAddressableEvent } from './Delete';
 
 type DataType = 'bookmark' | 'unbookmark';
-type Data = {
-	type: DataType;
-	tag: string[];
-};
+type Data = { type: DataType; tag: string[] };
 
-const queue = new Queue<Data>();
-
-let processing = false;
+const legacyBookmarkIdentifier = 'bookmark';
+let writeQueue = Promise.resolve();
 
 export const bookmarkEvent: Writable<Nostr.Event | undefined> = writable();
 export const legacyBookmarkEvent: Writable<Nostr.Event | undefined> = writable();
 
 export function updateBookmarkTags(tags: string[][], data: Data): string[][] {
-	if (
-		data.type === 'bookmark' &&
-		!tags.some(([tagName, value]) => tagName === data.tag[0] && value === data.tag[1])
-	) {
-		return [...tags, data.tag];
-	}
-	if (
-		data.type === 'unbookmark' &&
-		tags.some(([tagName, value]) => tagName === data.tag[0] && value === data.tag[1])
-	) {
-		return tags.filter(
-			([tagName, value]) => !(tagName === data.tag[0] && value === data.tag[1])
-		);
+	if (data.type === 'bookmark' && !hasReference(tags, data.tag)) return [...tags, data.tag];
+	if (data.type === 'unbookmark' && hasReference(tags, data.tag)) {
+		return tags.filter((tag) => !sameReference(tag, data.tag));
 	}
 	return tags;
 }
 
-// TODO: Private bookmarks
-export const isBookmarked = (event: Nostr.Event): boolean => {
-	const $bookmarkEvent = get(bookmarkEvent);
-	if ($bookmarkEvent === undefined) {
-		return false;
+const isBookmarkReference = ([name, value]: string[]): boolean =>
+	(name === 'e' || name === 'a') && value !== undefined;
+const sameReference = (left: string[], right: string[]): boolean =>
+	left[0] === right[0] && left[1] === right[1];
+const hasReference = (tags: string[][], reference: string[]): boolean =>
+	tags.some((tag) => sameReference(tag, reference));
+
+export const mergeBookmarkReferences = (
+	destination: string[][],
+	source: string[][]
+): string[][] => {
+	const merged = destination.map((tag) => [...tag]);
+	for (const tag of source.filter(isBookmarkReference)) {
+		if (!hasReference(merged, tag)) merged.push([...tag]);
 	}
-	return $bookmarkEvent.tags.some(([tagName, id]) => tagName === 'e' && id === event.id);
+	return merged;
 };
 
+export const isBookmarked = (event: Nostr.Event): boolean =>
+	get(bookmarkEvent)?.tags.some(([name, id]) => name === 'e' && id === event.id) ?? false;
+
+function serialize<T>(operation: () => Promise<T>): Promise<T> {
+	const result = writeQueue.then(operation, operation);
+	writeQueue = result.then(
+		() => undefined,
+		() => undefined
+	);
+	return result;
+}
+
 export async function bookmark(tag: string[]): Promise<void> {
-	console.log('[bookmark]', tag, queue.dump());
-	await save('bookmark', tag);
+	await serialize(() => updateStandardBookmarks({ type: 'bookmark', tag }));
 }
 
 export async function unbookmark(tag: string[]): Promise<void> {
-	console.log('[unbookmark]', tag, queue.dump());
-	await save('unbookmark', tag);
+	await serialize(() => updateStandardBookmarks({ type: 'unbookmark', tag }));
 }
 
-async function save(type: DataType, tag: string[]): Promise<void> {
-	queue.enqueue({
-		type,
-		tag
+export async function copyLegacyBookmarks(): Promise<Nostr.Event> {
+	const source = get(legacyBookmarkEvent);
+	if (source === undefined) throw new Error('Old-format bookmarks were not found.');
+	return serialize(async () => {
+		const [privateSourceTags] = await decryptListContent(source.pubkey, source.content);
+		return publishStandardBookmarks((publicTags, privateTags) => ({
+			publicTags: mergeBookmarkReferences(publicTags, source.tags),
+			privateTags: mergeBookmarkReferences(privateTags, privateSourceTags)
+		}));
 	});
-
-	if (!processing) {
-		processing = true;
-		await publish();
-		processing = false;
-	}
 }
 
-async function publish(): Promise<void> {
-	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(Kind.BookmarkList);
-	let tags = lastEvent?.tags ?? [];
-
-	while (queue.length > 0) {
-		const data = queue.dequeue();
-		if (data === undefined) {
-			break;
-		}
-
-		tags = updateBookmarkTags(tags, data);
-	}
-
-	const event = await Signer.signEvent({
-		kind: Kind.BookmarkList,
-		content: lastEvent?.content ?? '',
-		tags,
-		created_at: now()
-	});
-
-	bookmarkEvent.set(event);
-
-	// Lazy validation for UX
-	if (!(await validate(lastEvent))) {
-		bookmarkEvent.set(lastEvent);
-		throw new Error('Cache is outdated.');
-	}
-
-	storage.setReplaceableEvent(event);
-	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
-
-	if (queue.length > 0) {
-		await publish();
-	}
-}
-
-async function validate(event: Nostr.Event | undefined): Promise<boolean> {
+export async function deleteLegacyBookmarks(): Promise<void> {
 	const $pubkey = get(pubkey);
-	const lastEvent = await fetchLastEvent({
+	await deleteAddressableEvent(Kind.Genericlists, $pubkey, legacyBookmarkIdentifier);
+	new WebStorage(localStorage).removeParameterizedReplaceableEvent(
+		Kind.Genericlists,
+		legacyBookmarkIdentifier
+	);
+	legacyBookmarkEvent.set(undefined);
+}
+
+async function updateStandardBookmarks(data: Data): Promise<void> {
+	await publishStandardBookmarks((publicTags, privateTags) => ({
+		publicTags: updateBookmarkTags(publicTags, data),
+		privateTags
+	}));
+}
+
+type BookmarkTags = { publicTags: string[][]; privateTags: string[][] };
+
+async function publishStandardBookmarks(
+	update: (publicTags: string[][], privateTags: string[][]) => BookmarkTags
+): Promise<Nostr.Event> {
+	const storage = new WebStorage(localStorage);
+	const $pubkey = get(pubkey);
+	const cached = storage.getReplaceableEvent(Kind.BookmarkList);
+	const remote = await fetchLastEvent({
 		kinds: [Kind.BookmarkList],
 		authors: [$pubkey],
 		limit: 1
 	});
+	if (cached !== undefined && remote === undefined) throw new Error('Cache is outdated.');
+	const base = latestEvent(cached, remote);
+	const [privateTags] = await decryptListContent(base?.pubkey ?? $pubkey, base?.content ?? '');
+	const updated = update(base?.tags ?? [], privateTags);
 
-	if (event === undefined) {
-		if (lastEvent !== undefined) {
-			return false;
-		}
-	} else if (lastEvent === undefined || event.created_at < lastEvent.created_at) {
-		return false;
+	// Check once more immediately before signing so an event observed during the merge is not lost.
+	const latestRemote = await fetchLastEvent({
+		kinds: [Kind.BookmarkList],
+		authors: [$pubkey],
+		limit: 1
+	});
+	if (
+		latestRemote !== undefined &&
+		latestRemote.id !== remote?.id &&
+		latestRemote.id !== base?.id
+	) {
+		return publishStandardBookmarks(update);
 	}
 
-	return true;
+	const event = await Signer.signEvent({
+		kind: Kind.BookmarkList,
+		content: await encryptListContent(updated.privateTags),
+		tags: updated.publicTags,
+		created_at: Math.max(now(), (base?.created_at ?? 0) + 1)
+	});
+	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
+	storage.setReplaceableEvent(event);
+	bookmarkEvent.set(event);
+	return event;
+}
+
+function latestEvent(
+	left: Nostr.Event | undefined,
+	right: Nostr.Event | undefined
+): Nostr.Event | undefined {
+	if (left === undefined) return right;
+	if (right === undefined) return left;
+	if (left.created_at !== right.created_at)
+		return left.created_at > right.created_at ? left : right;
+	return left.id > right.id ? left : right;
 }

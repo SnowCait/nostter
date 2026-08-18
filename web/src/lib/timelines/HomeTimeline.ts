@@ -16,6 +16,7 @@ import { WebStorage } from '$lib/WebStorage';
 import { kinds as Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark';
+import { deletedEventCoordinates } from '$lib/author/Delete';
 import {
 	authorActionReqEmit,
 	updateReactionedEvents,
@@ -176,7 +177,13 @@ export class HomeTimeline extends NewTimeline {
 		addressable$
 			.pipe(
 				filterByKind(Kind.Genericlists),
-				filter(({ event }) => findIdentifier(event.tags) === legacyBookmarkIdentifier)
+				filter(({ event }) => findIdentifier(event.tags) === legacyBookmarkIdentifier),
+				filter(
+					({ event }) =>
+						!get(deletedEventCoordinates).has(
+							`${event.kind}:${event.pubkey}:${legacyBookmarkIdentifier}`
+						)
+				)
 			)
 			.subscribe(({ event }) => legacyBookmarkEvent.set(event));
 		addressable$

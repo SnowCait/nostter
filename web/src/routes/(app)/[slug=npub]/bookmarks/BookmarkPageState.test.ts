@@ -52,6 +52,10 @@ describe('Bookmark page state', () => {
 		expect(state.publicBookmarkEventItems).toEqual(['standard item']);
 		expect(state.selectedBookmarkListId).toBe(standardBookmarkListId);
 
+		legacyEvent.set(undefined);
+		expect(state.bookmarkListTabs.map(({ id }) => id)).toEqual([standardBookmarkListId]);
+		expect(state.publicLegacyBookmarkEventItems).toEqual([]);
+
 		state.destroy();
 		expect(unsubscribed).toEqual(expect.arrayContaining(['standard-1', 'legacy-2']));
 	});
