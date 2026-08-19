@@ -30,7 +30,11 @@ import {
 	replaceableKinds
 } from './Constants';
 import { bookmarkEvent, legacyBookmarkEvent } from './author/Bookmark';
-import { isAddressableEventDeleted } from './author/Delete';
+import {
+	isAddressableEventDeleted,
+	isDeletedLegacyBookmarkEvent,
+	restoreLegacyBookmarkDeletionState
+} from './author/Delete';
 import { legacyProfileBadgesKey, setProfileBadgesEvent } from './author/ProfileBadges';
 import { profileBadgesKind } from './ProfileBadgesEvent';
 import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
@@ -202,6 +206,7 @@ export class Author {
 		parameterizedReplaceableEvents: Map<string, Event>;
 	}> {
 		const storage = new WebStorage(localStorage);
+		await restoreLegacyBookmarkDeletionState(pubkey, storage);
 		const cachedAt = storage.getCachedAt();
 		if (cachedAt !== null) {
 			console.log('[cached at]', new Date(cachedAt * 1000));
@@ -238,7 +243,9 @@ export class Author {
 			storage.setReplaceableEvent(event);
 		}
 		for (const [, event] of [...parameterizedReplaceableEvents]) {
-			storage.setParameterizedReplaceableEvent(event);
+			if (!isDeletedLegacyBookmarkEvent(event)) {
+				storage.setParameterizedReplaceableEvent(event);
+			}
 		}
 		return { replaceableEvents, parameterizedReplaceableEvents };
 	}

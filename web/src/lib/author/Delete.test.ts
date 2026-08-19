@@ -7,7 +7,9 @@ const mocks = vi.hoisted(() => ({
 	author: 'a'.repeat(64),
 	sent: [] as Nostr.Event[],
 	fails: false,
-	signEvent: vi.fn(async (event) => ({ ...event, id: 'deletion', sig: 'sig' }))
+	signEvent: vi.fn(async (event) => ({ ...event, id: 'deletion', sig: 'sig' })),
+	fetched: [] as Nostr.Event[],
+	fetchEvents: vi.fn()
 }));
 
 const author = mocks.author;
@@ -21,6 +23,12 @@ vi.mock('$lib/timelines/MainTimeline', () => ({
 	}
 }));
 vi.mock('$lib/Signer', () => ({ Signer: { signEvent: mocks.signEvent } }));
+vi.mock('$lib/RxNostrHelper', () => ({
+	fetchEvents: (filters: unknown) => {
+		mocks.fetchEvents(filters);
+		return Promise.resolve(mocks.fetched);
+	}
+}));
 vi.mock('$lib/stores/Author', async () => {
 	const { writable } = await import('svelte/store');
 	return { pubkey: writable(mocks.author) };
@@ -30,6 +38,10 @@ import {
 	deleteAddressableEvent,
 	deletedEventCoordinates,
 	isAddressableEventDeleted,
+	isDeletedLegacyBookmarkEvent,
+	isLegacyBookmarkEvent,
+	removeDeletedLegacyBookmarkCache,
+	restoreLegacyBookmarkDeletionState,
 	storeDeletedEvents
 } from './Delete';
 
@@ -49,6 +61,8 @@ describe('deleteAddressableEvent', () => {
 	beforeEach(() => {
 		mocks.sent = [];
 		mocks.fails = false;
+		mocks.fetched = [];
+		mocks.fetchEvents.mockReset();
 		mocks.signEvent.mockClear();
 		deletedEventCoordinates.set(new Map());
 	});
@@ -93,6 +107,56 @@ describe('deleteAddressableEvent', () => {
 		storeDeletedEvents(event({ created_at: 20, tags: [['a', coordinate]] }));
 
 		expect(get(deletedEventCoordinates).get(coordinate)).toBe(30);
+	});
+
+	it('restores historical legacy bookmark deletion requests', async () => {
+		const coordinate = `30001:${author}:bookmark`;
+		mocks.fetched = [event({ created_at: 20, tags: [['a', coordinate]] })];
+		let cached: Nostr.Event | undefined = event({
+			kind: 30001,
+			created_at: 20,
+			tags: [['d', 'bookmark']]
+		});
+		const storage = {
+			getParameterizedReplaceableEvent: () => cached,
+			removeParameterizedReplaceableEvent: () => {
+				cached = undefined;
+			}
+		};
+
+		await restoreLegacyBookmarkDeletionState(author, storage as never);
+
+		expect(mocks.fetchEvents).toHaveBeenCalledWith([
+			{ kinds: [5], authors: [author], '#a': [coordinate] }
+		]);
+		expect(get(deletedEventCoordinates).get(coordinate)).toBe(20);
+		expect(cached).toBeUndefined();
+	});
+
+	it('removes a deleted legacy bookmark cache but keeps a newer replacement', () => {
+		const coordinate = `30001:${author}:bookmark`;
+		storeDeletedEvents(event({ created_at: 20, tags: [['a', coordinate]] }));
+		let cached: Nostr.Event | undefined = event({
+			kind: 30001,
+			created_at: 20,
+			tags: [['d', 'bookmark']]
+		});
+		const storage = {
+			getParameterizedReplaceableEvent: () => cached,
+			removeParameterizedReplaceableEvent: () => {
+				cached = undefined;
+			}
+		};
+
+		expect(isLegacyBookmarkEvent(cached)).toBe(true);
+		expect(isDeletedLegacyBookmarkEvent(cached)).toBe(true);
+		removeDeletedLegacyBookmarkCache(storage as never);
+		expect(cached).toBeUndefined();
+
+		cached = event({ kind: 30001, created_at: 21, tags: [['d', 'bookmark']] });
+		expect(isDeletedLegacyBookmarkEvent(cached)).toBe(false);
+		removeDeletedLegacyBookmarkCache(storage as never);
+		expect(cached).toBeDefined();
 	});
 
 	it('ignores malformed coordinates and coordinates for another author', () => {

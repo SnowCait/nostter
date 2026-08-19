@@ -16,7 +16,11 @@ import { WebStorage } from '$lib/WebStorage';
 import { kinds as Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark';
-import { isAddressableEventDeleted } from '$lib/author/Delete';
+import {
+	isAddressableEventDeleted,
+	isDeletedLegacyBookmarkEvent,
+	removeDeletedLegacyBookmarkCache
+} from '$lib/author/Delete';
 import {
 	authorActionReqEmit,
 	updateReactionedEvents,
@@ -153,6 +157,7 @@ export class HomeTimeline extends NewTimeline {
 		const addressable$ = author$.pipe(
 			filterByKinds(parameterizedReplaceableKinds),
 			latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`),
+			filter(({ event }) => !isDeletedLegacyBookmarkEvent(event)),
 			filter(({ event }) => {
 				const storage = new WebStorage(localStorage);
 				const cache = storage.getParameterizedReplaceableEvent(
@@ -205,6 +210,7 @@ export class HomeTimeline extends NewTimeline {
 			.subscribe(({ event }) => storeMetadata(event));
 		observable$.pipe(filterByKind(Kind.EventDeletion)).subscribe(({ event }) => {
 			storeDeletedEvents(event);
+			removeDeletedLegacyBookmarkCache();
 			const legacy = get(legacyBookmarkEvent);
 			if (legacy !== undefined && isAddressableEventDeleted(legacy)) {
 				legacyBookmarkEvent.set(undefined);

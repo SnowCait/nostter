@@ -4,15 +4,47 @@ import type * as Nostr from 'nostr-typedef';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
-import { filterTags } from '$lib/EventHelper';
+import { filterTags, findIdentifier } from '$lib/EventHelper';
 import { filter, firstValueFrom } from 'rxjs';
 import { isAddressableKind } from 'nostr-tools/kinds';
+import { fetchEvents } from '$lib/RxNostrHelper';
+import { legacyBookmarkIdentifier } from '$lib/Constants';
+import { WebStorage } from '$lib/WebStorage';
 
 export const deletedEventIds = writable(new Set<string>());
 export const deletedEventIdsByPubkey = writable(new Map<string, Set<string>>());
 export const deletedEventCoordinates = writable(new Map<string, number>());
 
 const addressableCoordinate = /^(\d+):([0-9a-f]{64}):(.*)$/;
+
+export function isLegacyBookmarkEvent(event: Nostr.Event): boolean {
+	return event.kind === 30001 && findIdentifier(event.tags) === legacyBookmarkIdentifier;
+}
+
+export async function restoreLegacyBookmarkDeletionState(
+	pubkey: string,
+	storage = new WebStorage(localStorage)
+): Promise<void> {
+	const coordinate = `30001:${pubkey}:${legacyBookmarkIdentifier}`;
+	const deletionRequests = await fetchEvents([
+		{
+			kinds: [5],
+			authors: [pubkey],
+			'#a': [coordinate]
+		}
+	]);
+	for (const event of deletionRequests) {
+		storeDeletedEvents(event);
+	}
+	removeDeletedLegacyBookmarkCache(storage);
+}
+
+export function removeDeletedLegacyBookmarkCache(storage = new WebStorage(localStorage)): void {
+	const cached = storage.getParameterizedReplaceableEvent(30001, legacyBookmarkIdentifier);
+	if (cached !== undefined && isAddressableEventDeleted(cached)) {
+		storage.removeParameterizedReplaceableEvent(30001, legacyBookmarkIdentifier);
+	}
+}
 
 function storeDeletedEventCoordinates(event: Nostr.Event): void {
 	const coordinates = filterTags('a', event.tags).filter((coordinate) => {
@@ -36,6 +68,10 @@ export function isAddressableEventDeleted(event: Nostr.Event): boolean {
 		`${event.kind}:${event.pubkey}:${identifier}`
 	);
 	return deletedAt !== undefined && event.created_at <= deletedAt;
+}
+
+export function isDeletedLegacyBookmarkEvent(event: Nostr.Event): boolean {
+	return isLegacyBookmarkEvent(event) && isAddressableEventDeleted(event);
 }
 
 export function storeDeletedEvents(event: Nostr.Event): void {
