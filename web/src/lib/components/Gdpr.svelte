@@ -30,9 +30,9 @@
 		console.debug('[analytics init]');
 
 		window.dataLayer = window.dataLayer || [];
-		function gtag(...args: unknown[]) {
-			window.dataLayer.push(args);
-		}
+		const gtag: (...args: unknown[]) => void = function () {
+			window.dataLayer.push(arguments);
+		};
 		gtag('js', new Date());
 
 		gtag('config', 'G-G1WMSV0PBP');
