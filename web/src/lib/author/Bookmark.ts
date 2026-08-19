@@ -9,12 +9,12 @@ import { Signer } from '$lib/Signer';
 import { pubkey } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
+import { legacyBookmarkIdentifier } from '$lib/Constants';
 import { deleteAddressableEvent } from './Delete';
 
 type DataType = 'bookmark' | 'unbookmark';
 type Data = { type: DataType; tag: string[] };
 
-const legacyBookmarkIdentifier = 'bookmark';
 let writeQueue = Promise.resolve();
 
 export const bookmarkEvent: Writable<Nostr.Event | undefined> = writable();

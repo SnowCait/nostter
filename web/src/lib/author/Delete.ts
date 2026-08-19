@@ -6,6 +6,7 @@ import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
 import { filterTags, findIdentifier } from '$lib/EventHelper';
 import { filter, firstValueFrom } from 'rxjs';
+import { kinds as Kind } from 'nostr-tools';
 import { isAddressableKind } from 'nostr-tools/kinds';
 import { fetchEvents } from '$lib/RxNostrHelper';
 import { legacyBookmarkIdentifier } from '$lib/Constants';
@@ -18,14 +19,16 @@ export const deletedEventCoordinates = writable(new Map<string, number>());
 const addressableCoordinate = /^(\d+):([0-9a-f]{64}):(.*)$/;
 
 export function isLegacyBookmarkEvent(event: Nostr.Event): boolean {
-	return event.kind === 30001 && findIdentifier(event.tags) === legacyBookmarkIdentifier;
+	return (
+		event.kind === Kind.Genericlists && findIdentifier(event.tags) === legacyBookmarkIdentifier
+	);
 }
 
 export async function restoreLegacyBookmarkDeletionState(
 	pubkey: string,
 	storage = new WebStorage(localStorage)
 ): Promise<void> {
-	const coordinate = `30001:${pubkey}:${legacyBookmarkIdentifier}`;
+	const coordinate = `${Kind.Genericlists}:${pubkey}:${legacyBookmarkIdentifier}`;
 	const deletionRequests = await fetchEvents([
 		{
 			kinds: [5],
@@ -40,9 +43,12 @@ export async function restoreLegacyBookmarkDeletionState(
 }
 
 export function removeDeletedLegacyBookmarkCache(storage = new WebStorage(localStorage)): void {
-	const cached = storage.getParameterizedReplaceableEvent(30001, legacyBookmarkIdentifier);
+	const cached = storage.getParameterizedReplaceableEvent(
+		Kind.Genericlists,
+		legacyBookmarkIdentifier
+	);
 	if (cached !== undefined && isAddressableEventDeleted(cached)) {
-		storage.removeParameterizedReplaceableEvent(30001, legacyBookmarkIdentifier);
+		storage.removeParameterizedReplaceableEvent(Kind.Genericlists, legacyBookmarkIdentifier);
 	}
 }
 
