@@ -50,6 +50,7 @@
 <style>
 	.spotify-embed-card {
 		position: relative;
+		isolation: isolate;
 		width: 100%;
 		max-width: 100%;
 		border-radius: 12px;
