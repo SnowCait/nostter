@@ -24,6 +24,7 @@ describe('Bookmark page state', () => {
 		expect(state.bookmarkListTabs.map(({ id }) => id)).toEqual([standardBookmarkListId]);
 		expect(state.selectedBookmarkListId).toBe(standardBookmarkListId);
 		expect(state.selectionFinalized).toBe(false);
+		expect(state.hasStandardBookmarks).toBe(false);
 		expect(loadPublicItems).not.toHaveBeenCalled();
 
 		legacyEvent.set(bookmarkEvent('legacy-1'));
@@ -38,9 +39,11 @@ describe('Bookmark page state', () => {
 		);
 		addItems.get('legacy-1')?.('legacy item');
 		expect(state.publicLegacyBookmarkEventItems).toEqual(['legacy item']);
+		expect(state.hasStandardBookmarks).toBe(false);
 
 		state.selectBookmarkList(standardBookmarkListId);
 		standardEvent.set(bookmarkEvent('standard-1'));
+		expect(state.hasStandardBookmarks).toBe(true);
 		addItems.get('standard-1')?.('standard item');
 		expect(state.selectedBookmarkListId).toBe(standardBookmarkListId);
 		expect(state.publicBookmarkEventItems).toEqual(['standard item']);

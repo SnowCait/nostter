@@ -262,30 +262,33 @@
 		hidden={selectedBookmarkList?.id !== tab.id}
 	>
 		{#if tab.id === legacyBookmarkListId && data.pubkey === $authorPubkey && !$rom}
-			<div class="legacy-actions">
-				<div>
-					<button
-						type="button"
-						disabled={copyingLegacyBookmarks}
-						onclick={copyAllLegacyBookmarks}
-					>
-						{copyingLegacyBookmarks
-							? $_('bookmarks.copy.running')
-							: $_('bookmarks.copy.action')}
-					</button>
-					<p>{$_('bookmarks.copy.description')}</p>
-				</div>
+			<section class="legacy-bookmark-actions">
+				<p>{$_('bookmarks.copy.description')}</p>
+
 				<button
-					class="delete-legacy"
+					class="rounded-button primary"
 					type="button"
-					disabled={deletingLegacyBookmarks}
-					onclick={deleteAllLegacyBookmarks}
+					disabled={copyingLegacyBookmarks}
+					onclick={copyAllLegacyBookmarks}
 				>
-					{deletingLegacyBookmarks
-						? $_('bookmarks.delete.running')
-						: $_('bookmarks.delete.action')}
+					{copyingLegacyBookmarks
+						? $_('bookmarks.copy.running')
+						: $_('bookmarks.copy.action')}
 				</button>
-			</div>
+
+				{#if pageState.hasStandardBookmarks}
+					<button
+						class="delete-legacy"
+						type="button"
+						disabled={deletingLegacyBookmarks}
+						onclick={deleteAllLegacyBookmarks}
+					>
+						{deletingLegacyBookmarks
+							? $_('bookmarks.delete.running')
+							: $_('bookmarks.delete.action')}
+					</button>
+				{/if}
+			</section>
 		{/if}
 		<h2>{$_('pages.public')}</h2>
 
@@ -344,23 +347,28 @@
 		font-weight: bold;
 	}
 
-	.legacy-actions {
-		display: flex;
-		align-items: start;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 1rem;
-		border: var(--default-border);
-		border-radius: 0.5rem;
+	.legacy-bookmark-actions {
+		margin-block: 1rem 1.5rem;
 	}
 
-	.legacy-actions p {
-		margin: 0.5rem 0 0;
-		color: var(--subtle);
+	.legacy-bookmark-actions p {
+		margin: 0 0 1rem;
+		color: var(--accent-gray);
+	}
+
+	.legacy-bookmark-actions .primary {
+		min-height: 2.75rem;
+		padding-inline: 1.25rem;
 	}
 
 	.delete-legacy {
+		display: block;
+		min-height: 2.75rem;
+		margin-top: 0.75rem;
+		padding: 0;
+		border: 0;
+		background: transparent;
 		color: var(--danger, #c62828);
-		white-space: nowrap;
+		text-decoration: underline;
 	}
 </style>

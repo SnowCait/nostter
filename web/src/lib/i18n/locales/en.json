@@ -18,7 +18,7 @@
 		"old_format": "Old format",
 		"private": "Private",
 		"copy": {
-			"action": "Copy all to Bookmarks",
+			"action": "Copy all",
 			"running": "Copying…",
 			"description": "Copies all public and private items to your current Bookmarks. The old format remains unchanged.",
 			"success": {
