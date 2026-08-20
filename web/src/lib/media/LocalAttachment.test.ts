@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+	attachmentChangesAreDisabled,
 	appendUrls,
 	createLocalAttachments,
 	revokeAttachments,
-	uploadAttachmentBatch,
 	uploadLocalAttachments,
 	type LocalAttachment
 } from './LocalAttachment';
@@ -17,6 +17,12 @@ afterEach(() => {
 });
 
 describe('local attachments', () => {
+	it('disables attachment changes while posting or uploading', () => {
+		expect(attachmentChangesAreDisabled(true, false)).toBe(true);
+		expect(attachmentChangesAreDisabled(false, true)).toBe(true);
+		expect(attachmentChangesAreDisabled(false, false)).toBe(false);
+	});
+
 	it('creates image, video, and audio previews without uploading', () => {
 		createObjectURL.mockImplementation((file) => `blob:${(file as File).name}`);
 		const files = [
@@ -77,42 +83,6 @@ describe('local attachments', () => {
 			'https://media/first.png',
 			'https://media/second.png'
 		]);
-	});
-
-	it('does not return postable URLs when an attachment is added during upload', async () => {
-		const first = attachment('first.png');
-		const added = attachment('added.png');
-		let current = [first];
-		let finishUpload!: (results: { file: File; url: string }[]) => void;
-		const upload = vi.fn().mockReturnValue(
-			new Promise((resolve) => {
-				finishUpload = resolve;
-			})
-		);
-
-		const result = uploadAttachmentBatch([...current], () => current, upload);
-		current = [...current, added];
-		finishUpload([{ file: first.file, url: 'https://media/first.png' }]);
-
-		expect(await result).toBeUndefined();
-		expect(current).toEqual([first, added]);
-		expect(added.state).toBe('pending');
-	});
-
-	it('does not return applicable URLs or discard additions made during upload', async () => {
-		const first = attachment('first.png');
-		const added = attachment('added.png');
-		let current = [first];
-		const upload = vi.fn(async () => {
-			current = [...current, added];
-			return [{ file: first.file, url: 'https://media/first.png' }];
-		});
-
-		const urls = await uploadAttachmentBatch([...current], () => current, upload);
-
-		expect(urls).toBeUndefined();
-		expect(current).toContain(added);
-		expect(added.state).toBe('pending');
 	});
 
 	it('revokes object URLs when attachments are discarded', () => {

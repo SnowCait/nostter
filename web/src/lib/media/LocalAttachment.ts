@@ -16,6 +16,10 @@ export interface LocalMediaPreview {
 	kind: MediaKind;
 }
 
+export function attachmentChangesAreDisabled(posting: boolean, uploading: boolean): boolean {
+	return posting || uploading;
+}
+
 export function createLocalAttachments(files: FileList | File[]): LocalAttachment[] {
 	return [...files].flatMap((file) => {
 		const kind = mediaKindFromContentType(file.type) ?? mediaKindFromPathname(file.name);
@@ -56,32 +60,4 @@ export async function uploadLocalAttachments(
 		attachment.state = result?.url === undefined ? 'failed' : 'uploaded';
 	}
 	return attachments.every(({ state }) => state === 'uploaded');
-}
-
-export function uploadedAttachmentUrls(
-	uploadTarget: LocalAttachment[],
-	currentAttachments: LocalAttachment[]
-): string[] | undefined {
-	if (
-		uploadTarget.length !== currentAttachments.length ||
-		uploadTarget.some((attachment, index) => attachment !== currentAttachments[index])
-	) {
-		return undefined;
-	}
-
-	const urls: string[] = [];
-	for (const attachment of uploadTarget) {
-		if (attachment.state !== 'uploaded' || attachment.url === undefined) return undefined;
-		urls.push(attachment.url);
-	}
-	return urls;
-}
-
-export async function uploadAttachmentBatch(
-	uploadTarget: LocalAttachment[],
-	getCurrentAttachments: () => LocalAttachment[],
-	upload: typeof uploadFiles = uploadFiles
-): Promise<string[] | undefined> {
-	if (!(await uploadLocalAttachments(uploadTarget, upload))) return undefined;
-	return uploadedAttachmentUrls(uploadTarget, getCurrentAttachments());
 }

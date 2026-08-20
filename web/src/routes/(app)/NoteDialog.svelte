@@ -4,8 +4,10 @@
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
 	import IconX from '@tabler/icons-svelte-runes/icons/x';
+	import { hasNoteDraft } from '$lib/NoteDraft';
 
 	let content = $state('');
+	let hasAttachments = $state(false);
 
 	let dialog = $state<HTMLDialogElement>();
 	let editor = $state<NoteEditor>();
@@ -34,7 +36,7 @@
 
 	function closeIfNotEmpty(e?: Event): void {
 		e?.preventDefault();
-		if (content === '' || confirm($_('editor.close.confirm'))) {
+		if (!hasNoteDraft(content, hasAttachments) || confirm($_('editor.close.confirm'))) {
 			dialog?.close();
 		}
 	}
@@ -49,7 +51,7 @@
 		>
 			<IconX />
 		</button>
-		<NoteEditor bind:this={editor} bind:content on:sent={closeIfNotEmpty} />
+		<NoteEditor bind:this={editor} bind:content bind:hasAttachments on:sent={closeIfNotEmpty} />
 	</div>
 </dialog>
 

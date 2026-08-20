@@ -39,18 +39,17 @@
 	import ExternalLink from '../ExternalLink.svelte';
 	import { emojiEditorUrl } from '$lib/Constants';
 	import {
+		attachmentChangesAreDisabled,
 		appendUrls,
 		createLocalAttachments,
 		revokeAttachments,
-		uploadAttachmentBatch,
-		uploadedAttachmentUrls,
 		uploadLocalAttachments,
 		type LocalAttachment
 	} from '$lib/media/LocalAttachment';
 	import LocalMedia from '../content/LocalMedia.svelte';
 
-	export function clear(closed = false, attachmentTarget = attachments): void {
-		clearAttachments(attachmentTarget);
+	export function clear(closed = false): void {
+		clearAttachments();
 		$intentContent = '';
 		$replyTo = undefined;
 		$quotes = [];
@@ -60,7 +59,7 @@
 
 		if (!continuePosting) {
 			content = '';
-			$openNoteDialog = attachments.length > 0;
+			$openNoteDialog = false;
 			collapsible.open = false;
 		} else {
 			const hashtags = Content.findHashtags(content);
@@ -77,9 +76,14 @@
 	interface Props {
 		afterPost?: () => Promise<void>;
 		content?: string;
+		hasAttachments?: boolean;
 	}
 
-	let { afterPost = async () => {}, content = $bindable('') }: Props = $props();
+	let {
+		afterPost = async () => {},
+		content = $bindable(''),
+		hasAttachments = $bindable(false)
+	}: Props = $props();
 
 	let tags: string[][] = $state([]);
 	let posting = $state(false);
@@ -248,6 +252,7 @@
 	let attachments: LocalAttachment[] = $state([]);
 
 	let uploading = $derived(attachments.some(({ state }) => state === 'uploading'));
+	let attachmentChangesDisabled = $derived(attachmentChangesAreDisabled(posting, uploading));
 	let localMedia = $derived(attachments.map(({ previewUrl: url, kind }) => ({ url, kind })));
 
 	onDestroy(() => revokeAttachments(attachments));
@@ -497,11 +502,6 @@
 			posting = false;
 			return;
 		}
-		if (uploadedAttachmentUrls(uploadTarget, attachments) === undefined) {
-			posting = false;
-			return;
-		}
-
 		console.log('[rx-nostr send to]', rxNostr.getAllRelayStatus());
 		const sendToRelays = Object.entries(rxNostr.getDefaultRelays())
 			.filter(([, { write }]) => write)
@@ -513,7 +513,7 @@
 				sentRelays.set(packet.from, packet.ok);
 				if (packet.ok && posting) {
 					posting = false;
-					clear(false, uploadTarget);
+					clear();
 					if (!continuePosting) {
 						dispatch('sent');
 						await afterPost();
@@ -565,7 +565,7 @@
 	async function paste(event: ClipboardEvent) {
 		console.log('[paste]', event.type, event.clipboardData);
 
-		if (event.clipboardData === null) {
+		if (attachmentChangesDisabled || event.clipboardData === null) {
 			return;
 		}
 
@@ -585,7 +585,7 @@
 		console.log('[drop]', event.type, event.dataTransfer);
 		event.preventDefault();
 
-		if (event.dataTransfer === null) {
+		if (attachmentChangesDisabled || event.dataTransfer === null) {
 			return;
 		}
 
@@ -602,38 +602,48 @@
 	}
 
 	function addAttachments(files: FileList | File[]): void {
+		if (attachmentChangesDisabled) return;
 		attachments = [...attachments, ...createLocalAttachments(files)];
+		hasAttachments = attachments.length > 0;
 	}
 
 	function removeAttachment(attachment: LocalAttachment): void {
+		if (attachmentChangesDisabled) return;
 		URL.revokeObjectURL(attachment.previewUrl);
 		attachments = attachments.filter((candidate) => candidate !== attachment);
+		hasAttachments = attachments.length > 0;
 	}
 
-	function clearAttachments(target = attachments): void {
-		const targetSet = new Set(target);
-		const discarded = attachments.filter((attachment) => targetSet.has(attachment));
-		revokeAttachments(discarded);
-		attachments = attachments.filter((attachment) => !targetSet.has(attachment));
+	function clearAttachments(): void {
+		revokeAttachments(attachments);
+		attachments = [];
+		hasAttachments = false;
 	}
 
 	async function uploadAttachments(
 		uploadTarget: LocalAttachment[]
 	): Promise<string[] | undefined> {
-		return uploadAttachmentBatch(uploadTarget, () => attachments);
+		if (!(await uploadLocalAttachments(uploadTarget))) return undefined;
+		const urls: string[] = [];
+		for (const attachment of uploadTarget) {
+			if (attachment.url === undefined) return undefined;
+			urls.push(attachment.url);
+		}
+		return urls;
 	}
 
 	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
-		if (attachment.state !== 'failed') return;
+		if (attachmentChangesDisabled || attachment.state !== 'failed') return;
 		await uploadLocalAttachments([attachment]);
 	}
 
 	async function addAttachmentUrls(): Promise<void> {
+		if (attachmentChangesDisabled) return;
 		const uploadTarget = [...attachments];
 		const uploadedUrls = await uploadAttachments(uploadTarget);
 		if (uploadedUrls === undefined) return;
 		content = appendUrls(content, uploadedUrls);
-		clearAttachments(uploadTarget);
+		clearAttachments();
 	}
 </script>
 
@@ -758,14 +768,14 @@
 							{#if attachment.state === 'failed'}
 								<button
 									onclick={() => retryAttachment(attachment)}
-									disabled={uploading}
+									disabled={attachmentChangesDisabled}
 								>
 									{$_('media.attachments.retry')}
 								</button>
 							{/if}
 							<button
 								onclick={() => removeAttachment(attachment)}
-								disabled={attachment.state === 'uploading'}
+								disabled={attachmentChangesDisabled}
 							>
 								{$_('media.attachments.remove')}
 							</button>
@@ -773,7 +783,11 @@
 					</li>
 				{/each}
 			</ul>
-			<button class="add-urls" onclick={addAttachmentUrls} disabled={uploading}>
+			<button
+				class="add-urls"
+				onclick={addAttachmentUrls}
+				disabled={attachmentChangesDisabled}
+			>
 				{$_('media.attachments.add_urls')}
 			</button>
 		</section>
@@ -781,7 +795,11 @@
 
 	<div class="actions">
 		<div class="options">
-			<MediaPicker multiple={true} on:pick={mediaPicked} />
+			<MediaPicker
+				multiple={true}
+				disabled={attachmentChangesDisabled}
+				on:pick={mediaPicked}
+			/>
 			<EmojiPicker
 				containsDefaultEmoji={false}
 				autoClose={false}
