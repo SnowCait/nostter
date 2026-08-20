@@ -3,6 +3,7 @@ import {
 	appendUrls,
 	createLocalAttachments,
 	revokeAttachments,
+	uploadAttachmentBatch,
 	uploadLocalAttachments,
 	type LocalAttachment
 } from './LocalAttachment';
@@ -34,6 +35,22 @@ describe('local attachments', () => {
 		]);
 	});
 
+	it('falls back to known media file extensions when the MIME type is empty', () => {
+		createObjectURL.mockImplementation((file) => `blob:${(file as File).name}`);
+		const attachments = createLocalAttachments([
+			new File([], 'image.JPG'),
+			new File([], 'video.webm'),
+			new File([], 'audio.opus'),
+			new File([], 'unknown.bin')
+		]);
+
+		expect(attachments.map(({ file, kind }) => ({ name: file.name, kind }))).toEqual([
+			{ name: 'image.JPG', kind: 'image' },
+			{ name: 'video.webm', kind: 'video' },
+			{ name: 'audio.opus', kind: 'audio' }
+		]);
+	});
+
 	it('preserves URL order when appending to content', () => {
 		expect(appendUrls('hello', ['https://one', 'https://two'])).toBe(
 			'hello\nhttps://one\nhttps://two'
@@ -60,6 +77,42 @@ describe('local attachments', () => {
 			'https://media/first.png',
 			'https://media/second.png'
 		]);
+	});
+
+	it('does not return postable URLs when an attachment is added during upload', async () => {
+		const first = attachment('first.png');
+		const added = attachment('added.png');
+		let current = [first];
+		let finishUpload!: (results: { file: File; url: string }[]) => void;
+		const upload = vi.fn().mockReturnValue(
+			new Promise((resolve) => {
+				finishUpload = resolve;
+			})
+		);
+
+		const result = uploadAttachmentBatch([...current], () => current, upload);
+		current = [...current, added];
+		finishUpload([{ file: first.file, url: 'https://media/first.png' }]);
+
+		expect(await result).toBeUndefined();
+		expect(current).toEqual([first, added]);
+		expect(added.state).toBe('pending');
+	});
+
+	it('does not return applicable URLs or discard additions made during upload', async () => {
+		const first = attachment('first.png');
+		const added = attachment('added.png');
+		let current = [first];
+		const upload = vi.fn(async () => {
+			current = [...current, added];
+			return [{ file: first.file, url: 'https://media/first.png' }];
+		});
+
+		const urls = await uploadAttachmentBatch([...current], () => current, upload);
+
+		expect(urls).toBeUndefined();
+		expect(current).toContain(added);
+		expect(added.state).toBe('pending');
 	});
 
 	it('revokes object URLs when attachments are discarded', () => {

@@ -42,13 +42,15 @@
 		appendUrls,
 		createLocalAttachments,
 		revokeAttachments,
+		uploadAttachmentBatch,
+		uploadedAttachmentUrls,
 		uploadLocalAttachments,
 		type LocalAttachment
 	} from '$lib/media/LocalAttachment';
 	import LocalMedia from '../content/LocalMedia.svelte';
 
-	export function clear(closed = false): void {
-		clearAttachments();
+	export function clear(closed = false, attachmentTarget = attachments): void {
+		clearAttachments(attachmentTarget);
 		$intentContent = '';
 		$replyTo = undefined;
 		$quotes = [];
@@ -58,7 +60,7 @@
 
 		if (!continuePosting) {
 			content = '';
-			$openNoteDialog = false;
+			$openNoteDialog = attachments.length > 0;
 			collapsible.open = false;
 		} else {
 			const hashtags = Content.findHashtags(content);
@@ -464,15 +466,13 @@
 			return;
 		}
 		posting = true;
-		const uploaded = await uploadAttachments();
-		if (!uploaded) {
+		const uploadTarget = [...attachments];
+		const uploadedUrls = await uploadAttachments(uploadTarget);
+		if (uploadedUrls === undefined) {
 			posting = false;
 			return;
 		}
-		const finalContent = appendUrls(
-			content,
-			attachments.map(({ url }) => url!)
-		);
+		const finalContent = appendUrls(content, uploadedUrls);
 
 		const noteComposer = new NoteComposer();
 		const event = await noteComposer.compose(
@@ -497,6 +497,10 @@
 			posting = false;
 			return;
 		}
+		if (uploadedAttachmentUrls(uploadTarget, attachments) === undefined) {
+			posting = false;
+			return;
+		}
 
 		console.log('[rx-nostr send to]', rxNostr.getAllRelayStatus());
 		const sendToRelays = Object.entries(rxNostr.getDefaultRelays())
@@ -509,7 +513,7 @@
 				sentRelays.set(packet.from, packet.ok);
 				if (packet.ok && posting) {
 					posting = false;
-					clear();
+					clear(false, uploadTarget);
 					if (!continuePosting) {
 						dispatch('sent');
 						await afterPost();
@@ -606,13 +610,17 @@
 		attachments = attachments.filter((candidate) => candidate !== attachment);
 	}
 
-	function clearAttachments(): void {
-		revokeAttachments(attachments);
-		attachments = [];
+	function clearAttachments(target = attachments): void {
+		const targetSet = new Set(target);
+		const discarded = attachments.filter((attachment) => targetSet.has(attachment));
+		revokeAttachments(discarded);
+		attachments = attachments.filter((attachment) => !targetSet.has(attachment));
 	}
 
-	async function uploadAttachments(): Promise<boolean> {
-		return uploadLocalAttachments(attachments);
+	async function uploadAttachments(
+		uploadTarget: LocalAttachment[]
+	): Promise<string[] | undefined> {
+		return uploadAttachmentBatch(uploadTarget, () => attachments);
 	}
 
 	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
@@ -621,12 +629,11 @@
 	}
 
 	async function addAttachmentUrls(): Promise<void> {
-		if (!(await uploadAttachments())) return;
-		content = appendUrls(
-			content,
-			attachments.map(({ url }) => url!)
-		);
-		clearAttachments();
+		const uploadTarget = [...attachments];
+		const uploadedUrls = await uploadAttachments(uploadTarget);
+		if (uploadedUrls === undefined) return;
+		content = appendUrls(content, uploadedUrls);
+		clearAttachments(uploadTarget);
 	}
 </script>
 

@@ -1,4 +1,4 @@
-import { mediaKindFromContentType, type MediaKind } from './MediaType';
+import { mediaKindFromContentType, mediaKindFromPathname, type MediaKind } from './MediaType';
 import { uploadFiles } from './Uploader';
 
 export type UploadState = 'pending' | 'uploading' | 'uploaded' | 'failed';
@@ -18,7 +18,7 @@ export interface LocalMediaPreview {
 
 export function createLocalAttachments(files: FileList | File[]): LocalAttachment[] {
 	return [...files].flatMap((file) => {
-		const kind = mediaKindFromContentType(file.type);
+		const kind = mediaKindFromContentType(file.type) ?? mediaKindFromPathname(file.name);
 		return kind === undefined
 			? []
 			: [{ file, previewUrl: URL.createObjectURL(file), kind, state: 'pending' as const }];
@@ -56,4 +56,32 @@ export async function uploadLocalAttachments(
 		attachment.state = result?.url === undefined ? 'failed' : 'uploaded';
 	}
 	return attachments.every(({ state }) => state === 'uploaded');
+}
+
+export function uploadedAttachmentUrls(
+	uploadTarget: LocalAttachment[],
+	currentAttachments: LocalAttachment[]
+): string[] | undefined {
+	if (
+		uploadTarget.length !== currentAttachments.length ||
+		uploadTarget.some((attachment, index) => attachment !== currentAttachments[index])
+	) {
+		return undefined;
+	}
+
+	const urls: string[] = [];
+	for (const attachment of uploadTarget) {
+		if (attachment.state !== 'uploaded' || attachment.url === undefined) return undefined;
+		urls.push(attachment.url);
+	}
+	return urls;
+}
+
+export async function uploadAttachmentBatch(
+	uploadTarget: LocalAttachment[],
+	getCurrentAttachments: () => LocalAttachment[],
+	upload: typeof uploadFiles = uploadFiles
+): Promise<string[] | undefined> {
+	if (!(await uploadLocalAttachments(uploadTarget, upload))) return undefined;
+	return uploadedAttachmentUrls(uploadTarget, getCurrentAttachments());
 }
