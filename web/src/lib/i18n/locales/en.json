@@ -407,6 +407,18 @@
 	},
 	"media": {
 		"title": "Media",
+		"attachments": {
+			"title": "Attachments",
+			"add_urls": "Add URLs to post",
+			"remove": "Remove",
+			"retry": "Retry",
+			"state": {
+				"pending": "Pending",
+				"uploading": "Uploading…",
+				"uploaded": "Uploaded",
+				"failed": "Upload failed"
+			}
+		},
 		"upload": {
 			"failed": "Failed to upload.",
 			"apply": "Apply"

@@ -3,10 +3,9 @@
 
 	const bubble = createBubbler();
 	import data from '@emoji-mart/data';
-	import { createEventDispatcher, tick, untrack } from 'svelte';
+	import { createEventDispatcher, onDestroy, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { kinds as Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
-	import { uploadFiles } from '$lib/media/Uploader';
 	import { complementPosition } from '$lib/styles/Complement';
 	import { adjustHeight } from '$lib/styles/Textarea';
 	import { getSeenOnRelays, rxNostr } from '$lib/timelines/MainTimeline';
@@ -32,7 +31,6 @@
 	import type { PickerEmoji } from '$lib/Emoji';
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
 	import Loading from '$lib/components/Loading.svelte';
-	import { SvelteMap } from 'svelte/reactivity';
 	import EnableVia from './EnableVia.svelte';
 	import Via from '../Via.svelte';
 	import { createViaTag, via } from '$lib/author/Via';
@@ -40,8 +38,17 @@
 	import ContinuePosting from './ContinuePosting.svelte';
 	import ExternalLink from '../ExternalLink.svelte';
 	import { emojiEditorUrl } from '$lib/Constants';
+	import {
+		appendUrls,
+		createLocalAttachments,
+		revokeAttachments,
+		uploadLocalAttachments,
+		type LocalAttachment
+	} from '$lib/media/LocalAttachment';
+	import LocalMedia from '../content/LocalMedia.svelte';
 
 	export function clear(closed = false): void {
+		clearAttachments();
 		$intentContent = '';
 		$replyTo = undefined;
 		$quotes = [];
@@ -236,9 +243,12 @@
 	//#region Media
 
 	let onDrag = $state(false);
-	let mediaUrls = new SvelteMap<File, string | undefined>();
+	let attachments: LocalAttachment[] = $state([]);
 
-	let uploading = $derived([...mediaUrls].some(([, url]) => url === undefined));
+	let uploading = $derived(attachments.some(({ state }) => state === 'uploading'));
+	let localMedia = $derived(attachments.map(({ previewUrl: url, kind }) => ({ url, kind })));
+
+	onDestroy(() => revokeAttachments(attachments));
 
 	//#endregion
 
@@ -447,28 +457,37 @@
 		if (posting) {
 			return;
 		}
-		if (content === '' && !confirm($_('editor.post.empty'))) {
+		if (content === '' && attachments.length === 0 && !confirm($_('editor.post.empty'))) {
 			return;
 		}
 		if (containsNsec && !confirm($_('editor.post.nsec'))) {
 			return;
 		}
 		posting = true;
+		const uploaded = await uploadAttachments();
+		if (!uploaded) {
+			posting = false;
+			return;
+		}
+		const finalContent = appendUrls(
+			content,
+			attachments.map(({ url }) => url!)
+		);
 
 		const noteComposer = new NoteComposer();
 		const event = await noteComposer.compose(
 			$channelIdStore !== undefined || $replyTo?.event?.kind === Kind.ChannelMessage
 				? Kind.ChannelMessage
 				: Kind.ShortTextNote,
-			Content.replaceNip19(content),
+			Content.replaceNip19(finalContent),
 			[
 				...noteComposer.replyTags(
-					content,
+					finalContent,
 					$state.snapshot($replyTo?.event),
 					$channelIdStore
 				),
-				...noteComposer.hashtags(content),
-				...(await noteComposer.emojiTags(content, $state.snapshot(emojiTags))),
+				...noteComposer.hashtags(finalContent),
+				...(await noteComposer.emojiTags(finalContent, $state.snapshot(emojiTags))),
 				...noteComposer.contentWarningTags(contentWarningReason),
 				...(enableVia ? [createViaTag()] : [])
 			]
@@ -547,10 +566,10 @@
 		}
 
 		const files = [...event.clipboardData.items]
-			.filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+			.filter((item) => item.kind === 'file')
 			.map((item) => item.getAsFile())
 			.filter((file): file is File => file !== null);
-		await upload(files);
+		addAttachments(files);
 	}
 
 	async function dragover() {
@@ -567,45 +586,47 @@
 		}
 
 		const files = [...event.dataTransfer.items]
-			.filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+			.filter((item) => item.kind === 'file')
 			.map((item) => item.getAsFile())
 			.filter((file): file is File => file !== null);
-		await upload(files);
+		addAttachments(files);
 	}
 
-	async function mediaPicked({ detail: files }: { detail: FileList }): Promise<void> {
+	function mediaPicked({ detail: files }: { detail: FileList }): void {
 		console.log('[media picked]', files);
-		await upload(files);
+		addAttachments(files);
 	}
 
-	async function upload(files: FileList | File[]): Promise<void> {
-		if (files.length === 0) {
-			return;
-		}
-
-		for (const file of files) {
-			mediaUrls.set(file, undefined);
-		}
-
-		const urls = await uploadFiles(files);
-
-		for (const { file, url } of urls) {
-			mediaUrls.set(file, url);
-		}
-
-		addUrlsToContent(urls.map(({ url }) => url));
-
-		if (urls.some((url) => url === undefined)) {
-			alert($_('media.upload.failed'));
-		}
+	function addAttachments(files: FileList | File[]): void {
+		attachments = [...attachments, ...createLocalAttachments(files)];
 	}
 
-	function addUrlsToContent(urlsWithUndefined: (string | undefined)[]): void {
-		const urls = urlsWithUndefined.filter((url): url is string => url !== undefined);
-		if (urls.length === 0) {
-			return;
-		}
-		content += (content === '' ? '' : '\n') + urls.join('\n');
+	function removeAttachment(attachment: LocalAttachment): void {
+		URL.revokeObjectURL(attachment.previewUrl);
+		attachments = attachments.filter((candidate) => candidate !== attachment);
+	}
+
+	function clearAttachments(): void {
+		revokeAttachments(attachments);
+		attachments = [];
+	}
+
+	async function uploadAttachments(): Promise<boolean> {
+		return uploadLocalAttachments(attachments);
+	}
+
+	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
+		if (attachment.state !== 'failed') return;
+		await uploadLocalAttachments([attachment]);
+	}
+
+	async function addAttachmentUrls(): Promise<void> {
+		if (!(await uploadAttachments())) return;
+		content = appendUrls(
+			content,
+			attachments.map(({ url }) => url!)
+		);
+		clearAttachments();
 	}
 </script>
 
@@ -710,6 +731,47 @@
 		</div>
 	</div>
 
+	{#if attachments.length > 0}
+		<section class="attachments card" aria-label={$_('media.attachments.title')}>
+			<ul>
+				{#each attachments as attachment}
+					<li>
+						<div class="attachment-preview">
+							<LocalMedia
+								media={{ url: attachment.previewUrl, kind: attachment.kind }}
+							/>
+						</div>
+						<div class="attachment-details">
+							<span class="attachment-name">{attachment.file.name}</span>
+							<span class:failed={attachment.state === 'failed'}>
+								{$_(`media.attachments.state.${attachment.state}`)}
+							</span>
+						</div>
+						<div class="attachment-actions">
+							{#if attachment.state === 'failed'}
+								<button
+									onclick={() => retryAttachment(attachment)}
+									disabled={uploading}
+								>
+									{$_('media.attachments.retry')}
+								</button>
+							{/if}
+							<button
+								onclick={() => removeAttachment(attachment)}
+								disabled={attachment.state === 'uploading'}
+							>
+								{$_('media.attachments.remove')}
+							</button>
+						</div>
+					</li>
+				{/each}
+			</ul>
+			<button class="add-urls" onclick={addAttachmentUrls} disabled={uploading}>
+				{$_('media.attachments.add_urls')}
+			</button>
+		</section>
+	{/if}
+
 	<div class="actions">
 		<div class="options">
 			<MediaPicker multiple={true} on:pick={mediaPicked} />
@@ -728,7 +790,11 @@
 				title="{$_('editor.post.button')} (Ctrl + Enter)"
 				class="active"
 				onclick={postNote}
-				disabled={$author === undefined || content === '' || $rom || posting || uploading}
+				disabled={$author === undefined ||
+					(content === '' && attachments.length === 0) ||
+					$rom ||
+					posting ||
+					uploading}
 			>
 				{$_('editor.post.button')}
 			</button>
@@ -751,9 +817,9 @@
 			<Loading />
 		</div>
 	{/if}
-	{#if content !== ''}
+	{#if content !== '' || attachments.length > 0}
 		<section class="preview card">
-			<ContentComponent content={Content.replaceNip19(content)} {tags} />
+			<ContentComponent content={Content.replaceNip19(content)} {tags} {localMedia} />
 			{#if enableVia}
 				<div>
 					<Via tags={[createViaTag()]} />
@@ -842,6 +908,65 @@
 		margin: 1rem;
 		max-height: 30rem;
 		overflow-y: auto;
+	}
+
+	.attachments {
+		margin: 1rem;
+		padding: 0.75rem;
+	}
+
+	.attachments ul {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin: 0 0 0.75rem;
+	}
+
+	.attachments li {
+		display: grid;
+		grid-template-columns: minmax(5rem, 8rem) minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.attachment-preview {
+		max-height: 6rem;
+		overflow: hidden;
+	}
+
+	.attachment-preview :global(img),
+	.attachment-preview :global(video) {
+		max-width: 100%;
+		max-height: 6rem;
+	}
+
+	.attachment-preview :global(audio) {
+		max-width: 100%;
+	}
+
+	.attachment-details,
+	.attachment-actions {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.attachment-details {
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.attachment-name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.failed {
+		color: var(--red);
+	}
+
+	.add-urls {
+		width: 100%;
 	}
 
 	.options {
