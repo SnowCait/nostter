@@ -4,18 +4,24 @@
 	import { npubEncode } from 'nostr-tools/nip19';
 	import { ChannelMessage } from 'nostr-tools/kinds';
 	import { _ } from 'svelte-i18n';
-	import { SvelteMap } from 'svelte/reactivity';
-	import { IconSend, IconX } from '@tabler/icons-svelte-runes';
+	import { IconSend, IconTrash, IconX } from '@tabler/icons-svelte-runes';
 	import { NoteComposer } from '$lib/NoteComposer';
 	import { Content } from '$lib/Content';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import { uploadFiles } from '$lib/media/Uploader';
 	import { findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
 	import { metadataStore } from '$lib/cache/Events';
 	import { alternativeName } from '$lib/Items';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import type { PickerEmoji } from '$lib/Emoji';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
+	import LocalMedia from '$lib/components/content/LocalMedia.svelte';
+	import {
+		appendUrls,
+		createLocalAttachments,
+		revokeAttachments,
+		uploadLocalAttachments,
+		type LocalAttachment
+	} from '$lib/media/LocalAttachment';
 	import { composerFocus } from './ComposerFocus.svelte';
 
 	interface Props {
@@ -29,9 +35,10 @@
 	let content = $state('');
 	let posting = $state(false);
 	let emojiTags = $state<string[][]>([]);
-	let mediaUrls = new SvelteMap<File, string | undefined>();
+	let attachments: LocalAttachment[] = $state([]);
 
-	let uploading = $derived([...mediaUrls].some(([, url]) => url === undefined));
+	let uploading = $derived(attachments.some(({ state }) => state === 'uploading'));
+	let composerLocked = $derived(posting || uploading);
 	let replyName = $derived(
 		replyTo !== undefined
 			? ($metadataStore.get(replyTo.pubkey)?.displayName ?? alternativeName(replyTo.pubkey))
@@ -44,19 +51,30 @@
 
 	onDestroy(() => {
 		composerFocus.current = undefined;
+		revokeAttachments(attachments);
 	});
 
 	async function send(): Promise<void> {
-		if (posting || uploading || content.trim() === '') {
+		if (composerLocked || (content.trim() === '' && attachments.length === 0)) {
 			return;
 		}
 		posting = true;
+		const contentTarget = content;
+		const replyTarget = $state.snapshot(replyTo);
+		const emojiTagsTarget = $state.snapshot(emojiTags);
+		const attachmentTarget = [...attachments];
+		const uploadedUrls = await uploadAttachments(attachmentTarget);
+		if (uploadedUrls === undefined) {
+			posting = false;
+			return;
+		}
+		const finalContent = appendUrls(contentTarget, uploadedUrls);
 
 		const composer = new NoteComposer();
-		const event = await composer.compose(ChannelMessage, Content.replaceNip19(content), [
-			...composer.replyTags(content, $state.snapshot(replyTo), channelId),
-			...composer.hashtags(content),
-			...(await composer.emojiTags(content, $state.snapshot(emojiTags)))
+		const event = await composer.compose(ChannelMessage, Content.replaceNip19(finalContent), [
+			...composer.replyTags(finalContent, replyTarget, channelId),
+			...composer.hashtags(finalContent),
+			...(await composer.emojiTags(finalContent, emojiTagsTarget))
 		]);
 
 		if (event === null) {
@@ -68,10 +86,7 @@
 			next: (packet) => {
 				if (packet.ok && posting) {
 					posting = false;
-					content = '';
-					emojiTags = [];
-					mediaUrls.clear();
-					replyTo = undefined;
+					clearComposer();
 				}
 			},
 			error: (error) => {
@@ -82,17 +97,18 @@
 	}
 
 	function onKeydown(event: KeyboardEvent): void {
+		if (composerLocked) return;
 		if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.isComposing) {
 			event.preventDefault();
 			send();
 		} else if (event.key === 'Escape' && replyTo !== undefined) {
 			event.preventDefault();
-			replyTo = undefined;
+			clearReply();
 		}
 	}
 
 	async function onEmojiPick(emoji: PickerEmoji): Promise<void> {
-		if (textarea === undefined) {
+		if (composerLocked || textarea === undefined) {
 			return;
 		}
 		const shortcode = emoji.id.replaceAll('+', '_');
@@ -118,57 +134,89 @@
 		textarea.focus();
 	}
 
-	async function paste(event: ClipboardEvent): Promise<void> {
-		if (event.clipboardData === null) {
+	function paste(event: ClipboardEvent): void {
+		if (composerLocked || event.clipboardData === null) {
 			return;
 		}
 		const files = [...event.clipboardData.items]
-			.filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+			.filter((item) => item.kind === 'file')
 			.map((item) => item.getAsFile())
 			.filter((file): file is File => file !== null);
-		await upload(files);
+		addAttachments(files);
 	}
 
-	async function drop(event: DragEvent): Promise<void> {
+	function drop(event: DragEvent): void {
 		event.preventDefault();
-		if (event.dataTransfer === null) {
+		if (composerLocked || event.dataTransfer === null) {
 			return;
 		}
 		const files = [...event.dataTransfer.items]
-			.filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+			.filter((item) => item.kind === 'file')
 			.map((item) => item.getAsFile())
 			.filter((file): file is File => file !== null);
-		await upload(files);
+		addAttachments(files);
 	}
 
-	async function mediaPicked({ detail: files }: { detail: FileList }): Promise<void> {
-		await upload(files);
+	function mediaPicked({ detail: files }: { detail: FileList }): void {
+		addAttachments(files);
 	}
 
-	async function upload(files: FileList | File[]): Promise<void> {
-		if (files.length === 0) {
-			return;
+	function addAttachments(files: FileList | File[]): void {
+		if (composerLocked) return;
+		attachments = [...attachments, ...createLocalAttachments(files)];
+	}
+
+	function removeAttachment(attachment: LocalAttachment): void {
+		if (composerLocked) return;
+		URL.revokeObjectURL(attachment.previewUrl);
+		attachments = attachments.filter((candidate) => candidate !== attachment);
+	}
+
+	function clearAttachments(): void {
+		revokeAttachments(attachments);
+		attachments = [];
+	}
+
+	function clearReply(): void {
+		if (composerLocked) return;
+		replyTo = undefined;
+	}
+
+	function clearComposer(): void {
+		content = '';
+		emojiTags = [];
+		replyTo = undefined;
+		clearAttachments();
+	}
+
+	async function uploadAttachments(
+		uploadTarget: LocalAttachment[]
+	): Promise<string[] | undefined> {
+		if (!(await uploadLocalAttachments(uploadTarget))) return undefined;
+		const urls: string[] = [];
+		for (const attachment of uploadTarget) {
+			if (attachment.url === undefined) return undefined;
+			urls.push(attachment.url);
 		}
-		for (const file of files) {
-			mediaUrls.set(file, undefined);
-		}
-		const urls = await uploadFiles(files);
-		for (const { file, url } of urls) {
-			mediaUrls.set(file, url);
-		}
-		const uploaded = urls
-			.map(({ url }) => url)
-			.filter((url): url is string => url !== undefined);
-		if (uploaded.length > 0) {
-			content += (content === '' ? '' : '\n') + uploaded.join('\n');
-		}
-		if (urls.some(({ url }) => url === undefined)) {
-			alert($_('media.upload.failed'));
-		}
+		return urls;
+	}
+
+	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
+		if (composerLocked || attachment.state !== 'failed') return;
+		await uploadLocalAttachments([attachment]);
+	}
+
+	async function addAttachmentUrls(): Promise<void> {
+		if (composerLocked) return;
+		const attachmentTarget = [...attachments];
+		const uploadedUrls = await uploadAttachments(attachmentTarget);
+		if (uploadedUrls === undefined) return;
+		content = appendUrls(content, uploadedUrls);
+		clearAttachments();
 	}
 </script>
 
-<div class="composer">
+<div class="composer" inert={composerLocked} aria-busy={composerLocked}>
 	{#if replyTo !== undefined}
 		<div class="reply">
 			<span class="reply-label">
@@ -178,18 +226,67 @@
 			<button
 				class="clear"
 				title="{$_('editor.close.button')} (Esc)"
-				onclick={() => (replyTo = undefined)}
+				disabled={composerLocked}
+				onclick={clearReply}
 			>
 				<IconX size={18} />
 			</button>
 		</div>
 	{/if}
+	{#if attachments.length > 0}
+		<section class="attachments" aria-label={$_('media.attachments.title')}>
+			<ul>
+				{#each attachments as attachment}
+					<li>
+						<div class="attachment-preview">
+							<LocalMedia
+								media={{ url: attachment.previewUrl, kind: attachment.kind }}
+							/>
+						</div>
+						<div class="attachment-details">
+							<span class="attachment-name">{attachment.file.name}</span>
+							<span
+								class="attachment-state"
+								class:failed={attachment.state === 'failed'}
+							>
+								{$_(`media.attachments.state.${attachment.state}`)}
+							</span>
+						</div>
+						<div class="attachment-actions">
+							{#if attachment.state === 'failed'}
+								<button
+									class="retry-attachment"
+									onclick={() => retryAttachment(attachment)}
+									disabled={composerLocked}
+								>
+									{$_('media.attachments.retry')}
+								</button>
+							{/if}
+							<button
+								class="remove-attachment"
+								onclick={() => removeAttachment(attachment)}
+								disabled={composerLocked}
+								aria-label={$_('media.attachments.remove')}
+								title={$_('media.attachments.remove')}
+							>
+								<IconTrash size={18} />
+							</button>
+						</div>
+					</li>
+				{/each}
+			</ul>
+			<button class="add-urls" onclick={addAttachmentUrls} disabled={composerLocked}>
+				{$_('media.attachments.add_urls')}
+			</button>
+		</section>
+	{/if}
 	<div class="input">
-		<MediaPicker multiple={true} on:pick={mediaPicked} />
+		<MediaPicker multiple={true} disabled={composerLocked} on:pick={mediaPicked} />
 		<EmojiPicker inEditor={true} onPick={onEmojiPick} />
 		<textarea
 			bind:this={textarea}
 			bind:value={content}
+			readonly={composerLocked}
 			rows="1"
 			placeholder={$_('channel.placeholder')}
 			onkeydown={onKeydown}
@@ -199,15 +296,12 @@
 		<button
 			class="send"
 			title="{$_('channel.send')} (Ctrl + Enter)"
-			disabled={posting || uploading || content.trim() === ''}
+			disabled={composerLocked || (content.trim() === '' && attachments.length === 0)}
 			onclick={send}
 		>
 			<IconSend size={20} />
 		</button>
 	</div>
-	{#if uploading}
-		<div class="status">Uploading…</div>
-	{/if}
 </div>
 
 <style>
@@ -251,6 +345,137 @@
 		align-items: center;
 		justify-content: center;
 		color: var(--accent-gray);
+	}
+
+	.attachments {
+		padding: 0 0.25rem 0.5rem;
+	}
+
+	.attachments ul {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.attachments li {
+		display: grid;
+		grid-template-columns: minmax(4rem, 6rem) minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.25rem;
+		border-radius: var(--radius);
+		background: var(--accent-surface-low);
+	}
+
+	.attachment-preview {
+		max-height: 3.5rem;
+		overflow: hidden;
+	}
+
+	.attachment-preview :global(img),
+	.attachment-preview :global(video) {
+		min-width: 0;
+		max-width: 100%;
+		max-height: 3.5rem;
+		margin: 0;
+	}
+
+	.attachment-preview :global(audio) {
+		width: 100%;
+		max-width: 100%;
+		height: 2.5rem;
+	}
+
+	.attachment-details,
+	.attachment-actions {
+		display: flex;
+		gap: 0.35rem;
+	}
+
+	.attachment-details {
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.attachment-actions {
+		align-items: center;
+		justify-content: flex-end;
+	}
+
+	.attachment-name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: 0.85rem;
+	}
+
+	.attachment-state {
+		color: var(--accent-gray);
+		font-size: 0.75rem;
+	}
+
+	.attachment-state.failed {
+		color: var(--red);
+		font-weight: bold;
+	}
+
+	.retry-attachment {
+		padding: 0.3rem 0.6rem;
+		border: 1px solid var(--accent-gray);
+		background: transparent;
+		color: var(--accent-gray);
+		font-size: 0.75rem;
+	}
+
+	.remove-attachment {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		padding: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: var(--accent-gray);
+	}
+
+	.retry-attachment:hover:not(:disabled),
+	.remove-attachment:hover:not(:disabled),
+	.remove-attachment:focus-visible {
+		opacity: 1;
+		background: var(--accent-surface-high);
+		color: var(--surface-foreground);
+	}
+
+	.retry-attachment:focus-visible,
+	.remove-attachment:focus-visible,
+	.add-urls:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+
+	.add-urls {
+		display: block;
+		width: fit-content;
+		margin: 0.25rem 0 0 auto;
+		padding: 0.2rem 0.125rem;
+		border-radius: 0;
+		background: transparent;
+		color: var(--accent-gray);
+		font-size: 0.75rem;
+		font-weight: normal;
+		text-decoration: none;
+	}
+
+	.add-urls:hover:not(:disabled),
+	.add-urls:focus-visible {
+		opacity: 1;
+		color: var(--surface-foreground);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
 	}
 
 	.input {
@@ -300,15 +525,18 @@
 		cursor: default;
 	}
 
-	.status {
-		font-size: 0.75rem;
-		color: var(--accent-gray);
-		padding: 0.2rem 0.5rem 0;
-	}
-
 	@media screen and (max-width: 600px) {
 		.composer {
 			bottom: calc(3.125rem + env(safe-area-inset-bottom));
+		}
+
+		.attachments li {
+			grid-template-columns: 4rem minmax(0, 1fr) auto;
+			gap: 0.35rem;
+		}
+
+		.attachment-actions {
+			gap: 0.2rem;
 		}
 	}
 </style>
