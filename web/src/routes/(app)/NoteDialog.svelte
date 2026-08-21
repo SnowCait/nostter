@@ -2,15 +2,15 @@
 	import { _ } from 'svelte-i18n';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
-	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
+	import NoteComposer from '$lib/components/composer/NoteComposer.svelte';
 	import IconX from '@tabler/icons-svelte-runes/icons/x';
 
 	let content = $state('');
 	let hasAttachments = $state(false);
-	let editorBusy = $state(false);
+	let composerBusy = $state(false);
 
 	let dialog = $state<HTMLDialogElement>();
-	let editor = $state<NoteEditor>();
+	let composer = $state<NoteComposer>();
 
 	openNoteDialog.subscribe(async (open) => {
 		if (open) {
@@ -31,12 +31,12 @@
 	}
 
 	function closed(): void {
-		editor?.clear(true);
+		composer?.clear(true);
 	}
 
 	function closeIfNotEmpty(e?: Event): void {
 		e?.preventDefault();
-		if (editorBusy) return;
+		if (composerBusy) return;
 		if ((content === '' && !hasAttachments) || confirm($_('editor.close.confirm'))) {
 			dialog?.close();
 		}
@@ -52,16 +52,16 @@
 		<button
 			class="clear close clickable active"
 			onclick={closeIfNotEmpty}
-			disabled={editorBusy}
+			disabled={composerBusy}
 			title="{$_('editor.close.button')} (Esc)"
 		>
 			<IconX />
 		</button>
-		<NoteEditor
-			bind:this={editor}
+		<NoteComposer
+			bind:this={composer}
 			bind:content
 			bind:hasAttachments
-			bind:busy={editorBusy}
+			bind:busy={composerBusy}
 			on:sent={sent}
 		/>
 	</div>

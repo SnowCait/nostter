@@ -606,14 +606,14 @@ h2 {
 	opacity: 0.7;
 }
 
-button.editor-option {
+button.composer-option {
 	color: var(--accent);
 	width: 36px;
 	height: 36px;
 	padding: 8px;
 }
 
-button.editor-option:hover {
+button.composer-option:hover {
 	background-color: var(--hover-background-color);
 	opacity: inherit;
 }

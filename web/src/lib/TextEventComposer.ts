@@ -8,7 +8,7 @@ import { referTags } from './EventHelper';
 import { getRelayHint } from './timelines/MainTimeline';
 import { unique } from './Array';
 
-export class NoteComposer {
+export class TextEventComposer {
 	async compose(kind: number, content: string, tags: string[][]): Promise<Event | null> {
 		try {
 			return await Signer.signEvent({

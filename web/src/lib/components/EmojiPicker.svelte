@@ -14,7 +14,7 @@
 		containsDefaultEmoji?: boolean;
 		autoClose?: boolean;
 		children?: import('svelte').Snippet;
-		inEditor?: boolean;
+		inComposer?: boolean;
 		onPick?: (emoji: PickerEmoji) => void;
 	}
 
@@ -22,7 +22,7 @@
 		containsDefaultEmoji = true,
 		autoClose = true,
 		children,
-		inEditor = false,
+		inComposer = false,
 		onPick
 	}: Props = $props();
 
@@ -121,8 +121,8 @@
 
 <button
 	class="clear"
-	class:editor-option={inEditor}
-	class:active={inEditor}
+	class:composer-option={inComposer}
+	class:active={inComposer}
 	title={$_('emoji.title')}
 	{...popover.trigger}
 >
@@ -141,7 +141,7 @@
 </div>
 
 <style>
-	button:not(.editor-option) {
+	button:not(.composer-option) {
 		color: var(--accent-gray);
 	}
 

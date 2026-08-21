@@ -9,7 +9,7 @@
 	import { complementPosition } from '$lib/styles/Complement';
 	import { adjustHeight } from '$lib/styles/Textarea';
 	import { getSeenOnRelays, rxNostr } from '$lib/timelines/MainTimeline';
-	import { NoteComposer } from '$lib/NoteComposer';
+	import { TextEventComposer } from '$lib/TextEventComposer';
 	import { channelIdStore, Channel } from '$lib/Channel';
 	import { Content } from '$lib/Content';
 	import { filterTags } from '$lib/EventHelper';
@@ -48,11 +48,11 @@
 	import MediaAttachments from '../MediaAttachments.svelte';
 
 	export function clear(closed = false): void {
-		if (editorLocked) return;
-		clearEditor(closed);
+		if (composerLocked) return;
+		clearComposer(closed);
 	}
 
-	function clearEditor(closed = false): void {
+	function clearComposer(closed = false): void {
 		clearAttachments();
 		$intentContent = '';
 		$replyTo = undefined;
@@ -165,7 +165,7 @@
 
 	async function initEmojiMart(): Promise<void> {
 		const { init } = await import('emoji-kitchen-mart');
-		emojiMartInit ??= init({ data }, { caller: 'NoteEditor' });
+		emojiMartInit ??= init({ data }, { caller: 'NoteComposer' });
 		return emojiMartInit;
 	}
 
@@ -188,7 +188,7 @@
 			initEmojiMart()
 				.then(async () => {
 					const { SearchIndex } = await import('emoji-kitchen-mart');
-					return SearchIndex.search(query, { maxResults: 20, caller: 'NoteEditor' });
+					return SearchIndex.search(query, { maxResults: 20, caller: 'NoteComposer' });
 				})
 				.then((emojis) => {
 					if (shortcode !== query || !Array.isArray(emojis)) {
@@ -258,11 +258,11 @@
 	let attachments: LocalAttachment[] = $state([]);
 
 	let uploading = $derived(attachments.some(({ state }) => state === 'uploading'));
-	let editorLocked = $derived(posting || uploading);
+	let composerLocked = $derived(posting || uploading);
 	let localMedia = $derived(attachments.map(({ previewUrl: url, kind }) => ({ url, kind })));
 
 	$effect(() => {
-		busy = editorLocked;
+		busy = composerLocked;
 	});
 
 	onDestroy(() => revokeAttachments(attachments));
@@ -272,17 +272,17 @@
 	let containsNsec = $derived(/nsec1\w{6,}/.test(content));
 
 	$effect(() => {
-		const noteComposer = new NoteComposer();
-		noteComposer.emojiTags(content, emojiTags).then((emojiTags) => {
+		const textEventComposer = new TextEventComposer();
+		textEventComposer.emojiTags(content, emojiTags).then((emojiTags) => {
 			tags = [
-				...noteComposer.replyTags(
+				...textEventComposer.replyTags(
 					content,
 					$state.snapshot($replyTo?.event),
 					$channelIdStore
 				),
-				...noteComposer.hashtags(content),
+				...textEventComposer.hashtags(content),
 				...emojiTags,
-				...noteComposer.contentWarningTags(contentWarningReason)
+				...textEventComposer.contentWarningTags(contentWarningReason)
 			];
 		});
 	});
@@ -332,8 +332,8 @@
 	});
 
 	async function onKeydown(e: KeyboardEvent) {
-		if (editorLocked) return;
-		console.debug(`[editor keydown]`, e.type, e.key, e.ctrlKey, e.metaKey);
+		if (composerLocked) return;
+		console.debug(`[composer keydown]`, e.type, e.key, e.ctrlKey, e.metaKey);
 
 		// Submit
 		if (mention === undefined && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
@@ -444,7 +444,7 @@
 	}
 
 	async function onEmojiPick(emoji: PickerEmoji): Promise<void> {
-		if (editorLocked || textarea === undefined) {
+		if (composerLocked || textarea === undefined) {
 			return;
 		}
 
@@ -491,21 +491,21 @@
 		}
 		const finalContent = appendUrls(contentTarget, uploadedUrls);
 
-		const noteComposer = new NoteComposer();
-		const event = await noteComposer.compose(
+		const textEventComposer = new TextEventComposer();
+		const event = await textEventComposer.compose(
 			$channelIdStore !== undefined || $replyTo?.event?.kind === Kind.ChannelMessage
 				? Kind.ChannelMessage
 				: Kind.ShortTextNote,
 			Content.replaceNip19(finalContent),
 			[
-				...noteComposer.replyTags(
+				...textEventComposer.replyTags(
 					finalContent,
 					$state.snapshot($replyTo?.event),
 					$channelIdStore
 				),
-				...noteComposer.hashtags(finalContent),
-				...(await noteComposer.emojiTags(finalContent, $state.snapshot(emojiTags))),
-				...noteComposer.contentWarningTags(contentWarningReason),
+				...textEventComposer.hashtags(finalContent),
+				...(await textEventComposer.emojiTags(finalContent, $state.snapshot(emojiTags))),
+				...textEventComposer.contentWarningTags(contentWarningReason),
 				...(enableVia ? [createViaTag()] : [])
 			]
 		);
@@ -525,7 +525,7 @@
 				sentRelays.set(packet.from, packet.ok);
 				if (packet.ok && posting) {
 					posting = false;
-					clearEditor();
+					clearComposer();
 					if (!continuePosting) {
 						dispatch('sent');
 						await afterPost();
@@ -577,7 +577,7 @@
 	async function paste(event: ClipboardEvent) {
 		console.log('[paste]', event.type, event.clipboardData);
 
-		if (editorLocked || event.clipboardData === null) {
+		if (composerLocked || event.clipboardData === null) {
 			return;
 		}
 
@@ -597,7 +597,7 @@
 		console.log('[drop]', event.type, event.dataTransfer);
 		event.preventDefault();
 
-		if (editorLocked || event.dataTransfer === null) {
+		if (composerLocked || event.dataTransfer === null) {
 			return;
 		}
 
@@ -614,13 +614,13 @@
 	}
 
 	function addAttachments(files: FileList | File[]): void {
-		if (editorLocked) return;
+		if (composerLocked) return;
 		attachments = [...attachments, ...createLocalAttachments(files)];
 		hasAttachments = attachments.length > 0;
 	}
 
 	function removeAttachment(attachment: LocalAttachment): void {
-		if (editorLocked) return;
+		if (composerLocked) return;
 		URL.revokeObjectURL(attachment.previewUrl);
 		attachments = attachments.filter((candidate) => candidate !== attachment);
 		hasAttachments = attachments.length > 0;
@@ -633,12 +633,12 @@
 	}
 
 	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
-		if (editorLocked || attachment.state !== 'failed') return;
+		if (composerLocked || attachment.state !== 'failed') return;
 		await uploadLocalAttachments([attachment]);
 	}
 
 	async function addAttachmentUrls(): Promise<void> {
-		if (editorLocked) return;
+		if (composerLocked) return;
 		const uploadTarget = [...attachments];
 		const uploadedUrls = await uploadLocalAttachments(uploadTarget);
 		if (uploadedUrls === undefined) return;
@@ -665,7 +665,7 @@
 	})}
 />
 
-<article class="note-editor" inert={editorLocked} aria-busy={editorLocked}>
+<article class="note-composer" inert={composerLocked} aria-busy={composerLocked}>
 	{#if channelEvent !== undefined}
 		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
 	{/if}
@@ -684,7 +684,7 @@
 				class:dropzone={onDrag}
 				bind:value={content}
 				bind:this={textarea}
-				readonly={editorLocked}
+				readonly={composerLocked}
 				onkeydown={onKeydown}
 				oninput={onInput}
 				onpaste={paste}
@@ -751,7 +751,7 @@
 
 	<MediaAttachments
 		{attachments}
-		disabled={editorLocked}
+		disabled={composerLocked}
 		onRetry={retryAttachment}
 		onRemove={removeAttachment}
 		onAddUrls={addAttachmentUrls}
@@ -759,14 +759,14 @@
 
 	<div class="actions">
 		<div class="options">
-			<MediaPicker multiple={true} disabled={editorLocked} on:pick={mediaPicked} />
+			<MediaPicker multiple={true} disabled={composerLocked} on:pick={mediaPicked} />
 			<EmojiPicker
 				containsDefaultEmoji={false}
 				autoClose={false}
-				inEditor={true}
+				inComposer={true}
 				onPick={onEmojiPick}
 			/>
-			<button class="clear editor-option advanced" {...collapsible.trigger}>
+			<button class="clear composer-option advanced" {...collapsible.trigger}>
 				{$_('editor.options.advanced')}
 			</button>
 		</div>
