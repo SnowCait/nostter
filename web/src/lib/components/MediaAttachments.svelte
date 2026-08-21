@@ -25,9 +25,14 @@
 					</div>
 					<div class="attachment-details">
 						<span class="attachment-name">{attachment.file.name}</span>
-						<span class="attachment-state" class:failed={attachment.state === 'failed'}>
-							{$_(`media.attachments.state.${attachment.state}`)}
-						</span>
+						{#if attachment.state !== 'pending'}
+							<span
+								class="attachment-state"
+								class:failed={attachment.state === 'failed'}
+							>
+								{$_(`media.attachments.state.${attachment.state}`)}
+							</span>
+						{/if}
 					</div>
 					<div class="attachment-actions">
 						{#if attachment.state === 'failed'}
