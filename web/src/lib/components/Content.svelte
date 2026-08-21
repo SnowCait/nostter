@@ -84,9 +84,11 @@
 			{/if}
 		{/each}
 	{/if}
-	{#each localMedia as media}
-		<span class="local-media"><LocalMedia {media} /></span>
-	{/each}
+	{#if $enablePreview}
+		{#each localMedia as media}
+			<span class="local-media"><LocalMedia {media} /></span>
+		{/each}
+	{/if}
 </p>
 
 <style>

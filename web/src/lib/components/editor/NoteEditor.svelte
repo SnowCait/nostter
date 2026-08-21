@@ -49,6 +49,11 @@
 	import LocalMedia from '../content/LocalMedia.svelte';
 
 	export function clear(closed = false): void {
+		if (editorLocked) return;
+		clearEditor(closed);
+	}
+
+	function clearEditor(closed = false): void {
 		clearAttachments();
 		$intentContent = '';
 		$replyTo = undefined;
@@ -77,12 +82,14 @@
 		afterPost?: () => Promise<void>;
 		content?: string;
 		hasAttachments?: boolean;
+		busy?: boolean;
 	}
 
 	let {
 		afterPost = async () => {},
 		content = $bindable(''),
-		hasAttachments = $bindable(false)
+		hasAttachments = $bindable(false),
+		busy = $bindable(false)
 	}: Props = $props();
 
 	let tags: string[][] = $state([]);
@@ -252,8 +259,13 @@
 	let attachments: LocalAttachment[] = $state([]);
 
 	let uploading = $derived(attachments.some(({ state }) => state === 'uploading'));
-	let attachmentChangesDisabled = $derived(attachmentChangesAreDisabled(posting, uploading));
+	let editorLocked = $derived(attachmentChangesAreDisabled(posting, uploading));
+	let attachmentChangesDisabled = $derived(editorLocked);
 	let localMedia = $derived(attachments.map(({ previewUrl: url, kind }) => ({ url, kind })));
+
+	$effect(() => {
+		busy = editorLocked;
+	});
 
 	onDestroy(() => revokeAttachments(attachments));
 
@@ -322,6 +334,7 @@
 	});
 
 	async function onKeydown(e: KeyboardEvent) {
+		if (editorLocked) return;
 		console.debug(`[editor keydown]`, e.type, e.key, e.ctrlKey, e.metaKey);
 
 		// Submit
@@ -433,7 +446,7 @@
 	}
 
 	async function onEmojiPick(emoji: PickerEmoji): Promise<void> {
-		if (textarea === undefined) {
+		if (editorLocked || textarea === undefined) {
 			return;
 		}
 
@@ -471,13 +484,14 @@
 			return;
 		}
 		posting = true;
+		const contentTarget = content;
 		const uploadTarget = [...attachments];
 		const uploadedUrls = await uploadAttachments(uploadTarget);
 		if (uploadedUrls === undefined) {
 			posting = false;
 			return;
 		}
-		const finalContent = appendUrls(content, uploadedUrls);
+		const finalContent = appendUrls(contentTarget, uploadedUrls);
 
 		const noteComposer = new NoteComposer();
 		const event = await noteComposer.compose(
@@ -513,7 +527,7 @@
 				sentRelays.set(packet.from, packet.ok);
 				if (packet.ok && posting) {
 					posting = false;
-					clear();
+					clearEditor();
 					if (!continuePosting) {
 						dispatch('sent');
 						await afterPost();
@@ -665,7 +679,7 @@
 	})}
 />
 
-<article class="note-editor">
+<article class="note-editor" inert={editorLocked} aria-busy={editorLocked}>
 	{#if channelEvent !== undefined}
 		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
 	{/if}
@@ -684,6 +698,7 @@
 				class:dropzone={onDrag}
 				bind:value={content}
 				bind:this={textarea}
+				readonly={editorLocked}
 				onkeydown={onKeydown}
 				oninput={onInput}
 				onpaste={paste}
