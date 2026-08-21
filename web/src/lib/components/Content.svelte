@@ -15,14 +15,17 @@
 	import { nicovideoRegexp } from '$lib/Constants';
 	import { mediaExtensionRegexp } from '$lib/media/MediaType';
 	import type * as Nostr from 'nostr-typedef';
+	import type { LocalMediaPreview } from '$lib/media/LocalAttachment';
+	import LocalMedia from './content/LocalMedia.svelte';
 
 	interface Props {
 		content: string;
 		tags: string[][];
 		event?: Nostr.Event;
+		localMedia?: LocalMediaPreview[];
 	}
 
-	let { content, tags, event }: Props = $props();
+	let { content, tags, event, localMedia = [] }: Props = $props();
 
 	let tokens = $derived(Content.parse(content, tags));
 	let urls = $derived(
@@ -81,6 +84,11 @@
 			{/if}
 		{/each}
 	{/if}
+	{#if $enablePreview}
+		{#each localMedia as media}
+			<span class="local-media"><LocalMedia {media} /></span>
+		{/each}
+	{/if}
 </p>
 
 <style>
@@ -88,5 +96,9 @@
 		margin: 0;
 		white-space: pre-line;
 		word-break: break-word;
+	}
+
+	.local-media {
+		display: block;
 	}
 </style>

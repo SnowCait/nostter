@@ -6,6 +6,8 @@
 	import IconX from '@tabler/icons-svelte-runes/icons/x';
 
 	let content = $state('');
+	let hasAttachments = $state(false);
+	let editorBusy = $state(false);
 
 	let dialog = $state<HTMLDialogElement>();
 	let editor = $state<NoteEditor>();
@@ -34,9 +36,14 @@
 
 	function closeIfNotEmpty(e?: Event): void {
 		e?.preventDefault();
-		if (content === '' || confirm($_('editor.close.confirm'))) {
+		if (editorBusy) return;
+		if ((content === '' && !hasAttachments) || confirm($_('editor.close.confirm'))) {
 			dialog?.close();
 		}
+	}
+
+	function sent(): void {
+		dialog?.close();
 	}
 </script>
 
@@ -45,11 +52,18 @@
 		<button
 			class="clear close clickable active"
 			onclick={closeIfNotEmpty}
+			disabled={editorBusy}
 			title="{$_('editor.close.button')} (Esc)"
 		>
 			<IconX />
 		</button>
-		<NoteEditor bind:this={editor} bind:content on:sent={closeIfNotEmpty} />
+		<NoteEditor
+			bind:this={editor}
+			bind:content
+			bind:hasAttachments
+			bind:busy={editorBusy}
+			on:sent={sent}
+		/>
 	</div>
 </dialog>
 

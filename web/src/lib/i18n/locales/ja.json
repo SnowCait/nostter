@@ -406,6 +406,18 @@
 	},
 	"media": {
 		"title": "メディア",
+		"attachments": {
+			"title": "添付メディア",
+			"add_urls": "URLを投稿欄に追加",
+			"remove": "削除",
+			"retry": "再試行",
+			"state": {
+				"pending": "アップロード待ち",
+				"uploading": "アップロード中…",
+				"uploaded": "アップロード済み",
+				"failed": "アップロード失敗"
+			}
+		},
 		"upload": {
 			"failed": "アップロードに失敗しました。",
 			"apply": "適用"
