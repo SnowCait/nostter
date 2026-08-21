@@ -39,7 +39,6 @@
 	import ExternalLink from '../ExternalLink.svelte';
 	import { emojiEditorUrl } from '$lib/Constants';
 	import {
-		attachmentChangesAreDisabled,
 		appendUrls,
 		createLocalAttachments,
 		revokeAttachments,
@@ -260,8 +259,7 @@
 	let attachments: LocalAttachment[] = $state([]);
 
 	let uploading = $derived(attachments.some(({ state }) => state === 'uploading'));
-	let editorLocked = $derived(attachmentChangesAreDisabled(posting, uploading));
-	let attachmentChangesDisabled = $derived(editorLocked);
+	let editorLocked = $derived(posting || uploading);
 	let localMedia = $derived(attachments.map(({ previewUrl: url, kind }) => ({ url, kind })));
 
 	$effect(() => {
@@ -580,7 +578,7 @@
 	async function paste(event: ClipboardEvent) {
 		console.log('[paste]', event.type, event.clipboardData);
 
-		if (attachmentChangesDisabled || event.clipboardData === null) {
+		if (editorLocked || event.clipboardData === null) {
 			return;
 		}
 
@@ -600,7 +598,7 @@
 		console.log('[drop]', event.type, event.dataTransfer);
 		event.preventDefault();
 
-		if (attachmentChangesDisabled || event.dataTransfer === null) {
+		if (editorLocked || event.dataTransfer === null) {
 			return;
 		}
 
@@ -617,13 +615,13 @@
 	}
 
 	function addAttachments(files: FileList | File[]): void {
-		if (attachmentChangesDisabled) return;
+		if (editorLocked) return;
 		attachments = [...attachments, ...createLocalAttachments(files)];
 		hasAttachments = attachments.length > 0;
 	}
 
 	function removeAttachment(attachment: LocalAttachment): void {
-		if (attachmentChangesDisabled) return;
+		if (editorLocked) return;
 		URL.revokeObjectURL(attachment.previewUrl);
 		attachments = attachments.filter((candidate) => candidate !== attachment);
 		hasAttachments = attachments.length > 0;
@@ -648,12 +646,12 @@
 	}
 
 	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
-		if (attachmentChangesDisabled || attachment.state !== 'failed') return;
+		if (editorLocked || attachment.state !== 'failed') return;
 		await uploadLocalAttachments([attachment]);
 	}
 
 	async function addAttachmentUrls(): Promise<void> {
-		if (attachmentChangesDisabled) return;
+		if (editorLocked) return;
 		const uploadTarget = [...attachments];
 		const uploadedUrls = await uploadAttachments(uploadTarget);
 		if (uploadedUrls === undefined) return;
@@ -787,7 +785,7 @@
 							{#if attachment.state === 'failed'}
 								<button
 									onclick={() => retryAttachment(attachment)}
-									disabled={attachmentChangesDisabled}
+									disabled={editorLocked}
 								>
 									{$_('media.attachments.retry')}
 								</button>
@@ -795,7 +793,7 @@
 							<button
 								class="remove-attachment"
 								onclick={() => removeAttachment(attachment)}
-								disabled={attachmentChangesDisabled}
+								disabled={editorLocked}
 								aria-label={$_('media.attachments.remove')}
 								title={$_('media.attachments.remove')}
 							>
@@ -805,11 +803,7 @@
 					</li>
 				{/each}
 			</ul>
-			<button
-				class="add-urls"
-				onclick={addAttachmentUrls}
-				disabled={attachmentChangesDisabled}
-			>
+			<button class="add-urls" onclick={addAttachmentUrls} disabled={editorLocked}>
 				{$_('media.attachments.add_urls')}
 			</button>
 		</section>
@@ -817,11 +811,7 @@
 
 	<div class="actions">
 		<div class="options">
-			<MediaPicker
-				multiple={true}
-				disabled={attachmentChangesDisabled}
-				on:pick={mediaPicked}
-			/>
+			<MediaPicker multiple={true} disabled={editorLocked} on:pick={mediaPicked} />
 			<EmojiPicker
 				containsDefaultEmoji={false}
 				autoClose={false}

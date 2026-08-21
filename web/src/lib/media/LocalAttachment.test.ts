@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
-	attachmentChangesAreDisabled,
 	appendUrls,
 	createLocalAttachments,
 	revokeAttachments,
@@ -17,12 +16,6 @@ afterEach(() => {
 });
 
 describe('local attachments', () => {
-	it('disables attachment changes while posting or uploading', () => {
-		expect(attachmentChangesAreDisabled(true, false)).toBe(true);
-		expect(attachmentChangesAreDisabled(false, true)).toBe(true);
-		expect(attachmentChangesAreDisabled(false, false)).toBe(false);
-	});
-
 	it('creates image, video, and audio previews without uploading', () => {
 		createObjectURL.mockImplementation((file) => `blob:${(file as File).name}`);
 		const files = [

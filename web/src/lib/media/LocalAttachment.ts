@@ -16,10 +16,6 @@ export interface LocalMediaPreview {
 	kind: MediaKind;
 }
 
-export function attachmentChangesAreDisabled(posting: boolean, uploading: boolean): boolean {
-	return posting || uploading;
-}
-
 export function createLocalAttachments(files: FileList | File[]): LocalAttachment[] {
 	return [...files].flatMap((file) => {
 		const kind = mediaKindFromContentType(file.type) ?? mediaKindFromPathname(file.name);
