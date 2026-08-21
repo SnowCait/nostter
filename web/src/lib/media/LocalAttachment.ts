@@ -37,23 +37,29 @@ export function revokeAttachments(attachments: LocalAttachment[]): void {
 export async function uploadLocalAttachments(
 	attachments: LocalAttachment[],
 	upload: typeof uploadFiles = uploadFiles
-): Promise<boolean> {
+): Promise<string[] | undefined> {
 	const candidates = attachments.filter(({ state }) => state === 'pending' || state === 'failed');
-	if (candidates.length === 0) return attachments.every(({ state }) => state === 'uploaded');
+	if (candidates.length > 0) {
+		for (const attachment of candidates) attachment.state = 'uploading';
+		let results: Awaited<ReturnType<typeof uploadFiles>>;
+		try {
+			results = await upload(candidates.map(({ file }) => file));
+		} catch (error) {
+			console.error('[media upload error]', error);
+			for (const attachment of candidates) attachment.state = 'failed';
+			return undefined;
+		}
+		for (const attachment of candidates) {
+			const result = results.find(({ file }) => file === attachment.file);
+			attachment.url = result?.url;
+			attachment.state = result?.url === undefined ? 'failed' : 'uploaded';
+		}
+	}
 
-	for (const attachment of candidates) attachment.state = 'uploading';
-	let results: Awaited<ReturnType<typeof uploadFiles>>;
-	try {
-		results = await upload(candidates.map(({ file }) => file));
-	} catch (error) {
-		console.error('[media upload error]', error);
-		for (const attachment of candidates) attachment.state = 'failed';
-		return false;
+	const urls: string[] = [];
+	for (const attachment of attachments) {
+		if (attachment.state !== 'uploaded' || attachment.url === undefined) return undefined;
+		urls.push(attachment.url);
 	}
-	for (const attachment of candidates) {
-		const result = results.find(({ file }) => file === attachment.file);
-		attachment.url = result?.url;
-		attachment.state = result?.url === undefined ? 'failed' : 'uploaded';
-	}
-	return attachments.every(({ state }) => state === 'uploaded');
+	return urls;
 }

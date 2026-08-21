@@ -63,7 +63,7 @@
 		const replyTarget = $state.snapshot(replyTo);
 		const emojiTagsTarget = $state.snapshot(emojiTags);
 		const attachmentTarget = [...attachments];
-		const uploadedUrls = await uploadAttachments(attachmentTarget);
+		const uploadedUrls = await uploadLocalAttachments(attachmentTarget);
 		if (uploadedUrls === undefined) {
 			posting = false;
 			return;
@@ -189,18 +189,6 @@
 		clearAttachments();
 	}
 
-	async function uploadAttachments(
-		uploadTarget: LocalAttachment[]
-	): Promise<string[] | undefined> {
-		if (!(await uploadLocalAttachments(uploadTarget))) return undefined;
-		const urls: string[] = [];
-		for (const attachment of uploadTarget) {
-			if (attachment.url === undefined) return undefined;
-			urls.push(attachment.url);
-		}
-		return urls;
-	}
-
 	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
 		if (composerLocked || attachment.state !== 'failed') return;
 		await uploadLocalAttachments([attachment]);
@@ -209,7 +197,7 @@
 	async function addAttachmentUrls(): Promise<void> {
 		if (composerLocked) return;
 		const attachmentTarget = [...attachments];
-		const uploadedUrls = await uploadAttachments(attachmentTarget);
+		const uploadedUrls = await uploadLocalAttachments(attachmentTarget);
 		if (uploadedUrls === undefined) return;
 		content = appendUrls(content, uploadedUrls);
 		clearAttachments();
@@ -358,6 +346,9 @@
 		margin: 0;
 		padding: 0;
 		list-style: none;
+		max-height: min(12rem, 30dvh);
+		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 
 	.attachments li {
@@ -533,6 +524,10 @@
 		.attachments li {
 			grid-template-columns: 4rem minmax(0, 1fr) auto;
 			gap: 0.35rem;
+		}
+
+		.attachments ul {
+			max-height: min(10rem, 25dvh);
 		}
 
 		.attachment-actions {
