@@ -68,14 +68,27 @@ describe('local attachments', () => {
 			])
 			.mockResolvedValueOnce([{ file: second.file, url: 'https://media/second.png' }]);
 
-		expect(await uploadLocalAttachments([first, second], upload)).toBe(false);
+		expect(await uploadLocalAttachments([first, second], upload)).toBeUndefined();
 		expect([first.state, second.state]).toEqual(['uploaded', 'failed']);
-		expect(await uploadLocalAttachments([first, second], upload)).toBe(true);
+		expect(await uploadLocalAttachments([first, second], upload)).toEqual([
+			'https://media/first.png',
+			'https://media/second.png'
+		]);
 		expect(upload.mock.calls[1][0]).toEqual([second.file]);
 		expect([first.url, second.url]).toEqual([
 			'https://media/first.png',
 			'https://media/second.png'
 		]);
+	});
+
+	it('returns an empty URL list when there are no attachments', async () => {
+		expect(await uploadLocalAttachments([], vi.fn())).toEqual([]);
+	});
+
+	it('does not accept an uploaded attachment without a URL', async () => {
+		const inconsistent = attachment('inconsistent.png');
+		inconsistent.state = 'uploaded';
+		expect(await uploadLocalAttachments([inconsistent], vi.fn())).toBeUndefined();
 	});
 
 	it('revokes object URLs when attachments are discarded', () => {
@@ -88,7 +101,7 @@ describe('local attachments', () => {
 		const attachments = [attachment('first.png'), attachment('second.png')];
 		expect(
 			await uploadLocalAttachments(attachments, vi.fn().mockRejectedValue('offline'))
-		).toBe(false);
+		).toBeUndefined();
 		expect(attachments.map(({ state }) => state)).toEqual(['failed', 'failed']);
 	});
 });

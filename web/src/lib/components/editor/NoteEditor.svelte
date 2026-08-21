@@ -485,7 +485,7 @@
 		posting = true;
 		const contentTarget = content;
 		const uploadTarget = [...attachments];
-		const uploadedUrls = await uploadAttachments(uploadTarget);
+		const uploadedUrls = await uploadLocalAttachments(uploadTarget);
 		if (uploadedUrls === undefined) {
 			posting = false;
 			return;
@@ -633,18 +633,6 @@
 		hasAttachments = false;
 	}
 
-	async function uploadAttachments(
-		uploadTarget: LocalAttachment[]
-	): Promise<string[] | undefined> {
-		if (!(await uploadLocalAttachments(uploadTarget))) return undefined;
-		const urls: string[] = [];
-		for (const attachment of uploadTarget) {
-			if (attachment.url === undefined) return undefined;
-			urls.push(attachment.url);
-		}
-		return urls;
-	}
-
 	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
 		if (editorLocked || attachment.state !== 'failed') return;
 		await uploadLocalAttachments([attachment]);
@@ -653,7 +641,7 @@
 	async function addAttachmentUrls(): Promise<void> {
 		if (editorLocked) return;
 		const uploadTarget = [...attachments];
-		const uploadedUrls = await uploadAttachments(uploadTarget);
+		const uploadedUrls = await uploadLocalAttachments(uploadTarget);
 		if (uploadedUrls === undefined) return;
 		content = appendUrls(content, uploadedUrls);
 		clearAttachments();
