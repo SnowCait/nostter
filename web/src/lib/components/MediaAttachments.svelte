@@ -175,13 +175,14 @@
 	.add-urls {
 		display: block;
 		width: fit-content;
-		margin: 0.25rem 0 0 auto;
-		padding: 0.2rem 0.125rem;
+		margin: 0.25rem 0 0;
+		padding: 0.125rem 0.25rem;
 		border-radius: 0;
 		background: transparent;
 		color: var(--accent-gray);
-		font-size: 0.75rem;
+		font-size: 1rem;
 		font-weight: normal;
+		line-height: 1.25;
 		text-decoration: none;
 	}
 
