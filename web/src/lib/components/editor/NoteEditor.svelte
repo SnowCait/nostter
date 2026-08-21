@@ -1058,14 +1058,15 @@
 		background: transparent;
 		color: var(--accent-gray);
 		font-weight: normal;
-		text-decoration: underline;
-		text-underline-offset: 0.2em;
+		text-decoration: none;
 	}
 
 	.add-urls:hover:not(:disabled),
 	.add-urls:focus-visible {
 		opacity: 1;
 		color: var(--foreground);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
 	}
 
 	@media screen and (max-width: 480px) {
