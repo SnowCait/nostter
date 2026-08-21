@@ -47,6 +47,7 @@
 		type LocalAttachment
 	} from '$lib/media/LocalAttachment';
 	import LocalMedia from '../content/LocalMedia.svelte';
+	import IconTrash from '@tabler/icons-svelte-runes/icons/trash';
 
 	export function clear(closed = false): void {
 		if (editorLocked) return;
@@ -775,7 +776,10 @@
 						</div>
 						<div class="attachment-details">
 							<span class="attachment-name">{attachment.file.name}</span>
-							<span class:failed={attachment.state === 'failed'}>
+							<span
+								class="attachment-state"
+								class:failed={attachment.state === 'failed'}
+							>
 								{$_(`media.attachments.state.${attachment.state}`)}
 							</span>
 						</div>
@@ -789,10 +793,13 @@
 								</button>
 							{/if}
 							<button
+								class="remove-attachment"
 								onclick={() => removeAttachment(attachment)}
 								disabled={attachmentChangesDisabled}
+								aria-label={$_('media.attachments.remove')}
+								title={$_('media.attachments.remove')}
 							>
-								{$_('media.attachments.remove')}
+								<IconTrash size={18} />
 							</button>
 						</div>
 					</li>
@@ -995,18 +1002,89 @@
 		min-width: 0;
 	}
 
+	.attachment-actions {
+		align-items: center;
+		justify-content: flex-end;
+	}
+
 	.attachment-name {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
-	.failed {
+	.attachment-state {
+		color: var(--accent-gray);
+		font-size: 0.8rem;
+		font-weight: normal;
+	}
+
+	.attachment-state.failed {
 		color: var(--red);
+		font-weight: bold;
+	}
+
+	.remove-attachment {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		padding: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: var(--accent-gray);
+	}
+
+	.remove-attachment:hover:not(:disabled),
+	.remove-attachment:focus-visible {
+		opacity: 1;
+		background: var(--accent-surface-high);
+		color: var(--foreground);
+	}
+
+	.remove-attachment:focus-visible,
+	.add-urls:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
 	}
 
 	.add-urls {
-		width: 100%;
+		display: block;
+		width: fit-content;
+		margin: 0.25rem 0 0 auto;
+		padding: 0.25rem 0.125rem;
+		border-radius: 0;
+		background: transparent;
+		color: var(--accent-gray);
+		font-weight: normal;
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+
+	.add-urls:hover:not(:disabled),
+	.add-urls:focus-visible {
+		opacity: 1;
+		color: var(--foreground);
+	}
+
+	@media screen and (max-width: 480px) {
+		.attachments {
+			margin-inline: 0.5rem;
+		}
+
+		.attachments li {
+			grid-template-columns: minmax(4.5rem, 6rem) minmax(0, 1fr) auto;
+			gap: 0.5rem;
+		}
+
+		.attachment-actions {
+			gap: 0.25rem;
+		}
+
+		.attachment-actions > button:not(.remove-attachment) {
+			padding-inline: 0.65rem;
+		}
 	}
 
 	.options {
