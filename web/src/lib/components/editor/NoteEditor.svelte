@@ -45,8 +45,7 @@
 		uploadLocalAttachments,
 		type LocalAttachment
 	} from '$lib/media/LocalAttachment';
-	import LocalMedia from '../content/LocalMedia.svelte';
-	import IconTrash from '@tabler/icons-svelte-runes/icons/trash';
+	import MediaAttachments from '../MediaAttachments.svelte';
 
 	export function clear(closed = false): void {
 		if (editorLocked) return;
@@ -750,52 +749,13 @@
 		</div>
 	</div>
 
-	{#if attachments.length > 0}
-		<section class="attachments card" aria-label={$_('media.attachments.title')}>
-			<ul>
-				{#each attachments as attachment}
-					<li>
-						<div class="attachment-preview">
-							<LocalMedia
-								media={{ url: attachment.previewUrl, kind: attachment.kind }}
-							/>
-						</div>
-						<div class="attachment-details">
-							<span class="attachment-name">{attachment.file.name}</span>
-							<span
-								class="attachment-state"
-								class:failed={attachment.state === 'failed'}
-							>
-								{$_(`media.attachments.state.${attachment.state}`)}
-							</span>
-						</div>
-						<div class="attachment-actions">
-							{#if attachment.state === 'failed'}
-								<button
-									onclick={() => retryAttachment(attachment)}
-									disabled={editorLocked}
-								>
-									{$_('media.attachments.retry')}
-								</button>
-							{/if}
-							<button
-								class="remove-attachment"
-								onclick={() => removeAttachment(attachment)}
-								disabled={editorLocked}
-								aria-label={$_('media.attachments.remove')}
-								title={$_('media.attachments.remove')}
-							>
-								<IconTrash size={18} />
-							</button>
-						</div>
-					</li>
-				{/each}
-			</ul>
-			<button class="add-urls" onclick={addAttachmentUrls} disabled={editorLocked}>
-				{$_('media.attachments.add_urls')}
-			</button>
-		</section>
-	{/if}
+	<MediaAttachments
+		{attachments}
+		disabled={editorLocked}
+		onRetry={retryAttachment}
+		onRemove={removeAttachment}
+		onAddUrls={addAttachmentUrls}
+	/>
 
 	<div class="actions">
 		<div class="options">
@@ -933,137 +893,6 @@
 		margin: 1rem;
 		max-height: 30rem;
 		overflow-y: auto;
-	}
-
-	.attachments {
-		margin: 1rem;
-		padding: 0.75rem;
-	}
-
-	.attachments ul {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		margin: 0 0 0.75rem;
-	}
-
-	.attachments li {
-		display: grid;
-		grid-template-columns: minmax(5rem, 8rem) minmax(0, 1fr) auto;
-		align-items: center;
-		gap: 0.75rem;
-	}
-
-	.attachment-preview {
-		max-height: 6rem;
-		overflow: hidden;
-	}
-
-	.attachment-preview :global(img),
-	.attachment-preview :global(video) {
-		max-width: 100%;
-		max-height: 6rem;
-	}
-
-	.attachment-preview :global(audio) {
-		max-width: 100%;
-	}
-
-	.attachment-details,
-	.attachment-actions {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	.attachment-details {
-		flex-direction: column;
-		min-width: 0;
-	}
-
-	.attachment-actions {
-		align-items: center;
-		justify-content: flex-end;
-	}
-
-	.attachment-name {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.attachment-state {
-		color: var(--accent-gray);
-		font-size: 0.8rem;
-		font-weight: normal;
-	}
-
-	.attachment-state.failed {
-		color: var(--red);
-		font-weight: bold;
-	}
-
-	.remove-attachment {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		padding: 0;
-		border-radius: 50%;
-		background: transparent;
-		color: var(--accent-gray);
-	}
-
-	.remove-attachment:hover:not(:disabled),
-	.remove-attachment:focus-visible {
-		opacity: 1;
-		background: var(--accent-surface-high);
-		color: var(--foreground);
-	}
-
-	.remove-attachment:focus-visible,
-	.add-urls:focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: 2px;
-	}
-
-	.add-urls {
-		display: block;
-		width: fit-content;
-		margin: 0.25rem 0 0 auto;
-		padding: 0.25rem 0.125rem;
-		border-radius: 0;
-		background: transparent;
-		color: var(--accent-gray);
-		font-weight: normal;
-		text-decoration: none;
-	}
-
-	.add-urls:hover:not(:disabled),
-	.add-urls:focus-visible {
-		opacity: 1;
-		color: var(--foreground);
-		text-decoration: underline;
-		text-underline-offset: 0.2em;
-	}
-
-	@media screen and (max-width: 480px) {
-		.attachments {
-			margin-inline: 0.5rem;
-		}
-
-		.attachments li {
-			grid-template-columns: minmax(4.5rem, 6rem) minmax(0, 1fr) auto;
-			gap: 0.5rem;
-		}
-
-		.attachment-actions {
-			gap: 0.25rem;
-		}
-
-		.attachment-actions > button:not(.remove-attachment) {
-			padding-inline: 0.65rem;
-		}
 	}
 
 	.options {
