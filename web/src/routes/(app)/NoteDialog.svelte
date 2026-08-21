@@ -4,7 +4,6 @@
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
 	import IconX from '@tabler/icons-svelte-runes/icons/x';
-	import { canCloseNoteDraft } from '$lib/NoteDraft';
 
 	let content = $state('');
 	let hasAttachments = $state(false);
@@ -37,11 +36,8 @@
 
 	function closeIfNotEmpty(e?: Event): void {
 		e?.preventDefault();
-		if (
-			canCloseNoteDraft(content, hasAttachments, editorBusy, () =>
-				confirm($_('editor.close.confirm'))
-			)
-		) {
+		if (editorBusy) return;
+		if ((content === '' && !hasAttachments) || confirm($_('editor.close.confirm'))) {
 			dialog?.close();
 		}
 	}

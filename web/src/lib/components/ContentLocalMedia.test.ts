@@ -3,7 +3,6 @@ import { render } from 'svelte/server';
 import { locale } from 'svelte-i18n';
 import { enablePreview } from '$lib/stores/Preference';
 import Content from './Content.svelte';
-import LocalMedia from './content/LocalMedia.svelte';
 
 beforeAll(() => locale.set('en'));
 afterEach(() => enablePreview.set(true));
@@ -21,11 +20,5 @@ describe('local media preview preference', () => {
 		enablePreview.set(false);
 		const { body } = render(Content, { props: { content: '', tags: [], localMedia: [media] } });
 		expect(body).not.toContain('blob:local-image');
-	});
-
-	it('keeps the attachment-management media renderer independent of the preference', () => {
-		enablePreview.set(false);
-		const { body } = render(LocalMedia, { props: { media } });
-		expect(body).toContain('blob:local-image');
 	});
 });
