@@ -9,7 +9,7 @@
 	import { complementPosition } from '$lib/styles/Complement';
 	import { adjustHeight } from '$lib/styles/Textarea';
 	import { getSeenOnRelays, rxNostr } from '$lib/timelines/MainTimeline';
-	import { NoteComposer } from '$lib/NoteComposer';
+	import { TextEventComposer } from '$lib/TextEventComposer';
 	import { channelIdStore, Channel } from '$lib/Channel';
 	import { Content } from '$lib/Content';
 	import { filterTags } from '$lib/EventHelper';
@@ -165,7 +165,7 @@
 
 	async function initEmojiMart(): Promise<void> {
 		const { init } = await import('emoji-kitchen-mart');
-		emojiMartInit ??= init({ data }, { caller: 'NoteEditor' });
+		emojiMartInit ??= init({ data }, { caller: 'NoteComposer' });
 		return emojiMartInit;
 	}
 
@@ -188,7 +188,7 @@
 			initEmojiMart()
 				.then(async () => {
 					const { SearchIndex } = await import('emoji-kitchen-mart');
-					return SearchIndex.search(query, { maxResults: 20, caller: 'NoteEditor' });
+					return SearchIndex.search(query, { maxResults: 20, caller: 'NoteComposer' });
 				})
 				.then((emojis) => {
 					if (shortcode !== query || !Array.isArray(emojis)) {
@@ -272,17 +272,17 @@
 	let containsNsec = $derived(/nsec1\w{6,}/.test(content));
 
 	$effect(() => {
-		const noteComposer = new NoteComposer();
-		noteComposer.emojiTags(content, emojiTags).then((emojiTags) => {
+		const textEventComposer = new TextEventComposer();
+		textEventComposer.emojiTags(content, emojiTags).then((emojiTags) => {
 			tags = [
-				...noteComposer.replyTags(
+				...textEventComposer.replyTags(
 					content,
 					$state.snapshot($replyTo?.event),
 					$channelIdStore
 				),
-				...noteComposer.hashtags(content),
+				...textEventComposer.hashtags(content),
 				...emojiTags,
-				...noteComposer.contentWarningTags(contentWarningReason)
+				...textEventComposer.contentWarningTags(contentWarningReason)
 			];
 		});
 	});
@@ -491,21 +491,21 @@
 		}
 		const finalContent = appendUrls(contentTarget, uploadedUrls);
 
-		const noteComposer = new NoteComposer();
-		const event = await noteComposer.compose(
+		const textEventComposer = new TextEventComposer();
+		const event = await textEventComposer.compose(
 			$channelIdStore !== undefined || $replyTo?.event?.kind === Kind.ChannelMessage
 				? Kind.ChannelMessage
 				: Kind.ShortTextNote,
 			Content.replaceNip19(finalContent),
 			[
-				...noteComposer.replyTags(
+				...textEventComposer.replyTags(
 					finalContent,
 					$state.snapshot($replyTo?.event),
 					$channelIdStore
 				),
-				...noteComposer.hashtags(finalContent),
-				...(await noteComposer.emojiTags(finalContent, $state.snapshot(emojiTags))),
-				...noteComposer.contentWarningTags(contentWarningReason),
+				...textEventComposer.hashtags(finalContent),
+				...(await textEventComposer.emojiTags(finalContent, $state.snapshot(emojiTags))),
+				...textEventComposer.contentWarningTags(contentWarningReason),
 				...(enableVia ? [createViaTag()] : [])
 			]
 		);

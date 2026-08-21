@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { openNoteDialog } from '$lib/stores/NoteDialog';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
-	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
+	import NoteComposer from '$lib/components/editor/NoteComposer.svelte';
 	import IconX from '@tabler/icons-svelte-runes/icons/x';
 
 	let content = $state('');
@@ -10,7 +10,7 @@
 	let editorBusy = $state(false);
 
 	let dialog = $state<HTMLDialogElement>();
-	let editor = $state<NoteEditor>();
+	let editor = $state<NoteComposer>();
 
 	openNoteDialog.subscribe(async (open) => {
 		if (open) {
@@ -57,7 +57,7 @@
 		>
 			<IconX />
 		</button>
-		<NoteEditor
+		<NoteComposer
 			bind:this={editor}
 			bind:content
 			bind:hasAttachments

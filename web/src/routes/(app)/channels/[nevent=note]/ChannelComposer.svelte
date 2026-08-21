@@ -5,7 +5,7 @@
 	import { ChannelMessage } from 'nostr-tools/kinds';
 	import { _ } from 'svelte-i18n';
 	import { IconSend, IconX } from '@tabler/icons-svelte-runes';
-	import { NoteComposer } from '$lib/NoteComposer';
+	import { TextEventComposer } from '$lib/TextEventComposer';
 	import { Content } from '$lib/Content';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
@@ -70,7 +70,7 @@
 		}
 		const finalContent = appendUrls(contentTarget, uploadedUrls);
 
-		const composer = new NoteComposer();
+		const composer = new TextEventComposer();
 		const event = await composer.compose(ChannelMessage, Content.replaceNip19(finalContent), [
 			...composer.replyTags(finalContent, replyTarget, channelId),
 			...composer.hashtags(finalContent),

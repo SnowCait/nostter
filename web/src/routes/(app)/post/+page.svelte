@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import { appName } from '$lib/Constants';
 	import { intentContent } from '$lib/stores/NoteDialog';
-	import NoteEditor from '$lib/components/editor/NoteEditor.svelte';
+	import NoteComposer from '$lib/components/editor/NoteComposer.svelte';
 
 	const content = page.url.searchParams.get('content');
 
@@ -30,7 +30,7 @@
 		$intentContent = sharedContent;
 	}
 
-	let editor: NoteEditor | undefined = $state();
+	let editor: NoteComposer | undefined = $state();
 
 	async function afterPost(): Promise<void> {
 		editor?.clear();
@@ -44,5 +44,5 @@
 </svelte:head>
 
 <article class="card">
-	<NoteEditor bind:this={editor} {afterPost} />
+	<NoteComposer bind:this={editor} {afterPost} />
 </article>
