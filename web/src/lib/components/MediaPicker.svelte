@@ -29,7 +29,7 @@
 	}
 </script>
 
-<button {onclick} {disabled} class="clear editor-option active" title={$_('media.title')}>
+<button {onclick} {disabled} class="clear composer-option active" title={$_('media.title')}>
 	<IconPhoto size="20" />
 </button>
 <input

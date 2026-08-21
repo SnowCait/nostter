@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import { appName } from '$lib/Constants';
 	import { intentContent } from '$lib/stores/NoteDialog';
-	import NoteComposer from '$lib/components/editor/NoteComposer.svelte';
+	import NoteComposer from '$lib/components/composer/NoteComposer.svelte';
 
 	const content = page.url.searchParams.get('content');
 
@@ -30,10 +30,10 @@
 		$intentContent = sharedContent;
 	}
 
-	let editor: NoteComposer | undefined = $state();
+	let composer: NoteComposer | undefined = $state();
 
 	async function afterPost(): Promise<void> {
-		editor?.clear();
+		composer?.clear();
 		await goto('/home');
 	}
 </script>
@@ -44,5 +44,5 @@
 </svelte:head>
 
 <article class="card">
-	<NoteComposer bind:this={editor} {afterPost} />
+	<NoteComposer bind:this={composer} {afterPost} />
 </article>

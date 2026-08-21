@@ -230,7 +230,7 @@
 	/>
 	<div class="input">
 		<MediaPicker multiple={true} disabled={composerLocked} on:pick={mediaPicked} />
-		<EmojiPicker inEditor={true} onPick={onEmojiPick} />
+		<EmojiPicker inComposer={true} onPick={onEmojiPick} />
 		<textarea
 			bind:this={textarea}
 			bind:value={content}
@@ -301,7 +301,7 @@
 		gap: 0.3rem;
 	}
 
-	.input :global(button.editor-option) {
+	.input :global(button.composer-option) {
 		width: 44px;
 		height: 44px;
 		padding: 0;
