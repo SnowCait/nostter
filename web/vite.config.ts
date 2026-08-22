@@ -13,6 +13,9 @@ export default defineConfig({
 	define: {
 		__APP_NAME__: JSON.stringify(name)
 	},
+	build: {
+		minify: 'esbuild'
+	},
 	plugins: [
 		sveltekit(),
 		esbuildCssMinifier,
