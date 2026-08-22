@@ -13,12 +13,7 @@
 	let url: URL | undefined = $state();
 
 	run(() => {
-		url = undefined;
-		try {
-			url = resolveProxyUrl(tag[1], tag[2]);
-		} catch (error) {
-			console.error('[proxy error]', tag, error);
-		}
+		url = resolveProxyUrl(tag[1], tag[2]);
 	});
 </script>
 

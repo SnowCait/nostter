@@ -73,5 +73,9 @@ export function resolveProxyUrl(
 		return new URL(`https://bsky.app/profile/${uri.authority}/post/${uri.rkey}`);
 	}
 
-	return new URL(id);
+	try {
+		return new URL(id);
+	} catch {
+		return undefined;
+	}
 }

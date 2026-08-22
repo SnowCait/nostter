@@ -52,4 +52,8 @@ describe('resolveProxyUrl', () => {
 			'https://example.com/posts/1'
 		);
 	});
+
+	it('does not throw for a malformed URL-based proxy ID', () => {
+		expect(resolveProxyUrl('not a URL', 'activitypub')).toBeUndefined();
+	});
 });
