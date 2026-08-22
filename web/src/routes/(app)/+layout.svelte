@@ -11,6 +11,7 @@
 	import Gdpr from '$lib/components/Gdpr.svelte';
 	import '$lib/styles/menu.css';
 	import { fetchMinutes } from '$lib/Helper';
+	import { applyTheme } from '$lib/Theme';
 	import { author, followees } from '$lib/stores/Author';
 	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
 	interface Props {
@@ -129,23 +130,15 @@
 
 	function subscribeSystemTheme(): void {
 		const storage = new WebStorage(localStorage);
-		window
-			.matchMedia('(prefers-color-scheme: dark)')
-			.addEventListener('change', (e: MediaQueryList | MediaQueryListEvent) => {
-				const t = storage.get('theme') ?? 'system';
+		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+			const t = storage.get('theme') ?? 'system';
 
-				if (t !== 'system') {
-					return;
-				}
+			if (t !== 'system') {
+				return;
+			}
 
-				if (e.matches) {
-					console.debug('[theme system]', 'dark');
-					document.documentElement.classList.add('dark');
-				} else {
-					console.debug('[theme system]', 'light');
-					document.documentElement.classList.remove('dark');
-				}
-			});
+			applyTheme('system');
+		});
 	}
 </script>
 

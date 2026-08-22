@@ -6,6 +6,7 @@
 	import LoginStatus from '$lib/components/LoginStatus.svelte';
 	import { onMount } from 'svelte';
 	import { tryLogin } from '$lib/Login';
+	import { updateThemeColor } from '$lib/Theme';
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
@@ -13,6 +14,7 @@
 	let { children }: Props = $props();
 
 	onMount(() => {
+		updateThemeColor();
 		void tryLogin();
 	});
 </script>
@@ -40,20 +42,6 @@
 			}
 		}
 	</style>
-	<script>
-		const theme = localStorage.getItem('nostter:theme') ?? 'system';
-		console.log('[theme]', theme);
-		if (
-			theme === 'dark' ||
-			(theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-		) {
-			document.documentElement.classList.add('dark');
-		}
-
-		const color = getComputedStyle(document.documentElement).getPropertyValue('--background');
-		let themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
-		themeColorMetaTag.content = color;
-	</script>
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-G1WMSV0PBP"></script>
 </svelte:head>
 

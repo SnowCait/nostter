@@ -7,6 +7,18 @@
 		<link rel="manifest" href="%sveltekit.assets%/manifest.webmanifest" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<meta name="theme-color" content="#f9f5f1" />
+		<script>
+			(() => {
+				const theme = localStorage.getItem('nostter:theme') ?? 'system';
+				if (
+					theme === 'dark' ||
+					(theme === 'system' &&
+						window.matchMedia('(prefers-color-scheme: dark)').matches)
+				) {
+					document.documentElement.classList.add('dark');
+				}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 
