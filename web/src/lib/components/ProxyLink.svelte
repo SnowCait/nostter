@@ -2,6 +2,7 @@
 	import { run } from 'svelte/legacy';
 
 	import IconLink from '@tabler/icons-svelte-runes/icons/link';
+	import { resolveProxyUrl } from './ProxyLink';
 
 	interface Props {
 		tag: string[];
@@ -12,8 +13,9 @@
 	let url: URL | undefined = $state();
 
 	run(() => {
+		url = undefined;
 		try {
-			url = new URL(tag[1]);
+			url = resolveProxyUrl(tag[1], tag[2]);
 		} catch (error) {
 			console.error('[proxy error]', tag, error);
 		}
