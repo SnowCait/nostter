@@ -6,7 +6,6 @@
 	import LoginStatus from '$lib/components/LoginStatus.svelte';
 	import { onMount } from 'svelte';
 	import { tryLogin } from '$lib/Login';
-	import { updateThemeColor } from '$lib/Theme';
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
@@ -14,7 +13,6 @@
 	let { children }: Props = $props();
 
 	onMount(() => {
-		updateThemeColor();
 		void tryLogin();
 	});
 </script>
