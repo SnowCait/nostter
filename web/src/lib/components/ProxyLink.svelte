@@ -3,6 +3,7 @@
 
 	import IconLink from '@tabler/icons-svelte-runes/icons/link';
 	import { resolveProxyUrl } from '$lib/nostr/nip48/proxy';
+	import { isHttpUrl } from '$lib/url';
 
 	interface Props {
 		tag: string[];
@@ -17,7 +18,7 @@
 	});
 </script>
 
-{#if url !== undefined}
+{#if url !== undefined && isHttpUrl(url)}
 	<a href={url.href} target="_blank" rel="noopener noreferrer">
 		<IconLink size="20" color="gray" />
 		<span>{url.hostname}</span>

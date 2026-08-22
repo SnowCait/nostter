@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import externalLinkIconUrl from '$lib/assets/icons/external-link.svg?url';
+	import { isHttpUrl } from '$lib/url';
 
 	interface Props {
 		link: URL;
@@ -11,7 +12,7 @@
 
 	const threshold = 64;
 
-	let isSafe = $derived(link.protocol === 'http:' || link.protocol === 'https:');
+	let isSafe = $derived(isHttpUrl(link));
 	let isInternal = $derived(link.origin === $page.url.origin); // Exception
 	let content = $derived(link.hostname + link.pathname + link.search + link.hash);
 	let shortenedContent = $derived(
