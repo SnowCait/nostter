@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
-	import IconLink from '@tabler/icons-svelte-runes/icons/link';
+	import { IconLink } from '@tabler/icons-svelte-runes';
+	import { resolveProxyUrl } from '$lib/nostr/nip48/proxy';
+	import { isHttpUrl } from '$lib/url';
 
 	interface Props {
 		tag: string[];
@@ -9,18 +9,10 @@
 
 	let { tag }: Props = $props();
 
-	let url: URL | undefined = $state();
-
-	run(() => {
-		try {
-			url = new URL(tag[1]);
-		} catch (error) {
-			console.error('[proxy error]', tag, error);
-		}
-	});
+	let url = $derived(resolveProxyUrl(tag[1], tag[2]));
 </script>
 
-{#if url !== undefined}
+{#if url !== undefined && isHttpUrl(url)}
 	<a href={url.href} target="_blank" rel="noopener noreferrer">
 		<IconLink size="20" color="gray" />
 		<span>{url.hostname}</span>
