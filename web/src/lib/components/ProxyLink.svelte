@@ -2,7 +2,7 @@
 	import { run } from 'svelte/legacy';
 
 	import IconLink from '@tabler/icons-svelte-runes/icons/link';
-	import { resolveProxyUrl } from './ProxyLink';
+	import { resolveProxyUrl } from '$lib/nostr/nip48/proxy';
 
 	interface Props {
 		tag: string[];
