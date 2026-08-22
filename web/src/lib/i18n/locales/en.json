@@ -16,7 +16,33 @@
 	},
 	"bookmarks": {
 		"old_format": "Old format",
-		"private": "Private"
+		"private": "Private",
+		"copy": {
+			"action": "Copy all",
+			"running": "Copying…",
+			"description": "Copies all public and private items to your current Bookmarks. The old format remains unchanged.",
+			"success": {
+				"title": "Bookmarks copied",
+				"description": "The old format is still available."
+			},
+			"failed": {
+				"title": "Copy failed",
+				"description": "Your Bookmarks and old format were not changed."
+			}
+		},
+		"delete": {
+			"action": "Delete old format",
+			"running": "Deleting…",
+			"confirm": "Send a deletion request for the old-format bookmarks? Relays may retain the event.",
+			"success": {
+				"title": "Deletion request sent",
+				"description": "Old-format bookmarks are hidden for this session."
+			},
+			"failed": {
+				"title": "Deletion request failed",
+				"description": "Old-format bookmarks were not removed."
+			}
+		}
 	},
 	"pages": {
 		"profile_edit": "Edit profile",
