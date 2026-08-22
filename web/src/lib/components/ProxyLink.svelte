@@ -1,7 +1,5 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
-	import IconLink from '@tabler/icons-svelte-runes/icons/link';
+	import { IconLink } from '@tabler/icons-svelte-runes';
 	import { resolveProxyUrl } from '$lib/nostr/nip48/proxy';
 	import { isHttpUrl } from '$lib/url';
 
@@ -11,11 +9,7 @@
 
 	let { tag }: Props = $props();
 
-	let url: URL | undefined = $state();
-
-	run(() => {
-		url = resolveProxyUrl(tag[1], tag[2]);
-	});
+	let url = $derived(resolveProxyUrl(tag[1], tag[2]));
 </script>
 
 {#if url !== undefined && isHttpUrl(url)}
