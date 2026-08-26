@@ -12,7 +12,7 @@
 	import { sendReaction } from '$lib/author/Reaction';
 	import type * as Nostr from 'nostr-typedef';
 	import { notesKinds } from '$lib/Constants';
-	import { openNoteDialog, replyTo } from '$lib/stores/NoteDialog';
+	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import { rom } from '$lib/stores/Author';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
@@ -30,6 +30,7 @@
 	let zapDialogComponent = $state<ZapDialog>();
 
 	const iconSize = 20;
+	const openNoteDialog = getOpenNoteDialog();
 
 	let metadata = $derived($metadataStore.get(item.event.pubkey));
 	let nevent = $derived(
@@ -42,8 +43,7 @@
 	);
 
 	function reply() {
-		$replyTo = item;
-		$openNoteDialog = true;
+		void openNoteDialog({ replyTo: item });
 	}
 
 	async function emojiReaction(note: Nostr.Event, emoji: PickerEmoji) {

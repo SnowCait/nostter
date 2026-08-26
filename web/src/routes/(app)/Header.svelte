@@ -30,7 +30,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { followees, pubkey, rom } from '$lib/stores/Author';
-	import { openNoteDialog } from '$lib/stores/NoteDialog';
+	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
@@ -44,9 +44,10 @@
 	const {
 		elements: { menu, item, trigger, overlay }
 	} = createDropdownMenu({ preventScroll: false });
+	const openNoteDialog = getOpenNoteDialog();
 
-	async function onClickPostButton(): Promise<void> {
-		$openNoteDialog = !$openNoteDialog;
+	function onClickPostButton(): void {
+		void openNoteDialog();
 	}
 
 	function requestTimelineScrollToTopForCurrentLink(event: MouseEvent, link: string): boolean {

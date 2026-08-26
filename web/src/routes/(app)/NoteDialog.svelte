@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { noteDialogContent, openNoteDialog } from '$lib/stores/NoteDialog';
+	import { nip19 } from 'nostr-tools';
+	import { noteDialogContent, quotes, replyTo } from '$lib/stores/NoteDialog';
+	import type { NoteDialogOpenRequest } from '$lib/NoteDialogContext';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import NoteComposer from '$lib/components/composer/NoteComposer.svelte';
 	import IconX from '@tabler/icons-svelte-runes/icons/x';
@@ -11,11 +14,36 @@
 	let dialog = $state<HTMLDialogElement>();
 	let composer = $state<NoteComposer>();
 
-	openNoteDialog.subscribe(async (open) => {
-		if (open) {
-			dialog?.showModal();
+	export async function open(request: NoteDialogOpenRequest = {}): Promise<void> {
+		if (request.replyTo !== undefined) {
+			$replyTo = request.replyTo;
 		}
-	});
+		if (request.quotes !== undefined) {
+			$quotes = request.quotes;
+			$noteDialogContent =
+				'\n' +
+				request.quotes
+					.map(
+						(event) =>
+							`nostr:${nip19.neventEncode({
+								id: event.id,
+								relays: getSeenOnRelays(event.id),
+								author: event.pubkey,
+								kind: event.kind
+							})}`
+					)
+					.join('\n');
+		}
+		if (request.content !== undefined) {
+			$noteDialogContent = request.content;
+		}
+
+		if (dialog === undefined || dialog.open) {
+			return;
+		}
+		dialog.showModal();
+		await composer?.focus();
+	}
 
 	function tryClose(e: MouseEvent): void {
 		if (emojiPickerOpen || !dialog?.open) {

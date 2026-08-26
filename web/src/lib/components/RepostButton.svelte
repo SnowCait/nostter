@@ -5,7 +5,7 @@
 	import { repostedEvents, updateRepostedEvents } from '$lib/author/Action';
 	import { Signer } from '$lib/Signer';
 	import { rom } from '$lib/stores/Author';
-	import { openNoteDialog, quotes } from '$lib/stores/NoteDialog';
+	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import { IconQuote, IconRepeat, IconTrash } from '@tabler/icons-svelte-runes';
@@ -17,6 +17,7 @@
 	}
 
 	let { event, iconSize }: Props = $props();
+	const openNoteDialog = getOpenNoteDialog();
 
 	const {
 		elements: { menu, item, trigger, overlay, separator }
@@ -64,8 +65,7 @@
 	}
 
 	function onQuote(): void {
-		$quotes.push(event);
-		$openNoteDialog = true;
+		void openNoteDialog({ quotes: [event] });
 	}
 </script>
 
