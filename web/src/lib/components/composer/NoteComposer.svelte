@@ -14,8 +14,8 @@
 	import { filterTags } from '$lib/EventHelper';
 	import { metadataStore } from '$lib/cache/Events';
 	import { EventItem, Metadata } from '$lib/Items';
+	import type * as Nostr from 'nostr-typedef';
 	import { RelayList } from '$lib/RelayList';
-	import { replyTo, quotes } from '$lib/stores/NoteDialog';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { customEmojiTags, findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
@@ -59,8 +59,8 @@
 
 	function clearComposer(closed = false): void {
 		clearAttachments();
-		$replyTo = undefined;
-		$quotes = [];
+		replyTo = undefined;
+		quotes = [];
 		mention = undefined;
 		emojiTags = [];
 		contentWarningReason = undefined;
@@ -83,6 +83,8 @@
 	interface Props {
 		afterPost?: () => Promise<void>;
 		content?: string;
+		replyTo?: EventItem;
+		quotes?: Nostr.Event[];
 		hasAttachments?: boolean;
 		busy?: boolean;
 	}
@@ -90,6 +92,8 @@
 	let {
 		afterPost = async () => {},
 		content = $bindable(''),
+		replyTo = $bindable(),
+		quotes = $bindable([]),
 		hasAttachments = $bindable(false),
 		busy = $bindable(false)
 	}: Props = $props();
@@ -277,7 +281,7 @@
 		const textEventComposer = new TextEventComposer();
 		textEventComposer.emojiTags(content, emojiTags).then((emojiTags) => {
 			tags = [
-				...textEventComposer.replyTags(content, $state.snapshot($replyTo?.event)),
+				...textEventComposer.replyTags(content, $state.snapshot(replyTo?.event)),
 				...textEventComposer.hashtags(content),
 				...emojiTags,
 				...textEventComposer.contentWarningTags(contentWarningReason)
@@ -450,12 +454,10 @@
 
 		const textEventComposer = new TextEventComposer();
 		const event = await textEventComposer.compose(
-			$replyTo?.event?.kind === Kind.ChannelMessage
-				? Kind.ChannelMessage
-				: Kind.ShortTextNote,
+			replyTo?.event?.kind === Kind.ChannelMessage ? Kind.ChannelMessage : Kind.ShortTextNote,
 			Content.replaceNip19(finalContent),
 			[
-				...textEventComposer.replyTags(finalContent, $state.snapshot($replyTo?.event)),
+				...textEventComposer.replyTags(finalContent, $state.snapshot(replyTo?.event)),
 				...textEventComposer.hashtags(finalContent),
 				...(await textEventComposer.emojiTags(finalContent, $state.snapshot(emojiTags))),
 				...textEventComposer.contentWarningTags(contentWarningReason),
@@ -498,12 +500,12 @@
 			}
 		});
 
-		if ($replyTo === undefined) {
+		if (replyTo === undefined) {
 			return;
 		}
 
 		RelayList.fetchEvents(
-			filterTags('p', $replyTo.event.tags).filter((p) => p !== $pubkey)
+			filterTags('p', replyTo.event.tags).filter((p) => p !== $pubkey)
 		).then((relayListEventsMap) => {
 			if (relayListEventsMap.size === 0) {
 				return;
@@ -617,9 +619,9 @@
 />
 
 <article class="note-composer" inert={composerLocked} aria-busy={composerLocked}>
-	{#if $replyTo}
+	{#if replyTo}
 		<article class="reply-to">
-			<Note item={$replyTo} readonly={true} full={true} />
+			<Note item={replyTo} readonly={true} full={true} />
 		</article>
 	{/if}
 	<div class="content">
@@ -740,8 +742,8 @@
 			<EnableVia bind:enable={enableVia} />
 		</div>
 	{/if}
-	{#if $quotes.length > 0}
-		{#each $quotes as quote}
+	{#if quotes.length > 0}
+		{#each quotes as quote}
 			<Note item={new EventItem(quote)} readonly={true} />
 		{/each}
 	{/if}

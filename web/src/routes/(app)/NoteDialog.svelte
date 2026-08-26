@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
-	import { noteDialogContent, quotes, replyTo } from '$lib/stores/NoteDialog';
+	import type * as Nostr from 'nostr-typedef';
+	import type { EventItem } from '$lib/Items';
 	import type { NoteDialogOpenRequest } from '$lib/NoteDialogContext';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
@@ -10,17 +11,20 @@
 
 	let hasAttachments = $state(false);
 	let composerBusy = $state(false);
+	let content = $state('');
+	let replyTo = $state<EventItem>();
+	let quotes = $state<Nostr.Event[]>([]);
 
 	let dialog = $state<HTMLDialogElement>();
 	let composer = $state<NoteComposer>();
 
 	export async function open(request: NoteDialogOpenRequest = {}): Promise<void> {
 		if (request.replyTo !== undefined) {
-			$replyTo = request.replyTo;
+			replyTo = request.replyTo;
 		}
 		if (request.quotes !== undefined) {
-			$quotes = request.quotes;
-			$noteDialogContent =
+			quotes = request.quotes;
+			content =
 				'\n' +
 				request.quotes
 					.map(
@@ -35,7 +39,7 @@
 					.join('\n');
 		}
 		if (request.content !== undefined) {
-			$noteDialogContent = request.content;
+			content = request.content;
 		}
 
 		if (dialog === undefined || dialog.open) {
@@ -59,13 +63,12 @@
 
 	function closed(): void {
 		composer?.clear(true);
-		$noteDialogContent = '';
 	}
 
 	function closeIfNotEmpty(e?: Event): void {
 		e?.preventDefault();
 		if (composerBusy) return;
-		if (($noteDialogContent === '' && !hasAttachments) || confirm($_('editor.close.confirm'))) {
+		if ((content === '' && !hasAttachments) || confirm($_('editor.close.confirm'))) {
 			dialog?.close();
 		}
 	}
@@ -87,7 +90,9 @@
 		</button>
 		<NoteComposer
 			bind:this={composer}
-			bind:content={$noteDialogContent}
+			bind:content
+			bind:replyTo
+			bind:quotes
 			bind:hasAttachments
 			bind:busy={composerBusy}
 			on:sent={sent}
