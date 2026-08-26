@@ -8,7 +8,7 @@
 	import { onMount } from 'svelte';
 	import Content from '$lib/components/Content.svelte';
 	import { isReply } from '$lib/EventHelper';
-	import { Channel, channelIdStore } from '$lib/Channel';
+	import { Channel } from '$lib/Channel';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
 	import ProxyLink from '../ProxyLink.svelte';
 	import Nip94 from '$lib/components/Nip94.svelte';
@@ -127,7 +127,7 @@
 					</div>
 				</Foldable>
 			{/if}
-			{#if item.event.kind === Kind.ChannelMessage && channelId !== undefined && $channelIdStore === undefined}
+			{#if item.event.kind === Kind.ChannelMessage && channelId !== undefined}
 				<div class="channel">
 					<IconMessages size={16} color="gray" />
 					<span>
