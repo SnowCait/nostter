@@ -168,7 +168,7 @@ export class Login {
 	}
 }
 
-function resetLoginState(): void {
+export function resetLoginState(): void {
 	loginType.set(undefined);
 	author.set(undefined);
 	auth.reset();
