@@ -101,3 +101,22 @@ describe('Auth status machine', () => {
 		expect(auth.isAuthenticated).toBe(false);
 	});
 });
+
+describe('Auth.reset', () => {
+	it('clears authentication state and becomes anonymous', () => {
+		const auth = new Auth();
+		auth.pubkey = me;
+		auth.updateFollowees([
+			['p', a],
+			['p', b]
+		]);
+		auth.setAuthenticated();
+
+		auth.reset();
+
+		expect(auth.pubkey).toBe('');
+		expect(auth.followees).toEqual([]);
+		expect(auth.originalFollowees).toEqual([]);
+		expect(auth.status).toBe('anonymous');
+	});
+});
