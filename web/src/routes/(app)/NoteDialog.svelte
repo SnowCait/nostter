@@ -38,9 +38,10 @@
 			$noteDialogContent = request.content;
 		}
 
-		if (dialog !== undefined && !dialog.open) {
-			dialog.showModal();
+		if (dialog === undefined || dialog.open) {
+			return;
 		}
+		dialog.showModal();
 		await composer?.focus();
 	}
 
