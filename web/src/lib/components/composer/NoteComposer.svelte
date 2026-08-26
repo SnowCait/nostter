@@ -5,15 +5,14 @@
 	import data from '@emoji-mart/data';
 	import { createEventDispatcher, onDestroy, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { kinds as Kind, nip19, type Event as NostrEvent } from 'nostr-tools';
+	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import { complementPosition } from '$lib/styles/Complement';
 	import { adjustHeight } from '$lib/styles/Textarea';
 	import { getSeenOnRelays, rxNostr } from '$lib/timelines/MainTimeline';
 	import { TextEventComposer } from '$lib/TextEventComposer';
-	import { channelIdStore, Channel } from '$lib/Channel';
 	import { Content } from '$lib/Content';
 	import { filterTags } from '$lib/EventHelper';
-	import { cachedEvents, channelMetadataEventsStore, metadataStore } from '$lib/cache/Events';
+	import { metadataStore } from '$lib/cache/Events';
 	import { EventItem, Metadata } from '$lib/Items';
 	import { RelayList } from '$lib/RelayList';
 	import { openNoteDialog, replyTo, quotes, intentContent } from '$lib/stores/NoteDialog';
@@ -22,7 +21,6 @@
 	import { fetchFolloweesMetadata } from '$lib/author/Follow';
 	import Note from '../items/Note.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
-	import ChannelTitle from '../ChannelTitle.svelte';
 	import MediaPicker from '../MediaPicker.svelte';
 	import ContentComponent from '../Content.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
@@ -93,7 +91,6 @@
 
 	let tags: string[][] = $state([]);
 	let posting = $state(false);
-	let channelEvent: NostrEvent | undefined = $state();
 	let emojiTags: string[][] = $state([]);
 	let continuePosting = $state(false);
 	let contentWarningReason: string | undefined = $state();
@@ -275,11 +272,7 @@
 		const textEventComposer = new TextEventComposer();
 		textEventComposer.emojiTags(content, emojiTags).then((emojiTags) => {
 			tags = [
-				...textEventComposer.replyTags(
-					content,
-					$state.snapshot($replyTo?.event),
-					$channelIdStore
-				),
+				...textEventComposer.replyTags(content, $state.snapshot($replyTo?.event)),
 				...textEventComposer.hashtags(content),
 				...emojiTags,
 				...textEventComposer.contentWarningTags(contentWarningReason)
@@ -288,15 +281,6 @@
 	});
 
 	const dispatch = createEventDispatcher();
-
-	channelIdStore.subscribe((channelId) => {
-		if (channelId !== undefined) {
-			channelEvent =
-				$channelMetadataEventsStore.get(channelId) ?? cachedEvents.get(channelId);
-		} else {
-			channelEvent = undefined;
-		}
-	});
 
 	// FIXME: Change trigger
 	openNoteDialog.subscribe(async (open) => {
@@ -493,16 +477,12 @@
 
 		const textEventComposer = new TextEventComposer();
 		const event = await textEventComposer.compose(
-			$channelIdStore !== undefined || $replyTo?.event?.kind === Kind.ChannelMessage
+			$replyTo?.event?.kind === Kind.ChannelMessage
 				? Kind.ChannelMessage
 				: Kind.ShortTextNote,
 			Content.replaceNip19(finalContent),
 			[
-				...textEventComposer.replyTags(
-					finalContent,
-					$state.snapshot($replyTo?.event),
-					$channelIdStore
-				),
+				...textEventComposer.replyTags(finalContent, $state.snapshot($replyTo?.event)),
 				...textEventComposer.hashtags(finalContent),
 				...(await textEventComposer.emojiTags(finalContent, $state.snapshot(emojiTags))),
 				...textEventComposer.contentWarningTags(contentWarningReason),
@@ -666,9 +646,6 @@
 />
 
 <article class="note-composer" inert={composerLocked} aria-busy={composerLocked}>
-	{#if channelEvent !== undefined}
-		<ChannelTitle channelMetadata={Channel.parseMetadata(channelEvent)} />
-	{/if}
 	{#if $replyTo}
 		<article class="reply-to">
 			<Note item={$replyTo} readonly={true} full={true} />

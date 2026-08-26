@@ -2,7 +2,6 @@ import type * as Nostr from 'nostr-typedef';
 import { goto } from '$app/navigation';
 import { nip19 } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { channelIdStore } from '$lib/Channel';
 import { findChannelId, filterTags } from '$lib/EventHelper';
 import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
@@ -37,9 +36,6 @@ const shouldSkipNavigation = (e: MouseEvent | KeyboardEvent): boolean => {
 };
 
 const resolveChannelDestination = (nostrEvent: Nostr.Event): string | undefined => {
-	if (get(channelIdStore) !== undefined) {
-		return undefined;
-	}
 	if (nostrEvent.kind === 40) {
 		return `/channels/${nip19.neventEncode({
 			id: nostrEvent.id,
