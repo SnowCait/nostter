@@ -15,7 +15,7 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { EventItem, Metadata } from '$lib/Items';
 	import { RelayList } from '$lib/RelayList';
-	import { openNoteDialog, replyTo, quotes, intentContent } from '$lib/stores/NoteDialog';
+	import { openNoteDialog, replyTo, quotes } from '$lib/stores/NoteDialog';
 	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { customEmojiTags, findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
 	import { fetchFolloweesMetadata } from '$lib/author/Follow';
@@ -52,7 +52,6 @@
 
 	function clearComposer(closed = false): void {
 		clearAttachments();
-		$intentContent = '';
 		$replyTo = undefined;
 		$quotes = [];
 		mention = undefined;
@@ -308,11 +307,6 @@
 			textarea.setSelectionRange(0, 0);
 			textarea.focus();
 		}
-	});
-
-	intentContent.subscribe((value) => {
-		content = value;
-		value = '';
 	});
 
 	async function onKeydown(e: KeyboardEvent) {

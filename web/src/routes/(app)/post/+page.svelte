@@ -3,10 +3,9 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { appName } from '$lib/Constants';
-	import { intentContent } from '$lib/stores/NoteDialog';
 	import NoteComposer from '$lib/components/composer/NoteComposer.svelte';
 
-	const content = page.url.searchParams.get('content');
+	const contentParameter = page.url.searchParams.get('content');
 
 	// Web Share Target API
 	// Android has no dedicated url field, so the shared URL arrives in text (or title).
@@ -24,11 +23,7 @@
 		.filter((param) => !params.some((other) => other !== param && other.includes(param)))
 		.join('\n');
 
-	if (content !== null) {
-		$intentContent = content;
-	} else {
-		$intentContent = sharedContent;
-	}
+	let content = $state(contentParameter ?? sharedContent);
 
 	let composer: NoteComposer | undefined = $state();
 
@@ -44,5 +39,5 @@
 </svelte:head>
 
 <article class="card">
-	<NoteComposer bind:this={composer} {afterPost} />
+	<NoteComposer bind:this={composer} bind:content {afterPost} />
 </article>

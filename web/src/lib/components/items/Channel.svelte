@@ -7,7 +7,7 @@
 	import type { Item } from '$lib/Items';
 	import IconCodeDots from '@tabler/icons-svelte-runes/icons/code-dots';
 	import IconQuote from '@tabler/icons-svelte-runes/icons/quote';
-	import { intentContent, openNoteDialog } from '$lib/stores/NoteDialog';
+	import { noteDialogContent, openNoteDialog } from '$lib/stores/NoteDialog';
 	import { Channel } from '$lib/Channel';
 	import { findChannelId } from '$lib/EventHelper';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
@@ -56,7 +56,7 @@
 	let jsonDisplay = $state(false);
 
 	function quote(): void {
-		$intentContent = '\n' + nevent;
+		$noteDialogContent = '\n' + nevent;
 		$openNoteDialog = true;
 	}
 

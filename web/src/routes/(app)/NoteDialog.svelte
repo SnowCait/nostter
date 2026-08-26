@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { openNoteDialog } from '$lib/stores/NoteDialog';
+	import { noteDialogContent, openNoteDialog } from '$lib/stores/NoteDialog';
 	import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 	import NoteComposer from '$lib/components/composer/NoteComposer.svelte';
 	import IconX from '@tabler/icons-svelte-runes/icons/x';
 
-	let content = $state('');
 	let hasAttachments = $state(false);
 	let composerBusy = $state(false);
 
@@ -32,12 +31,13 @@
 
 	function closed(): void {
 		composer?.clear(true);
+		$noteDialogContent = '';
 	}
 
 	function closeIfNotEmpty(e?: Event): void {
 		e?.preventDefault();
 		if (composerBusy) return;
-		if ((content === '' && !hasAttachments) || confirm($_('editor.close.confirm'))) {
+		if (($noteDialogContent === '' && !hasAttachments) || confirm($_('editor.close.confirm'))) {
 			dialog?.close();
 		}
 	}
@@ -59,7 +59,7 @@
 		</button>
 		<NoteComposer
 			bind:this={composer}
-			bind:content
+			bind:content={$noteDialogContent}
 			bind:hasAttachments
 			bind:busy={composerBusy}
 			on:sent={sent}
