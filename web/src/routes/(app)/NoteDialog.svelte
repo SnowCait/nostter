@@ -63,6 +63,7 @@
 
 	function closed(): void {
 		composer?.clear(true);
+		content = '';
 	}
 
 	function closeIfNotEmpty(e?: Event): void {
