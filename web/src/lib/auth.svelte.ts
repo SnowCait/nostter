@@ -48,6 +48,13 @@ export class Auth {
 	setAnonymous(): void {
 		this.#status = 'anonymous';
 	}
+
+	reset(): void {
+		this.pubkey = '';
+		this.#followees = [];
+		this.#originalFollowees = [];
+		this.#status = 'anonymous';
+	}
 }
 
 export const auth = new Auth();

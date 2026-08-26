@@ -168,6 +168,12 @@ export class Login {
 	}
 }
 
+export function resetLoginState(): void {
+	loginType.set(undefined);
+	author.set(undefined);
+	auth.reset();
+}
+
 export async function tryLogin(): Promise<boolean> {
 	try {
 		const storage = new WebStorage(localStorage);
@@ -207,10 +213,14 @@ export async function tryLogin(): Promise<boolean> {
 			return false;
 		}
 
-		return true;
+		return auth.status === 'authenticated';
+	} catch (error) {
+		console.error('[tryLogin()]', error);
+		setLoginStatus('failed', 'error');
+		return false;
 	} finally {
 		if (auth.status !== 'authenticated') {
-			auth.setAnonymous();
+			resetLoginState();
 		}
 	}
 }

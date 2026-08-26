@@ -3,7 +3,7 @@
 	import { _ } from 'svelte-i18n';
 	import type * as Nostr from 'nostr-typedef';
 	import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
-	import { Login } from '$lib/Login';
+	import { Login, resetLoginState } from '$lib/Login';
 	import { loginType } from '$lib/stores/Author';
 	import { page } from '$app/state';
 	import { afterNavigate, goto } from '$app/navigation';
@@ -29,8 +29,7 @@
 
 	function resetLoginProgress() {
 		loggingInWith = undefined;
-		loginType.set(undefined);
-		auth.setAnonymous();
+		resetLoginState();
 	}
 
 	async function loginWithNip07() {
@@ -135,8 +134,7 @@
 			console.error('[register failed]', error);
 			setLoginStatus('failed', 'error');
 			registering = false;
-			loginType.set(undefined);
-			auth.setAnonymous();
+			resetLoginState();
 		}
 	}
 
