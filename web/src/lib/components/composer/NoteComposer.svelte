@@ -8,14 +8,15 @@
 	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import { complementPosition } from '$lib/styles/Complement';
 	import { adjustHeight } from '$lib/styles/Textarea';
-	import { getSeenOnRelays, rxNostr } from '$lib/timelines/MainTimeline';
+	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { TextEventComposer } from '$lib/TextEventComposer';
 	import { Content } from '$lib/Content';
 	import { filterTags } from '$lib/EventHelper';
 	import { metadataStore } from '$lib/cache/Events';
 	import { EventItem, Metadata } from '$lib/Items';
 	import { RelayList } from '$lib/RelayList';
-	import { openNoteDialog, replyTo, quotes } from '$lib/stores/NoteDialog';
+	import { replyTo, quotes } from '$lib/stores/NoteDialog';
+	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { customEmojiTags, findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
 	import { fetchFolloweesMetadata } from '$lib/author/Follow';
@@ -50,6 +51,12 @@
 		clearComposer(closed);
 	}
 
+	export async function focus(): Promise<void> {
+		await tick();
+		textarea?.setSelectionRange(0, 0);
+		textarea?.focus();
+	}
+
 	function clearComposer(closed = false): void {
 		clearAttachments();
 		$replyTo = undefined;
@@ -60,7 +67,6 @@
 
 		if (!continuePosting) {
 			content = '';
-			$openNoteDialog = false;
 			collapsible.open = false;
 		} else {
 			const hashtags = Content.findHashtags(content);
@@ -280,34 +286,7 @@
 	});
 
 	const dispatch = createEventDispatcher();
-
-	// FIXME: Change trigger
-	openNoteDialog.subscribe(async (open) => {
-		if (open) {
-			if ($quotes.length > 0) {
-				content =
-					'\n' +
-					$quotes
-						.map(
-							(event) =>
-								`nostr:${nip19.neventEncode({
-									id: event.id,
-									relays: getSeenOnRelays(event.id),
-									author: event.pubkey,
-									kind: event.kind
-								})}`
-						)
-						.join('\n');
-			}
-
-			await tick();
-			if (textarea === undefined) {
-				return;
-			}
-			textarea.setSelectionRange(0, 0);
-			textarea.focus();
-		}
-	});
+	const openNoteDialog = getOpenNoteDialog();
 
 	async function onKeydown(e: KeyboardEvent) {
 		if (composerLocked) return;
@@ -627,9 +606,7 @@
 		onDrag = false;
 	})}
 	ondragover={preventDefault(() => {
-		if (!$openNoteDialog) {
-			$openNoteDialog = true;
-		}
+		void openNoteDialog();
 	})}
 	ondrop={preventDefault(() => {
 		onDrag = false;

@@ -5,7 +5,7 @@
 	import Notice from '$lib/components/Notice.svelte';
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
-	import { openNoteDialog } from '$lib/stores/NoteDialog';
+	import { setOpenNoteDialog, type OpenNoteDialog } from '$lib/NoteDialogContext';
 	import { fetchLastNotification } from '$lib/author/Notifications';
 	import { onMount } from 'svelte';
 	import Gdpr from '$lib/components/Gdpr.svelte';
@@ -19,6 +19,10 @@
 	}
 
 	let { children }: Props = $props();
+	let noteDialog = $state<NoteDialog>();
+
+	const openNoteDialog: OpenNoteDialog = async (request) => noteDialog?.open(request);
+	setOpenNoteDialog(openNoteDialog);
 
 	const konamiCode = [
 		'ArrowUp',
@@ -57,7 +61,7 @@
 			if (composerFocus.current !== undefined) {
 				composerFocus.current();
 			} else {
-				$openNoteDialog = true;
+				void openNoteDialog();
 			}
 			event.preventDefault();
 		}
@@ -152,7 +156,7 @@
 <Notice />
 
 <div class="app">
-	<NoteDialog />
+	<NoteDialog bind:this={noteDialog} />
 
 	<header>
 		<div>

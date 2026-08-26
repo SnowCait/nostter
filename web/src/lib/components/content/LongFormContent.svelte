@@ -2,7 +2,7 @@
 	import { stopPropagation } from 'svelte/legacy';
 
 	import { nip19, type Event } from 'nostr-tools';
-	import { noteDialogContent, openNoteDialog } from '$lib/stores/NoteDialog';
+	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import IconCodeDots from '@tabler/icons-svelte-runes/icons/code-dots';
 	import IconQuote from '@tabler/icons-svelte-runes/icons/quote';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
@@ -28,11 +28,11 @@
 	);
 
 	const iconSize = 20;
+	const openNoteDialog = getOpenNoteDialog();
 	let jsonDisplay = $state(false);
 
 	function quote() {
-		$noteDialogContent = `\nnostr:${naddr}`;
-		$openNoteDialog = true;
+		void openNoteDialog({ content: `\nnostr:${naddr}` });
 	}
 
 	const toggleJsonDisplay = () => {
