@@ -34,13 +34,8 @@
 	import ContinuePosting from './ContinuePosting.svelte';
 	import ExternalLink from '../ExternalLink.svelte';
 	import { emojiEditorUrl } from '$lib/Constants';
-	import {
-		appendUrls,
-		createLocalAttachments,
-		revokeAttachments,
-		uploadLocalAttachments,
-		type LocalAttachment
-	} from '$lib/media/LocalAttachment';
+	import { appendUrls, type LocalAttachment } from '$lib/media/LocalAttachment';
+	import { LocalAttachments } from '$lib/media/LocalAttachments.svelte';
 	import MediaAttachments from '../MediaAttachments.svelte';
 
 	export function clear(closed = false): void {
@@ -258,17 +253,18 @@
 	//#region Media
 
 	let onDrag = $state(false);
-	let attachments: LocalAttachment[] = $state([]);
+	const localAttachments = new LocalAttachments();
 
-	let uploading = $derived(attachments.some(({ state }) => state === 'uploading'));
-	let composerLocked = $derived(posting || uploading);
-	let localMedia = $derived(attachments.map(({ previewUrl: url, kind }) => ({ url, kind })));
+	let composerLocked = $derived(posting || localAttachments.uploading);
+	let localMedia = $derived(
+		localAttachments.attachments.map(({ previewUrl: url, kind }) => ({ url, kind }))
+	);
 
 	$effect(() => {
 		busy = composerLocked;
 	});
 
-	onDestroy(() => revokeAttachments(attachments));
+	onDestroy(() => localAttachments.dispose());
 
 	//#endregion
 
@@ -456,7 +452,11 @@
 		if (posting) {
 			return;
 		}
-		if (content === '' && attachments.length === 0 && !confirm($_('editor.post.empty'))) {
+		if (
+			content === '' &&
+			localAttachments.attachments.length === 0 &&
+			!confirm($_('editor.post.empty'))
+		) {
 			return;
 		}
 		if (containsNsec && !confirm($_('editor.post.nsec'))) {
@@ -466,8 +466,7 @@
 		const replyEvent = $state.snapshot(replyTarget?.event);
 		posting = true;
 		const contentTarget = content;
-		const uploadTarget = [...attachments];
-		const uploadedUrls = await uploadLocalAttachments(uploadTarget);
+		const uploadedUrls = await localAttachments.upload();
 		if (uploadedUrls === undefined) {
 			posting = false;
 			return;
@@ -593,32 +592,29 @@
 
 	function addAttachments(files: FileList | File[]): void {
 		if (composerLocked) return;
-		attachments = [...attachments, ...createLocalAttachments(files)];
-		hasAttachments = attachments.length > 0;
+		localAttachments.add(files);
+		hasAttachments = localAttachments.attachments.length > 0;
 	}
 
 	function removeAttachment(attachment: LocalAttachment): void {
 		if (composerLocked) return;
-		URL.revokeObjectURL(attachment.previewUrl);
-		attachments = attachments.filter((candidate) => candidate !== attachment);
-		hasAttachments = attachments.length > 0;
+		localAttachments.remove(attachment);
+		hasAttachments = localAttachments.attachments.length > 0;
 	}
 
 	function clearAttachments(): void {
-		revokeAttachments(attachments);
-		attachments = [];
+		localAttachments.clear();
 		hasAttachments = false;
 	}
 
 	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
-		if (composerLocked || attachment.state !== 'failed') return;
-		await uploadLocalAttachments([attachment]);
+		if (composerLocked) return;
+		await localAttachments.retry(attachment);
 	}
 
 	async function addAttachmentUrls(): Promise<void> {
 		if (composerLocked) return;
-		const uploadTarget = [...attachments];
-		const uploadedUrls = await uploadLocalAttachments(uploadTarget);
+		const uploadedUrls = await localAttachments.upload();
 		if (uploadedUrls === undefined) return;
 		content = appendUrls(content, uploadedUrls);
 		clearAttachments();
@@ -712,7 +708,7 @@
 	</div>
 
 	<MediaAttachments
-		{attachments}
+		attachments={localAttachments.attachments}
 		disabled={composerLocked}
 		onRetry={retryAttachment}
 		onRemove={removeAttachment}
@@ -738,10 +734,10 @@
 				class="active"
 				onclick={postNote}
 				disabled={$author === undefined ||
-					(content === '' && attachments.length === 0) ||
+					(content === '' && localAttachments.attachments.length === 0) ||
 					$rom ||
 					posting ||
-					uploading}
+					localAttachments.uploading}
 			>
 				{$_('editor.post.button')}
 			</button>
@@ -759,12 +755,12 @@
 			<Note item={new EventItem(quote)} readonly={true} />
 		{/each}
 	{/if}
-	{#if uploading}
+	{#if localAttachments.uploading}
 		<div class="uploading">
 			<Loading />
 		</div>
 	{/if}
-	{#if content !== '' || attachments.length > 0}
+	{#if content !== '' || localAttachments.attachments.length > 0}
 		<section class="preview card">
 			<ContentComponent content={Content.replaceNip19(content)} {tags} {localMedia} />
 			{#if enableVia}
