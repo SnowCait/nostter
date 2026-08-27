@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { createBubbler, preventDefault, stopPropagation } from 'svelte/legacy';
-
-	const bubble = createBubbler();
 	import data from '@emoji-mart/data';
 	import { onDestroy, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
@@ -291,6 +288,20 @@
 
 	const openNoteDialog = getOpenNoteDialog();
 
+	function preventDragDefault(event: DragEvent): void {
+		event.preventDefault();
+	}
+
+	function clearDragState(event: DragEvent): void {
+		event.preventDefault();
+		onDrag = false;
+	}
+
+	function openDialogOnDragOver(event: DragEvent): void {
+		event.preventDefault();
+		void openNoteDialog();
+	}
+
 	async function onKeydown(e: KeyboardEvent) {
 		if (composerLocked) return;
 		console.debug(`[composer keydown]`, e.type, e.key, e.ctrlKey, e.metaKey);
@@ -403,6 +414,11 @@
 		mention = undefined;
 	}
 
+	async function selectMentionComplement(event: MouseEvent, metadata: Metadata): Promise<void> {
+		event.stopPropagation();
+		await replaceMentionComplement(metadata);
+	}
+
 	async function onEmojiPick(emoji: PickerEmoji): Promise<void> {
 		if (composerLocked || textarea === undefined) {
 			return;
@@ -429,6 +445,11 @@
 		await tick();
 		const cursor = content.length - after.length;
 		textarea.setSelectionRange(cursor, cursor);
+	}
+
+	async function selectShortcodeComplement(event: MouseEvent, emoji: Emoji): Promise<void> {
+		event.stopPropagation();
+		await replaceShortcodeComplement(emoji);
 	}
 
 	async function postNote() {
@@ -544,7 +565,8 @@
 		addAttachments(files);
 	}
 
-	async function dragover() {
+	function dragover(event: DragEvent): void {
+		event.preventDefault();
 		console.log('[dragover]');
 		onDrag = true;
 	}
@@ -604,19 +626,11 @@
 </script>
 
 <svelte:body
-	ondragstart={preventDefault(bubble('dragstart'))}
-	ondragend={preventDefault(() => {
-		onDrag = false;
-	})}
-	ondragover={preventDefault(() => {
-		void openNoteDialog();
-	})}
-	ondrop={preventDefault(() => {
-		onDrag = false;
-	})}
-	ondragleave={preventDefault(() => {
-		onDrag = false;
-	})}
+	ondragstart={preventDragDefault}
+	ondragend={clearDragState}
+	ondragover={openDialogOnDragOver}
+	ondrop={clearDragState}
+	ondragleave={clearDragState}
 />
 
 <article class="note-composer" inert={composerLocked} aria-busy={composerLocked}>
@@ -639,7 +653,7 @@
 				onkeydown={onKeydown}
 				oninput={onInput}
 				onpaste={paste}
-				ondragover={preventDefault(dragover)}
+				ondragover={dragover}
 				ondrop={drop}
 			></textarea>
 			{#if containsNsec}
@@ -654,9 +668,8 @@
 						<li
 							class="mention-complement"
 							class:selected={i === mentionComplementIndex}
-							onclick={stopPropagation(
-								async () => await replaceMentionComplement(mentionComplementList[i])
-							)}
+							onclick={async (event) =>
+								await selectMentionComplement(event, mentionComplementList[i])}
 						>
 							<span class="mention-profile">
 								<OnelineProfile pubkey={metadata.event.pubkey} />
@@ -676,10 +689,8 @@
 						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 						<li
 							class:selected={i === shortcodeComplementIndex}
-							onclick={stopPropagation(
-								async () =>
-									await replaceShortcodeComplement(shortcodeComplementList[i])
-							)}
+							onclick={async (event) =>
+								await selectShortcodeComplement(event, shortcodeComplementList[i])}
 						>
 							{#if emoji.url !== undefined}
 								<CustomEmoji text={emoji.shortcode} url={emoji.url} />
