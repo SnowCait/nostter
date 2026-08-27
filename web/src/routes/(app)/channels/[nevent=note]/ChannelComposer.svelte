@@ -15,7 +15,11 @@
 	import type { PickerEmoji } from '$lib/Emoji';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
 	import MediaAttachments from '$lib/components/MediaAttachments.svelte';
-	import { appendUrls, type LocalAttachment } from '$lib/media/LocalAttachment';
+	import {
+		appendUrls,
+		filesFromDataTransferItems,
+		type LocalAttachment
+	} from '$lib/media/LocalAttachment';
 	import { LocalAttachments } from '$lib/media/LocalAttachments.svelte';
 	import { composerFocus } from './ComposerFocus.svelte';
 
@@ -131,10 +135,7 @@
 		if (composerLocked || event.clipboardData === null) {
 			return;
 		}
-		const files = [...event.clipboardData.items]
-			.filter((item) => item.kind === 'file')
-			.map((item) => item.getAsFile())
-			.filter((file): file is File => file !== null);
+		const files = filesFromDataTransferItems(event.clipboardData.items);
 		addAttachments(files);
 	}
 
@@ -143,10 +144,7 @@
 		if (composerLocked || event.dataTransfer === null) {
 			return;
 		}
-		const files = [...event.dataTransfer.items]
-			.filter((item) => item.kind === 'file')
-			.map((item) => item.getAsFile())
-			.filter((file): file is File => file !== null);
+		const files = filesFromDataTransferItems(event.dataTransfer.items);
 		addAttachments(files);
 	}
 

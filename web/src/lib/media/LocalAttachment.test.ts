@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
 	appendUrls,
 	createLocalAttachments,
+	filesFromDataTransferItems,
 	revokeAttachments,
 	uploadLocalAttachments,
 	type LocalAttachment
@@ -16,6 +17,21 @@ afterEach(() => {
 });
 
 describe('local attachments', () => {
+	it('extracts file items in order and ignores strings and unavailable files', () => {
+		const first = new File([], 'first.png');
+		const second = new File([], 'second.png');
+		const stringGetAsFile = vi.fn(() => null);
+		const items = [
+			{ kind: 'file', getAsFile: () => first },
+			{ kind: 'string', getAsFile: stringGetAsFile },
+			{ kind: 'file', getAsFile: () => null },
+			{ kind: 'file', getAsFile: () => second }
+		] as unknown as DataTransferItemList;
+
+		expect(filesFromDataTransferItems(items)).toEqual([first, second]);
+		expect(stringGetAsFile).not.toHaveBeenCalled();
+	});
+
 	it('creates image, video, and audio previews without uploading', () => {
 		createObjectURL.mockImplementation((file) => `blob:${(file as File).name}`);
 		const files = [

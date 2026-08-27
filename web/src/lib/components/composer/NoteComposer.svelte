@@ -34,7 +34,11 @@
 	import ContinuePosting from './ContinuePosting.svelte';
 	import ExternalLink from '../ExternalLink.svelte';
 	import { emojiEditorUrl } from '$lib/Constants';
-	import { appendUrls, type LocalAttachment } from '$lib/media/LocalAttachment';
+	import {
+		appendUrls,
+		filesFromDataTransferItems,
+		type LocalAttachment
+	} from '$lib/media/LocalAttachment';
 	import { LocalAttachments } from '$lib/media/LocalAttachments.svelte';
 	import MediaAttachments from '../MediaAttachments.svelte';
 
@@ -559,10 +563,7 @@
 			return;
 		}
 
-		const files = [...event.clipboardData.items]
-			.filter((item) => item.kind === 'file')
-			.map((item) => item.getAsFile())
-			.filter((file): file is File => file !== null);
+		const files = filesFromDataTransferItems(event.clipboardData.items);
 		addAttachments(files);
 	}
 
@@ -580,10 +581,7 @@
 			return;
 		}
 
-		const files = [...event.dataTransfer.items]
-			.filter((item) => item.kind === 'file')
-			.map((item) => item.getAsFile())
-			.filter((file): file is File => file !== null);
+		const files = filesFromDataTransferItems(event.dataTransfer.items);
 		addAttachments(files);
 	}
 

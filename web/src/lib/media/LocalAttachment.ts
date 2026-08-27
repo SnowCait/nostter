@@ -16,6 +16,13 @@ export interface LocalMediaPreview {
 	kind: MediaKind;
 }
 
+export function filesFromDataTransferItems(items: DataTransferItemList): File[] {
+	return [...items]
+		.filter((item) => item.kind === 'file')
+		.map((item) => item.getAsFile())
+		.filter((file): file is File => file !== null);
+}
+
 export function createLocalAttachments(files: FileList | File[]): LocalAttachment[] {
 	return [...files].flatMap((file) => {
 		const kind = mediaKindFromContentType(file.type) ?? mediaKindFromPathname(file.name);
