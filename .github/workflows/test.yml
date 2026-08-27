@@ -45,5 +45,5 @@ jobs:
         with:
           node-version: "24.x"
       - run: npm ci
-      - run: npx playwright install
+      - run: npx playwright install chromium --only-shell
       - run: npm run test:e2e
