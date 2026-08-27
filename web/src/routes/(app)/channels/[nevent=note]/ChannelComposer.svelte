@@ -49,10 +49,7 @@
 	});
 
 	async function send(): Promise<void> {
-		if (
-			composerLocked ||
-			(content.trim() === '' && localAttachments.attachments.length === 0)
-		) {
+		if (composerLocked || (content.trim() === '' && !localAttachments.hasAttachments)) {
 			return;
 		}
 		posting = true;
@@ -233,8 +230,7 @@
 		<button
 			class="send"
 			title="{$_('channel.send')} (Ctrl + Enter)"
-			disabled={composerLocked ||
-				(content.trim() === '' && localAttachments.attachments.length === 0)}
+			disabled={composerLocked || (content.trim() === '' && !localAttachments.hasAttachments)}
 			onclick={send}
 		>
 			<IconSend size={20} />

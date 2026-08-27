@@ -20,6 +20,21 @@ afterEach(() => {
 });
 
 describe('LocalAttachments', () => {
+	it('reports whether attachments exist', () => {
+		const localAttachments = new LocalAttachments();
+		expect(localAttachments.hasAttachments).toBe(false);
+
+		localAttachments.add([new File([], 'first.png', { type: 'image/png' })]);
+		expect(localAttachments.hasAttachments).toBe(true);
+
+		localAttachments.remove(localAttachments.attachments[0]);
+		expect(localAttachments.hasAttachments).toBe(false);
+
+		localAttachments.add([new File([], 'second.png', { type: 'image/png' })]);
+		localAttachments.clear();
+		expect(localAttachments.hasAttachments).toBe(false);
+	});
+
 	it('adds supported media without uploading', () => {
 		const localAttachments = new LocalAttachments();
 		localAttachments.add([

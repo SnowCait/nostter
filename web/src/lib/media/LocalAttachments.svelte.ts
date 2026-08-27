@@ -8,6 +8,10 @@ import {
 export class LocalAttachments {
 	attachments = $state<LocalAttachment[]>([]);
 
+	get hasAttachments(): boolean {
+		return this.attachments.length > 0;
+	}
+
 	uploading = $derived(this.attachments.some(({ state }) => state === 'uploading'));
 
 	add(files: FileList | File[]): void {

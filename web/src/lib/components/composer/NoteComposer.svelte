@@ -50,7 +50,7 @@
 	}
 
 	export function hasAttachments(): boolean {
-		return localAttachments.attachments.length > 0;
+		return localAttachments.hasAttachments;
 	}
 
 	function clearComposer(closed = false): void {
@@ -456,7 +456,7 @@
 		}
 		if (
 			content === '' &&
-			localAttachments.attachments.length === 0 &&
+			!localAttachments.hasAttachments &&
 			!confirm($_('editor.post.empty'))
 		) {
 			return;
@@ -733,7 +733,7 @@
 				class="active"
 				onclick={postNote}
 				disabled={$author === undefined ||
-					(content === '' && localAttachments.attachments.length === 0) ||
+					(content === '' && !localAttachments.hasAttachments) ||
 					$rom ||
 					posting ||
 					localAttachments.uploading}
@@ -759,7 +759,7 @@
 			<Loading />
 		</div>
 	{/if}
-	{#if content !== '' || localAttachments.attachments.length > 0}
+	{#if content !== '' || localAttachments.hasAttachments}
 		<section class="preview card">
 			<ContentComponent content={Content.replaceNip19(content)} {tags} {localMedia} />
 			{#if enableVia}
