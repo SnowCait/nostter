@@ -9,7 +9,6 @@
 	import NoteComposer from '$lib/components/composer/NoteComposer.svelte';
 	import IconX from '@tabler/icons-svelte-runes/icons/x';
 
-	let hasAttachments = $state(false);
 	let composerBusy = $state(false);
 	let content = $state('');
 	let replyTo = $state<EventItem>();
@@ -71,7 +70,8 @@
 	function closeIfNotEmpty(e?: Event): void {
 		e?.preventDefault();
 		if (composerBusy) return;
-		if ((content === '' && !hasAttachments) || confirm($_('editor.close.confirm'))) {
+		const composerHasAttachments = composer?.hasAttachments() ?? false;
+		if ((content === '' && !composerHasAttachments) || confirm($_('editor.close.confirm'))) {
 			dialog?.close();
 		}
 	}
@@ -101,7 +101,6 @@
 			bind:content
 			{replyTo}
 			{quotes}
-			bind:hasAttachments
 			bind:busy={composerBusy}
 			onSent={handleSent}
 			afterPost={closeDialog}

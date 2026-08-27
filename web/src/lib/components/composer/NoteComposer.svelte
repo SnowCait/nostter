@@ -49,6 +49,10 @@
 		textarea?.focus();
 	}
 
+	export function hasAttachments(): boolean {
+		return localAttachments.attachments.length > 0;
+	}
+
 	function clearComposer(closed = false): void {
 		clearAttachments();
 		mention = undefined;
@@ -76,7 +80,6 @@
 		content?: string;
 		replyTo?: EventItem;
 		quotes?: Nostr.Event[];
-		hasAttachments?: boolean;
 		busy?: boolean;
 	}
 
@@ -86,7 +89,6 @@
 		content = $bindable(''),
 		replyTo,
 		quotes = [],
-		hasAttachments = $bindable(false),
 		busy = $bindable(false)
 	}: Props = $props();
 
@@ -593,18 +595,15 @@
 	function addAttachments(files: FileList | File[]): void {
 		if (composerLocked) return;
 		localAttachments.add(files);
-		hasAttachments = localAttachments.attachments.length > 0;
 	}
 
 	function removeAttachment(attachment: LocalAttachment): void {
 		if (composerLocked) return;
 		localAttachments.remove(attachment);
-		hasAttachments = localAttachments.attachments.length > 0;
 	}
 
 	function clearAttachments(): void {
 		localAttachments.clear();
-		hasAttachments = false;
 	}
 
 	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
