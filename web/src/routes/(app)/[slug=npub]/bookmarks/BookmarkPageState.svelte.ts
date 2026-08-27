@@ -22,6 +22,7 @@ export class BookmarkPageState<T> {
 	#cleanupPublicLegacyBookmarks: (() => void) | undefined;
 
 	bookmarkListTabs = $derived(getBookmarkListTabs(this.#legacyBookmarkEvent !== undefined));
+	hasStandardBookmarks = $derived(this.#bookmarkEvent !== undefined);
 
 	constructor(
 		bookmarkEvent: Writable<Nostr.Event | undefined>,

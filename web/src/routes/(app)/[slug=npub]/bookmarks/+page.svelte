@@ -6,7 +6,13 @@
 	import { _ } from 'svelte-i18n';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
-	import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark';
+	import {
+		bookmarkEvent,
+		copyLegacyBookmarks,
+		deleteLegacyBookmarks,
+		legacyBookmarkEvent
+	} from '$lib/author/Bookmark';
+	import { addToast } from '$lib/components/Toaster.svelte';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { appName, reverseChronologicalItem } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
@@ -25,6 +31,56 @@
 
 	let privateBookmarkEventItems: EventItem[] = $state([]);
 	let privateLegacyBookmarkEventItems: EventItem[] = $state([]);
+	let copyingLegacyBookmarks = $state(false);
+	let deletingLegacyBookmarks = $state(false);
+
+	async function copyAllLegacyBookmarks(): Promise<void> {
+		if (copyingLegacyBookmarks) return;
+		copyingLegacyBookmarks = true;
+		try {
+			await copyLegacyBookmarks();
+			addToast({
+				data: {
+					title: $_('bookmarks.copy.success.title'),
+					description: $_('bookmarks.copy.success.description')
+				}
+			});
+		} catch (error) {
+			console.error('[legacy bookmarks copy failed]', error);
+			addToast({
+				data: {
+					title: $_('bookmarks.copy.failed.title'),
+					description: $_('bookmarks.copy.failed.description')
+				}
+			});
+		} finally {
+			copyingLegacyBookmarks = false;
+		}
+	}
+
+	async function deleteAllLegacyBookmarks(): Promise<void> {
+		if (deletingLegacyBookmarks || !confirm($_('bookmarks.delete.confirm'))) return;
+		deletingLegacyBookmarks = true;
+		try {
+			await deleteLegacyBookmarks();
+			addToast({
+				data: {
+					title: $_('bookmarks.delete.success.title'),
+					description: $_('bookmarks.delete.success.description')
+				}
+			});
+		} catch (error) {
+			console.error('[legacy bookmarks delete failed]', error);
+			addToast({
+				data: {
+					title: $_('bookmarks.delete.failed.title'),
+					description: $_('bookmarks.delete.failed.description')
+				}
+			});
+		} finally {
+			deletingLegacyBookmarks = false;
+		}
+	}
 
 	function loadPublicItems(event: Nostr.Event, addItem: (item: EventItem) => void): () => void {
 		const ids = filterTags('e', event.tags);
@@ -91,6 +147,7 @@
 
 	// Private bookmarks
 	$effect(() => {
+		privateBookmarkEventItems = [];
 		if (
 			data.pubkey === $authorPubkey &&
 			!$rom &&
@@ -131,6 +188,7 @@
 
 	// Private legacy bookmarks
 	$effect(() => {
+		privateLegacyBookmarkEventItems = [];
 		if (
 			data.pubkey === $authorPubkey &&
 			!$rom &&
@@ -203,6 +261,35 @@
 		aria-labelledby={`bookmark-tab-${tab.id}`}
 		hidden={selectedBookmarkList?.id !== tab.id}
 	>
+		{#if tab.id === legacyBookmarkListId && data.pubkey === $authorPubkey && !$rom}
+			<section class="legacy-bookmark-actions">
+				<p>{$_('bookmarks.copy.description')}</p>
+
+				<button
+					class="rounded-button primary"
+					type="button"
+					disabled={copyingLegacyBookmarks}
+					onclick={copyAllLegacyBookmarks}
+				>
+					{copyingLegacyBookmarks
+						? $_('bookmarks.copy.running')
+						: $_('bookmarks.copy.action')}
+				</button>
+
+				{#if pageState.hasStandardBookmarks}
+					<button
+						class="delete-legacy"
+						type="button"
+						disabled={deletingLegacyBookmarks}
+						onclick={deleteAllLegacyBookmarks}
+					>
+						{deletingLegacyBookmarks
+							? $_('bookmarks.delete.running')
+							: $_('bookmarks.delete.action')}
+					</button>
+				{/if}
+			</section>
+		{/if}
 		<h2>{$_('pages.public')}</h2>
 
 		<TimelineView items={publicItems} showLoading={false} />
@@ -258,5 +345,30 @@
 	.bookmark-tab[aria-selected='true'] {
 		border-bottom-color: var(--accent);
 		font-weight: bold;
+	}
+
+	.legacy-bookmark-actions {
+		margin-block: 1rem 1.5rem;
+	}
+
+	.legacy-bookmark-actions p {
+		margin: 0 0 1rem;
+		color: var(--accent-gray);
+	}
+
+	.legacy-bookmark-actions .primary {
+		min-height: 2.75rem;
+		padding-inline: 1.25rem;
+	}
+
+	.delete-legacy {
+		display: block;
+		min-height: 2.75rem;
+		margin-top: 0.75rem;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: var(--danger, #c62828);
+		text-decoration: underline;
 	}
 </style>

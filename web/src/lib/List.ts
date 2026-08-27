@@ -45,20 +45,27 @@ export async function decryptListContent(
 	pubkey: string,
 	content: string
 ): Promise<[tags: string[][], legacy: boolean]> {
-	if (content === '') {
-		return [[], false];
-	}
-
 	try {
-		const legacy = isLegacyEncryption(content);
-		const json = await (legacy
-			? Signer.decrypt(pubkey, content)
-			: Signer.decryptNip44(pubkey, content));
-		return [JSON.parse(json), legacy];
+		return await decryptListContentStrict(pubkey, content);
 	} catch (error) {
 		console.warn('[list parse error]', error);
 		return [[], false];
 	}
+}
+
+export async function decryptListContentStrict(
+	pubkey: string,
+	content: string
+): Promise<[tags: string[][], legacy: boolean]> {
+	if (content === '') {
+		return [[], false];
+	}
+
+	const legacy = isLegacyEncryption(content);
+	const json = await (legacy
+		? Signer.decrypt(pubkey, content)
+		: Signer.decryptNip44(pubkey, content));
+	return [JSON.parse(json), legacy];
 }
 
 export async function encryptListContent(
