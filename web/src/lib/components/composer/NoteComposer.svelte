@@ -6,7 +6,13 @@
 	import { complementPosition } from '$lib/styles/Complement';
 	import { adjustHeight } from '$lib/styles/Textarea';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import { TextEventComposer } from '$lib/TextEventComposer';
+	import {
+		compose,
+		contentWarningTags,
+		emojiTags as createEmojiTags,
+		hashtags,
+		replyTags
+	} from '$lib/TextEventComposer';
 	import { Content } from '$lib/Content';
 	import { filterTags } from '$lib/EventHelper';
 	import { metadataStore } from '$lib/cache/Events';
@@ -277,13 +283,12 @@
 	let containsNsec = $derived(/nsec1\w{6,}/.test(content));
 
 	$effect(() => {
-		const textEventComposer = new TextEventComposer();
-		textEventComposer.emojiTags(content, emojiTags).then((emojiTags) => {
+		createEmojiTags(content, emojiTags).then((emojiTags) => {
 			tags = [
-				...textEventComposer.replyTags(content, $state.snapshot(replyTo?.event)),
-				...textEventComposer.hashtags(content),
+				...replyTags(content, $state.snapshot(replyTo?.event)),
+				...hashtags(content),
 				...emojiTags,
-				...textEventComposer.contentWarningTags(contentWarningReason)
+				...contentWarningTags(contentWarningReason)
 			];
 		});
 	});
@@ -479,15 +484,14 @@
 		}
 		const finalContent = appendUrls(contentTarget, uploadedUrls);
 
-		const textEventComposer = new TextEventComposer();
-		const event = await textEventComposer.compose(
+		const event = await compose(
 			replyEvent?.kind === Kind.ChannelMessage ? Kind.ChannelMessage : Kind.ShortTextNote,
 			Content.replaceNip19(finalContent),
 			[
-				...textEventComposer.replyTags(finalContent, replyEvent),
-				...textEventComposer.hashtags(finalContent),
-				...(await textEventComposer.emojiTags(finalContent, $state.snapshot(emojiTags))),
-				...textEventComposer.contentWarningTags(contentWarningReason),
+				...replyTags(finalContent, replyEvent),
+				...hashtags(finalContent),
+				...(await createEmojiTags(finalContent, $state.snapshot(emojiTags))),
+				...contentWarningTags(contentWarningReason),
 				...(enableVia ? [createViaTag()] : [])
 			]
 		);
