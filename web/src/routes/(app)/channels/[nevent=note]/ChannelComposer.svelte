@@ -15,13 +15,8 @@
 	import type { PickerEmoji } from '$lib/Emoji';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
 	import MediaAttachments from '$lib/components/MediaAttachments.svelte';
-	import {
-		appendUrls,
-		createLocalAttachments,
-		revokeAttachments,
-		uploadLocalAttachments,
-		type LocalAttachment
-	} from '$lib/media/LocalAttachment';
+	import { appendUrls, type LocalAttachment } from '$lib/media/LocalAttachment';
+	import { LocalAttachments } from '$lib/media/LocalAttachments.svelte';
 	import { composerFocus } from './ComposerFocus.svelte';
 
 	interface Props {
@@ -35,10 +30,9 @@
 	let content = $state('');
 	let posting = $state(false);
 	let emojiTags = $state<string[][]>([]);
-	let attachments: LocalAttachment[] = $state([]);
+	const localAttachments = new LocalAttachments();
 
-	let uploading = $derived(attachments.some(({ state }) => state === 'uploading'));
-	let composerLocked = $derived(posting || uploading);
+	let composerLocked = $derived(posting || localAttachments.uploading);
 	let replyName = $derived(
 		replyTo !== undefined
 			? ($metadataStore.get(replyTo.pubkey)?.displayName ?? alternativeName(replyTo.pubkey))
@@ -51,19 +45,18 @@
 
 	onDestroy(() => {
 		composerFocus.current = undefined;
-		revokeAttachments(attachments);
+		localAttachments.dispose();
 	});
 
 	async function send(): Promise<void> {
-		if (composerLocked || (content.trim() === '' && attachments.length === 0)) {
+		if (composerLocked || (content.trim() === '' && !localAttachments.hasAttachments)) {
 			return;
 		}
 		posting = true;
 		const contentTarget = content;
 		const replyTarget = $state.snapshot(replyTo);
 		const emojiTagsTarget = $state.snapshot(emojiTags);
-		const attachmentTarget = [...attachments];
-		const uploadedUrls = await uploadLocalAttachments(attachmentTarget);
+		const uploadedUrls = await localAttachments.upload();
 		if (uploadedUrls === undefined) {
 			posting = false;
 			return;
@@ -163,18 +156,12 @@
 
 	function addAttachments(files: FileList | File[]): void {
 		if (composerLocked) return;
-		attachments = [...attachments, ...createLocalAttachments(files)];
+		localAttachments.add(files);
 	}
 
 	function removeAttachment(attachment: LocalAttachment): void {
 		if (composerLocked) return;
-		URL.revokeObjectURL(attachment.previewUrl);
-		attachments = attachments.filter((candidate) => candidate !== attachment);
-	}
-
-	function clearAttachments(): void {
-		revokeAttachments(attachments);
-		attachments = [];
+		localAttachments.remove(attachment);
 	}
 
 	function clearReply(): void {
@@ -186,21 +173,20 @@
 		content = '';
 		emojiTags = [];
 		replyTo = undefined;
-		clearAttachments();
+		localAttachments.clear();
 	}
 
 	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
-		if (composerLocked || attachment.state !== 'failed') return;
-		await uploadLocalAttachments([attachment]);
+		if (composerLocked) return;
+		await localAttachments.retry(attachment);
 	}
 
 	async function addAttachmentUrls(): Promise<void> {
 		if (composerLocked) return;
-		const attachmentTarget = [...attachments];
-		const uploadedUrls = await uploadLocalAttachments(attachmentTarget);
+		const uploadedUrls = await localAttachments.upload();
 		if (uploadedUrls === undefined) return;
 		content = appendUrls(content, uploadedUrls);
-		clearAttachments();
+		localAttachments.clear();
 	}
 </script>
 
@@ -222,7 +208,7 @@
 		</div>
 	{/if}
 	<MediaAttachments
-		{attachments}
+		attachments={localAttachments.attachments}
 		disabled={composerLocked}
 		onRetry={retryAttachment}
 		onRemove={removeAttachment}
@@ -244,7 +230,7 @@
 		<button
 			class="send"
 			title="{$_('channel.send')} (Ctrl + Enter)"
-			disabled={composerLocked || (content.trim() === '' && attachments.length === 0)}
+			disabled={composerLocked || (content.trim() === '' && !localAttachments.hasAttachments)}
 			onclick={send}
 		>
 			<IconSend size={20} />
