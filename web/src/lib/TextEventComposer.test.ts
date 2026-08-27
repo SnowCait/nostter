@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { kinds as Kind, type Event } from 'nostr-tools';
-import { TextEventComposer } from './TextEventComposer';
+import { replyTags } from './TextEventComposer';
 
-describe('TextEventComposer.replyTags', () => {
+describe('replyTags', () => {
 	it('preserves NIP-28 root, reply, and pubkey tags when replying to a channel message', () => {
 		const replyTo: Event = {
 			kind: Kind.ChannelMessage,
@@ -18,7 +18,7 @@ describe('TextEventComposer.replyTags', () => {
 			sig: ''
 		};
 
-		const tags = new TextEventComposer().replyTags('', replyTo);
+		const tags = replyTags('', replyTo);
 
 		expect(tags).toContainEqual(['e', 'channel-id', '', 'root']);
 		expect(tags).toContainEqual(['e', 'reply-id', '', 'reply', 'reply-author']);
