@@ -64,6 +64,8 @@
 	function closed(): void {
 		composer?.clear(true);
 		content = '';
+		replyTo = undefined;
+		quotes = [];
 	}
 
 	function closeIfNotEmpty(e?: Event): void {
@@ -74,7 +76,12 @@
 		}
 	}
 
-	function sent(): void {
+	function handleSent(): void {
+		replyTo = undefined;
+		quotes = [];
+	}
+
+	async function closeDialog(): Promise<void> {
 		dialog?.close();
 	}
 </script>
@@ -92,11 +99,12 @@
 		<NoteComposer
 			bind:this={composer}
 			bind:content
-			bind:replyTo
-			bind:quotes
+			{replyTo}
+			{quotes}
 			bind:hasAttachments
 			bind:busy={composerBusy}
-			on:sent={sent}
+			onSent={handleSent}
+			afterPost={closeDialog}
 		/>
 	</div>
 </dialog>

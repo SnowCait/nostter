@@ -3,7 +3,7 @@
 
 	const bubble = createBubbler();
 	import data from '@emoji-mart/data';
-	import { createEventDispatcher, onDestroy, tick, untrack } from 'svelte';
+	import { onDestroy, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import { complementPosition } from '$lib/styles/Complement';
@@ -59,8 +59,6 @@
 
 	function clearComposer(closed = false): void {
 		clearAttachments();
-		replyTo = undefined;
-		quotes = [];
 		mention = undefined;
 		emojiTags = [];
 		contentWarningReason = undefined;
@@ -81,6 +79,7 @@
 	}
 
 	interface Props {
+		onSent?: () => void;
 		afterPost?: () => Promise<void>;
 		content?: string;
 		replyTo?: EventItem;
@@ -90,10 +89,11 @@
 	}
 
 	let {
+		onSent,
 		afterPost = async () => {},
 		content = $bindable(''),
-		replyTo = $bindable(),
-		quotes = $bindable([]),
+		replyTo,
+		quotes = [],
 		hasAttachments = $bindable(false),
 		busy = $bindable(false)
 	}: Props = $props();
@@ -289,7 +289,6 @@
 		});
 	});
 
-	const dispatch = createEventDispatcher();
 	const openNoteDialog = getOpenNoteDialog();
 
 	async function onKeydown(e: KeyboardEvent) {
@@ -442,6 +441,8 @@
 		if (containsNsec && !confirm($_('editor.post.nsec'))) {
 			return;
 		}
+		const replyTarget = replyTo;
+		const replyEvent = $state.snapshot(replyTarget?.event);
 		posting = true;
 		const contentTarget = content;
 		const uploadTarget = [...attachments];
@@ -454,10 +455,10 @@
 
 		const textEventComposer = new TextEventComposer();
 		const event = await textEventComposer.compose(
-			replyTo?.event?.kind === Kind.ChannelMessage ? Kind.ChannelMessage : Kind.ShortTextNote,
+			replyEvent?.kind === Kind.ChannelMessage ? Kind.ChannelMessage : Kind.ShortTextNote,
 			Content.replaceNip19(finalContent),
 			[
-				...textEventComposer.replyTags(finalContent, $state.snapshot(replyTo?.event)),
+				...textEventComposer.replyTags(finalContent, replyEvent),
 				...textEventComposer.hashtags(finalContent),
 				...(await textEventComposer.emojiTags(finalContent, $state.snapshot(emojiTags))),
 				...textEventComposer.contentWarningTags(contentWarningReason),
@@ -481,8 +482,8 @@
 				if (packet.ok && posting) {
 					posting = false;
 					clearComposer();
+					onSent?.();
 					if (!continuePosting) {
-						dispatch('sent');
 						await afterPost();
 					}
 				}
@@ -500,33 +501,33 @@
 			}
 		});
 
-		if (replyTo === undefined) {
+		if (replyEvent === undefined) {
 			return;
 		}
 
-		RelayList.fetchEvents(
-			filterTags('p', replyTo.event.tags).filter((p) => p !== $pubkey)
-		).then((relayListEventsMap) => {
-			if (relayListEventsMap.size === 0) {
-				return;
-			}
+		RelayList.fetchEvents(filterTags('p', replyEvent.tags).filter((p) => p !== $pubkey)).then(
+			(relayListEventsMap) => {
+				if (relayListEventsMap.size === 0) {
+					return;
+				}
 
-			const readRelays = [...relayListEventsMap]
-				.flatMap(([, relayListEvent]) => relayListEvent.tags)
-				.filter(
-					([tagName, , marker]) =>
-						tagName === 'r' && (marker === undefined || marker === 'read')
-				)
-				.map(([, url]) => url)
-				.filter((url) => !sendToRelays.includes(url));
-			console.log('[rx-nostr send addition]', readRelays, relayListEventsMap);
-			if (readRelays.length === 0) {
-				return;
+				const readRelays = [...relayListEventsMap]
+					.flatMap(([, relayListEvent]) => relayListEvent.tags)
+					.filter(
+						([tagName, , marker]) =>
+							tagName === 'r' && (marker === undefined || marker === 'read')
+					)
+					.map(([, url]) => url)
+					.filter((url) => !sendToRelays.includes(url));
+				console.log('[rx-nostr send addition]', readRelays, relayListEventsMap);
+				if (readRelays.length === 0) {
+					return;
+				}
+				rxNostr.send(event, { relays: [...new Set(readRelays)] }).subscribe((packet) => {
+					console.log('[rx-nostr send additional next]', packet);
+				});
 			}
-			rxNostr.send(event, { relays: [...new Set(readRelays)] }).subscribe((packet) => {
-				console.log('[rx-nostr send additional next]', packet);
-			});
-		});
+		);
 	}
 
 	async function paste(event: ClipboardEvent) {
