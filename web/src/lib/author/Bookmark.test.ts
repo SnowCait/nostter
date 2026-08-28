@@ -141,6 +141,59 @@ describe('Bookmark', () => {
 		expect(mocks.sent[1].tags).toEqual([['e', 'second']]);
 	});
 
+	it('automatically batches queued operations after the active publish fails', async () => {
+		const previous = event({ id: 'previous', tags: [['e', 'existing']] });
+		const firstPublish = new Subject<{ ok: boolean }>();
+		mocks.stored = previous;
+		mocks.pendingSend = firstPublish;
+		bookmarkEvent.set(previous);
+
+		const first = bookmark(['e', 'failed']);
+		await vi.waitFor(() => expect(mocks.sent).toHaveLength(1));
+		await bookmark(['e', 'second']);
+		await bookmark(['e', 'third']);
+		expect(mocks.sent).toHaveLength(1);
+
+		firstPublish.error(new Error('first rejected'));
+		await expect(first).rejects.toThrow('first rejected');
+		await vi.waitFor(() => expect(mocks.setCalls).toHaveLength(1));
+
+		expect(mocks.sent).toHaveLength(2);
+		expect(mocks.sent[1].tags).toEqual([
+			['e', 'existing'],
+			['e', 'second'],
+			['e', 'third']
+		]);
+		expect(mocks.sent[1].tags).not.toContainEqual(['e', 'failed']);
+		expect(mocks.stored).toBe(mocks.sent[1]);
+		expect(get(bookmarkEvent)).toBe(mocks.sent[1]);
+	});
+
+	it('does not leave processing stuck when an automatic recovery also fails', async () => {
+		const previous = event({ id: 'previous' });
+		const firstPublish = new Subject<{ ok: boolean }>();
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+		mocks.stored = previous;
+		mocks.pendingSend = firstPublish;
+		bookmarkEvent.set(previous);
+
+		const first = bookmark(['e', 'first-failed']);
+		await vi.waitFor(() => expect(mocks.sent).toHaveLength(1));
+		await bookmark(['e', 'recovery-failed']);
+		mocks.sendFails = true;
+
+		firstPublish.error(new Error('first rejected'));
+		await expect(first).rejects.toThrow('first rejected');
+		await vi.waitFor(() => expect(consoleError).toHaveBeenCalledOnce());
+
+		mocks.sendFails = false;
+		await bookmark(['e', 'after-failures']);
+
+		expect(mocks.sent).toHaveLength(3);
+		expect(mocks.sent[2].tags).toEqual([['e', 'after-failures']]);
+		consoleError.mockRestore();
+	});
+
 	it('preserves encrypted private content while updating public bookmarks', async () => {
 		mocks.stored = event({ content: 'opaque-encrypted-content' });
 

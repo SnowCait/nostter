@@ -67,11 +67,18 @@ async function save(type: DataType, tag: string[]): Promise<void> {
 	});
 
 	if (!processing) {
-		processing = true;
-		try {
-			await publish();
-		} finally {
-			processing = false;
+		await processQueue();
+	}
+}
+
+async function processQueue(): Promise<void> {
+	processing = true;
+	try {
+		await publish();
+	} finally {
+		processing = false;
+		if (queue.length > 0) {
+			void processQueue().catch((error) => console.error('[bookmark queue]', error));
 		}
 	}
 }
