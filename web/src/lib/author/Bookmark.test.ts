@@ -121,6 +121,7 @@ describe('Bookmark', () => {
 
 	it('batches operations queued during publish and updates the UI optimistically', async () => {
 		const firstPublish = new Subject<{ ok: boolean }>();
+		const secondPublish = new Subject<{ ok: boolean }>();
 		mocks.pendingSend = firstPublish;
 
 		const first = bookmark(['e', 'first']);
@@ -129,19 +130,30 @@ describe('Bookmark', () => {
 		expect(get(bookmarkEvent)).toBe(mocks.sent[0]);
 		expect(mocks.setCalls).toHaveLength(0);
 
-		await bookmark(['e', 'second']);
-		await unbookmark(['e', 'first']);
+		const second = bookmark(['e', 'second']);
+		const third = unbookmark(['e', 'first']);
+		const queuedSettled = vi.fn();
+		void second.then(queuedSettled, queuedSettled);
+		void third.then(queuedSettled, queuedSettled);
+		await Promise.resolve();
+		expect(queuedSettled).not.toHaveBeenCalled();
 		expect(mocks.sent).toHaveLength(1);
 
+		mocks.pendingSend = secondPublish;
 		firstPublish.next({ ok: true });
 		firstPublish.complete();
 		await first;
+		await vi.waitFor(() => expect(mocks.sent).toHaveLength(2));
+		expect(queuedSettled).not.toHaveBeenCalled();
 
-		expect(mocks.sent).toHaveLength(2);
+		secondPublish.next({ ok: true });
+		secondPublish.complete();
+		await Promise.all([second, third]);
 		expect(mocks.sent[1].tags).toEqual([['e', 'second']]);
+		expect(queuedSettled).toHaveBeenCalledTimes(2);
 	});
 
-	it('automatically batches queued operations after the active publish fails', async () => {
+	it('aborts queued operations when the active publish fails and recovers for a new write', async () => {
 		const previous = event({ id: 'previous', tags: [['e', 'existing']] });
 		const firstPublish = new Subject<{ ok: boolean }>();
 		mocks.stored = previous;
@@ -150,48 +162,39 @@ describe('Bookmark', () => {
 
 		const first = bookmark(['e', 'failed']);
 		await vi.waitFor(() => expect(mocks.sent).toHaveLength(1));
-		await bookmark(['e', 'second']);
-		await bookmark(['e', 'third']);
+		const second = bookmark(['e', 'second']);
+		const third = bookmark(['e', 'third']);
+		const queuedSettled = vi.fn();
+		void second.then(queuedSettled, queuedSettled);
+		void third.then(queuedSettled, queuedSettled);
+		const secondRejected = expect(second).rejects.toThrow('first rejected');
+		const thirdRejected = expect(third).rejects.toThrow('first rejected');
+		await Promise.resolve();
+		expect(queuedSettled).not.toHaveBeenCalled();
 		expect(mocks.sent).toHaveLength(1);
 
 		firstPublish.error(new Error('first rejected'));
 		await expect(first).rejects.toThrow('first rejected');
-		await vi.waitFor(() => expect(mocks.setCalls).toHaveLength(1));
+		await Promise.all([secondRejected, thirdRejected]);
+
+		expect(queuedSettled).toHaveBeenCalledTimes(2);
+		expect(mocks.sent).toHaveLength(1);
+		expect(mocks.setCalls).toHaveLength(0);
+		expect(mocks.stored).toBe(previous);
+		expect(get(bookmarkEvent)).toBe(previous);
+
+		await bookmark(['e', 'after-abort']);
 
 		expect(mocks.sent).toHaveLength(2);
 		expect(mocks.sent[1].tags).toEqual([
 			['e', 'existing'],
-			['e', 'second'],
-			['e', 'third']
+			['e', 'after-abort']
 		]);
 		expect(mocks.sent[1].tags).not.toContainEqual(['e', 'failed']);
+		expect(mocks.sent[1].tags).not.toContainEqual(['e', 'second']);
+		expect(mocks.sent[1].tags).not.toContainEqual(['e', 'third']);
 		expect(mocks.stored).toBe(mocks.sent[1]);
 		expect(get(bookmarkEvent)).toBe(mocks.sent[1]);
-	});
-
-	it('does not leave processing stuck when an automatic recovery also fails', async () => {
-		const previous = event({ id: 'previous' });
-		const firstPublish = new Subject<{ ok: boolean }>();
-		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-		mocks.stored = previous;
-		mocks.pendingSend = firstPublish;
-		bookmarkEvent.set(previous);
-
-		const first = bookmark(['e', 'first-failed']);
-		await vi.waitFor(() => expect(mocks.sent).toHaveLength(1));
-		await bookmark(['e', 'recovery-failed']);
-		mocks.sendFails = true;
-
-		firstPublish.error(new Error('first rejected'));
-		await expect(first).rejects.toThrow('first rejected');
-		await vi.waitFor(() => expect(consoleError).toHaveBeenCalledOnce());
-
-		mocks.sendFails = false;
-		await bookmark(['e', 'after-failures']);
-
-		expect(mocks.sent).toHaveLength(3);
-		expect(mocks.sent[2].tags).toEqual([['e', 'after-failures']]);
-		consoleError.mockRestore();
 	});
 
 	it('preserves encrypted private content while updating public bookmarks', async () => {

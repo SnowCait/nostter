@@ -15,8 +15,16 @@ type Data = {
 	type: DataType;
 	tag: string[];
 };
+type QueuedData = Data & {
+	resolve: () => void;
+	reject: (reason?: unknown) => void;
+};
+type QueueFailure = {
+	error: unknown;
+	data: QueuedData[];
+};
 
-const queue = new Queue<Data>();
+const queue = new Queue<QueuedData>();
 
 let processing = false;
 
@@ -61,70 +69,96 @@ export async function unbookmark(tag: string[]): Promise<void> {
 }
 
 async function save(type: DataType, tag: string[]): Promise<void> {
+	const { promise, resolve, reject } = Promise.withResolvers<void>();
 	queue.enqueue({
 		type,
-		tag
+		tag,
+		resolve,
+		reject
 	});
 
 	if (!processing) {
-		await processQueue();
+		void processQueue();
 	}
+
+	await promise;
 }
 
 async function processQueue(): Promise<void> {
 	processing = true;
+	let failure: QueueFailure | undefined;
 	try {
-		await publish();
+		failure = await publish();
 	} finally {
 		processing = false;
-		if (queue.length > 0) {
-			void processQueue().catch((error) => console.error('[bookmark queue]', error));
+	}
+	if (failure !== undefined) {
+		for (const data of failure.data) {
+			data.reject(failure.error);
 		}
 	}
 }
 
-async function publish(): Promise<void> {
-	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(Kind.BookmarkList);
-	let tags = lastEvent?.tags ?? [];
-
+async function publish(): Promise<QueueFailure | undefined> {
+	const batch: QueuedData[] = [];
 	while (queue.length > 0) {
 		const data = queue.dequeue();
 		if (data === undefined) {
 			break;
 		}
-
-		tags = updateBookmarkTags(tags, data);
+		batch.push(data);
 	}
 
-	const event = await Signer.signEvent({
-		kind: Kind.BookmarkList,
-		content: lastEvent?.content ?? '',
-		tags,
-		created_at: now()
-	});
-
-	const previousEvent = get(bookmarkEvent);
-	bookmarkEvent.set(event);
+	let event: Nostr.Event | undefined;
+	let previousEvent: Nostr.Event | undefined;
+	let published = false;
 
 	try {
+		const storage = new WebStorage(localStorage);
+		const lastEvent = storage.getReplaceableEvent(Kind.BookmarkList);
+		let tags = lastEvent?.tags ?? [];
+		for (const data of batch) {
+			tags = updateBookmarkTags(tags, data);
+		}
+
+		event = await Signer.signEvent({
+			kind: Kind.BookmarkList,
+			content: lastEvent?.content ?? '',
+			tags,
+			created_at: now()
+		});
+
+		previousEvent = get(bookmarkEvent);
+		bookmarkEvent.set(event);
+
 		// Lazy validation for UX
 		if (!(await validate(lastEvent))) {
 			throw new Error('Cache is outdated.');
 		}
 
 		await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
+		published = true;
+		storage.setReplaceableEvent(event);
 	} catch (error) {
-		if (get(bookmarkEvent)?.id === event.id) {
+		if (!published && event !== undefined && get(bookmarkEvent)?.id === event.id) {
 			bookmarkEvent.set(previousEvent);
 		}
-		throw error;
+		const failed = [...batch];
+		while (queue.length > 0) {
+			const data = queue.dequeue();
+			if (data !== undefined) {
+				failed.push(data);
+			}
+		}
+		return { error, data: failed };
 	}
 
-	storage.setReplaceableEvent(event);
+	for (const data of batch) {
+		data.resolve();
+	}
 
 	if (queue.length > 0) {
-		await publish();
+		return await publish();
 	}
 }
 
