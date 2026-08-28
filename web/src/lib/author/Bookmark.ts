@@ -4,7 +4,6 @@ import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { kinds as Kind } from 'nostr-tools';
 import { rxNostr } from '$lib/timelines/MainTimeline';
-import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
@@ -16,9 +15,7 @@ type Data = {
 	tag: string[];
 };
 
-const queue = new Queue<Data>();
-
-let processing = false;
+let writeQueue = Promise.resolve();
 
 export const bookmarkEvent: Writable<Nostr.Event | undefined> = writable();
 export const legacyBookmarkEvent: Writable<Nostr.Event | undefined> = writable();
@@ -51,80 +48,65 @@ export const isBookmarked = (event: Nostr.Event): boolean => {
 };
 
 export async function bookmark(tag: string[]): Promise<void> {
-	console.log('[bookmark]', tag, queue.dump());
-	await save('bookmark', tag);
+	await serialize(() => publish({ type: 'bookmark', tag }));
 }
 
 export async function unbookmark(tag: string[]): Promise<void> {
-	console.log('[unbookmark]', tag, queue.dump());
-	await save('unbookmark', tag);
+	await serialize(() => publish({ type: 'unbookmark', tag }));
 }
 
-async function save(type: DataType, tag: string[]): Promise<void> {
-	queue.enqueue({
-		type,
-		tag
-	});
-
-	if (!processing) {
-		processing = true;
-		await publish();
-		processing = false;
-	}
+function serialize(operation: () => Promise<void>): Promise<void> {
+	const result = writeQueue.then(operation, operation);
+	writeQueue = result.catch(() => undefined);
+	return result;
 }
 
-async function publish(): Promise<void> {
+async function publish(data: Data): Promise<void> {
 	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(Kind.BookmarkList);
-	let tags = lastEvent?.tags ?? [];
+	const $pubkey = get(pubkey);
 
-	while (queue.length > 0) {
-		const data = queue.dequeue();
-		if (data === undefined) {
-			break;
+	while (true) {
+		const cached = storage.getReplaceableEvent(Kind.BookmarkList);
+		const remote = await fetchBookmarkEvent($pubkey);
+		if (cached !== undefined && remote === undefined) {
+			throw new Error('Cache is outdated.');
 		}
 
-		tags = updateBookmarkTags(tags, data);
-	}
+		const base = latestEvent(cached, remote);
+		const tags = updateBookmarkTags(base?.tags ?? [], data);
 
-	const event = await Signer.signEvent({
-		kind: Kind.BookmarkList,
-		content: lastEvent?.content ?? '',
-		tags,
-		created_at: now()
-	});
+		// Recheck before signing so a newer event observed during this write is not lost.
+		const confirmedBase = latestEvent(base, await fetchBookmarkEvent($pubkey));
+		if (confirmedBase?.id !== base?.id) {
+			continue;
+		}
 
-	bookmarkEvent.set(event);
+		const event = await Signer.signEvent({
+			kind: Kind.BookmarkList,
+			content: base?.content ?? '',
+			tags,
+			created_at: Math.max(now(), (base?.created_at ?? 0) + 1)
+		});
 
-	// Lazy validation for UX
-	if (!(await validate(lastEvent))) {
-		bookmarkEvent.set(lastEvent);
-		throw new Error('Cache is outdated.');
-	}
-
-	storage.setReplaceableEvent(event);
-	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
-
-	if (queue.length > 0) {
-		await publish();
+		await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
+		storage.setReplaceableEvent(event);
+		bookmarkEvent.set(event);
+		return;
 	}
 }
 
-async function validate(event: Nostr.Event | undefined): Promise<boolean> {
-	const $pubkey = get(pubkey);
-	const lastEvent = await fetchLastEvent({
-		kinds: [Kind.BookmarkList],
-		authors: [$pubkey],
-		limit: 1
-	});
+function fetchBookmarkEvent(author: string): Promise<Nostr.Event | undefined> {
+	return fetchLastEvent({ kinds: [Kind.BookmarkList], authors: [author], limit: 1 });
+}
 
-	if (event === undefined) {
-		if (lastEvent !== undefined) {
-			return false;
-		}
-	} else if (lastEvent === undefined || event.created_at < lastEvent.created_at) {
-		return false;
+export function latestEvent(
+	left: Nostr.Event | undefined,
+	right: Nostr.Event | undefined
+): Nostr.Event | undefined {
+	if (left === undefined) return right;
+	if (right === undefined) return left;
+	if (left.created_at !== right.created_at) {
+		return left.created_at > right.created_at ? left : right;
 	}
-
-	return true;
+	return left.id < right.id ? left : right;
 }
