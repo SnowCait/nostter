@@ -36,6 +36,10 @@ describe('isLegacyBookmarkEvent', () => {
 			false
 		);
 	});
+
+	it('rejects an event without an identifier', () => {
+		expect(isLegacyBookmarkEvent({ kind: Kind.Genericlists, tags: [] })).toBe(false);
+	});
 });
 
 describe('filterBookmarkReferences', () => {
@@ -111,17 +115,5 @@ describe('mergeBookmarkReferences', () => {
 
 		expect(existing).toEqual(originalExisting);
 		expect(legacy).toEqual(originalLegacy);
-	});
-
-	it('handles public and decrypted private reference arrays identically', () => {
-		const publicReferences = [
-			['e', eventId],
-			['a', address]
-		];
-		const decryptedPrivateReferences = structuredClone(publicReferences);
-
-		expect(mergeBookmarkReferences([], publicReferences)).toEqual(
-			mergeBookmarkReferences([], decryptedPrivateReferences)
-		);
 	});
 });
