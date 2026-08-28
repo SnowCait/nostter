@@ -68,8 +68,11 @@ async function save(type: DataType, tag: string[]): Promise<void> {
 
 	if (!processing) {
 		processing = true;
-		await publish();
-		processing = false;
+		try {
+			await publish();
+		} finally {
+			processing = false;
+		}
 	}
 }
 
@@ -94,16 +97,24 @@ async function publish(): Promise<void> {
 		created_at: now()
 	});
 
+	const previousEvent = get(bookmarkEvent);
 	bookmarkEvent.set(event);
 
-	// Lazy validation for UX
-	if (!(await validate(lastEvent))) {
-		bookmarkEvent.set(lastEvent);
-		throw new Error('Cache is outdated.');
+	try {
+		// Lazy validation for UX
+		if (!(await validate(lastEvent))) {
+			throw new Error('Cache is outdated.');
+		}
+
+		await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
+	} catch (error) {
+		if (get(bookmarkEvent)?.id === event.id) {
+			bookmarkEvent.set(previousEvent);
+		}
+		throw error;
 	}
 
 	storage.setReplaceableEvent(event);
-	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
 		await publish();
@@ -122,9 +133,16 @@ async function validate(event: Nostr.Event | undefined): Promise<boolean> {
 		if (lastEvent !== undefined) {
 			return false;
 		}
-	} else if (lastEvent === undefined || event.created_at < lastEvent.created_at) {
+	} else if (lastEvent === undefined || !isLatestReplaceableEvent(event, lastEvent)) {
 		return false;
 	}
 
 	return true;
+}
+
+export function isLatestReplaceableEvent(event: Nostr.Event, other: Nostr.Event): boolean {
+	if (event.created_at !== other.created_at) {
+		return event.created_at > other.created_at;
+	}
+	return event.id <= other.id;
 }
