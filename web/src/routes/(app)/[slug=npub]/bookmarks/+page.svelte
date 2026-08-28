@@ -6,7 +6,7 @@
 	import { _ } from 'svelte-i18n';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
-	import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark';
+	import { bookmarkEvent, copyLegacyBookmarks, legacyBookmarkEvent } from '$lib/author/Bookmark';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { appName, reverseChronologicalItem } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
@@ -17,14 +17,17 @@
 	import {
 		getAdjacentBookmarkListTab,
 		legacyBookmarkListId,
-		resolveSelectedBookmarkList
+		resolveSelectedBookmarkList,
+		standardBookmarkListId
 	} from './BookmarkListTabs';
 	import { BookmarkPageState } from './BookmarkPageState.svelte';
+	import { addToast } from '$lib/components/Toaster.svelte';
 
 	let { data }: LayoutProps = $props();
 
 	let privateBookmarkEventItems: EventItem[] = $state([]);
 	let privateLegacyBookmarkEventItems: EventItem[] = $state([]);
+	let copying = $state(false);
 
 	function loadPublicItems(event: Nostr.Event, addItem: (item: EventItem) => void): () => void {
 		const ids = filterTags('e', event.tags);
@@ -87,6 +90,29 @@
 		await tick();
 		const tabList = (event.currentTarget as HTMLElement).closest('[role="tablist"]');
 		tabList?.querySelector<HTMLElement>(`[role="tab"][data-tab-id="${nextTab.id}"]`)?.focus();
+	}
+
+	async function copyAllBookmarks(): Promise<void> {
+		if ($legacyBookmarkEvent === undefined || copying) {
+			return;
+		}
+
+		copying = true;
+		try {
+			await copyLegacyBookmarks($legacyBookmarkEvent);
+			addToast({
+				data: {
+					title: $_('bookmarks.copy.success.title'),
+					description: $_('bookmarks.copy.success.description')
+				}
+			});
+			selectBookmarkList(standardBookmarkListId);
+		} catch (error) {
+			console.error('[copy old-format bookmarks failed]', error);
+			alert($_('bookmarks.copy.failed'));
+		} finally {
+			copying = false;
+		}
 	}
 
 	// Private bookmarks
@@ -203,6 +229,19 @@
 		aria-labelledby={`bookmark-tab-${tab.id}`}
 		hidden={selectedBookmarkList?.id !== tab.id}
 	>
+		{#if tab.id === legacyBookmarkListId && data.pubkey === $authorPubkey && !$rom}
+			<div class="copy-bookmarks">
+				<p>{$_('bookmarks.copy.description')}</p>
+				<p>{$_('bookmarks.copy.unchanged')}</p>
+				<button
+					type="button"
+					class="rounded-button primary"
+					disabled={copying}
+					onclick={copyAllBookmarks}>{$_('bookmarks.copy.button')}</button
+				>
+			</div>
+		{/if}
+
 		<h2>{$_('pages.public')}</h2>
 
 		<TimelineView items={publicItems} showLoading={false} />
@@ -258,5 +297,17 @@
 	.bookmark-tab[aria-selected='true'] {
 		border-bottom-color: var(--accent);
 		font-weight: bold;
+	}
+
+	.copy-bookmarks {
+		margin-bottom: 1rem;
+	}
+
+	.copy-bookmarks p {
+		margin: 0 0 0.25rem;
+	}
+
+	.copy-bookmarks button {
+		margin-top: 0.5rem;
 	}
 </style>
