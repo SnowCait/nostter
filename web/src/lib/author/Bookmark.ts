@@ -19,6 +19,7 @@ type Data = {
 const queue = new Queue<Data>();
 
 let processing = false;
+let copying = false;
 
 export const bookmarkEvent: Writable<Nostr.Event | undefined> = writable();
 export const legacyBookmarkEvent: Writable<Nostr.Event | undefined> = writable();
@@ -61,6 +62,10 @@ export async function unbookmark(tag: string[]): Promise<void> {
 }
 
 async function save(type: DataType, tag: string[]): Promise<void> {
+	if (copying) {
+		throw new Error('Bookmark copy is in progress.');
+	}
+
 	queue.enqueue({
 		type,
 		tag
@@ -70,6 +75,19 @@ async function save(type: DataType, tag: string[]): Promise<void> {
 		processing = true;
 		await publish();
 		processing = false;
+	}
+}
+
+export async function runBookmarkCopyExclusively<T>(copy: () => Promise<T>): Promise<T> {
+	if (processing || queue.length > 0 || copying) {
+		throw new Error('Bookmark operation is busy.');
+	}
+
+	copying = true;
+	try {
+		return await copy();
+	} finally {
+		copying = false;
 	}
 }
 
