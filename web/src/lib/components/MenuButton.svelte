@@ -32,6 +32,7 @@
 	import { addToast } from './Toaster.svelte';
 	import { get } from 'svelte/store';
 	import { metadataStore } from '$lib/cache/Events';
+	import { bookmarkCopyState } from '$lib/author/BookmarkCopyState.svelte';
 
 	interface Props {
 		event: Nostr.Event;
@@ -62,6 +63,10 @@
 	);
 
 	async function onBookmark() {
+		if (bookmarkCopyState.inProgress) {
+			return;
+		}
+
 		console.log('[bookmark]', event, $rom);
 
 		if (bookmarked) {
@@ -81,6 +86,10 @@
 	}
 
 	async function onUnbookmark() {
+		if (bookmarkCopyState.inProgress) {
+			return;
+		}
+
 		console.log('[unbookmark]', event, $rom);
 
 		bookmarked = false;
@@ -225,14 +234,26 @@
 		{#if bookmarked}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div use:melt={$item} onclick={onUnbookmark} class="item undo">
+			<div
+				use:melt={$item}
+				onclick={onUnbookmark}
+				class="item undo"
+				aria-disabled={bookmarkCopyState.inProgress}
+				data-disabled={bookmarkCopyState.inProgress ? '' : undefined}
+			>
 				<div class="icon"><IconBookmarkFilled size={iconSize} /></div>
 				<div>{$_('actions.unbookmark.button')}</div>
 			</div>
 		{:else}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div use:melt={$item} onclick={onBookmark} class="item">
+			<div
+				use:melt={$item}
+				onclick={onBookmark}
+				class="item"
+				aria-disabled={bookmarkCopyState.inProgress}
+				data-disabled={bookmarkCopyState.inProgress ? '' : undefined}
+			>
 				<div class="icon"><IconBookmark size={iconSize} /></div>
 				<div>{$_('actions.bookmark.button')}</div>
 			</div>
@@ -334,5 +355,14 @@
 <style>
 	button {
 		color: var(--accent-gray);
+	}
+
+	.item[aria-disabled='true'] {
+		cursor: default;
+		opacity: 0.5;
+	}
+
+	.item[aria-disabled='true']:hover {
+		background-color: transparent;
 	}
 </style>

@@ -9,6 +9,7 @@ import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
 import { pubkey } from '../stores/Author';
+import { bookmarkCopyState } from './BookmarkCopyState.svelte';
 
 type DataType = 'bookmark' | 'unbookmark';
 type Data = {
@@ -73,8 +74,10 @@ async function save(type: DataType, tag: string[]): Promise<void> {
 
 	if (!processing) {
 		processing = true;
+		bookmarkCopyState.beginNormalWrite();
 		await publish();
 		processing = false;
+		bookmarkCopyState.endNormalWrite();
 	}
 }
 
@@ -84,10 +87,12 @@ export async function runBookmarkCopyExclusively<T>(copy: () => Promise<T>): Pro
 	}
 
 	copying = true;
+	bookmarkCopyState.beginCopy();
 	try {
 		return await copy();
 	} finally {
 		copying = false;
+		bookmarkCopyState.endCopy();
 	}
 }
 

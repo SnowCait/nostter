@@ -20,6 +20,9 @@
 		resolveSelectedBookmarkList
 	} from './BookmarkListTabs';
 	import { BookmarkPageState } from './BookmarkPageState.svelte';
+	import { copyLegacyBookmarks } from '$lib/author/BookmarkCopy';
+	import { bookmarkCopyState } from '$lib/author/BookmarkCopyState.svelte';
+	import { addToast } from '$lib/components/Toaster.svelte';
 
 	let { data }: LayoutProps = $props();
 
@@ -68,6 +71,38 @@
 		pageState.selectBookmarkList(id);
 	}
 
+	async function copyAllLegacyBookmarks(): Promise<void> {
+		if (!bookmarkCopyState.canStart) {
+			return;
+		}
+
+		try {
+			const event = await copyLegacyBookmarks();
+			addToast({
+				data: {
+					title: $_(
+						event === undefined
+							? 'bookmarks.copy.no_changes.title'
+							: 'bookmarks.copy.success.title'
+					),
+					description: $_(
+						event === undefined
+							? 'bookmarks.copy.no_changes.description'
+							: 'bookmarks.copy.success.description'
+					)
+				}
+			});
+		} catch (error) {
+			console.error('[bookmark copy failed]', error);
+			addToast({
+				data: {
+					title: $_('bookmarks.copy.failed.title'),
+					description: $_('bookmarks.copy.failed.description')
+				}
+			});
+		}
+	}
+
 	async function handleTabKeydown(event: KeyboardEvent): Promise<void> {
 		if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
 			return;
@@ -91,13 +126,16 @@
 
 	// Private bookmarks
 	$effect(() => {
-		if (
-			data.pubkey === $authorPubkey &&
-			!$rom &&
-			$bookmarkEvent !== undefined &&
-			$bookmarkEvent.content !== ''
-		) {
-			decryptListContent($authorPubkey, $bookmarkEvent.content).then(([tags]) => {
+		const event = $bookmarkEvent;
+		let active = true;
+		let unsubscribe = () => {};
+		privateBookmarkEventItems = [];
+
+		if (data.pubkey === $authorPubkey && !$rom && event !== undefined && event.content !== '') {
+			decryptListContent($authorPubkey, event.content).then(([tags]) => {
+				if (!active) {
+					return;
+				}
 				const ids = filterTags('e', tags);
 				if (ids.length > 0) {
 					const eventsReq = createRxOneshotReq({
@@ -107,7 +145,7 @@
 							}
 						]
 					});
-					rxNostr
+					const subscription = rxNostr
 						.use(eventsReq)
 						.pipe(
 							tie,
@@ -124,9 +162,15 @@
 								(a, b) => b.event.created_at - a.event.created_at
 							);
 						});
+					unsubscribe = () => subscription.unsubscribe();
 				}
 			});
 		}
+
+		return () => {
+			active = false;
+			unsubscribe();
+		};
 	});
 
 	// Private legacy bookmarks
@@ -203,6 +247,23 @@
 		aria-labelledby={`bookmark-tab-${tab.id}`}
 		hidden={selectedBookmarkList?.id !== tab.id}
 	>
+		{#if tab.id === legacyBookmarkListId && data.pubkey === $authorPubkey && !$rom}
+			<div class="bookmark-copy-action">
+				<button
+					type="button"
+					onclick={copyAllLegacyBookmarks}
+					disabled={!bookmarkCopyState.canStart}
+					aria-busy={bookmarkCopyState.inProgress}
+				>
+					{$_(
+						bookmarkCopyState.inProgress
+							? 'bookmarks.copy.copying'
+							: 'bookmarks.copy.button'
+					)}
+				</button>
+			</div>
+		{/if}
+
 		<h2>{$_('pages.public')}</h2>
 
 		<TimelineView items={publicItems} showLoading={false} />
@@ -225,6 +286,10 @@
 		overflow-x: auto;
 		overflow-y: hidden;
 		flex-wrap: nowrap;
+	}
+
+	.bookmark-copy-action {
+		margin: 1rem 0;
 	}
 
 	.bookmark-tab {

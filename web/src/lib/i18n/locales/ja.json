@@ -16,7 +16,23 @@
 	},
 	"bookmarks": {
 		"old_format": "旧形式",
-		"private": "プライベート"
+		"private": "プライベート",
+		"copy": {
+			"button": "すべてブックマークへコピー",
+			"copying": "コピー中…",
+			"success": {
+				"title": "ブックマークをコピーしました",
+				"description": "旧形式のブックマークをコピーしました。"
+			},
+			"no_changes": {
+				"title": "コピーする項目はありません",
+				"description": "ブックマークはすでに最新です。"
+			},
+			"failed": {
+				"title": "コピーに失敗しました",
+				"description": "旧形式のブックマークをコピーできませんでした。"
+			}
+		}
 	},
 	"pages": {
 		"profile_edit": "プロフィールを編集",
