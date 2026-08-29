@@ -5,7 +5,12 @@
 	import { ChannelMessage, ShortTextNote } from 'nostr-tools/kinds';
 	import type * as Nostr from 'nostr-typedef';
 	import { page } from '$app/stores';
-	import { bookmark, unbookmark, isBookmarked } from '$lib/author/Bookmark';
+	import {
+		bookmark,
+		unbookmark,
+		isBookmarked,
+		bookmarkOperationState
+	} from '$lib/author/Bookmark.svelte';
 	import { broadcast } from '$lib/Broadcast';
 	import { copy } from '$lib/Clipboard';
 	import { shareUrl } from '$lib/Share';
@@ -32,7 +37,6 @@
 	import { addToast } from './Toaster.svelte';
 	import { get } from 'svelte/store';
 	import { metadataStore } from '$lib/cache/Events';
-	import { bookmarkCopyState } from '$lib/author/BookmarkCopyState.svelte';
 
 	interface Props {
 		event: Nostr.Event;
@@ -63,7 +67,7 @@
 	);
 
 	async function onBookmark() {
-		if (bookmarkCopyState.inProgress) {
+		if (bookmarkOperationState.copyInProgress) {
 			return;
 		}
 
@@ -86,7 +90,7 @@
 	}
 
 	async function onUnbookmark() {
-		if (bookmarkCopyState.inProgress) {
+		if (bookmarkOperationState.copyInProgress) {
 			return;
 		}
 
@@ -238,8 +242,8 @@
 				use:melt={$item}
 				onclick={onUnbookmark}
 				class="item undo"
-				aria-disabled={bookmarkCopyState.inProgress}
-				data-disabled={bookmarkCopyState.inProgress ? '' : undefined}
+				aria-disabled={bookmarkOperationState.copyInProgress}
+				data-disabled={bookmarkOperationState.copyInProgress ? '' : undefined}
 			>
 				<div class="icon"><IconBookmarkFilled size={iconSize} /></div>
 				<div>{$_('actions.unbookmark.button')}</div>
@@ -251,8 +255,8 @@
 				use:melt={$item}
 				onclick={onBookmark}
 				class="item"
-				aria-disabled={bookmarkCopyState.inProgress}
-				data-disabled={bookmarkCopyState.inProgress ? '' : undefined}
+				aria-disabled={bookmarkOperationState.copyInProgress}
+				data-disabled={bookmarkOperationState.copyInProgress ? '' : undefined}
 			>
 				<div class="icon"><IconBookmark size={iconSize} /></div>
 				<div>{$_('actions.bookmark.button')}</div>

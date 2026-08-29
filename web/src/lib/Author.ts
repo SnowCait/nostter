@@ -29,7 +29,7 @@ import {
 	parameterizedReplaceableKinds,
 	replaceableKinds
 } from './Constants';
-import { bookmarkEvent, legacyBookmarkEvent } from './author/Bookmark';
+import { bookmarkEvent, legacyBookmarkEvent } from './author/Bookmark.svelte';
 import { legacyProfileBadgesKey, setProfileBadgesEvent } from './author/ProfileBadges';
 import { profileBadgesKind } from './ProfileBadgesEvent';
 import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';

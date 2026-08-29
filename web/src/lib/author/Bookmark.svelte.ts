@@ -9,7 +9,6 @@ import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
 import { pubkey } from '../stores/Author';
-import { bookmarkCopyState } from './BookmarkCopyState.svelte';
 
 type DataType = 'bookmark' | 'unbookmark';
 type Data = {
@@ -19,8 +18,17 @@ type Data = {
 
 const queue = new Queue<Data>();
 
-let processing = false;
-let copying = false;
+let processing = $state(false);
+let copying = $state(false);
+
+export const bookmarkOperationState = {
+	get copyInProgress(): boolean {
+		return copying;
+	},
+	get canStartCopy(): boolean {
+		return !processing && queue.length === 0 && !copying;
+	}
+};
 
 export const bookmarkEvent: Writable<Nostr.Event | undefined> = writable();
 export const legacyBookmarkEvent: Writable<Nostr.Event | undefined> = writable();
@@ -45,11 +53,11 @@ export function updateBookmarkTags(tags: string[][], data: Data): string[][] {
 
 // TODO: Private bookmarks
 export const isBookmarked = (event: Nostr.Event): boolean => {
-	const $bookmarkEvent = get(bookmarkEvent);
-	if ($bookmarkEvent === undefined) {
+	const currentBookmarkEvent = get(bookmarkEvent);
+	if (currentBookmarkEvent === undefined) {
 		return false;
 	}
-	return $bookmarkEvent.tags.some(([tagName, id]) => tagName === 'e' && id === event.id);
+	return currentBookmarkEvent.tags.some(([tagName, id]) => tagName === 'e' && id === event.id);
 };
 
 export async function bookmark(tag: string[]): Promise<void> {
@@ -74,10 +82,11 @@ async function save(type: DataType, tag: string[]): Promise<void> {
 
 	if (!processing) {
 		processing = true;
-		bookmarkCopyState.beginNormalWrite();
-		await publish();
-		processing = false;
-		bookmarkCopyState.endNormalWrite();
+		try {
+			await publish();
+		} finally {
+			processing = false;
+		}
 	}
 }
 
@@ -87,12 +96,10 @@ export async function runBookmarkCopyExclusively<T>(copy: () => Promise<T>): Pro
 	}
 
 	copying = true;
-	bookmarkCopyState.beginCopy();
 	try {
 		return await copy();
 	} finally {
 		copying = false;
-		bookmarkCopyState.endCopy();
 	}
 }
 
@@ -134,10 +141,10 @@ async function publish(): Promise<void> {
 }
 
 async function validate(event: Nostr.Event | undefined): Promise<boolean> {
-	const $pubkey = get(pubkey);
+	const currentPubkey = get(pubkey);
 	const lastEvent = await fetchLastEvent({
 		kinds: [Kind.BookmarkList],
-		authors: [$pubkey],
+		authors: [currentPubkey],
 		limit: 1
 	});
 

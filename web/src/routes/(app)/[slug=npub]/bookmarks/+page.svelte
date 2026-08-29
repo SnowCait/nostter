@@ -6,7 +6,11 @@
 	import { _ } from 'svelte-i18n';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
-	import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark';
+	import {
+		bookmarkEvent,
+		bookmarkOperationState,
+		legacyBookmarkEvent
+	} from '$lib/author/Bookmark.svelte';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { appName, reverseChronologicalItem } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
@@ -21,7 +25,6 @@
 	} from './BookmarkListTabs';
 	import { BookmarkPageState } from './BookmarkPageState.svelte';
 	import { copyLegacyBookmarks } from '$lib/author/BookmarkCopy';
-	import { bookmarkCopyState } from '$lib/author/BookmarkCopyState.svelte';
 	import { addToast } from '$lib/components/Toaster.svelte';
 
 	let { data }: LayoutProps = $props();
@@ -72,7 +75,7 @@
 	}
 
 	async function copyAllLegacyBookmarks(): Promise<void> {
-		if (!bookmarkCopyState.canStart) {
+		if (!bookmarkOperationState.canStartCopy) {
 			return;
 		}
 
@@ -252,11 +255,11 @@
 				<button
 					type="button"
 					onclick={copyAllLegacyBookmarks}
-					disabled={!bookmarkCopyState.canStart}
-					aria-busy={bookmarkCopyState.inProgress}
+					disabled={!bookmarkOperationState.canStartCopy}
+					aria-busy={bookmarkOperationState.copyInProgress}
 				>
 					{$_(
-						bookmarkCopyState.inProgress
+						bookmarkOperationState.copyInProgress
 							? 'bookmarks.copy.copying'
 							: 'bookmarks.copy.button'
 					)}

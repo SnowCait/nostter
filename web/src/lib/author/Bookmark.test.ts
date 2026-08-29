@@ -22,7 +22,12 @@ vi.mock('$lib/WebStorage', () => ({
 }));
 vi.stubGlobal('localStorage', {});
 
-import { bookmark, bookmarkEvent, legacyBookmarkEvent, updateBookmarkTags } from './Bookmark';
+import {
+	bookmark,
+	bookmarkEvent,
+	legacyBookmarkEvent,
+	updateBookmarkTags
+} from './Bookmark.svelte';
 import { get } from 'svelte/store';
 
 describe('Bookmark', () => {
