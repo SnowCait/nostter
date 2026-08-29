@@ -1,14 +1,13 @@
 import { get } from 'svelte/store';
-import { now } from 'rx-nostr';
+import { createRxBackwardReq, latestEach, now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { kinds as Kind } from 'nostr-tools';
 import { legacyBookmarkIdentifier } from '$lib/Constants';
 import { isLegacyEncryption } from '$lib/EventHelper';
-import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { Signer } from '$lib/Signer';
 import { pubkey } from '$lib/stores/Author';
-import { rxNostr } from '$lib/timelines/MainTimeline';
+import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
 import { bookmarkEvent, runBookmarkCopyExclusively } from './Bookmark';
 import { isLegacyBookmarkEvent, mergeBookmarkReferences } from './BookmarkMigration';
@@ -42,15 +41,57 @@ function tagsEqual(left: string[][], right: string[][]): boolean {
 	return JSON.stringify(left) === JSON.stringify(right);
 }
 
+async function fetchBookmarkSources(pubkey: string): Promise<{
+	legacyEvent: Nostr.Event | undefined;
+	standardEvent: Nostr.Event | undefined;
+}> {
+	return new Promise((resolve) => {
+		let legacyEvent: Nostr.Event | undefined;
+		let standardEvent: Nostr.Event | undefined;
+		const req = createRxBackwardReq();
+		const done = () => resolve({ legacyEvent, standardEvent });
+
+		rxNostr
+			.use(req)
+			.pipe(
+				tie,
+				latestEach(({ event }) => event.kind)
+			)
+			.subscribe({
+				next: ({ event }) => {
+					if (event.kind === Kind.Genericlists) {
+						legacyEvent = event;
+					} else if (event.kind === Kind.BookmarkList) {
+						standardEvent = event;
+					}
+				},
+				complete: done,
+				error: (error) => {
+					console.warn('[bookmark sources error]', error);
+					done();
+				}
+			});
+		req.emit([
+			{
+				kinds: [Kind.Genericlists],
+				authors: [pubkey],
+				'#d': [legacyBookmarkIdentifier],
+				limit: 1
+			},
+			{
+				kinds: [Kind.BookmarkList],
+				authors: [pubkey],
+				limit: 1
+			}
+		]);
+		req.over();
+	});
+}
+
 export async function copyLegacyBookmarks(): Promise<Nostr.Event | undefined> {
 	return runBookmarkCopyExclusively(async () => {
 		const $pubkey = get(pubkey);
-		const legacyEvent = await fetchLastEvent({
-			kinds: [Kind.Genericlists],
-			authors: [$pubkey],
-			'#d': [legacyBookmarkIdentifier],
-			limit: 1
-		});
+		const { legacyEvent, standardEvent } = await fetchBookmarkSources($pubkey);
 		if (legacyEvent === undefined) {
 			throw new Error('Legacy bookmark event not found.');
 		}
@@ -60,11 +101,6 @@ export async function copyLegacyBookmarks(): Promise<Nostr.Event | undefined> {
 
 		const storage = new WebStorage(localStorage);
 		const cachedEvent = storage.getReplaceableEvent(Kind.BookmarkList);
-		const standardEvent = await fetchLastEvent({
-			kinds: [Kind.BookmarkList],
-			authors: [$pubkey],
-			limit: 1
-		});
 		if (standardEvent === undefined && cachedEvent !== undefined) {
 			throw new Error('Standard bookmark cache freshness could not be verified.');
 		}

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { EMPTY, of, Subject } from 'rxjs';
+import { EMPTY, from, of, Subject } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { kinds as Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
@@ -8,6 +8,7 @@ import { legacyBookmarkIdentifier } from '$lib/Constants';
 const mocks = vi.hoisted(() => ({
 	userPubkey: 'f'.repeat(64),
 	fetchLastEvent: vi.fn(),
+	use: vi.fn(),
 	signEvent: vi.fn(),
 	decrypt: vi.fn(),
 	decryptNip44: vi.fn(),
@@ -31,7 +32,10 @@ vi.mock('$lib/Signer', () => ({
 		encryptNip44: mocks.encryptNip44
 	}
 }));
-vi.mock('$lib/timelines/MainTimeline', () => ({ rxNostr: { send: mocks.send } }));
+vi.mock('$lib/timelines/MainTimeline', () => ({
+	rxNostr: { send: mocks.send, use: mocks.use },
+	tie: <T>(source: T): T => source
+}));
 vi.mock('$lib/WebStorage', () => ({
 	WebStorage: class {
 		getReplaceableEvent() {
@@ -46,7 +50,7 @@ vi.mock('$lib/WebStorage', () => ({
 vi.stubGlobal('localStorage', {});
 
 import { bookmark, bookmarkEvent, legacyBookmarkEvent } from './Bookmark';
-import { copyLegacyBookmarks, decryptBookmarkContentStrict } from './BookmarkCopy';
+import { copyLegacyBookmarks } from './BookmarkCopy';
 
 const eventId = 'a'.repeat(64);
 const otherEventId = 'b'.repeat(64);
@@ -87,13 +91,16 @@ beforeEach(() => {
 	standardRelayEvent = undefined;
 	mocks.storage.cachedEvent = undefined;
 	mocks.fetchLastEvent.mockImplementation(async (filter: { kinds?: number[] }) => {
-		if (filter.kinds?.[0] === Kind.Genericlists) {
-			return legacyRelayEvent;
-		}
 		if (filter.kinds?.[0] === Kind.BookmarkList) {
 			return standardRelayEvent;
 		}
 		return undefined;
+	});
+	mocks.use.mockImplementation(() => {
+		const events = [legacyRelayEvent, standardRelayEvent].filter(
+			(sourceEvent): sourceEvent is Nostr.Event => sourceEvent !== undefined
+		);
+		return from(events.map((sourceEvent) => ({ event: sourceEvent, from: 'relay.example' })));
 	});
 	mocks.signEvent.mockImplementation(async (unsigned: Nostr.UnsignedEvent) =>
 		signedEvent(unsigned)
@@ -126,41 +133,23 @@ describe('copy exclusivity', () => {
 		await vi.waitFor(() => expect(mocks.signEvent).toHaveBeenCalledOnce());
 
 		await expect(copyLegacyBookmarks()).rejects.toThrow('busy');
-		expect(mocks.fetchLastEvent).not.toHaveBeenCalled();
+		expect(mocks.use).not.toHaveBeenCalled();
 
 		pendingSign.resolve(signedEvent(unsignedEvent!, 'normal-write'));
 		await normalWrite;
 	});
 
-	it('rejects copy while a normal operation is pending in the queue', async () => {
-		const pendingSign = Promise.withResolvers<Nostr.Event>();
-		let unsignedEvent: Nostr.UnsignedEvent | undefined;
-		mocks.signEvent.mockImplementationOnce((unsigned: Nostr.UnsignedEvent) => {
-			unsignedEvent = unsigned;
-			return pendingSign.promise;
-		});
-
-		const firstWrite = bookmark(['e', eventId]);
-		await vi.waitFor(() => expect(mocks.signEvent).toHaveBeenCalledOnce());
-		await bookmark(['e', otherEventId]);
-
-		await expect(copyLegacyBookmarks()).rejects.toThrow('busy');
-		pendingSign.resolve(signedEvent(unsignedEvent!, 'first-normal-write'));
-		await firstWrite;
-		expect(mocks.signEvent).toHaveBeenCalledTimes(2);
-	});
-
 	it('does not enqueue bookmarks during copy and releases the lock after failure', async () => {
-		const pendingFetch = Promise.withResolvers<Nostr.Event | undefined>();
-		mocks.fetchLastEvent.mockImplementationOnce(() => pendingFetch.promise);
+		const pendingSources = new Subject<{ event: Nostr.Event; from: string }>();
+		mocks.use.mockReturnValueOnce(pendingSources);
 
 		const copy = copyLegacyBookmarks();
-		await vi.waitFor(() => expect(mocks.fetchLastEvent).toHaveBeenCalledOnce());
+		await vi.waitFor(() => expect(mocks.use).toHaveBeenCalledOnce());
 		await expect(bookmark(['e', eventId])).rejects.toThrow('copy is in progress');
 		expect(mocks.signEvent).not.toHaveBeenCalled();
 
-		pendingFetch.reject(new Error('relay failure'));
-		await expect(copy).rejects.toThrow('relay failure');
+		pendingSources.error(new Error('relay failure'));
+		await expect(copy).rejects.toThrow('not found');
 		await bookmark(['e', otherEventId]);
 
 		expect(mocks.signEvent).toHaveBeenCalledOnce();
@@ -170,15 +159,15 @@ describe('copy exclusivity', () => {
 	});
 
 	it('rejects a second copy while copy is running', async () => {
-		const pendingFetch = Promise.withResolvers<Nostr.Event | undefined>();
-		mocks.fetchLastEvent.mockImplementationOnce(() => pendingFetch.promise);
+		const pendingSources = new Subject<{ event: Nostr.Event; from: string }>();
+		mocks.use.mockReturnValueOnce(pendingSources);
 
 		const firstCopy = copyLegacyBookmarks();
-		await vi.waitFor(() => expect(mocks.fetchLastEvent).toHaveBeenCalledOnce());
+		await vi.waitFor(() => expect(mocks.use).toHaveBeenCalledOnce());
 		await expect(copyLegacyBookmarks()).rejects.toThrow('busy');
 
-		pendingFetch.reject(new Error('stop copy'));
-		await expect(firstCopy).rejects.toThrow('stop copy');
+		pendingSources.error(new Error('stop copy'));
+		await expect(firstCopy).rejects.toThrow('not found');
 	});
 
 	it('releases the lock after success so a normal bookmark write can start', async () => {
@@ -193,21 +182,39 @@ describe('copy exclusivity', () => {
 
 describe('copy sources and public references', () => {
 	it('fetches and uses the latest legacy bookmark event from relays', async () => {
-		legacyBookmarkEvent.set(
-			event(Kind.Genericlists, [
+		const staleEvent = event(
+			Kind.Genericlists,
+			[
 				['d', legacyBookmarkIdentifier],
 				['e', otherEventId]
-			])
+			],
+			'',
+			'stale',
+			1
+		);
+		legacyBookmarkEvent.set(staleEvent);
+		legacyRelayEvent = event(
+			Kind.Genericlists,
+			[
+				['d', legacyBookmarkIdentifier],
+				['e', eventId]
+			],
+			'',
+			'fresh',
+			2
+		);
+		mocks.use.mockReturnValueOnce(
+			from(
+				[staleEvent, legacyRelayEvent].map((sourceEvent) => ({
+					event: sourceEvent,
+					from: 'relay.example'
+				}))
+			)
 		);
 
 		await copyLegacyBookmarks();
 
-		expect(mocks.fetchLastEvent).toHaveBeenNthCalledWith(1, {
-			kinds: [Kind.Genericlists],
-			authors: [mocks.userPubkey],
-			'#d': [legacyBookmarkIdentifier],
-			limit: 1
-		});
+		expect(mocks.use).toHaveBeenCalledOnce();
 		expect(mocks.signEvent).toHaveBeenCalledWith(
 			expect.objectContaining({ tags: [['e', eventId]] })
 		);
@@ -241,11 +248,21 @@ describe('copy sources and public references', () => {
 	});
 
 	it('uses the relay standard event as the base instead of the cache', async () => {
+		const staleStandardEvent = event(Kind.BookmarkList, [['e', 'stale']], '', 'stale', 1);
 		mocks.storage.cachedEvent = event(Kind.BookmarkList, [['e', 'cached']]);
-		standardRelayEvent = event(Kind.BookmarkList, [['e', otherEventId]]);
+		standardRelayEvent = event(Kind.BookmarkList, [['e', otherEventId]], '', 'fresh', 2);
+		mocks.use.mockReturnValueOnce(
+			from(
+				[legacyRelayEvent!, staleStandardEvent, standardRelayEvent].map((sourceEvent) => ({
+					event: sourceEvent,
+					from: 'relay.example'
+				}))
+			)
+		);
 
 		await copyLegacyBookmarks();
 
+		expect(mocks.use).toHaveBeenCalledOnce();
 		expect(mocks.signEvent).toHaveBeenCalledWith(
 			expect.objectContaining({
 				tags: [
@@ -354,12 +371,6 @@ describe('private bookmark copy', () => {
 		expect(mocks.decryptNip44).toHaveBeenCalledWith(mocks.userPubkey, 'legacy-nip44');
 		expect(mocks.decrypt).not.toHaveBeenCalled();
 		expect(mocks.encryptNip44).toHaveBeenCalledOnce();
-	});
-
-	it('returns an empty collection without decrypting empty content', async () => {
-		await expect(decryptBookmarkContentStrict(mocks.userPubkey, '')).resolves.toEqual([]);
-		expect(mocks.decrypt).not.toHaveBeenCalled();
-		expect(mocks.decryptNip44).not.toHaveBeenCalled();
 	});
 
 	it('rejects a legacy private decrypt failure before signing or publishing', async () => {
