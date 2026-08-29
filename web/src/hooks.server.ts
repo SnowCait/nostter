@@ -61,4 +61,20 @@ const csp: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-export const handle: Handle = sequence(i18n, lang, csp);
+export const notFound: Handle = async ({ event, resolve }) => {
+	const response = await resolve(event);
+	if (response.status === 404) {
+		console.info({
+			event: 'http_not_found',
+			clientIp: event.request.headers.get('cf-connecting-ip'),
+			method: event.request.method,
+			path: event.url.pathname,
+			routeId: event.route.id,
+			rayId: event.request.headers.get('cf-ray'),
+			userAgent: event.request.headers.get('user-agent')
+		});
+	}
+	return response;
+};
+
+export const handle: Handle = sequence(notFound, i18n, lang, csp);
