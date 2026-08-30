@@ -18,7 +18,7 @@
 		"old_format": "旧形式",
 		"private": "プライベート",
 		"copy": {
-			"button": "すべてブックマークへコピー",
+			"button": "新形式にコピー",
 			"copying": "コピー中…",
 			"success": {
 				"title": "ブックマークをコピーしました",

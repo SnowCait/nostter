@@ -18,7 +18,7 @@
 		"old_format": "Old format",
 		"private": "Private",
 		"copy": {
-			"button": "Copy all to Bookmarks",
+			"button": "Copy to new format",
 			"copying": "Copying…",
 			"success": {
 				"title": "Bookmarks copied",
