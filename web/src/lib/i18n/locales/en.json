@@ -16,7 +16,23 @@
 	},
 	"bookmarks": {
 		"old_format": "Old format",
-		"private": "Private"
+		"private": "Private",
+		"copy": {
+			"button": "Copy to new format",
+			"copying": "Copying…",
+			"success": {
+				"title": "Bookmarks copied",
+				"description": "Old-format bookmarks were copied."
+			},
+			"no_changes": {
+				"title": "Nothing to copy",
+				"description": "Bookmarks are already up to date."
+			},
+			"failed": {
+				"title": "Copy failed",
+				"description": "Could not copy old-format bookmarks."
+			}
+		}
 	},
 	"pages": {
 		"profile_edit": "Edit profile",

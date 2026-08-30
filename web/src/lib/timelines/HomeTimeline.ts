@@ -15,7 +15,7 @@ import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
 import { kinds as Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark';
+import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark.svelte';
 import {
 	authorActionReqEmit,
 	updateReactionedEvents,

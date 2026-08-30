@@ -49,7 +49,12 @@ vi.mock('$lib/WebStorage', () => ({
 }));
 vi.stubGlobal('localStorage', {});
 
-import { bookmark, bookmarkEvent, legacyBookmarkEvent } from './Bookmark';
+import {
+	bookmark,
+	bookmarkEvent,
+	bookmarkOperationState,
+	legacyBookmarkEvent
+} from './Bookmark.svelte';
 import { copyLegacyBookmarks } from './BookmarkCopy';
 
 const eventId = 'a'.repeat(64);
@@ -131,12 +136,28 @@ describe('copy exclusivity', () => {
 
 		const normalWrite = bookmark(['e', eventId]);
 		await vi.waitFor(() => expect(mocks.signEvent).toHaveBeenCalledOnce());
+		expect(bookmarkOperationState.copyInProgress).toBe(false);
+		expect(bookmarkOperationState.canStartCopy).toBe(false);
+		await expect(bookmark(['e', otherEventId])).resolves.toBeUndefined();
 
 		await expect(copyLegacyBookmarks()).rejects.toThrow('busy');
 		expect(mocks.use).not.toHaveBeenCalled();
 
 		pendingSign.resolve(signedEvent(unsignedEvent!, 'normal-write'));
 		await normalWrite;
+		expect(mocks.signEvent).toHaveBeenCalledTimes(2);
+		expect(bookmarkOperationState.canStartCopy).toBe(true);
+	});
+
+	it('releases normal processing state after a publish failure', async () => {
+		mocks.signEvent.mockRejectedValueOnce(new Error('sign failed'));
+
+		await expect(bookmark(['e', eventId])).rejects.toThrow('sign failed');
+		expect(bookmarkOperationState.copyInProgress).toBe(false);
+		expect(bookmarkOperationState.canStartCopy).toBe(true);
+
+		await bookmark(['e', otherEventId]);
+		expect(mocks.signEvent).toHaveBeenCalledTimes(2);
 	});
 
 	it('does not enqueue bookmarks during copy and releases the lock after failure', async () => {
@@ -145,11 +166,15 @@ describe('copy exclusivity', () => {
 
 		const copy = copyLegacyBookmarks();
 		await vi.waitFor(() => expect(mocks.use).toHaveBeenCalledOnce());
+		expect(bookmarkOperationState.copyInProgress).toBe(true);
+		expect(bookmarkOperationState.canStartCopy).toBe(false);
 		await expect(bookmark(['e', eventId])).rejects.toThrow('copy is in progress');
 		expect(mocks.signEvent).not.toHaveBeenCalled();
 
 		pendingSources.error(new Error('relay failure'));
 		await expect(copy).rejects.toThrow('not found');
+		expect(bookmarkOperationState.copyInProgress).toBe(false);
+		expect(bookmarkOperationState.canStartCopy).toBe(true);
 		await bookmark(['e', otherEventId]);
 
 		expect(mocks.signEvent).toHaveBeenCalledOnce();
@@ -172,6 +197,8 @@ describe('copy exclusivity', () => {
 
 	it('releases the lock after success so a normal bookmark write can start', async () => {
 		const copiedEvent = await copyLegacyBookmarks();
+		expect(bookmarkOperationState.copyInProgress).toBe(false);
+		expect(bookmarkOperationState.canStartCopy).toBe(true);
 
 		await bookmark(['e', otherEventId]);
 

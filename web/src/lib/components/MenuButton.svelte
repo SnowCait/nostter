@@ -5,7 +5,12 @@
 	import { ChannelMessage, ShortTextNote } from 'nostr-tools/kinds';
 	import type * as Nostr from 'nostr-typedef';
 	import { page } from '$app/stores';
-	import { bookmark, unbookmark, isBookmarked } from '$lib/author/Bookmark';
+	import {
+		bookmark,
+		unbookmark,
+		isBookmarked,
+		bookmarkOperationState
+	} from '$lib/author/Bookmark.svelte';
 	import { broadcast } from '$lib/Broadcast';
 	import { copy } from '$lib/Clipboard';
 	import { shareUrl } from '$lib/Share';
@@ -62,6 +67,10 @@
 	);
 
 	async function onBookmark() {
+		if (bookmarkOperationState.copyInProgress) {
+			return;
+		}
+
 		console.log('[bookmark]', event, $rom);
 
 		if (bookmarked) {
@@ -81,6 +90,10 @@
 	}
 
 	async function onUnbookmark() {
+		if (bookmarkOperationState.copyInProgress) {
+			return;
+		}
+
 		console.log('[unbookmark]', event, $rom);
 
 		bookmarked = false;
@@ -225,14 +238,26 @@
 		{#if bookmarked}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div use:melt={$item} onclick={onUnbookmark} class="item undo">
+			<div
+				use:melt={$item}
+				onclick={onUnbookmark}
+				class="item undo"
+				aria-disabled={bookmarkOperationState.copyInProgress}
+				data-disabled={bookmarkOperationState.copyInProgress ? '' : undefined}
+			>
 				<div class="icon"><IconBookmarkFilled size={iconSize} /></div>
 				<div>{$_('actions.unbookmark.button')}</div>
 			</div>
 		{:else}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div use:melt={$item} onclick={onBookmark} class="item">
+			<div
+				use:melt={$item}
+				onclick={onBookmark}
+				class="item"
+				aria-disabled={bookmarkOperationState.copyInProgress}
+				data-disabled={bookmarkOperationState.copyInProgress ? '' : undefined}
+			>
 				<div class="icon"><IconBookmark size={iconSize} /></div>
 				<div>{$_('actions.bookmark.button')}</div>
 			</div>
@@ -334,5 +359,14 @@
 <style>
 	button {
 		color: var(--accent-gray);
+	}
+
+	.item[aria-disabled='true'] {
+		cursor: default;
+		opacity: 0.5;
+	}
+
+	.item[aria-disabled='true']:hover {
+		background-color: transparent;
 	}
 </style>
