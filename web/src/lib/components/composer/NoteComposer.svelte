@@ -651,8 +651,7 @@
 				oninput={onInput}
 				onpaste={paste}
 				ondragover={dragover}
-				ondrop={drop}
-			></textarea>
+				ondrop={drop}></textarea>
 			{#if containsNsec}
 				<div class="warning">{$_('editor.warning.nsec')}</div>
 			{/if}
