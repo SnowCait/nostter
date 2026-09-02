@@ -37,7 +37,7 @@
 		"globals": "^17.11.0",
 		"html5-qrcode": "^2.3.8",
 		"nostr-typedef": "^0.13.0",
-		"prettier": "^3.7.4",
+		"prettier": "^3.9.6",
 		"prettier-plugin-svelte": "^3.2.6",
 		"rollup-plugin-visualizer": "^7.1.1",
 		"svelte": "^5.56.9",

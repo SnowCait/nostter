@@ -116,9 +116,9 @@ export async function loadListTimeline(): Promise<void> {
 				.subscribe({
 					next: (packet) => {
 						console.debug('[list timeline past event]', packet);
-						if (
-							!(since <= packet.event.created_at && packet.event.created_at < until)
-						) {
+						if (!(
+							since <= packet.event.created_at && packet.event.created_at < until
+						)) {
 							console.warn('[list timeline out of period]', packet, since, until);
 							return;
 						}

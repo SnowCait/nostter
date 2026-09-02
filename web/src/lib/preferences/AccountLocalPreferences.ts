@@ -4,8 +4,7 @@ import type { Persisted } from 'svelte-persisted-store';
 import type { Writable } from 'svelte/store';
 
 export type MediaUploaderPreference =
-	| { type: 'blossom'; server: string }
-	| { type: 'nip96'; server: string };
+	{ type: 'blossom'; server: string } | { type: 'nip96'; server: string };
 
 export type AccountLocalPreferences = {
 	mediaUploader?: MediaUploaderPreference;
@@ -29,9 +28,7 @@ function normalizeAccountLocalPreferences(
 	preferences: AccountLocalPreferences
 ): AccountLocalPreferences {
 	const mediaUploader = preferences.mediaUploader as
-		| MediaUploaderPreference
-		| { type: 'blossom'; server?: string }
-		| undefined;
+		MediaUploaderPreference | { type: 'blossom'; server?: string } | undefined;
 	if (mediaUploader?.type !== 'blossom' || typeof mediaUploader.server === 'string') {
 		return preferences;
 	}

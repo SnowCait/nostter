@@ -64,12 +64,9 @@
 					.subscribe({
 						next: async (packet) => {
 							console.log('[rx-nostr user media timeline packet]', packet);
-							if (
-								!(
-									since <= packet.event.created_at &&
-									packet.event.created_at < until
-								)
-							) {
+							if (!(
+								since <= packet.event.created_at && packet.event.created_at < until
+							)) {
 								console.warn(
 									'[rx-nostr user media timeline out of period]',
 									packet,

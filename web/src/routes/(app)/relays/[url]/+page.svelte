@@ -61,12 +61,9 @@
 					.subscribe({
 						next: (packet) => {
 							console.log('[rx-nostr relay timeline packet]', packet);
-							if (
-								!(
-									since <= packet.event.created_at &&
-									packet.event.created_at < until
-								)
-							) {
+							if (!(
+								since <= packet.event.created_at && packet.event.created_at < until
+							)) {
 								console.warn(
 									'[rx-nostr relay timeline out of period]',
 									packet,

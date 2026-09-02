@@ -114,12 +114,9 @@
 					.subscribe({
 						next: async (packet) => {
 							console.debug('[rx-nostr notification timeline packet]', packet);
-							if (
-								!(
-									since <= packet.event.created_at &&
-									packet.event.created_at < until
-								)
-							) {
+							if (!(
+								since <= packet.event.created_at && packet.event.created_at < until
+							)) {
 								console.warn(
 									'[rx-nostr notification timeline out of period]',
 									packet,
