@@ -99,7 +99,7 @@
 		content = $bindable(''),
 		replyTo,
 		quotes = [],
-		// eslint-disable-next-line no-useless-assignment -- Assigning this $bindable prop propagates to the parent's bind:busy.
+		// eslint-disable-next-line no-useless-assignment -- $bindable() makes this prop bindable; its initial value is intentionally overwritten.
 		busy = $bindable(false)
 	}: Props = $props();
 
