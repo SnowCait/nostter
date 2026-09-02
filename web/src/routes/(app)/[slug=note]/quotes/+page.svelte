@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { createRxBackwardReq, uniq } from 'rx-nostr';
-	import { afterNavigate } from '$app/navigation';
 	import { EventItem } from '$lib/Items';
 	import { chronologicalItem } from '$lib/Constants';
 	import type { pubkey } from '$lib/Types';
@@ -17,7 +16,6 @@
 
 	let { data }: Props = $props();
 
-	let id: string | undefined;
 	let itemsMap = new SvelteMap<pubkey, EventItem>();
 
 	let items = $derived(
@@ -33,13 +31,11 @@
 			itemsMap.set(packet.event.id, new EventItem(packet.event));
 		});
 
-	afterNavigate(() => {
-		console.log('[quotes page]', data.eventId);
-		if (id === data.eventId) {
-			return;
-		}
+	$effect(() => {
+		const eventId = data.eventId;
+		console.log('[quotes page]', eventId);
 		itemsMap.clear();
-		quotesReq.emit([{ kinds: [1], '#q': [data.eventId] }]);
+		quotesReq.emit([{ kinds: [1], '#q': [eventId] }]);
 	});
 </script>
 
