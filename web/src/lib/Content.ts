@@ -50,13 +50,7 @@ type NipToken = {
 };
 
 export type Token =
-	| TextToken
-	| ReferenceToken
-	| HashtagToken
-	| EmojiToken
-	| UrlToken
-	| RelayToken
-	| NipToken;
+	TextToken | ReferenceToken | HashtagToken | EmojiToken | UrlToken | RelayToken | NipToken;
 
 export class Content {
 	static parse(content: string, tags: string[][] = []): Token[] {
@@ -78,9 +72,11 @@ export class Content {
 		const foundTokens: Token[] = [];
 		foundTokens.push(
 			...urls
-				.map(
-					({ url, indices }): UrlToken => ({ type: 'url', text: url, start: indices[0] })
-				)
+				.map(({ url, indices }): UrlToken => ({
+					type: 'url',
+					text: url,
+					start: indices[0]
+				}))
 				.filter((token) => token.start === 0 || content[token.start - 1] !== '"') // ignore URLs in JSON
 		);
 		if (hashtags.length > 0) {
@@ -89,13 +85,11 @@ export class Content {
 					...content.matchAll(
 						new RegExp(`#(${hashtags.map(escapeStringRegexp).join('|')})`, 'gi')
 					)
-				].map(
-					(match): HashtagToken => ({
-						type: 'hashtag',
-						text: match[0],
-						start: match.index
-					})
-				)
+				].map((match): HashtagToken => ({
+					type: 'hashtag',
+					text: match[0],
+					start: match.index
+				}))
 			);
 		}
 		if (emojis.size > 0) {
@@ -123,32 +117,26 @@ export class Content {
 				...content.matchAll(
 					/\bnostr:((note|npub|naddr|nevent|nprofile)1\w{6,})\b|#\[(?<i>\d+)\]/g
 				)
-			].map(
-				(match): ReferenceToken => ({
-					type: 'reference',
-					text: match[0],
-					start: match.index,
-					tagIndex: match.groups?.i ? Number(match.groups.i) : undefined
-				})
-			)
+			].map((match): ReferenceToken => ({
+				type: 'reference',
+				text: match[0],
+				start: match.index,
+				tagIndex: match.groups?.i ? Number(match.groups.i) : undefined
+			}))
 		);
 		foundTokens.push(
-			...[...content.matchAll(/(?<=^|\s)(wss|ws):\/\/\S+/g)].map(
-				(match): RelayToken => ({
-					type: 'relay',
-					text: match[0],
-					start: match.index
-				})
-			)
+			...[...content.matchAll(/(?<=^|\s)(wss|ws):\/\/\S+/g)].map((match): RelayToken => ({
+				type: 'relay',
+				text: match[0],
+				start: match.index
+			}))
 		);
 		foundTokens.push(
-			...[...content.matchAll(/NIP-[0-9A-Z]{2,}/g)].map(
-				(match): NipToken => ({
-					type: 'nip',
-					text: match[0],
-					start: match.index
-				})
-			)
+			...[...content.matchAll(/NIP-[0-9A-Z]{2,}/g)].map((match): NipToken => ({
+				type: 'nip',
+				text: match[0],
+				start: match.index
+			}))
 		);
 
 		return composeTokens(content, foundTokens);
