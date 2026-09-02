@@ -35,7 +35,7 @@ export class ToastNotification {
 			return;
 		}
 
-		let body = '';
+		let body: string;
 		switch (event.kind) {
 			case 1: {
 				body = event.content;

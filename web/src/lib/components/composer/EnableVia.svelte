@@ -8,6 +8,7 @@
 		enable: boolean;
 	}
 
+	// eslint-disable-next-line no-useless-assignment -- Assigning this $bindable prop propagates to the parent's bind:enable.
 	let { enable = $bindable() }: Props = $props();
 
 	$effect(() => {
