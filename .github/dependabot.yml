@@ -48,12 +48,6 @@ updates:
           - "melt"
           - "@melt-ui/*"
           - "@floating-ui/dom"
-      tabler-icons:
-        update-types:
-          - "minor"
-          - "patch"
-        patterns:
-          - "@tabler/*"
       rx-nostr:
         update-types:
           - "minor"
