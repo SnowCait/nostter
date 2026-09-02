@@ -9,45 +9,79 @@ updates:
     open-pull-requests-limit: 20
     groups:
       Svelte:
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "svelte"
           - "svelte-check"
           - "@sveltejs/*"
           - "vite"
       TypeScript:
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "typescript"
           - "typescript-eslint"
-      linter:
+      eslint:
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
-          - "eslint*"
+          - "eslint"
+          - "eslint-config-*"
+          - "eslint-plugin-*"
           - "@eslint/*"
-          - "prettier*"
+      prettier:
+        update-types:
+          - "minor"
+          - "patch"
+        patterns:
+          - "prettier"
+          - "prettier-plugin-*"
       UI:
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "melt"
           - "@melt-ui/*"
           - "@floating-ui/dom"
-          - "@tabler/*"
       rx-nostr:
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "rx-nostr"
           - "rx-nostr-crypto"
           - "rxjs"
           - "nostr-typedef"
       async-lock:
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "async-lock"
           - "@types/async-lock"
       qrcode:
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "qrcode"
           - "@types/qrcode"
       twitter-text:
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "twitter-text"
           - "@types/twitter-text"
       gdpr-cookie-consent-banner:
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "@beyonk/gdpr-cookie-consent-banner"
           - "@types/beyonk__gdpr-cookie-consent-banner"
@@ -60,5 +94,8 @@ updates:
     groups:
       github-actions:
         applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "*"
