@@ -58,6 +58,7 @@
 	import { Spotify } from '$lib/Spotify';
 	import { Twitter } from '$lib/Twitter';
 	import { enablePreview } from '$lib/stores/Preference';
+	import { isSimplexSmpUrl } from '$lib/url';
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import SoundCloudPlayer from '$lib/components/content/SoundCloud.svelte';
@@ -159,6 +160,8 @@
 {:else if link.hostname.endsWith('nicovideo.jp') && nicovideoRegexp.test(link.href)}
 	<Nicovideo {link} />
 {:else if link.hostname === 'amzn.to' || link.hostname === 'amzn.asia' || /^(.+\.)*amazon\.co\.jp$/s.test(link.hostname)}
+	<ExternalLink {link} />
+{:else if isSimplexSmpUrl(link)}
 	<ExternalLink {link} />
 {:else if mediaKind !== undefined}
 	{@render media(link, mediaKind)}

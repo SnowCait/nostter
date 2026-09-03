@@ -14,6 +14,7 @@
 	import { Twitter } from '$lib/Twitter';
 	import { nicovideoRegexp } from '$lib/Constants';
 	import { mediaExtensionRegexp } from '$lib/media/MediaType';
+	import { isSimplexSmpUrl } from '$lib/url';
 	import type * as Nostr from 'nostr-typedef';
 	import type { LocalMediaPreview } from '$lib/media/LocalAttachment';
 	import LocalMedia from './content/LocalMedia.svelte';
@@ -65,7 +66,9 @@
 	{/each}
 	{#if $enablePreview && browser}
 		{#each urls as url}
-			{#if Twitter.isTweetUrl(url)}
+			{#if isSimplexSmpUrl(url)}
+				<!-- SimpleX SMP -->
+			{:else if Twitter.isTweetUrl(url)}
 				<!-- Twitter -->
 			{:else if Spotify.isSpotifyUrl(url)}
 				<!-- Spotify -->
