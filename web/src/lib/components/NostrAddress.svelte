@@ -16,16 +16,22 @@
 
 {#if normalizedNip05}
 	<div class="nip05">
-		<span>{normalizedNip05}</span>
+		<span class="address">{normalizedNip05}</span>
 		{#await nip05.queryProfile(normalizedNip05) then pointer}
 			{#if pointer === null}
-				<IconAlertTriangle color="orange" />
-				<span class="label">{$_('profile.nip05.unknown')}</span>
+				<span class="status">
+					<IconAlertTriangle color="orange" />
+					<span class="label">{$_('profile.nip05.unknown')}</span>
+				</span>
 			{:else if pointer.pubkey === metadata.event.pubkey}
-				<IconRosetteDiscountCheck color="skyblue" />
+				<span class="status">
+					<IconRosetteDiscountCheck color="skyblue" />
+				</span>
 			{:else}
-				<IconAlertTriangle color="red" />
-				<span class="label">{$_('profile.nip05.impersonation')}</span>
+				<span class="status">
+					<IconAlertTriangle color="red" />
+					<span class="label">{$_('profile.nip05.impersonation')}</span>
+				</span>
 			{/if}
 		{/await}
 	</div>
@@ -35,12 +41,21 @@
 	.nip05 {
 		margin: 0.35rem 0;
 		display: inline-flex;
-		flex-direction: row;
-		align-items: center;
+		align-items: flex-start;
+		gap: 0.2rem;
+		max-width: 100%;
 	}
 
-	.nip05 span {
-		margin-right: 0.2rem;
-		word-break: break-all;
+	.address {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.status {
+		display: inline-flex;
+		flex: none;
+		align-items: center;
+		gap: 0.2rem;
+		white-space: nowrap;
 	}
 </style>
