@@ -15,6 +15,7 @@
 	} from '$lib/TextEventComposer';
 	import { Content } from '$lib/Content';
 	import { filterTags } from '$lib/EventHelper';
+	import { getReadRelays, parseRelayList } from '$lib/nostr/nip65';
 	import { metadataStore } from '$lib/cache/Events';
 	import { EventItem, Metadata } from '$lib/Items';
 	import type * as Nostr from 'nostr-typedef';
@@ -543,12 +544,9 @@
 				}
 
 				const readRelays = [...relayListEventsMap]
-					.flatMap(([, relayListEvent]) => relayListEvent.tags)
-					.filter(
-						([tagName, , marker]) =>
-							tagName === 'r' && (marker === undefined || marker === 'read')
+					.flatMap(([, relayListEvent]) =>
+						getReadRelays(parseRelayList(relayListEvent.tags))
 					)
-					.map(([, url]) => url)
 					.filter((url) => !sendToRelays.includes(url));
 				console.log('[rx-nostr send addition]', readRelays, relayListEventsMap);
 				if (readRelays.length === 0) {

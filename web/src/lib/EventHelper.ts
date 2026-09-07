@@ -51,21 +51,6 @@ export function filterTags(tagName: string, tags: string[][]) {
 		.map(([, content]) => content);
 }
 
-export function filterRelayTags(tags: string[][]): string[][] {
-	return tags.filter(([tagName, relay]) => {
-		if (tagName !== 'r') {
-			return false;
-		}
-
-		try {
-			const url = new URL(relay);
-			return url.protocol === 'wss:' || url.protocol === 'ws:';
-		} catch {
-			return false;
-		}
-	});
-}
-
 export const filterEmojiTags = (tags: string[][]): string[][] => {
 	return tags.filter(([tagName, shortcode, imageUrl]) => {
 		if (tagName !== 'emoji') {
@@ -85,18 +70,6 @@ export const filterEmojiTags = (tags: string[][]): string[][] => {
 		}
 	});
 };
-
-export function relayTagsToMap(tags: string[][]): Map<string, { read: boolean; write: boolean }> {
-	return new Map(
-		filterRelayTags(tags).map(([, relay, permission]) => [
-			relay,
-			{
-				read: permission === undefined || permission === 'read',
-				write: permission === undefined || permission === 'write'
-			}
-		])
-	);
-}
 
 export function parseRelayJson(content: string): Map<string, { read: boolean; write: boolean }> {
 	try {
