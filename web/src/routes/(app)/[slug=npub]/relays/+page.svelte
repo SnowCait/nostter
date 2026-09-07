@@ -11,7 +11,8 @@
 	import { developerMode } from '$lib/stores/Preference';
 	import { kinds as Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
-	import { filterRelayTags, parseRelayJson } from '$lib/EventHelper';
+	import { parseRelayJson } from '$lib/EventHelper';
+	import { parseRelayList } from '$lib/nostr/nip65';
 	import { Contacts } from '$lib/Contacts';
 	import IconPencil from '@tabler/icons-svelte-runes/icons/pencil';
 	import IconDeviceFloppy from '@tabler/icons-svelte-runes/icons/device-floppy';
@@ -50,13 +51,7 @@
 		const kind10002 = events.get(Kind.RelayList);
 		const kind3 = events.get(Kind.Contacts);
 		if (kind10002 !== undefined) {
-			relays = filterRelayTags(kind10002.tags).map(([, relay, permission]) => {
-				return {
-					url: relay,
-					read: permission === undefined || permission === 'read',
-					write: permission === undefined || permission === 'write'
-				};
-			});
+			relays = parseRelayList(kind10002.tags);
 		} else if (kind3 !== undefined && kind3.content !== '') {
 			relays = [...parseRelayJson(kind3.content)].map(([relay, permission]) => {
 				return { url: relay, ...permission };

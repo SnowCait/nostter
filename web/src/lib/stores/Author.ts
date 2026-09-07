@@ -4,7 +4,8 @@ import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
 import type { Author } from '$lib/Author';
-import { filterRelayTags, filterTags, findIdentifier, getZapperPubkey } from '$lib/EventHelper';
+import { filterTags, findIdentifier, getZapperPubkey } from '$lib/EventHelper';
+import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/nip65';
 import { decryptListContent } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
 import { type LoginType, signerCanSign } from '$lib/signer-capability';
@@ -117,27 +118,9 @@ export const isMuteEvent = (event: Event) => {
 
 export const updateRelays = (event: Event) => {
 	console.debug('[relays before]', get(readRelays), get(writeRelays));
-	const validRelayTags = filterRelayTags(event.tags);
-	readRelays.set(
-		Array.from(
-			new Set(
-				validRelayTags
-					.filter(([, , permission]) => permission === undefined || permission === 'read')
-					.map(([, relay]) => relay)
-			)
-		)
-	);
-	writeRelays.set(
-		Array.from(
-			new Set(
-				validRelayTags
-					.filter(
-						([, , permission]) => permission === undefined || permission === 'write'
-					)
-					.map(([, relay]) => relay)
-			)
-		)
-	);
+	const entries = parseRelayList(event.tags);
+	readRelays.set([...new Set(getReadRelays(entries))]);
+	writeRelays.set([...new Set(getWriteRelays(entries))]);
 	console.debug('[relays after]', get(readRelays), get(writeRelays));
 };
 
