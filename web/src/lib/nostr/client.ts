@@ -44,4 +44,4 @@ export const rxNostr = createRxNostr({
 			return event as Nostr.Event<K>;
 		}
 	}
-}); // Based on NIP-65
+});
