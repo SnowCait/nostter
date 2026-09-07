@@ -1,20 +1,15 @@
 import { get, writable } from 'svelte/store';
 import type * as Nostr from 'nostr-typedef';
 import {
-	Nip11Registry,
 	batch,
 	createRxBackwardReq,
-	createRxNostr,
 	filterByType,
 	latestEach,
-	now,
 	uniq,
 	type ConnectionState,
 	type LazyFilter
 } from 'rx-nostr';
-import { createNoopClient, createVerificationServiceClient } from 'rx-nostr-crypto';
 import { tap, bufferTime } from 'rxjs';
-import { browser } from '$app/environment';
 import { addressRegexp, filterLimitItems, hexRegexp, timeout } from '$lib/Constants';
 import { aTagContent, filterTags, parseAddress } from '$lib/EventHelper';
 import { Metadata } from '$lib/Items';
@@ -29,50 +24,10 @@ import {
 import { chunk } from '$lib/Array';
 import { Content } from '$lib/Content';
 import { sleep } from '$lib/Helper';
-import workerUrl from '$lib/Worker?worker&url';
-import { Signer } from '$lib/Signer';
 import { createTie } from '$lib/RxNostrTie';
 import { isReplaceableKind } from 'nostr-tools/kinds';
-
-Nip11Registry.setDefault({
-	limitation: {
-		max_subscriptions: 20
-	}
-});
-
-export const verificationClient = browser
-	? createVerificationServiceClient({
-			worker: new Worker(workerUrl, { type: 'module' }),
-			timeout: 600000
-		})
-	: createNoopClient();
-verificationClient.start();
-
-export const rxNostr = createRxNostr({
-	verifier: verificationClient.verifier,
-	connectionStrategy: 'lazy-keep',
-	eoseTimeout: timeout,
-	okTimeout: timeout,
-	retry: { strategy: 'exponential', maxCount: 5, initialDelay: 1000, polite: true },
-	authenticator: 'auto',
-	signer: {
-		getPublicKey: () => Signer.getPublicKey(),
-		signEvent: async <K extends number>(
-			params: Nostr.EventParameters<K>
-		): Promise<Nostr.Event<K>> => {
-			if (params.sig) {
-				return params as Nostr.Event<K>;
-			}
-
-			const event = await Signer.signEvent({
-				...params,
-				tags: params.tags ?? [],
-				created_at: params.created_at ?? now()
-			});
-			return event as Nostr.Event<K>;
-		}
-	}
-}); // Based on NIP-65
+import { rxNostr } from '$lib/nostr/client';
+export { rxNostr, verificationClient } from '$lib/nostr/client';
 
 //#region Relay hints
 
