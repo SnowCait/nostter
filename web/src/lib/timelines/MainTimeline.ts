@@ -24,32 +24,11 @@ import {
 import { chunk } from '$lib/Array';
 import { Content } from '$lib/Content';
 import { sleep } from '$lib/Helper';
-import { createTie } from '$lib/RxNostrTie';
 import { isReplaceableKind } from 'nostr-tools/kinds';
 import { rxNostr } from '$lib/nostr/client';
 export { rxNostr, verificationClient } from '$lib/nostr/client';
-
-//#region Relay hints
-
-export const [tie, seenOn] = createTie();
-
-export function getRelayHint(id: string): string | undefined {
-	return seenOn
-		.get(id)
-		?.values()
-		.filter((value) => value.startsWith('wss://'))
-		.next().value;
-}
-
-export function getSeenOnRelays(id: string): string[] | undefined {
-	const relays = seenOn.get(id);
-	if (relays === undefined) {
-		return undefined;
-	}
-	return [...relays].filter((value) => value.startsWith('wss://'));
-}
-
-//#endregion
+export { tie, seenOn, getRelayHint, getSeenOnRelays } from '$lib/nostr/relay-hints';
+import { tie } from '$lib/nostr/relay-hints';
 
 //#region Connection States
 
