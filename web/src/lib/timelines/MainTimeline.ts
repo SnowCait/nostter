@@ -105,25 +105,21 @@ export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = fa
 }
 
 function getReferencedPubkeys(event: Nostr.Event, content: string): string[] {
-	return [
-		...new Set([
-			event.pubkey,
-			...filterTags('p', event.tags),
-			...Content.findNpubsAndNprofilesToPubkeys(content)
-		])
-	];
+	return unique([
+		event.pubkey,
+		...filterTags('p', event.tags),
+		...Content.findNpubsAndNprofilesToPubkeys(content)
+	]);
 }
 
 function getReferencedEventIds(event: Nostr.Event, content: string): string[] {
-	return [
-		...new Set([
-			...filterTags('e', event.tags),
-			...Content.findNotesAndNeventsToIds(content),
-			...event.tags
-				.filter(([tagName, id]) => tagName === 'q' && id && hexRegexp.test(id))
-				.map(([, id]) => id)
-		])
-	];
+	return unique([
+		...filterTags('e', event.tags),
+		...Content.findNotesAndNeventsToIds(content),
+		...event.tags
+			.filter(([tagName, id]) => tagName === 'q' && id && hexRegexp.test(id))
+			.map(([, id]) => id)
+	]);
 }
 
 function requestEventReferences(event: Nostr.Event, content: string): void {
