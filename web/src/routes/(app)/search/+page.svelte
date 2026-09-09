@@ -12,7 +12,7 @@
 	import Trending from './Trending.svelte';
 	import FollowHashtagButton from '$lib/components/FollowHashtagButton.svelte';
 	import UnfollowHashtagButton from '$lib/components/UnfollowHashtagButton.svelte';
-	import { unique } from '$lib/Array';
+	import { unique } from '$lib/array';
 	import { SearchTimeline, searchTimeline } from '$lib/timelines/SearchTimeline.svelte';
 	import { createTabs, melt } from '@melt-ui/svelte';
 	import { crossfade } from 'svelte/transition';

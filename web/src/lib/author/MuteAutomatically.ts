@@ -2,7 +2,7 @@ import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import { kinds as Kind } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
-import { chunk } from '$lib/Array';
+import { chunk } from '$lib/array';
 import { filterLimit, maxFilters } from '$lib/Constants';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { auth } from '$lib/auth.svelte';

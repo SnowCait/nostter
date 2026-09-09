@@ -1,5 +1,5 @@
 import type { Filter } from 'nostr-tools';
-import { chunk } from './Array';
+import { chunk } from './array';
 import { filterLimitItems, followeesFilterKinds } from './Constants';
 
 export class Timeline {

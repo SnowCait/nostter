@@ -6,7 +6,7 @@ import type { User } from '../routes/types';
 import { Api } from './Api';
 import { referTags } from './EventHelper';
 import { getRelayHint } from './timelines/MainTimeline';
-import { unique } from './Array';
+import { unique } from './array';
 
 export async function compose(
 	kind: number,

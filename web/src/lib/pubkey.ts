@@ -1,4 +1,4 @@
-import { unique } from './Array';
+import { unique } from './array';
 import { hexRegexp } from './Constants';
 
 export function isValidPubkey(value: string | undefined): value is string {

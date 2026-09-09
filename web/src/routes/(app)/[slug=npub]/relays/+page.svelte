@@ -18,7 +18,7 @@
 	import IconDeviceFloppy from '@tabler/icons-svelte-runes/icons/device-floppy';
 	import Loading from '$lib/components/Loading.svelte';
 	import { sendEvent } from '$lib/RxNostrHelper';
-	import { unique } from '$lib/Array';
+	import { unique } from '$lib/array';
 
 	interface Props {
 		data: LayoutData;

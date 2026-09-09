@@ -30,7 +30,7 @@ import { Preferences, preferencesStore } from '$lib/Preferences';
 import { followingHashtags, updateFollowingHashtags } from '$lib/Interest';
 import { EventItem } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
-import { chunk } from '$lib/Array';
+import { chunk } from '$lib/array';
 import {
 	homeFolloweesFilterKinds,
 	filterLimitItems,

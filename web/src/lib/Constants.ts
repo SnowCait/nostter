@@ -1,5 +1,5 @@
 import { kinds as Kind, type Event as NostrEvent } from 'nostr-tools';
-import { unique } from './Array';
+import { unique } from './array';
 import { Emojisets } from 'nostr-tools/kinds';
 import { profileBadgesKind } from './ProfileBadgesEvent';
 

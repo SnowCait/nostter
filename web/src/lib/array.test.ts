@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { diff, unique } from './Array';
+import { diff, unique } from './array';
 
 describe('array', () => {
 	it('diff', () => {

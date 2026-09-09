@@ -15,7 +15,7 @@ import {
 } from 'rx-nostr';
 import { tap, type Subscription } from 'rxjs';
 import { minTimelineLength } from '$lib/Constants';
-import { unique } from '$lib/Array';
+import { unique } from '$lib/array';
 import { Channel } from '$lib/Channel';
 import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 import type { ChannelMetadata } from '$lib/Types';

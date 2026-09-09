@@ -2,7 +2,7 @@ import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, latestEach, now, uniq, type LazyFilter } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
-import { chunk } from '$lib/Array';
+import { chunk } from '$lib/array';
 import { maxFilters } from '$lib/Constants';
 import { aTagContent, filterEmojiTags, findIdentifier, parseAddress } from '$lib/EventHelper';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
