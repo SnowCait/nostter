@@ -32,7 +32,7 @@ export { rxNostr, verificationClient } from '$lib/nostr/client';
 export { tie, seenOn, getRelayHint, getSeenOnRelays } from '$lib/nostr/relay-hints';
 import { tie } from '$lib/nostr/relay-hints';
 import { RelayList } from '$lib/RelayList';
-import { getWriteRelays, parseRelayList } from '$lib/nostr/nip65';
+import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/nip65';
 
 //#region Connection States
 
@@ -131,7 +131,7 @@ export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = fa
 				URL.canParse(relay)
 		);
 		if (referenceTags.length > 0 || event.kind === ShortTextNote) {
-			// If not found, try relay hints and the referenced author's write relays.
+			// If not found, try relay hints, referenced authors' write relays, and the replying author's read relays.
 			setTimeout(async () => {
 				const undiscoveredReferenceTags = referenceTags.filter(
 					([, id]) => !$eventItemStore.has(id)
@@ -146,27 +146,47 @@ export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = fa
 					return;
 				}
 				const { root, reply } = nip10.parse(event);
-				const references = new Map<string, string>();
-				for (const reference of [root, reply]) {
-					if (reference?.author && !$eventItemStore.has(reference.id)) {
-						references.set(reference.id, reference.author);
-					}
-				}
-				if (references.size === 0) {
+				const references = [root, reply].filter(
+					(reference): reference is NonNullable<typeof reference> =>
+						reference !== undefined && !$eventItemStore.has(reference.id)
+				);
+				if (references.length === 0) {
 					return;
 				}
-				const relayLists = await RelayList.fetchEvents(unique([...references.values()]));
-				for (const [id, author] of references) {
-					if ($eventItemStore.has(id)) {
+				const authors = unique([
+					...references.flatMap((reference) =>
+						reference.author ? [reference.author] : []
+					),
+					event.pubkey
+				]);
+				const relayLists = await RelayList.fetchEvents(authors);
+				const requestedIds = new Set<string>();
+				for (const reference of references.toReversed()) {
+					if (
+						!reference.author ||
+						$eventItemStore.has(reference.id) ||
+						requestedIds.has(reference.id)
+					) {
 						continue;
 					}
-					const relayList = relayLists.get(author);
+					requestedIds.add(reference.id);
+					const relayList = relayLists.get(reference.author);
 					if (relayList === undefined) {
 						continue;
 					}
 					const relays = unique(getWriteRelays(parseRelayList(relayList.tags)));
 					if (relays.length > 0) {
-						referencesReq.emit({ ids: [id] }, { relays });
+						referencesReq.emit({ ids: [reference.id] }, { relays });
+					}
+				}
+				const relayList = relayLists.get(event.pubkey);
+				if (relayList !== undefined) {
+					const relays = unique(getReadRelays(parseRelayList(relayList.tags)));
+					const ids = unique(references.map((reference) => reference.id)).filter(
+						(id) => !$eventItemStore.has(id)
+					);
+					if (ids.length > 0 && relays.length > 0) {
+						referencesReq.emit({ ids }, { relays });
 					}
 				}
 			}, timeout);
