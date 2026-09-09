@@ -1,6 +1,6 @@
 import { get, writable } from 'svelte/store';
 import type * as Nostr from 'nostr-typedef';
-import { kinds as Kind } from 'nostr-tools';
+import { ShortTextNote } from 'nostr-tools/kinds';
 import * as nip10 from 'nostr-tools/nip10';
 import {
 	batch,
@@ -130,8 +130,8 @@ export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = fa
 				relay.startsWith('wss://') &&
 				URL.canParse(relay)
 		);
-		if (referenceTags.length > 0 || event.kind === Kind.ShortTextNote) {
-			// If not found, look up from the relay hint
+		if (referenceTags.length > 0 || event.kind === ShortTextNote) {
+			// If not found, try relay hints and the referenced author's write relays.
 			setTimeout(async () => {
 				const undiscoveredReferenceTags = referenceTags.filter(
 					([, id]) => !get(eventItemStore).has(id)
@@ -142,7 +142,7 @@ export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = fa
 						{ relays: undiscoveredReferenceTags.map(([, , relay]) => relay) }
 					);
 				}
-				if (event.kind !== Kind.ShortTextNote) {
+				if (event.kind !== ShortTextNote) {
 					return;
 				}
 				const { root, reply } = nip10.parse(event);
