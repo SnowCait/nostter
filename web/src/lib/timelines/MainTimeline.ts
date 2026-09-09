@@ -146,39 +146,45 @@ export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = fa
 					return;
 				}
 				const { root, reply } = nip10.parse(event);
-				const references = new Map<string, string | undefined>();
-				for (const reference of [root, reply]) {
-					if (reference && !$eventItemStore.has(reference.id)) {
-						references.set(
-							reference.id,
-							reference.author || references.get(reference.id)
-						);
-					}
-				}
-				if (references.size === 0) {
+				const references = [root, reply].filter(
+					(reference): reference is NonNullable<typeof reference> =>
+						reference !== undefined && !$eventItemStore.has(reference.id)
+				);
+				if (references.length === 0) {
 					return;
 				}
-				const authors = [...references.values()].filter(
-					(author) => typeof author === 'string'
-				);
-				const relayLists = await RelayList.fetchEvents(unique([...authors, event.pubkey]));
-				for (const [id, author] of references) {
-					if (!author || $eventItemStore.has(id)) {
+				const authors = unique([
+					...references.flatMap((reference) =>
+						reference.author ? [reference.author] : []
+					),
+					event.pubkey
+				]);
+				const relayLists = await RelayList.fetchEvents(authors);
+				const requestedIds = new Set<string>();
+				for (const reference of references.toReversed()) {
+					if (
+						!reference.author ||
+						$eventItemStore.has(reference.id) ||
+						requestedIds.has(reference.id)
+					) {
 						continue;
 					}
-					const relayList = relayLists.get(author);
+					requestedIds.add(reference.id);
+					const relayList = relayLists.get(reference.author);
 					if (relayList === undefined) {
 						continue;
 					}
 					const relays = unique(getWriteRelays(parseRelayList(relayList.tags)));
 					if (relays.length > 0) {
-						referencesReq.emit({ ids: [id] }, { relays });
+						referencesReq.emit({ ids: [reference.id] }, { relays });
 					}
 				}
 				const relayList = relayLists.get(event.pubkey);
 				if (relayList !== undefined) {
 					const relays = unique(getReadRelays(parseRelayList(relayList.tags)));
-					const ids = [...references.keys()].filter((id) => !$eventItemStore.has(id));
+					const ids = unique(references.map((reference) => reference.id)).filter(
+						(id) => !$eventItemStore.has(id)
+					);
 					if (ids.length > 0 && relays.length > 0) {
 						referencesReq.emit({ ids }, { relays });
 					}
