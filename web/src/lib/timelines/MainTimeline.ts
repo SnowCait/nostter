@@ -118,7 +118,10 @@ export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = fa
 	].filter((id) => !$eventItemStore.has(id));
 
 	if (ids.length > 0) {
-		const defaultReadRelays = Object.keys(rxNostr.getDefaultRelays({ filter: 'read-all' }));
+		const relayKey = (relay: string): string => new URL(relay).href;
+		const defaultReadRelays = Object.keys(rxNostr.getDefaultRelays({ filter: 'read-all' })).map(
+			relayKey
+		);
 		const requestedRelays = new Map(ids.map((id) => [id, new Set(defaultReadRelays)]));
 		referencesReq.emit({ ids });
 
@@ -127,13 +130,16 @@ export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = fa
 				return;
 			}
 			const requested = requestedRelays.get(id) ?? new Set<string>();
-			const relays = unique(candidateRelays).filter((relay) => !requested.has(relay));
+			const candidates = new Map(candidateRelays.map((relay) => [relayKey(relay), relay]));
+			const relays = [...candidates]
+				.filter(([key]) => !requested.has(key))
+				.map(([, relay]) => relay);
 			if (relays.length === 0) {
 				return;
 			}
 			referencesReq.emit({ ids: [id] }, { relays });
 			for (const relay of relays) {
-				requested.add(relay);
+				requested.add(relayKey(relay));
 			}
 			requestedRelays.set(id, requested);
 		};
