@@ -1,5 +1,7 @@
 import { get, writable } from 'svelte/store';
 import type * as Nostr from 'nostr-typedef';
+import { kinds as Kind } from 'nostr-tools';
+import * as nip10 from 'nostr-tools/nip10';
 import {
 	batch,
 	createRxBackwardReq,
@@ -29,6 +31,8 @@ import { rxNostr } from '$lib/nostr/client';
 export { rxNostr, verificationClient } from '$lib/nostr/client';
 export { tie, seenOn, getRelayHint, getSeenOnRelays } from '$lib/nostr/relay-hints';
 import { tie } from '$lib/nostr/relay-hints';
+import { RelayList } from '$lib/RelayList';
+import { getWriteRelays, parseRelayList } from '$lib/nostr/nip65';
 
 //#region Connection States
 
@@ -126,19 +130,45 @@ export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = fa
 				relay.startsWith('wss://') &&
 				URL.canParse(relay)
 		);
-		if (referenceTags.length > 0) {
+		if (referenceTags.length > 0 || event.kind === Kind.ShortTextNote) {
 			// If not found, look up from the relay hint
-			setTimeout(() => {
+			setTimeout(async () => {
 				const undiscoveredReferenceTags = referenceTags.filter(
-					([, id]) => !$eventItemStore.has(id)
+					([, id]) => !get(eventItemStore).has(id)
 				);
-				if (undiscoveredReferenceTags.length === 0) {
+				if (undiscoveredReferenceTags.length > 0) {
+					referencesReq.emit(
+						{ ids: undiscoveredReferenceTags.map(([, id]) => id) },
+						{ relays: undiscoveredReferenceTags.map(([, , relay]) => relay) }
+					);
+				}
+				if (event.kind !== Kind.ShortTextNote) {
 					return;
 				}
-				referencesReq.emit(
-					{ ids: undiscoveredReferenceTags.map(([, id]) => id) },
-					{ relays: undiscoveredReferenceTags.map(([, , relay]) => relay) }
-				);
+				const { root, reply } = nip10.parse(event);
+				const references = new Map<string, string>();
+				for (const reference of [root, reply]) {
+					if (reference?.author && !get(eventItemStore).has(reference.id)) {
+						references.set(reference.id, reference.author);
+					}
+				}
+				if (references.size === 0) {
+					return;
+				}
+				const relayLists = await RelayList.fetchEvents([...new Set(references.values())]);
+				for (const [id, author] of references) {
+					if (get(eventItemStore).has(id)) {
+						continue;
+					}
+					const relayList = relayLists.get(author);
+					if (relayList === undefined) {
+						continue;
+					}
+					const relays = [...new Set(getWriteRelays(parseRelayList(relayList.tags)))];
+					if (relays.length > 0) {
+						referencesReq.emit({ ids: [id] }, { relays });
+					}
+				}
 			}, timeout);
 		}
 	}
