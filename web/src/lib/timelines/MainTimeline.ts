@@ -14,7 +14,7 @@ import {
 import { tap, bufferTime } from 'rxjs';
 import { addressRegexp, filterLimitItems, hexRegexp, timeout } from '$lib/Constants';
 import { aTagContent, filterTags, parseAddress } from '$lib/EventHelper';
-import { Metadata } from '$lib/Items';
+import { Metadata, type EventItem } from '$lib/Items';
 import {
 	eventItemStore,
 	metadataStore,
@@ -94,118 +94,136 @@ export async function metadataReqEmit(pubkeys: string[]): Promise<void> {
 export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = false): void {
 	console.debug('[rx-nostr references REQ emit]', event);
 	const content = event.kind > 0 ? event.content : (new Metadata(event).content?.about ?? '');
-	metadataReqEmit([
-		...new Set([
-			event.pubkey,
-			...filterTags('p', event.tags),
-			...Content.findNpubsAndNprofilesToPubkeys(content)
-		])
-	]);
+	metadataReqEmit(getReferencedPubkeys(event, content));
 
 	if (metadataOnly) {
 		return;
 	}
 
+	requestEventReferences(event, content);
+	requestReplaceableReferences(event);
+}
+
+function getReferencedPubkeys(event: Nostr.Event, content: string): string[] {
+	return unique([
+		event.pubkey,
+		...filterTags('p', event.tags),
+		...Content.findNpubsAndNprofilesToPubkeys(content)
+	]);
+}
+
+function getReferencedEventIds(event: Nostr.Event, content: string): string[] {
+	return unique([
+		...filterTags('e', event.tags),
+		...Content.findNotesAndNeventsToIds(content),
+		...event.tags
+			.filter(([tagName, id]) => tagName === 'q' && id && hexRegexp.test(id))
+			.map(([, id]) => id)
+	]);
+}
+
+function requestEventReferences(event: Nostr.Event, content: string): void {
 	const $eventItemStore = get(eventItemStore);
-	const ids = [
-		...new Set([
-			...filterTags('e', event.tags),
-			...Content.findNotesAndNeventsToIds(content),
-			...event.tags
-				.filter(([tagName, id]) => tagName === 'q' && id && hexRegexp.test(id))
-				.map(([, id]) => id)
-		])
-	].filter((id) => !$eventItemStore.has(id));
-
-	if (ids.length > 0) {
-		const relayKey = (relay: string): string => new URL(relay).href;
-		const defaultReadRelays = Object.keys(rxNostr.getDefaultRelays({ filter: 'read-all' })).map(
-			relayKey
-		);
-		const requestedRelays = new Map(ids.map((id) => [id, new Set(defaultReadRelays)]));
-		referencesReq.emit({ ids });
-
-		const requestReference = (id: string, candidateRelays: string[]): void => {
-			if ($eventItemStore.has(id)) {
-				return;
-			}
-			const requested = requestedRelays.get(id) ?? new Set<string>();
-			const candidates = new Map(candidateRelays.map((relay) => [relayKey(relay), relay]));
-			const relays = [...candidates]
-				.filter(([key]) => !requested.has(key))
-				.map(([, relay]) => relay);
-			if (relays.length === 0) {
-				return;
-			}
-			referencesReq.emit({ ids: [id] }, { relays });
-			for (const relay of relays) {
-				requested.add(relayKey(relay));
-			}
-			requestedRelays.set(id, requested);
-		};
-
-		const referenceTags = event.tags.filter(
-			([tagName, id, relay]) =>
-				typeof tagName === 'string' &&
-				['e', 'q'].includes(tagName) &&
-				typeof id === 'string' &&
-				hexRegexp.test(id) &&
-				typeof relay === 'string' &&
-				relay.startsWith('wss://') &&
-				URL.canParse(relay)
-		);
-		if (referenceTags.length > 0 || event.kind === ShortTextNote) {
-			// If not found, try relay hints, referenced authors' write relays, and the replying author's read relays.
-			setTimeout(async () => {
-				for (const [, id, relay] of referenceTags) {
-					requestReference(id, [relay]);
-				}
-				if (event.kind !== ShortTextNote) {
-					return;
-				}
-				const { root, reply } = nip10.parse(event);
-				const references = [root, reply].filter(
-					(reference): reference is NonNullable<typeof reference> =>
-						reference !== undefined && !$eventItemStore.has(reference.id)
-				);
-				if (references.length === 0) {
-					return;
-				}
-				const authors = unique([
-					...references.flatMap((reference) =>
-						reference.author ? [reference.author] : []
-					),
-					event.pubkey
-				]);
-				const relayLists = await RelayList.fetchEvents(authors);
-				const requestedIds = new Set<string>();
-				for (const reference of references.toReversed()) {
-					if (
-						!reference.author ||
-						$eventItemStore.has(reference.id) ||
-						requestedIds.has(reference.id)
-					) {
-						continue;
-					}
-					requestedIds.add(reference.id);
-					const relayList = relayLists.get(reference.author);
-					if (relayList === undefined) {
-						continue;
-					}
-					requestReference(reference.id, getWriteRelays(parseRelayList(relayList.tags)));
-				}
-				const relayList = relayLists.get(event.pubkey);
-				if (relayList !== undefined) {
-					const relays = getReadRelays(parseRelayList(relayList.tags));
-					const ids = unique(references.map((reference) => reference.id));
-					for (const id of ids) {
-						requestReference(id, relays);
-					}
-				}
-			}, timeout);
-		}
+	const ids = getReferencedEventIds(event, content).filter((id) => !$eventItemStore.has(id));
+	if (ids.length === 0) {
+		return;
 	}
 
+	const relayKey = (relay: string): string => new URL(relay).href;
+	const defaultReadRelays = Object.keys(rxNostr.getDefaultRelays({ filter: 'read-all' })).map(
+		relayKey
+	);
+	const requestedRelays = new Map(ids.map((id) => [id, new Set(defaultReadRelays)]));
+	referencesReq.emit({ ids });
+
+	const requestReference = (id: string, candidateRelays: string[]): void => {
+		if ($eventItemStore.has(id)) {
+			return;
+		}
+		const requested = requestedRelays.get(id) ?? new Set<string>();
+		const candidates = new Map(candidateRelays.map((relay) => [relayKey(relay), relay]));
+		const relays = [...candidates]
+			.filter(([key]) => !requested.has(key))
+			.map(([, relay]) => relay);
+		if (relays.length === 0) {
+			return;
+		}
+		referencesReq.emit({ ids: [id] }, { relays });
+		for (const relay of relays) {
+			requested.add(relayKey(relay));
+		}
+		requestedRelays.set(id, requested);
+	};
+
+	const referenceTags = event.tags.filter(
+		([tagName, id, relay]) =>
+			typeof tagName === 'string' &&
+			['e', 'q'].includes(tagName) &&
+			typeof id === 'string' &&
+			hexRegexp.test(id) &&
+			typeof relay === 'string' &&
+			relay.startsWith('wss://') &&
+			URL.canParse(relay)
+	);
+	if (referenceTags.length > 0 || event.kind === ShortTextNote) {
+		// If not found, try relay hints, referenced authors' write relays, and the replying author's read relays.
+		setTimeout(async () => {
+			for (const [, id, relay] of referenceTags) {
+				requestReference(id, [relay]);
+			}
+			await requestNip10References(event, $eventItemStore, requestReference);
+		}, timeout);
+	}
+}
+
+async function requestNip10References(
+	event: Nostr.Event,
+	$eventItemStore: ReadonlyMap<string, EventItem>,
+	requestReference: (id: string, candidateRelays: string[]) => void
+): Promise<void> {
+	if (event.kind !== ShortTextNote) {
+		return;
+	}
+	const { root, reply } = nip10.parse(event);
+	const references = [root, reply].filter(
+		(reference): reference is NonNullable<typeof reference> =>
+			reference !== undefined && !$eventItemStore.has(reference.id)
+	);
+	if (references.length === 0) {
+		return;
+	}
+	const authors = unique([
+		...references.flatMap((reference) => (reference.author ? [reference.author] : [])),
+		event.pubkey
+	]);
+	const relayLists = await RelayList.fetchEvents(authors);
+	const requestedIds = new Set<string>();
+	for (const reference of references.toReversed()) {
+		if (
+			!reference.author ||
+			$eventItemStore.has(reference.id) ||
+			requestedIds.has(reference.id)
+		) {
+			continue;
+		}
+		requestedIds.add(reference.id);
+		const relayList = relayLists.get(reference.author);
+		if (relayList === undefined) {
+			continue;
+		}
+		requestReference(reference.id, getWriteRelays(parseRelayList(relayList.tags)));
+	}
+	const relayList = relayLists.get(event.pubkey);
+	if (relayList !== undefined) {
+		const relays = getReadRelays(parseRelayList(relayList.tags));
+		const ids = unique(references.map((reference) => reference.id));
+		for (const id of ids) {
+			requestReference(id, relays);
+		}
+	}
+}
+
+function requestReplaceableReferences(event: Nostr.Event): void {
 	const $replaceableEventsStore = get(replaceableEventsStore);
 	const aTags = event.tags.filter(
 		([tagName, address]) =>
