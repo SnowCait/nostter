@@ -23,7 +23,7 @@ import {
 	storeEventItem,
 	storeMetadata
 } from '../cache/Events';
-import { chunk } from '$lib/Array';
+import { chunk, unique } from '$lib/Array';
 import { Content } from '$lib/Content';
 import { sleep } from '$lib/Helper';
 import { isReplaceableKind } from 'nostr-tools/kinds';
@@ -134,7 +134,7 @@ export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = fa
 			// If not found, try relay hints and the referenced author's write relays.
 			setTimeout(async () => {
 				const undiscoveredReferenceTags = referenceTags.filter(
-					([, id]) => !get(eventItemStore).has(id)
+					([, id]) => !$eventItemStore.has(id)
 				);
 				if (undiscoveredReferenceTags.length > 0) {
 					referencesReq.emit(
@@ -148,23 +148,23 @@ export function referencesReqEmit(event: Nostr.Event, metadataOnly: boolean = fa
 				const { root, reply } = nip10.parse(event);
 				const references = new Map<string, string>();
 				for (const reference of [root, reply]) {
-					if (reference?.author && !get(eventItemStore).has(reference.id)) {
+					if (reference?.author && !$eventItemStore.has(reference.id)) {
 						references.set(reference.id, reference.author);
 					}
 				}
 				if (references.size === 0) {
 					return;
 				}
-				const relayLists = await RelayList.fetchEvents([...new Set(references.values())]);
+				const relayLists = await RelayList.fetchEvents(unique([...references.values()]));
 				for (const [id, author] of references) {
-					if (get(eventItemStore).has(id)) {
+					if ($eventItemStore.has(id)) {
 						continue;
 					}
 					const relayList = relayLists.get(author);
 					if (relayList === undefined) {
 						continue;
 					}
-					const relays = [...new Set(getWriteRelays(parseRelayList(relayList.tags)))];
+					const relays = unique(getWriteRelays(parseRelayList(relayList.tags)));
 					if (relays.length > 0) {
 						referencesReq.emit({ ids: [id] }, { relays });
 					}
