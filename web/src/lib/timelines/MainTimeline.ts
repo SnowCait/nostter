@@ -23,7 +23,7 @@ import {
 	storeEventItem,
 	storeMetadata
 } from '../cache/Events';
-import { chunk, unique } from '$lib/Array';
+import { chunk, unique } from '$lib/array';
 import { Content } from '$lib/Content';
 import { sleep } from '$lib/Helper';
 import { isReplaceableKind } from 'nostr-tools/kinds';

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { unique } from '$lib/Array';
+	import { unique } from '$lib/array';
 	import {
 		buildSearchQuery,
 		decodeToPubkey,

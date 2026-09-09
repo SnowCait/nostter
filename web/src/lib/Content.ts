@@ -1,5 +1,5 @@
 import { nip19 } from 'nostr-tools';
-import { unique } from './Array';
+import { unique } from './array';
 import escapeStringRegexp from 'escape-string-regexp';
 import twitter from 'twitter-text';
 import { emojisetAddressRegexp, shortcodeRegexp } from './Constants';

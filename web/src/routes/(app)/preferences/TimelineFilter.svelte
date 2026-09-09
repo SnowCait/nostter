@@ -4,7 +4,7 @@
 	const bubble = createBubbler();
 	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
-	import { diff } from '$lib/Array';
+	import { diff } from '$lib/array';
 	import { categories } from '$lib/Constants';
 	import {
 		defaultTimelineFilter,

@@ -11,7 +11,7 @@ import { filter, share, tap, type Subscription } from 'rxjs';
 import type { Timeline } from './Timeline.svelte';
 import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
 import { authorActionReqEmit } from '$lib/author/Action';
-import { chunk } from '$lib/Array';
+import { chunk } from '$lib/array';
 import {
 	filterLimitItems,
 	minTimelineLength,

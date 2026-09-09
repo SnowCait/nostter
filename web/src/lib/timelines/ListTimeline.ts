@@ -4,7 +4,7 @@ import { type Subscription, filter, tap } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
 import { authorActionReqEmit } from '../author/Action';
-import { chunk } from '../Array';
+import { chunk } from '../array';
 import { filterLimitItems, followeesFilterKinds, minTimelineLength } from '../Constants';
 import { EventItem } from '../Items';
 import { Timeline } from '../Timeline';

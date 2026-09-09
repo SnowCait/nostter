@@ -1,5 +1,5 @@
 import { toStore } from 'svelte/store';
-import { unique } from './Array';
+import { unique } from './array';
 import { pubkeysFromTags } from './pubkey';
 
 export type AuthStatus = 'idle' | 'restoring' | 'authenticating' | 'authenticated' | 'anonymous';
