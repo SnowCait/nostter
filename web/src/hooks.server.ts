@@ -24,6 +24,7 @@ const cspDirectives: Record<string, string[]> = {
 		"'self'",
 		"'unsafe-inline'",
 		"'wasm-unsafe-eval'",
+		'https://static.cloudflareinsights.com/beacon.min.js',
 		'https://platform.twitter.com',
 		'https://www.googletagmanager.com',
 		'https://embed.nicovideo.jp'
