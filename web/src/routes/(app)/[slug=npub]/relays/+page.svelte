@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { normalizeRelayUrl } from '$lib/nostr/relay-url';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -67,15 +68,14 @@
 	function add(e: MouseEvent) {
 		e.preventDefault();
 		console.log('[add relay]', addingRelay);
-		try {
-			const relay = new URL(addingRelay).href;
-			relays.push({ url: relay, read: true, write: true });
-			relays = relays;
-			addingRelay = '';
-		} catch (error) {
-			console.log('[add relay error]', addingRelay, error);
+		const relay = normalizeRelayUrl(addingRelay);
+		if (relay === undefined) {
 			alert(`Failed to add ${addingRelay}.`);
+			return;
 		}
+		relays.push({ url: relay, read: true, write: true });
+		relays = relays;
+		addingRelay = '';
 	}
 
 	function remove(relay: string) {

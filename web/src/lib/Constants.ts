@@ -1,3 +1,4 @@
+import { normalizeRelayUrls } from '$lib/nostr/relay-url';
 import { kinds as Kind, type Event as NostrEvent } from 'nostr-tools';
 import { unique } from './array';
 import { Emojisets } from 'nostr-tools/kinds';
@@ -95,7 +96,7 @@ export const categoriesKinds = {
 export const categories = Object.keys(categoriesKinds);
 
 const defaultRelayUrls = import.meta.env.VITE_DEFAULT_RELAYS
-	? import.meta.env.VITE_DEFAULT_RELAYS.split(',')
+	? normalizeRelayUrls(import.meta.env.VITE_DEFAULT_RELAYS.split(','))
 	: ['wss://nos.lol/', 'wss://relay.damus.io/'];
 
 export const defaultRelays = defaultRelayUrls.map((url) => ({
@@ -130,13 +131,13 @@ export const localizedRelays = {
 };
 
 const metadataRelayUrls = import.meta.env.VITE_METADATA_RELAYS
-	? import.meta.env.VITE_METADATA_RELAYS.split(',')
+	? normalizeRelayUrls(import.meta.env.VITE_METADATA_RELAYS.split(','))
 	: ['wss://purplepag.es/', 'wss://user.kindpag.es/', 'wss://directory.yabu.me/'];
 
 export const metadataRelays = metadataRelayUrls.map((url) => url.trim());
 
 const searchRelayUrls = import.meta.env.VITE_SEARCH_RELAYS
-	? import.meta.env.VITE_SEARCH_RELAYS.split(',')
+	? normalizeRelayUrls(import.meta.env.VITE_SEARCH_RELAYS.split(','))
 	: ['wss://nostr.wine/', 'wss://search.nos.today/'];
 
 export const searchRelays = searchRelayUrls.map((url) => url.trim());

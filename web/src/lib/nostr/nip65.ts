@@ -1,22 +1,15 @@
+import { normalizeRelayUrl } from '$lib/nostr/relay-url';
 export interface RelayEntry {
 	url: string;
 	read: boolean;
 	write: boolean;
 }
 
-function isRelayUrl(value: string): boolean {
-	try {
-		const { protocol } = new URL(value);
-		return protocol === 'wss:' || protocol === 'ws:';
-	} catch {
-		return false;
-	}
-}
-
 export function parseRelayList(tags: string[][]): RelayEntry[] {
 	return tags.flatMap((tag): RelayEntry[] => {
-		const [name, url, marker] = tag;
-		if (name !== 'r' || !isRelayUrl(url)) return [];
+		const [name, value, marker] = tag;
+		const url = normalizeRelayUrl(value);
+		if (name !== 'r' || url === undefined) return [];
 
 		if (marker === undefined) return [{ url, read: true, write: true }];
 		if (marker === 'read') return [{ url, read: true, write: false }];

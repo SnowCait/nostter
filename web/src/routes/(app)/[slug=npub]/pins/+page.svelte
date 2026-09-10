@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { normalizeRelayUrls } from '$lib/nostr/relay-url';
 	import { onDestroy } from 'svelte';
 	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { firstValueFrom, EmptyError } from 'rxjs';
@@ -29,7 +30,7 @@
 		const slug = $page.params.slug;
 		console.debug('[pin page]', slug);
 
-		rxNostr.setDefaultRelays([...$readRelays, ...data.relays]);
+		rxNostr.setDefaultRelays([...$readRelays, ...normalizeRelayUrls(data.relays)]);
 
 		let event: Nostr.Event | undefined;
 		if (data.pubkey === $authorPubkey) {

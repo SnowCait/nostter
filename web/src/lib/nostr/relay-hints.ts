@@ -2,6 +2,7 @@ import { createTie } from '$lib/RxNostrTie';
 
 export const [tie, seenOn] = createTie();
 
+// Share only secure relay hints; a recipient's loopback refers to a different machine.
 export function getRelayHint(id: string): string | undefined {
 	return seenOn
 		.get(id)

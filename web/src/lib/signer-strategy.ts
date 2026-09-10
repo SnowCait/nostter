@@ -1,3 +1,4 @@
+import { normalizeRelayUrls } from '$lib/nostr/relay-url';
 import {
 	type Event,
 	nip19,
@@ -25,6 +26,8 @@ let nip46CachedPublicKey: string | undefined;
 export async function establishBunkerConnection(bunker: string): Promise<void> {
 	const bunkerPointer = await parseBunkerInput(bunker);
 	if (!bunkerPointer) throw new Error(`Failed to parse bunker URL`);
+	bunkerPointer.relays = normalizeRelayUrls(bunkerPointer.relays);
+	if (bunkerPointer.relays.length === 0) throw new Error('No usable bunker relays');
 
 	const storage = new WebStorage(localStorage);
 	const clientSeckeyHex = storage.get('login:bunker:client-seckey');

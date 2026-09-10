@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { parseRelayList } from './nip65';
 
-const URL1 = 'wss://relay.example.com';
+const URL1 = 'wss://relay.example.com/';
 
 describe('parseRelayList', () => {
 	it('no marker → read and write', () => {
-		expect(parseRelayList([['r', URL1]])).toEqual([{ url: URL1, read: true, write: true }]);
+		expect(parseRelayList([['r', 'wss://RELAY.EXAMPLE.COM:443']])).toEqual([
+			{ url: URL1, read: true, write: true }
+		]);
 	});
 
 	it('"read" marker → read only', () => {
@@ -23,6 +25,7 @@ describe('parseRelayList', () => {
 	it('invalid relay URL → excluded', () => {
 		const result = parseRelayList([
 			['r', 'not-a-url'],
+			['r', 'ws://nos.lol'],
 			['r', URL1]
 		]);
 		expect(result).toHaveLength(1);

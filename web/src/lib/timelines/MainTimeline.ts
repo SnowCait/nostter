@@ -1,3 +1,4 @@
+import { normalizeRelayUrls } from '$lib/nostr/relay-url';
 import { get, writable } from 'svelte/store';
 import type * as Nostr from 'nostr-typedef';
 import { ShortTextNote } from 'nostr-tools/kinds';
@@ -141,7 +142,9 @@ function requestEventReferences(event: Nostr.Event, content: string): void {
 			return;
 		}
 		const requested = requestedRelays.get(id) ?? new Set<string>();
-		const candidates = new Map(candidateRelays.map((relay) => [relayKey(relay), relay]));
+		const candidates = new Map(
+			normalizeRelayUrls(candidateRelays).map((relay) => [relayKey(relay), relay])
+		);
 		const relays = [...candidates]
 			.filter(([key]) => !requested.has(key))
 			.map(([, relay]) => relay);
@@ -161,9 +164,7 @@ function requestEventReferences(event: Nostr.Event, content: string): void {
 			['e', 'q'].includes(tagName) &&
 			typeof id === 'string' &&
 			hexRegexp.test(id) &&
-			typeof relay === 'string' &&
-			relay.startsWith('wss://') &&
-			URL.canParse(relay)
+			typeof relay === 'string'
 	);
 	if (referenceTags.length > 0 || event.kind === ShortTextNote) {
 		// If not found, try relay hints, referenced authors' write relays, and the replying author's read relays.
@@ -255,15 +256,10 @@ function requestReplaceableReferences(event: Nostr.Event): void {
 					};
 		});
 		replaceableEventsReq.emit(filters);
-		const relays = aTags
-			.map(([, , relayUrl]) => relayUrl)
-			.filter(
-				(relayUrl) =>
-					typeof relayUrl === 'string' &&
-					relayUrl.startsWith('wss://') &&
-					URL.canParse(relayUrl) &&
-					!Object.entries(rxNostr.getDefaultRelays()).some(([url]) => url === relayUrl)
-			);
+		const relays = normalizeRelayUrls(aTags.map(([, , relayUrl]) => relayUrl)).filter(
+			(relayUrl) =>
+				!Object.entries(rxNostr.getDefaultRelays()).some(([url]) => url === relayUrl)
+		);
 		if (relays.length > 0) {
 			replaceableEventsReq.emit(filters, { relays });
 		}

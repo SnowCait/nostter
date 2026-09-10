@@ -3,6 +3,7 @@ import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import { rxNostr, tie } from '../timelines/MainTimeline';
 import { parseRelayJson } from '../EventHelper';
 import { WebStorage } from '../WebStorage';
+import { parseRelayList } from '$lib/nostr/nip65';
 import { metadataRelays } from '$lib/Constants';
 
 export class RelayList {
@@ -61,7 +62,7 @@ export class RelayList {
 		const kind10002 = eventsMap.get(10002);
 		const kind3 = eventsMap.get(3);
 		if (kind10002 !== undefined && kind10002.tags.length > 0) {
-			rxNostr.setDefaultRelays(kind10002.tags);
+			rxNostr.setDefaultRelays(parseRelayList(kind10002.tags));
 		} else if (kind3 !== undefined && kind3.content !== '') {
 			rxNostr.setDefaultRelays(
 				[...parseRelayJson(kind3.content)].map(([url, { read, write }]) => {

@@ -1,3 +1,4 @@
+import { normalizeRelayUrls } from '$lib/nostr/relay-url';
 import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 import type * as Nostr from 'nostr-typedef';
 import {
@@ -34,7 +35,7 @@ export async function fetchLastEvent(
 		let lastEvent: Nostr.Event | undefined;
 		const req = createRxBackwardReq();
 		rxNostr
-			.use(req, { on })
+			.use(req, { on: on && { ...on, relays: on.relays && normalizeRelayUrls(on.relays) } })
 			.pipe(tie, latest())
 			.subscribe({
 				next: ({ from, event }) => {
@@ -84,7 +85,7 @@ export async function fetchEvents(
 			}
 		});
 	if (relays !== undefined && relays.length > 0) {
-		req.emit(filters, { relays });
+		req.emit(filters, { relays: normalizeRelayUrls(relays) });
 	} else {
 		req.emit(filters);
 	}

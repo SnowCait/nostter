@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { normalizeRelayUrls } from '$lib/nostr/relay-url';
 	import { _ } from 'svelte-i18n';
 	import { error } from '@sveltejs/kit';
 	import type { Event } from 'nostr-tools';
@@ -28,7 +29,7 @@
 		console.log('[naddr page]', data);
 
 		await Promise.allSettled(
-			data.relays.map((relay) =>
+			normalizeRelayUrls(data.relays).map((relay) =>
 				rxNostr.addDefaultRelays([{ url: relay, write: false, read: true }])
 			)
 		);
