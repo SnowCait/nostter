@@ -41,7 +41,7 @@ export async function sendReaction(
 	updateReactionedEvents([event]);
 }
 
-export async function deleteReaction(target: Nostr.Event): Promise<void> {
+export function deleteReaction(target: Nostr.Event): void {
 	const $reactionedEvents = get(reactionedEvents);
 	const events = $reactionedEvents.get(target.id);
 	if (events === undefined || events.length === 0) {
@@ -49,7 +49,7 @@ export async function deleteReaction(target: Nostr.Event): Promise<void> {
 	}
 
 	const sortedEvents = sortEvents(events);
-	await requestEventDeletion(sortedEvents.slice(0, 1));
+	void requestEventDeletion(sortedEvents.slice(0, 1)).catch(() => {});
 	$reactionedEvents.set(target.id, sortedEvents.slice(1));
 	reactionedEvents.set($reactionedEvents);
 }

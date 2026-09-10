@@ -129,18 +129,13 @@
 		});
 	}
 
-	async function onDelete(): Promise<void> {
+	function onDelete(): void {
 		if (!confirm($_('actions.delete.confirm'))) {
 			return;
 		}
 
 		console.log('[delete]', event);
-		try {
-			await requestEventDeletion([event]);
-		} catch (error) {
-			console.error('[delete failed]', error);
-			alert($_('actions.delete.failed'));
-		}
+		void requestEventDeletion([event]).catch(() => {});
 	}
 
 	function onTranslate(): void {

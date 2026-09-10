@@ -1,6 +1,5 @@
 import { get, writable } from 'svelte/store';
 import { now } from 'rx-nostr';
-import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
@@ -53,5 +52,22 @@ export async function requestEventDeletion(
 		],
 		created_at: now()
 	});
-	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
+	const { promise, resolve, reject } = Promise.withResolvers<void>();
+	let accepted = false;
+	rxNostr.send(event).subscribe({
+		next: ({ eventId, from, ok }) => {
+			console.debug('[delete send]', eventId, from, ok);
+			if (ok && !accepted) {
+				accepted = true;
+				resolve();
+			}
+		},
+		error: reject,
+		complete: () => {
+			if (!accepted) {
+				reject(new Error('Deletion request was not accepted by any relay'));
+			}
+		}
+	});
+	return promise;
 }

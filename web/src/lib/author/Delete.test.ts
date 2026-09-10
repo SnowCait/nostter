@@ -64,6 +64,8 @@ describe('requestEventDeletion', () => {
 
 		responses.next({ ok: true });
 		await expect(request).resolves.toBeUndefined();
+		expect(responses.observed).toBe(true);
+		responses.complete();
 	});
 
 	it('rejects when no relay accepts the request', async () => {

@@ -3,7 +3,7 @@ import { repostedEvents } from './Action';
 import { sortEvents, type Event } from 'nostr-tools';
 import { requestEventDeletion } from './Delete';
 
-export async function undoRepost(target: Event): Promise<void> {
+export function undoRepost(target: Event): void {
 	const $repostedEvents = get(repostedEvents);
 	const events = $repostedEvents.get(target.id);
 	if (events === undefined || events.length === 0) {
@@ -11,7 +11,7 @@ export async function undoRepost(target: Event): Promise<void> {
 	}
 
 	const sortedEvents = sortEvents(events);
-	await requestEventDeletion(sortedEvents.slice(0, 1));
+	void requestEventDeletion(sortedEvents.slice(0, 1)).catch(() => {});
 	$repostedEvents.set(target.id, sortedEvents.slice(1));
 	repostedEvents.set($repostedEvents);
 }
