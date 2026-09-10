@@ -1,10 +1,11 @@
 import { get, writable } from 'svelte/store';
 import { now } from 'rx-nostr';
+import { isAddressableKind, isReplaceableKind } from 'nostr-tools/kinds';
 import type * as Nostr from 'nostr-typedef';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
-import { filterTags } from '$lib/EventHelper';
+import { aTagContent, filterTags } from '$lib/EventHelper';
 
 export const deletedEventIds = writable(new Set<string>());
 export const deletedEventIdsByPubkey = writable(new Map<string, Set<string>>());
@@ -42,12 +43,22 @@ export async function requestEventDeletion(
 		throw new Error('Cannot request deletion of an event by another author');
 	}
 
+	const targetTags = new Map<string, string[]>();
+	for (const event of events) {
+		const tag = isAddressableKind(event.kind)
+			? ['a', aTagContent(event)]
+			: isReplaceableKind(event.kind)
+				? ['a', `${event.kind}:${event.pubkey}:`]
+				: ['e', event.id];
+		targetTags.set(`${tag[0]}:${tag[1]}`, tag);
+	}
+
 	const event = await Signer.signEvent({
 		kind: 5,
 		pubkey: $authorPubkey,
 		content: reason,
 		tags: [
-			...events.map((event) => ['e', event.id]),
+			...targetTags.values(),
 			...[...new Set(events.map((event) => event.kind))].map((kind) => ['k', `${kind}`])
 		],
 		created_at: now()

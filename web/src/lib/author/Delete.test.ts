@@ -17,8 +17,13 @@ vi.mock('$lib/timelines/MainTimeline', () => ({ rxNostr: { send: mocks.send } })
 
 import { requestEventDeletion } from './Delete';
 
-function event(id: string, kind: number, pubkey = mocks.userPubkey): Nostr.Event {
-	return { id, kind, pubkey, content: '', tags: [], created_at: 1, sig: 'sig' };
+function event(
+	id: string,
+	kind: number,
+	pubkey = mocks.userPubkey,
+	tags: string[][] = []
+): Nostr.Event {
+	return { id, kind, pubkey, content: '', tags, created_at: 1, sig: 'sig' };
 }
 
 beforeEach(() => {
@@ -31,12 +36,18 @@ beforeEach(() => {
 });
 
 describe('requestEventDeletion', () => {
-	it('signs a kind 5 request and waits for a relay acceptance', async () => {
+	it('signs a mixed kind 5 request and waits for a relay acceptance', async () => {
 		const responses = new Subject<{ ok: boolean }>();
 		mocks.send.mockReturnValue(responses);
 		let resolved = false;
 		const request = requestEventDeletion(
-			[event('first', 1), event('second', 7), event('third', 1)],
+			[
+				event('regular', 1),
+				event('replaceable', 10003, mocks.userPubkey, [['d', 'ignored']]),
+				event('newer-replaceable', 10003, mocks.userPubkey, [['d', 'also-ignored']]),
+				event('addressable', 30001, mocks.userPubkey, [['d', 'bookmark']]),
+				event('newer-addressable', 30001, mocks.userPubkey, [['d', 'bookmark']])
+			],
 			'duplicate'
 		).then(() => {
 			resolved = true;
@@ -49,11 +60,12 @@ describe('requestEventDeletion', () => {
 				pubkey: mocks.userPubkey,
 				content: 'duplicate',
 				tags: [
-					['e', 'first'],
-					['e', 'second'],
-					['e', 'third'],
+					['e', 'regular'],
+					['a', `10003:${mocks.userPubkey}:`],
+					['a', `30001:${mocks.userPubkey}:bookmark`],
 					['k', '1'],
-					['k', '7']
+					['k', '10003'],
+					['k', '30001']
 				]
 			})
 		);
