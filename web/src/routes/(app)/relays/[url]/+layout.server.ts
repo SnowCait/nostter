@@ -1,10 +1,13 @@
+import { normalizeRelayUrl } from '$lib/nostr/relay-url';
 import { error } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import type * as Nostr from 'nostr-typedef';
 
 export const load: LayoutServerLoad = async ({ params }) => {
 	try {
-		const url = new URL(decodeURIComponent(params.url));
+		const relay = normalizeRelayUrl(decodeURIComponent(params.url));
+		if (relay === undefined) error(404, 'Not Found');
+		const url = new URL(relay);
 		url.protocol = url.protocol === 'ws:' ? 'http:' : 'https:';
 		const response = await fetch(url, {
 			headers: {

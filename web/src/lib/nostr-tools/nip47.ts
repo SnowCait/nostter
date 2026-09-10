@@ -1,3 +1,4 @@
+import { normalizeRelayUrl } from '$lib/nostr/relay-url';
 import { nip04, finalizeEvent, type VerifiedEvent } from 'nostr-tools';
 import { kinds } from 'nostr-tools';
 
@@ -10,7 +11,7 @@ interface NWCConnection {
 export function parseConnectionString(connectionString: string): NWCConnection {
 	const { hostname, pathname, searchParams } = new URL(connectionString);
 	const pubkey = hostname ? hostname : pathname.replaceAll('/', '');
-	const relay = searchParams.get('relay');
+	const relay = normalizeRelayUrl(searchParams.get('relay'));
 	const secret = searchParams.get('secret');
 
 	if (!pubkey || !relay || !secret) {

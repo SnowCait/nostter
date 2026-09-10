@@ -1,3 +1,4 @@
+import { normalizeRelayUrls } from '$lib/nostr/relay-url';
 import { NostrConnect } from 'nostr-tools/kinds';
 import { toBunkerURL } from 'nostr-tools/nip46';
 import { createRxForwardReq, createRxNostr, now, uniq, type RxNostr } from 'rx-nostr';
@@ -17,7 +18,8 @@ class RemoteSigner {
 	#subscription?: Subscription;
 
 	constructor(relays: string[] = []) {
-		this.#relays = relays.length > 0 ? relays : ['wss://ephemeral.snowflare.cc/'];
+		this.#relays =
+			relays.length > 0 ? normalizeRelayUrls(relays) : ['wss://ephemeral.snowflare.cc/'];
 		this.#secret = persistedStore<string>('remote-signer:secret', '');
 		this.#clientPubkey = persistedStore<string>('remote-signer:client-pubkey', '');
 		this.#rxNostr = createRxNostr({ verifier: verificationClient.verifier });

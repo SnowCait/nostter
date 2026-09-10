@@ -1,3 +1,4 @@
+import { normalizeRelayUrls } from '$lib/nostr/relay-url';
 import { rxNostr } from './timelines/MainTimeline';
 
 export const pollKind = 1068;
@@ -11,6 +12,6 @@ export function vote(id: string, optionIds: string[], relays: string[]): void {
 			content: '',
 			tags: [['e', id], ...optionIds.map((id) => ['response', id])]
 		},
-		{ on: { defaultWriteRelays: true, relays } }
+		{ on: { defaultWriteRelays: true, relays: normalizeRelayUrls(relays) } }
 	);
 }

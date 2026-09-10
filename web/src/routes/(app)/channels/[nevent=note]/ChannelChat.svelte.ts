@@ -1,3 +1,4 @@
+import { normalizeRelayUrls } from '$lib/nostr/relay-url';
 import type { Event } from 'nostr-tools';
 import {
 	ChannelCreation,
@@ -67,9 +68,11 @@ export class ChannelChat {
 			on: {
 				defaultReadRelays: true,
 				relays: unique(
-					[...relays, ...contentRelays(kind40), ...contentRelays(kind41)].filter(
-						(relay) => relay.startsWith('wss://')
-					)
+					normalizeRelayUrls([
+						...relays,
+						...contentRelays(kind40),
+						...contentRelays(kind41)
+					])
 				)
 			}
 		};

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { normalizeRelayUrls } from '$lib/nostr/relay-url';
 	import { createRxOneshotReq, now } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { afterNavigate } from '$app/navigation';
@@ -47,7 +48,7 @@
 				rxNostr
 					.use(pastEventsReq, {
 						on: {
-							relays: ['ws' + data.url.substring(4)],
+							relays: normalizeRelayUrls(['ws' + data.url.substring(4)]),
 							defaultReadRelays: false
 						}
 					})

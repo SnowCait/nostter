@@ -1,3 +1,4 @@
+import { normalizeRelayUrl } from '$lib/nostr/relay-url';
 import type { Event } from 'nostr-tools';
 import type { id } from './Types';
 import { hexRegexp, shortcodeRegexp } from './Constants';
@@ -77,13 +78,9 @@ export function parseRelayJson(content: string): Map<string, { read: boolean; wr
 			Object.entries(JSON.parse(content))
 		);
 		return new Map(
-			[...relays].filter(([relay]) => {
-				try {
-					const url = new URL(relay);
-					return url.protocol === 'wss:' || url.protocol === 'ws:';
-				} catch {
-					return false;
-				}
+			[...relays].flatMap(([relay, permission]) => {
+				const url = normalizeRelayUrl(relay);
+				return url === undefined ? [] : [[url, permission] as const];
 			})
 		);
 	} catch (error) {

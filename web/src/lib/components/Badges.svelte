@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { normalizeRelayUrls } from '$lib/nostr/relay-url';
 	import { run } from 'svelte/legacy';
 
 	import { _ } from 'svelte-i18n';
@@ -51,7 +52,11 @@
 			let displayedEvent: Nostr.Event | undefined;
 			rxNostr
 				.use(profileBadgesReq, {
-					on: { defaultReadRelays: !isAuthor, defaultWriteRelays: isAuthor, relays }
+					on: {
+						defaultReadRelays: !isAuthor,
+						defaultWriteRelays: isAuthor,
+						relays: normalizeRelayUrls(relays)
+					}
 				})
 				.pipe(
 					tie,
@@ -86,9 +91,9 @@
 							definitions: new Set(definitionAddresses)
 						};
 
-						const awardRelays = awardTags
-							.map(([, , relay]) => relay)
-							.filter((relay) => relay !== undefined && URL.canParse(relay));
+						const awardRelays = normalizeRelayUrls(
+							awardTags.map(([, , relay]) => relay)
+						);
 
 						const awardsReq = createRxBackwardReq();
 						rxNostr
@@ -128,9 +133,9 @@
 							},
 							new Map<string, Set<string>>()
 						);
-						const definitionRelays = definitionTags
-							.map(([, , relay]) => relay)
-							.filter((relay) => relay !== undefined && URL.canParse(relay));
+						const definitionRelays = normalizeRelayUrls(
+							definitionTags.map(([, , relay]) => relay)
+						);
 
 						const definitionsReq = createRxBackwardReq();
 						rxNostr
