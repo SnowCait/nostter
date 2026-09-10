@@ -30,7 +30,7 @@
 		IconTrash,
 		IconVolumeOff
 	} from '@tabler/icons-svelte-runes';
-	import { deleteEvent } from '$lib/author/Delete';
+	import { requestEventDeletion } from '$lib/author/Delete';
 	import { mute, unmute } from '$lib/author/Mute';
 	import { referTags } from '$lib/EventHelper';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
@@ -129,13 +129,13 @@
 		});
 	}
 
-	async function onDelete(): Promise<void> {
+	function onDelete(): void {
 		if (!confirm($_('actions.delete.confirm'))) {
 			return;
 		}
 
 		console.log('[delete]', event);
-		await deleteEvent([event]);
+		void requestEventDeletion([event]).catch(() => {});
 	}
 
 	function onTranslate(): void {

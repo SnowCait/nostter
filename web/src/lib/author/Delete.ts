@@ -29,15 +29,17 @@ export function storeDeletedEvents(event: Nostr.Event): void {
 	}
 }
 
-export async function deleteEvent(events: Nostr.Event[], reason = ''): Promise<void> {
+export async function requestEventDeletion(
+	events: readonly Nostr.Event[],
+	reason = ''
+): Promise<void> {
 	if (events.length === 0) {
-		return;
+		throw new Error('Deletion request requires at least one target event');
 	}
 
 	const $authorPubkey = get(authorPubkey);
 	if (events.some((event) => event.pubkey !== $authorPubkey)) {
-		console.error('[delete logic error]', events);
-		return;
+		throw new Error('Cannot request deletion of an event by another author');
 	}
 
 	const event = await Signer.signEvent({
@@ -50,7 +52,22 @@ export async function deleteEvent(events: Nostr.Event[], reason = ''): Promise<v
 		],
 		created_at: now()
 	});
-	rxNostr.send(event).subscribe(({ eventId, from, ok }) => {
-		console.debug('[delete send]', eventId, from, ok);
+	const { promise, resolve, reject } = Promise.withResolvers<void>();
+	let accepted = false;
+	rxNostr.send(event).subscribe({
+		next: ({ eventId, from, ok }) => {
+			console.debug('[delete send]', eventId, from, ok);
+			if (ok && !accepted) {
+				accepted = true;
+				resolve();
+			}
+		},
+		error: reject,
+		complete: () => {
+			if (!accepted) {
+				reject(new Error('Deletion request was not accepted by any relay'));
+			}
+		}
 	});
+	return promise;
 }
