@@ -31,7 +31,7 @@ export function storeDeletedEvents(event: Nostr.Event): void {
 
 export async function requestEventDeletion(
 	events: readonly Nostr.Event[],
-	reason?: string
+	reason = ''
 ): Promise<void> {
 	if (events.length === 0) {
 		throw new Error('Deletion request requires at least one target event');
@@ -45,7 +45,7 @@ export async function requestEventDeletion(
 	const event = await Signer.signEvent({
 		kind: 5,
 		pubkey: $authorPubkey,
-		content: reason ?? '',
+		content: reason,
 		tags: [
 			...events.map((event) => ['e', event.id]),
 			...[...new Set(events.map((event) => event.kind))].map((kind) => ['k', `${kind}`])
