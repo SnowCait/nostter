@@ -547,7 +547,7 @@
 					.flatMap(([, relayListEvent]) =>
 						getReadRelays(parseRelayList(relayListEvent.tags))
 					)
-					.filter((url) => !sendToRelays.includes(url));
+					.filter((url) => url.startsWith('wss://') && !sendToRelays.includes(url));
 				console.log('[rx-nostr send addition]', readRelays, relayListEventsMap);
 				if (readRelays.length === 0) {
 					return;

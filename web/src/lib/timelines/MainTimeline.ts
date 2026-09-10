@@ -211,11 +211,16 @@ async function requestNip10References(
 		if (relayList === undefined) {
 			continue;
 		}
-		requestReference(reference.id, getWriteRelays(parseRelayList(relayList.tags)));
+		requestReference(
+			reference.id,
+			getWriteRelays(parseRelayList(relayList.tags)).filter((url) => url.startsWith('wss://'))
+		);
 	}
 	const relayList = relayLists.get(event.pubkey);
 	if (relayList !== undefined) {
-		const relays = getReadRelays(parseRelayList(relayList.tags));
+		const relays = getReadRelays(parseRelayList(relayList.tags)).filter((url) =>
+			url.startsWith('wss://')
+		);
 		const ids = unique(references.map((reference) => reference.id));
 		for (const id of ids) {
 			requestReference(id, relays);
