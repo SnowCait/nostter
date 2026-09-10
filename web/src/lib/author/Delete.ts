@@ -45,10 +45,9 @@ export async function requestEventDeletion(
 
 	const targetTags = new Map<string, string[]>();
 	for (const event of events) {
-		const tag = isAddressableKind(event.kind)
-			? ['a', aTagContent(event)]
-			: isReplaceableKind(event.kind)
-				? ['a', `${event.kind}:${event.pubkey}:`]
+		const tag =
+			isReplaceableKind(event.kind) || isAddressableKind(event.kind)
+				? ['a', aTagContent(event)]
 				: ['e', event.id];
 		targetTags.set(`${tag[0]}:${tag[1]}`, tag);
 	}
