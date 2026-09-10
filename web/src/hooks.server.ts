@@ -56,7 +56,7 @@ const contentSecurityPolicy = Object.entries(cspDirectives)
 	.map(([directive, values]) => `${directive} ${values.join(' ')}`)
 	.join('; ');
 
-export const csp: Handle = async ({ event, resolve }) => {
+const csp: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event);
 	response.headers.set('Content-Security-Policy', contentSecurityPolicy);
 	return response;
