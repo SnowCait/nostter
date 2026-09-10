@@ -1,6 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { getZapperPubkey, isLegacyEncryption, parseAddress, referTags } from './EventHelper';
+import {
+	aTagContent,
+	getZapperPubkey,
+	isLegacyEncryption,
+	parseAddress,
+	referTags
+} from './EventHelper';
 import { generateSecretKey, getPublicKey, nip04, nip44 } from 'nostr-tools';
+
+describe('aTagContent', () => {
+	it('distinguishes normal replaceable and addressable coordinates', () => {
+		const base = { pubkey: 'pubkey', content: '', created_at: 0, id: '', sig: '' };
+		expect(aTagContent({ ...base, kind: 10003, tags: [['d', 'ignored']] })).toBe(
+			'10003:pubkey:'
+		);
+		expect(aTagContent({ ...base, kind: 30001, tags: [['d', 'bookmark']] })).toBe(
+			'30001:pubkey:bookmark'
+		);
+	});
+});
 
 describe('referTags', () => {
 	it('root', () => {

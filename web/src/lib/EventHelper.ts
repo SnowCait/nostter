@@ -1,4 +1,5 @@
 import type { Event } from 'nostr-tools';
+import { isAddressableKind } from 'nostr-tools/kinds';
 import type { id } from './Types';
 import { hexRegexp, shortcodeRegexp } from './Constants';
 
@@ -124,7 +125,8 @@ export function getTagContent(tagName: string, tags: string[][]): string {
 }
 
 export function aTagContent(event: Event): string {
-	return `${event.kind}:${event.pubkey}:${findIdentifier(event.tags) ?? ''}`;
+	const identifier = isAddressableKind(event.kind) ? (findIdentifier(event.tags) ?? '') : '';
+	return `${event.kind}:${event.pubkey}:${identifier}`;
 }
 
 export function getZapperPubkey(event: Event): string | undefined {
