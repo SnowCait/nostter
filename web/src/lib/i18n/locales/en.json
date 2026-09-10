@@ -375,7 +375,8 @@
 		},
 		"delete": {
 			"button": "Delete",
-			"confirm": "Are you sure you want to delete this note?"
+			"confirm": "Are you sure you want to delete this note?",
+			"failed": "Failed to send deletion request."
 		}
 	},
 	"channel": {

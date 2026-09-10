@@ -1,9 +1,9 @@
 import { get } from 'svelte/store';
 import { repostedEvents } from './Action';
 import { sortEvents, type Event } from 'nostr-tools';
-import { deleteEvent } from './Delete';
+import { requestEventDeletion } from './Delete';
 
-export function undoRepost(target: Event): void {
+export async function undoRepost(target: Event): Promise<void> {
 	const $repostedEvents = get(repostedEvents);
 	const events = $repostedEvents.get(target.id);
 	if (events === undefined || events.length === 0) {
@@ -11,7 +11,7 @@ export function undoRepost(target: Event): void {
 	}
 
 	const sortedEvents = sortEvents(events);
-	deleteEvent(sortedEvents.slice(0, 1));
+	await requestEventDeletion(sortedEvents.slice(0, 1));
 	$repostedEvents.set(target.id, sortedEvents.slice(1));
 	repostedEvents.set($repostedEvents);
 }

@@ -1,5 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { now } from 'rx-nostr';
+import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
@@ -29,28 +30,28 @@ export function storeDeletedEvents(event: Nostr.Event): void {
 	}
 }
 
-export async function deleteEvent(events: Nostr.Event[], reason = ''): Promise<void> {
+export async function requestEventDeletion(
+	events: readonly Nostr.Event[],
+	reason?: string
+): Promise<void> {
 	if (events.length === 0) {
-		return;
+		throw new Error('Deletion request requires at least one target event');
 	}
 
 	const $authorPubkey = get(authorPubkey);
 	if (events.some((event) => event.pubkey !== $authorPubkey)) {
-		console.error('[delete logic error]', events);
-		return;
+		throw new Error('Cannot request deletion of an event by another author');
 	}
 
 	const event = await Signer.signEvent({
 		kind: 5,
 		pubkey: $authorPubkey,
-		content: reason,
+		content: reason ?? '',
 		tags: [
 			...events.map((event) => ['e', event.id]),
 			...[...new Set(events.map((event) => event.kind))].map((kind) => ['k', `${kind}`])
 		],
 		created_at: now()
 	});
-	rxNostr.send(event).subscribe(({ eventId, from, ok }) => {
-		console.debug('[delete send]', eventId, from, ok);
-	});
+	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 }

@@ -53,7 +53,7 @@
 		updateRepostedEvents([repostEvent]);
 	}
 
-	function onUndoRepost(): void {
+	async function onUndoRepost(): Promise<void> {
 		console.debug('[repost undo]', event);
 
 		if ($rom) {
@@ -61,7 +61,12 @@
 			return;
 		}
 
-		undoRepost(event);
+		try {
+			await undoRepost(event);
+		} catch (error) {
+			console.error('[repost undo failed]', error);
+			alert($_('actions.delete.failed'));
+		}
 	}
 
 	function onQuote(): void {

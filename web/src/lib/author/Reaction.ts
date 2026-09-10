@@ -3,7 +3,7 @@ import type * as Nostr from 'nostr-typedef';
 import { reactionedEvents, updateReactionedEvents } from './Action';
 import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
-import { deleteEvent } from './Delete';
+import { requestEventDeletion } from './Delete';
 import { sortEvents } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { findCustomEmojiSetAddress } from './CustomEmojis';
@@ -41,7 +41,7 @@ export async function sendReaction(
 	updateReactionedEvents([event]);
 }
 
-export function deleteReaction(target: Nostr.Event): void {
+export async function deleteReaction(target: Nostr.Event): Promise<void> {
 	const $reactionedEvents = get(reactionedEvents);
 	const events = $reactionedEvents.get(target.id);
 	if (events === undefined || events.length === 0) {
@@ -49,7 +49,7 @@ export function deleteReaction(target: Nostr.Event): void {
 	}
 
 	const sortedEvents = sortEvents(events);
-	deleteEvent(sortedEvents.slice(0, 1));
+	await requestEventDeletion(sortedEvents.slice(0, 1));
 	$reactionedEvents.set(target.id, sortedEvents.slice(1));
 	reactionedEvents.set($reactionedEvents);
 }

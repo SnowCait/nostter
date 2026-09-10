@@ -41,7 +41,7 @@
 		);
 	}
 
-	function onDelete(): void {
+	async function onDelete(): Promise<void> {
 		console.debug('[reaction delete]', event);
 
 		if ($rom) {
@@ -49,7 +49,12 @@
 			return;
 		}
 
-		deleteReaction(event);
+		try {
+			await deleteReaction(event);
+		} catch (error) {
+			console.error('[reaction delete failed]', error);
+			alert($_('actions.delete.failed'));
+		}
 	}
 </script>
 
