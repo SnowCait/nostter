@@ -24,6 +24,7 @@ const cspDirectives: Record<string, string[]> = {
 		"'self'",
 		"'unsafe-inline'",
 		"'wasm-unsafe-eval'",
+		'https://static.cloudflareinsights.com/beacon.min.js',
 		'https://platform.twitter.com',
 		'https://www.googletagmanager.com',
 		'https://embed.nicovideo.jp'
@@ -55,7 +56,7 @@ const contentSecurityPolicy = Object.entries(cspDirectives)
 	.map(([directive, values]) => `${directive} ${values.join(' ')}`)
 	.join('; ');
 
-const csp: Handle = async ({ event, resolve }) => {
+export const csp: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event);
 	response.headers.set('Content-Security-Policy', contentSecurityPolicy);
 	return response;

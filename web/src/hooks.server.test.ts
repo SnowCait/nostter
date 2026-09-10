@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RequestEvent } from '@sveltejs/kit';
-import { notFound } from './hooks.server';
+import { csp, notFound } from './hooks.server';
 
 type Resolve = Parameters<typeof notFound>[0]['resolve'];
 
@@ -35,6 +35,25 @@ beforeEach(() => {
 
 afterEach(() => {
 	vi.restoreAllMocks();
+});
+
+describe('content security policy', () => {
+	it('allows only the Cloudflare Web Analytics beacon script URL', async () => {
+		const response = await csp({
+			event: createEvent(),
+			resolve: createResolve(new Response())
+		});
+
+		const scriptSources = response.headers
+			.get('Content-Security-Policy')
+			?.split('; ')
+			.find((directive) => directive.startsWith('script-src '))
+			?.split(' ')
+			.slice(1);
+
+		expect(scriptSources).toContain('https://static.cloudflareinsights.com/beacon.min.js');
+		expect(scriptSources).not.toContain('https://static.cloudflareinsights.com');
+	});
 });
 
 describe('404 request logging', () => {
