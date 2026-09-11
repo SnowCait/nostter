@@ -3,7 +3,7 @@ import { kinds as Kind } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
 import type { pubkey } from './Types';
 import { rxNostr } from '$lib/nostr/relay/client';
-import { tie } from '$lib/nostr/relay-hints';
+import { tie } from '$lib/nostr/relay/relay-hints';
 import { cacheFolloweeReplaceableEvent, followeeEventCache } from './cache/Events';
 
 export class RelayList {
