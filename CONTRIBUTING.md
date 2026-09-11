@@ -57,7 +57,6 @@ npx playwright install
 See the [coding guidelines](docs/coding-guidelines.md) for conventions that apply to `web/src`.
 
 - Keep changes focused on the purpose of the pull request.
-- Follow the existing code style.
 - Add or update tests when changing behavior.
 - Avoid unrelated refactoring or formatting changes.
 
