@@ -32,6 +32,18 @@
 				"title": "Copy failed",
 				"description": "Could not copy old-format bookmarks."
 			}
+		},
+		"delete": {
+			"button": "Delete old-format bookmarks",
+			"confirm": "Send a deletion request for old-format bookmarks?",
+			"success": {
+				"title": "Deletion request sent",
+				"description": "Accepted by a relay."
+			},
+			"failed": {
+				"title": "Deletion request failed",
+				"description": "Could not send the deletion request."
+			}
 		}
 	},
 	"pages": {

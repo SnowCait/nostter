@@ -76,6 +76,10 @@ export class WebStorage {
 		}
 	}
 
+	public removeParameterizedReplaceableEvent(kind: number, identifier: string): void {
+		this.remove(`kind:${kind}:${identifier}`);
+	}
+
 	public getCachedAt(): number | null {
 		const cachedAt = this.get('cached_at');
 		return cachedAt === null ? null : Number(cachedAt);
