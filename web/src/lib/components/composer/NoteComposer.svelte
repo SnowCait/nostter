@@ -15,7 +15,7 @@
 	} from '$lib/TextEventComposer';
 	import { Content } from '$lib/Content';
 	import { filterTags } from '$lib/EventHelper';
-	import { getReadRelays, parseRelayList } from '$lib/nostr/nip65';
+	import { getReadRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 	import { metadataStore } from '$lib/cache/Events';
 	import { EventItem, Metadata } from '$lib/Items';
 	import type * as Nostr from 'nostr-typedef';

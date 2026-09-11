@@ -12,7 +12,7 @@
 	import { kinds as Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
 	import { parseRelayJson } from '$lib/EventHelper';
-	import { parseRelayList } from '$lib/nostr/nip65';
+	import { parseRelayList } from '$lib/nostr/protocol/nip65';
 	import { Contacts } from '$lib/Contacts';
 	import IconPencil from '@tabler/icons-svelte-runes/icons/pencil';
 	import IconDeviceFloppy from '@tabler/icons-svelte-runes/icons/device-floppy';
