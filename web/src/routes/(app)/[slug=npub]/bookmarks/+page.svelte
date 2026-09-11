@@ -26,11 +26,13 @@
 	import { BookmarkPageState } from './BookmarkPageState.svelte';
 	import { copyLegacyBookmarks } from '$lib/author/BookmarkCopy';
 	import { addToast } from '$lib/components/Toaster.svelte';
+	import { deleteLegacyBookmarks } from '$lib/author/legacy-bookmark-delete';
 
 	let { data }: LayoutProps = $props();
 
 	let privateBookmarkEventItems: EventItem[] = $state([]);
 	let privateLegacyBookmarkEventItems: EventItem[] = $state([]);
+	let deletingLegacyBookmarks = $state(false);
 
 	function loadPublicItems(event: Nostr.Event, addItem: (item: EventItem) => void): () => void {
 		const ids = filterTags('e', event.tags);
@@ -75,7 +77,7 @@
 	}
 
 	async function copyAllLegacyBookmarks(): Promise<void> {
-		if (!bookmarkOperationState.canStartCopy) {
+		if (deletingLegacyBookmarks || !bookmarkOperationState.canStartCopy) {
 			return;
 		}
 
@@ -103,6 +105,36 @@
 					description: $_('bookmarks.copy.failed.description')
 				}
 			});
+		}
+	}
+
+	async function deleteAllLegacyBookmarks(): Promise<void> {
+		if (deletingLegacyBookmarks || bookmarkOperationState.copyInProgress) {
+			return;
+		}
+		if (!confirm($_('bookmarks.delete.confirm'))) {
+			return;
+		}
+
+		deletingLegacyBookmarks = true;
+		try {
+			await deleteLegacyBookmarks();
+			addToast({
+				data: {
+					title: $_('bookmarks.delete.success.title'),
+					description: $_('bookmarks.delete.success.description')
+				}
+			});
+		} catch (error) {
+			console.error('[legacy bookmark deletion failed]', error);
+			addToast({
+				data: {
+					title: $_('bookmarks.delete.failed.title'),
+					description: $_('bookmarks.delete.failed.description')
+				}
+			});
+		} finally {
+			deletingLegacyBookmarks = false;
 		}
 	}
 
@@ -251,11 +283,11 @@
 		hidden={selectedBookmarkList?.id !== tab.id}
 	>
 		{#if tab.id === legacyBookmarkListId && data.pubkey === $authorPubkey && !$rom}
-			<div class="bookmark-copy-action">
+			<div class="legacy-bookmark-actions">
 				<button
 					type="button"
 					onclick={copyAllLegacyBookmarks}
-					disabled={!bookmarkOperationState.canStartCopy}
+					disabled={deletingLegacyBookmarks || !bookmarkOperationState.canStartCopy}
 					aria-busy={bookmarkOperationState.copyInProgress}
 				>
 					{$_(
@@ -263,6 +295,15 @@
 							? 'bookmarks.copy.copying'
 							: 'bookmarks.copy.button'
 					)}
+				</button>
+				<button
+					class="button-outlined"
+					type="button"
+					onclick={deleteAllLegacyBookmarks}
+					disabled={deletingLegacyBookmarks || bookmarkOperationState.copyInProgress}
+					aria-busy={deletingLegacyBookmarks}
+				>
+					{$_('bookmarks.delete.button')}
 				</button>
 			</div>
 		{/if}
@@ -291,7 +332,10 @@
 		flex-wrap: nowrap;
 	}
 
-	.bookmark-copy-action {
+	.legacy-bookmark-actions {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
 		margin: 1rem 0;
 	}
 
