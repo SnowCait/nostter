@@ -4,7 +4,7 @@ import { createNoopClient, createVerificationServiceClient } from 'rx-nostr-cryp
 import { browser } from '$app/environment';
 import { timeout } from '$lib/Constants';
 import { Signer } from '$lib/Signer';
-import workerUrl from '$lib/Worker?worker&url';
+import workerUrl from '$lib/nostr/verification/worker?worker&url';
 
 Nip11Registry.setDefault({
 	limitation: {
