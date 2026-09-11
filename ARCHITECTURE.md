@@ -70,7 +70,7 @@ Reusable UI components that are not owned by a specific feature.
 
 ## Dependency direction
 
-Dependencies should flow toward lower-level, more stable logic:
+Within a feature, dependencies should flow inward:
 
 ```text
 presentation
@@ -78,20 +78,23 @@ presentation
 application
     ↓
 domain
-    ↓
-nostr/protocol
 ```
 
-Application code may also use:
+Feature code may use lower-level capabilities when needed:
 
 ```text
-nostr/relay
-nostr/signing
-nostr/verification
-platform/*
+domain ─────────→ nostr/protocol
+
+application ────→ nostr/protocol
+            ├──→ nostr/relay
+            ├──→ nostr/signing
+            ├──→ nostr/verification
+            └──→ platform/*
 ```
 
-Lower-level modules must not depend on product features or presentation.
+These dependencies are allowed, not required.
+
+Lower-level modules must not depend on product features or presentation. Domain code must not depend on application or presentation, and application code must not depend on presentation.
 
 Avoid circular dependencies.
 
