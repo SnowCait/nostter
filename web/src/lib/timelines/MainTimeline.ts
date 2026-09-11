@@ -30,8 +30,8 @@ import { isReplaceableKind } from 'nostr-tools/kinds';
 import { rxNostr } from '$lib/nostr/relay/client';
 export { rxNostr } from '$lib/nostr/relay/client';
 export { verificationClient } from '$lib/nostr/verification/client';
-export { tie, seenOn, getRelayHint, getSeenOnRelays } from '$lib/nostr/relay-hints';
-import { tie } from '$lib/nostr/relay-hints';
+export { tie, seenOn, getRelayHint, getSeenOnRelays } from '$lib/nostr/relay/relay-hints';
+import { tie } from '$lib/nostr/relay/relay-hints';
 import { RelayList } from '$lib/RelayList';
 import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 
