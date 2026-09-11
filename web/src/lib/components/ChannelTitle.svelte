@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ChannelMetadata } from '$lib/Types';
+	import type { ChannelMetadata } from '$lib/nostr/protocol/nip28';
 
 	interface Props {
 		channelMetadata: ChannelMetadata | undefined;

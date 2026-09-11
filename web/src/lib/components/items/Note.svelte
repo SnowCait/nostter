@@ -8,7 +8,7 @@
 	import { onMount } from 'svelte';
 	import Content from '$lib/components/Content.svelte';
 	import { isReply } from '$lib/EventHelper';
-	import { Channel } from '$lib/Channel';
+	import { parseChannelMetadata } from '$lib/nostr/protocol/nip28';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
 	import ProxyLink from '../ProxyLink.svelte';
 	import Nip94 from '$lib/components/Nip94.svelte';
@@ -63,7 +63,7 @@
 			if (channelMetadataEvent === undefined) {
 				return;
 			}
-			channelName = Channel.parseMetadata(channelMetadataEvent)?.name;
+			channelName = parseChannelMetadata(channelMetadataEvent)?.name;
 		}
 	});
 </script>

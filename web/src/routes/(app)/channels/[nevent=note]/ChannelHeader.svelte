@@ -13,7 +13,7 @@
 		IconLink,
 		IconClipboard
 	} from '@tabler/icons-svelte-runes';
-	import type { ChannelMetadata } from '$lib/Types';
+	import type { ChannelMetadata } from '$lib/nostr/protocol/nip28';
 	import { author, muteEventIds } from '$lib/stores/Author';
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { mute, unmute } from '$lib/author/Mute';
