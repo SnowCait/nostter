@@ -5,7 +5,7 @@ import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
 import type { Author } from '$lib/Author';
 import { filterTags, findIdentifier, getZapperPubkey } from '$lib/EventHelper';
-import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/nip65';
+import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 import { decryptListContent } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
 import { type LoginType, signerCanSign } from '$lib/signer-capability';

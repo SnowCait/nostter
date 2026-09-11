@@ -32,7 +32,7 @@ export { rxNostr, verificationClient } from '$lib/nostr/client';
 export { tie, seenOn, getRelayHint, getSeenOnRelays } from '$lib/nostr/relay-hints';
 import { tie } from '$lib/nostr/relay-hints';
 import { RelayList } from '$lib/RelayList';
-import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/nip65';
+import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 
 //#region Connection States
 
