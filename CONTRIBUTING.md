@@ -54,7 +54,7 @@ npx playwright install
 
 ## Making changes
 
-See the [coding guidelines](docs/coding-guidelines.md) for conventions that apply to `web/src`.
+See the [architecture guide](ARCHITECTURE.md) for module responsibilities and dependency rules, and the [coding guidelines](docs/coding-guidelines.md) for coding conventions.
 
 - Keep changes focused on the purpose of the pull request.
 - Add or update tests when changing behavior.
