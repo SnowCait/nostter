@@ -297,7 +297,7 @@
 					)}
 				</button>
 				<button
-					class="destructive"
+					class="button-outlined"
 					type="button"
 					onclick={deleteAllLegacyBookmarks}
 					disabled={deletingLegacyBookmarks || bookmarkOperationState.copyInProgress}
@@ -337,11 +337,6 @@
 		gap: 0.5rem;
 		flex-wrap: wrap;
 		margin: 1rem 0;
-	}
-
-	.legacy-bookmark-actions .destructive {
-		background-color: var(--red);
-		color: var(--foreground);
 	}
 
 	.bookmark-tab {

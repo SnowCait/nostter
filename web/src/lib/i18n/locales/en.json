@@ -42,7 +42,7 @@
 			},
 			"failed": {
 				"title": "Deletion request failed",
-				"description": "Could not send the deletion request."
+				"description": "Could not confirm relay acceptance."
 			}
 		}
 	},
