@@ -16,9 +16,8 @@ import {
 import { tap, type Subscription } from 'rxjs';
 import { minTimelineLength } from '$lib/Constants';
 import { unique } from '$lib/array';
-import { Channel } from '$lib/Channel';
+import { parseChannelMetadata, type ChannelMetadata } from '$lib/nostr/protocol/nip28';
 import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
-import type { ChannelMetadata } from '$lib/Types';
 
 const recentWindow = 5 * 60;
 const recentWindowCount = 3;
@@ -236,6 +235,6 @@ export class ChannelChat {
 		}
 		this.creatorPubkey = this.#kind40.pubkey;
 		const source = this.#latestKind41ByAuthor.get(this.#kind40.pubkey) ?? this.#kind40;
-		this.metadata = Channel.parseMetadata(source);
+		this.metadata = parseChannelMetadata(source);
 	}
 }

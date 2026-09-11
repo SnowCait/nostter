@@ -3,12 +3,11 @@
 
 	import { nip19, type Event } from 'nostr-tools';
 	import { cachedEvents, channelMetadataEventsStore, eventItemStore } from '$lib/cache/Events';
-	import type { ChannelMetadata } from '$lib/Types';
+	import { parseChannelMetadata, type ChannelMetadata } from '$lib/nostr/protocol/nip28';
 	import type { Item } from '$lib/Items';
 	import IconCodeDots from '@tabler/icons-svelte-runes/icons/code-dots';
 	import IconQuote from '@tabler/icons-svelte-runes/icons/quote';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
-	import { Channel } from '$lib/Channel';
 	import { findChannelId } from '$lib/EventHelper';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
@@ -47,7 +46,7 @@
 
 	run(() => {
 		if (channelMetadataEvent !== undefined) {
-			channelMetadata = Channel.parseMetadata(channelMetadataEvent);
+			channelMetadata = parseChannelMetadata(channelMetadataEvent);
 			console.log('[channel metadata]', channelMetadata, event);
 		}
 	});

@@ -25,9 +25,3 @@ export interface User {
 	lud16: string;
 	zapEndpoint: string | null;
 }
-
-export interface ChannelMetadata {
-	name: string;
-	about: string;
-	picture: string;
-}

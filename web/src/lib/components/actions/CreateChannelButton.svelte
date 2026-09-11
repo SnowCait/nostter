@@ -4,7 +4,7 @@
 	import { _ } from 'svelte-i18n';
 	import { now } from 'rx-nostr';
 	import { filter } from 'rxjs';
-	import type { ChannelContent } from '$lib/Channel';
+	import type { ChannelMetadata } from '$lib/nostr/protocol/nip28';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { Signer } from '$lib/Signer';
 	import ModalDialog from '../ModalDialog.svelte';
@@ -27,7 +27,7 @@
 
 		const content = {
 			name: name.trim()
-		} as ChannelContent;
+		} as ChannelMetadata;
 		if (about !== '') {
 			content.about = about.trim();
 		}
