@@ -7,7 +7,7 @@
 	import IconQuote from '@tabler/icons-svelte-runes/icons/quote';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
-	import { findIdentifier } from '$lib/EventHelper';
+	import { findIdentifier } from '$lib/nostr/protocol/event-address';
 
 	interface Props {
 		event: Event;

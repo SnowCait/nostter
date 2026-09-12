@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import type * as Nostr from 'nostr-typedef';
-	import { findIdentifier } from '$lib/EventHelper';
+	import { findIdentifier } from '$lib/nostr/protocol/event-address';
 	import { getEventAddress } from '$lib/nostr/protocol/event-address';
 	import {
 		IconDots,

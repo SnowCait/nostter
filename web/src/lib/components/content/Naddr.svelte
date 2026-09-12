@@ -4,7 +4,7 @@
 	import LongFormContent from './LongFormContent.svelte';
 	import List from '$lib/components/items/List.svelte';
 	import { fetchLastEvent } from '$lib/RxNostrHelper';
-	import { findIdentifier } from '$lib/EventHelper';
+	import { findIdentifier } from '$lib/nostr/protocol/event-address';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	interface Props {

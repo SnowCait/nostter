@@ -25,7 +25,7 @@ import { customEmojiListEvent, storeCustomEmojis } from '$lib/author/CustomEmoji
 import { isProfileBadgesEvent, updateProfileBadgesEvent } from '$lib/author/ProfileBadges';
 import { authorChannelsEventStore, storeMetadata } from '$lib/cache/Events';
 import { updateFolloweesStore } from '$lib/Contacts';
-import { findIdentifier } from '$lib/EventHelper';
+import { findIdentifier } from '$lib/nostr/protocol/event-address';
 import { Preferences, preferencesStore } from '$lib/Preferences';
 import { followingHashtags, updateFollowingHashtags } from '$lib/Interest';
 import { EventItem } from '$lib/Items';

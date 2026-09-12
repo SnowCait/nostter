@@ -11,7 +11,7 @@
 	} from '$lib/timelines/ListTimeline';
 	import { IconUsers } from '@tabler/icons-svelte-runes';
 	import { appName } from '$lib/Constants';
-	import { findIdentifier } from '$lib/EventHelper';
+	import { findIdentifier } from '$lib/nostr/protocol/event-address';
 	import { fetchListEvent, getListPubkeys, getListTitle } from '$lib/List';
 	import type { PageProps } from './$types';
 	import TimelineView from '../../../../TimelineView.svelte';

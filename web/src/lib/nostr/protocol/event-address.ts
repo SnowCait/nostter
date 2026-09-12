@@ -3,10 +3,16 @@ import { isAddressableKind } from 'nostr-tools/kinds';
 import type { AddressPointer } from 'nostr-tools/nip19';
 import { isValidPubkey } from './pubkey';
 
+export function findIdentifier(tags: string[][]): string | undefined {
+	const tag = tags.find(([name]) => name === 'd');
+	if (tag === undefined) {
+		return undefined;
+	}
+	return tag.at(1) ?? '';
+}
+
 export function getEventAddress(event: Event): string {
-	const identifier = isAddressableKind(event.kind)
-		? (event.tags.find(([name]) => name === 'd')?.[1] ?? '')
-		: '';
+	const identifier = isAddressableKind(event.kind) ? (findIdentifier(event.tags) ?? '') : '';
 
 	return `${event.kind}:${event.pubkey}:${identifier}`;
 }

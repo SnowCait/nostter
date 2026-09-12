@@ -5,7 +5,7 @@ import { error, redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import { defaultRelays } from '$lib/Constants';
 import { fetchEvent } from '$lib/Api';
-import { findIdentifier } from '$lib/EventHelper';
+import { findIdentifier } from '$lib/nostr/protocol/event-address';
 import { checkRestriction } from '$lib/server/Restriction';
 
 export const load: LayoutServerLoad<{

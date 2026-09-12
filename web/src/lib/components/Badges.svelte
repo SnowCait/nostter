@@ -9,7 +9,7 @@
 	import { browser } from '$app/environment';
 	import ExternalLink from './ExternalLink.svelte';
 	import type * as Nostr from 'nostr-typedef';
-	import { findIdentifier } from '$lib/EventHelper';
+	import { findIdentifier } from '$lib/nostr/protocol/event-address';
 	import { getEventAddress, parseEventAddress } from '$lib/nostr/protocol/event-address';
 	import { nip19 } from 'nostr-tools';
 	import { SvelteMap } from 'svelte/reactivity';

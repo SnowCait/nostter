@@ -1,5 +1,5 @@
 import { addressRegexp, hexRegexp, legacyBookmarkIdentifier } from '$lib/Constants';
-import { findIdentifier } from '$lib/EventHelper';
+import { findIdentifier } from '$lib/nostr/protocol/event-address';
 import { kinds as Kind, type Event } from 'nostr-tools';
 
 type BookmarkEvent = Pick<Event, 'kind' | 'tags'>;

@@ -5,9 +5,12 @@ import type * as Nostr from 'nostr-typedef';
 import { chunk } from '$lib/array';
 import { maxFilters } from '$lib/Constants';
 import type { AddressPointer } from 'nostr-tools/nip19';
-import { findIdentifier } from '$lib/EventHelper';
+import {
+	findIdentifier,
+	getEventAddress,
+	parseEventAddress
+} from '$lib/nostr/protocol/event-address';
 import { filterEmojiTags } from '$lib/nostr/protocol/nip30';
-import { getEventAddress, parseEventAddress } from '$lib/nostr/protocol/event-address';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { WebStorage } from '$lib/WebStorage';

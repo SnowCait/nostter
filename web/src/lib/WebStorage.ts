@@ -1,6 +1,6 @@
 import type { Event } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { findIdentifier } from './EventHelper';
+import { findIdentifier } from './nostr/protocol/event-address';
 import { pubkey } from './stores/Author';
 import { eventCache } from './cache/Events';
 
