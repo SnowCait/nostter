@@ -13,7 +13,7 @@ import { bytesToHex, hexToBytes } from 'nostr-tools/utils';
 import { WebStorage } from './WebStorage';
 import { nip46ConnectTimeout } from './Constants';
 import type * as Nostr from 'nostr-typedef';
-import { type LoginType, signerCanSign } from './signer-capability';
+import { type LoginType, signerCanSign } from './nostr/signing/signer-capability';
 
 declare const window: {
 	nostr: Nostr.Nip07.Nostr | undefined;
