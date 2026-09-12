@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
-	import { isNostrHex } from '$lib/EventHelper';
+	import { isValidEventId } from '$lib/nostr/protocol/event-id';
 	import { developerMode } from '$lib/stores/Preference';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
@@ -15,7 +15,7 @@
 </script>
 
 <article class="timeline-item">
-	{#if isNostrHex(eventId)}
+	{#if isValidEventId(eventId)}
 		<a href="/{nevent}">
 			{nevent.substring(0, 'nevent1'.length + 7)}
 		</a>
