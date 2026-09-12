@@ -1,5 +1,4 @@
 import type { Event } from 'nostr-tools';
-import type { id } from './Types';
 
 export function isReply(event: Event): boolean {
 	if (!event.tags.some(([tagName]) => tagName === 'p')) {
@@ -25,14 +24,6 @@ export function findIdentifier(tags: string[][]): string | undefined {
 		return undefined;
 	}
 	return tag.at(1) ?? '';
-}
-
-export function findLastId(tags: string[][]): id | undefined {
-	const ids = filterTags('e', tags);
-	if (ids.length === 0) {
-		return undefined;
-	}
-	return ids[ids.length - 1];
 }
 
 export function filterTags(tagName: string, tags: string[][]) {
