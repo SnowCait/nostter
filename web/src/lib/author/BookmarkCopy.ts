@@ -4,7 +4,7 @@ import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { kinds as Kind } from 'nostr-tools';
 import { legacyBookmarkIdentifier } from '$lib/Constants';
-import { isLegacyEncryption } from '$lib/EventHelper';
+import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
 import { Signer } from '$lib/Signer';
 import { pubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
