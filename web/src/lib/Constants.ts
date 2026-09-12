@@ -23,7 +23,6 @@ export const addressRegexp = /^[0-9]+:[0-9a-f]{64}:.*$/;
 export const emojisetAddressRegexp = new RegExp(`^${Emojisets}:[0-9a-f]{64}:.*$`);
 export const hashtagsRegexp = /(?<=^|\s)#(?<hashtag>[\p{Letter}\p{Number}_]+)/gu;
 export const nicovideoRegexp = /^https:\/\/(www|sp).nicovideo.jp\/watch\/(?<id>[a-zA-Z0-9]+)/;
-export const shortcodeRegexp = /^[\w-]+$/;
 export const legacyBookmarkIdentifier = 'bookmark';
 
 export const replaceableKinds = [
