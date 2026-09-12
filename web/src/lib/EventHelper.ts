@@ -40,7 +40,3 @@ export function filterTags(tagName: string, tags: string[][]) {
 		.filter(([name, content]) => name === tagName && content !== undefined && content !== '')
 		.map(([, content]) => content);
 }
-
-export function getTitle(tags: string[][]): string | undefined {
-	return filterTags('title', tags).at(0);
-}
