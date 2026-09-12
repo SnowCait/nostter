@@ -41,11 +41,6 @@ export function filterTags(tagName: string, tags: string[][]) {
 		.map(([, content]) => content);
 }
 
-export function getTagContent(tagName: string, tags: string[][]): string {
-	const tagContent = tags.find(([n]) => n === tagName)?.at(1);
-	return tagContent ?? (tagName === 'd' ? '' : getTagContent('d', tags));
-}
-
 export function getTitle(tags: string[][]): string | undefined {
 	return filterTags('title', tags).at(0);
 }

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type * as Nostr from 'nostr-typedef';
-	import { getTagContent } from '$lib/EventHelper';
 
 	interface Props {
 		event: Nostr.Event;
@@ -8,6 +7,11 @@
 	}
 
 	let { event, children }: Props = $props();
+
+	function getTagContent(tagName: string, tags: string[][]): string {
+		const tagContent = tags.find(([n]) => n === tagName)?.at(1);
+		return tagContent ?? (tagName === 'd' ? '' : getTagContent('d', tags));
+	}
 
 	let name = $derived(getTagContent('name', event.tags));
 	let description = $derived(getTagContent('description', event.tags));
