@@ -14,7 +14,7 @@
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { LayoutData } from './$types';
 	import TimelineView from '../TimelineView.svelte';
-	import { referTags } from '$lib/EventHelper';
+	import { referTags } from '$lib/nostr/protocol/nip10';
 	import { fetchEvent, inThread } from '$lib/Thread';
 	import { EventItem, Metadata, ZapEventItem } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';

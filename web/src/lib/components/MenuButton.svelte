@@ -32,7 +32,7 @@
 	} from '@tabler/icons-svelte-runes';
 	import { requestEventDeletion } from '$lib/author/Delete';
 	import { mute, unmute } from '$lib/author/Mute';
-	import { referTags } from '$lib/EventHelper';
+	import { referTags } from '$lib/nostr/protocol/nip10';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { addToast } from './Toaster.svelte';
 	import { get } from 'svelte/store';

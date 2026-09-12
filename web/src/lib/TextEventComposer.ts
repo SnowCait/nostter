@@ -4,7 +4,7 @@ import { now } from 'rx-nostr';
 import { Content } from './Content';
 import type { User } from '../routes/types';
 import { Api } from './Api';
-import { referTags } from './EventHelper';
+import { referTags } from './nostr/protocol/nip10';
 import { getRelayHint } from './timelines/MainTimeline';
 import { unique } from './array';
 

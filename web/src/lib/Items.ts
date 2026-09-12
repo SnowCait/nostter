@@ -1,7 +1,8 @@
 import { nip57, type Event, nip19 } from 'nostr-tools';
 import { decode, type DecodedInvoice } from 'light-bolt11-decoder';
 import type { pubkey } from './Types';
-import { filterTags, referTags } from './EventHelper';
+import { filterTags } from './EventHelper';
+import { referTags } from './nostr/protocol/nip10';
 
 export interface Item {
 	readonly event: Event;
