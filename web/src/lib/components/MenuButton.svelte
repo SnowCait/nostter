@@ -32,7 +32,7 @@
 	} from '@tabler/icons-svelte-runes';
 	import { requestEventDeletion } from '$lib/author/Delete';
 	import { mute, unmute } from '$lib/author/Mute';
-	import { referTags } from '$lib/EventHelper';
+	import { extractThreadReferenceTags } from '$lib/nostr/protocol/nip10';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { addToast } from './Toaster.svelte';
 	import { get } from 'svelte/store';
@@ -60,7 +60,7 @@
 		})
 	);
 	let url = $derived(`${$page.url.origin}/${nevent}`);
-	let rootTag = $derived(referTags(event).root);
+	let rootTag = $derived(extractThreadReferenceTags(event).root);
 	let rootId = $derived(rootTag?.at(1) ?? event.id);
 	let isChannelMuteTarget = $derived(
 		event.kind === ChannelMessage && rootTag?.at(1) !== undefined

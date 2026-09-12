@@ -4,7 +4,7 @@ import { now } from 'rx-nostr';
 import { Content } from './Content';
 import type { User } from '../routes/types';
 import { Api } from './Api';
-import { referTags } from './EventHelper';
+import { extractThreadReferenceTags } from './nostr/protocol/nip10';
 import { getRelayHint } from './timelines/MainTimeline';
 import { unique } from './array';
 
@@ -51,7 +51,7 @@ export function replyTags(
 			}
 		}
 	} else if (replyTo !== undefined) {
-		const { root } = referTags(replyTo);
+		const { root } = extractThreadReferenceTags(replyTo);
 		const relay = getRelayHint(replyTo.id);
 		if (root === undefined) {
 			tags.push(['e', replyTo.id, relay ?? '', 'root', replyTo.pubkey]);

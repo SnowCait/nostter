@@ -14,7 +14,7 @@
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import type { LayoutData } from './$types';
 	import TimelineView from '../TimelineView.svelte';
-	import { referTags } from '$lib/EventHelper';
+	import { extractThreadReferenceTags } from '$lib/nostr/protocol/nip10';
 	import { fetchEvent, inThread } from '$lib/Thread';
 	import { EventItem, Metadata, ZapEventItem } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';
@@ -67,7 +67,7 @@
 			if (replyToEventItem !== undefined) {
 				replyToEventItems.unshift(replyToEventItem);
 				replyToEventItems = replyToEventItems;
-				const { root, reply } = referTags(replyToEventItem.event);
+				const { root, reply } = extractThreadReferenceTags(replyToEventItem.event);
 				replyId = reply?.at(1);
 				if (rootId === undefined) {
 					rootId = root?.at(1);
@@ -108,7 +108,7 @@
 			.subscribe({
 				next: ({ event }) => {
 					console.debug('[thread events next]', event.id);
-					const { root, reply } = referTags(event);
+					const { root, reply } = extractThreadReferenceTags(event);
 					if (root?.at(1) === original.id || reply?.at(1) === original.id) {
 						if (!repliedToEventItems.some((item) => item.id === event.id)) {
 							insertIntoAscendingTimeline(event, repliedToEventItems);
@@ -123,7 +123,7 @@
 					for (const event of [...repliedToEventsMap]
 						.map(([, event]) => event)
 						.toSorted(chronological)) {
-						const { reply } = referTags(event);
+						const { reply } = extractThreadReferenceTags(event);
 						if (
 							repliedToEventItems.some((item) => item.id === reply?.at(1)) &&
 							!repliedToEventItems.some((item) => item.id === event.id)
@@ -341,7 +341,7 @@
 		if (item !== undefined && item.id !== id && browser) {
 			console.debug('[thread item]', item);
 			id = item.id;
-			const { root, reply } = referTags(item.event);
+			const { root, reply } = extractThreadReferenceTags(item.event);
 			rootId = root?.at(1);
 			fetchReplies(reply?.at(1));
 			fetchThreads(rootId, item.event);
