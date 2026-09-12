@@ -1,7 +1,7 @@
 import { kinds as Kind, type Event } from 'nostr-tools';
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import { rxNostr, tie } from '../timelines/MainTimeline';
-import { parseRelayJson } from '../EventHelper';
+import { parseLegacyRelayList } from '../nostr/protocol/nip24';
 import { WebStorage } from '../WebStorage';
 import { metadataRelays } from '$lib/Constants';
 
@@ -64,7 +64,7 @@ export class RelayList {
 			rxNostr.setDefaultRelays(kind10002.tags);
 		} else if (kind3 !== undefined && kind3.content !== '') {
 			rxNostr.setDefaultRelays(
-				[...parseRelayJson(kind3.content)].map(([url, { read, write }]) => {
+				[...parseLegacyRelayList(kind3.content)].map(([url, { read, write }]) => {
 					return { url, read, write };
 				})
 			);
