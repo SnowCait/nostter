@@ -6,7 +6,7 @@ import { findChannelId, filterTags } from '$lib/EventHelper';
 import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
 import { pubkey } from '$lib/stores/Author';
-import { MouseButton } from '$lib/DomHelper';
+import { MouseButton } from '$lib/platform/browser/mouse-button';
 
 const getTargetETag = (tags: string[][]): string => {
 	const [, refEventId] = tags.findLast(

@@ -36,7 +36,7 @@
 	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
-	import { MouseButton } from '$lib/DomHelper';
+	import { MouseButton } from '$lib/platform/browser/mouse-button';
 	import { requestTimelineScrollToTop } from '$lib/timelines/ScrollToTop';
 	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
 	import { getCurrentHeaderNavigation, isMoreNavigationCurrent } from './HeaderNavigation';
