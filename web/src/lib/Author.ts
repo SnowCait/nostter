@@ -14,7 +14,8 @@ import {
 } from './stores/Author';
 import { RelayList } from './author/RelayList';
 import { auth } from './auth.svelte';
-import { filterTags, findIdentifier, parseRelayJson } from './EventHelper';
+import { filterTags, findIdentifier } from './EventHelper';
+import { parseLegacyRelayList } from './nostr/protocol/nip24';
 import { customEmojiListEvent, storeCustomEmojis } from './author/CustomEmojis';
 import type { User } from '../routes/types';
 import { lastReadAt } from './author/Notifications';
@@ -67,7 +68,7 @@ export class Author {
 			if (contactsEvent.content === '') {
 				console.log('[relays in kind 3] empty');
 			} else {
-				const validRelays = [...parseRelayJson(contactsEvent.content)];
+				const validRelays = [...parseLegacyRelayList(contactsEvent.content)];
 				readRelays.set(
 					Array.from(
 						new Set(validRelays.filter(([, { read }]) => read).map(([relay]) => relay))
