@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getTitle } from '$lib/EventHelper';
+	import { filterTags } from '$lib/EventHelper';
 	import type { EventItem, Item } from '$lib/Items';
 	import ActionMenu from '../actions/ActionMenu.svelte';
 	import Content from '../Content.svelte';
@@ -15,7 +15,7 @@
 	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
 
 	let eventItem = $derived(item as EventItem);
-	let title = $derived(getTitle(item.event.tags));
+	let title = $derived(filterTags('title', item.event.tags).at(0));
 	let pictures = $derived(item.event.tags.filter(([tagName]) => tagName === 'imeta'));
 </script>
 

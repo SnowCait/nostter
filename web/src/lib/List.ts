@@ -3,7 +3,7 @@ import { createRxOneshotReq, latest } from 'rx-nostr';
 import { lastValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { rxNostr, tie } from './timelines/MainTimeline';
-import { filterTags, findIdentifier, getTitle } from './EventHelper';
+import { filterTags, findIdentifier } from './EventHelper';
 import { isLegacyEncryption } from './nostr/protocol/nip04';
 import { pubkey } from './stores/Author';
 import { Signer } from './Signer';
@@ -26,7 +26,7 @@ export async function fetchListEvent(
 }
 
 export function getListTitle(tags: string[][]): string {
-	return getTitle(tags) ?? findIdentifier(tags) ?? '-';
+	return filterTags('title', tags).at(0) ?? findIdentifier(tags) ?? '-';
 }
 
 export async function getListPubkeys(event: Nostr.Event): Promise<string[]> {
