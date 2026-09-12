@@ -1,15 +1,14 @@
 import type { Event } from 'nostr-tools';
 import { Zap } from 'nostr-tools/kinds';
+import { isValidPubkey } from './pubkey';
 
 export function getZapSenderPubkey(event: Event): string | undefined {
 	if (event.kind !== Zap) {
 		return undefined;
 	}
 
-	const pubkey = event.tags.find(
-		([name, value]) => name === 'P' && value !== undefined && value !== ''
-	)?.[1];
-	if (pubkey !== undefined) {
+	const pubkey = event.tags.find(([name]) => name === 'P')?.[1];
+	if (isValidPubkey(pubkey)) {
 		return pubkey;
 	}
 
