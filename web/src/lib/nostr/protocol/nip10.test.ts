@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { referTags } from './nip10';
+import { extractThreadReferenceTags } from './nip10';
 
-describe('referTags', () => {
+describe('extractThreadReferenceTags', () => {
 	it('root', () => {
-		const { root, reply } = referTags({
+		const { root, reply } = extractThreadReferenceTags({
 			kind: 1,
 			pubkey: '',
 			content: '',
@@ -16,7 +16,7 @@ describe('referTags', () => {
 		expect(reply?.at(1)).toBe(undefined);
 	});
 	it('reply', () => {
-		const { root, reply } = referTags({
+		const { root, reply } = extractThreadReferenceTags({
 			kind: 1,
 			pubkey: '',
 			content: '',
@@ -32,7 +32,7 @@ describe('referTags', () => {
 		expect(reply?.at(1)).toBe('reply-id');
 	});
 	it('mention', () => {
-		const { root, reply } = referTags({
+		const { root, reply } = extractThreadReferenceTags({
 			kind: 1,
 			pubkey: '',
 			content: '',
@@ -45,7 +45,7 @@ describe('referTags', () => {
 		expect(reply?.at(1)).toBe(undefined);
 	});
 	it('deprecated', () => {
-		const { root, reply } = referTags({
+		const { root, reply } = extractThreadReferenceTags({
 			kind: 1,
 			pubkey: '',
 			content: '',
@@ -61,7 +61,7 @@ describe('referTags', () => {
 		expect(reply?.at(1)).toBe('reply-id');
 	});
 	it('mixed', () => {
-		const { root, reply } = referTags({
+		const { root, reply } = extractThreadReferenceTags({
 			kind: 1,
 			pubkey: '',
 			content: '',
@@ -77,7 +77,7 @@ describe('referTags', () => {
 		expect(reply?.at(1)).toBe('reply-id');
 	});
 	it('mixed with last root', () => {
-		const { root, reply } = referTags({
+		const { root, reply } = extractThreadReferenceTags({
 			kind: 1,
 			pubkey: '',
 			content: '',
@@ -93,7 +93,7 @@ describe('referTags', () => {
 		expect(reply?.at(1)).toBe('reply-id');
 	});
 	it('mixed with first reply', () => {
-		const { root, reply } = referTags({
+		const { root, reply } = extractThreadReferenceTags({
 			kind: 1,
 			pubkey: '',
 			content: '',
@@ -109,7 +109,7 @@ describe('referTags', () => {
 		expect(reply?.at(1)).toBe('reply-id');
 	});
 	it('invalid reply', () => {
-		const { root, reply } = referTags({
+		const { root, reply } = extractThreadReferenceTags({
 			kind: 1,
 			pubkey: '',
 			content: '',
@@ -122,7 +122,7 @@ describe('referTags', () => {
 		expect(reply?.at(1)).toBe(undefined);
 	});
 	it('invalid duplicate marker', () => {
-		const { root, reply } = referTags({
+		const { root, reply } = extractThreadReferenceTags({
 			kind: 1,
 			pubkey: '',
 			content: '',

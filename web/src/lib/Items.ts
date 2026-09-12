@@ -2,7 +2,7 @@ import { nip57, type Event, nip19 } from 'nostr-tools';
 import { decode, type DecodedInvoice } from 'light-bolt11-decoder';
 import type { pubkey } from './Types';
 import { filterTags } from './EventHelper';
-import { referTags } from './nostr/protocol/nip10';
+import { extractThreadReferenceTags } from './nostr/protocol/nip10';
 
 export interface Item {
 	readonly event: Event;
@@ -20,7 +20,7 @@ export class EventItem implements Item {
 	}
 
 	public get replyToId(): string | undefined {
-		const { root, reply } = referTags(this.event);
+		const { root, reply } = extractThreadReferenceTags(this.event);
 		return reply?.at(1) ?? (this.event.kind === 1 ? root?.at(1) : undefined);
 	}
 }

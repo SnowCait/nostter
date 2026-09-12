@@ -1,6 +1,6 @@
 import type { Event } from 'nostr-tools';
 
-export function referTags(event: Event): {
+export function extractThreadReferenceTags(event: Event): {
 	root: string[] | undefined;
 	reply: string[] | undefined;
 } {
