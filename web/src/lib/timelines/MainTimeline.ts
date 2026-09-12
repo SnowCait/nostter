@@ -13,7 +13,8 @@ import {
 } from 'rx-nostr';
 import { tap, bufferTime } from 'rxjs';
 import { addressRegexp, filterLimitItems, hexRegexp, timeout } from '$lib/Constants';
-import { aTagContent, filterTags, parseAddress } from '$lib/EventHelper';
+import { filterTags } from '$lib/EventHelper';
+import { getEventAddress, parseEventAddress } from '$lib/nostr/protocol/event-address';
 import { Metadata, type EventItem } from '$lib/Items';
 import {
 	eventItemStore,
@@ -248,7 +249,7 @@ function requestReplaceableReferences(event: Nostr.Event): void {
 	aTags.push(...qTags);
 	if (aTags.length > 0) {
 		const filters: LazyFilter[] = aTags.map(([, address]) => {
-			const [kind, pubkey, identifier] = parseAddress(address)!;
+			const { kind, pubkey, identifier } = parseEventAddress(address)!;
 			return isReplaceableKind(kind)
 				? {
 						kinds: [kind],
@@ -299,12 +300,12 @@ rxNostr
 	.pipe(
 		tie,
 		uniq(),
-		latestEach(({ event }) => aTagContent(event)),
+		latestEach(({ event }) => getEventAddress(event)),
 		tap(({ event }) => referencesReqEmit(event, true))
 	)
 	.subscribe((packet) => {
 		console.debug('[rx-nostr replaceable event]', packet);
-		const a = aTagContent(packet.event);
+		const a = getEventAddress(packet.event);
 		const $replaceableEventsStore = get(replaceableEventsStore);
 		const cache = $replaceableEventsStore.get(a);
 		if (cache === undefined || cache.created_at < packet.event.created_at) {

@@ -2,7 +2,8 @@ import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, filterAsync, latestEach, now, uniq } from 'rx-nostr';
 import type * as Nostr from 'nostr-typedef';
 import { isDecodable } from '$lib/Encryption';
-import { aTagContent, findIdentifier } from '$lib/EventHelper';
+import { findIdentifier } from '$lib/EventHelper';
+import { getEventAddress } from '$lib/nostr/protocol/event-address';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
@@ -17,7 +18,7 @@ export const processing = writable(false);
 
 export function storePeopleList(event: Nostr.Event): void {
 	const $peopleLists = get(peopleLists);
-	const key = aTagContent(event);
+	const key = getEventAddress(event);
 	const cache = $peopleLists.get(key);
 	if (cache === undefined || cache.created_at < event.created_at) {
 		$peopleLists.set(key, event);
@@ -33,7 +34,7 @@ export function fetchPeopleLists(): void {
 		.pipe(
 			tie,
 			uniq(),
-			latestEach(({ event }) => aTagContent(event)),
+			latestEach(({ event }) => getEventAddress(event)),
 			filterAsync(({ event }) => isPeopleList(event))
 		)
 		.subscribe(({ event }) => {

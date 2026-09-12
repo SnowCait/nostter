@@ -11,7 +11,7 @@
 	import EventComponent from '../items/EventComponent.svelte';
 	import { EventItem } from '$lib/Items';
 	import { tap } from 'rxjs';
-	import { parseAddress } from '$lib/EventHelper';
+	import { parseEventAddress } from '$lib/nostr/protocol/event-address';
 
 	interface Props {
 		text?: string;
@@ -34,11 +34,11 @@
 			return;
 		}
 
-		const parsed = parseAddress(address);
+		const parsed = parseEventAddress(address);
 		if (!parsed) {
 			return;
 		}
-		const [kind, pubkey, identifier] = parsed;
+		const { kind, pubkey, identifier } = parsed;
 		const req = createRxBackwardReq();
 		rxNostr
 			.use(req)
