@@ -23,7 +23,7 @@ const { persistedStore, storedValues } = vi.hoisted(() => {
 	};
 });
 
-vi.mock('$lib/persisted-store', () => ({ persistedStore }));
+vi.mock('$lib/platform/storage/persisted-store', () => ({ persistedStore }));
 
 import { getAccountLocalPreferences } from './AccountLocalPreferences';
 

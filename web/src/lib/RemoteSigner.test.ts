@@ -36,7 +36,7 @@ vi.mock('./timelines/MainTimeline', () => ({
 	verificationClient: { verifier: vi.fn() }
 }));
 
-vi.mock('./persisted-store', () => ({
+vi.mock('$lib/platform/storage/persisted-store', () => ({
 	persistedStore: (_key: string, initialValue: string) => {
 		let value = initialValue;
 		const subscribers = new Set<(value: string) => void>();
