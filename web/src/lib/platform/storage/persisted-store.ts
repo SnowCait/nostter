@@ -1,5 +1,5 @@
 import { persisted, type Options, type Persisted } from 'svelte-persisted-store';
-import { appName } from './Constants';
+import { appName } from '../../Constants';
 
 export function persistedStore<StoreType, SerializerType = StoreType>(
 	key: string,
