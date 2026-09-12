@@ -13,7 +13,7 @@ export function getEventAddress(event: Event): string {
 
 export function parseEventAddress(value: string): AddressPointer | undefined {
 	const [kind, pubkey, ...identifier] = value.split(':');
-	if (!kind || isNaN(Number(kind)) || !pubkey || !isValidPubkey(pubkey)) {
+	if (!kind || isNaN(Number(kind)) || !isValidPubkey(pubkey)) {
 		return undefined;
 	}
 	return {
