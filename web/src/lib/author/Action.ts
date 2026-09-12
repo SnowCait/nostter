@@ -4,7 +4,9 @@ import { bufferTime, bufferWhen, filter, interval, share } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { maxFilters } from '$lib/Constants';
-import { filterTags, findLastId } from '$lib/EventHelper';
+import { filterTags } from '$lib/EventHelper';
+import { getRepostTargetEventId } from '$lib/nostr/protocol/nip18';
+import { getReactionTargetEventId } from '$lib/nostr/protocol/nip25';
 import type { id } from '$lib/Types';
 import { pubkey } from '../stores/Author';
 import { deletedEventIdsByPubkey, storeDeletedEvents } from './Delete';
@@ -18,7 +20,7 @@ export function updateRepostedEvents(events: Nostr.Event[]): void {
 	for (const event of events.filter(
 		(event) => event.kind === Repost && event.pubkey === get(pubkey) // Ensure
 	)) {
-		const id = findLastId(event.tags);
+		const id = getRepostTargetEventId(event.tags);
 		if (id === undefined) {
 			continue;
 		}
@@ -39,7 +41,7 @@ export function updateReactionedEvents(events: Nostr.Event[]): void {
 	for (const event of events.filter(
 		(event) => event.kind === Reaction && event.pubkey === get(pubkey) // Ensure
 	)) {
-		const id = findLastId(event.tags);
+		const id = getReactionTargetEventId(event.tags);
 		if (id === undefined) {
 			continue;
 		}
