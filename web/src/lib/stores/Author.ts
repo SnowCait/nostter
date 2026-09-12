@@ -8,7 +8,7 @@ import { filterTags, findIdentifier, getZapperPubkey } from '$lib/EventHelper';
 import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 import { decryptListContent } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
-import { type LoginType, signerCanSign } from '$lib/signer-capability';
+import { type LoginType, signerCanSign } from '$lib/nostr/signing/signer-capability';
 
 export const loginType: Writable<LoginType | undefined> = writable();
 export const pubkey = toStore(() => auth.pubkey);
