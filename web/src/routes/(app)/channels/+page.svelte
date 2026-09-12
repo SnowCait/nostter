@@ -8,7 +8,8 @@
 		channelMetadataEventsStore
 	} from '$lib/cache/Events';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
-	import { filterTags, findChannelId } from '$lib/EventHelper';
+	import { filterTags } from '$lib/EventHelper';
+	import { findChannelId } from '$lib/nostr/protocol/nip28';
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
 	import { appName } from '$lib/Constants';

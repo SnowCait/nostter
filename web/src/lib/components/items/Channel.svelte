@@ -3,12 +3,15 @@
 
 	import { nip19, type Event } from 'nostr-tools';
 	import { cachedEvents, channelMetadataEventsStore, eventItemStore } from '$lib/cache/Events';
-	import { parseChannelMetadata, type ChannelMetadata } from '$lib/nostr/protocol/nip28';
+	import {
+		findChannelId,
+		parseChannelMetadata,
+		type ChannelMetadata
+	} from '$lib/nostr/protocol/nip28';
 	import type { Item } from '$lib/Items';
 	import IconCodeDots from '@tabler/icons-svelte-runes/icons/code-dots';
 	import IconQuote from '@tabler/icons-svelte-runes/icons/quote';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
-	import { findChannelId } from '$lib/EventHelper';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
