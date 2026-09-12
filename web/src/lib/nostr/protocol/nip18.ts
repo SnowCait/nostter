@@ -1,6 +1,5 @@
+import { isValidEventId } from './event-id';
+
 export function getRepostTargetEventId(tags: string[][]): string | undefined {
-	const eventIds = tags
-		.filter(([name, value]) => name === 'e' && value !== undefined && value !== '')
-		.map(([, value]) => value);
-	return eventIds.at(-1);
+	return tags.findLast(([name, value]) => name === 'e' && isValidEventId(value))?.[1];
 }
