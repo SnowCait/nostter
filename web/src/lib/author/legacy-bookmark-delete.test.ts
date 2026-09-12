@@ -20,7 +20,9 @@ vi.mock('./Bookmark.svelte', async () => {
 	const { writable } = await import('svelte/store');
 	return { legacyBookmarkEvent: writable() };
 });
-vi.mock('./Delete', () => ({ requestEventDeletion: mocks.requestEventDeletion }));
+vi.mock('../features/event-deletion/application/request-event-deletion', () => ({
+	requestEventDeletion: mocks.requestEventDeletion
+}));
 
 import { WebStorage } from '$lib/WebStorage';
 import { legacyBookmarkEvent } from './Bookmark.svelte';

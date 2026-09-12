@@ -4,7 +4,7 @@ import type { pubkey } from './Types';
 import type { Metadata } from './Items';
 import { metadataStore } from './cache/Events';
 import { isMuteEvent } from './stores/Author';
-import { deletedEventIdsByPubkey } from './author/Delete';
+import { deletedEventIdsByPubkey } from './features/event-deletion/application/deletion-state';
 import { isVisibleNotification } from './preferences/NotificationVisibility.svelte';
 
 export const unsentToastNotifications = new Map<pubkey, Nostr.Event[]>();

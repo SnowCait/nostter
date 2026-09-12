@@ -6,7 +6,7 @@
 	import { innerHeight, scrollY } from 'svelte/reactivity/window';
 	import { IconArrowDown } from '@tabler/icons-svelte-runes';
 	import { isMuteEvent } from '$lib/stores/Author';
-	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
+	import { deletedEventIdsByPubkey } from '$lib/features/event-deletion/application/deletion-state';
 	import Loading from '$lib/components/Loading.svelte';
 	import type { ChannelChat } from './ChannelChat.svelte';
 	import ChannelMessage from './ChannelMessage.svelte';

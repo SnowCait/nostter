@@ -13,9 +13,9 @@ vi.mock('$lib/stores/Author', async () => {
 	return { pubkey: writable(mocks.userPubkey) };
 });
 vi.mock('$lib/Signer', () => ({ Signer: { signEvent: mocks.signEvent } }));
-vi.mock('$lib/timelines/MainTimeline', () => ({ rxNostr: { send: mocks.send } }));
+vi.mock('$lib/nostr/relay/client', () => ({ rxNostr: { send: mocks.send } }));
 
-import { requestEventDeletion } from './Delete';
+import { requestEventDeletion } from './request-event-deletion';
 
 function event(
 	id: string,

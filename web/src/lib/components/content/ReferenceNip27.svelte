@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
 	import { onMount } from 'svelte';
-	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
+	import { deletedEventIdsByPubkey } from '$lib/features/event-deletion/application/deletion-state';
 	import { events } from '$lib/stores/Events';
 	import { isMuteEvent } from '$lib/stores/Author';
 	import Text from './Text.svelte';

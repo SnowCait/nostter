@@ -3,7 +3,7 @@ import type * as Nostr from 'nostr-typedef';
 import { reactionedEvents, updateReactionedEvents } from './Action';
 import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
-import { requestEventDeletion } from './Delete';
+import { requestEventDeletion } from '../features/event-deletion/application/request-event-deletion';
 import { sortEvents } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { findCustomEmojiSetAddress } from './CustomEmojis';
