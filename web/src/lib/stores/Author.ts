@@ -4,7 +4,8 @@ import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
 import type { Author } from '$lib/Author';
-import { filterTags, findIdentifier, getZapperPubkey } from '$lib/EventHelper';
+import { filterTags, findIdentifier } from '$lib/EventHelper';
+import { getZapSenderPubkey } from '$lib/nostr/protocol/nip57';
 import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 import { decryptListContent } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
@@ -81,7 +82,7 @@ export const isMuteEvent = (event: Event) => {
 	}
 
 	if (event.kind === 9735) {
-		const zapperPubkey = getZapperPubkey(event);
+		const zapperPubkey = getZapSenderPubkey(event);
 		if (zapperPubkey !== undefined && isMutePubkey(zapperPubkey)) {
 			return true;
 		}
@@ -98,7 +99,7 @@ export const isMuteEvent = (event: Event) => {
 	const mutedPubkeysByKind = $mutedPubkeysByKindMap.get(event.kind);
 	if (mutedPubkeysByKind !== undefined) {
 		if (event.kind === 9735) {
-			const zapperPubkey = getZapperPubkey(event);
+			const zapperPubkey = getZapSenderPubkey(event);
 			if (zapperPubkey !== undefined && mutedPubkeysByKind.has(zapperPubkey)) {
 				return true;
 			}
