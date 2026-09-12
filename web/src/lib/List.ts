@@ -3,7 +3,8 @@ import { createRxOneshotReq, latest } from 'rx-nostr';
 import { lastValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { rxNostr, tie } from './timelines/MainTimeline';
-import { filterTags, findIdentifier, getTitle, isLegacyEncryption } from './EventHelper';
+import { filterTags, findIdentifier, getTitle } from './EventHelper';
+import { isLegacyEncryption } from './nostr/protocol/nip04';
 import { pubkey } from './stores/Author';
 import { Signer } from './Signer';
 

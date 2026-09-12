@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { isLegacyEncryption } from './EventHelper';
 import { generateSecretKey, getPublicKey, nip04, nip44 } from 'nostr-tools';
+import { isLegacyEncryption } from './nip04';
 
 describe('isLegacyEncryption', () => {
 	const seckey = generateSecretKey();

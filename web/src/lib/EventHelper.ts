@@ -70,5 +70,3 @@ export function getTagContent(tagName: string, tags: string[][]): string {
 export function getTitle(tags: string[][]): string | undefined {
 	return filterTags('title', tags).at(0);
 }
-
-export const isLegacyEncryption = (content: string): boolean => content.includes('?iv=');
