@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Content } from '$lib/Content';
 	import Hashtag from './content/Hashtag.svelte';
-	import Url from './content/Url.svelte';
 	import CustomEmoji from './content/CustomEmoji.svelte';
 	import ExternalLink from './ExternalLink.svelte';
 	import OnelineText from './content/OnelineText.svelte';
@@ -42,12 +41,10 @@
 				{token.text}
 			</a>
 		{:else if token.type === 'nip'}
-			<Url
-				text={token.text}
-				url="https://github.com/nostr-protocol/nips/blob/master/{token.text.substring(
-					'NIP-'.length
-				)}.md"
-			/>
+			{@const link = new URL(
+				`https://github.com/nostr-protocol/nips/blob/master/${token.text.substring('NIP-'.length)}.md`
+			)}
+			<ExternalLink {link}>{token.text}</ExternalLink>
 		{:else}
 			<OnelineText text={token.text} />
 		{/if}

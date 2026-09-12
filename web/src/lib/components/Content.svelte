@@ -18,6 +18,7 @@
 	import type * as Nostr from 'nostr-typedef';
 	import type { LocalMediaPreview } from '$lib/media/LocalAttachment';
 	import LocalMedia from './content/LocalMedia.svelte';
+	import ExternalLink from './ExternalLink.svelte';
 
 	interface Props {
 		content: string;
@@ -54,12 +55,10 @@
 				{token.text}
 			</a>
 		{:else if token.type === 'nip'}
-			<Url
-				text={token.text}
-				url="https://github.com/nostr-protocol/nips/blob/master/{token.text.substring(
-					'NIP-'.length
-				)}.md"
-			/>
+			{@const link = new URL(
+				`https://github.com/nostr-protocol/nips/blob/master/${token.text.substring('NIP-'.length)}.md`
+			)}
+			<ExternalLink {link}>{token.text}</ExternalLink>
 		{:else}
 			<Text text={token.text} />
 		{/if}
