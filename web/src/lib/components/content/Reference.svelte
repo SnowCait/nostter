@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { nip19 } from 'nostr-tools';
-	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
+	import { deletedEventIdsByPubkey } from '$lib/features/event-deletion/application/deletion-state';
 	import { isMuteEvent } from '$lib/stores/Author';
 	import { userEvents } from '$lib/stores/UserEvents';
 	import Note from '../items/Note.svelte';

@@ -1,7 +1,7 @@
 import { get } from 'svelte/store';
 import { repostedEvents } from './Action';
 import { sortEvents, type Event } from 'nostr-tools';
-import { requestEventDeletion } from './Delete';
+import { requestEventDeletion } from '../features/event-deletion/application/request-event-deletion';
 
 export function undoRepost(target: Event): void {
 	const $repostedEvents = get(repostedEvents);

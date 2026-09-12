@@ -9,7 +9,10 @@ import { getRepostTargetEventId } from '$lib/nostr/protocol/nip18';
 import { getReactionTargetEventId } from '$lib/nostr/protocol/nip25';
 import type { id } from '$lib/Types';
 import { pubkey } from '../stores/Author';
-import { deletedEventIdsByPubkey, storeDeletedEvents } from './Delete';
+import {
+	deletedEventIdsByPubkey,
+	markEventsDeleted
+} from '../features/event-deletion/application/deletion-state';
 import { Reaction, Repost } from 'nostr-tools/kinds';
 
 export const repostedEvents = writable(new Map<id, Nostr.Event[]>());
@@ -63,7 +66,7 @@ const observable = rxNostr
 	.pipe(tie, uniq(), share());
 observable.pipe(filterByKind(5)).subscribe(({ event }) => {
 	console.debug('[deleted]', event);
-	storeDeletedEvents(event);
+	markEventsDeleted(event);
 });
 observable
 	.pipe(

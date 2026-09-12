@@ -30,7 +30,7 @@
 		IconTrash,
 		IconVolumeOff
 	} from '@tabler/icons-svelte-runes';
-	import { requestEventDeletion } from '$lib/author/Delete';
+	import { requestEventDeletion } from '$lib/features/event-deletion/application/request-event-deletion';
 	import { mute, unmute } from '$lib/author/Mute';
 	import { extractThreadReferenceTags } from '$lib/nostr/protocol/nip10';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';

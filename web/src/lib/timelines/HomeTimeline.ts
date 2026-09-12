@@ -57,7 +57,7 @@ import {
 import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { saveLastNote } from '../stores/LastNotes';
 import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';
-import { storeDeletedEvents } from '$lib/author/Delete';
+import { markEventsDeleted } from '$lib/features/event-deletion/application/deletion-state';
 import { NewTimeline } from './Timeline.svelte';
 import { excludeKinds } from '$lib/TimelineFilter';
 import { fetchMinutes } from '$lib/Helper';
@@ -203,7 +203,7 @@ export class HomeTimeline extends NewTimeline {
 			.subscribe(({ event }) => storeMetadata(event));
 		observable$
 			.pipe(filterByKind(Kind.EventDeletion))
-			.subscribe(({ event }) => storeDeletedEvents(event));
+			.subscribe(({ event }) => markEventsDeleted(event));
 		observable$
 			.pipe(filterByKind(Kind.BadgeAward))
 			.subscribe(({ event, from }) => storeSeenOn(event.id, from)); // TODO: Migrate to tie

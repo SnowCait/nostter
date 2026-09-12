@@ -5,7 +5,7 @@
 	import IconHeart from '@tabler/icons-svelte-runes/icons/heart';
 	import IconHeartBroken from '@tabler/icons-svelte-runes/icons/heart-broken';
 	import { nip19 } from 'nostr-tools';
-	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
+	import { deletedEventIdsByPubkey } from '$lib/features/event-deletion/application/deletion-state';
 	import { isMuteEvent } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import CreatedAt from '$lib/components/CreatedAt.svelte';

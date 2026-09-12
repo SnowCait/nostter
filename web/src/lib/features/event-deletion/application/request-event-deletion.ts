@@ -1,35 +1,11 @@
-import { get, writable } from 'svelte/store';
+import { get } from 'svelte/store';
 import { now } from 'rx-nostr';
 import { isAddressableKind, isReplaceableKind } from 'nostr-tools/kinds';
 import type * as Nostr from 'nostr-typedef';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
-import { rxNostr } from '$lib/timelines/MainTimeline';
+import { rxNostr } from '$lib/nostr/relay/client';
 import { Signer } from '$lib/Signer';
-import { filterTags } from '$lib/EventHelper';
 import { getEventAddress } from '$lib/nostr/protocol/event-address';
-
-export const deletedEventIds = writable(new Set<string>());
-export const deletedEventIdsByPubkey = writable(new Map<string, Set<string>>());
-
-export function storeDeletedEvents(event: Nostr.Event): void {
-	const pubkey = event.pubkey;
-	const ids = filterTags('e', event.tags);
-
-	if (ids.length > 0) {
-		const $deletedEventIdsByPubkey = get(deletedEventIdsByPubkey);
-		const $deletedEventIds = $deletedEventIdsByPubkey.get(pubkey);
-		if ($deletedEventIds === undefined) {
-			$deletedEventIdsByPubkey.set(pubkey, new Set(ids));
-		} else {
-			for (const id of ids) {
-				$deletedEventIds.add(id);
-			}
-			$deletedEventIdsByPubkey.set(pubkey, $deletedEventIds);
-		}
-		deletedEventIdsByPubkey.set($deletedEventIdsByPubkey);
-		console.debug('[delete ids store]', $deletedEventIds);
-	}
-}
 
 export async function requestEventDeletion(
 	events: readonly Nostr.Event[],

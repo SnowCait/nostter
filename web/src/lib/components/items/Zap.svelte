@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { nip19 } from 'nostr-tools';
-	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
+	import { deletedEventIdsByPubkey } from '$lib/features/event-deletion/application/deletion-state';
 	import { getSeenOnRelays, metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { ZapEventItem, type EventItem, type Item, type Metadata } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';

@@ -2,7 +2,7 @@
 	import { onMount, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { EventItem } from '$lib/Items';
-	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
+	import { deletedEventIdsByPubkey } from '$lib/features/event-deletion/application/deletion-state';
 	import { author, isMuteEvent } from '$lib/stores/Author';
 	import Loading from './Loading.svelte';
 	import EventComponent from './items/EventComponent.svelte';

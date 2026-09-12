@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Item } from '$lib/Items';
-	import { deletedEventIdsByPubkey } from '$lib/author/Delete';
+	import { deletedEventIdsByPubkey } from '$lib/features/event-deletion/application/deletion-state';
 	import { author, isMuteEvent } from '$lib/stores/Author';
 	import Loading from '$lib/components/Loading.svelte';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
