@@ -5,7 +5,7 @@
 	import IconClipboard from '@tabler/icons-svelte-runes/icons/clipboard';
 	import IconClipboardCheck from '@tabler/icons-svelte-runes/icons/clipboard-check';
 	import { nip19 } from 'nostr-tools';
-	import { copy } from '$lib/Clipboard';
+	import { copy } from '$lib/platform/browser/clipboard';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	interface Props {

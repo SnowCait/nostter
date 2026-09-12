@@ -12,8 +12,8 @@
 		bookmarkOperationState
 	} from '$lib/author/Bookmark.svelte';
 	import { broadcast } from '$lib/Broadcast';
-	import { copy } from '$lib/Clipboard';
-	import { shareUrl } from '$lib/Share';
+	import { copy } from '$lib/platform/browser/clipboard';
+	import { shareUrl } from '$lib/platform/browser/share';
 	import { rom, pubkey as authorPubkey, mutePubkeys, muteEventIds } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import {

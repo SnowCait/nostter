@@ -15,7 +15,7 @@
 		rom
 	} from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
-	import { copy } from '$lib/Clipboard';
+	import { copy } from '$lib/platform/browser/clipboard';
 	import { alternativeName } from '$lib/Items';
 	import IconDots from '@tabler/icons-svelte-runes/icons/dots';
 	import IconList from '@tabler/icons-svelte-runes/icons/list';

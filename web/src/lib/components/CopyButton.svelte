@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { copy as copyText } from '$lib/Clipboard';
+	import { copy as copyText } from '$lib/platform/browser/clipboard';
 	import IconClipboard from '@tabler/icons-svelte-runes/icons/clipboard';
 	import IconClipboardCheck from '@tabler/icons-svelte-runes/icons/clipboard-check';
 
