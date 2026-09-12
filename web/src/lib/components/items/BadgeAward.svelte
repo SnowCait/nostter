@@ -4,7 +4,8 @@
 	import { nip19 } from 'nostr-tools';
 	import { acceptBadge, profileBadgesEvent } from '$lib/author/ProfileBadges';
 	import { replaceableEventsStore, metadataStore } from '$lib/cache/Events';
-	import { aTagContent, filterTags } from '$lib/EventHelper';
+	import { filterTags } from '$lib/EventHelper';
+	import { getEventAddress } from '$lib/nostr/protocol/event-address';
 	import { type Item } from '$lib/Items';
 	import { rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
@@ -52,7 +53,7 @@
 	function accept(badgeDefinitionEvent: Nostr.Event): void {
 		console.log('[badge accept]', badgeDefinitionEvent, event);
 
-		const a = aTagContent(badgeDefinitionEvent);
+		const a = getEventAddress(badgeDefinitionEvent);
 		acceptBadge(a, event.id);
 	}
 </script>
@@ -83,7 +84,7 @@
 		{#each badgeDefinitions as event}
 			<BadgeDefinition {event}>
 				{#if !readonly && !$rom}
-					{@const own = myBadgeDefinitionsA.includes(aTagContent(event))}
+					{@const own = myBadgeDefinitionsA.includes(getEventAddress(event))}
 					<button class="round" disabled={own} onclick={() => accept(event)}>
 						{#if own}
 							{$_('badge.accepted')}

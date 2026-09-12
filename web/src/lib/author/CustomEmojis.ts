@@ -4,7 +4,9 @@ import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { chunk } from '$lib/array';
 import { maxFilters } from '$lib/Constants';
-import { aTagContent, filterEmojiTags, findIdentifier, parseAddress } from '$lib/EventHelper';
+import type { AddressPointer } from 'nostr-tools/nip19';
+import { filterEmojiTags, findIdentifier } from '$lib/EventHelper';
+import { getEventAddress, parseEventAddress } from '$lib/nostr/protocol/event-address';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { WebStorage } from '$lib/WebStorage';
@@ -72,10 +74,10 @@ export function storeCustomEmojis(event: Nostr.Event): void {
 		});
 
 	const filters: LazyFilter[] = addressTags
-		.map(([, address]) => parseAddress(address))
-		.filter((parsed): parsed is [number, string, string] => parsed !== undefined)
-		.filter(([kind]) => kind === Emojisets)
-		.map(([kind, pubkey, identifier]) => {
+		.map(([, address]) => parseEventAddress(address))
+		.filter((parsed): parsed is AddressPointer => parsed !== undefined)
+		.filter(({ kind }) => kind === Emojisets)
+		.map(({ kind, pubkey, identifier }) => {
 			return {
 				kinds: [Number(kind)],
 				authors: [pubkey],
@@ -96,7 +98,7 @@ export function findCustomEmojiSetAddress(shortcode: string, url: string): strin
 				([, _shortcode, _url]) => `:${_shortcode}:` === shortcode && _url === url
 			)
 		) {
-			return aTagContent(event);
+			return getEventAddress(event);
 		}
 	}
 	return undefined;

@@ -16,7 +16,7 @@
 		removeFromPeopleList
 	} from '$lib/author/PeopleLists';
 	import { getListTitle } from '$lib/List';
-	import { aTagContent } from '$lib/EventHelper';
+	import { getEventAddress } from '$lib/nostr/protocol/event-address';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { clearListTimelineIfActive } from '$lib/timelines/ListTimeline';
 	import ModalDialog from '../ModalDialog.svelte';
@@ -45,7 +45,7 @@
 	function toggled(e: Event, event: Nostr.Event): void {
 		const target = e.target as HTMLInputElement;
 		console.debug('[people list toggled]', target.checked);
-		const key = aTagContent(event);
+		const key = getEventAddress(event);
 		if (changedLists.has(key)) {
 			changedLists.delete(key);
 		} else {

@@ -9,7 +9,8 @@
 	import { browser } from '$app/environment';
 	import ExternalLink from './ExternalLink.svelte';
 	import type * as Nostr from 'nostr-typedef';
-	import { aTagContent, findIdentifier, parseAddress } from '$lib/EventHelper';
+	import { findIdentifier } from '$lib/EventHelper';
+	import { getEventAddress, parseEventAddress } from '$lib/nostr/protocol/event-address';
 	import { nip19 } from 'nostr-tools';
 	import { SvelteMap } from 'svelte/reactivity';
 	import {
@@ -115,11 +116,11 @@
 
 						const definitionAddressesGroupedByPubkey = definitionAddresses.reduce(
 							(definitions, address) => {
-								const parsed = parseAddress(address);
+								const parsed = parseEventAddress(address);
 								if (!parsed) {
 									return definitions;
 								}
-								const [, pubkey, identifier] = parsed;
+								const { pubkey, identifier } = parsed;
 								if (!definitions.has(pubkey)) {
 									definitions.set(pubkey, new Set());
 								}
@@ -140,12 +141,12 @@
 							.pipe(
 								tie,
 								uniq(),
-								latestEach(({ event }) => aTagContent(event))
+								latestEach(({ event }) => getEventAddress(event))
 							)
 							.subscribe({
 								next: ({ event }) => {
 									console.debug('[badges definition]', event);
-									updateBadgeDefinitions(aTagContent(event), event);
+									updateBadgeDefinitions(getEventAddress(event), event);
 								}
 							});
 						for (const [

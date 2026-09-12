@@ -1,7 +1,6 @@
 import type { Event } from 'nostr-tools';
-import { isAddressableKind } from 'nostr-tools/kinds';
 import type { id } from './Types';
-import { hexRegexp, shortcodeRegexp } from './Constants';
+import { shortcodeRegexp } from './Constants';
 
 export function isReply(event: Event): boolean {
 	if (!event.tags.some(([tagName]) => tagName === 'p')) {
@@ -89,11 +88,6 @@ export function getTagContent(tagName: string, tags: string[][]): string {
 	return tagContent ?? (tagName === 'd' ? '' : getTagContent('d', tags));
 }
 
-export function aTagContent(event: Event): string {
-	const identifier = isAddressableKind(event.kind) ? (findIdentifier(event.tags) ?? '') : '';
-	return `${event.kind}:${event.pubkey}:${identifier}`;
-}
-
 export function isNostrHex(hex: string): boolean {
 	return /[0-9a-f]{64}/.test(hex);
 }
@@ -103,11 +97,3 @@ export function getTitle(tags: string[][]): string | undefined {
 }
 
 export const isLegacyEncryption = (content: string): boolean => content.includes('?iv=');
-
-export const parseAddress = (address: string): [number, string, string] | undefined => {
-	const [kind, pubkey, ...identifier] = address.split(':');
-	if (!kind || isNaN(Number(kind)) || !pubkey || !hexRegexp.test(pubkey)) {
-		return undefined;
-	}
-	return [Number(kind), pubkey, identifier.join(':')];
-};

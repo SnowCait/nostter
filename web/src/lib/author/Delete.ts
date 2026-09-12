@@ -5,7 +5,8 @@ import type * as Nostr from 'nostr-typedef';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Signer } from '$lib/Signer';
-import { aTagContent, filterTags } from '$lib/EventHelper';
+import { filterTags } from '$lib/EventHelper';
+import { getEventAddress } from '$lib/nostr/protocol/event-address';
 
 export const deletedEventIds = writable(new Set<string>());
 export const deletedEventIdsByPubkey = writable(new Map<string, Set<string>>());
@@ -47,7 +48,7 @@ export async function requestEventDeletion(
 	for (const event of events) {
 		const tag =
 			isReplaceableKind(event.kind) || isAddressableKind(event.kind)
-				? ['a', aTagContent(event)]
+				? ['a', getEventAddress(event)]
 				: ['e', event.id];
 		targetTags.set(`${tag[0]}:${tag[1]}`, tag);
 	}

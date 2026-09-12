@@ -2,7 +2,8 @@
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import type * as Nostr from 'nostr-typedef';
-	import { aTagContent, findIdentifier } from '$lib/EventHelper';
+	import { findIdentifier } from '$lib/EventHelper';
+	import { getEventAddress } from '$lib/nostr/protocol/event-address';
 	import {
 		IconDots,
 		IconExternalLink,
@@ -44,7 +45,7 @@
 
 	let menuElement: HTMLElement | undefined;
 
-	let address = $derived(aTagContent(event));
+	let address = $derived(getEventAddress(event));
 	let naddr = $derived(
 		nip19.naddrEncode({
 			kind: event.kind,
