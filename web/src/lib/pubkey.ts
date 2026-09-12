@@ -1,9 +1,5 @@
 import { unique } from './array';
-import { hexRegexp } from './Constants';
-
-export function isValidPubkey(value: string | undefined): value is string {
-	return value !== undefined && hexRegexp.test(value);
-}
+import { isValidPubkey } from './nostr/protocol/pubkey';
 
 export function pubkeysFromTags(tags: string[][]): string[] {
 	return unique(
