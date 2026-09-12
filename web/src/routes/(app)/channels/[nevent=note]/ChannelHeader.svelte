@@ -17,8 +17,8 @@
 	import { author, muteEventIds } from '$lib/stores/Author';
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { mute, unmute } from '$lib/author/Mute';
-	import { shareUrl } from '$lib/Share';
-	import { copy } from '$lib/Clipboard';
+	import { shareUrl } from '$lib/platform/browser/share';
+	import { copy } from '$lib/platform/browser/clipboard';
 	import Content from '$lib/components/Content.svelte';
 	import OnelineProfile from '$lib/components/profile/OnelineProfile.svelte';
 	import { pinChannel, unpinChannel } from './Pin';
