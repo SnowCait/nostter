@@ -1,6 +1,5 @@
 import type { Event } from 'nostr-tools';
 import type { id } from './Types';
-import { shortcodeRegexp } from './Constants';
 
 export function isReply(event: Event): boolean {
 	if (!event.tags.some(([tagName]) => tagName === 'p')) {
@@ -41,26 +40,6 @@ export function filterTags(tagName: string, tags: string[][]) {
 		.filter(([name, content]) => name === tagName && content !== undefined && content !== '')
 		.map(([, content]) => content);
 }
-
-export const filterEmojiTags = (tags: string[][]): string[][] => {
-	return tags.filter(([tagName, shortcode, imageUrl]) => {
-		if (tagName !== 'emoji') {
-			return false;
-		}
-		if (shortcode === undefined || imageUrl === undefined) {
-			return false;
-		}
-		if (!shortcodeRegexp.test(shortcode)) {
-			return false;
-		}
-		try {
-			new URL(imageUrl);
-			return true;
-		} catch {
-			return false;
-		}
-	});
-};
 
 export function parseRelayJson(content: string): Map<string, { read: boolean; write: boolean }> {
 	try {

@@ -2,7 +2,8 @@ import { nip19 } from 'nostr-tools';
 import { unique } from './array';
 import escapeStringRegexp from 'escape-string-regexp';
 import twitter from 'twitter-text';
-import { emojisetAddressRegexp, shortcodeRegexp } from './Constants';
+import { emojisetAddressRegexp } from './Constants';
+import { shortcodeRegexp } from './nostr/protocol/nip30';
 
 type TextToken = {
 	type: 'text';
