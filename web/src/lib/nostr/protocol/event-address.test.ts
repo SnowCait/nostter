@@ -1,6 +1,34 @@
 import { describe, expect, it } from 'vitest';
 import { generateSecretKey, getPublicKey } from 'nostr-tools';
-import { getEventAddress, parseEventAddress } from './event-address';
+import { getEventAddress, findIdentifier, parseEventAddress } from './event-address';
+
+describe('findIdentifier', () => {
+	it('returns the value of a d tag', () => {
+		expect(findIdentifier([['d', 'identifier']])).toBe('identifier');
+	});
+
+	it('returns undefined when there is no d tag', () => {
+		expect(findIdentifier([])).toBe(undefined);
+		expect(findIdentifier([['t', 'identifier']])).toBe(undefined);
+	});
+
+	it('preserves an empty d value', () => {
+		expect(findIdentifier([['d', '']])).toBe('');
+	});
+
+	it('returns an empty string for a d tag without a value', () => {
+		expect(findIdentifier([['d']])).toBe('');
+	});
+
+	it('returns the first d tag when there are multiple', () => {
+		expect(
+			findIdentifier([
+				['d', 'first'],
+				['d', 'second']
+			])
+		).toBe('first');
+	});
+});
 
 describe('getEventAddress', () => {
 	it('distinguishes normal replaceable and addressable coordinates', () => {

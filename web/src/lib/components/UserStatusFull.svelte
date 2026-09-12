@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Event } from 'nostr-tools';
 	import { chronological } from '$lib/Constants';
-	import { findIdentifier } from '$lib/EventHelper';
+	import { findIdentifier } from '$lib/nostr/protocol/event-address';
 	import { userStatusesMap } from '$lib/UserStatus';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { IconMusic, IconUser } from '@tabler/icons-svelte-runes';

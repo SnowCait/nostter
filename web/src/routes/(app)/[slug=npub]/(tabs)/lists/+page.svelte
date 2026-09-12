@@ -9,7 +9,8 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { getSeenOnRelays, metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { appName, reverseChronologicalItem } from '$lib/Constants';
-	import { filterTags, findIdentifier } from '$lib/EventHelper';
+	import { filterTags } from '$lib/EventHelper';
+	import { findIdentifier } from '$lib/nostr/protocol/event-address';
 	import { decryptListContent, getListTitle } from '$lib/List';
 	import type { LayoutProps } from '../$types';
 	import { pubkey } from '$lib/stores/Author';

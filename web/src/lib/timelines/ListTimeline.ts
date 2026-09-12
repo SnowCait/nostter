@@ -8,7 +8,7 @@ import { chunk } from '../array';
 import { filterLimitItems, followeesFilterKinds, minTimelineLength } from '../Constants';
 import { EventItem } from '../Items';
 import { Timeline } from '../Timeline';
-import { findIdentifier } from '$lib/EventHelper';
+import { findIdentifier } from '$lib/nostr/protocol/event-address';
 
 let subscription: Subscription | undefined;
 

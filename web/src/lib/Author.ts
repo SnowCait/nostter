@@ -14,7 +14,8 @@ import {
 } from './stores/Author';
 import { RelayList } from './author/RelayList';
 import { auth } from './auth.svelte';
-import { filterTags, findIdentifier } from './EventHelper';
+import { filterTags } from './EventHelper';
+import { findIdentifier } from './nostr/protocol/event-address';
 import { parseLegacyRelayList } from './nostr/protocol/nip24';
 import { customEmojiListEvent, storeCustomEmojis } from './author/CustomEmojis';
 import type { User } from '../routes/types';
