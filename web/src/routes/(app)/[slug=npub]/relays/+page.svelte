@@ -153,7 +153,7 @@
 		</li>
 		{#each relays as relay}
 			<li>
-				<Relay {relay} readonly={!editable} on:remove={() => remove(relay.url)} />
+				<Relay {relay} readonly={!editable} onRemove={() => remove(relay.url)} />
 			</li>
 		{:else}
 			<div class="loading">
