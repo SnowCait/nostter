@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { nicovideoRegexp } from '$lib/Constants';
 
 	interface Props {
@@ -11,16 +9,26 @@
 
 	let playerElement: HTMLDivElement | undefined = $state();
 
-	run(() => {
-		if (playerElement && playerElement.children.length === 0) {
-			// eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-			const id = link.href.match(nicovideoRegexp)?.groups?.['id']!;
-			const scriptElement = document.createElement('script');
-			scriptElement.type = 'application/javascript';
-			scriptElement.src = `https://embed.nicovideo.jp/watch/${id}/script`;
-			// eslint-disable-next-line svelte/no-dom-manipulating
-			playerElement.append(scriptElement);
+	$effect(() => {
+		const element = playerElement;
+		if (element === undefined) {
+			return;
 		}
+
+		const match = link.href.match(nicovideoRegexp);
+		const id = match?.groups?.['id'];
+		if (id === undefined) {
+			return;
+		}
+
+		const scriptElement = document.createElement('script');
+		scriptElement.type = 'application/javascript';
+		scriptElement.src = `https://embed.nicovideo.jp/watch/${id}/script`;
+		element.append(scriptElement);
+
+		return () => {
+			element.replaceChildren();
+		};
 	});
 </script>
 
