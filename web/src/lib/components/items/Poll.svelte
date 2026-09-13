@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { createBubbler, stopPropagation } from 'svelte/legacy';
-
-	const bubble = createBubbler();
 	import type { Item } from '$lib/Items';
 	import { _ } from 'svelte-i18n';
 	import Content from '../Content.svelte';
@@ -69,8 +66,7 @@
 	{#snippet content()}
 		<section>
 			<Content content={item.event.content} tags={item.event.tags} />
-			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-			<form onsubmit={onSubmit} onmouseup={stopPropagation(bubble('mouseup'))}>
+			<form onsubmit={onSubmit}>
 				<div>
 					{#each optionTags as [, id, label]}
 						<div>
