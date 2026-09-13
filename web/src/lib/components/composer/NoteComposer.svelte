@@ -588,7 +588,7 @@
 		addAttachments(files);
 	}
 
-	function mediaPicked({ detail: files }: { detail: FileList }): void {
+	function mediaPicked(files: FileList): void {
 		console.log('[media picked]', files);
 		addAttachments(files);
 	}
@@ -716,7 +716,7 @@
 
 	<div class="actions">
 		<div class="options">
-			<MediaPicker multiple={true} disabled={composerLocked} on:pick={mediaPicked} />
+			<MediaPicker multiple={true} disabled={composerLocked} onPick={mediaPicked} />
 			<EmojiPicker
 				containsDefaultEmoji={false}
 				autoClose={false}

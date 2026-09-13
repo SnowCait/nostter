@@ -152,7 +152,7 @@
 		addAttachments(files);
 	}
 
-	function mediaPicked({ detail: files }: { detail: FileList }): void {
+	function mediaPicked(files: FileList): void {
 		addAttachments(files);
 	}
 
@@ -217,7 +217,7 @@
 		onAddUrls={addAttachmentUrls}
 	/>
 	<div class="input">
-		<MediaPicker multiple={true} disabled={composerLocked} on:pick={mediaPicked} />
+		<MediaPicker multiple={true} disabled={composerLocked} onPick={mediaPicked} />
 		<EmojiPicker inComposer={true} onPick={onEmojiPick} />
 		<textarea
 			bind:this={textarea}
