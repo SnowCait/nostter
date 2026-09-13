@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { stopPropagation } from 'svelte/legacy';
-
 	import { nip19, type Event } from 'nostr-tools';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import IconCodeDots from '@tabler/icons-svelte-runes/icons/code-dots';
@@ -49,10 +47,10 @@
 			<h1>{title ?? '-'}</h1>
 			<p>{summary ?? ''}</p>
 			<div class="action-menu">
-				<button onclick={stopPropagation(quote)}>
+				<button onclick={quote}>
 					<IconQuote size={iconSize} />
 				</button>
-				<button onclick={stopPropagation(toggleJsonDisplay)}>
+				<button onclick={toggleJsonDisplay}>
 					<IconCodeDots size={iconSize} />
 				</button>
 			</div>
