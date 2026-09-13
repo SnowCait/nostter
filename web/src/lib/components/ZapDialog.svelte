@@ -2,7 +2,6 @@
 	import { nip57 } from 'nostr-tools';
 	import QRCode from 'qrcode';
 	import { writeRelays } from '$lib/stores/Author';
-	import { createEventDispatcher } from 'svelte';
 	import { persistedStore } from '$lib/platform/storage/persisted-store';
 	import { WebStorage } from '$lib/WebStorage';
 	import { Signer } from '$lib/Signer';
@@ -18,9 +17,10 @@
 	interface Props {
 		pubkey: string;
 		item?: EventItem | undefined;
+		onZapped?: () => void;
 	}
 
-	let { pubkey, item }: Props = $props();
+	let { pubkey, item, onZapped }: Props = $props();
 
 	let metadata = $derived($metadataStore.get(pubkey));
 
@@ -45,8 +45,6 @@
 		}
 		satsList = [...counts].toSorted(([, x], [, y]) => y - x).map(([value]) => value);
 	});
-
-	const dispatch = createEventDispatcher();
 
 	async function zap(e: SubmitEvent) {
 		e.preventDefault();
@@ -95,7 +93,7 @@
 				const success = await zapWithWalletConnect(walletConnectUri, zapInvoice);
 				if (success) {
 					open = false;
-					dispatch('zapped');
+					onZapped?.();
 					return;
 				}
 			} catch (error) {
@@ -104,7 +102,7 @@
 		}
 
 		invoice = zapInvoice;
-		dispatch('zapped');
+		onZapped?.();
 	}
 </script>
 
