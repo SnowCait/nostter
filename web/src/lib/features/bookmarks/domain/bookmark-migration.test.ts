@@ -5,7 +5,7 @@ import {
 	filterBookmarkReferences,
 	isLegacyBookmarkEvent,
 	mergeBookmarkReferences
-} from './BookmarkMigration';
+} from './bookmark-migration';
 
 const eventId = 'a'.repeat(64);
 const otherEventId = 'b'.repeat(64);
