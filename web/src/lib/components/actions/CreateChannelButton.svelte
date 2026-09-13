@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { _ } from 'svelte-i18n';
 	import { now } from 'rx-nostr';
 	import { filter } from 'rxjs';
@@ -18,7 +16,8 @@
 
 	let creatable = $derived(name !== '');
 
-	function createChannel(): void {
+	function createChannel(event: SubmitEvent): void {
+		event.preventDefault();
 		console.log('[channel create]', name, about, picture);
 
 		if (name === '') {
@@ -58,7 +57,7 @@
 
 <ModalDialog bind:open>
 	<h2>{$_('public_chat.create_channel')}</h2>
-	<form onsubmit={preventDefault(createChannel)}>
+	<form onsubmit={createChannel}>
 		<div>
 			<label>
 				<div>{$_('public_chat.channel.name')}</div>
