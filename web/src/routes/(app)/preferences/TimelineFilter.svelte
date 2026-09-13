@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { run, createBubbler, preventDefault } from 'svelte/legacy';
-
-	const bubble = createBubbler();
 	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 	import { diff } from '$lib/array';
@@ -18,14 +15,12 @@
 		categories.filter((category) => !excludeCategories.includes(category))
 	);
 
-	run(() => {
-		if (browser) {
-			setTimelineFilter(diff(categories, includeCategories));
-		}
+	$effect(() => {
+		setTimelineFilter(diff(categories, includeCategories));
 	});
 </script>
 
-<form onsubmit={preventDefault(bubble('submit'))}>
+<div>
 	{#each categories as category}
 		<div>
 			<label>
@@ -34,4 +29,4 @@
 			</label>
 		</div>
 	{/each}
-</form>
+</div>
