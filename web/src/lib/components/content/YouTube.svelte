@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { page } from '$app/stores';
 	import { enablePreview } from '$lib/stores/Preference';
 	import ExternalLink from '../ExternalLink.svelte';
@@ -11,32 +9,30 @@
 
 	let { link }: Props = $props();
 
-	let id: string | undefined = $state();
-	let short = $state(false);
-
-	run(() => {
+	let video = $derived.by(() => {
 		if (link.hostname === 'youtu.be') {
-			id = link.pathname.replace('/', '');
-		} else if (link.pathname.startsWith('/live/')) {
-			id = link.pathname.replace('/live/', '');
-		} else {
-			const v = link.searchParams.get('v');
-			if (v !== null) {
-				id = v;
-			} else if (link.pathname.includes('shorts')) {
-				const match = link.pathname.match(/\/shorts\/(?<id>\w+)/);
-				id = match?.groups?.id;
-				short = true;
-			}
+			return { id: link.pathname.replace('/', ''), short: false };
 		}
+		if (link.pathname.startsWith('/live/')) {
+			return { id: link.pathname.replace('/live/', ''), short: false };
+		}
+		const v = link.searchParams.get('v');
+		if (v !== null) {
+			return { id: v, short: false };
+		}
+		if (link.pathname.includes('shorts')) {
+			const match = link.pathname.match(/\/shorts\/(?<id>\w+)/);
+			return { id: match?.groups?.id, short: true };
+		}
+		return { id: undefined, short: false };
 	});
 </script>
 
-{#if id !== undefined && $enablePreview}
+{#if video.id !== undefined && $enablePreview}
 	<iframe
-		class:short
+		class:short={video.short}
 		id="ytplayer"
-		src="https://www.youtube.com/embed/{id}?origin={$page.url.origin}"
+		src="https://www.youtube.com/embed/{video.id}?origin={$page.url.origin}"
 		title=""
 		frameborder="0"
 		allow="fullscreen; picture-in-picture; web-share"
