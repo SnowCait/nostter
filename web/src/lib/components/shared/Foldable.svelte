@@ -13,6 +13,7 @@
 
 	let container = $state<HTMLDivElement>();
 	let overflowing = $state(false);
+	let measured = $state(false);
 	let folded = $state(true);
 
 	const measure: Attachment<HTMLElement> = (element) => {
@@ -21,6 +22,7 @@
 			for (const entry of entries) {
 				const blockSize = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
 				overflowing = blockSize > maxHeight;
+				measured = true;
 			}
 		});
 		observer.observe(element);
@@ -38,6 +40,7 @@
 
 <div
 	bind:this={container}
+	class:unmeasured={enabled && folded && !measured}
 	class:folded={enabled && overflowing && folded}
 	style:--fold-max-height="{maxHeightRem}rem"
 >
@@ -58,6 +61,10 @@
 </div>
 
 <style>
+	.unmeasured {
+		max-height: var(--fold-max-height);
+	}
+
 	.folded {
 		max-height: var(--fold-max-height);
 		overflow: hidden;
