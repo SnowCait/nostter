@@ -26,7 +26,7 @@
 	import { BookmarkPageState } from './BookmarkPageState.svelte';
 	import { copyLegacyBookmarks } from '$lib/features/bookmarks/application/copy-legacy-bookmarks';
 	import { addToast } from '$lib/components/Toaster.svelte';
-	import { deleteLegacyBookmarks } from '$lib/author/legacy-bookmark-delete';
+	import { deleteLegacyBookmarks } from '$lib/features/bookmarks/application/delete-legacy-bookmarks';
 
 	let { data }: LayoutProps = $props();
 

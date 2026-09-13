@@ -16,17 +16,17 @@ vi.mock('$lib/stores/Author', async () => {
 vi.mock('$lib/cache/Events', () => ({
 	eventCache: { addIfNotExists: vi.fn() }
 }));
-vi.mock('./Bookmark.svelte', async () => {
+vi.mock('$lib/author/Bookmark.svelte', async () => {
 	const { writable } = await import('svelte/store');
 	return { legacyBookmarkEvent: writable() };
 });
-vi.mock('../features/event-deletion/application/request-event-deletion', () => ({
+vi.mock('$lib/features/event-deletion/application/request-event-deletion', () => ({
 	requestEventDeletion: mocks.requestEventDeletion
 }));
 
 import { WebStorage } from '$lib/WebStorage';
-import { legacyBookmarkEvent } from './Bookmark.svelte';
-import { deleteLegacyBookmarks } from './legacy-bookmark-delete';
+import { legacyBookmarkEvent } from '$lib/author/Bookmark.svelte';
+import { deleteLegacyBookmarks } from './delete-legacy-bookmarks';
 
 class MemoryStorage implements Storage {
 	readonly #items = new Map<string, string>();
