@@ -5,15 +5,13 @@ import type * as Nostr from 'nostr-typedef';
 import { kinds as Kind } from 'nostr-tools';
 import { legacyBookmarkIdentifier } from '$lib/Constants';
 import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
+import { rxNostr } from '$lib/nostr/relay/client';
+import { tie } from '$lib/nostr/relay/relay-hints';
 import { Signer } from '$lib/Signer';
 import { pubkey } from '$lib/stores/Author';
-import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
-import { bookmarkEvent, runBookmarkCopyExclusively } from './Bookmark.svelte';
-import {
-	isLegacyBookmarkEvent,
-	mergeBookmarkReferences
-} from '../features/bookmarks/domain/bookmark-migration';
+import { bookmarkEvent, runBookmarkCopyExclusively } from '$lib/author/Bookmark.svelte';
+import { isLegacyBookmarkEvent, mergeBookmarkReferences } from '../domain/bookmark-migration';
 
 function isTagCollection(value: unknown): value is string[][] {
 	return (

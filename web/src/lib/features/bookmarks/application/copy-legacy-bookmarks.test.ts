@@ -32,9 +32,14 @@ vi.mock('$lib/Signer', () => ({
 		encryptNip44: mocks.encryptNip44
 	}
 }));
-vi.mock('$lib/timelines/MainTimeline', () => ({
-	rxNostr: { send: mocks.send, use: mocks.use },
+vi.mock('$lib/nostr/relay/client', () => ({
+	rxNostr: { send: mocks.send, use: mocks.use }
+}));
+vi.mock('$lib/nostr/relay/relay-hints', () => ({
 	tie: <T>(source: T): T => source
+}));
+vi.mock('$lib/timelines/MainTimeline', () => ({
+	rxNostr: { send: mocks.send }
 }));
 vi.mock('$lib/WebStorage', () => ({
 	WebStorage: class {
@@ -54,8 +59,8 @@ import {
 	bookmarkEvent,
 	bookmarkOperationState,
 	legacyBookmarkEvent
-} from './Bookmark.svelte';
-import { copyLegacyBookmarks } from './BookmarkCopy';
+} from '../../../author/Bookmark.svelte';
+import { copyLegacyBookmarks } from './copy-legacy-bookmarks';
 
 const eventId = 'a'.repeat(64);
 const otherEventId = 'b'.repeat(64);
