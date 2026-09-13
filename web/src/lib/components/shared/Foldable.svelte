@@ -13,6 +13,7 @@
 
 	let container = $state<HTMLDivElement>();
 	let overflowing = $state(false);
+	let measured = $state(false);
 	let folded = $state(true);
 
 	const measure: Attachment<HTMLElement> = (element) => {
@@ -21,6 +22,7 @@
 			for (const entry of entries) {
 				const blockSize = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
 				overflowing = blockSize > maxHeight;
+				measured = true;
 			}
 		});
 		observer.observe(element);
@@ -36,8 +38,13 @@
 	}
 </script>
 
+<!--
+	Cap the height until the first measurement. Otherwise long content is laid out at
+	full height for a frame, and virtua measures it and shifts the scroll position.
+-->
 <div
 	bind:this={container}
+	class:unmeasured={enabled && folded && !measured}
 	class:folded={enabled && overflowing && folded}
 	style:--fold-max-height="{maxHeightRem}rem"
 >
@@ -58,6 +65,11 @@
 </div>
 
 <style>
+	/* max-height only, so content shorter than the cap lays out exactly as before */
+	.unmeasured {
+		max-height: var(--fold-max-height);
+	}
+
 	.folded {
 		max-height: var(--fold-max-height);
 		overflow: hidden;
