@@ -38,10 +38,6 @@
 	}
 </script>
 
-<!--
-	Cap the height until the first measurement. Otherwise long content is laid out at
-	full height for a frame, and virtua measures it and shifts the scroll position.
--->
 <div
 	bind:this={container}
 	class:unmeasured={enabled && folded && !measured}
@@ -65,7 +61,6 @@
 </div>
 
 <style>
-	/* max-height only, so content shorter than the cap lays out exactly as before */
 	.unmeasured {
 		max-height: var(--fold-max-height);
 	}
