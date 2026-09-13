@@ -84,7 +84,7 @@
 
 	//#endregion
 
-	async function picturePicked({ detail: files }: { detail: FileList }): Promise<void> {
+	async function picturePicked(files: FileList): Promise<void> {
 		console.log('[profile picture]', files);
 		if (files.length !== 1) {
 			console.error('[profile picture error]', files);
@@ -111,7 +111,7 @@
 		}
 	}
 
-	async function bannerPicked({ detail: files }: { detail: FileList }): Promise<void> {
+	async function bannerPicked(files: FileList): Promise<void> {
 		console.log('[profile banner]', files);
 		if (files.length !== 1) {
 			console.error('[profile banner error]', files);
@@ -184,7 +184,7 @@
 					placeholder="https://example.com/banner.webp"
 					bind:value={$authorProfile.banner}
 				/>
-				<MediaPicker on:pick={bannerPicked} />
+				<MediaPicker onPick={bannerPicked} />
 			</div>
 			{#if $authorProfile.banner}
 				<img src={$authorProfile.banner} alt="preview" />
@@ -199,7 +199,7 @@
 					placeholder="https://example.com/picture.png"
 					bind:value={$authorProfile.picture}
 				/>
-				<MediaPicker on:pick={picturePicked} />
+				<MediaPicker onPick={picturePicked} />
 			</div>
 			{#if $authorProfile.picture}
 				<img src={$authorProfile.picture} alt="preview" />
