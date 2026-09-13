@@ -1,16 +1,13 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-
 	interface Props {
 		open?: boolean;
 		children?: import('svelte').Snippet;
+		onclose?: () => void;
 	}
 
-	let { open = $bindable(false), children }: Props = $props();
+	let { open = $bindable(false), children, onclose }: Props = $props();
 
 	let dialog: HTMLDialogElement | undefined = $state();
-
-	const dispatch = createEventDispatcher();
 
 	$effect(() => {
 		if (open) {
@@ -32,7 +29,7 @@
 	function onClose(): void {
 		console.debug('[dialog on close]');
 		open = false;
-		dispatch('close');
+		onclose?.();
 	}
 </script>
 

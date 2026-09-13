@@ -164,7 +164,7 @@
 <h1>{$_('pages.profile_edit')}</h1>
 
 {#if $authorProfile}
-	<ModalDialog bind:open on:close={close}>
+	<ModalDialog bind:open onclose={close}>
 		<div class="crop">
 			<Cropper image={url} aspect={1} maxZoom={10} oncropcomplete={onCropComplete} />
 		</div>
