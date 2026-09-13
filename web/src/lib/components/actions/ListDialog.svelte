@@ -104,7 +104,7 @@
 	}
 </script>
 
-<ModalDialog bind:open on:close={save}>
+<ModalDialog bind:open onclose={save}>
 	<article>
 		<h2>{$_('lists.title')}</h2>
 		<table>
