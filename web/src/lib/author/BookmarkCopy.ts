@@ -10,7 +10,10 @@ import { pubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { WebStorage } from '$lib/WebStorage';
 import { bookmarkEvent, runBookmarkCopyExclusively } from './Bookmark.svelte';
-import { isLegacyBookmarkEvent, mergeBookmarkReferences } from './BookmarkMigration';
+import {
+	isLegacyBookmarkEvent,
+	mergeBookmarkReferences
+} from '../features/bookmarks/domain/bookmark-migration';
 
 function isTagCollection(value: unknown): value is string[][] {
 	return (

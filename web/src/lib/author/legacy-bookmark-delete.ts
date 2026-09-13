@@ -2,7 +2,7 @@ import { get } from 'svelte/store';
 import { legacyBookmarkIdentifier } from '$lib/Constants';
 import { WebStorage } from '$lib/WebStorage';
 import { legacyBookmarkEvent } from './Bookmark.svelte';
-import { isLegacyBookmarkEvent } from './BookmarkMigration';
+import { isLegacyBookmarkEvent } from '../features/bookmarks/domain/bookmark-migration';
 import { requestEventDeletion } from '../features/event-deletion/application/request-event-deletion';
 
 export async function deleteLegacyBookmarks(): Promise<void> {
