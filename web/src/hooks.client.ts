@@ -1,1 +1,1 @@
-import '$lib/polyfills';
+import '$lib/platform/browser/polyfills';
