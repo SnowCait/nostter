@@ -86,7 +86,7 @@
 	</button>
 	<MenuButton event={item.event} {iconSize} bind:showDetails={jsonDisplay} />
 </div>
-<ZapDialog pubkey={item.event.pubkey} {item} bind:this={zapDialogComponent} on:zapped={onZapped} />
+<ZapDialog pubkey={item.event.pubkey} {item} bind:this={zapDialogComponent} {onZapped} />
 {#if jsonDisplay}
 	<div class="develop">
 		<h5>Event ID</h5>
