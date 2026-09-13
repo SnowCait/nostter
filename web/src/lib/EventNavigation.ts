@@ -30,7 +30,7 @@ const shouldSkipNavigation = (e: MouseEvent | KeyboardEvent): boolean => {
 	if (target === null) {
 		return true;
 	}
-	if (target.closest('a, button, video, audio, dialog, .develop')) {
+	if (target.closest('a, button, form, video, audio, dialog, .develop')) {
 		return true;
 	}
 	return target.closest('p') !== null && String(document.getSelection()).length > 0;
