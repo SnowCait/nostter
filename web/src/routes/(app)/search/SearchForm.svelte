@@ -15,7 +15,10 @@
 	import { writable } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
 	import { persistedStore } from '$lib/platform/storage/persisted-store';
-	import { pushSearchHistory, rankSearchHistory } from '$lib/SearchHistory';
+	import {
+		pushSearchHistory,
+		rankSearchHistory
+	} from '$lib/features/search/domain/search-history';
 	import { IconX, IconTrash } from '@tabler/icons-svelte-runes';
 
 	interface Props {

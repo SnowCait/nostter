@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { maxSearchHistory, pushSearchHistory, rankSearchHistory } from './SearchHistory';
+import { maxSearchHistory, pushSearchHistory, rankSearchHistory } from './search-history';
 
 describe('pushSearchHistory', () => {
 	it('prepends the keyword as the most recent entry', () => {
