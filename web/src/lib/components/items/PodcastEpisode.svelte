@@ -77,32 +77,32 @@
 <EventMetadata {item} {createdAtFormat}>
 	{#snippet content()}
 		<section class="podcast-episode">
-			{#if image !== undefined}
-				<img
-					src={image}
-					alt={episode.title ?? podcastMetadata?.title ?? ''}
-					loading="lazy"
-				/>
-			{/if}
-			{#if episode.title !== undefined}
-				<h2>{episode.title}</h2>
-			{/if}
-			{#if podcastMetadata?.title !== undefined || podcastMetadata?.description !== undefined || websites.length > 0}
-				<aside class="podcast">
-					{#if podcastMetadata?.title !== undefined}
-						<h3>{podcastMetadata.title}</h3>
+			{#if image !== undefined || episode.title !== undefined || podcastMetadata?.title !== undefined || websites.length > 0}
+				<header class="episode-header">
+					{#if image !== undefined}
+						<img
+							class="cover"
+							src={image}
+							alt={episode.title ?? podcastMetadata?.title ?? ''}
+							loading="lazy"
+						/>
 					{/if}
-					{#if podcastMetadata?.description !== undefined}
-						<p>{podcastMetadata.description}</p>
-					{/if}
-					{#if websites.length > 0}
-						<div class="websites">
-							{#each websites as website}
-								<ExternalLink link={website} />
-							{/each}
-						</div>
-					{/if}
-				</aside>
+					<div class="episode-heading">
+						{#if episode.title !== undefined}
+							<h2>{episode.title}</h2>
+						{/if}
+						{#if podcastMetadata?.title !== undefined}
+							<p class="podcast-title">{podcastMetadata.title}</p>
+						{/if}
+						{#if websites.length > 0}
+							<div class="websites">
+								{#each websites as website}
+									<ExternalLink link={website} />
+								{/each}
+							</div>
+						{/if}
+					</div>
+				</header>
 			{/if}
 			{#if episode.description !== undefined}
 				<p class="description">{episode.description}</p>
@@ -123,44 +123,89 @@
 </EventMetadata>
 
 <style>
-	.podcast-episode,
-	.podcast {
+	.podcast-episode {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: 0.75rem;
 		min-width: 0;
 	}
 
-	.podcast {
-		padding-left: 0.75rem;
-		border-left: 3px solid var(--accent);
+	.episode-header {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.875rem;
+		min-width: 0;
+	}
+
+	.cover {
+		width: 7.5rem;
+		height: 7.5rem;
+		flex: 0 0 7.5rem;
+		border-radius: var(--radius);
+		object-fit: cover;
+	}
+
+	.episode-heading {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: 0.375rem;
+		min-width: 0;
+		padding-block: 0.125rem;
 	}
 
 	h2,
-	h3,
 	p {
 		margin: 0;
 	}
 
-	img {
-		max-width: 100%;
-		max-height: 30rem;
-		object-fit: contain;
+	h2 {
+		font-size: 1.25rem;
+		line-height: 1.3;
+		overflow-wrap: anywhere;
+	}
+
+	.podcast-title {
+		color: var(--accent-gray);
+		font-size: 0.9rem;
+		font-weight: 600;
+		line-height: 1.4;
+		overflow-wrap: anywhere;
 	}
 
 	audio {
 		width: 100%;
+		min-width: 0;
 	}
 
-	.description,
-	.podcast p {
+	.description {
 		white-space: pre-line;
-		word-break: break-word;
+		overflow-wrap: anywhere;
 	}
 
 	.websites {
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
+		gap: 0.125rem;
+		font-size: 0.8rem;
+		line-height: 1.3;
+		overflow-wrap: anywhere;
+	}
+
+	@media (max-width: 480px) {
+		.episode-header {
+			gap: 0.75rem;
+		}
+
+		.cover {
+			width: 5.75rem;
+			height: 5.75rem;
+			flex-basis: 5.75rem;
+		}
+
+		h2 {
+			font-size: 1.05rem;
+		}
 	}
 </style>
