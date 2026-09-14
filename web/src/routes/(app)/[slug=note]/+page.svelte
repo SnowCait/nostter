@@ -158,8 +158,9 @@
 	});
 	$effect(() => {
 		const targetEventId = data.eventId;
+		const subscriptions = new Subscription();
 
-		return untrack(() => {
+		untrack(() => {
 			console.log('[thread event id]', targetEventId);
 
 			clear();
@@ -167,8 +168,6 @@
 			if (item?.id !== targetEventId) {
 				item = $eventItemStore.get(targetEventId);
 			}
-
-			const subscriptions = new Subscription();
 
 			// Event
 			if (item === undefined) {
@@ -289,9 +288,9 @@
 				zapEventItemsMap.set(eventItem.amount, eventItems);
 			});
 			subscriptions.add(zapsSubscription);
-
-			return () => subscriptions.unsubscribe();
 		});
+
+		return () => subscriptions.unsubscribe();
 	});
 	let metadata = $derived(item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined);
 	let canonicalUrl = $derived(
