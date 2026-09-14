@@ -4,7 +4,7 @@
 	import * as nip19 from 'nostr-tools/nip19';
 	import type * as Nostr from 'nostr-typedef';
 	import { createRxBackwardReq, createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
-	import { tap, merge, filter } from 'rxjs';
+	import { tap, merge, filter, Subscription } from 'rxjs';
 	import { _ } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
@@ -24,7 +24,7 @@
 		chronologicalItem,
 		emojisetAddressRegexp
 	} from '$lib/Constants';
-	import { onDestroy, onMount, tick } from 'svelte';
+	import { onDestroy, onMount, tick, untrack } from 'svelte';
 	import CustomEmojiPopup from '$lib/components/content/CustomEmojiPopup.svelte';
 	import { IconBolt, IconHeart, IconHeartBroken, IconRepeat } from '@tabler/icons-svelte-runes';
 	import NotFound from '$lib/components/items/NotFound.svelte';
@@ -46,7 +46,6 @@
 		data.event !== undefined ? new EventItem(data.event) : undefined
 	);
 	let items: EventItem[] = $state([]);
-	let eventId: string | undefined = $state();
 	let rootId: string | undefined = $state();
 
 	let replyToEventItems: EventItem[] = $state([]);
@@ -157,25 +156,29 @@
 	onDestroy(() => {
 		$inThread = false;
 	});
-	run(() => {
-		if (eventId !== data.eventId && browser) {
-			eventId = data.eventId;
-			console.log('[thread event id]', eventId);
+	$effect(() => {
+		const targetEventId = data.eventId;
+		const subscriptions = new Subscription();
+
+		untrack(() => {
+			console.log('[thread event id]', targetEventId);
 
 			clear();
 
-			item = $eventItemStore.get(eventId);
+			if (item?.id !== targetEventId) {
+				item = $eventItemStore.get(targetEventId);
+			}
 
 			// Event
 			if (item === undefined) {
 				const eventReq = createRxOneshotReq({
 					filters: [
 						{
-							ids: [eventId]
+							ids: [targetEventId]
 						}
 					]
 				});
-				rxNostr
+				const eventSubscription = rxNostr
 					.use(eventReq)
 					.pipe(
 						tie,
@@ -189,6 +192,7 @@
 						console.log('[thread event]', packet);
 						item = new EventItem(packet.event);
 					});
+				subscriptions.add(eventSubscription);
 			}
 
 			// Related Events
@@ -196,7 +200,7 @@
 				filters: [
 					{
 						kinds: [1, 6, 7, 9735],
-						'#e': [eventId]
+						'#e': [targetEventId]
 					}
 				]
 			});
@@ -210,7 +214,10 @@
 			);
 
 			// Replies
-			merge(observable.pipe(filterByKind(1)), observable.pipe(filterByKind(42)))
+			const repliesSubscription = merge(
+				observable.pipe(filterByKind(1)),
+				observable.pipe(filterByKind(42))
+			)
 				.pipe(
 					filter(({ event }) => !repliedToEventItems.some((x) => x.event.id === event.id))
 				)
@@ -219,23 +226,26 @@
 					insertIntoAscendingTimeline(packet.event, repliedToEventItems);
 					repliedToEventItems = repliedToEventItems;
 				});
+			subscriptions.add(repliesSubscription);
 
 			// Repost
-			observable.pipe(filterByKind(6)).subscribe((packet) => {
+			const repostsSubscription = observable.pipe(filterByKind(6)).subscribe((packet) => {
 				console.debug('[thread kind 6]', packet);
 				const eventItem = new EventItem(packet.event);
 				repostEventItems.sort(chronologicalItem);
 				repostEventItems.push(eventItem);
 				repostEventItems = repostEventItems;
 			});
+			subscriptions.add(repostsSubscription);
 
 			// Reaction
-			observable
+			const reactionsSubscription = observable
 				.pipe(
 					filterByKind(7),
 					filter(
 						({ event }) =>
-							event.tags.findLast(([tagName]) => tagName === 'e')?.at(1) === eventId
+							event.tags.findLast(([tagName]) => tagName === 'e')?.at(1) ===
+							targetEventId
 					)
 				)
 				.subscribe((packet) => {
@@ -245,9 +255,10 @@
 					reactionEventItems.push(eventItem);
 					reactionEventItems = reactionEventItems;
 				});
+			subscriptions.add(reactionsSubscription);
 
 			// Zap
-			observable.pipe(filterByKind(9735)).subscribe((packet) => {
+			const zapsSubscription = observable.pipe(filterByKind(9735)).subscribe((packet) => {
 				console.debug('[thread kind 9735]', packet);
 
 				let event: Nostr.Event | undefined;
@@ -276,7 +287,10 @@
 				eventItems.push(eventItem);
 				zapEventItemsMap.set(eventItem.amount, eventItems);
 			});
-		}
+			subscriptions.add(zapsSubscription);
+		});
+
+		return () => subscriptions.unsubscribe();
 	});
 	let metadata = $derived(item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined);
 	let canonicalUrl = $derived(
