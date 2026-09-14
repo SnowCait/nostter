@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { newUrl } from '$lib/Helper';
 	import type { EventItem, Item } from '$lib/Items';
 	import { fetchLastEvent } from '$lib/RxNostrHelper';
 	import {
@@ -8,6 +9,7 @@
 		type PodcastMetadata
 	} from '$lib/nostr/protocol/nipf4';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
+	import { isAudioResourceUrl, isHttpUrl, isImageResourceUrl } from '$lib/url';
 	import ActionMenu from '../actions/ActionMenu.svelte';
 	import Content from '../Content.svelte';
 	import EventMetadata from '../EventMetadata.svelte';
@@ -24,17 +26,29 @@
 	let eventItem = $derived(item as EventItem);
 	let episode = $derived(parsePodcastEpisode(item.event));
 	let podcastMetadata: PodcastMetadata | undefined = $state();
-	let image = $derived(
-		episode.image !== undefined && URL.canParse(episode.image)
-			? episode.image
-			: podcastMetadata?.image !== undefined && URL.canParse(podcastMetadata.image)
-				? podcastMetadata.image
-				: undefined
+	let image = $derived.by(() => {
+		const episodeImage = episode.image === undefined ? undefined : newUrl(episode.image);
+		if (episodeImage !== undefined && isImageResourceUrl(episodeImage)) {
+			return episode.image;
+		}
+
+		const podcastImage =
+			podcastMetadata?.image === undefined ? undefined : newUrl(podcastMetadata.image);
+		return podcastImage !== undefined && isImageResourceUrl(podcastImage)
+			? podcastMetadata?.image
+			: undefined;
+	});
+	let audioSources = $derived(
+		episode.audio.filter((audio) => {
+			const url = newUrl(audio.url);
+			return url !== undefined && isAudioResourceUrl(url);
+		})
 	);
 	let websites = $derived(
-		(podcastMetadata?.websites ?? [])
-			.filter((website) => URL.canParse(website))
-			.map((website) => new URL(website))
+		(podcastMetadata?.websites ?? []).flatMap((website) => {
+			const url = newUrl(website);
+			return url !== undefined && isHttpUrl(url) ? [url] : [];
+		})
 	);
 
 	$effect(() => {
@@ -91,7 +105,7 @@
 			{#if episode.description !== undefined}
 				<p class="description">{episode.description}</p>
 			{/if}
-			{#each episode.audio as audio}
+			{#each audioSources as audio}
 				<audio controls preload="metadata">
 					<source src={audio.url} type={audio.mediaType} />
 				</audio>
