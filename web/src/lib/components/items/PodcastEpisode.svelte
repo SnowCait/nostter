@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { newUrl } from '$lib/Helper';
 	import type { EventItem, Item } from '$lib/Items';
 	import { fetchLastEvent } from '$lib/RxNostrHelper';
 	import {
@@ -29,30 +28,17 @@
 	let episode = $derived(parsePodcastEpisode(item.event));
 	let podcastMetadata: PodcastMetadata | undefined = $state();
 	let image = $derived.by(() => {
-		const episodeImage = episode.image === undefined ? undefined : newUrl(episode.image);
-		if (episodeImage !== undefined && isImageResourceUrl(episodeImage)) {
-			return episodeImage.href;
+		if (episode.image !== undefined && isImageResourceUrl(episode.image)) {
+			return episode.image.href;
 		}
 
-		const podcastImage =
-			podcastMetadata?.image === undefined ? undefined : newUrl(podcastMetadata.image);
-		return podcastImage !== undefined && isImageResourceUrl(podcastImage)
-			? podcastImage.href
+		return podcastMetadata?.image !== undefined && isImageResourceUrl(podcastMetadata.image)
+			? podcastMetadata.image.href
 			: undefined;
 	});
-	let audioSources = $derived(
-		episode.audio.flatMap((audio) => {
-			const url = newUrl(audio.url);
-			return url !== undefined && isAudioResourceUrl(url)
-				? [{ ...audio, url: url.href }]
-				: [];
-		})
-	);
+	let audioSources = $derived(episode.audio.filter((audio) => isAudioResourceUrl(audio.url)));
 	let websites = $derived(
-		(podcastMetadata?.websites ?? []).flatMap((website) => {
-			const url = newUrl(website);
-			return url !== undefined && isHttpUrl(url) ? [url] : [];
-		})
+		(podcastMetadata?.websites ?? []).filter((website) => isHttpUrl(website))
 	);
 
 	$effect(() => {
@@ -113,7 +99,7 @@
 			{/if}
 			{#each audioSources as audio}
 				<audio controls preload="metadata">
-					<source src={audio.url} type={audio.mediaType} />
+					<source src={audio.url.href} type={audio.mediaType} />
 				</audio>
 			{/each}
 			{#if episode.content !== ''}

@@ -22,11 +22,15 @@ describe('parsePodcastEpisode', () => {
 
 		expect(episode).toEqual({
 			title: 'Episode title',
-			image: 'https://example.com/episode.webp',
+			image: new URL('https://example.com/episode.webp'),
 			description: 'Episode description',
-			audio: [{ url: 'https://example.com/episode.mp3', mediaType: 'audio/mpeg' }],
+			audio: [{ url: new URL('https://example.com/episode.mp3'), mediaType: 'audio/mpeg' }],
 			content: 'Episode content'
 		});
+		expect(episode.image).toBeInstanceOf(URL);
+		expect(episode.image?.href).toBe('https://example.com/episode.webp');
+		expect(episode.audio.at(0)?.url).toBeInstanceOf(URL);
+		expect(episode.audio.at(0)?.url.href).toBe('https://example.com/episode.mp3');
 	});
 
 	it('preserves multiple audio tags', () => {
@@ -38,8 +42,8 @@ describe('parsePodcastEpisode', () => {
 		);
 
 		expect(episode.audio).toEqual([
-			{ url: 'https://example.com/episode.mp3', mediaType: 'audio/mpeg' },
-			{ url: 'https://example.com/episode.ogg', mediaType: 'audio/ogg' }
+			{ url: new URL('https://example.com/episode.mp3'), mediaType: 'audio/mpeg' },
+			{ url: new URL('https://example.com/episode.ogg'), mediaType: 'audio/ogg' }
 		]);
 	});
 
@@ -49,7 +53,7 @@ describe('parsePodcastEpisode', () => {
 		);
 
 		expect(episode.audio).toEqual([
-			{ url: 'https://example.com/episode.mp3', mediaType: undefined }
+			{ url: new URL('https://example.com/episode.mp3'), mediaType: undefined }
 		]);
 	});
 
@@ -65,8 +69,8 @@ describe('parsePodcastEpisode', () => {
 
 		expect(episode.image).toBeUndefined();
 		expect(episode.audio).toEqual([
-			{ url: 'https://example.com/episode.mp3', mediaType: 'audio/mpeg' },
-			{ url: 'https://example.com/episode.ogg', mediaType: 'audio/ogg' }
+			{ url: new URL('https://example.com/episode.mp3'), mediaType: 'audio/mpeg' },
+			{ url: new URL('https://example.com/episode.ogg'), mediaType: 'audio/ogg' }
 		]);
 	});
 
@@ -109,10 +113,17 @@ describe('parsePodcastMetadata', () => {
 
 		expect(metadata).toEqual({
 			title: 'Podcast title',
-			image: 'https://example.com/podcast.webp',
+			image: new URL('https://example.com/podcast.webp'),
 			description: 'Podcast description',
-			websites: ['https://example.com', 'https://example.org']
+			websites: [new URL('https://example.com'), new URL('https://example.org')]
 		});
+		expect(metadata.image).toBeInstanceOf(URL);
+		expect(metadata.image?.href).toBe('https://example.com/podcast.webp');
+		expect(metadata.websites.every((website) => website instanceof URL)).toBe(true);
+		expect(metadata.websites.map((website) => website.href)).toEqual([
+			'https://example.com/',
+			'https://example.org/'
+		]);
 	});
 
 	it('filters malformed media URLs while preserving valid websites', () => {
@@ -126,7 +137,10 @@ describe('parsePodcastMetadata', () => {
 		);
 
 		expect(metadata.image).toBeUndefined();
-		expect(metadata.websites).toEqual(['https://example.com', 'https://example.org']);
+		expect(metadata.websites).toEqual([
+			new URL('https://example.com'),
+			new URL('https://example.org')
+		]);
 	});
 
 	it('handles missing, unrelated, and incomplete tags', () => {
