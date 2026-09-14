@@ -32,7 +32,7 @@
 	let localDate = $derived.by(() => {
 		const since = data.since;
 
-		if (since === null || Number.isNaN(since.getTime())) {
+		if (since === null) {
 			return undefined;
 		}
 
@@ -137,7 +137,7 @@
 		const sinceDate = data.since;
 		const replaySpeed = data.speed;
 
-		if (sinceDate === null || Number.isNaN(sinceDate.getTime())) {
+		if (sinceDate === null) {
 			return;
 		}
 
