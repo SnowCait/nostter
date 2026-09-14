@@ -41,11 +41,12 @@
 
 	let focusedElement: HTMLDivElement | undefined = $state();
 
-	let item: EventItem | undefined = $state();
+	let item: EventItem | undefined = $state(
+		data.event !== undefined ? new EventItem(data.event) : undefined
+	);
 	let items: EventItem[] = $state([]);
 	let eventId: string | undefined = $state();
 	let rootId: string | undefined = $state();
-	let canonicalUrl: string | undefined = $state();
 
 	let replyToEventItems: EventItem[] = $state([]);
 	let repliedToEventItems: EventItem[] = $state([]);
@@ -154,11 +155,6 @@
 
 	onDestroy(() => {
 		$inThread = false;
-	});
-	run(() => {
-		if (!browser && data.event !== undefined) {
-			item = new EventItem(data.event);
-		}
 	});
 	run(() => {
 		if (eventId !== data.eventId && browser) {
@@ -282,14 +278,14 @@
 		}
 	});
 	let metadata = $derived(item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined);
-	run(() => {
-		if (item !== undefined) {
-			canonicalUrl = `${$page.url.origin}/${nip19.neventEncode({
-				id: item.event.id,
-				author: item.event.pubkey
-			})}`;
-		}
-	});
+	let canonicalUrl = $derived(
+		item !== undefined
+			? `${$page.url.origin}/${nip19.neventEncode({
+					id: item.event.id,
+					author: item.event.pubkey
+				})}`
+			: undefined
+	);
 	let repostMetadataList = $derived(
 		repostEventItems
 			.map((x) => $metadataStore.get(x.event.pubkey))
