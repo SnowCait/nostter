@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { _ } from 'svelte-i18n';
 	import { get } from 'svelte/store';
 	import type * as Nostr from 'nostr-typedef';
@@ -45,8 +43,10 @@
 		storage.setReplaceableEvent(event);
 		$open = false;
 	}
-	run(() => {
-		if ($open) loadCachedVersions();
+	$effect(() => {
+		if ($open) {
+			void loadCachedVersions();
+		}
 	});
 </script>
 
