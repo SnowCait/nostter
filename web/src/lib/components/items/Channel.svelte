@@ -1,13 +1,7 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
-	import { nip19, type Event } from 'nostr-tools';
+	import { nip19 } from 'nostr-tools';
 	import { cachedEvents, channelMetadataEventsStore, eventItemStore } from '$lib/cache/Events';
-	import {
-		findChannelId,
-		parseChannelMetadata,
-		type ChannelMetadata
-	} from '$lib/nostr/protocol/nip28';
+	import { findChannelId, parseChannelMetadata } from '$lib/nostr/protocol/nip28';
 	import type { Item } from '$lib/Items';
 	import IconCodeDots from '@tabler/icons-svelte-runes/icons/code-dots';
 	import IconQuote from '@tabler/icons-svelte-runes/icons/quote';
@@ -34,25 +28,18 @@
 		})
 	);
 
-	let channelMetadataEvent: Event | undefined = $state();
-	let channelMetadata: ChannelMetadata | undefined = $state();
+	let channelMetadataEvent = $derived(
+		channelId === undefined
+			? undefined
+			: ($channelMetadataEventsStore.get(channelId) ??
+					cachedEvents.get(channelId) ??
+					$eventItemStore.get(channelId)?.event ??
+					event)
+	);
 
-	run(() => {
-		if (channelId !== undefined) {
-			channelMetadataEvent =
-				$channelMetadataEventsStore.get(channelId) ??
-				cachedEvents.get(channelId) ??
-				$eventItemStore.get(channelId)?.event ??
-				event;
-		}
-	});
-
-	run(() => {
-		if (channelMetadataEvent !== undefined) {
-			channelMetadata = parseChannelMetadata(channelMetadataEvent);
-			console.log('[channel metadata]', channelMetadata, event);
-		}
-	});
+	let channelMetadata = $derived(
+		channelMetadataEvent === undefined ? undefined : parseChannelMetadata(channelMetadataEvent)
+	);
 
 	const iconSize = 20;
 	const openNoteDialog = getOpenNoteDialog();
