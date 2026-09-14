@@ -1,12 +1,9 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import * as nip19 from 'nostr-tools/nip19';
 	import type * as Nostr from 'nostr-typedef';
 	import { createRxBackwardReq, createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
 	import { tap, merge, filter, Subscription } from 'rxjs';
 	import { _ } from 'svelte-i18n';
-	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { rxNostr, referencesReqEmit, tie } from '$lib/timelines/MainTimeline';
@@ -46,24 +43,28 @@
 		data.event !== undefined ? new EventItem(data.event) : undefined
 	);
 	let items: EventItem[] = $state([]);
-	let rootId: string | undefined = $state();
 
 	let replyToEventItems: EventItem[] = $state([]);
 	let repliedToEventItems: EventItem[] = $state([]);
-	let repliedToEventsMap = new Map<string, Nostr.Event>();
 	let repostEventItems: EventItem[] = $state([]);
 	let reactionEventItems: EventItem[] = $state([]);
 	let zapEventItemsMap = new SvelteMap<number | undefined, ZapEventItem[]>();
 
 	let customEmojiData = $state(new Map<string, { shortcode: string; address?: string }>());
 
-	let id: string | undefined = $state();
-
-	async function fetchReplies(originalReplyId: string | undefined): Promise<void> {
+	async function fetchReplies(
+		originalReplyId: string | undefined,
+		initialRootId: string | undefined,
+		isActive: () => boolean
+	): Promise<void> {
 		let replyId = originalReplyId;
+		let rootId = initialRootId;
 		let i = 0;
 		while (replyId !== undefined) {
 			const replyToEventItem = await fetchEvent(replyId);
+			if (!isActive()) {
+				return;
+			}
 			console.debug('[thread reply]', replyToEventItem);
 			if (replyToEventItem !== undefined) {
 				replyToEventItems.unshift(replyToEventItem);
@@ -86,6 +87,9 @@
 			i <= 20
 		) {
 			const rootEventItem = await fetchEvent(rootId);
+			if (!isActive()) {
+				return;
+			}
 			console.debug('[thread root]', rootEventItem);
 			if (rootEventItem !== undefined) {
 				replyToEventItems.unshift(rootEventItem);
@@ -94,16 +98,23 @@
 		}
 
 		await tick();
+		if (!isActive()) {
+			return;
+		}
 		focusedElement?.scrollIntoView();
 	}
 
-	function fetchThreads(rootId: string | undefined, original: Nostr.Event): void {
+	function fetchThreads(
+		rootId: string | undefined,
+		original: Nostr.Event
+	): Subscription | undefined {
 		if (rootId === undefined) {
 			return;
 		}
 
+		const repliedToEventsMap = new Map<string, Nostr.Event>();
 		const req = createRxBackwardReq();
-		rxNostr
+		const subscription = rxNostr
 			.use(req)
 			.pipe(tie, uniq())
 			.subscribe({
@@ -137,6 +148,8 @@
 			});
 		req.emit([{ kinds: [1], '#e': [rootId, original.id], since: original.created_at }]);
 		req.over();
+
+		return subscription;
 	}
 
 	function clear() {
@@ -348,15 +361,25 @@
 			return map;
 		}, new Map<string, EventItem[]>())
 	);
-	run(() => {
-		if (item !== undefined && item.id !== id && browser) {
-			console.debug('[thread item]', item);
-			id = item.id;
-			const { root, reply } = extractThreadReferenceTags(item.event);
-			rootId = root?.at(1);
-			fetchReplies(reply?.at(1));
-			fetchThreads(rootId, item.event);
+	$effect(() => {
+		const targetItem = item;
+
+		if (targetItem === undefined) {
+			return;
 		}
+
+		let active = true;
+
+		console.debug('[thread item]', targetItem);
+		const { root, reply } = extractThreadReferenceTags(targetItem.event);
+		const rootId = root?.at(1);
+		void fetchReplies(reply?.at(1), rootId, () => active);
+		const threadSubscription = fetchThreads(rootId, targetItem.event);
+
+		return () => {
+			active = false;
+			threadSubscription?.unsubscribe();
+		};
 	});
 </script>
 
