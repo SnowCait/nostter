@@ -1,18 +1,17 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { _ } from 'svelte-i18n';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { hexRegexp } from '$lib/Constants';
-	import { browser } from '$app/environment';
 	import ExternalLink from './ExternalLink.svelte';
 	import type * as Nostr from 'nostr-typedef';
 	import { findIdentifier } from '$lib/nostr/protocol/event-address';
 	import { getEventAddress, parseEventAddress } from '$lib/nostr/protocol/event-address';
 	import { nip19 } from 'nostr-tools';
+	import { untrack } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
+	import type { Subscription } from 'rxjs';
 	import {
 		legacyProfileBadgesIdentifier,
 		legacyProfileBadgesKind,
@@ -43,138 +42,160 @@
 		badgeDefinitions.set(address, event);
 	}
 
-	run(() => {
-		if (browser) {
-			console.debug('[badges]', pubkey, relays);
+	$effect(() => {
+		const targetPubkey = pubkey;
+		const targetRelays = relays;
+		const isAuthor = targetPubkey === $authorPubkey;
 
-			const profileBadgesReq = createRxBackwardReq();
-			const isAuthor = pubkey === $authorPubkey;
-			let displayedEvent: Nostr.Event | undefined;
-			rxNostr
-				.use(profileBadgesReq, {
-					on: { defaultReadRelays: !isAuthor, defaultWriteRelays: isAuthor, relays }
-				})
-				.pipe(
-					tie,
-					uniq(),
-					latestEach(({ event }) => event.kind)
-				)
-				.subscribe({
-					next: ({ event }) => {
-						const selectedEvent = selectProfileBadgesEvent(displayedEvent, event);
-						if (
-							selectedEvent === undefined ||
-							selectedEvent.id === displayedEvent?.id
-						) {
-							return;
-						}
-						displayedEvent = selectedEvent;
-						event = selectedEvent;
-						console.debug('[badges profile]', event);
+		untrack(() => {
+			profileBadges = undefined;
+			badgeAwards.clear();
+			badgeDefinitions.clear();
+		});
 
-						const awardTags = event.tags.filter(
-							([tagName, id]) => tagName === 'e' && hexRegexp.test(id)
-						);
-						const awardIds = awardTags.map(([, id]) => id);
+		console.debug('[badges]', targetPubkey, targetRelays);
 
-						const definitionTags = event.tags.filter(
-							([tagName, address]) => tagName === 'a' && address.startsWith('30009:')
-						);
-						const definitionAddresses = definitionTags.map(([, address]) => address);
-
-						profileBadges = {
-							awards: new Set(awardIds),
-							definitions: new Set(definitionAddresses)
-						};
-
-						const awardRelays = awardTags
-							.map(([, , relay]) => relay)
-							.filter((relay) => relay !== undefined && URL.canParse(relay));
-
-						const awardsReq = createRxBackwardReq();
-						rxNostr
-							.use(awardsReq, {
-								on: { defaultReadRelays: true, relays: awardRelays }
-							})
-							.pipe(tie, uniq())
-							.subscribe({
-								next: ({ event }) => {
-									console.debug('[badges award]', event);
-									const address = event.tags
-										.find(
-											([tagName, address]) =>
-												tagName === 'a' && address.startsWith('30009:')
-										)
-										?.at(1);
-									if (address) {
-										addToBadgeAwards(event.id, address);
-									}
-								}
-							});
-						awardsReq.emit([{ kinds: [8], ids: awardIds, '#p': [event.pubkey] }]);
-						awardsReq.over();
-
-						const definitionAddressesGroupedByPubkey = definitionAddresses.reduce(
-							(definitions, address) => {
-								const parsed = parseEventAddress(address);
-								if (!parsed) {
-									return definitions;
-								}
-								const { pubkey, identifier } = parsed;
-								if (!definitions.has(pubkey)) {
-									definitions.set(pubkey, new Set());
-								}
-								definitions.get(pubkey)!.add(identifier);
-								return definitions;
-							},
-							new Map<string, Set<string>>()
-						);
-						const definitionRelays = definitionTags
-							.map(([, , relay]) => relay)
-							.filter((relay) => relay !== undefined && URL.canParse(relay));
-
-						const definitionsReq = createRxBackwardReq();
-						rxNostr
-							.use(definitionsReq, {
-								on: { defaultReadRelays: true, relays: definitionRelays }
-							})
-							.pipe(
-								tie,
-								uniq(),
-								latestEach(({ event }) => getEventAddress(event))
-							)
-							.subscribe({
-								next: ({ event }) => {
-									console.debug('[badges definition]', event);
-									updateBadgeDefinitions(getEventAddress(event), event);
-								}
-							});
-						for (const [
-							pubkey,
-							identifiers
-						] of definitionAddressesGroupedByPubkey.entries()) {
-							definitionsReq.emit([
-								{
-									kinds: [30009],
-									authors: [pubkey],
-									'#d': [...identifiers]
-								}
-							]);
-						}
-						definitionsReq.over();
-					}
-				});
-			profileBadgesReq.emit([
-				{ kinds: [profileBadgesKind], authors: [pubkey], limit: 1 },
-				{
-					kinds: [legacyProfileBadgesKind],
-					authors: [pubkey],
-					'#d': [legacyProfileBadgesIdentifier],
-					limit: 1
+		const profileBadgesReq = createRxBackwardReq();
+		let displayedEvent: Nostr.Event | undefined;
+		let awardsSubscription: Subscription | undefined;
+		let definitionsSubscription: Subscription | undefined;
+		const profileBadgesSubscription = rxNostr
+			.use(profileBadgesReq, {
+				on: {
+					defaultReadRelays: !isAuthor,
+					defaultWriteRelays: isAuthor,
+					relays: targetRelays
 				}
-			]);
-			profileBadgesReq.over();
-		}
+			})
+			.pipe(
+				tie,
+				uniq(),
+				latestEach(({ event }) => event.kind)
+			)
+			.subscribe({
+				next: ({ event }) => {
+					const selectedEvent = selectProfileBadgesEvent(displayedEvent, event);
+					if (selectedEvent === undefined || selectedEvent.id === displayedEvent?.id) {
+						return;
+					}
+					displayedEvent = selectedEvent;
+
+					awardsSubscription?.unsubscribe();
+					definitionsSubscription?.unsubscribe();
+					badgeAwards.clear();
+					badgeDefinitions.clear();
+
+					event = selectedEvent;
+					console.debug('[badges profile]', event);
+
+					const awardTags = event.tags.filter(
+						([tagName, id]) => tagName === 'e' && hexRegexp.test(id)
+					);
+					const awardIds = awardTags.map(([, id]) => id);
+
+					const definitionTags = event.tags.filter(
+						([tagName, address]) => tagName === 'a' && address.startsWith('30009:')
+					);
+					const definitionAddresses = definitionTags.map(([, address]) => address);
+
+					profileBadges = {
+						awards: new Set(awardIds),
+						definitions: new Set(definitionAddresses)
+					};
+
+					const awardRelays = awardTags
+						.map(([, , relay]) => relay)
+						.filter((relay) => relay !== undefined && URL.canParse(relay));
+
+					const awardsReq = createRxBackwardReq();
+					awardsSubscription = rxNostr
+						.use(awardsReq, {
+							on: { defaultReadRelays: true, relays: awardRelays }
+						})
+						.pipe(tie, uniq())
+						.subscribe({
+							next: ({ event }) => {
+								console.debug('[badges award]', event);
+								const address = event.tags
+									.find(
+										([tagName, address]) =>
+											tagName === 'a' && address.startsWith('30009:')
+									)
+									?.at(1);
+								if (address) {
+									addToBadgeAwards(event.id, address);
+								}
+							}
+						});
+					awardsReq.emit([{ kinds: [8], ids: awardIds, '#p': [event.pubkey] }]);
+					awardsReq.over();
+
+					const definitionAddressesGroupedByPubkey = definitionAddresses.reduce(
+						(definitions, address) => {
+							const parsed = parseEventAddress(address);
+							if (!parsed) {
+								return definitions;
+							}
+							const { pubkey, identifier } = parsed;
+							if (!definitions.has(pubkey)) {
+								definitions.set(pubkey, new Set());
+							}
+							definitions.get(pubkey)!.add(identifier);
+							return definitions;
+						},
+						new Map<string, Set<string>>()
+					);
+					const definitionRelays = definitionTags
+						.map(([, , relay]) => relay)
+						.filter((relay) => relay !== undefined && URL.canParse(relay));
+
+					const definitionsReq = createRxBackwardReq();
+					definitionsSubscription = rxNostr
+						.use(definitionsReq, {
+							on: { defaultReadRelays: true, relays: definitionRelays }
+						})
+						.pipe(
+							tie,
+							uniq(),
+							latestEach(({ event }) => getEventAddress(event))
+						)
+						.subscribe({
+							next: ({ event }) => {
+								console.debug('[badges definition]', event);
+								updateBadgeDefinitions(getEventAddress(event), event);
+							}
+						});
+					for (const [
+						pubkey,
+						identifiers
+					] of definitionAddressesGroupedByPubkey.entries()) {
+						definitionsReq.emit([
+							{
+								kinds: [30009],
+								authors: [pubkey],
+								'#d': [...identifiers]
+							}
+						]);
+					}
+					definitionsReq.over();
+				}
+			});
+		profileBadgesReq.emit([
+			{ kinds: [profileBadgesKind], authors: [targetPubkey], limit: 1 },
+			{
+				kinds: [legacyProfileBadgesKind],
+				authors: [targetPubkey],
+				'#d': [legacyProfileBadgesIdentifier],
+				limit: 1
+			}
+		]);
+		profileBadgesReq.over();
+
+		return () => {
+			profileBadgesSubscription.unsubscribe();
+			awardsSubscription?.unsubscribe();
+			definitionsSubscription?.unsubscribe();
+		};
 	});
 
 	let awardedDefinitions = $derived(
