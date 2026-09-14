@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
+	import { untrack } from 'svelte';
 
 	import { _ } from 'svelte-i18n';
 	import { createRxOneshotReq, now, uniq, type LazyFilter } from 'rx-nostr';
@@ -18,19 +18,32 @@
 
 	let slug = $derived(page.params.slug!);
 
-	let pubkey: string | undefined = $state();
 	let showLoading = $state(false);
 
-	run(() => {
-		if (pubkey !== data.pubkey) {
-			items.splice(0);
+	let cancelCurrentRequest: { targetPubkey: string; cancel: () => void } | undefined;
+
+	$effect(() => {
+		const targetPubkey = data.pubkey;
+
+		if (cancelCurrentRequest?.targetPubkey !== targetPubkey) {
+			cancelCurrentRequest?.cancel();
+			cancelCurrentRequest = undefined;
 		}
+		untrack(() => items.splice(0));
+		showLoading = false;
+
+		return () => {
+			cancelCurrentRequest?.cancel();
+			cancelCurrentRequest = undefined;
+		};
 	});
 
 	async function load() {
 		console.log('[npub reactions page load]', data.pubkey);
 
-		pubkey = data.pubkey;
+		const targetPubkey = data.pubkey;
+		let cancelled = false;
+
 		showLoading = true;
 
 		let firstLength = items.length;
@@ -50,7 +63,7 @@
 			const filters: LazyFilter[] = [
 				{
 					kinds: [7],
-					authors: [pubkey],
+					authors: [targetPubkey],
 					until,
 					since
 				}
@@ -59,7 +72,7 @@
 
 			const pastEventsReq = createRxOneshotReq({ filters });
 			await new Promise<void>((resolve, reject) => {
-				rxNostr
+				const subscription = rxNostr
 					.use(pastEventsReq)
 					.pipe(
 						tie,
@@ -74,6 +87,9 @@
 					)
 					.subscribe({
 						next: (packet) => {
+							if (cancelled) {
+								return;
+							}
 							console.log('[rx-nostr reactions timeline packet]', packet);
 							if (items.some((x) => x.event.id === packet.event.id)) {
 								console.warn(
@@ -103,7 +119,20 @@
 							reject(error);
 						}
 					});
+				cancelCurrentRequest = {
+					targetPubkey,
+					cancel: () => {
+						cancelled = true;
+						subscription.unsubscribe();
+						resolve();
+					}
+				};
 			});
+			cancelCurrentRequest = undefined;
+
+			if (cancelled) {
+				return;
+			}
 
 			until -= seconds;
 			seconds *= 2;
