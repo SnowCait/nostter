@@ -1,10 +1,8 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { _ } from 'svelte-i18n';
 	import { createRxBackwardReq, uniq } from 'rx-nostr';
 	import { filter, tap } from 'rxjs';
-	import { browser } from '$app/environment';
+	import { untrack } from 'svelte';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import {
@@ -14,8 +12,6 @@
 		firstSince,
 		items,
 		itemsPool,
-		sinceDate,
-		speed,
 		speeds,
 		startedAt,
 		subscription
@@ -33,21 +29,33 @@
 
 	let { data }: Props = $props();
 
-	let localDate: Date | undefined = $state();
+	let localDate = $derived.by(() => {
+		const since = data.since;
+
+		if (since === null || Number.isNaN(since.getTime())) {
+			return undefined;
+		}
+
+		return new Date(since.getTime() - since.getTimezoneOffset() * 60 * 1000);
+	});
 
 	function clear(): void {
 		console.debug('[replay clear]', $subscription, $fetchTimeout, $eventTimeouts);
 		$subscription?.unsubscribe();
+		$subscription = undefined;
 		$items = [];
 		$itemsPool = [];
 		$startedAt = undefined;
+		$firstSince = undefined;
 		clearTimeout($fetchTimeout);
+		$fetchTimeout = undefined;
 		for (const timeout of $eventTimeouts) {
 			clearTimeout(timeout);
 		}
+		$eventTimeouts = [];
 	}
 
-	function fetchNext(since: number): void {
+	function fetchNext(since: number, replaySpeed: number): void {
 		console.log('[replay fetch]', new Date(since * 1000));
 
 		const until = since + fetchInterval;
@@ -73,11 +81,11 @@
 				},
 				complete: () => {
 					console.debug('[rx-nostr replay complete]');
-					replay(until);
+					replay(until, replaySpeed);
 				},
 				error: (error) => {
 					console.error('[rx-nostr replay error]', error);
-					replay(until);
+					replay(until, replaySpeed);
 				}
 			});
 
@@ -86,7 +94,7 @@
 		req.over();
 	}
 
-	function replay(until: number): void {
+	function replay(until: number, replaySpeed: number): void {
 		if ($firstSince === undefined) {
 			throw new Error('Logic error');
 		}
@@ -103,7 +111,7 @@
 				break;
 			}
 			const offset =
-				((item.event.created_at - $firstSince) * 1000) / data.speed -
+				((item.event.created_at - $firstSince) * 1000) / replaySpeed -
 				(Date.now() - $startedAt);
 			console.debug('[replay event]', offset, new Date(Date.now() + offset));
 			const timeout = setTimeout(() => {
@@ -119,35 +127,30 @@
 		}
 
 		const fetchOffset =
-			((until - $firstSince - 120) * 1000) / data.speed - (Date.now() - $startedAt);
+			((until - $firstSince - 120) * 1000) / replaySpeed - (Date.now() - $startedAt);
 		console.debug('[replay next fetch]', fetchOffset, new Date(Date.now() + fetchOffset));
 		$fetchTimeout = setTimeout(() => {
-			fetchNext(until);
+			fetchNext(until, replaySpeed);
 		}, fetchOffset);
 	}
-	run(() => {
-		if (
-			data.since !== null &&
-			!Number.isNaN(data.since.getTime()) &&
-			(data.since.getTime() !== $sinceDate?.getTime() || data.speed !== $speed)
-		) {
-			console.log('[replay page]', data.since);
-			$sinceDate = data.since;
-			$speed = data.speed;
+	$effect(() => {
+		const sinceDate = data.since;
+		const replaySpeed = data.speed;
 
+		if (sinceDate === null || Number.isNaN(sinceDate.getTime())) {
+			return;
+		}
+
+		console.log('[replay page]', sinceDate);
+		const since = Math.floor(sinceDate.getTime() / 1000);
+
+		untrack(() => {
 			clear();
-
-			const since = Math.floor(data.since.getTime() / 1000);
 			$firstSince = since;
-			if (browser) {
-				fetchNext(since);
-			}
-		}
-	});
-	run(() => {
-		if ($sinceDate !== undefined) {
-			localDate = new Date($sinceDate.getTime() - $sinceDate.getTimezoneOffset() * 60 * 1000);
-		}
+			fetchNext(since, replaySpeed);
+		});
+
+		return clear;
 	});
 </script>
 
