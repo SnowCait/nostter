@@ -23,10 +23,8 @@
 	$effect(() => {
 		void data.pubkey;
 
-		untrack(() => {
-			items.splice(0);
-			showLoading = false;
-		});
+		untrack(() => items.splice(0));
+		showLoading = false;
 	});
 
 	async function load() {
