@@ -7,6 +7,7 @@
 		podcastMetadataKind,
 		type PodcastMetadata
 	} from '$lib/nostr/protocol/nipf4';
+	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import ActionMenu from '../actions/ActionMenu.svelte';
 	import Content from '../Content.svelte';
 	import EventMetadata from '../EventMetadata.svelte';
@@ -38,16 +39,18 @@
 
 	$effect(() => {
 		const pubkey = item.event.pubkey;
+		const relays = getSeenOnRelays(item.event.id);
 		let active = true;
 
 		podcastMetadata = undefined;
-		void fetchLastEvent({ kinds: [podcastMetadataKind], authors: [pubkey], limit: 1 }).then(
-			(event) => {
-				if (active) {
-					podcastMetadata = event === undefined ? undefined : parsePodcastMetadata(event);
-				}
+		void fetchLastEvent(
+			{ kinds: [podcastMetadataKind], authors: [pubkey], limit: 1 },
+			{ defaultReadRelays: true, relays }
+		).then((event) => {
+			if (active) {
+				podcastMetadata = event === undefined ? undefined : parsePodcastMetadata(event);
 			}
-		);
+		});
 
 		return () => {
 			active = false;
