@@ -41,6 +41,7 @@
 
 	let focusedElement: HTMLDivElement | undefined = $state();
 
+	// svelte-ignore state_referenced_locally
 	let item: EventItem | undefined = $state(
 		data.event !== undefined ? new EventItem(data.event) : undefined
 	);
