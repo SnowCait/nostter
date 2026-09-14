@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { nip19 } from 'nostr-tools';
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { _ } from 'svelte-i18n';
-	import { browser } from '$app/environment';
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
 	import { author, pubkey as authorPubkey } from '$lib/stores/Author';
@@ -24,40 +21,43 @@
 
 	let { data }: Props = $props();
 
-	let pubkey: string | undefined = $state();
 	let pubkeys: Pubkey[] = $state([]);
 
 	let items = $derived(
 		pubkeys.map((pubkey) => $metadataStore.get(pubkey) ?? Metadata.placeholder(pubkey))
 	);
 
-	run(() => {
-		if (pubkey !== data.pubkey && browser) {
-			console.log('[followees page]', nip19.npubEncode(data.pubkey));
-			pubkey = data.pubkey;
+	$effect(() => {
+		const targetPubkey = data.pubkey;
 
-			const contactsReq = createRxOneshotReq({
-				filters: [
-					{
-						kinds: [3],
-						authors: [data.pubkey],
-						limit: 1
-					}
-				]
+		console.log('[followees page]', nip19.npubEncode(targetPubkey));
+		pubkeys = [];
+
+		const contactsReq = createRxOneshotReq({
+			filters: [
+				{
+					kinds: [3],
+					authors: [targetPubkey],
+					limit: 1
+				}
+			]
+		});
+		const subscription = rxNostr
+			.use(contactsReq)
+			.pipe(tie, uniq(), latest())
+			.subscribe((packet) => {
+				console.log('[rx-nostr contacts]', packet);
+				pubkeys = [...new Set(filterTags('p', packet.event.tags).reverse())];
+				metadataReqEmit(pubkeys);
+				if ($author === undefined) {
+					return;
+				}
+				lastNoteReqEmit(pubkeys);
 			});
-			rxNostr
-				.use(contactsReq)
-				.pipe(tie, uniq(), latest())
-				.subscribe((packet) => {
-					console.log('[rx-nostr contacts]', packet);
-					pubkeys = [...new Set(filterTags('p', packet.event.tags).reverse())];
-					metadataReqEmit(pubkeys);
-					if ($author === undefined) {
-						return;
-					}
-					lastNoteReqEmit(pubkeys);
-				});
-		}
+
+		return () => {
+			subscription.unsubscribe();
+		};
 	});
 </script>
 
@@ -67,7 +67,7 @@
 
 <div>
 	<h1>{$_('pages.followees')} ({pubkeys.length})</h1>
-	{#if pubkey === $authorPubkey}
+	{#if data.pubkey === $authorPubkey}
 		<button
 			onclick={() =>
 				open('https://tsukemonogit.github.io/NFO/', '_blank', 'noopener,noreferrer')}
