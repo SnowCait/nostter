@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import ZapDialog from './ZapDialog.svelte';
@@ -16,9 +14,9 @@
 	let { pubkey, size = 24, width = '34px', height = '34px' }: Props = $props();
 
 	let metadata = $derived($metadataStore.get(pubkey));
-	run(() => {
+	$effect(() => {
 		if (metadata === undefined) {
-			metadataReqEmit([pubkey]);
+			void metadataReqEmit([pubkey]);
 		}
 	});
 
