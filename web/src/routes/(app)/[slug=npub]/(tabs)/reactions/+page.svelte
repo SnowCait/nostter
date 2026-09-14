@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
+	import { untrack } from 'svelte';
 
 	import { _ } from 'svelte-i18n';
 	import { createRxOneshotReq, now, uniq, type LazyFilter } from 'rx-nostr';
@@ -18,19 +18,20 @@
 
 	let slug = $derived(page.params.slug!);
 
-	let pubkey: string | undefined = $state();
 	let showLoading = $state(false);
 
-	run(() => {
-		if (pubkey !== data.pubkey) {
-			items.splice(0);
-		}
+	$effect(() => {
+		void data.pubkey;
+
+		untrack(() => items.splice(0));
+		showLoading = false;
 	});
 
 	async function load() {
 		console.log('[npub reactions page load]', data.pubkey);
 
-		pubkey = data.pubkey;
+		const targetPubkey = data.pubkey;
+
 		showLoading = true;
 
 		let firstLength = items.length;
@@ -50,7 +51,7 @@
 			const filters: LazyFilter[] = [
 				{
 					kinds: [7],
-					authors: [pubkey],
+					authors: [targetPubkey],
 					until,
 					since
 				}
@@ -74,6 +75,9 @@
 					)
 					.subscribe({
 						next: (packet) => {
+							if (data.pubkey !== targetPubkey) {
+								return;
+							}
 							console.log('[rx-nostr reactions timeline packet]', packet);
 							if (items.some((x) => x.event.id === packet.event.id)) {
 								console.warn(
@@ -105,6 +109,10 @@
 					});
 			});
 
+			if (data.pubkey !== targetPubkey) {
+				return;
+			}
+
 			until -= seconds;
 			seconds *= 2;
 			count++;
@@ -128,4 +136,6 @@
 
 <ProfileTabs tab="reactions" {slug} />
 
-<TimelineView {items} {load} {showLoading} />
+{#key data.pubkey}
+	<TimelineView {items} {load} {showLoading} />
+{/key}
