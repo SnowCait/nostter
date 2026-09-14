@@ -53,6 +53,23 @@ describe('parsePodcastEpisode', () => {
 		]);
 	});
 
+	it('filters malformed media URLs while preserving valid audio URLs', () => {
+		const episode = parsePodcastEpisode(
+			eventWith([
+				['image', 'not a URL'],
+				['audio', 'https://example.com/episode.mp3', 'audio/mpeg'],
+				['audio', 'not a URL', 'audio/mpeg'],
+				['audio', 'https://example.com/episode.ogg', 'audio/ogg']
+			])
+		);
+
+		expect(episode.image).toBeUndefined();
+		expect(episode.audio).toEqual([
+			{ url: 'https://example.com/episode.mp3', mediaType: 'audio/mpeg' },
+			{ url: 'https://example.com/episode.ogg', mediaType: 'audio/ogg' }
+		]);
+	});
+
 	it('handles missing optional tags', () => {
 		expect(parsePodcastEpisode(eventWith([], 'Episode content'))).toEqual({
 			title: undefined,
@@ -96,6 +113,20 @@ describe('parsePodcastMetadata', () => {
 			description: 'Podcast description',
 			websites: ['https://example.com', 'https://example.org']
 		});
+	});
+
+	it('filters malformed media URLs while preserving valid websites', () => {
+		const metadata = parsePodcastMetadata(
+			eventWith([
+				['image', 'not a URL'],
+				['website', 'https://example.com'],
+				['website', 'not a URL'],
+				['website', 'https://example.org']
+			])
+		);
+
+		expect(metadata.image).toBeUndefined();
+		expect(metadata.websites).toEqual(['https://example.com', 'https://example.org']);
 	});
 
 	it('handles missing, unrelated, and incomplete tags', () => {

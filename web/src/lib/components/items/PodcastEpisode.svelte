@@ -29,19 +29,21 @@
 	let image = $derived.by(() => {
 		const episodeImage = episode.image === undefined ? undefined : newUrl(episode.image);
 		if (episodeImage !== undefined && isImageResourceUrl(episodeImage)) {
-			return episode.image;
+			return episodeImage.href;
 		}
 
 		const podcastImage =
 			podcastMetadata?.image === undefined ? undefined : newUrl(podcastMetadata.image);
 		return podcastImage !== undefined && isImageResourceUrl(podcastImage)
-			? podcastMetadata?.image
+			? podcastImage.href
 			: undefined;
 	});
 	let audioSources = $derived(
-		episode.audio.filter((audio) => {
+		episode.audio.flatMap((audio) => {
 			const url = newUrl(audio.url);
-			return url !== undefined && isAudioResourceUrl(url);
+			return url !== undefined && isAudioResourceUrl(url)
+				? [{ ...audio, url: url.href }]
+				: [];
 		})
 	);
 	let websites = $derived(
