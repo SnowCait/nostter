@@ -136,6 +136,7 @@
 		flex-direction: column;
 		gap: 0.75rem;
 		min-width: 0;
+		margin-top: 0.5rem;
 	}
 
 	.episode-header {
