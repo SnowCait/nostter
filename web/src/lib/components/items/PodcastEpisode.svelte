@@ -14,14 +14,16 @@
 	import Content from '../Content.svelte';
 	import EventMetadata from '../EventMetadata.svelte';
 	import ExternalLink from '../ExternalLink.svelte';
+	import Foldable from '../shared/Foldable.svelte';
 
 	interface Props {
 		item: Item;
 		readonly: boolean;
 		createdAtFormat?: 'auto' | 'time';
+		full?: boolean;
 	}
 
-	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
+	let { item, readonly, createdAtFormat = 'auto', full = false }: Props = $props();
 
 	let eventItem = $derived(item as EventItem);
 	let episode = $derived(parsePodcastEpisode(item.event));
@@ -89,10 +91,12 @@
 					{/if}
 					<div class="episode-heading">
 						{#if episode.title !== undefined}
-							<h2>{episode.title}</h2>
+							<h2 class:compact={!full}>{episode.title}</h2>
 						{/if}
 						{#if podcastMetadata?.title !== undefined}
-							<p class="podcast-title">{podcastMetadata.title}</p>
+							<p class="podcast-title" class:compact={!full}>
+								{podcastMetadata.title}
+							</p>
 						{/if}
 						{#if websites.length > 0}
 							<div class="websites">
@@ -105,7 +109,7 @@
 				</header>
 			{/if}
 			{#if episode.description !== undefined}
-				<p class="description">{episode.description}</p>
+				<p class="description" class:compact={!full}>{episode.description}</p>
 			{/if}
 			{#each audioSources as audio}
 				<audio controls preload="metadata">
@@ -113,7 +117,11 @@
 				</audio>
 			{/each}
 			{#if episode.content !== ''}
-				<Content content={episode.content} tags={item.event.tags} />
+				<Foldable maxHeightRem={30} enabled={!full}>
+					<div class="content">
+						<Content content={episode.content} tags={item.event.tags} />
+					</div>
+				</Foldable>
 			{/if}
 			{#if !readonly}
 				<ActionMenu item={eventItem} />
@@ -165,12 +173,30 @@
 		overflow-wrap: anywhere;
 	}
 
+	h2.compact,
+	.description.compact {
+		display: -webkit-box;
+		overflow: hidden;
+		-webkit-box-orient: vertical;
+	}
+
+	h2.compact {
+		line-clamp: 2;
+		-webkit-line-clamp: 2;
+	}
+
 	.podcast-title {
 		color: var(--accent-gray);
 		font-size: 0.9rem;
 		font-weight: 600;
 		line-height: 1.4;
 		overflow-wrap: anywhere;
+	}
+
+	.podcast-title.compact {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	audio {
@@ -183,6 +209,25 @@
 		overflow-wrap: anywhere;
 	}
 
+	.description.compact {
+		line-clamp: 3;
+		-webkit-line-clamp: 3;
+	}
+
+	.content {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.content :global(blockquote),
+	.content :global(iframe) {
+		max-width: 100%;
+	}
+
+	.content :global(iframe) {
+		display: block;
+	}
+
 	.websites {
 		display: flex;
 		flex-direction: column;
@@ -190,6 +235,13 @@
 		gap: 0.125rem;
 		font-size: 0.8rem;
 		line-height: 1.3;
+		max-width: 100%;
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.websites :global(a) {
+		max-width: 100%;
 		overflow-wrap: anywhere;
 	}
 

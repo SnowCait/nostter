@@ -50,7 +50,7 @@
 {:else if Number(item.event.kind) === 20}
 	<Picture {item} {readonly} {createdAtFormat} />
 {:else if Number(item.event.kind) === podcastEpisodeKind}
-	<PodcastEpisode {item} {readonly} {createdAtFormat} />
+	<PodcastEpisode {item} {readonly} {createdAtFormat} {full} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
 	<Channel {item} />
 {:else if Number(item.event.kind) === pollKind}
