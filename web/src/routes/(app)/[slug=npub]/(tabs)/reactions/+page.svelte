@@ -20,29 +20,19 @@
 
 	let showLoading = $state(false);
 
-	let cancelCurrentRequest: { targetPubkey: string; cancel: () => void } | undefined;
-
 	$effect(() => {
-		const targetPubkey = data.pubkey;
+		void data.pubkey;
 
-		if (cancelCurrentRequest?.targetPubkey !== targetPubkey) {
-			cancelCurrentRequest?.cancel();
-			cancelCurrentRequest = undefined;
-		}
-		untrack(() => items.splice(0));
-		showLoading = false;
-
-		return () => {
-			cancelCurrentRequest?.cancel();
-			cancelCurrentRequest = undefined;
-		};
+		untrack(() => {
+			items.splice(0);
+			showLoading = false;
+		});
 	});
 
 	async function load() {
 		console.log('[npub reactions page load]', data.pubkey);
 
 		const targetPubkey = data.pubkey;
-		let cancelled = false;
 
 		showLoading = true;
 
@@ -72,7 +62,7 @@
 
 			const pastEventsReq = createRxOneshotReq({ filters });
 			await new Promise<void>((resolve, reject) => {
-				const subscription = rxNostr
+				rxNostr
 					.use(pastEventsReq)
 					.pipe(
 						tie,
@@ -87,7 +77,7 @@
 					)
 					.subscribe({
 						next: (packet) => {
-							if (cancelled) {
+							if (data.pubkey !== targetPubkey) {
 								return;
 							}
 							console.log('[rx-nostr reactions timeline packet]', packet);
@@ -119,18 +109,9 @@
 							reject(error);
 						}
 					});
-				cancelCurrentRequest = {
-					targetPubkey,
-					cancel: () => {
-						cancelled = true;
-						subscription.unsubscribe();
-						resolve();
-					}
-				};
 			});
-			cancelCurrentRequest = undefined;
 
-			if (cancelled) {
+			if (data.pubkey !== targetPubkey) {
 				return;
 			}
 
@@ -157,4 +138,6 @@
 
 <ProfileTabs tab="reactions" {slug} />
 
-<TimelineView {items} {load} {showLoading} />
+{#key data.pubkey}
+	<TimelineView {items} {load} {showLoading} />
+{/key}
