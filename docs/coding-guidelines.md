@@ -4,11 +4,15 @@ These guidelines apply to `web/src`.
 
 ## Naming
 
-Use kebab-case for new files and directories.
+Use kebab-case for directories and non-component files.
 
-Framework- or tool-defined names are exempt and should follow their respective conventions.
+Use PascalCase for Svelte component files (`*.svelte`).
 
-Existing files and directories do not need to be renamed solely to comply with this convention.
+Svelte module files (`*.svelte.ts`) are not components and should use kebab-case.
+
+Framework- or tool-defined names are exempt and should follow their respective conventions, such as `+page.svelte`, `+layout.svelte`, and `hooks.server.ts`.
+
+Existing files and directories do not need to be renamed solely to comply with these conventions.
 
 ## Formatting
 
