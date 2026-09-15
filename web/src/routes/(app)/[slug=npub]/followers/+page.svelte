@@ -4,7 +4,7 @@
 	import { bufferWhen, interval } from 'rxjs';
 	import { _ } from 'svelte-i18n';
 	import TimelineView from '../../TimelineView.svelte';
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 	import { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
 	import { metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';

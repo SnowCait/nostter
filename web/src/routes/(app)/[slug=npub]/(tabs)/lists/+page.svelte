@@ -8,7 +8,8 @@
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { metadataStore } from '$lib/cache/Events';
 	import { getSeenOnRelays, metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
-	import { appName, reverseChronologicalItem } from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { reverseChronologicalItem } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
 	import { findIdentifier } from '$lib/nostr/protocol/event-address';
 	import { decryptListContent, getListTitle } from '$lib/List';

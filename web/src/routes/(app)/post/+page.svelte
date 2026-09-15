@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 	import NoteComposer from '$lib/components/composer/NoteComposer.svelte';
 
 	const contentParameter = page.url.searchParams.get('content');

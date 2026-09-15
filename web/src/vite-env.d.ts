@@ -1,5 +1,3 @@
-declare const __APP_NAME__: string;
-
 interface ViteTypeOptions {
 	strictImportMetaEnv: unknown;
 }

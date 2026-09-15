@@ -5,7 +5,7 @@
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
 	import { author, pubkey as authorPubkey } from '$lib/stores/Author';
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 	import { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
 	import { metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';

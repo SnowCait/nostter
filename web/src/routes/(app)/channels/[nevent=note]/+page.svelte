@@ -6,7 +6,7 @@
 	import { error } from '@sveltejs/kit';
 	import { page } from '$app/state';
 	import { afterNavigate } from '$app/navigation';
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 	import { cachedEvents, channelMetadataEventsStore } from '$lib/cache/Events';
 	import { ChannelChat } from './ChannelChat.svelte';
 	import { composerFocus } from './ComposerFocus.svelte';

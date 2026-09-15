@@ -1,6 +1,5 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
-import { name } from './package.json' with { type: 'json' };
 import { visualizer } from 'rollup-plugin-visualizer';
 
 // SvelteKit overrides build.cssMinify in its pre config hook, so reapply it afterward.
@@ -10,9 +9,6 @@ const esbuildCssMinifier = {
 };
 
 export default defineConfig({
-	define: {
-		__APP_NAME__: JSON.stringify(name)
-	},
 	build: {
 		minify: 'esbuild'
 	},

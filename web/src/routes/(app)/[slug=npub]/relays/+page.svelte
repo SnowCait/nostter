@@ -3,7 +3,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import type { LayoutData } from '../$types';
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 	import { Api } from '$lib/Api';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';

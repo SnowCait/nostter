@@ -5,7 +5,8 @@ import type { LayoutServerLoad } from './$types';
 import { metadataStore, storeMetadata } from '$lib/cache/Events';
 import { checkRestriction } from '$lib/server/Restriction';
 import { fetchMetadata } from '$lib/Api';
-import { appName, defaultRelays } from '$lib/Constants';
+import { appName } from '$lib/app';
+import { defaultRelays } from '$lib/Constants';
 import { User } from '$lib/User';
 
 type Data = {

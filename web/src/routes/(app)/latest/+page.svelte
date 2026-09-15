@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { appName, reverseChronologicalItem } from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { reverseChronologicalItem } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { lastNoteReqEmit } from '$lib/LastNotes';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';

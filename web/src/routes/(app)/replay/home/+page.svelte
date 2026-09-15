@@ -16,7 +16,8 @@
 		startedAt,
 		subscription
 	} from '$lib/timelines/ReplayHomeTimeline';
-	import { appName, reverseChronologicalItem } from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { reverseChronologicalItem } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { Timeline } from '$lib/Timeline';
 	import type { PageData } from './$types';

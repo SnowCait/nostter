@@ -7,7 +7,8 @@
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { metadataStore } from '$lib/cache/Events';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
-	import { appName, notesFilterKinds } from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { notesFilterKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { items, pubkey, since } from '$lib/timelines/DateTimeline';
 	import DateNavigation from './DateNavigation.svelte';

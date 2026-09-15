@@ -3,7 +3,8 @@ import { _, locale, waitLocale } from 'svelte-i18n';
 import { browser } from '$app/environment';
 import { initialize } from '$lib/i18n';
 import { rxNostr } from '$lib/timelines/MainTimeline';
-import { appName, defaultRelays, localizedRelays } from '$lib/Constants';
+import { appName } from '$lib/app';
+import { defaultRelays, localizedRelays } from '$lib/Constants';
 import type { LayoutLoad } from './$types';
 import { readRelays, writeRelays } from '$lib/stores/Author';
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 
 	function maskNsec(key: string, value: string): string {
 		return key === `${appName}:login` && value.startsWith('nsec1') ? 'nsec1***' : value;

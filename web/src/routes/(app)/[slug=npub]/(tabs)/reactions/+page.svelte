@@ -9,7 +9,8 @@
 	import { items } from '$lib/timelines/ReactionsTimeline.svelte';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { EventItem } from '$lib/Items';
-	import { appName, minTimelineLength } from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { minTimelineLength } from '$lib/Constants';
 	import type { LayoutProps } from '../$types';
 	import { page } from '$app/state';
 	import ProfileTabs from '../ProfileTabs.svelte';

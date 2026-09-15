@@ -7,7 +7,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import type { LayoutData } from '../$types';
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 	import { WebStorage } from '$lib/WebStorage';
 	import { EventItem } from '$lib/Items';
 	import { filterTags } from '$lib/EventHelper';
