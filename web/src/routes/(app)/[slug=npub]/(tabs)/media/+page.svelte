@@ -3,7 +3,8 @@
 	import type * as Nostr from 'nostr-typedef';
 	import { tap, filter } from 'rxjs';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { appName, minTimelineLength } from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { minTimelineLength } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import type { LayoutProps } from '../$types';

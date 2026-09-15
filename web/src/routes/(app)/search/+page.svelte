@@ -4,7 +4,8 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { parseSearchQuery, Search, searchScopes, type SearchScope } from '$lib/Search';
-	import { appName, minTimelineLength, searchRelays } from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { minTimelineLength, searchRelays } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';

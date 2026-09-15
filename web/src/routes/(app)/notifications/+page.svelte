@@ -6,7 +6,8 @@
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { referencesReqEmit, rxNostr, storeSeenOn, tie } from '$lib/timelines/MainTimeline';
-	import { appName, minTimelineLength, notificationsFilterKinds } from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { minTimelineLength, notificationsFilterKinds } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import { pubkey, author } from '$lib/stores/Author';

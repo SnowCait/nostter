@@ -6,7 +6,8 @@
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { EventItem } from '$lib/Items';
-	import { appName, minTimelineLength } from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { minTimelineLength } from '$lib/Constants';
 	import type { LayoutData } from './$types';
 	import TimelineView from '../../TimelineView.svelte';
 	import Relay from '$lib/components/items/Relay.svelte';

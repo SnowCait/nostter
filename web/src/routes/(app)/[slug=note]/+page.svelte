@@ -15,12 +15,8 @@
 	import { fetchEvent, inThread } from '$lib/Thread';
 	import { EventItem, Metadata, ZapEventItem } from '$lib/Items';
 	import ProfileIconList from './ProfileIconList.svelte';
-	import {
-		appName,
-		chronological,
-		chronologicalItem,
-		emojisetAddressRegexp
-	} from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { chronological, chronologicalItem, emojisetAddressRegexp } from '$lib/Constants';
 	import { onDestroy, onMount, tick, untrack } from 'svelte';
 	import CustomEmojiPopup from '$lib/components/content/CustomEmojiPopup.svelte';
 	import { IconBolt, IconHeart, IconHeartBroken, IconRepeat } from '@tabler/icons-svelte-runes';

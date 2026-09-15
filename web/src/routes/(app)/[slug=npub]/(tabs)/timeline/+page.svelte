@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { error } from '@sveltejs/kit';
 	import { afterNavigate } from '$app/navigation';
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 	import { User } from '$lib/User';
 	import UserFollowingTimeline from './UserFollowingTimeline.svelte';
 	import { page } from '$app/state';

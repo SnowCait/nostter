@@ -5,7 +5,7 @@
 	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { afterNavigate } from '$app/navigation';
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import type { PageData } from './$types';
 	import Content from '$lib/components/Content.svelte';

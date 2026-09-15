@@ -12,7 +12,8 @@
 		legacyBookmarkEvent
 	} from '$lib/author/Bookmark.svelte';
 	import { authorActionReqEmit } from '$lib/author/Action';
-	import { appName, reverseChronologicalItem } from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { reverseChronologicalItem } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
 	import { EventItem } from '$lib/Items';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';

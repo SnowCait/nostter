@@ -1,5 +1,5 @@
 import { _ } from 'svelte-i18n';
-import { appName } from '$lib/Constants';
+import { appName } from '$lib/app';
 import type { PageLoad } from './$types';
 import { get } from 'svelte/store';
 

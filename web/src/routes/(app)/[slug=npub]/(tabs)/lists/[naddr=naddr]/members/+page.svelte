@@ -3,7 +3,7 @@
 	import type * as Nostr from 'nostr-typedef';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 	import { fetchListEvent, getListPubkeys, getListTitle } from '$lib/List';
 	import { Metadata } from '$lib/Items';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';

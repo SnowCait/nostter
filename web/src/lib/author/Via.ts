@@ -1,4 +1,4 @@
-import { appName } from '$lib/Constants';
+import { appName } from '$lib/app';
 import { persistedStore } from '$lib/platform/storage/persisted-store';
 import { Handlerinformation } from 'nostr-tools/kinds';
 

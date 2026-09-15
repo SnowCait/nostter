@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
-	import { appName, emojiEditorUrl } from '$lib/Constants';
+	import { appName } from '$lib/app';
+	import { emojiEditorUrl } from '$lib/Constants';
 	import { decryptListContent } from '$lib/List';
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';

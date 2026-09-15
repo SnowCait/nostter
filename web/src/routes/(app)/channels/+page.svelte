@@ -12,7 +12,7 @@
 	import { findChannelId } from '$lib/nostr/protocol/nip28';
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 	import CreateChannelButton from '$lib/components/actions/CreateChannelButton.svelte';
 	import { share } from 'rxjs';
 	import { SvelteSet } from 'svelte/reactivity';

@@ -4,7 +4,7 @@
 	import Cropper from 'svelte-easy-crop';
 	import { goto } from '$app/navigation';
 	import { getMediaUploader } from '$lib/media/Uploader';
-	import { appName } from '$lib/Constants';
+	import { appName } from '$lib/app';
 	import { pubkey, author, authorProfile, metadataEvent } from '$lib/stores/Author';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
