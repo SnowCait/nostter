@@ -24,6 +24,7 @@
 	import { author, pubkey, rom } from '$lib/stores/Author';
 	import { customEmojiTags, findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
 	import { fetchFolloweesMetadata } from '$lib/author/Follow';
+	import EventComponent from '../items/EventComponent.svelte';
 	import Note from '../items/Note.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 	import MediaPicker from '../MediaPicker.svelte';
@@ -751,7 +752,7 @@
 	{/if}
 	{#if quotes.length > 0}
 		{#each quotes as quote}
-			<Note item={new EventItem(quote)} readonly={true} />
+			<EventComponent item={new EventItem(quote)} readonly={true} />
 		{/each}
 	{/if}
 	{#if localAttachments.uploading}
