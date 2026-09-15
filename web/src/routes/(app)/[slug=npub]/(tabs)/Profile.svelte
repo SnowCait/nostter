@@ -4,7 +4,6 @@
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
-	import { newUrl } from '$lib/Helper';
 	import { type Metadata, alternativeName } from '$lib/Items';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
@@ -39,7 +38,7 @@
 	let followees: string[] | undefined = $state();
 
 	let user = $derived(metadata?.content);
-	let url = $derived(user?.website ? newUrl(user.website) : undefined);
+	let url = $derived(user?.website ? URL.parse(user.website) : null);
 
 	$effect(() => {
 		if (p === pubkey) {
