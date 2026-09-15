@@ -15,8 +15,10 @@
 	import List from './List.svelte';
 	import LegacyDirectMessage from './LegacyDirectMessage.svelte';
 	import Picture from './Picture.svelte';
+	import PodcastEpisode from '$lib/features/podcasts/presentation/PodcastEpisode.svelte';
 	import Poll from './Poll.svelte';
 	import { pollKind } from '$lib/Poll';
+	import { podcastEpisodeKind } from '$lib/nostr/protocol/nipf4';
 	import Highlight from './Highlight.svelte';
 	import { getContext, setContext } from 'svelte';
 	import type * as Nostr from 'nostr-typedef';
@@ -47,6 +49,8 @@
 	<BadgeAward {item} {readonly} {createdAtFormat} />
 {:else if Number(item.event.kind) === 20}
 	<Picture {item} {readonly} {createdAtFormat} />
+{:else if Number(item.event.kind) === podcastEpisodeKind}
+	<PodcastEpisode {item} {readonly} {createdAtFormat} {full} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
 	<Channel {item} />
 {:else if Number(item.event.kind) === pollKind}

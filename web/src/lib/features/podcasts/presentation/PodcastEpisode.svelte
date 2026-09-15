@@ -1,0 +1,241 @@
+<script lang="ts">
+	import type { EventItem, Item } from '$lib/Items';
+	import { loadPodcastMetadata } from '$lib/features/podcasts/application/load-podcast-metadata';
+	import { parsePodcastEpisode, type PodcastMetadata } from '$lib/nostr/protocol/nipf4';
+	import { isAudioResourceUrl, isImageResourceUrl } from '$lib/platform/browser/resource-url';
+	import { isHttpUrl } from '$lib/url';
+	import ActionMenu from '$lib/components/actions/ActionMenu.svelte';
+	import Content from '$lib/components/Content.svelte';
+	import EventMetadata from '$lib/components/EventMetadata.svelte';
+	import ExternalLink from '$lib/components/ExternalLink.svelte';
+	import Foldable from '$lib/components/shared/Foldable.svelte';
+
+	interface Props {
+		item: Item;
+		readonly: boolean;
+		createdAtFormat?: 'auto' | 'time';
+		full?: boolean;
+	}
+
+	let { item, readonly, createdAtFormat = 'auto', full = false }: Props = $props();
+
+	let eventItem = $derived(item as EventItem);
+	let episode = $derived(parsePodcastEpisode(item.event));
+	let podcastMetadata: PodcastMetadata | undefined = $state();
+	let image = $derived.by(() => {
+		if (episode.image !== undefined && isImageResourceUrl(episode.image)) {
+			return episode.image.href;
+		}
+
+		return podcastMetadata?.image !== undefined && isImageResourceUrl(podcastMetadata.image)
+			? podcastMetadata.image.href
+			: undefined;
+	});
+	let audioSources = $derived(episode.audio.filter((audio) => isAudioResourceUrl(audio.url)));
+	let websites = $derived(
+		(podcastMetadata?.websites ?? []).filter((website) => isHttpUrl(website))
+	);
+
+	$effect(() => {
+		const episodeEvent = item.event;
+		let active = true;
+
+		podcastMetadata = undefined;
+		void loadPodcastMetadata(episodeEvent).then((metadata) => {
+			if (active) {
+				podcastMetadata = metadata;
+			}
+		});
+
+		return () => {
+			active = false;
+		};
+	});
+</script>
+
+<EventMetadata {item} {createdAtFormat}>
+	{#snippet content()}
+		<section class="podcast-episode">
+			{#if image !== undefined || episode.title !== undefined || podcastMetadata?.title !== undefined || websites.length > 0}
+				<header class="episode-header">
+					{#if image !== undefined}
+						<img
+							class="cover"
+							src={image}
+							alt={episode.title ?? podcastMetadata?.title ?? ''}
+							loading="lazy"
+						/>
+					{/if}
+					<div class="episode-heading">
+						{#if episode.title !== undefined}
+							<h2 class:compact={!full}>{episode.title}</h2>
+						{/if}
+						{#if podcastMetadata?.title !== undefined}
+							<p class="podcast-title" class:compact={!full}>
+								{podcastMetadata.title}
+							</p>
+						{/if}
+						{#if websites.length > 0}
+							<div class="websites">
+								{#each websites as website}
+									<ExternalLink link={website} />
+								{/each}
+							</div>
+						{/if}
+					</div>
+				</header>
+			{/if}
+			{#if episode.description !== undefined}
+				<p class="description" class:compact={!full}>{episode.description}</p>
+			{/if}
+			{#each audioSources as audio}
+				<audio controls preload="metadata">
+					<source src={audio.url.href} type={audio.mediaType} />
+				</audio>
+			{/each}
+			{#if episode.content !== ''}
+				<Foldable maxHeightRem={30} enabled={!full}>
+					<div class="content">
+						<Content content={episode.content} tags={item.event.tags} />
+					</div>
+				</Foldable>
+			{/if}
+			{#if !readonly}
+				<ActionMenu item={eventItem} />
+			{/if}
+		</section>
+	{/snippet}
+</EventMetadata>
+
+<style>
+	.podcast-episode {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		min-width: 0;
+		margin-top: 0.5rem;
+	}
+
+	.episode-header {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.875rem;
+		min-width: 0;
+	}
+
+	.cover {
+		width: 7.5rem;
+		height: 7.5rem;
+		flex: 0 0 7.5rem;
+		border-radius: var(--radius);
+		object-fit: cover;
+	}
+
+	.episode-heading {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: 0.375rem;
+		min-width: 0;
+		padding-block: 0.125rem;
+	}
+
+	h2,
+	p {
+		margin: 0;
+	}
+
+	h2 {
+		font-size: 1.25rem;
+		line-height: 1.3;
+		overflow-wrap: anywhere;
+	}
+
+	h2.compact,
+	.description.compact {
+		display: -webkit-box;
+		overflow: hidden;
+		-webkit-box-orient: vertical;
+	}
+
+	h2.compact {
+		line-clamp: 2;
+		-webkit-line-clamp: 2;
+	}
+
+	.podcast-title {
+		color: var(--accent-gray);
+		font-size: 0.9rem;
+		font-weight: 600;
+		line-height: 1.4;
+		overflow-wrap: anywhere;
+	}
+
+	.podcast-title.compact {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	audio {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.description {
+		white-space: pre-line;
+		overflow-wrap: anywhere;
+	}
+
+	.description.compact {
+		line-clamp: 3;
+		-webkit-line-clamp: 3;
+	}
+
+	.content {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.content :global(blockquote),
+	.content :global(iframe) {
+		max-width: 100%;
+	}
+
+	.content :global(iframe) {
+		display: block;
+	}
+
+	.websites {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.125rem;
+		font-size: 0.8rem;
+		line-height: 1.3;
+		max-width: 100%;
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.websites :global(a) {
+		max-width: 100%;
+		overflow-wrap: anywhere;
+	}
+
+	@media (max-width: 480px) {
+		.episode-header {
+			gap: 0.75rem;
+		}
+
+		.cover {
+			width: 5.75rem;
+			height: 5.75rem;
+			flex-basis: 5.75rem;
+		}
+
+		h2 {
+			font-size: 1.05rem;
+		}
+	}
+</style>
