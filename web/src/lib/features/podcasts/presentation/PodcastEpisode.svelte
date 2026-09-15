@@ -1,19 +1,14 @@
 <script lang="ts">
 	import type { EventItem, Item } from '$lib/Items';
-	import { fetchLastEvent } from '$lib/RxNostrHelper';
-	import {
-		parsePodcastEpisode,
-		parsePodcastMetadata,
-		podcastMetadataKind,
-		type PodcastMetadata
-	} from '$lib/nostr/protocol/nipf4';
-	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
-	import { isAudioResourceUrl, isHttpUrl, isImageResourceUrl } from '$lib/url';
-	import ActionMenu from '../actions/ActionMenu.svelte';
-	import Content from '../Content.svelte';
-	import EventMetadata from '../EventMetadata.svelte';
-	import ExternalLink from '../ExternalLink.svelte';
-	import Foldable from '../shared/Foldable.svelte';
+	import { loadPodcastMetadata } from '$lib/features/podcasts/application/load-podcast-metadata';
+	import { parsePodcastEpisode, type PodcastMetadata } from '$lib/nostr/protocol/nipf4';
+	import { isAudioResourceUrl, isImageResourceUrl } from '$lib/platform/browser/resource-url';
+	import { isHttpUrl } from '$lib/url';
+	import ActionMenu from '$lib/components/actions/ActionMenu.svelte';
+	import Content from '$lib/components/Content.svelte';
+	import EventMetadata from '$lib/components/EventMetadata.svelte';
+	import ExternalLink from '$lib/components/ExternalLink.svelte';
+	import Foldable from '$lib/components/shared/Foldable.svelte';
 
 	interface Props {
 		item: Item;
@@ -42,17 +37,13 @@
 	);
 
 	$effect(() => {
-		const pubkey = item.event.pubkey;
-		const relays = getSeenOnRelays(item.event.id);
+		const episodeEvent = item.event;
 		let active = true;
 
 		podcastMetadata = undefined;
-		void fetchLastEvent(
-			{ kinds: [podcastMetadataKind], authors: [pubkey], limit: 1 },
-			{ defaultReadRelays: true, relays }
-		).then((event) => {
+		void loadPodcastMetadata(episodeEvent).then((metadata) => {
 			if (active) {
-				podcastMetadata = event === undefined ? undefined : parsePodcastMetadata(event);
+				podcastMetadata = metadata;
 			}
 		});
 

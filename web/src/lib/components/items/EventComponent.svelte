@@ -15,7 +15,7 @@
 	import List from './List.svelte';
 	import LegacyDirectMessage from './LegacyDirectMessage.svelte';
 	import Picture from './Picture.svelte';
-	import PodcastEpisode from './PodcastEpisode.svelte';
+	import PodcastEpisode from '$lib/features/podcasts/presentation/PodcastEpisode.svelte';
 	import Poll from './Poll.svelte';
 	import { pollKind } from '$lib/Poll';
 	import { podcastEpisodeKind } from '$lib/nostr/protocol/nipf4';
