@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { newUrl } from '$lib/Helper';
 import { isAudioResourceUrl, isImageResourceUrl } from './resource-url';
 
 function isAllowedResourceUrl(value: string, isAllowed: (url: URL) => boolean): boolean {
-	const url = newUrl(value);
-	return url !== undefined && isAllowed(url);
+	const url = URL.parse(value);
+	return url !== null && isAllowed(url);
 }
 
 describe('isImageResourceUrl', () => {

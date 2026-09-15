@@ -53,7 +53,6 @@
 
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { newUrl } from '$lib/Helper';
 	import { SoundCloud } from '$lib/SoundCloud';
 	import { Spotify } from '$lib/Spotify';
 	import { Twitter } from '$lib/Twitter';
@@ -76,7 +75,7 @@
 
 	let { text, url = undefined, urls = [] }: Props = $props();
 
-	let link = $derived(newUrl(url ?? text));
+	let link = $derived(URL.parse(url ?? text));
 	let mediaKind = $derived(mediaKindFromPathname(link?.pathname ?? ''));
 	let imageUrls = $derived(
 		urls.filter(
@@ -123,7 +122,7 @@
 	{/if}
 {/snippet}
 
-{#if link === undefined}
+{#if link === null}
 	<Text {text} />
 {:else if link.protocol === 'http:'}
 	<ExternalLink {link} />

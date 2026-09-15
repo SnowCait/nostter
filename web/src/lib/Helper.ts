@@ -1,9 +1,6 @@
 export const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-export const newUrl = (url: string): URL | undefined =>
-	URL.canParse(url) ? new URL(url) : undefined;
-
-export const hostname = (url: string): string => newUrl(url)?.hostname ?? url;
+export const hostname = (url: string): string => URL.parse(url)?.hostname ?? url;
 
 export const fetchMinutes = (numberOfPubkeys: number): number => {
 	if (numberOfPubkeys < 10) {

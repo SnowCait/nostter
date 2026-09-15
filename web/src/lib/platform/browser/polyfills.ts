@@ -9,6 +9,16 @@ if (!URL.canParse) {
 	};
 }
 
+if (!URL.parse) {
+	URL.parse = (url: string | URL, base?: string | URL): URL | null => {
+		try {
+			return new URL(url, base);
+		} catch {
+			return null;
+		}
+	};
+}
+
 if (!Promise.withResolvers) {
 	Promise.withResolvers = function <T>(this: PromiseConstructor): PromiseWithResolvers<T> {
 		let resolve!: (value: T | PromiseLike<T>) => void;

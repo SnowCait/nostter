@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const canParseDescriptor = Object.getOwnPropertyDescriptor(URL, 'canParse');
+const parseDescriptor = Object.getOwnPropertyDescriptor(URL, 'parse');
 const withResolversDescriptor = Object.getOwnPropertyDescriptor(Promise, 'withResolvers');
 
 describe('browser polyfills', () => {
@@ -14,6 +15,11 @@ describe('browser polyfills', () => {
 		} else {
 			Reflect.deleteProperty(URL, 'canParse');
 		}
+		if (parseDescriptor) {
+			Object.defineProperty(URL, 'parse', parseDescriptor);
+		} else {
+			Reflect.deleteProperty(URL, 'parse');
+		}
 		if (withResolversDescriptor) {
 			Object.defineProperty(Promise, 'withResolvers', withResolversDescriptor);
 		} else {
@@ -23,8 +29,10 @@ describe('browser polyfills', () => {
 
 	it('does not replace native implementations', async () => {
 		const canParse = vi.fn(() => true);
+		const parse = vi.fn();
 		const withResolvers = vi.fn();
 		Object.defineProperty(URL, 'canParse', { configurable: true, value: canParse });
+		Object.defineProperty(URL, 'parse', { configurable: true, value: parse });
 		Object.defineProperty(Promise, 'withResolvers', {
 			configurable: true,
 			value: withResolvers
@@ -33,6 +41,7 @@ describe('browser polyfills', () => {
 		await import('./polyfills');
 
 		expect(URL.canParse).toBe(canParse);
+		expect(URL.parse).toBe(parse);
 		expect(Promise.withResolvers).toBe(withResolvers);
 	});
 
@@ -44,6 +53,18 @@ describe('browser polyfills', () => {
 		expect(URL.canParse('https://example.com/path')).toBe(true);
 		expect(URL.canParse('/path', 'https://example.com')).toBe(true);
 		expect(URL.canParse('/path')).toBe(false);
+	});
+
+	it('adds URL.parse with its standard behavior', async () => {
+		Reflect.deleteProperty(URL, 'parse');
+
+		await import('./polyfills');
+
+		expect(URL.parse('https://example.com/path')?.href).toBe('https://example.com/path');
+		expect(URL.parse('/path', 'https://example.com/base')?.href).toBe(
+			'https://example.com/path'
+		);
+		expect(URL.parse('/path')).toBeNull();
 	});
 
 	it('adds a resolving Promise.withResolvers', async () => {
