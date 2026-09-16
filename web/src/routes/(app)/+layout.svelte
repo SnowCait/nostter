@@ -210,7 +210,7 @@
 
 	@media screen and (max-width: 926px) {
 		.app {
-			max-width: calc(926px - (220px - 2.25rem));
+			max-width: 744px;
 			gap: 1.5rem;
 			grid-template-columns: 3.125rem minmax(0, 1fr);
 		}

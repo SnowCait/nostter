@@ -493,7 +493,7 @@
 		border: 0.18rem solid var(--accent);
 	}
 
-	@media screen and (max-width: 928px) {
+	@media screen and (max-width: 926px) {
 		.header {
 			display: flex;
 			flex-direction: column;
