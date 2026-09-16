@@ -182,13 +182,15 @@
 	}
 
 	header {
-		position: fixed;
+		grid-column: 1 / 2;
+		position: sticky;
+		top: 0.5rem;
+		align-self: start;
 		max-width: 220px;
 		width: 100%;
-		height: 100%;
+		height: calc(100vh - 0.5rem);
 		z-index: 3;
 		overflow-y: auto;
-		margin-top: 0.5rem;
 	}
 
 	main {
@@ -229,6 +231,11 @@
 
 		header {
 			width: 0;
+			position: fixed;
+			top: auto;
+			align-self: auto;
+			height: 100%;
+			margin-top: 0.5rem;
 		}
 
 		main {
