@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import ZapButton from '$lib/components/ZapButton.svelte';
+	import { gitSha } from '$lib/build';
 </script>
 
 <h1>{$_('about.title')}</h1>
@@ -30,6 +31,20 @@
 		<span>Illustration:</span>
 		<a href="/npub1e09suzmq9mp6nt0ud9ttl03790qjx70wzwlc2pwwghcusvwju54qs0c800">@stok33</a>
 		<ZapButton pubkey="cbcb0e0b602ec3a9adfc6956bfbe3e2bc12379ee13bf8505ce45f1c831d2e52a" />
+	</div>
+	<div>
+		<span>Build:</span>
+		{#if gitSha}
+			<a
+				href={`https://github.com/SnowCait/nostter/commit/${gitSha}`}
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				{gitSha.slice(0, 7)}
+			</a>
+		{:else}
+			-
+		{/if}
 	</div>
 	<img
 		src="https://nostpic.com/media/83d52b4363d2d1bc5a098de7be67c120bfb7c0cee8efefd8eb6e42372af24689/2d4a1909792c29dbecb225735d9509161bb0eeae1ce943f10c56e0b27ae30829.webp"
