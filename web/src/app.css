@@ -16,6 +16,7 @@ html {
 	word-break: normal;
 	-moz-tab-size: 4;
 	tab-size: 4;
+	scrollbar-gutter: stable;
 }
 
 *,
