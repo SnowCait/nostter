@@ -3,16 +3,21 @@
 		IconBell,
 		IconBellFilled,
 		IconBookmark,
+		IconBookmarkFilled,
 		IconDots,
 		IconDotsFilled,
 		IconHome,
 		IconHomeFilled,
 		IconList,
+		IconListFilled,
 		IconMessages,
+		IconMessagesFilled,
 		IconPaw,
+		IconPawFilled,
 		IconSearch,
 		IconSearchFilled,
 		IconSettings,
+		IconSettingsFilled,
 		IconUser,
 		IconUserFilled,
 		IconWorld,
@@ -56,7 +61,18 @@
 	let NotificationsIcon = $derived(
 		currentNavigation === 'notifications' ? IconBellFilled : IconBell
 	);
+	let ListsIcon = $derived(currentNavigation === 'lists' ? IconListFilled : IconList);
+	let BookmarksIcon = $derived(
+		currentNavigation === 'bookmarks' ? IconBookmarkFilled : IconBookmark
+	);
+	let ChannelsIcon = $derived(
+		currentNavigation === 'channels' ? IconMessagesFilled : IconMessages
+	);
 	let ProfileIcon = $derived(currentNavigation === 'profile' ? IconUserFilled : IconUser);
+	let PreferencesIcon = $derived(
+		currentNavigation === 'preferences' ? IconSettingsFilled : IconSettings
+	);
+	let AboutIcon = $derived(currentNavigation === 'about' ? IconPawFilled : IconPaw);
 	let MoreIcon = $derived(moreNavigationCurrent ? IconDotsFilled : IconDots);
 </script>
 
@@ -138,7 +154,7 @@
 					onclick={async () => await goto(`/${nprofile}/lists`)}
 					class="item"
 				>
-					<div class="icon"><IconList /></div>
+					<div class="icon"><ListsIcon /></div>
 					<div>{$_('lists.title')}</div>
 				</div>
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -148,25 +164,25 @@
 					onclick={async () => await goto(`/${nprofile}/bookmarks`)}
 					class="item"
 				>
-					<div class="icon"><IconBookmark /></div>
+					<div class="icon"><BookmarksIcon /></div>
 					<div>{$_('layout.header.bookmarks')}</div>
 				</div>
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div use:melt={$item} onclick={async () => await goto('/channels')} class="item">
-					<div class="icon"><IconMessages /></div>
+					<div class="icon"><ChannelsIcon /></div>
 					<div>{$_('layout.header.channels')}</div>
 				</div>
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div use:melt={$item} onclick={async () => await goto('/preferences')} class="item">
-					<div class="icon"><IconSettings /></div>
+					<div class="icon"><PreferencesIcon /></div>
 					<div>{$_('layout.header.preferences')}</div>
 				</div>
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div use:melt={$item} onclick={async () => await goto('/about')} class="item">
-					<div class="icon"><IconPaw /></div>
+					<div class="icon"><AboutIcon /></div>
 					<div>{$_('about.title')}</div>
 				</div>
 			</div>
@@ -178,7 +194,7 @@
 				class="active"
 				aria-current={currentNavigation === 'channels' ? 'page' : undefined}
 			>
-				<IconMessages size={30} />
+				<ChannelsIcon size={30} />
 				<p>{$_('layout.header.channels')}</p>
 			</a>
 		</li>
@@ -188,7 +204,7 @@
 				class="active"
 				aria-current={currentNavigation === 'about' ? 'page' : undefined}
 			>
-				<IconPaw size={30} />
+				<AboutIcon size={30} />
 				<p>{$_('about.title')}</p>
 			</a>
 		</li>
