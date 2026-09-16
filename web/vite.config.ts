@@ -12,6 +12,9 @@ export default defineConfig({
 	build: {
 		minify: 'esbuild'
 	},
+	define: {
+		__GIT_SHA__: JSON.stringify(process.env.WORKERS_CI_COMMIT_SHA ?? '')
+	},
 	plugins: [
 		sveltekit(),
 		esbuildCssMinifier,
