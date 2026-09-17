@@ -26,7 +26,11 @@
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
-	import { isMoreNavigationCurrent, type AppNavigationItem } from './app-navigation';
+	import {
+		getAppNavigationHref,
+		isMoreNavigationCurrent,
+		type AppNavigationItem
+	} from './app-navigation';
 
 	interface Props {
 		pubkey: string | undefined;
@@ -79,7 +83,7 @@
 <ul class="fold">
 	<li>
 		<a
-			href={homeLink}
+			href={getAppNavigationHref('home', { homeLink, nprofile })}
 			class="active"
 			onclick={onClickHomeLink}
 			aria-current={currentNavigation === 'home' ? 'page' : undefined}
@@ -91,7 +95,7 @@
 	{#if !pubkey}
 		<li>
 			<a
-				href="/public"
+				href={getAppNavigationHref('public', { homeLink, nprofile })}
 				class="active"
 				onclick={onClickPublicLink}
 				aria-current={currentNavigation === 'public' ? 'page' : undefined}
@@ -103,7 +107,7 @@
 	{/if}
 	<li>
 		<a
-			href="/search"
+			href={getAppNavigationHref('search', { homeLink, nprofile })}
 			class="active"
 			aria-current={currentNavigation === 'search' ? 'page' : undefined}
 		>
@@ -114,7 +118,7 @@
 	{#if pubkey}
 		<li class="notifications-icon">
 			<a
-				href="/notifications"
+				href={getAppNavigationHref('notifications', { homeLink, nprofile })}
 				class="active"
 				aria-current={currentNavigation === 'notifications' ? 'page' : undefined}
 			>
@@ -127,7 +131,7 @@
 		</li>
 		<li>
 			<a
-				href="/{nprofile}"
+				href={getAppNavigationHref('profile', { homeLink, nprofile })}
 				class="active"
 				aria-current={currentNavigation === 'profile' ? 'page' : undefined}
 			>
@@ -151,7 +155,8 @@
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
 					use:melt={$item}
-					onclick={async () => await goto(`/${nprofile}/lists`)}
+					onclick={async () =>
+						await goto(getAppNavigationHref('lists', { homeLink, nprofile }))}
 					class="item"
 				>
 					<div class="icon"><ListsIcon /></div>
@@ -161,7 +166,8 @@
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
 					use:melt={$item}
-					onclick={async () => await goto(`/${nprofile}/bookmarks`)}
+					onclick={async () =>
+						await goto(getAppNavigationHref('bookmarks', { homeLink, nprofile }))}
 					class="item"
 				>
 					<div class="icon"><BookmarksIcon /></div>
@@ -169,19 +175,34 @@
 				</div>
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div use:melt={$item} onclick={async () => await goto('/channels')} class="item">
+				<div
+					use:melt={$item}
+					onclick={async () =>
+						await goto(getAppNavigationHref('channels', { homeLink, nprofile }))}
+					class="item"
+				>
 					<div class="icon"><ChannelsIcon /></div>
 					<div>{$_('layout.header.channels')}</div>
 				</div>
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div use:melt={$item} onclick={async () => await goto('/preferences')} class="item">
+				<div
+					use:melt={$item}
+					onclick={async () =>
+						await goto(getAppNavigationHref('preferences', { homeLink, nprofile }))}
+					class="item"
+				>
 					<div class="icon"><PreferencesIcon /></div>
 					<div>{$_('layout.header.preferences')}</div>
 				</div>
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div use:melt={$item} onclick={async () => await goto('/about')} class="item">
+				<div
+					use:melt={$item}
+					onclick={async () =>
+						await goto(getAppNavigationHref('about', { homeLink, nprofile }))}
+					class="item"
+				>
 					<div class="icon"><AboutIcon /></div>
 					<div>{$_('about.title')}</div>
 				</div>
@@ -190,7 +211,7 @@
 	{:else}
 		<li>
 			<a
-				href="/channels"
+				href={getAppNavigationHref('channels', { homeLink, nprofile })}
 				class="active"
 				aria-current={currentNavigation === 'channels' ? 'page' : undefined}
 			>
@@ -200,7 +221,7 @@
 		</li>
 		<li>
 			<a
-				href="/about"
+				href={getAppNavigationHref('about', { homeLink, nprofile })}
 				class="active"
 				aria-current={currentNavigation === 'about' ? 'page' : undefined}
 			>

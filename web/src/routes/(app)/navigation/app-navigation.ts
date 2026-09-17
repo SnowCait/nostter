@@ -13,6 +13,45 @@ export const appNavigationItems = [
 
 export type AppNavigationItem = (typeof appNavigationItems)[number];
 
+export interface AppNavigationHrefOptions {
+	homeLink: string;
+	nprofile: string;
+}
+
+function assertUnreachableNavigationItem(item: never): never {
+	throw new Error(`Unhandled app navigation item: ${item}`);
+}
+
+export function getAppNavigationHref(
+	item: AppNavigationItem,
+	{ homeLink, nprofile }: AppNavigationHrefOptions
+): string {
+	switch (item) {
+		case 'home':
+			return homeLink;
+		case 'public':
+			return '/public';
+		case 'search':
+			return '/search';
+		case 'notifications':
+			return '/notifications';
+		case 'lists':
+			return `/${nprofile}/lists`;
+		case 'bookmarks':
+			return `/${nprofile}/bookmarks`;
+		case 'channels':
+			return '/channels';
+		case 'profile':
+			return `/${nprofile}`;
+		case 'preferences':
+			return '/preferences';
+		case 'about':
+			return '/about';
+		default:
+			return assertUnreachableNavigationItem(item);
+	}
+}
+
 const profileRoute = '/(app)/[slug=npub]';
 const listsRoute = `${profileRoute}/(tabs)/lists`;
 const bookmarksRoute = `${profileRoute}/bookmarks`;

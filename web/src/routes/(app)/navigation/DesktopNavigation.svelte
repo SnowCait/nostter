@@ -22,7 +22,7 @@
 		IconWorldFilled
 	} from '@tabler/icons-svelte-runes';
 	import { _ } from 'svelte-i18n';
-	import type { AppNavigationItem } from './app-navigation';
+	import { getAppNavigationHref, type AppNavigationItem } from './app-navigation';
 
 	interface Props {
 		pubkey: string | undefined;
@@ -67,7 +67,7 @@
 <ul class="full">
 	<li class="clickable">
 		<a
-			href={homeLink}
+			href={getAppNavigationHref('home', { homeLink, nprofile })}
 			onclick={onClickHomeLink}
 			aria-current={currentNavigation === 'home' ? 'page' : undefined}
 		>
@@ -77,7 +77,7 @@
 	</li>
 	<li class="clickable">
 		<a
-			href="/public"
+			href={getAppNavigationHref('public', { homeLink, nprofile })}
 			onclick={onClickPublicLink}
 			aria-current={currentNavigation === 'public' ? 'page' : undefined}
 		>
@@ -86,7 +86,10 @@
 		</a>
 	</li>
 	<li class="clickable">
-		<a href="/search" aria-current={currentNavigation === 'search' ? 'page' : undefined}>
+		<a
+			href={getAppNavigationHref('search', { homeLink, nprofile })}
+			aria-current={currentNavigation === 'search' ? 'page' : undefined}
+		>
 			<SearchIcon size={30} />
 			<p>{$_('layout.header.search')}</p>
 		</a>
@@ -94,7 +97,7 @@
 	{#if pubkey}
 		<li class="clickable notifications-icon">
 			<a
-				href="/notifications"
+				href={getAppNavigationHref('notifications', { homeLink, nprofile })}
 				aria-current={currentNavigation === 'notifications' ? 'page' : undefined}
 			>
 				<NotificationsIcon size={30} />
@@ -106,7 +109,7 @@
 		</li>
 		<li class="clickable">
 			<a
-				href="/{nprofile}/lists"
+				href={getAppNavigationHref('lists', { homeLink, nprofile })}
 				aria-current={currentNavigation === 'lists' ? 'page' : undefined}
 			>
 				<ListsIcon size={30} />
@@ -115,7 +118,7 @@
 		</li>
 		<li class="clickable">
 			<a
-				href="/{nprofile}/bookmarks"
+				href={getAppNavigationHref('bookmarks', { homeLink, nprofile })}
 				aria-current={currentNavigation === 'bookmarks' ? 'page' : undefined}
 			>
 				<BookmarksIcon size={30} />
@@ -124,7 +127,10 @@
 		</li>
 	{/if}
 	<li class="clickable">
-		<a href="/channels" aria-current={currentNavigation === 'channels' ? 'page' : undefined}>
+		<a
+			href={getAppNavigationHref('channels', { homeLink, nprofile })}
+			aria-current={currentNavigation === 'channels' ? 'page' : undefined}
+		>
 			<ChannelsIcon size={30} />
 			<p>{$_('layout.header.channels')}</p>
 		</a>
@@ -132,7 +138,7 @@
 	{#if pubkey}
 		<li class="clickable">
 			<a
-				href="/{nprofile}"
+				href={getAppNavigationHref('profile', { homeLink, nprofile })}
 				aria-current={currentNavigation === 'profile' ? 'page' : undefined}
 			>
 				<ProfileIcon size={30} />
@@ -141,7 +147,7 @@
 		</li>
 		<li class="clickable">
 			<a
-				href="/preferences"
+				href={getAppNavigationHref('preferences', { homeLink, nprofile })}
 				aria-current={currentNavigation === 'preferences' ? 'page' : undefined}
 			>
 				<PreferencesIcon size={30} />
@@ -150,7 +156,10 @@
 		</li>
 	{/if}
 	<li class="clickable">
-		<a href="/about" aria-current={currentNavigation === 'about' ? 'page' : undefined}>
+		<a
+			href={getAppNavigationHref('about', { homeLink, nprofile })}
+			aria-current={currentNavigation === 'about' ? 'page' : undefined}
+		>
 			<AboutIcon size={30} />
 			<p>{$_('about.title')}</p>
 		</a>

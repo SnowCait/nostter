@@ -1,8 +1,57 @@
 import { describe, expect, it } from 'vitest';
-import { getCurrentAppNavigation, isMoreNavigationCurrent } from './app-navigation';
+import {
+	appNavigationItems,
+	getAppNavigationHref,
+	getCurrentAppNavigation,
+	isMoreNavigationCurrent
+} from './app-navigation';
 
 const userPubkey = 'user';
 const otherPubkey = 'other';
+const navigationHrefOptions = {
+	homeLink: '/home',
+	nprofile: 'nprofile1user'
+};
+
+describe('getAppNavigationHref', () => {
+	it.each([
+		['home', '/home'],
+		['public', '/public'],
+		['search', '/search'],
+		['notifications', '/notifications'],
+		['lists', '/nprofile1user/lists'],
+		['bookmarks', '/nprofile1user/bookmarks'],
+		['channels', '/channels'],
+		['profile', '/nprofile1user'],
+		['preferences', '/preferences'],
+		['about', '/about']
+	] as const)('returns %s for %s', (item, expected) => {
+		expect(getAppNavigationHref(item, navigationHrefOptions)).toBe(expected);
+	});
+
+	it('returns an href for every AppNavigationItem', () => {
+		expect(
+			appNavigationItems.map((item) => getAppNavigationHref(item, navigationHrefOptions))
+		).toEqual([
+			'/home',
+			'/public',
+			'/search',
+			'/notifications',
+			'/nprofile1user/lists',
+			'/nprofile1user/bookmarks',
+			'/channels',
+			'/nprofile1user',
+			'/preferences',
+			'/about'
+		]);
+	});
+
+	it('uses the supplied Home link', () => {
+		expect(
+			getAppNavigationHref('home', { ...navigationHrefOptions, homeLink: '/public' })
+		).toBe('/public');
+	});
+});
 
 describe('getCurrentAppNavigation', () => {
 	it.each([

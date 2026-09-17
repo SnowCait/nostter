@@ -14,7 +14,7 @@
 	import { requestTimelineScrollToTop } from '$lib/timelines/ScrollToTop';
 	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
 	import DesktopNavigation from './navigation/DesktopNavigation.svelte';
-	import { getCurrentAppNavigation } from './navigation/app-navigation';
+	import { getAppNavigationHref, getCurrentAppNavigation } from './navigation/app-navigation';
 	import MobileNavigation from './navigation/MobileNavigation.svelte';
 	const openNoteDialog = getOpenNoteDialog();
 
@@ -44,15 +44,20 @@
 	}
 
 	function onClickPublicLink(event: MouseEvent): void {
-		requestTimelineScrollToTopForCurrentLink(event, '/public');
+		requestTimelineScrollToTopForCurrentLink(
+			event,
+			getAppNavigationHref('public', { homeLink, nprofile })
+		);
 	}
 
 	async function onClickPublicMenuItem(event: MouseEvent): Promise<void> {
-		if (requestTimelineScrollToTopForCurrentLink(event, '/public')) {
+		const publicHref = getAppNavigationHref('public', { homeLink, nprofile });
+
+		if (requestTimelineScrollToTopForCurrentLink(event, publicHref)) {
 			return;
 		}
 
-		await goto('/public');
+		await goto(publicHref);
 	}
 
 	let homeLink = $derived(
