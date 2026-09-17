@@ -1,4 +1,4 @@
-export const headerNavigationItems = [
+export const appNavigationItems = [
 	'home',
 	'public',
 	'search',
@@ -11,7 +11,7 @@ export const headerNavigationItems = [
 	'about'
 ] as const;
 
-export type HeaderNavigationItem = (typeof headerNavigationItems)[number];
+export type AppNavigationItem = (typeof appNavigationItems)[number];
 
 const profileRoute = '/(app)/[slug=npub]';
 const listsRoute = `${profileRoute}/(tabs)/lists`;
@@ -21,11 +21,11 @@ function isRouteOrChild(routeId: string, route: string): boolean {
 	return routeId === route || routeId.startsWith(`${route}/`);
 }
 
-export function getCurrentHeaderNavigation(
+export function getCurrentAppNavigation(
 	routeId: string | null,
 	pagePubkey: string | undefined,
 	userPubkey: string | undefined
-): HeaderNavigationItem | undefined {
+): AppNavigationItem | undefined {
 	if (routeId === null) {
 		return undefined;
 	}
@@ -52,7 +52,7 @@ export function getCurrentHeaderNavigation(
 	return 'profile';
 }
 
-const moreNavigationItems = new Set<HeaderNavigationItem>([
+const moreNavigationItems = new Set<AppNavigationItem>([
 	'public',
 	'lists',
 	'bookmarks',
@@ -61,8 +61,6 @@ const moreNavigationItems = new Set<HeaderNavigationItem>([
 	'about'
 ]);
 
-export function isMoreNavigationCurrent(
-	currentNavigation: HeaderNavigationItem | undefined
-): boolean {
+export function isMoreNavigationCurrent(currentNavigation: AppNavigationItem | undefined): boolean {
 	return currentNavigation !== undefined && moreNavigationItems.has(currentNavigation);
 }

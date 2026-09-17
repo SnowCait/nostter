@@ -13,9 +13,9 @@
 	import { MouseButton } from '$lib/platform/browser/mouse-button';
 	import { requestTimelineScrollToTop } from '$lib/timelines/ScrollToTop';
 	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
-	import DesktopNavigation from './DesktopNavigation.svelte';
-	import { getCurrentHeaderNavigation } from './HeaderNavigation';
-	import MobileNavigation from './MobileNavigation.svelte';
+	import DesktopNavigation from './navigation/DesktopNavigation.svelte';
+	import { getCurrentAppNavigation } from './navigation/app-navigation';
+	import MobileNavigation from './navigation/MobileNavigation.svelte';
 	const openNoteDialog = getOpenNoteDialog();
 
 	function onClickPostButton(): void {
@@ -66,7 +66,7 @@
 		).length > 0
 	);
 	let currentNavigation = $derived(
-		getCurrentHeaderNavigation(page.route.id, page.data.pubkey, $pubkey)
+		getCurrentAppNavigation(page.route.id, page.data.pubkey, $pubkey)
 	);
 </script>
 
