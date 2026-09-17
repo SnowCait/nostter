@@ -13,6 +13,7 @@
 	import { fetchMinutes } from '$lib/Helper';
 	import { applyTheme } from '$lib/Theme';
 	import { author, followees } from '$lib/stores/Author';
+	import { observePageLifecycle } from '$lib/platform/browser/page-lifecycle';
 	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -97,7 +98,6 @@
 	}
 
 	function onVisibilityChange() {
-		console.debug('[visibilitychange]', new Date().toLocaleString(), document.visibilityState);
 		switch (document.visibilityState) {
 			case 'hidden': {
 				hiddenAt = now();
@@ -120,6 +120,7 @@
 
 	onMount(() => {
 		subscribeSystemTheme();
+		return observePageLifecycle();
 	});
 
 	let initialized = false;
