@@ -61,8 +61,9 @@ export class RelayList {
 	public static apply(eventsMap: Map<number, Event>) {
 		const kind10002 = eventsMap.get(10002);
 		const kind3 = eventsMap.get(3);
-		if (kind10002 !== undefined && kind10002.tags.length > 0) {
-			rxNostr.setDefaultRelays(parseRelayList(kind10002.tags));
+		const relayList = parseRelayList(kind10002?.tags ?? []);
+		if (relayList.length > 0) {
+			rxNostr.setDefaultRelays(relayList);
 		} else if (kind3 !== undefined && kind3.content !== '') {
 			rxNostr.setDefaultRelays(
 				[...parseLegacyRelayList(kind3.content)].map(([url, { read, write }]) => {

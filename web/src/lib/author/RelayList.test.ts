@@ -35,6 +35,16 @@ describe('RelayList.apply', () => {
 						['r', 'not-a-relay-url'],
 						['r', 'wss://unknown-marker.example', 'other']
 					])
+				],
+				[
+					3,
+					event(
+						3,
+						[],
+						JSON.stringify({
+							'wss://legacy.example': { read: true, write: true }
+						})
+					)
 				]
 			])
 		);
@@ -67,6 +77,59 @@ describe('RelayList.apply', () => {
 		expect(setDefaultRelays).toHaveBeenCalledOnce();
 		expect(setDefaultRelays).toHaveBeenCalledWith([
 			{ url: 'wss://legacy.example', read: true, write: false }
+		]);
+	});
+
+	it('uses the legacy kind 3 fallback when kind 10002 has only non-relay tags', () => {
+		RelayList.apply(
+			new Map([
+				[10002, event(10002, [['client', 'nostter']])],
+				[
+					3,
+					event(
+						3,
+						[],
+						JSON.stringify({
+							'wss://legacy.example': { read: true, write: true }
+						})
+					)
+				]
+			])
+		);
+
+		expect(setDefaultRelays).toHaveBeenCalledOnce();
+		expect(setDefaultRelays).toHaveBeenCalledWith([
+			{ url: 'wss://legacy.example', read: true, write: true }
+		]);
+	});
+
+	it('uses the legacy kind 3 fallback when kind 10002 has only invalid relay tags', () => {
+		RelayList.apply(
+			new Map([
+				[
+					10002,
+					event(10002, [
+						['r'],
+						['r', 'not-a-relay-url'],
+						['r', 'wss://unknown-marker.example', 'other']
+					])
+				],
+				[
+					3,
+					event(
+						3,
+						[],
+						JSON.stringify({
+							'wss://legacy.example': { read: false, write: true }
+						})
+					)
+				]
+			])
+		);
+
+		expect(setDefaultRelays).toHaveBeenCalledOnce();
+		expect(setDefaultRelays).toHaveBeenCalledWith([
+			{ url: 'wss://legacy.example', read: false, write: true }
 		]);
 	});
 });
