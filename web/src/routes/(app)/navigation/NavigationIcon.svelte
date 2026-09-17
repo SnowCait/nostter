@@ -40,7 +40,7 @@
 	interface Props {
 		item: AppNavigationItem;
 		currentNavigation: AppNavigationItem | undefined;
-		size?: number;
+		size?: number | string;
 	}
 
 	let { item, currentNavigation, size }: Props = $props();
