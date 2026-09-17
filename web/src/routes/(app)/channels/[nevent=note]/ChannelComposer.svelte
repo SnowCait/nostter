@@ -331,7 +331,7 @@
 
 	@media screen and (max-width: 600px) {
 		.composer {
-			bottom: calc(3.125rem + env(safe-area-inset-bottom));
+			bottom: var(--app-shell-mobile-bottom-offset);
 		}
 	}
 </style>

@@ -22,7 +22,7 @@
 
 	@media screen and (max-width: 600px) {
 		article {
-			margin-top: 3.125rem;
+			margin-top: var(--app-shell-mobile-top-bar-height);
 		}
 	}
 </style>
