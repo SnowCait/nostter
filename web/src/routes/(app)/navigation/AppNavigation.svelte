@@ -11,7 +11,7 @@
 	import MobileNavigation from './MobileNavigation.svelte';
 
 	interface Props {
-		pubkey: string | undefined;
+		pubkey: string;
 		homeLink: string;
 	}
 
