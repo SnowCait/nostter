@@ -21,10 +21,8 @@
 		IconWorld,
 		IconWorldFilled
 	} from '@tabler/icons-svelte-runes';
-	import type { Component } from 'svelte';
+	import type { Icon } from '@tabler/icons-svelte-runes';
 	import type { AppNavigationItem } from './app-navigation';
-
-	type NavigationIcon = Component<{ size?: number }>;
 
 	const navigationIcons = {
 		home: { inactive: IconHome, active: IconHomeFilled },
@@ -37,7 +35,7 @@
 		profile: { inactive: IconUser, active: IconUserFilled },
 		preferences: { inactive: IconSettings, active: IconSettingsFilled },
 		about: { inactive: IconPaw, active: IconPawFilled }
-	} satisfies Record<AppNavigationItem, { inactive: NavigationIcon; active: NavigationIcon }>;
+	} satisfies Record<AppNavigationItem, { inactive: Icon; active: Icon }>;
 
 	interface Props {
 		item: AppNavigationItem;
@@ -47,7 +45,9 @@
 
 	let { item, currentNavigation, size }: Props = $props();
 
-	let Icon = $derived(navigationIcons[item][currentNavigation === item ? 'active' : 'inactive']);
+	let CurrentIcon = $derived(
+		navigationIcons[item][currentNavigation === item ? 'active' : 'inactive']
+	);
 </script>
 
-<Icon {size} />
+<CurrentIcon {size} />
