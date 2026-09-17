@@ -184,11 +184,13 @@
 	header {
 		grid-column: 1 / 2;
 		position: sticky;
-		top: 0.5rem;
+		top: 0;
 		align-self: start;
 		max-width: 220px;
 		width: 100%;
-		height: calc(100vh - 0.5rem);
+		height: 100vh;
+		box-sizing: border-box;
+		padding-top: 0.5rem;
 		z-index: 3;
 		overflow-y: auto;
 	}
@@ -236,6 +238,7 @@
 			align-self: auto;
 			height: 100%;
 			margin-top: 0.5rem;
+			padding-top: 0;
 		}
 
 		main {
