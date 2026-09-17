@@ -131,7 +131,7 @@
 			top: auto;
 			bottom: 0;
 			width: 100%;
-			height: calc(3.125rem + env(safe-area-inset-bottom));
+			height: var(--app-shell-mobile-bottom-offset);
 			background-color: var(--background);
 			position: fixed;
 			box-shadow: var(--shadow);
@@ -146,7 +146,7 @@
 			background-color: var(--background);
 			box-shadow: var(--shadow);
 			width: 100%;
-			height: 3.125rem;
+			height: var(--app-shell-mobile-top-bar-height);
 			padding: auto;
 			display: flex;
 			justify-content: center;
@@ -155,7 +155,7 @@
 
 		.header > button {
 			position: fixed;
-			bottom: calc(3.125rem + 0.75rem + env(safe-area-inset-bottom));
+			bottom: calc(var(--app-shell-mobile-bottom-offset) + 0.75rem);
 			right: 0.75rem;
 		}
 

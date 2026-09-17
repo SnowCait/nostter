@@ -85,8 +85,11 @@
 
 	@media screen and (max-width: 600px) {
 		.channel {
-			min-height: calc(100dvh - 6.25rem);
-			margin-bottom: -50px;
+			min-height: calc(
+				100dvh - var(--app-shell-mobile-top-bar-height) -
+					var(--app-shell-mobile-bottom-bar-height)
+			);
+			margin-bottom: calc(-1 * var(--app-shell-mobile-bottom-bar-height));
 			border: none;
 		}
 	}

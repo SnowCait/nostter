@@ -205,7 +205,7 @@
 
 	@media screen and (max-width: 600px) {
 		header {
-			top: 3.125rem;
+			top: var(--app-shell-mobile-top-bar-height);
 		}
 	}
 

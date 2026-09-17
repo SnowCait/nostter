@@ -154,25 +154,35 @@
 	<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 </svelte:head>
 
-<Notice />
+<div class="app-shell">
+	<Notice />
 
-<div class="app">
-	<NoteDialog bind:this={noteDialog} />
+	<div class="app">
+		<NoteDialog bind:this={noteDialog} />
 
-	<header>
-		<div>
-			<Header />
-		</div>
-	</header>
+		<header>
+			<div>
+				<Header />
+			</div>
+		</header>
 
-	<main>
-		{@render children?.()}
-	</main>
+		<main>
+			{@render children?.()}
+		</main>
+	</div>
 </div>
 
 <Gdpr />
 
 <style>
+	.app-shell {
+		--app-shell-mobile-top-bar-height: 3.125rem;
+		--app-shell-mobile-bottom-bar-height: 3.125rem;
+		--app-shell-mobile-bottom-offset: calc(
+			var(--app-shell-mobile-bottom-bar-height) + env(safe-area-inset-bottom)
+		);
+	}
+
 	.app {
 		max-width: 926px;
 		margin: 0 auto;
@@ -227,7 +237,7 @@
 
 	@media screen and (max-width: 600px) {
 		.app {
-			margin: 0 auto 50px 0;
+			margin: 0 auto var(--app-shell-mobile-bottom-bar-height) 0;
 			padding: 0;
 			display: block;
 		}
@@ -244,8 +254,8 @@
 
 		main {
 			margin-left: auto;
-			padding-bottom: 3.125rem;
-			margin-top: 3.125rem;
+			padding-bottom: var(--app-shell-mobile-bottom-bar-height);
+			margin-top: var(--app-shell-mobile-top-bar-height);
 			height: auto;
 		}
 
