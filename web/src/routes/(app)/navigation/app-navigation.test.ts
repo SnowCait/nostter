@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { getCurrentHeaderNavigation, isMoreNavigationCurrent } from './HeaderNavigation';
+import { getCurrentAppNavigation, isMoreNavigationCurrent } from './app-navigation';
 
 const userPubkey = 'user';
 const otherPubkey = 'other';
 
-describe('getCurrentHeaderNavigation', () => {
+describe('getCurrentAppNavigation', () => {
 	it.each([
 		['/(app)/home', 'home'],
 		['/(app)/public', 'public'],
@@ -14,12 +14,12 @@ describe('getCurrentHeaderNavigation', () => {
 		['/(app)/preferences/display', 'preferences'],
 		['/(app)/about/licenses', 'about']
 	] as const)('%s is %s', (routeId, expected) => {
-		expect(getCurrentHeaderNavigation(routeId, undefined, userPubkey)).toBe(expected);
+		expect(getCurrentAppNavigation(routeId, undefined, userPubkey)).toBe(expected);
 	});
 
 	it('selects Public when the Home link also points to /public', () => {
 		const homeLink = '/public';
-		const current = getCurrentHeaderNavigation('/(app)/public', undefined, userPubkey);
+		const current = getCurrentAppNavigation('/(app)/public', undefined, userPubkey);
 		const currentLinks = [
 			{ item: 'home', href: homeLink },
 			{ item: 'public', href: '/public' }
@@ -38,7 +38,7 @@ describe('getCurrentHeaderNavigation', () => {
 		['/(app)/[slug=npub]/(tabs)/media', 'profile'],
 		['/(app)/[slug=npub]/followers', 'profile']
 	] as const)('classifies the current user route %s as %s', (routeId, expected) => {
-		expect(getCurrentHeaderNavigation(routeId, userPubkey, userPubkey)).toBe(expected);
+		expect(getCurrentAppNavigation(routeId, userPubkey, userPubkey)).toBe(expected);
 	});
 
 	it.each([
@@ -46,13 +46,13 @@ describe('getCurrentHeaderNavigation', () => {
 		'/(app)/[slug=npub]/(tabs)/lists',
 		'/(app)/[slug=npub]/bookmarks'
 	])('does not select the current-user navigation for another user at %s', (routeId) => {
-		expect(getCurrentHeaderNavigation(routeId, otherPubkey, userPubkey)).toBeUndefined();
+		expect(getCurrentAppNavigation(routeId, otherPubkey, userPubkey)).toBeUndefined();
 	});
 
 	it('does not select Profile for Lists or Bookmarks', () => {
 		expect(
 			['/(app)/[slug=npub]/(tabs)/lists', '/(app)/[slug=npub]/bookmarks'].map((routeId) =>
-				getCurrentHeaderNavigation(routeId, userPubkey, userPubkey)
+				getCurrentAppNavigation(routeId, userPubkey, userPubkey)
 			)
 		).toEqual(['lists', 'bookmarks']);
 	});

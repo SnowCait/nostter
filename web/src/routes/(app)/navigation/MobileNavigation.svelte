@@ -26,14 +26,14 @@
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
-	import { isMoreNavigationCurrent, type HeaderNavigationItem } from './HeaderNavigation';
+	import { isMoreNavigationCurrent, type AppNavigationItem } from './app-navigation';
 
 	interface Props {
 		pubkey: string | undefined;
 		homeLink: string;
 		nprofile: string;
 		notificationsBadge: boolean;
-		currentNavigation: HeaderNavigationItem | undefined;
+		currentNavigation: AppNavigationItem | undefined;
 		onClickHomeLink: (event: MouseEvent) => void;
 		onClickPublicLink: (event: MouseEvent) => void;
 		onClickPublicMenuItem: (event: MouseEvent) => Promise<void>;

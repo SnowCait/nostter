@@ -22,14 +22,14 @@
 		IconWorldFilled
 	} from '@tabler/icons-svelte-runes';
 	import { _ } from 'svelte-i18n';
-	import type { HeaderNavigationItem } from './HeaderNavigation';
+	import type { AppNavigationItem } from './app-navigation';
 
 	interface Props {
 		pubkey: string | undefined;
 		homeLink: string;
 		nprofile: string;
 		notificationsBadge: boolean;
-		currentNavigation: HeaderNavigationItem | undefined;
+		currentNavigation: AppNavigationItem | undefined;
 		onClickHomeLink: (event: MouseEvent) => void;
 		onClickPublicLink: (event: MouseEvent) => void;
 	}
