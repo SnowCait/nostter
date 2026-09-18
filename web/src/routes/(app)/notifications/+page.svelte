@@ -12,7 +12,7 @@
 	import { pubkey, author } from '$lib/stores/Author';
 	import { isAuthenticated, isReady } from '$lib/auth.svelte';
 	import TimelineView from '../TimelineView.svelte';
-	import NotificationTimelineView from './NotificationTimelineView.svelte';
+	import NotificationTimeline from './NotificationTimeline.svelte';
 	import {
 		IconAsterisk,
 		IconAt,
@@ -199,7 +199,7 @@
 		{/each}
 	</div>
 	<div use:melt={$content('all')}>
-		<NotificationTimelineView authenticated={$isAuthenticated} {items} {load} />
+		<NotificationTimeline authenticated={$isAuthenticated} {items} {load} />
 	</div>
 	<div use:melt={$content('mentions')}>
 		<TimelineView items={items.filter((item) => item.event.kind === 1)} showLoading={false} />
