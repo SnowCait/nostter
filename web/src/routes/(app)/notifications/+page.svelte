@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type * as Nostr from 'nostr-typedef';
 	import { createRxOneshotReq, now, uniq } from 'rx-nostr';
 	import { tap } from 'rxjs';
 	import { _ } from 'svelte-i18n';
@@ -7,12 +6,13 @@
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { referencesReqEmit, rxNostr, storeSeenOn, tie } from '$lib/timelines/MainTimeline';
 	import { appName } from '$lib/app';
-	import { minTimelineLength, notificationsFilterKinds } from '$lib/Constants';
+	import { minTimelineLength } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import { pubkey, author } from '$lib/stores/Author';
-	import { isReady } from '$lib/auth.svelte';
+	import { isAuthenticated, isReady } from '$lib/auth.svelte';
 	import TimelineView from '../TimelineView.svelte';
+	import NotificationTimeline from './NotificationTimeline.svelte';
 	import {
 		IconAsterisk,
 		IconAt,
@@ -26,6 +26,8 @@
 	import { crossfade } from 'svelte/transition';
 	import { cubicInOut } from 'svelte/easing';
 	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
+	import { createNotificationFilter } from '$lib/features/notifications/domain/create-notification-filter';
+	import { isValidPubkey } from '$lib/nostr/protocol/pubkey';
 
 	const {
 		elements: { root, list, content, trigger },
@@ -68,6 +70,12 @@
 
 	async function load() {
 		console.log('[rx-nostr notification timeline load]');
+		const currentPubkey = $pubkey;
+
+		if (!isValidPubkey(currentPubkey)) {
+			console.warn('[rx-nostr notification timeline invalid pubkey]', currentPubkey);
+			return;
+		}
 
 		let firstLength = $notifiedEventItems.length;
 		let count = 0;
@@ -85,14 +93,11 @@
 				new Date(until * 1000)
 			);
 
-			const filters: Nostr.Filter[] = [
-				{
-					kinds: notificationsFilterKinds,
-					'#p': [$pubkey],
-					until,
-					since
-				}
-			];
+			const filter = createNotificationFilter(currentPubkey, since, until);
+			if (filter === undefined) {
+				return;
+			}
+			const filters = [filter];
 
 			console.debug(
 				'[rx-nostr notification timeline REQ]',
@@ -194,7 +199,7 @@
 		{/each}
 	</div>
 	<div use:melt={$content('all')}>
-		<TimelineView {items} {load} />
+		<NotificationTimeline authenticated={$isAuthenticated} {items} {load} />
 	</div>
 	<div use:melt={$content('mentions')}>
 		<TimelineView items={items.filter((item) => item.event.kind === 1)} showLoading={false} />
