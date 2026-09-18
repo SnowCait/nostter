@@ -3,7 +3,7 @@ import { render } from 'svelte/server';
 import NotificationTimeline from './NotificationTimeline.svelte';
 
 describe('NotificationTimeline', () => {
-	it('does not mount the network-loading timeline while authentication is restoring', () => {
+	it('does not render the timeline while authentication is restoring', () => {
 		const load = vi.fn(async () => undefined);
 
 		const { body } = render(NotificationTimeline, {
@@ -14,7 +14,7 @@ describe('NotificationTimeline', () => {
 		expect(load).not.toHaveBeenCalled();
 	});
 
-	it('mounts the network-loading timeline after authentication completes', () => {
+	it('renders the timeline after authentication completes', () => {
 		const load = vi.fn(async () => undefined);
 
 		const { body } = render(NotificationTimeline, {

@@ -26,7 +26,7 @@
 	import { crossfade } from 'svelte/transition';
 	import { cubicInOut } from 'svelte/easing';
 	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
-	import { createNotificationFilter } from '$lib/features/notifications/application/create-notification-filter';
+	import { createNotificationFilter } from '$lib/features/notifications/domain/create-notification-filter';
 	import { isValidPubkey } from '$lib/nostr/protocol/pubkey';
 
 	const {
