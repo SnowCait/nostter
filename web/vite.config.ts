@@ -10,7 +10,8 @@ const esbuildCssMinifier = {
 
 export default defineConfig({
 	build: {
-		minify: 'esbuild'
+		minify: 'esbuild',
+		sourcemap: true
 	},
 	define: {
 		__GIT_SHA__: JSON.stringify(process.env.WORKERS_CI_COMMIT_SHA ?? '')
