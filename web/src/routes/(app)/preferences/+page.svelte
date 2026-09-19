@@ -110,7 +110,11 @@
 	{#if $developerMode}
 		<div><SeenOnRelayIcon /></div>
 		<div><ShowVia /></div>
-		<div><WorkAsRemoteSigner /></div>
+
+		{#if auth.isAuthenticated && !$rom}
+			<div><WorkAsRemoteSigner /></div>
+		{/if}
+
 		<div><RelayStates /></div>
 		<div><WebStorage /></div>
 		<h3>{$_('preferences.trouble_shooting')}</h3>
