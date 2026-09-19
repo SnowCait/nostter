@@ -63,13 +63,13 @@ export class Login {
 		loginType.set('NIP-07');
 		setLoginStatus('getting_pubkey');
 
+		let pubkey: string;
 		try {
-			auth.pubkey = await Signer.getPublicKey();
-			const $pubkey = auth.pubkey;
-			if (!$pubkey) {
+			pubkey = await Signer.getPublicKey();
+			if (!pubkey) {
 				throw new Error('undefined');
 			}
-			console.debug('[pubkey]', $pubkey);
+			console.debug('[pubkey]', pubkey);
 		} catch (error) {
 			console.error('[NIP-07 getPublicKey()]', error);
 			console.timeEnd('NIP-07');
@@ -80,7 +80,7 @@ export class Login {
 
 		console.timeLog('NIP-07');
 
-		await this.fetchAuthor();
+		await this.fetchAuthor(pubkey);
 
 		console.timeEnd('NIP-07');
 	}
@@ -106,8 +106,8 @@ export class Login {
 		const storage = new WebStorage(localStorage);
 		storage.set('login', bunker);
 
-		auth.pubkey = await Signer.getPublicKey();
-		await this.fetchAuthor();
+		const pubkey = await Signer.getPublicKey();
+		await this.fetchAuthor(pubkey);
 
 		console.timeEnd('NIP-46');
 		return true;
@@ -125,8 +125,8 @@ export class Login {
 		storage.set('login', key);
 
 		loginType.set('nsec');
-		auth.pubkey = getPublicKey(seckey);
-		await this.fetchAuthor();
+		const pubkey = getPublicKey(seckey);
+		await this.fetchAuthor(pubkey);
 	}
 
 	public async withNpub(key: string) {
@@ -143,18 +143,17 @@ export class Login {
 		storage.set('login', key);
 
 		loginType.set('npub');
-		auth.pubkey = data;
-		await this.fetchAuthor();
+		await this.fetchAuthor(data);
 	}
 
-	private async fetchAuthor() {
+	private async fetchAuthor(pubkey: string) {
 		console.time('fetch author');
 		setLoginStatus('fetching_profile');
 
-		await initializeAccount(auth.pubkey);
+		const followingPubkeys = await initializeAccount(pubkey);
 		console.timeEnd('fetch author');
 
-		auth.setAuthenticated();
+		auth.establish(pubkey, followingPubkeys);
 		clearLoginStatus();
 
 		if (get(notificationVisibility) === 'follows_of_follows') {
