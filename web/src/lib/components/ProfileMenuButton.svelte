@@ -3,6 +3,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { auth } from '$lib/auth.svelte';
 	import { follow, unfollow } from '$lib/author/Follow';
 	import { mute, unmute } from '$lib/author/Mute';
 	import { muteByKind, unmuteByKind } from '$lib/author/MuteKind';
@@ -180,7 +181,7 @@
 </button>
 <div use:melt={$overlay} class="overlay"></div>
 <div use:melt={$menu} class="menu">
-	{#if $authorPubkey && !$rom}
+	{#if auth.isAuthenticated && !$rom}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div use:melt={$item} onclick={editLists} class="item">
@@ -308,7 +309,9 @@
 	{/if}
 </div>
 
-<ListDialog {pubkey} bind:open={listDialogOpen} />
+{#if auth.isAuthenticated && !$rom}
+	<ListDialog {pubkey} bind:open={listDialogOpen} />
+{/if}
 
 <style>
 	button {
