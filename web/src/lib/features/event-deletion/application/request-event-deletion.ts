@@ -15,8 +15,11 @@ export async function requestEventDeletion(
 		throw new Error('Deletion request requires at least one target event');
 	}
 
-	const $authorPubkey = get(authorPubkey);
-	if (events.some((event) => event.pubkey !== $authorPubkey)) {
+	const accountPubkey = get(authorPubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+	if (events.some((event) => event.pubkey !== accountPubkey)) {
 		throw new Error('Cannot request deletion of an event by another author');
 	}
 
@@ -31,7 +34,7 @@ export async function requestEventDeletion(
 
 	const event = await Signer.signEvent({
 		kind: 5,
-		pubkey: $authorPubkey,
+		pubkey: accountPubkey,
 		content: reason,
 		tags: [
 			...targetTags.values(),

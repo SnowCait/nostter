@@ -87,6 +87,11 @@
 		e.preventDefault();
 		console.log('[save relays]', relays);
 
+		const accountPubkey = $authorPubkey;
+		if (accountPubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
+
 		rxNostr.setDefaultRelays(relays);
 
 		try {
@@ -110,7 +115,7 @@
 			);
 
 			if (saveToKind3) {
-				const contacts = new Contacts($authorPubkey);
+				const contacts = new Contacts(accountPubkey);
 				await contacts.updateRelays(
 					new Map(relays.map(({ url, read, write }) => [url, { read, write }]))
 				);

@@ -129,7 +129,7 @@
 </section>
 
 <section>
-	<TimelineView items={events} readonly={!$authorPubkey} {load} />
+	<TimelineView items={events} readonly={$authorPubkey === undefined} {load} />
 </section>
 
 <style>

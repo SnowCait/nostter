@@ -37,27 +37,32 @@ export async function unmuteByKind(muteKind: number, pubkey: string): Promise<vo
 	await save('unmute', muteKind, pubkey);
 }
 
-async function save(type: DataType, muteKind: number, pubkey: string): Promise<void> {
+async function save(type: DataType, muteKind: number, targetPubkey: string): Promise<void> {
 	const queue = queues.get(muteKind);
 	if (queue === undefined) {
 		console.warn('[mute kind unsupported]', muteKind);
 		return;
 	}
 
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	queue.enqueue({
 		type,
 		kind: muteKind,
-		pubkey: pubkey
+		pubkey: targetPubkey
 	});
 
 	if (!processing) {
 		processing = true;
-		await publish(muteKind);
+		await publish(muteKind, accountPubkey);
 		processing = false;
 	}
 }
 
-async function publish(muteKind: number): Promise<void> {
+async function publish(muteKind: number, accountPubkey: string): Promise<void> {
 	const queue = queues.get(muteKind);
 	if (queue === undefined) {
 		console.warn('[mute kind logic error]');
@@ -112,30 +117,33 @@ async function publish(muteKind: number): Promise<void> {
 	}
 
 	// Lazy validation for UX
-	if (!(await validate(lastEvent, muteKind))) {
+	if (!(await validate(lastEvent, muteKind, accountPubkey))) {
 		throw new Error('Cache is outdated.');
 	}
 
 	const event = await Signer.signEvent({
 		kind,
-		content: await encryptListContent(privateTags, legacy),
+		content: await encryptListContent(accountPubkey, privateTags, legacy),
 		tags,
 		created_at: now()
 	});
-	storage.setParameterizedReplaceableEvent(event, get(pubkey));
+	storage.setParameterizedReplaceableEvent(event, accountPubkey);
 	storeMutedPubkeysByKind([event]);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish(muteKind);
+		await publish(muteKind, accountPubkey);
 	}
 }
 
-async function validate(event: Nostr.Event | undefined, muteKind: number): Promise<boolean> {
-	const $pubkey = get(pubkey);
+async function validate(
+	event: Nostr.Event | undefined,
+	muteKind: number,
+	accountPubkey: string
+): Promise<boolean> {
 	const lastEvent = await fetchLastEvent({
 		kinds: [kind],
-		authors: [$pubkey],
+		authors: [accountPubkey],
 		'#d': [`${muteKind}`],
 		limit: 1
 	});

@@ -6,7 +6,7 @@
 	interface Props {
 		pubkey: string | undefined;
 		homeLink: string;
-		nprofile: string;
+		nprofile: string | undefined;
 		notificationsBadge: boolean;
 		currentNavigation: AppNavigationItem | undefined;
 		onClickHomeLink: (event: MouseEvent) => void;
@@ -51,7 +51,7 @@
 			<p>{$_('layout.header.search')}</p>
 		</a>
 	</li>
-	{#if pubkey}
+	{#if pubkey !== undefined}
 		<li class="clickable notifications-icon">
 			<a
 				href="/notifications"
@@ -89,7 +89,7 @@
 			<p>{$_('layout.header.channels')}</p>
 		</a>
 	</li>
-	{#if pubkey}
+	{#if pubkey !== undefined}
 		<li class="clickable">
 			<a
 				href="/{nprofile}"

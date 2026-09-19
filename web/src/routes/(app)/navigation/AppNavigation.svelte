@@ -11,7 +11,7 @@
 	import MobileNavigation from './MobileNavigation.svelte';
 
 	interface Props {
-		pubkey: string;
+		pubkey: string | undefined;
 		homeLink: string;
 	}
 
@@ -50,7 +50,7 @@
 		await goto('/public');
 	}
 
-	let nprofile = $derived(nip19.nprofileEncode({ pubkey }));
+	let nprofile = $derived(pubkey !== undefined ? nip19.nprofileEncode({ pubkey }) : undefined);
 	let notificationsBadge = $derived(
 		$notifiedEventItems.filter(
 			(item) =>

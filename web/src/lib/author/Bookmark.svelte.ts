@@ -75,6 +75,11 @@ async function save(type: DataType, tag: string[]): Promise<void> {
 		throw new Error('Bookmark copy is in progress.');
 	}
 
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	queue.enqueue({
 		type,
 		tag
@@ -83,7 +88,7 @@ async function save(type: DataType, tag: string[]): Promise<void> {
 	if (!processing) {
 		processing = true;
 		try {
-			await publish();
+			await publish(accountPubkey);
 		} finally {
 			processing = false;
 		}
@@ -103,7 +108,7 @@ export async function runBookmarkCopyExclusively<T>(copy: () => Promise<T>): Pro
 	}
 }
 
-async function publish(): Promise<void> {
+async function publish(accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getReplaceableEvent(Kind.BookmarkList);
 	let tags = lastEvent?.tags ?? [];
@@ -127,24 +132,23 @@ async function publish(): Promise<void> {
 	bookmarkEvent.set(event);
 
 	// Lazy validation for UX
-	if (!(await validate(lastEvent))) {
+	if (!(await validate(lastEvent, accountPubkey))) {
 		bookmarkEvent.set(lastEvent);
 		throw new Error('Cache is outdated.');
 	}
 
-	storage.setReplaceableEvent(event, get(pubkey));
+	storage.setReplaceableEvent(event, accountPubkey);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish();
+		await publish(accountPubkey);
 	}
 }
 
-async function validate(event: Nostr.Event | undefined): Promise<boolean> {
-	const currentPubkey = get(pubkey);
+async function validate(event: Nostr.Event | undefined, accountPubkey: string): Promise<boolean> {
 	const lastEvent = await fetchLastEvent({
 		kinds: [Kind.BookmarkList],
-		authors: [currentPubkey],
+		authors: [accountPubkey],
 		limit: 1
 	});
 

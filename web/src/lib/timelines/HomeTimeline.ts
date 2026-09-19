@@ -88,14 +88,13 @@ export class HomeTimeline extends NewTimeline {
 
 	#createSubscriptions(): void {
 		console.debug('[home timeline create subscriptions]');
-		const $pubkey = get(pubkey);
-		if (!$pubkey) {
-			console.error('[pubkey is empty]');
-			return;
+		const accountPubkey = get(pubkey);
+		if (accountPubkey === undefined) {
+			throw new Error('Not authenticated');
 		}
 		const observable$ = rxNostr.use(this.#req).pipe(tie, uniq(), share());
 		const author$ = observable$.pipe(
-			filter(({ event }) => event.pubkey === $pubkey),
+			filter(({ event }) => event.pubkey === accountPubkey),
 			share()
 		);
 		author$
@@ -115,7 +114,7 @@ export class HomeTimeline extends NewTimeline {
 			tap(({ event }) => {
 				console.debug('[author event]', event.kind, event);
 				const storage = new WebStorage(localStorage);
-				storage.setReplaceableEvent(event, $pubkey);
+				storage.setReplaceableEvent(event, accountPubkey);
 			}),
 			share()
 		);
@@ -124,7 +123,7 @@ export class HomeTimeline extends NewTimeline {
 			this.subscribe();
 		});
 		replaceable$.pipe(filterByKind(Kind.Mutelist)).subscribe(async ({ event }) => {
-			await storeMutedTagsByEvent(event, $pubkey);
+			await storeMutedTagsByEvent(event, accountPubkey);
 		});
 		replaceable$
 			.pipe(filterByKind(Kind.PublicChatsList))
@@ -145,7 +144,7 @@ export class HomeTimeline extends NewTimeline {
 			.subscribe(({ event }) => bookmarkEvent.set(event));
 		replaceable$
 			.pipe(filterByKind(Kind.BlossomServerList))
-			.subscribe(({ event }) => updateBlossomServerList($pubkey, event));
+			.subscribe(({ event }) => updateBlossomServerList(accountPubkey, event));
 		replaceable$
 			.pipe(filter(({ event }) => isProfileBadgesEvent(event)))
 			.subscribe(({ event }) => updateProfileBadgesEvent(event));
@@ -163,7 +162,7 @@ export class HomeTimeline extends NewTimeline {
 			tap(({ event }) => {
 				console.debug('[author event]', event.kind, findIdentifier(event.tags), event);
 				const storage = new WebStorage(localStorage);
-				storage.setParameterizedReplaceableEvent(event, $pubkey);
+				storage.setParameterizedReplaceableEvent(event, accountPubkey);
 			}),
 			share()
 		);
@@ -257,7 +256,11 @@ export class HomeTimeline extends NewTimeline {
 	}
 
 	#createForwardFilters(): LazyFilter[] {
-		const $pubkey = get(pubkey);
+		const accountPubkey = get(pubkey);
+		if (accountPubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
+
 		const $followees = get(followees);
 
 		const followeesFilter: LazyFilter[] = chunk($followees, filterLimitItems).map(
@@ -272,18 +275,18 @@ export class HomeTimeline extends NewTimeline {
 
 		const notificationsFilter: LazyFilter = {
 			kinds: notificationsFilterKinds,
-			'#p': [$pubkey],
+			'#p': [accountPubkey],
 			since: now
 		};
 
 		const authorFilters: LazyFilter[] = [
 			{
 				kinds: authorFilterReplaceableKinds,
-				authors: [$pubkey]
+				authors: [accountPubkey]
 			},
 			{
 				kinds: authorFilterKinds,
-				authors: [$pubkey],
+				authors: [accountPubkey],
 				since: now
 			}
 		];
@@ -301,7 +304,11 @@ export class HomeTimeline extends NewTimeline {
 	}
 
 	#createBackwardFilters(limit?: number): LazyFilter[] {
-		const $pubkey = get(pubkey);
+		const accountPubkey = get(pubkey);
+		if (accountPubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
+
 		const $followees = get(followees);
 		const $followingHashtags = get(followingHashtags);
 
@@ -321,14 +328,14 @@ export class HomeTimeline extends NewTimeline {
 		const authorFilters: LazyFilter[] = [
 			{
 				kinds: notificationsFilterKinds,
-				'#p': [$pubkey],
+				'#p': [accountPubkey],
 				until,
 				since: limit ? undefined : since,
 				limit
 			},
 			{
 				kinds: [Kind.Reaction],
-				authors: [$pubkey],
+				authors: [accountPubkey],
 				until,
 				since: limit ? undefined : since,
 				limit

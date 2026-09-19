@@ -90,9 +90,13 @@ async function fetchBookmarkSources(pubkey: string): Promise<{
 }
 
 export async function copyLegacyBookmarks(): Promise<Nostr.Event | undefined> {
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	return runBookmarkCopyExclusively(async () => {
-		const $pubkey = get(pubkey);
-		const { legacyEvent, standardEvent } = await fetchBookmarkSources($pubkey);
+		const { legacyEvent, standardEvent } = await fetchBookmarkSources(accountPubkey);
 		if (legacyEvent === undefined) {
 			throw new Error('Legacy bookmark event not found.');
 		}
@@ -109,10 +113,13 @@ export async function copyLegacyBookmarks(): Promise<Nostr.Event | undefined> {
 		const existingPublic = standardEvent?.tags ?? [];
 		const mergedPublic = mergeBookmarkReferences(existingPublic, legacyEvent.tags);
 		const existingPrivate = await decryptBookmarkContentStrict(
-			$pubkey,
+			accountPubkey,
 			standardEvent?.content ?? ''
 		);
-		const legacyPrivate = await decryptBookmarkContentStrict($pubkey, legacyEvent.content);
+		const legacyPrivate = await decryptBookmarkContentStrict(
+			accountPubkey,
+			legacyEvent.content
+		);
 		const mergedPrivate = mergeBookmarkReferences(existingPrivate, legacyPrivate);
 
 		if (tagsEqual(existingPublic, mergedPublic) && tagsEqual(existingPrivate, mergedPrivate)) {
@@ -122,7 +129,7 @@ export async function copyLegacyBookmarks(): Promise<Nostr.Event | undefined> {
 		const content =
 			mergedPrivate.length === 0
 				? ''
-				: await Signer.encryptNip44($pubkey, JSON.stringify(mergedPrivate));
+				: await Signer.encryptNip44(accountPubkey, JSON.stringify(mergedPrivate));
 		const event = await Signer.signEvent({
 			kind: Kind.BookmarkList,
 			content,
@@ -131,7 +138,7 @@ export async function copyLegacyBookmarks(): Promise<Nostr.Event | undefined> {
 		});
 
 		await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
-		storage.setReplaceableEvent(event, $pubkey);
+		storage.setReplaceableEvent(event, accountPubkey);
 		bookmarkEvent.set(event);
 		return event;
 	});

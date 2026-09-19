@@ -78,7 +78,7 @@
 		<span>Muting</span>
 		<button onclick={onUnmute} disabled={executing}><IconTrash /></button>
 	</div>
-{:else if $authorPubkey !== ''}
+{:else if $authorPubkey !== undefined}
 	<button onclick={onMute} disabled={executing}><IconVolumeOff /></button>
 {/if}
 

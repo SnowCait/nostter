@@ -107,5 +107,5 @@
 </script>
 
 <section>
-	<TimelineView {items} readonly={!$authorPubkey} {load} />
+	<TimelineView {items} readonly={$authorPubkey === undefined} {load} />
 </section>

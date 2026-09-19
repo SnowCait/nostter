@@ -129,16 +129,21 @@ export async function removeFromEmojiList(address: string): Promise<void> {
 }
 
 async function save(type: DataType, address: string): Promise<void> {
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	queue.enqueue({ type, address });
 
 	if (!processing) {
 		processing = true;
-		await publish();
+		await publish(accountPubkey);
 		processing = false;
 	}
 }
 
-async function publish(): Promise<void> {
+async function publish(accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getReplaceableEvent(UserEmojiList);
 	let tags = lastEvent?.tags ?? [];
@@ -161,7 +166,7 @@ async function publish(): Promise<void> {
 		}
 	}
 
-	if (!(await validate(lastEvent))) {
+	if (!(await validate(lastEvent, accountPubkey))) {
 		throw new Error('Cache is outdated.');
 	}
 
@@ -171,7 +176,7 @@ async function publish(): Promise<void> {
 		tags,
 		created_at: now()
 	});
-	storage.setReplaceableEvent(event, get(pubkey));
+	storage.setReplaceableEvent(event, accountPubkey);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	// Store
@@ -179,15 +184,14 @@ async function publish(): Promise<void> {
 	storeCustomEmojis(event);
 
 	if (queue.length > 0) {
-		await publish();
+		await publish(accountPubkey);
 	}
 }
 
-async function validate(event: Nostr.Event | undefined): Promise<boolean> {
-	const $pubkey = get(pubkey);
+async function validate(event: Nostr.Event | undefined, accountPubkey: string): Promise<boolean> {
 	const lastEvent = await fetchLastEvent({
 		kinds: [UserEmojiList],
-		authors: [$pubkey],
+		authors: [accountPubkey],
 		limit: 1
 	});
 
