@@ -7,6 +7,7 @@
 		parseSearchQuery
 	} from '$lib/Search';
 	import { alternativeName } from '$lib/Items';
+	import { auth } from '$lib/auth.svelte';
 	import { developerMode } from '$lib/stores/Preference';
 	import { createTagsInput, melt, type Tag } from '@melt-ui/svelte';
 	import { Combobox } from 'melt/builders';
@@ -367,7 +368,9 @@
 				<option value="all">{$_('search.scope.all')}</option>
 				<option value="nostr">{$_('search.scope.nostr')}</option>
 				<!-- <option value="following">{$_('search.scope.following')}</option> -->
-				<option value="mine">{$_('search.scope.mine')}</option>
+				{#if auth.isAuthenticated}
+					<option value="mine">{$_('search.scope.mine')}</option>
+				{/if}
 			</select>
 		</div>
 	</details>

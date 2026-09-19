@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Filter, NostrEvent } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { parseSearchQuery, Search, searchScopes, type SearchScope } from '$lib/Search';
 	import { appName } from '$lib/app';
@@ -61,21 +61,35 @@
 		};
 	});
 
-	afterNavigate(async () => {
+	async function applySearchParams(): Promise<void> {
 		const params = page.url.searchParams;
-		if (query === params.get('q') && scope === params.get('scope')) {
+		const requestedQuery = params.get('q') ?? '';
+		const rawScope = params.get('scope');
+		const requestedScope =
+			typeof rawScope === 'string' && searchScopes.includes(rawScope as SearchScope)
+				? (rawScope as SearchScope)
+				: 'nostr';
+
+		if (requestedScope === 'mine' && auth.isInitializing) {
+			return;
+		}
+
+		if (requestedScope === 'mine' && !auth.isAuthenticated) {
+			const url = new URL(page.url);
+			url.searchParams.set('scope', 'nostr');
+			await goto(url, { replaceState: true });
+			return;
+		}
+
+		if (query === requestedQuery && scope === requestedScope) {
 			return;
 		}
 		console.debug('[search params]', params.toString());
 
 		// `q` contains Filter parameters which is filtered by relays.
 		// Other parameters are filtered by client.
-		query = params.get('q') ?? '';
-		const _scope = params.get('scope');
-		scope =
-			typeof _scope === 'string' && searchScopes.includes(_scope as SearchScope)
-				? (_scope as SearchScope)
-				: 'nostr';
+		query = requestedQuery;
+		scope = requestedScope;
 
 		items = [];
 		completed = false;
@@ -135,6 +149,24 @@
 				break;
 			}
 		}
+	}
+
+	afterNavigate(() => {
+		void applySearchParams();
+	});
+
+	$effect(() => {
+		const status = auth.status;
+
+		if (status === 'initializing') {
+			return;
+		}
+
+		untrack(() => {
+			if (page.url.searchParams.get('scope') === 'mine') {
+				void applySearchParams();
+			}
+		});
 	});
 
 	const clientFilter = (event: NostrEvent) =>
