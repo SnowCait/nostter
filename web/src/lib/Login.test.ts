@@ -7,6 +7,7 @@ const {
 	fetchEvents,
 	fetchRelays,
 	loadFolloweesMetadataCache,
+	remoteSignerSubscribeIfEnabled,
 	calls
 } = vi.hoisted(() => {
 	function createStore<T>(initial: T) {
@@ -33,6 +34,7 @@ const {
 		fetchEvents: vi.fn(),
 		fetchRelays: vi.fn().mockResolvedValue(undefined),
 		loadFolloweesMetadataCache: vi.fn().mockResolvedValue(undefined),
+		remoteSignerSubscribeIfEnabled: vi.fn(),
 		calls: [] as string[]
 	};
 });
@@ -69,7 +71,7 @@ vi.mock('./cache/Events', () => ({
 }));
 
 vi.mock('./RemoteSigner', () => ({
-	remoteSigner: { subscribeIfEnabled: vi.fn() }
+	remoteSigner: { subscribeIfEnabled: remoteSignerSubscribeIfEnabled }
 }));
 
 vi.mock('./stores/LoginStatus', () => ({
@@ -184,5 +186,49 @@ describe('Login.withNpub', () => {
 		expect(auth.followingPubkeys).toEqual([followee]);
 		expect(auth.followees).toEqual([followee, me]);
 		expect(auth.status).toBe('authenticated');
+	});
+
+	it('does not start the remote signer for a read-only session', async () => {
+		const { nip19 } = await import('nostr-tools');
+		const { auth } = await import('./auth.svelte');
+		const { Login } = await import('./Login');
+		const npub = nip19.npubEncode(me);
+
+		const login = new Login();
+		await login.withNpub(npub);
+
+		expect(auth.status).toBe('authenticated');
+		expect(remoteSignerSubscribeIfEnabled).not.toHaveBeenCalled();
+	});
+});
+
+describe('Login.withNsec', () => {
+	beforeEach(async () => {
+		vi.clearAllMocks();
+		vi.restoreAllMocks();
+		calls.length = 0;
+		notificationVisibility.set('all');
+
+		const { auth } = await import('./auth.svelte');
+		auth.reset();
+
+		loadFolloweesMetadataCache.mockResolvedValue(undefined);
+		fetchEvents.mockResolvedValue([['p', followee]]);
+	});
+
+	it('starts the remote signer for a signing-capable session', async () => {
+		const { nip19, getPublicKey } = await import('nostr-tools');
+		const { auth } = await import('./auth.svelte');
+		const { Login } = await import('./Login');
+
+		const seckey = new Uint8Array(32).fill(1);
+		const nsec = nip19.nsecEncode(seckey);
+
+		const login = new Login();
+		await login.withNsec(nsec);
+
+		expect(auth.status).toBe('authenticated');
+		expect(auth.pubkey).toBe(getPublicKey(seckey));
+		expect(remoteSignerSubscribeIfEnabled).toHaveBeenCalledTimes(1);
 	});
 });
