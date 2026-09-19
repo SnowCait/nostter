@@ -21,3 +21,9 @@ Formatting is defined by [Prettier](../web/.prettierrc) and [EditorConfig](../.e
 ## Linting
 
 Linting rules are defined by [ESLint](../web/eslint.config.mjs).
+
+## Comments
+
+Do not add comments that merely restate what the code already makes clear.
+
+Use comments only to explain non-obvious reasons, constraints, or behavior.
