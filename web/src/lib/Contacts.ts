@@ -1,6 +1,7 @@
 import { kinds as Kind } from 'nostr-tools';
 import { Api } from './Api';
 import { auth } from './auth.svelte';
+import { parseFollowList } from './nostr/protocol/nip02';
 import { sendEvent } from './RxNostrHelper';
 import { pruneFolloweeReplaceableEventsCache } from './cache/Events';
 
@@ -36,6 +37,7 @@ export class Contacts {
 }
 
 export function updateFolloweesStore(tags: string[][]): void {
-	auth.updateFollowees(tags, auth.pubkey);
+	const followingPubkeys = parseFollowList(tags).map(({ pubkey }) => pubkey);
+	auth.updateFollowingPubkeys(followingPubkeys, auth.pubkey);
 	pruneFolloweeReplaceableEventsCache(auth.followees);
 }

@@ -1,6 +1,5 @@
 import { toStore } from 'svelte/store';
 import { unique } from './array';
-import { pubkeysFromTags } from './pubkey';
 
 export type AuthStatus = 'idle' | 'restoring' | 'authenticating' | 'authenticated' | 'anonymous';
 
@@ -36,8 +35,8 @@ export class Auth {
 		this.#status = 'authenticating';
 	}
 
-	updateFollowees(tags: string[][], accountPubkey: string): void {
-		this.#followingPubkeys = pubkeysFromTags(tags);
+	updateFollowingPubkeys(followingPubkeys: string[], accountPubkey: string): void {
+		this.#followingPubkeys = unique(followingPubkeys);
 		this.#followees = unique([...this.#followingPubkeys, accountPubkey]);
 	}
 

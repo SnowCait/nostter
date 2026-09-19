@@ -1,16 +1,9 @@
+import { isRelayUrl } from './relay-url';
+
 export interface RelayEntry {
 	url: string;
 	read: boolean;
 	write: boolean;
-}
-
-function isRelayUrl(value: string): boolean {
-	try {
-		const { protocol } = new URL(value);
-		return protocol === 'wss:' || protocol === 'ws:';
-	} catch {
-		return false;
-	}
 }
 
 export function parseRelayList(tags: string[][]): RelayEntry[] {

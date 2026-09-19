@@ -5,64 +5,45 @@ const me = 'f'.repeat(64);
 const a = 'a'.repeat(64);
 const b = 'b'.repeat(64);
 
-describe('Auth.updateFollowees', () => {
+describe('Auth.updateFollowingPubkeys', () => {
 	it('sets followingPubkeys and appends self to followees', () => {
 		const auth = new Auth();
-		auth.updateFollowees(
-			[
-				['p', a],
-				['p', b]
-			],
-			me
-		);
+		auth.updateFollowingPubkeys([a, b], me);
+		expect(auth.followingPubkeys).toEqual([a, b]);
+		expect(auth.followees).toEqual([a, b, me]);
+	});
+
+	it('deduplicates followingPubkeys', () => {
+		const auth = new Auth();
+		auth.updateFollowingPubkeys([a, a, b], me);
 		expect(auth.followingPubkeys).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
 	});
 
 	it('does not add self to followingPubkeys', () => {
 		const auth = new Auth();
-		auth.updateFollowees([['p', a]], me);
+		auth.updateFollowingPubkeys([a], me);
 		expect(auth.followingPubkeys).not.toContain(me);
 		expect(auth.followees).toContain(me);
 	});
 
-	it('deduplicates followees', () => {
+	it('leaves only self when followingPubkeys is empty', () => {
 		const auth = new Auth();
-		auth.updateFollowees(
-			[
-				['p', a],
-				['p', a],
-				['p', b]
-			],
-			me
-		);
-		expect(auth.followingPubkeys).toEqual([a, b]);
-		expect(auth.followees).toEqual([a, b, me]);
-	});
-
-	it('leaves only self when tags are empty', () => {
-		const auth = new Auth();
-		auth.updateFollowees([], me);
+		auth.updateFollowingPubkeys([], me);
 		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.followees).toEqual([me]);
 	});
 
 	it('exposes followeesSet matching followees', () => {
 		const auth = new Auth();
-		auth.updateFollowees(
-			[
-				['p', a],
-				['p', b]
-			],
-			me
-		);
+		auth.updateFollowingPubkeys([a, b], me);
 		expect(auth.followeesSet).toEqual(new Set([a, b, me]));
 	});
 
 	it('uses the explicitly passed accountPubkey as self, ignoring auth.pubkey', () => {
 		const auth = new Auth();
 		auth.pubkey = b;
-		auth.updateFollowees([['p', a]], me);
+		auth.updateFollowingPubkeys([a], me);
 		expect(auth.followees).toEqual([a, me]);
 		expect(auth.followees).not.toContain(b);
 	});
@@ -118,13 +99,7 @@ describe('Auth.reset', () => {
 	it('clears authentication state and becomes anonymous', () => {
 		const auth = new Auth();
 		auth.pubkey = me;
-		auth.updateFollowees(
-			[
-				['p', a],
-				['p', b]
-			],
-			me
-		);
+		auth.updateFollowingPubkeys([a, b], me);
 		auth.setAuthenticated();
 
 		auth.reset();
