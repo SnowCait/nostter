@@ -6,6 +6,17 @@ export interface FollowEntry {
 	petname?: string;
 }
 
+function parseRelayUrl(value: string | undefined): string | undefined {
+	if (value === undefined || value === '') return undefined;
+
+	try {
+		const { protocol } = new URL(value);
+		return protocol === 'ws:' || protocol === 'wss:' ? value : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
 export function parseFollowList(tags: string[][]): FollowEntry[] {
 	return tags.flatMap((tag): FollowEntry[] => {
 		const [name, pubkey, relayUrl, petname] = tag;
@@ -14,8 +25,8 @@ export function parseFollowList(tags: string[][]): FollowEntry[] {
 		return [
 			{
 				pubkey,
-				relayUrl: relayUrl || undefined,
-				petname: petname || undefined
+				relayUrl: parseRelayUrl(relayUrl),
+				petname: petname === '' ? undefined : petname
 			}
 		];
 	});
