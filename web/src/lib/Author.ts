@@ -13,7 +13,7 @@ import {
 	storeMutedTagsByEvent
 } from './stores/Author';
 import { RelayList } from './author/RelayList';
-import { auth } from './auth.svelte';
+import { pubkeysFromTags } from './pubkey';
 import { filterTags } from './EventHelper';
 import { findIdentifier } from './nostr/protocol/event-address';
 import { parseLegacyRelayList } from './nostr/protocol/nip24';
@@ -34,8 +34,6 @@ import {
 import { bookmarkEvent, legacyBookmarkEvent } from './author/Bookmark.svelte';
 import { legacyProfileBadgesKey, setProfileBadgesEvent } from './author/ProfileBadges';
 import { profileBadgesKind } from './ProfileBadgesEvent';
-import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
-import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 import {
 	getAccountLocalPreferences,
 	initializeMediaUploaderPreference
@@ -95,7 +93,7 @@ export class Author {
 		return contactsEvent?.tags ?? [];
 	}
 
-	public async fetchEvents(): Promise<void> {
+	public async fetchEvents(): Promise<{ originalFollowees: string[] }> {
 		const { replaceableEvents, parameterizedReplaceableEvents } =
 			await this.fetchAuthorEventsWithCache(this.pubkey);
 
@@ -114,7 +112,7 @@ export class Author {
 		console.log('[profile]', get(authorProfile));
 
 		const contactsTags = this.storeRelays(replaceableEvents);
-		auth.updateFollowees(contactsTags);
+		const originalFollowees = pubkeysFromTags(contactsTags);
 
 		customEmojiListEvent.set(replaceableEvents.get(Kind.UserEmojiList));
 		const $customEmojiListEvent = get(customEmojiListEvent);
@@ -137,13 +135,6 @@ export class Author {
 			const preferences = new Preferences(preferencesEvent.content);
 			legacyMediaUploader = preferences.mediaUploader;
 			preferencesStore.set(preferences);
-
-			if (
-				preferences.muteAutomatically ||
-				get(notificationVisibility) === 'follows_of_follows'
-			) {
-				contactsOfFolloweesReqEmit();
-			}
 		} else {
 			const regacyReactionEmojiEvent = parameterizedReplaceableEvents.get(
 				`${30078}:nostter-reaction-emoji`
@@ -174,7 +165,7 @@ export class Author {
 
 		const muteEvent = replaceableEvents.get(10000);
 		if (muteEvent !== undefined) {
-			await storeMutedTagsByEvent(muteEvent);
+			await storeMutedTagsByEvent(muteEvent, this.pubkey);
 		}
 
 		const mutedByKindEvents = [...parameterizedReplaceableEvents]
@@ -191,6 +182,7 @@ export class Author {
 		}
 
 		console.log('[relays]', get(readRelays), get(writeRelays));
+		return { originalFollowees };
 	}
 
 	private async fetchAuthorEventsWithCache(pubkey: string): Promise<{
@@ -231,10 +223,10 @@ export class Author {
 		const { replaceableEvents, parameterizedReplaceableEvents } =
 			await this.fetchAuthorEvents(pubkey);
 		for (const [, event] of [...replaceableEvents]) {
-			storage.setReplaceableEvent(event);
+			storage.setReplaceableEvent(event, pubkey);
 		}
 		for (const [, event] of [...parameterizedReplaceableEvents]) {
-			storage.setParameterizedReplaceableEvent(event);
+			storage.setParameterizedReplaceableEvent(event, pubkey);
 		}
 		return { replaceableEvents, parameterizedReplaceableEvents };
 	}
@@ -307,7 +299,7 @@ export class Author {
 				rxNostr.use(channelsReq).pipe(tie, uniq(), latest())
 			);
 			console.log('[channels event]', packet);
-			storage.setReplaceableEvent(packet.event);
+			storage.setReplaceableEvent(packet.event, this.pubkey);
 			authorChannelsEventStore.set(packet.event);
 			return; // Already migrated
 		} catch (error) {
@@ -351,7 +343,7 @@ export class Author {
 					rxNostr.send(event).subscribe((packet) => {
 						console.log('[channels migration send]', packet);
 						if (packet.ok) {
-							storage.setReplaceableEvent(event);
+							storage.setReplaceableEvent(event, this.pubkey);
 							authorChannelsEventStore.set(event);
 						}
 					});
@@ -366,7 +358,7 @@ export class Author {
 					});
 					rxNostr.send(pinEvent).subscribe((packet) => {
 						console.log('[channels migration send pin]', packet);
-						storage.setReplaceableEvent(pinEvent);
+						storage.setReplaceableEvent(pinEvent, this.pubkey);
 					});
 				}
 			});

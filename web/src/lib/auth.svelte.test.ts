@@ -6,6 +6,14 @@ const a = 'a'.repeat(64);
 const b = 'b'.repeat(64);
 
 describe('Auth.updateFollowees', () => {
+	it('preserves initialized original followees and includes self only once', () => {
+		const auth = new Auth();
+		auth.pubkey = me;
+		auth.setFollowees([a, me]);
+		expect(auth.originalFollowees).toEqual([a, me]);
+		expect(auth.followees).toEqual([a, me]);
+	});
+
 	it('sets originalFollowees and appends self to followees', () => {
 		const auth = new Auth();
 		auth.pubkey = me;

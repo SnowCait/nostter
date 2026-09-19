@@ -83,9 +83,9 @@ describe('deleteLegacyBookmarks', () => {
 		const otherParameterizedEvent = event(Kind.Genericlists, 'other-list');
 		const standardBookmarkEvent = event(Kind.BookmarkList);
 		const storage = new WebStorage(localStorage);
-		storage.setParameterizedReplaceableEvent(legacyEvent);
-		storage.setParameterizedReplaceableEvent(otherParameterizedEvent);
-		storage.setReplaceableEvent(standardBookmarkEvent);
+		storage.setParameterizedReplaceableEvent(legacyEvent, mocks.userPubkey);
+		storage.setParameterizedReplaceableEvent(otherParameterizedEvent, mocks.userPubkey);
+		storage.setReplaceableEvent(standardBookmarkEvent, mocks.userPubkey);
 		const cachedAt = storage.getCachedAt();
 		legacyBookmarkEvent.set(legacyEvent);
 		const acceptance = Promise.withResolvers<void>();
@@ -117,7 +117,7 @@ describe('deleteLegacyBookmarks', () => {
 	it('preserves the cache and state when the deletion request fails', async () => {
 		const legacyEvent = event(Kind.Genericlists, legacyBookmarkIdentifier);
 		const storage = new WebStorage(localStorage);
-		storage.setParameterizedReplaceableEvent(legacyEvent);
+		storage.setParameterizedReplaceableEvent(legacyEvent, mocks.userPubkey);
 		legacyBookmarkEvent.set(legacyEvent);
 		mocks.requestEventDeletion.mockRejectedValue(new Error('relay rejected'));
 

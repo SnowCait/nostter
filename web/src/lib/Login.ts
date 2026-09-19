@@ -11,6 +11,11 @@ import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
 import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
 import { auth } from './auth.svelte';
+import { unique } from './array';
+import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
+import { get } from 'svelte/store';
+import { preferencesStore } from './Preferences';
+import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -61,13 +66,13 @@ export class Login {
 		loginType.set('NIP-07');
 		setLoginStatus('getting_pubkey');
 
+		let pubkey: string;
 		try {
-			auth.pubkey = await Signer.getPublicKey();
-			const $pubkey = auth.pubkey;
-			if (!$pubkey) {
+			pubkey = await Signer.getPublicKey();
+			if (!pubkey) {
 				throw new Error('undefined');
 			}
-			console.debug('[pubkey]', $pubkey);
+			console.debug('[pubkey]', pubkey);
 		} catch (error) {
 			console.error('[NIP-07 getPublicKey()]', error);
 			console.timeEnd('NIP-07');
@@ -78,7 +83,7 @@ export class Login {
 
 		console.timeLog('NIP-07');
 
-		await this.fetchAuthor();
+		await this.fetchAuthor(pubkey);
 
 		console.timeEnd('NIP-07');
 	}
@@ -104,8 +109,8 @@ export class Login {
 		const storage = new WebStorage(localStorage);
 		storage.set('login', bunker);
 
-		auth.pubkey = await Signer.getPublicKey();
-		await this.fetchAuthor();
+		const pubkey = await Signer.getPublicKey();
+		await this.fetchAuthor(pubkey);
 
 		console.timeEnd('NIP-46');
 		return true;
@@ -123,8 +128,8 @@ export class Login {
 		storage.set('login', key);
 
 		loginType.set('nsec');
-		auth.pubkey = getPublicKey(seckey);
-		await this.fetchAuthor();
+		const pubkey = getPublicKey(seckey);
+		await this.fetchAuthor(pubkey);
 	}
 
 	public async withNpub(key: string) {
@@ -141,29 +146,37 @@ export class Login {
 		storage.set('login', key);
 
 		loginType.set('npub');
-		auth.pubkey = data;
-		await this.fetchAuthor();
+		await this.fetchAuthor(data);
 	}
 
-	private async fetchAuthor() {
+	private async fetchAuthor(pubkey: string) {
 		console.time('fetch author');
 		setLoginStatus('fetching_profile');
 
-		const $author = new Author(auth.pubkey);
+		const $author = new Author(pubkey);
 
 		await $author.fetchRelays();
 		console.timeLog('fetch author');
 
-		await $author.fetchEvents();
+		const { originalFollowees } = await $author.fetchEvents();
+		const followees = unique([...originalFollowees, pubkey]);
 		console.timeEnd('fetch author');
 
-		await loadFolloweesMetadataCache(auth.followees);
-		pruneFolloweeReplaceableEventsCache(auth.followees);
+		await loadFolloweesMetadataCache(followees);
+		pruneFolloweeReplaceableEventsCache(followees);
 
+		auth.pubkey = pubkey;
+		auth.setFollowees(originalFollowees);
 		author.set($author);
 		auth.setAuthenticated();
 		clearLoginStatus();
 
+		if (
+			get(preferencesStore).muteAutomatically ||
+			get(notificationVisibility) === 'follows_of_follows'
+		) {
+			contactsOfFolloweesReqEmit(followees);
+		}
 		remoteSigner.subscribeIfEnabled();
 	}
 }

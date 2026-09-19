@@ -6,6 +6,7 @@
 		followeesOfFollowees
 	} from '$lib/author/MuteAutomatically';
 	import { developerMode } from '$lib/stores/Preference';
+	import { auth } from '$lib/auth.svelte';
 
 	let enable = $state($preferencesStore.muteAutomatically);
 
@@ -14,8 +15,8 @@
 		$preferencesStore.muteAutomatically = enable;
 		await savePreferences();
 
-		if (enable) {
-			contactsOfFolloweesReqEmit();
+		if (enable && auth.isAuthenticated) {
+			contactsOfFolloweesReqEmit(auth.followees);
 		}
 	}
 </script>

@@ -1,7 +1,5 @@
 import type { Event } from 'nostr-tools';
-import { get } from 'svelte/store';
 import { findIdentifier } from './nostr/protocol/event-address';
-import { pubkey } from './stores/Author';
 import { eventCache } from './cache/Events';
 
 export class WebStorage {
@@ -36,8 +34,8 @@ export class WebStorage {
 		}
 	}
 
-	public setReplaceableEvent(event: Event): void {
-		if (event.pubkey !== get(pubkey)) {
+	public setReplaceableEvent(event: Event, accountPubkey: string): void {
+		if (event.pubkey !== accountPubkey) {
 			throw new Error('Logic error');
 		}
 		const cache = this.getReplaceableEvent(event.kind);
@@ -61,8 +59,8 @@ export class WebStorage {
 		}
 	}
 
-	public setParameterizedReplaceableEvent(event: Event): void {
-		if (event.pubkey !== get(pubkey)) {
+	public setParameterizedReplaceableEvent(event: Event, accountPubkey: string): void {
+		if (event.pubkey !== accountPubkey) {
 			throw new Error('Logic error');
 		}
 		const identifier = findIdentifier(event.tags);

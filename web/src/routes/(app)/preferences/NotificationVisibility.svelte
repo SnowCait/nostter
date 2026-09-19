@@ -9,12 +9,13 @@
 		notificationVisibility
 	} from '$lib/preferences/NotificationVisibility.svelte';
 	import { developerMode } from '$lib/stores/Preference';
+	import { auth } from '$lib/auth.svelte';
 	import { _ } from 'svelte-i18n';
 
 	$effect(() => {
 		console.debug('[notification visibility]', $notificationVisibility);
-		if ($notificationVisibility === 'follows_of_follows') {
-			contactsOfFolloweesReqEmit();
+		if ($notificationVisibility === 'follows_of_follows' && auth.isAuthenticated) {
+			contactsOfFolloweesReqEmit(auth.followees);
 		}
 	});
 

@@ -40,7 +40,7 @@
 		rxNostr.send(event);
 		updateFolloweesStore(event.tags);
 		const storage = new WebStorage(localStorage);
-		storage.setReplaceableEvent(event);
+		storage.setReplaceableEvent(event, get(pubkey));
 		$open = false;
 	}
 	$effect(() => {

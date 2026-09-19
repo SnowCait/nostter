@@ -126,19 +126,18 @@ export const updateRelays = (event: Event) => {
 	console.debug('[relays after]', get(readRelays), get(writeRelays));
 };
 
-export const storeMutedTagsByEvent = async (event: Event): Promise<void> => {
+export const storeMutedTagsByEvent = async (event: Event, accountPubkey: string): Promise<void> => {
 	const $muteEvent = get(muteEvent);
 	if ($muteEvent !== undefined && event.created_at <= $muteEvent.created_at) {
 		return;
 	}
 	muteEvent.set(event);
 	const [privateTags] = await decryptListContent(event.pubkey, event.content);
-	await storeMutedTags([...event.tags, ...privateTags]);
+	await storeMutedTags([...event.tags, ...privateTags], accountPubkey);
 };
 
-export const storeMutedTags = async (tags: string[][]): Promise<void> => {
-	const $pubkey = get(pubkey);
-	mutePubkeys.set([...new Set(filterTags('p', tags).filter((p) => p !== $pubkey))]);
+export const storeMutedTags = async (tags: string[][], accountPubkey: string): Promise<void> => {
+	mutePubkeys.set([...new Set(filterTags('p', tags).filter((p) => p !== accountPubkey))]);
 	muteEventIds.set([...new Set(filterTags('e', tags))]);
 	muteWords.set([...new Set(filterTags('word', tags))]);
 	console.log(
