@@ -13,8 +13,8 @@
 	import { untrack } from 'svelte';
 
 	$effect(() => {
-		console.debug('[notification visibility]', $notificationVisibility);
-		if ($notificationVisibility === 'follows_of_follows') {
+		console.debug('[notification visibility]', $notificationVisibility, auth.isAuthenticated);
+		if ($notificationVisibility === 'follows_of_follows' && auth.isAuthenticated) {
 			loadFolloweesOfFollowees(untrack(() => auth.followees));
 		}
 	});
