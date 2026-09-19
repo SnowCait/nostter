@@ -1,8 +1,8 @@
 <script lang="ts">
 	import {
-		contactsOfFolloweesReqEmit,
+		loadFolloweesOfFollowees,
 		followeesOfFollowees
-	} from '$lib/author/MuteAutomatically';
+	} from '$lib/features/notifications/application/followees-of-followees';
 	import {
 		notificationVisibilities,
 		notificationVisibility
@@ -15,7 +15,7 @@
 	$effect(() => {
 		console.debug('[notification visibility]', $notificationVisibility);
 		if ($notificationVisibility === 'follows_of_follows') {
-			contactsOfFolloweesReqEmit(untrack(() => auth.followees));
+			loadFolloweesOfFollowees(untrack(() => auth.followees));
 		}
 	});
 </script>

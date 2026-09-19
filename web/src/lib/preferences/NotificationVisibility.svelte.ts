@@ -1,4 +1,4 @@
-import { followeesOfFollowees } from '$lib/author/MuteAutomatically';
+import { followeesOfFollowees } from '$lib/features/notifications/application/followees-of-followees';
 import { followees } from '$lib/stores/Author';
 import { persistedStore } from '$lib/platform/storage/persisted-store';
 import { get } from 'svelte/store';
