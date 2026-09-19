@@ -29,7 +29,6 @@
 	import ClearEventCacheAndReload from './ClearEventCacheAndReload.svelte';
 	import MediaUploader from './MediaUploader.svelte';
 	import ImageOptimization from './ImageOptimization.svelte';
-	import MuteAutomatically from './MuteAutomatically.svelte';
 	import Json from '$lib/components/Json.svelte';
 	import Language from './Language.svelte';
 	import Backup from './Backup.svelte';
@@ -84,7 +83,6 @@
 				{/await}
 			</details>
 		{/if}
-		<div><MuteAutomatically /></div>
 		<div>
 			<a href="/{nip19.nprofileEncode({ pubkey: $pubkey })}/relays">
 				{$_('pages.relays_edit')}
