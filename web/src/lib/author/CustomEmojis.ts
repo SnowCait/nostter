@@ -139,6 +139,11 @@ async function save(type: DataType, address: string): Promise<void> {
 }
 
 async function publish(): Promise<void> {
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getReplaceableEvent(UserEmojiList);
 	let tags = lastEvent?.tags ?? [];
@@ -171,7 +176,7 @@ async function publish(): Promise<void> {
 		tags,
 		created_at: now()
 	});
-	storage.setReplaceableEvent(event, get(pubkey));
+	storage.setReplaceableEvent(event, accountPubkey);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	// Store
@@ -184,10 +189,14 @@ async function publish(): Promise<void> {
 }
 
 async function validate(event: Nostr.Event | undefined): Promise<boolean> {
-	const $pubkey = get(pubkey);
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const lastEvent = await fetchLastEvent({
 		kinds: [UserEmojiList],
-		authors: [$pubkey],
+		authors: [accountPubkey],
 		limit: 1
 	});
 

@@ -638,7 +638,9 @@
 	{/if}
 	<div class="content">
 		<div>
-			<ProfileIcon pubkey={$pubkey} width="40px" height="40px" />
+			{#if $pubkey !== undefined}
+				<ProfileIcon pubkey={$pubkey} width="40px" height="40px" />
+			{/if}
 		</div>
 		<div class="input">
 			<textarea

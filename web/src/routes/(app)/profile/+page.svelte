@@ -139,6 +139,10 @@
 			return;
 		}
 
+		if ($pubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
+
 		try {
 			const event = await sendEvent(
 				Kind.Metadata,

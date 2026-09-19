@@ -9,6 +9,10 @@ const { signEvent } = vi.hoisted(() => ({
 vi.mock('$lib/timelines/MainTimeline', () => ({
 	rxNostr: { send: () => of({ ok: true }) }
 }));
+vi.mock('../stores/Author', async () => {
+	const { writable } = await import('svelte/store');
+	return { pubkey: writable('account-pubkey') };
+});
 vi.mock('$lib/Signer', () => ({ Signer: { signEvent } }));
 vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: vi.fn(async () => undefined) }));
 vi.mock('$lib/WebStorage', () => ({

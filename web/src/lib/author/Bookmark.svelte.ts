@@ -104,6 +104,11 @@ export async function runBookmarkCopyExclusively<T>(copy: () => Promise<T>): Pro
 }
 
 async function publish(): Promise<void> {
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getReplaceableEvent(Kind.BookmarkList);
 	let tags = lastEvent?.tags ?? [];
@@ -132,7 +137,7 @@ async function publish(): Promise<void> {
 		throw new Error('Cache is outdated.');
 	}
 
-	storage.setReplaceableEvent(event, get(pubkey));
+	storage.setReplaceableEvent(event, accountPubkey);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
@@ -141,10 +146,14 @@ async function publish(): Promise<void> {
 }
 
 async function validate(event: Nostr.Event | undefined): Promise<boolean> {
-	const currentPubkey = get(pubkey);
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const lastEvent = await fetchLastEvent({
 		kinds: [Kind.BookmarkList],
-		authors: [currentPubkey],
+		authors: [accountPubkey],
 		limit: 1
 	});
 
