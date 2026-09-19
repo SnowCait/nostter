@@ -27,7 +27,7 @@ contactsOfFollowees.subscribe((events) => {
 });
 
 let loaded = false;
-export function contactsOfFolloweesReqEmit(followees: string[]): void {
+export function loadFolloweesOfFollowees(followees: string[]): void {
 	latestFollowees = followees;
 
 	const $contactsOfFollowees = get(contactsOfFollowees);

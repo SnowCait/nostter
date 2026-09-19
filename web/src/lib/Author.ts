@@ -34,7 +34,7 @@ import {
 import { bookmarkEvent, legacyBookmarkEvent } from './author/Bookmark.svelte';
 import { legacyProfileBadgesKey, setProfileBadgesEvent } from './author/ProfileBadges';
 import { profileBadgesKind } from './ProfileBadgesEvent';
-import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
+import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 import {
 	getAccountLocalPreferences,
@@ -139,7 +139,7 @@ export class Author {
 			preferencesStore.set(preferences);
 
 			if (get(notificationVisibility) === 'follows_of_follows') {
-				contactsOfFolloweesReqEmit(auth.followees);
+				loadFolloweesOfFollowees(auth.followees);
 			}
 		} else {
 			const regacyReactionEmojiEvent = parameterizedReplaceableEvents.get(
