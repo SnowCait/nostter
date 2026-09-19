@@ -33,6 +33,11 @@ export async function unmute(tagName: string, tagContent: string): Promise<void>
 }
 
 async function save(type: DataType, tagName: string, tagContent: string): Promise<void> {
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	queue.enqueue({
 		type,
 		tagName,
@@ -41,17 +46,12 @@ async function save(type: DataType, tagName: string, tagContent: string): Promis
 
 	if (!processing) {
 		processing = true;
-		await publish();
+		await publish(accountPubkey);
 		processing = false;
 	}
 }
 
-async function publish(): Promise<void> {
-	const accountPubkey = get(pubkey);
-	if (accountPubkey === undefined) {
-		throw new Error('Not authenticated');
-	}
-
+async function publish(accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getReplaceableEvent(kind);
 	let tags = lastEvent?.tags.concat() ?? [];
@@ -109,7 +109,7 @@ async function publish(): Promise<void> {
 	storeMutedTags([...tags, ...privateTags], accountPubkey);
 
 	// Lazy validation for UX
-	if (!(await validate(lastEvent))) {
+	if (!(await validate(lastEvent, accountPubkey))) {
 		const [_privateTags] = await decryptListContent(
 			lastEvent?.pubkey ?? accountPubkey,
 			lastEvent?.content ?? ''
@@ -120,7 +120,7 @@ async function publish(): Promise<void> {
 
 	const event = await Signer.signEvent({
 		kind,
-		content: await encryptListContent(privateTags, legacy),
+		content: await encryptListContent(accountPubkey, privateTags, legacy),
 		tags,
 		created_at: now()
 	});
@@ -128,16 +128,11 @@ async function publish(): Promise<void> {
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish();
+		await publish(accountPubkey);
 	}
 }
 
-async function validate(event: Nostr.Event | undefined): Promise<boolean> {
-	const accountPubkey = get(pubkey);
-	if (accountPubkey === undefined) {
-		throw new Error('Not authenticated');
-	}
-
+async function validate(event: Nostr.Event | undefined, accountPubkey: string): Promise<boolean> {
 	const lastEvent = await fetchLastEvent({ kinds: [kind], authors: [accountPubkey], limit: 1 });
 
 	if (event === undefined) {

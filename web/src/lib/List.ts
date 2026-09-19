@@ -64,6 +64,7 @@ export async function decryptListContent(
 }
 
 export async function encryptListContent(
+	pubkey: string,
 	tags: string[][],
 	legacy: boolean = false
 ): Promise<string> {
@@ -71,12 +72,7 @@ export async function encryptListContent(
 		return '';
 	}
 
-	const accountPubkey = get(pubkey);
-	if (accountPubkey === undefined) {
-		throw new Error('Not authenticated');
-	}
-
 	return legacy
-		? Signer.encrypt(accountPubkey, JSON.stringify(tags))
-		: Signer.encryptNip44(accountPubkey, JSON.stringify(tags));
+		? Signer.encrypt(pubkey, JSON.stringify(tags))
+		: Signer.encryptNip44(pubkey, JSON.stringify(tags));
 }

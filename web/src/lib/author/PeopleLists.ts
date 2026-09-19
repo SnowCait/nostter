@@ -116,7 +116,12 @@ export async function createPeopleList(title: string, pubkey: string): Promise<v
 }
 
 export async function addToPeopleList(event: Nostr.Event, pubkey: string): Promise<void> {
-	if (!(await validate(event))) {
+	const accountPubkey = get(authorPubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
+	if (!(await validate(event, accountPubkey))) {
 		return;
 	}
 
@@ -134,7 +139,12 @@ export async function addToPeopleList(event: Nostr.Event, pubkey: string): Promi
 }
 
 export async function removeFromPeopleList(event: Nostr.Event, pubkey: string): Promise<void> {
-	if (!(await validate(event))) {
+	const accountPubkey = get(authorPubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
+	if (!(await validate(event, accountPubkey))) {
 		return;
 	}
 
@@ -143,7 +153,7 @@ export async function removeFromPeopleList(event: Nostr.Event, pubkey: string): 
 		const [privateTags, legacy] = await decryptListContent(event.pubkey, event.content);
 		if (privateTags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
 			const tags = privateTags.filter(([tagName, p]) => !(tagName === 'p' && p === pubkey));
-			content = await encryptListContent(tags, legacy);
+			content = await encryptListContent(accountPubkey, tags, legacy);
 		}
 	}
 
@@ -160,8 +170,7 @@ export async function removeFromPeopleList(event: Nostr.Event, pubkey: string): 
 	});
 }
 
-async function validate(event: Nostr.Event): Promise<boolean> {
-	const accountPubkey = get(authorPubkey);
+async function validate(event: Nostr.Event, accountPubkey: string): Promise<boolean> {
 	const identifier = findIdentifier(event.tags);
 	if (event.kind !== kind || event.pubkey !== accountPubkey || identifier === undefined) {
 		return false;

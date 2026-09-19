@@ -30,6 +30,11 @@ function getFollowingHashtags(): string[] {
 export function followHashtag(hashtag: string): void {
 	console.log('[follow hashtag]', hashtag);
 
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	if (followQueue.includes(hashtag)) {
 		return;
 	}
@@ -40,11 +45,16 @@ export function followHashtag(hashtag: string): void {
 		return;
 	}
 
-	save();
+	save(accountPubkey);
 }
 
 export function unfollowHashtag(hashtag: string): void {
 	console.log('[unfollow hashtag]', hashtag);
+
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
 
 	if (unfollowQueue.includes(hashtag)) {
 		return;
@@ -56,15 +66,10 @@ export function unfollowHashtag(hashtag: string): void {
 		return;
 	}
 
-	save();
+	save(accountPubkey);
 }
 
-async function save(): Promise<void> {
-	const accountPubkey = get(pubkey);
-	if (accountPubkey === undefined) {
-		throw new Error('Not authenticated');
-	}
-
+async function save(accountPubkey: string): Promise<void> {
 	processing = true;
 
 	const latest = await fetch(accountPubkey);

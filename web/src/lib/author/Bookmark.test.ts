@@ -6,15 +6,17 @@ const { signEvent } = vi.hoisted(() => ({
 	signEvent: vi.fn(async (event) => ({ ...event, id: 'signed', pubkey: 'pubkey', sig: 'sig' }))
 }));
 
+const { accountPubkey } = await vi.hoisted(async () => {
+	const { writable } = await import('svelte/store');
+	return { accountPubkey: writable<string | undefined>('account-pubkey') };
+});
+
 vi.mock('$lib/timelines/MainTimeline', () => ({
 	rxNostr: { send: () => of({ ok: true }) }
 }));
 vi.mock('$lib/Signer', () => ({ Signer: { signEvent } }));
 vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: vi.fn(async () => undefined) }));
-vi.mock('$lib/stores/Author', async () => {
-	const { writable } = await import('svelte/store');
-	return { pubkey: writable('account-pubkey') };
-});
+vi.mock('$lib/stores/Author', () => ({ pubkey: accountPubkey }));
 vi.mock('$lib/WebStorage', () => ({
 	WebStorage: class {
 		getReplaceableEvent() {
@@ -60,5 +62,17 @@ describe('Bookmark', () => {
 
 		expect(get(bookmarkEvent)).toBe(standard);
 		expect(get(legacyBookmarkEvent)).toBe(legacy);
+	});
+
+	it('does not queue a bookmark that failed without an account', async () => {
+		accountPubkey.set(undefined);
+		await expect(bookmark(['e', 'anonymous-id'])).rejects.toThrow('Not authenticated');
+
+		accountPubkey.set('account-pubkey');
+		await bookmark(['e', 'authenticated-id']);
+
+		expect(signEvent).toHaveBeenLastCalledWith(
+			expect.objectContaining({ tags: [['e', 'authenticated-id']] })
+		);
 	});
 });

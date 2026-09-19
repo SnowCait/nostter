@@ -68,21 +68,21 @@ export async function acceptBadge(a: string, e: string): Promise<void> {
 }
 
 async function save(type: DataType, a: string, e: string): Promise<void> {
-	queue.enqueue({ type, a, e });
-
-	if (!processing) {
-		processing = true;
-		await publish();
-		processing = false;
-	}
-}
-
-async function publish(): Promise<void> {
 	const accountPubkey = get(pubkey);
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}
 
+	queue.enqueue({ type, a, e });
+
+	if (!processing) {
+		processing = true;
+		await publish(accountPubkey);
+		processing = false;
+	}
+}
+
+async function publish(accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
 	const lastEvent = getCachedProfileBadgesEvent(storage);
 	let tags = lastEvent?.tags ?? [];
@@ -128,7 +128,7 @@ async function publish(): Promise<void> {
 	profileBadgesEvent.set(event);
 
 	// Lazy validation for UX
-	if (!(await validate(lastEvent))) {
+	if (!(await validate(lastEvent, accountPubkey))) {
 		profileBadgesEvent.set(lastEvent);
 		console.error('[badge cache outdated]');
 		return;
@@ -138,16 +138,11 @@ async function publish(): Promise<void> {
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish();
+		await publish(accountPubkey);
 	}
 }
 
-async function validate(event: Nostr.Event | undefined): Promise<boolean> {
-	const accountPubkey = get(pubkey);
-	if (accountPubkey === undefined) {
-		throw new Error('Not authenticated');
-	}
-
+async function validate(event: Nostr.Event | undefined, accountPubkey: string): Promise<boolean> {
 	const [currentEvent, legacyEvent] = await Promise.all([
 		fetchLastEvent({ kinds: [profileBadgesKind], authors: [accountPubkey], limit: 1 }),
 		fetchLastEvent({

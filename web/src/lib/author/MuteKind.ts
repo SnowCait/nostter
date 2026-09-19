@@ -37,32 +37,32 @@ export async function unmuteByKind(muteKind: number, pubkey: string): Promise<vo
 	await save('unmute', muteKind, pubkey);
 }
 
-async function save(type: DataType, muteKind: number, pubkey: string): Promise<void> {
+async function save(type: DataType, muteKind: number, targetPubkey: string): Promise<void> {
 	const queue = queues.get(muteKind);
 	if (queue === undefined) {
 		console.warn('[mute kind unsupported]', muteKind);
 		return;
 	}
 
-	queue.enqueue({
-		type,
-		kind: muteKind,
-		pubkey: pubkey
-	});
-
-	if (!processing) {
-		processing = true;
-		await publish(muteKind);
-		processing = false;
-	}
-}
-
-async function publish(muteKind: number): Promise<void> {
 	const accountPubkey = get(pubkey);
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}
 
+	queue.enqueue({
+		type,
+		kind: muteKind,
+		pubkey: targetPubkey
+	});
+
+	if (!processing) {
+		processing = true;
+		await publish(muteKind, accountPubkey);
+		processing = false;
+	}
+}
+
+async function publish(muteKind: number, accountPubkey: string): Promise<void> {
 	const queue = queues.get(muteKind);
 	if (queue === undefined) {
 		console.warn('[mute kind logic error]');
@@ -117,13 +117,13 @@ async function publish(muteKind: number): Promise<void> {
 	}
 
 	// Lazy validation for UX
-	if (!(await validate(lastEvent, muteKind))) {
+	if (!(await validate(lastEvent, muteKind, accountPubkey))) {
 		throw new Error('Cache is outdated.');
 	}
 
 	const event = await Signer.signEvent({
 		kind,
-		content: await encryptListContent(privateTags, legacy),
+		content: await encryptListContent(accountPubkey, privateTags, legacy),
 		tags,
 		created_at: now()
 	});
@@ -132,16 +132,15 @@ async function publish(muteKind: number): Promise<void> {
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish(muteKind);
+		await publish(muteKind, accountPubkey);
 	}
 }
 
-async function validate(event: Nostr.Event | undefined, muteKind: number): Promise<boolean> {
-	const accountPubkey = get(pubkey);
-	if (accountPubkey === undefined) {
-		throw new Error('Not authenticated');
-	}
-
+async function validate(
+	event: Nostr.Event | undefined,
+	muteKind: number,
+	accountPubkey: string
+): Promise<boolean> {
 	const lastEvent = await fetchLastEvent({
 		kinds: [kind],
 		authors: [accountPubkey],
