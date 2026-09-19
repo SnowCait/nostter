@@ -115,7 +115,7 @@ export class HomeTimeline extends NewTimeline {
 			tap(({ event }) => {
 				console.debug('[author event]', event.kind, event);
 				const storage = new WebStorage(localStorage);
-				storage.setReplaceableEvent(event);
+				storage.setReplaceableEvent(event, $pubkey);
 			}),
 			share()
 		);
@@ -163,7 +163,7 @@ export class HomeTimeline extends NewTimeline {
 			tap(({ event }) => {
 				console.debug('[author event]', event.kind, findIdentifier(event.tags), event);
 				const storage = new WebStorage(localStorage);
-				storage.setParameterizedReplaceableEvent(event);
+				storage.setParameterizedReplaceableEvent(event, $pubkey);
 			}),
 			share()
 		);

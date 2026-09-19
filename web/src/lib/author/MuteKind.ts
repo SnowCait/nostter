@@ -122,7 +122,7 @@ async function publish(muteKind: number): Promise<void> {
 		tags,
 		created_at: now()
 	});
-	storage.setParameterizedReplaceableEvent(event);
+	storage.setParameterizedReplaceableEvent(event, get(pubkey));
 	storeMutedPubkeysByKind([event]);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
