@@ -119,7 +119,7 @@ async function publish(): Promise<void> {
 		tags,
 		created_at: now()
 	});
-	storage.setReplaceableEvent(event);
+	storage.setReplaceableEvent(event, get(pubkey));
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {

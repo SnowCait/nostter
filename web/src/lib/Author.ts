@@ -231,10 +231,10 @@ export class Author {
 		const { replaceableEvents, parameterizedReplaceableEvents } =
 			await this.fetchAuthorEvents(pubkey);
 		for (const [, event] of [...replaceableEvents]) {
-			storage.setReplaceableEvent(event);
+			storage.setReplaceableEvent(event, pubkey);
 		}
 		for (const [, event] of [...parameterizedReplaceableEvents]) {
-			storage.setParameterizedReplaceableEvent(event);
+			storage.setParameterizedReplaceableEvent(event, pubkey);
 		}
 		return { replaceableEvents, parameterizedReplaceableEvents };
 	}
@@ -307,7 +307,7 @@ export class Author {
 				rxNostr.use(channelsReq).pipe(tie, uniq(), latest())
 			);
 			console.log('[channels event]', packet);
-			storage.setReplaceableEvent(packet.event);
+			storage.setReplaceableEvent(packet.event, this.pubkey);
 			authorChannelsEventStore.set(packet.event);
 			return; // Already migrated
 		} catch (error) {
@@ -351,7 +351,7 @@ export class Author {
 					rxNostr.send(event).subscribe((packet) => {
 						console.log('[channels migration send]', packet);
 						if (packet.ok) {
-							storage.setReplaceableEvent(event);
+							storage.setReplaceableEvent(event, this.pubkey);
 							authorChannelsEventStore.set(event);
 						}
 					});
@@ -366,7 +366,7 @@ export class Author {
 					});
 					rxNostr.send(pinEvent).subscribe((packet) => {
 						console.log('[channels migration send pin]', packet);
-						storage.setReplaceableEvent(pinEvent);
+						storage.setReplaceableEvent(pinEvent, this.pubkey);
 					});
 				}
 			});

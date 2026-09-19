@@ -147,7 +147,7 @@
 			);
 			storeMetadata(event);
 			const storage = new WebStorage(localStorage);
-			storage.setReplaceableEvent(event);
+			storage.setReplaceableEvent(event, $pubkey);
 			await goto(`/${nip19.npubEncode($pubkey)}`);
 		} catch (error) {
 			console.error('[save metadata failed]', error);

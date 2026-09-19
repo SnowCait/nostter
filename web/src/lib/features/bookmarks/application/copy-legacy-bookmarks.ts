@@ -131,7 +131,7 @@ export async function copyLegacyBookmarks(): Promise<Nostr.Event | undefined> {
 		});
 
 		await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
-		storage.setReplaceableEvent(event);
+		storage.setReplaceableEvent(event, $pubkey);
 		bookmarkEvent.set(event);
 		return event;
 	});
