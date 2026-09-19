@@ -149,7 +149,7 @@ export function parseSearchQuery(
 	console.debug('[search matches]', fromPubkeys, toPubkeys, hashtags, kinds, since, until);
 
 	const $pubkey = get(pubkey);
-	if (mine && !fromPubkeys.includes($pubkey)) {
+	if (mine && $pubkey !== undefined && !fromPubkeys.includes($pubkey)) {
 		fromPubkeys.push($pubkey);
 	}
 

@@ -258,6 +258,10 @@ export class HomeTimeline extends NewTimeline {
 
 	#createForwardFilters(): LazyFilter[] {
 		const $pubkey = get(pubkey);
+		if ($pubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
+
 		const $followees = get(followees);
 
 		const followeesFilter: LazyFilter[] = chunk($followees, filterLimitItems).map(
@@ -302,6 +306,10 @@ export class HomeTimeline extends NewTimeline {
 
 	#createBackwardFilters(limit?: number): LazyFilter[] {
 		const $pubkey = get(pubkey);
+		if ($pubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
+
 		const $followees = get(followees);
 		const $followingHashtags = get(followingHashtags);
 

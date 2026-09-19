@@ -47,6 +47,11 @@ async function save(type: DataType, tagName: string, tagContent: string): Promis
 }
 
 async function publish(): Promise<void> {
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getReplaceableEvent(kind);
 	let tags = lastEvent?.tags.concat() ?? [];
@@ -101,15 +106,15 @@ async function publish(): Promise<void> {
 		}
 	}
 
-	storeMutedTags([...tags, ...privateTags], get(pubkey));
+	storeMutedTags([...tags, ...privateTags], accountPubkey);
 
 	// Lazy validation for UX
 	if (!(await validate(lastEvent))) {
 		const [_privateTags] = await decryptListContent(
-			lastEvent?.pubkey ?? get(pubkey),
+			lastEvent?.pubkey ?? accountPubkey,
 			lastEvent?.content ?? ''
 		);
-		storeMutedTags([...(lastEvent?.tags ?? []), ..._privateTags], get(pubkey));
+		storeMutedTags([...(lastEvent?.tags ?? []), ..._privateTags], accountPubkey);
 		throw new Error('Cache is outdated.');
 	}
 
@@ -119,7 +124,7 @@ async function publish(): Promise<void> {
 		tags,
 		created_at: now()
 	});
-	storage.setReplaceableEvent(event, get(pubkey));
+	storage.setReplaceableEvent(event, accountPubkey);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
@@ -128,8 +133,16 @@ async function publish(): Promise<void> {
 }
 
 async function validate(event: Nostr.Event | undefined): Promise<boolean> {
-	const $pubkey = get(pubkey);
-	const lastEvent = await fetchLastEvent({ kinds: [kind], authors: [$pubkey], limit: 1 });
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
+	const lastEvent = await fetchLastEvent({
+		kinds: [kind],
+		authors: [accountPubkey],
+		limit: 1
+	});
 
 	if (event === undefined) {
 		if (lastEvent !== undefined) {

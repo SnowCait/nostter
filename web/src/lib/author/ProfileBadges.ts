@@ -78,6 +78,11 @@ async function save(type: DataType, a: string, e: string): Promise<void> {
 }
 
 async function publish(): Promise<void> {
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const storage = new WebStorage(localStorage);
 	const lastEvent = getCachedProfileBadgesEvent(storage);
 	let tags = lastEvent?.tags ?? [];
@@ -129,7 +134,7 @@ async function publish(): Promise<void> {
 		return;
 	}
 
-	storage.setReplaceableEvent(event, get(pubkey));
+	storage.setReplaceableEvent(event, accountPubkey);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
@@ -138,12 +143,16 @@ async function publish(): Promise<void> {
 }
 
 async function validate(event: Nostr.Event | undefined): Promise<boolean> {
-	const $pubkey = get(pubkey);
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const [currentEvent, legacyEvent] = await Promise.all([
-		fetchLastEvent({ kinds: [profileBadgesKind], authors: [$pubkey], limit: 1 }),
+		fetchLastEvent({ kinds: [profileBadgesKind], authors: [accountPubkey], limit: 1 }),
 		fetchLastEvent({
 			kinds: [legacyProfileBadgesKind],
-			authors: [$pubkey],
+			authors: [accountPubkey],
 			'#d': [legacyProfileBadgesIdentifier],
 			limit: 1
 		})

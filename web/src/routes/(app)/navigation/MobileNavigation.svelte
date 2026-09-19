@@ -9,7 +9,7 @@
 	interface Props {
 		pubkey: string | undefined;
 		homeLink: string;
-		nprofile: string;
+		nprofile: string | undefined;
 		notificationsBadge: boolean;
 		currentNavigation: AppNavigationItem | undefined;
 		onClickHomeLink: (event: MouseEvent) => void;

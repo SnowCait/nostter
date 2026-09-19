@@ -110,6 +110,9 @@
 			);
 
 			if (saveToKind3) {
+				if ($authorPubkey === undefined) {
+					throw new Error('Not authenticated');
+				}
 				const contacts = new Contacts($authorPubkey);
 				await contacts.updateRelays(
 					new Map(relays.map(({ url, read, write }) => [url, { read, write }]))

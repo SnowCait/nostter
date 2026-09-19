@@ -27,6 +27,10 @@ export function storePeopleList(event: Nostr.Event): void {
 
 export function fetchPeopleLists(): void {
 	const $authorPubkey = get(authorPubkey);
+	if ($authorPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const req = createRxBackwardReq();
 	rxNostr
 		.use(req)
@@ -75,6 +79,9 @@ export async function contains(pubkey: string, event: Nostr.Event): Promise<bool
 	}
 
 	const $authorPubkey = get(authorPubkey);
+	if ($authorPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
 
 	try {
 		const [privateTags] = await decryptListContent($authorPubkey, event.content);
@@ -87,6 +94,10 @@ export async function contains(pubkey: string, event: Nostr.Event): Promise<bool
 
 export async function createPeopleList(title: string, pubkey: string): Promise<void> {
 	const $authorPubkey = get(authorPubkey);
+	if ($authorPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const event = await Signer.signEvent({
 		kind: kind,
 		pubkey: $authorPubkey,

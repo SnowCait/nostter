@@ -64,6 +64,11 @@ async function publish(muteKind: number): Promise<void> {
 		return;
 	}
 
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getParameterizedReplaceableEvent(kind, `${muteKind}`);
 	let tags = lastEvent?.tags.concat() ?? [['d', `${muteKind}`]];
@@ -122,7 +127,7 @@ async function publish(muteKind: number): Promise<void> {
 		tags,
 		created_at: now()
 	});
-	storage.setParameterizedReplaceableEvent(event, get(pubkey));
+	storage.setParameterizedReplaceableEvent(event, accountPubkey);
 	storeMutedPubkeysByKind([event]);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
@@ -132,10 +137,14 @@ async function publish(muteKind: number): Promise<void> {
 }
 
 async function validate(event: Nostr.Event | undefined, muteKind: number): Promise<boolean> {
-	const $pubkey = get(pubkey);
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const lastEvent = await fetchLastEvent({
 		kinds: [kind],
-		authors: [$pubkey],
+		authors: [accountPubkey],
 		'#d': [`${muteKind}`],
 		limit: 1
 	});

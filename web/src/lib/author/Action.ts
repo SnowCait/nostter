@@ -92,13 +92,16 @@ export function authorActionReqEmit(event: Nostr.Event): void {
 	const ids = [event.id, ...filterTags('e', event.tags)];
 	console.debug('[rx-nostr author action req]', ids);
 	const $pubkey = get(pubkey);
-	const filters: LazyFilter[] = [
-		{
-			kinds: [6, 7],
-			authors: [$pubkey],
-			'#e': ids
-		}
-	];
+	const filters: LazyFilter[] =
+		$pubkey !== undefined
+			? [
+					{
+						kinds: [6, 7],
+						authors: [$pubkey],
+						'#e': ids
+					}
+				]
+			: [];
 	const $deletedEventIdsByPubkey = get(deletedEventIdsByPubkey);
 	const $deletedEventIds = $deletedEventIdsByPubkey.get(event.pubkey);
 	if ($deletedEventIds === undefined || !$deletedEventIds.has(event.id)) {

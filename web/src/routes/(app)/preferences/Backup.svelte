@@ -36,11 +36,15 @@
 		if (!confirm($_('preferences.backup.confirm'))) {
 			return;
 		}
+		const authorPubkey = get(pubkey);
+		if (authorPubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
 		const event = await Signer.signEvent({ ...oldEvent, created_at: now() });
 		rxNostr.send(event);
 		updateFolloweesStore(event.tags);
 		const storage = new WebStorage(localStorage);
-		storage.setReplaceableEvent(event, get(pubkey));
+		storage.setReplaceableEvent(event, authorPubkey);
 		$open = false;
 	}
 	$effect(() => {

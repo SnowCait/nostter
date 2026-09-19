@@ -92,6 +92,10 @@ async function fetchBookmarkSources(pubkey: string): Promise<{
 export async function copyLegacyBookmarks(): Promise<Nostr.Event | undefined> {
 	return runBookmarkCopyExclusively(async () => {
 		const $pubkey = get(pubkey);
+		if ($pubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
+
 		const { legacyEvent, standardEvent } = await fetchBookmarkSources($pubkey);
 		if (legacyEvent === undefined) {
 			throw new Error('Legacy bookmark event not found.');

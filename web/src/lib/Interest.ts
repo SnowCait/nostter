@@ -62,8 +62,12 @@ export function unfollowHashtag(hashtag: string): void {
 async function save(): Promise<void> {
 	processing = true;
 
-	const $pubkey = get(pubkey);
-	const latest = await fetch($pubkey);
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
+	const latest = await fetch(accountPubkey);
 	const cache = getCache();
 
 	// Validation
@@ -77,7 +81,7 @@ async function save(): Promise<void> {
 	// Send
 	const event: Nostr.UnsignedEvent = {
 		kind: interestKind,
-		pubkey: $pubkey,
+		pubkey: accountPubkey,
 		content: latest?.content ?? '',
 		tags: latest?.tags ?? [],
 		created_at: now()
