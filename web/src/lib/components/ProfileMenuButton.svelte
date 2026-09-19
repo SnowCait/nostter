@@ -11,7 +11,7 @@
 		pubkey as authorPubkey,
 		mutedPubkeysByKindMap,
 		mutePubkeys,
-		originalFollowees,
+		followingPubkeys,
 		rom
 	} from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
@@ -289,7 +289,7 @@
 		{#if $developerMode && pubkey === $authorPubkey}
 			<div use:melt={$separator} class="separator"></div>
 			<div class="text">{$_('menu.developer')}</div>
-			{#if $originalFollowees.includes(pubkey)}
+			{#if $followingPubkeys.includes(pubkey)}
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div use:melt={$item} onclick={onUnfollow} class="item">

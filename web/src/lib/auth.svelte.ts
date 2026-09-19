@@ -8,7 +8,7 @@ export class Auth {
 	#status = $state<AuthStatus>('idle');
 	pubkey = $state('');
 	#followees = $state<string[]>([]);
-	#originalFollowees = $state<string[]>([]);
+	#followingPubkeys = $state<string[]>([]);
 
 	get status(): AuthStatus {
 		return this.#status;
@@ -18,8 +18,8 @@ export class Auth {
 		return this.#followees;
 	}
 
-	get originalFollowees(): string[] {
-		return this.#originalFollowees;
+	get followingPubkeys(): string[] {
+		return this.#followingPubkeys;
 	}
 
 	followeesSet = $derived(new Set(this.#followees));
@@ -37,8 +37,8 @@ export class Auth {
 	}
 
 	updateFollowees(tags: string[][], accountPubkey: string): void {
-		this.#originalFollowees = pubkeysFromTags(tags);
-		this.#followees = unique([...this.#originalFollowees, accountPubkey]);
+		this.#followingPubkeys = pubkeysFromTags(tags);
+		this.#followees = unique([...this.#followingPubkeys, accountPubkey]);
 	}
 
 	setAuthenticated(): void {
@@ -52,7 +52,7 @@ export class Auth {
 	reset(): void {
 		this.pubkey = '';
 		this.#followees = [];
-		this.#originalFollowees = [];
+		this.#followingPubkeys = [];
 		this.#status = 'anonymous';
 	}
 }

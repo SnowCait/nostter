@@ -6,7 +6,7 @@ const a = 'a'.repeat(64);
 const b = 'b'.repeat(64);
 
 describe('Auth.updateFollowees', () => {
-	it('sets originalFollowees and appends self to followees', () => {
+	it('sets followingPubkeys and appends self to followees', () => {
 		const auth = new Auth();
 		auth.updateFollowees(
 			[
@@ -15,14 +15,14 @@ describe('Auth.updateFollowees', () => {
 			],
 			me
 		);
-		expect(auth.originalFollowees).toEqual([a, b]);
+		expect(auth.followingPubkeys).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
 	});
 
-	it('does not add self to originalFollowees', () => {
+	it('does not add self to followingPubkeys', () => {
 		const auth = new Auth();
 		auth.updateFollowees([['p', a]], me);
-		expect(auth.originalFollowees).not.toContain(me);
+		expect(auth.followingPubkeys).not.toContain(me);
 		expect(auth.followees).toContain(me);
 	});
 
@@ -36,14 +36,14 @@ describe('Auth.updateFollowees', () => {
 			],
 			me
 		);
-		expect(auth.originalFollowees).toEqual([a, b]);
+		expect(auth.followingPubkeys).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
 	});
 
 	it('leaves only self when tags are empty', () => {
 		const auth = new Auth();
 		auth.updateFollowees([], me);
-		expect(auth.originalFollowees).toEqual([]);
+		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.followees).toEqual([me]);
 	});
 
@@ -131,7 +131,7 @@ describe('Auth.reset', () => {
 
 		expect(auth.pubkey).toBe('');
 		expect(auth.followees).toEqual([]);
-		expect(auth.originalFollowees).toEqual([]);
+		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.status).toBe('anonymous');
 	});
 });
