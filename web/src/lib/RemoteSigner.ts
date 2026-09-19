@@ -2,7 +2,7 @@ import { NostrConnect } from 'nostr-tools/kinds';
 import { toBunkerURL } from 'nostr-tools/nip46';
 import { createRxForwardReq, createRxNostr, now, uniq, type RxNostr } from 'rx-nostr';
 import { get } from 'svelte/store';
-import { pubkey } from './stores/Author';
+import { auth } from '$lib/auth.svelte';
 import type { Subscription } from 'rxjs';
 import { persistedStore } from '$lib/platform/storage/persisted-store';
 import type { Persisted } from 'svelte-persisted-store';
@@ -34,7 +34,7 @@ class RemoteSigner {
 		if (!this.enabled) {
 			return '';
 		}
-		const accountPubkey = get(pubkey);
+		const accountPubkey = auth.pubkey;
 		if (accountPubkey === undefined) {
 			throw new Error('Not authenticated');
 		}
@@ -75,7 +75,7 @@ class RemoteSigner {
 		if (this.#subscription && !this.#subscription.closed) {
 			return;
 		}
-		const accountPubkey = get(pubkey);
+		const accountPubkey = auth.pubkey;
 		if (accountPubkey === undefined) {
 			throw new Error('Not authenticated');
 		}
@@ -132,7 +132,7 @@ class RemoteSigner {
 
 		switch (method) {
 			case 'connect': {
-				if (params[0] === get(pubkey) && params[1] === get(this.#secret)) {
+				if (params[0] === auth.pubkey && params[1] === get(this.#secret)) {
 					this.#clientPubkey.set(clientPubkey);
 					return { result: 'ack' };
 				} else {
