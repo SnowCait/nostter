@@ -34,7 +34,7 @@ describe('Auth lifecycle', () => {
 });
 
 describe('Auth.establish', () => {
-	it('publishes pubkey, followingPubkeys, followees and authenticated status together', () => {
+	it('publishes pubkey, followingPubkeys, derived followees and authenticated status together', () => {
 		const auth = new Auth();
 
 		expect(auth.pubkey).toBe('');
@@ -60,10 +60,10 @@ describe('Auth.establish', () => {
 });
 
 describe('Auth.updateFollowingPubkeys', () => {
-	it('sets followingPubkeys and appends self to followees', () => {
+	it('sets followingPubkeys and re-derives followees with self', () => {
 		const auth = new Auth();
 		auth.establish(me, []);
-		auth.updateFollowingPubkeys([a, b], me);
+		auth.updateFollowingPubkeys([a, b]);
 		expect(auth.followingPubkeys).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
 	});
@@ -71,7 +71,7 @@ describe('Auth.updateFollowingPubkeys', () => {
 	it('deduplicates followingPubkeys', () => {
 		const auth = new Auth();
 		auth.establish(me, []);
-		auth.updateFollowingPubkeys([a, a, b], me);
+		auth.updateFollowingPubkeys([a, a, b]);
 		expect(auth.followingPubkeys).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
 	});
@@ -79,7 +79,7 @@ describe('Auth.updateFollowingPubkeys', () => {
 	it('does not add self to followingPubkeys', () => {
 		const auth = new Auth();
 		auth.establish(me, []);
-		auth.updateFollowingPubkeys([a], me);
+		auth.updateFollowingPubkeys([a]);
 		expect(auth.followingPubkeys).not.toContain(me);
 		expect(auth.followees).toContain(me);
 	});
@@ -87,7 +87,7 @@ describe('Auth.updateFollowingPubkeys', () => {
 	it('leaves only self when followingPubkeys is empty', () => {
 		const auth = new Auth();
 		auth.establish(me, [a, b]);
-		auth.updateFollowingPubkeys([], me);
+		auth.updateFollowingPubkeys([]);
 		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.followees).toEqual([me]);
 	});
@@ -95,21 +95,13 @@ describe('Auth.updateFollowingPubkeys', () => {
 	it('exposes followeesSet matching followees', () => {
 		const auth = new Auth();
 		auth.establish(me, []);
-		auth.updateFollowingPubkeys([a, b], me);
+		auth.updateFollowingPubkeys([a, b]);
 		expect(auth.followeesSet).toEqual(new Set([a, b, me]));
-	});
-
-	it('uses the explicitly passed accountPubkey as self, ignoring auth.pubkey', () => {
-		const auth = new Auth();
-		auth.establish(b, []);
-		auth.updateFollowingPubkeys([a], me);
-		expect(auth.followees).toEqual([a, me]);
-		expect(auth.followees).not.toContain(b);
 	});
 
 	it('rejects updates without an authenticated session', () => {
 		const auth = new Auth();
-		expect(() => auth.updateFollowingPubkeys([a, b], me)).toThrow();
+		expect(() => auth.updateFollowingPubkeys([a, b])).toThrow();
 	});
 });
 
