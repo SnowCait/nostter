@@ -139,7 +139,7 @@ export class Author {
 			preferencesStore.set(preferences);
 
 			if (get(notificationVisibility) === 'follows_of_follows') {
-				contactsOfFolloweesReqEmit();
+				contactsOfFolloweesReqEmit(auth.followees);
 			}
 		} else {
 			const regacyReactionEmojiEvent = parameterizedReplaceableEvents.get(
