@@ -36,9 +36,9 @@ export class Auth {
 		this.#status = 'authenticating';
 	}
 
-	updateFollowees(tags: string[][]): void {
+	updateFollowees(tags: string[][], accountPubkey: string): void {
 		this.#originalFollowees = pubkeysFromTags(tags);
-		this.#followees = unique([...this.#originalFollowees, this.pubkey]);
+		this.#followees = unique([...this.#originalFollowees, accountPubkey]);
 	}
 
 	setAuthenticated(): void {
