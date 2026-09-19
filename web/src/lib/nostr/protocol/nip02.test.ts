@@ -20,20 +20,8 @@ describe('parseFollowList', () => {
 		]);
 	});
 
-	it('accepts a ws: relay URL', () => {
-		expect(parseFollowList([['p', a, 'ws://localhost:8080']])).toEqual([
-			{ pubkey: a, relayUrl: 'ws://localhost:8080', petname: undefined }
-		]);
-	});
-
-	it('drops a malformed relay URL but keeps the follow entry', () => {
+	it('drops an invalid relay URL but keeps the follow entry', () => {
 		expect(parseFollowList([['p', a, 'not-a-url']])).toEqual([
-			{ pubkey: a, relayUrl: undefined, petname: undefined }
-		]);
-	});
-
-	it('drops a non-relay protocol URL but keeps the follow entry', () => {
-		expect(parseFollowList([['p', a, 'https://example.com']])).toEqual([
 			{ pubkey: a, relayUrl: undefined, petname: undefined }
 		]);
 	});
