@@ -34,7 +34,6 @@ import {
 import { bookmarkEvent, legacyBookmarkEvent } from './author/Bookmark.svelte';
 import { legacyProfileBadgesKey, setProfileBadgesEvent } from './author/ProfileBadges';
 import { profileBadgesKind } from './ProfileBadgesEvent';
-import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 import {
 	getAccountLocalPreferences,
 	initializeMediaUploaderPreference
@@ -94,10 +93,7 @@ export class Author {
 		return contactsEvent?.tags ?? [];
 	}
 
-	public async fetchEvents(): Promise<{
-		originalFollowees: string[];
-		startFolloweesOfFollowees: boolean;
-	}> {
+	public async fetchEvents(): Promise<{ originalFollowees: string[] }> {
 		const { replaceableEvents, parameterizedReplaceableEvents } =
 			await this.fetchAuthorEventsWithCache(this.pubkey);
 
@@ -135,14 +131,10 @@ export class Author {
 
 		const preferencesEvent = parameterizedReplaceableEvents.get(`${30078}:nostter-preferences`);
 		let legacyMediaUploader: string | undefined;
-		let startFolloweesOfFollowees = false;
 		if (preferencesEvent !== undefined) {
 			const preferences = new Preferences(preferencesEvent.content);
 			legacyMediaUploader = preferences.mediaUploader;
 			preferencesStore.set(preferences);
-			startFolloweesOfFollowees =
-				preferences.muteAutomatically ||
-				get(notificationVisibility) === 'follows_of_follows';
 		} else {
 			const regacyReactionEmojiEvent = parameterizedReplaceableEvents.get(
 				`${30078}:nostter-reaction-emoji`
@@ -190,10 +182,7 @@ export class Author {
 		}
 
 		console.log('[relays]', get(readRelays), get(writeRelays));
-		return {
-			originalFollowees,
-			startFolloweesOfFollowees
-		};
+		return { originalFollowees };
 	}
 
 	private async fetchAuthorEventsWithCache(pubkey: string): Promise<{

@@ -13,6 +13,9 @@ import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
 import { auth } from './auth.svelte';
 import { unique } from './array';
 import { contactsOfFolloweesReqEmit } from './author/MuteAutomatically';
+import { get } from 'svelte/store';
+import { preferencesStore } from './Preferences';
+import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -155,7 +158,7 @@ export class Login {
 		await $author.fetchRelays();
 		console.timeLog('fetch author');
 
-		const { originalFollowees, startFolloweesOfFollowees } = await $author.fetchEvents();
+		const { originalFollowees } = await $author.fetchEvents();
 		const followees = unique([...originalFollowees, pubkey]);
 		console.timeEnd('fetch author');
 
@@ -168,8 +171,11 @@ export class Login {
 		auth.setAuthenticated();
 		clearLoginStatus();
 
-		if (startFolloweesOfFollowees) {
-			contactsOfFolloweesReqEmit();
+		if (
+			get(preferencesStore).muteAutomatically ||
+			get(notificationVisibility) === 'follows_of_follows'
+		) {
+			contactsOfFolloweesReqEmit(followees);
 		}
 		remoteSigner.subscribeIfEnabled();
 	}
