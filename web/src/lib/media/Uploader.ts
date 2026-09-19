@@ -15,6 +15,9 @@ function createMediaUploader(preference: MediaUploaderPreference): Media {
 }
 
 export function getMediaUploader(): Media {
+	if (auth.pubkey === undefined) {
+		throw new Error('Cannot get media uploader without an authenticated session');
+	}
 	const preference = get(getAccountLocalPreferences(auth.pubkey)).mediaUploader ?? {
 		type: 'blossom',
 		server: defaultBlossomServerUrl

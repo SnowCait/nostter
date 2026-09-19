@@ -37,7 +37,7 @@ describe('Auth.establish', () => {
 	it('publishes pubkey, followingPubkeys, derived followees and authenticated status together', () => {
 		const auth = new Auth();
 
-		expect(auth.pubkey).toBe('');
+		expect(auth.pubkey).toBeUndefined();
 		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.followees).toEqual([]);
 		expect(auth.isAuthenticated).toBe(false);
@@ -112,7 +112,7 @@ describe('Auth.reset', () => {
 
 		auth.reset();
 
-		expect(auth.pubkey).toBe('');
+		expect(auth.pubkey).toBeUndefined();
 		expect(auth.followees).toEqual([]);
 		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.status).toBe('anonymous');

@@ -13,7 +13,7 @@ import { auth } from '$lib/auth.svelte';
 import { type LoginType, signerCanSign } from '$lib/nostr/signing/signer-capability';
 
 export const loginType: Writable<LoginType | undefined> = writable();
-export const pubkey = toStore(() => auth.pubkey);
+export const pubkey = toStore(() => auth.pubkey ?? '');
 export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();

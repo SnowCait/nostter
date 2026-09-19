@@ -38,6 +38,9 @@ vi.mock('./FileStorageServer', () => ({
 		}
 	}
 }));
+vi.mock('$lib/auth.svelte', () => ({
+	auth: { pubkey: 'f'.repeat(64) }
+}));
 
 import { getMediaUploader } from './Uploader';
 
