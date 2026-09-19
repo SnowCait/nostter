@@ -7,6 +7,7 @@
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
+	import { auth } from '$lib/auth.svelte';
 	import { author, muteEvent, pubkey, rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import AutoRefresh from './AutoRefresh.svelte';
@@ -44,7 +45,7 @@
 
 <h1>{$_('layout.header.preferences')}</h1>
 
-{#if $author !== undefined && !$rom}
+{#if auth.isAuthenticated && $author !== undefined && !$rom}
 	<section class="card">
 		<h2>{$_('preferences.shared')}</h2>
 		<div>
