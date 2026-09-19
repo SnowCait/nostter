@@ -5,47 +5,31 @@ const me = 'f'.repeat(64);
 const a = 'a'.repeat(64);
 const b = 'b'.repeat(64);
 
-describe('Auth.updateFollowingPubkeys', () => {
-	it('sets followingPubkeys and appends self to followees', () => {
+describe('Auth lifecycle', () => {
+	it('starts initializing', () => {
 		const auth = new Auth();
-		auth.updateFollowingPubkeys([a, b], me);
-		expect(auth.followingPubkeys).toEqual([a, b]);
-		expect(auth.followees).toEqual([a, b, me]);
+		expect(auth.status).toBe('initializing');
+		expect(auth.isInitializing).toBe(true);
+		expect(auth.isReady).toBe(false);
+		expect(auth.isAuthenticated).toBe(false);
 	});
 
-	it('deduplicates followingPubkeys', () => {
+	it('is ready but not authenticated after reset', () => {
 		const auth = new Auth();
-		auth.updateFollowingPubkeys([a, a, b], me);
-		expect(auth.followingPubkeys).toEqual([a, b]);
-		expect(auth.followees).toEqual([a, b, me]);
+		auth.reset();
+		expect(auth.status).toBe('anonymous');
+		expect(auth.isInitializing).toBe(false);
+		expect(auth.isReady).toBe(true);
+		expect(auth.isAuthenticated).toBe(false);
 	});
 
-	it('does not add self to followingPubkeys', () => {
+	it('is ready and authenticated after establish', () => {
 		const auth = new Auth();
-		auth.updateFollowingPubkeys([a], me);
-		expect(auth.followingPubkeys).not.toContain(me);
-		expect(auth.followees).toContain(me);
-	});
-
-	it('leaves only self when followingPubkeys is empty', () => {
-		const auth = new Auth();
-		auth.updateFollowingPubkeys([], me);
-		expect(auth.followingPubkeys).toEqual([]);
-		expect(auth.followees).toEqual([me]);
-	});
-
-	it('exposes followeesSet matching followees', () => {
-		const auth = new Auth();
-		auth.updateFollowingPubkeys([a, b], me);
-		expect(auth.followeesSet).toEqual(new Set([a, b, me]));
-	});
-
-	it('uses the explicitly passed accountPubkey as self, ignoring auth.pubkey', () => {
-		const auth = new Auth();
-		auth.establish(b, []);
-		auth.updateFollowingPubkeys([a], me);
-		expect(auth.followees).toEqual([a, me]);
-		expect(auth.followees).not.toContain(b);
+		auth.establish(me, []);
+		expect(auth.status).toBe('authenticated');
+		expect(auth.isInitializing).toBe(false);
+		expect(auth.isReady).toBe(true);
+		expect(auth.isAuthenticated).toBe(true);
 	});
 });
 
@@ -66,51 +50,69 @@ describe('Auth.establish', () => {
 		expect(auth.status).toBe('authenticated');
 		expect(auth.isAuthenticated).toBe(true);
 	});
+
+	it('deduplicates followingPubkeys', () => {
+		const auth = new Auth();
+		auth.establish(me, [a, a, b]);
+		expect(auth.followingPubkeys).toEqual([a, b]);
+		expect(auth.followees).toEqual([a, b, me]);
+	});
 });
 
-describe('Auth status machine', () => {
-	it('starts idle and initializing', () => {
-		const auth = new Auth();
-		expect(auth.status).toBe('idle');
-		expect(auth.isInitializing).toBe(true);
-		expect(auth.isReady).toBe(false);
-		expect(auth.isAuthenticated).toBe(false);
-	});
-
-	it('stays initializing while restoring', () => {
-		const auth = new Auth();
-		auth.beginRestoring();
-		expect(auth.status).toBe('restoring');
-		expect(auth.isInitializing).toBe(true);
-		expect(auth.isReady).toBe(false);
-		expect(auth.isAuthenticated).toBe(false);
-	});
-
-	it('is neither initializing nor ready while authenticating', () => {
-		const auth = new Auth();
-		auth.beginAuthenticating();
-		expect(auth.status).toBe('authenticating');
-		expect(auth.isInitializing).toBe(false);
-		expect(auth.isReady).toBe(false);
-		expect(auth.isAuthenticated).toBe(false);
-	});
-
-	it('is ready and authenticated after establish', () => {
+describe('Auth.updateFollowingPubkeys', () => {
+	it('sets followingPubkeys and appends self to followees', () => {
 		const auth = new Auth();
 		auth.establish(me, []);
-		expect(auth.status).toBe('authenticated');
-		expect(auth.isInitializing).toBe(false);
-		expect(auth.isReady).toBe(true);
-		expect(auth.isAuthenticated).toBe(true);
+		auth.updateFollowingPubkeys([a, b], me);
+		expect(auth.followingPubkeys).toEqual([a, b]);
+		expect(auth.followees).toEqual([a, b, me]);
 	});
 
-	it('is ready but not authenticated after setAnonymous', () => {
+	it('deduplicates followingPubkeys', () => {
 		const auth = new Auth();
-		auth.setAnonymous();
-		expect(auth.status).toBe('anonymous');
-		expect(auth.isInitializing).toBe(false);
-		expect(auth.isReady).toBe(true);
-		expect(auth.isAuthenticated).toBe(false);
+		auth.establish(me, []);
+		auth.updateFollowingPubkeys([a, a, b], me);
+		expect(auth.followingPubkeys).toEqual([a, b]);
+		expect(auth.followees).toEqual([a, b, me]);
+	});
+
+	it('does not add self to followingPubkeys', () => {
+		const auth = new Auth();
+		auth.establish(me, []);
+		auth.updateFollowingPubkeys([a], me);
+		expect(auth.followingPubkeys).not.toContain(me);
+		expect(auth.followees).toContain(me);
+	});
+
+	it('leaves only self when followingPubkeys is empty', () => {
+		const auth = new Auth();
+		auth.establish(me, [a, b]);
+		auth.updateFollowingPubkeys([], me);
+		expect(auth.followingPubkeys).toEqual([]);
+		expect(auth.followees).toEqual([me]);
+	});
+
+	it('exposes followeesSet matching followees', () => {
+		const auth = new Auth();
+		auth.establish(me, []);
+		auth.updateFollowingPubkeys([a, b], me);
+		expect(auth.followeesSet).toEqual(new Set([a, b, me]));
+	});
+
+	it('uses the explicitly passed accountPubkey as self, ignoring auth.pubkey', () => {
+		const auth = new Auth();
+		auth.establish(b, []);
+		auth.updateFollowingPubkeys([a], me);
+		expect(auth.followees).toEqual([a, me]);
+		expect(auth.followees).not.toContain(b);
+	});
+
+	it('keeps the session unauthenticated when there is no established session', () => {
+		const auth = new Auth();
+		auth.updateFollowingPubkeys([a, b], me);
+		expect(auth.status).toBe('initializing');
+		expect(auth.followingPubkeys).toEqual([]);
+		expect(auth.followees).toEqual([]);
 	});
 });
 

@@ -179,7 +179,6 @@ export async function tryLogin(): Promise<boolean> {
 			return false;
 		}
 
-		auth.beginRestoring();
 		setLoginStatus('checking');
 
 		const login = new Login();

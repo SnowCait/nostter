@@ -43,7 +43,6 @@
 		storage.set('login', 'NIP-07');
 
 		try {
-			auth.beginAuthenticating();
 			await login.withNip07();
 			if (!(await gotoHome())) {
 				resetLoginProgress();
@@ -64,7 +63,6 @@
 		loggingInWith = 'nip46';
 		failedToLogin = false;
 		try {
-			auth.beginAuthenticating();
 			const success = await login.withNip46(bunker);
 			if (!success) {
 				failedToLogin = true;
@@ -91,7 +89,6 @@
 		loggingInWith = 'key';
 		failedToLogin = false;
 		try {
-			auth.beginAuthenticating();
 			if (key.startsWith('nsec')) {
 				await login.withNsec(key);
 			} else {
@@ -126,7 +123,6 @@
 
 		registering = true;
 		try {
-			auth.beginAuthenticating();
 			await login.withNsec(key);
 			await login.saveBasicInfo(name);
 			await goto('/public');

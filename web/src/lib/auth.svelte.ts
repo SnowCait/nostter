@@ -1,64 +1,68 @@
 import { toStore } from 'svelte/store';
 import { unique } from './array';
 
-export type AuthStatus = 'idle' | 'restoring' | 'authenticating' | 'authenticated' | 'anonymous';
+export type AuthState =
+	| { status: 'initializing' }
+	| { status: 'anonymous' }
+	| {
+			status: 'authenticated';
+			pubkey: string;
+			followingPubkeys: string[];
+			followees: string[];
+	  };
+
+export type AuthStatus = AuthState['status'];
 
 export class Auth {
-	#status = $state<AuthStatus>('idle');
-	#pubkey = $state('');
-	#followees = $state<string[]>([]);
-	#followingPubkeys = $state<string[]>([]);
+	#state = $state<AuthState>({ status: 'initializing' });
 
 	get status(): AuthStatus {
-		return this.#status;
+		return this.#state.status;
 	}
 
 	get pubkey(): string {
-		return this.#pubkey;
+		return this.#state.status === 'authenticated' ? this.#state.pubkey : '';
 	}
 
 	get followees(): string[] {
-		return this.#followees;
+		return this.#state.status === 'authenticated' ? this.#state.followees : [];
 	}
 
 	get followingPubkeys(): string[] {
-		return this.#followingPubkeys;
+		return this.#state.status === 'authenticated' ? this.#state.followingPubkeys : [];
 	}
 
-	followeesSet = $derived(new Set(this.#followees));
+	followeesSet = $derived(new Set(this.followees));
 
-	isInitializing = $derived(this.#status === 'idle' || this.#status === 'restoring');
-	isReady = $derived(this.#status === 'authenticated' || this.#status === 'anonymous');
-	isAuthenticated = $derived(this.#status === 'authenticated');
-
-	beginRestoring(): void {
-		this.#status = 'restoring';
-	}
-
-	beginAuthenticating(): void {
-		this.#status = 'authenticating';
-	}
+	isInitializing = $derived(this.#state.status === 'initializing');
+	isReady = $derived(this.#state.status !== 'initializing');
+	isAuthenticated = $derived(this.#state.status === 'authenticated');
 
 	updateFollowingPubkeys(followingPubkeys: string[], accountPubkey: string): void {
-		this.#followingPubkeys = unique(followingPubkeys);
-		this.#followees = unique([...this.#followingPubkeys, accountPubkey]);
+		if (this.#state.status !== 'authenticated') {
+			return;
+		}
+
+		const uniqueFollowingPubkeys = unique(followingPubkeys);
+		this.#state = {
+			...this.#state,
+			followingPubkeys: uniqueFollowingPubkeys,
+			followees: unique([...uniqueFollowingPubkeys, accountPubkey])
+		};
 	}
 
 	establish(pubkey: string, followingPubkeys: string[]): void {
-		this.#pubkey = pubkey;
-		this.updateFollowingPubkeys(followingPubkeys, pubkey);
-		this.#status = 'authenticated';
-	}
-
-	setAnonymous(): void {
-		this.#status = 'anonymous';
+		const uniqueFollowingPubkeys = unique(followingPubkeys);
+		this.#state = {
+			status: 'authenticated',
+			pubkey,
+			followingPubkeys: uniqueFollowingPubkeys,
+			followees: unique([...uniqueFollowingPubkeys, pubkey])
+		};
 	}
 
 	reset(): void {
-		this.#pubkey = '';
-		this.#followees = [];
-		this.#followingPubkeys = [];
-		this.#status = 'anonymous';
+		this.#state = { status: 'anonymous' };
 	}
 }
 
