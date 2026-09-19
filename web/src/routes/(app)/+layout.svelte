@@ -99,6 +99,11 @@
 	}
 
 	function onVisibilityChange() {
+		if (!auth.isAuthenticated) {
+			hiddenAt = undefined;
+			return;
+		}
+
 		switch (document.visibilityState) {
 			case 'hidden': {
 				hiddenAt = now();
