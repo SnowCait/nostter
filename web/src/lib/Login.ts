@@ -1,5 +1,6 @@
 import { get } from 'svelte/store';
 import { author, authorProfile, loginType } from './stores/Author';
+import { signerCanSign } from './nostr/signing/signer-capability';
 import { Signer } from './Signer';
 import { getPublicKey, nip19 } from 'nostr-tools';
 import { robohash } from './Items';
@@ -160,7 +161,9 @@ export class Login {
 			loadFolloweesOfFollowees(auth.followees);
 		}
 
-		remoteSigner.subscribeIfEnabled();
+		if (signerCanSign(get(loginType))) {
+			remoteSigner.subscribeIfEnabled();
+		}
 	}
 }
 
