@@ -38,6 +38,6 @@ export class Contacts {
 
 export function updateFolloweesStore(tags: string[][]): void {
 	const followingPubkeys = parseFollowList(tags).map(({ pubkey }) => pubkey);
-	auth.updateFollowingPubkeys(followingPubkeys, auth.pubkey);
+	auth.updateFollowingPubkeys(followingPubkeys);
 	pruneFolloweeReplaceableEventsCache(auth.followees);
 }
