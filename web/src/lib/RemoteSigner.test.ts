@@ -27,11 +27,6 @@ vi.mock('rx-nostr', async (importOriginal) => {
 	};
 });
 
-vi.mock('./stores/Author', async () => {
-	const { writable } = await import('svelte/store');
-	return { pubkey: writable('server-pubkey') };
-});
-
 vi.mock('./timelines/MainTimeline', () => ({
 	verificationClient: { verifier: vi.fn() }
 }));
@@ -73,6 +68,7 @@ vi.mock('./Signer', () => ({
 	}
 }));
 
+import { auth } from '$lib/auth.svelte';
 import { remoteSigner } from './RemoteSigner';
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -83,6 +79,8 @@ const packet = (id: string): RequestPacket => ({
 
 beforeEach(() => {
 	remoteSigner.disable();
+	auth.reset();
+	auth.establish('server-pubkey', []);
 	hoisted.streams.length = 0;
 	hoisted.decryptNip44.mockClear();
 	hoisted.encryptNip44.mockClear();
@@ -152,5 +150,17 @@ describe('RemoteSigner re-subscription after disable', () => {
 		const second = hoisted.streams[1];
 		expect(first.observed).toBe(false);
 		expect(second.observed).toBe(true);
+	});
+});
+
+describe('RemoteSigner startup after session establishment', () => {
+	it('can subscribe immediately after the session is established, with no await between establish and subscribe', () => {
+		auth.reset();
+		remoteSigner.enable();
+
+		auth.establish('server-pubkey', []);
+		remoteSigner.subscribeIfEnabled();
+
+		expect(hoisted.streams).toHaveLength(1);
 	});
 });
