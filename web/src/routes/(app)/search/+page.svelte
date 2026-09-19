@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { Filter, NostrEvent } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
-	import { afterNavigate, goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { parseSearchQuery, Search, searchScopes, type SearchScope } from '$lib/Search';
 	import { appName } from '$lib/app';
-	import { auth } from '$lib/auth.svelte';
+	import { auth, type AuthStatus } from '$lib/auth.svelte';
 	import { minTimelineLength, searchRelays } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
 	import { EventItem } from '$lib/Items';
@@ -61,8 +61,8 @@
 		};
 	});
 
-	async function applySearchParams(): Promise<void> {
-		const params = page.url.searchParams;
+	async function applySearchParams(url: URL, authStatus: AuthStatus): Promise<void> {
+		const params = url.searchParams;
 		const requestedQuery = params.get('q') ?? '';
 		const rawScope = params.get('scope');
 		const requestedScope =
@@ -70,14 +70,14 @@
 				? (rawScope as SearchScope)
 				: 'nostr';
 
-		if (requestedScope === 'mine' && auth.isInitializing) {
+		if (requestedScope === 'mine' && authStatus === 'initializing') {
 			return;
 		}
 
-		if (requestedScope === 'mine' && !auth.isAuthenticated) {
-			const url = new URL(page.url);
-			url.searchParams.set('scope', 'nostr');
-			await goto(url, { replaceState: true });
+		if (requestedScope === 'mine' && authStatus !== 'authenticated') {
+			const normalizedUrl = new URL(url);
+			normalizedUrl.searchParams.set('scope', 'nostr');
+			await goto(normalizedUrl, { replaceState: true });
 			return;
 		}
 
@@ -151,21 +151,12 @@
 		}
 	}
 
-	afterNavigate(() => {
-		void applySearchParams();
-	});
-
 	$effect(() => {
-		const status = auth.status;
-
-		if (status === 'initializing') {
-			return;
-		}
+		const href = page.url.href;
+		const authStatus = auth.status;
 
 		untrack(() => {
-			if (page.url.searchParams.get('scope') === 'mine') {
-				void applySearchParams();
-			}
+			void applySearchParams(new URL(href), authStatus);
 		});
 	});
 
