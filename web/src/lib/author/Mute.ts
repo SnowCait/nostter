@@ -101,7 +101,7 @@ async function publish(): Promise<void> {
 		}
 	}
 
-	storeMutedTags([...tags, ...privateTags]);
+	storeMutedTags([...tags, ...privateTags], get(pubkey));
 
 	// Lazy validation for UX
 	if (!(await validate(lastEvent))) {
@@ -109,7 +109,7 @@ async function publish(): Promise<void> {
 			lastEvent?.pubkey ?? get(pubkey),
 			lastEvent?.content ?? ''
 		);
-		storeMutedTags([...(lastEvent?.tags ?? []), ..._privateTags]);
+		storeMutedTags([...(lastEvent?.tags ?? []), ..._privateTags], get(pubkey));
 		throw new Error('Cache is outdated.');
 	}
 

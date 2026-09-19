@@ -174,7 +174,7 @@ export class Author {
 
 		const muteEvent = replaceableEvents.get(10000);
 		if (muteEvent !== undefined) {
-			await storeMutedTagsByEvent(muteEvent);
+			await storeMutedTagsByEvent(muteEvent, this.pubkey);
 		}
 
 		const mutedByKindEvents = [...parameterizedReplaceableEvents]

@@ -124,7 +124,7 @@ export class HomeTimeline extends NewTimeline {
 			this.subscribe();
 		});
 		replaceable$.pipe(filterByKind(Kind.Mutelist)).subscribe(async ({ event }) => {
-			await storeMutedTagsByEvent(event);
+			await storeMutedTagsByEvent(event, $pubkey);
 		});
 		replaceable$
 			.pipe(filterByKind(Kind.PublicChatsList))
