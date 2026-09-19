@@ -152,11 +152,11 @@
 	}
 
 	$effect(() => {
-		const href = page.url.href;
+		const url = page.url;
 		const authStatus = auth.status;
 
 		untrack(() => {
-			void applySearchParams(new URL(href), authStatus);
+			void applySearchParams(url, authStatus);
 		});
 	});
 
