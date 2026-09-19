@@ -3,7 +3,7 @@
 	import { follow, unfollow } from '$lib/author/Follow';
 	import { metadataStore } from '$lib/cache/Events';
 	import { alternativeName } from '$lib/Items';
-	import { originalFollowees } from '$lib/stores/Author';
+	import { followingPubkeys } from '$lib/stores/Author';
 
 	interface Props {
 		pubkey: string;
@@ -51,7 +51,7 @@
 	}
 </script>
 
-{#if $originalFollowees.includes(pubkey)}
+{#if $followingPubkeys.includes(pubkey)}
 	<button onclick={onUnfollow} class="rounded-button" disabled={processing}>
 		{$_('follow.following')}
 	</button>
