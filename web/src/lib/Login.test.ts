@@ -96,9 +96,7 @@ describe('Login.withNpub', () => {
 			originalSetAuthenticated();
 		});
 
-		fetchEvents.mockImplementation(async () => {
-			auth.updateFollowees([['p', followee]], me);
-		});
+		fetchEvents.mockResolvedValue([['p', followee]]);
 		loadFolloweesOfFollowees.mockImplementation(() => {
 			calls.push('loadFolloweesOfFollowees');
 		});
