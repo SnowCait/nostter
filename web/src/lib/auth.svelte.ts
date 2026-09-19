@@ -1,6 +1,5 @@
 import { toStore } from 'svelte/store';
-import { unique } from './array';
-import { pubkeysFromTags } from './pubkey';
+import { deriveFollowees } from './features/session/domain/derive-followees';
 
 export type AuthStatus = 'idle' | 'restoring' | 'authenticating' | 'authenticated' | 'anonymous';
 
@@ -37,8 +36,10 @@ export class Auth {
 	}
 
 	updateFollowees(tags: string[][], accountPubkey: string): void {
-		this.#originalFollowees = pubkeysFromTags(tags);
-		this.#followees = unique([...this.#originalFollowees, accountPubkey]);
+		const { originalFollowees, followees } = deriveFollowees(tags, accountPubkey);
+
+		this.#originalFollowees = originalFollowees;
+		this.#followees = followees;
 	}
 
 	setAuthenticated(): void {

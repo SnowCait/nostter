@@ -6,7 +6,7 @@ const a = 'a'.repeat(64);
 const b = 'b'.repeat(64);
 
 describe('Auth.updateFollowees', () => {
-	it('sets originalFollowees and appends self to followees', () => {
+	it('applies the derived followee state to Auth state', () => {
 		const auth = new Auth();
 		auth.updateFollowees(
 			[
@@ -17,34 +17,6 @@ describe('Auth.updateFollowees', () => {
 		);
 		expect(auth.originalFollowees).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
-	});
-
-	it('does not add self to originalFollowees', () => {
-		const auth = new Auth();
-		auth.updateFollowees([['p', a]], me);
-		expect(auth.originalFollowees).not.toContain(me);
-		expect(auth.followees).toContain(me);
-	});
-
-	it('deduplicates followees', () => {
-		const auth = new Auth();
-		auth.updateFollowees(
-			[
-				['p', a],
-				['p', a],
-				['p', b]
-			],
-			me
-		);
-		expect(auth.originalFollowees).toEqual([a, b]);
-		expect(auth.followees).toEqual([a, b, me]);
-	});
-
-	it('leaves only self when tags are empty', () => {
-		const auth = new Auth();
-		auth.updateFollowees([], me);
-		expect(auth.originalFollowees).toEqual([]);
-		expect(auth.followees).toEqual([me]);
 	});
 
 	it('exposes followeesSet matching followees', () => {
