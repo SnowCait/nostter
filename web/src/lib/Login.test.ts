@@ -1,34 +1,41 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NotificationVisibility } from './preferences/NotificationVisibility.svelte';
 
-const { loadFolloweesOfFollowees, notificationVisibility, fetchEvents, fetchRelays, calls } =
-	vi.hoisted(() => {
-		function createStore<T>(initial: T) {
-			let value = initial;
-			const subscribers = new Set<(value: T) => void>();
-			return {
-				subscribe(fn: (value: T) => void) {
-					fn(value);
-					subscribers.add(fn);
-					return () => subscribers.delete(fn);
-				},
-				set(next: T) {
-					value = next;
-					for (const fn of subscribers) {
-						fn(value);
-					}
-				}
-			};
-		}
-
+const {
+	loadFolloweesOfFollowees,
+	notificationVisibility,
+	fetchEvents,
+	fetchRelays,
+	loadFolloweesMetadataCache,
+	calls
+} = vi.hoisted(() => {
+	function createStore<T>(initial: T) {
+		let value = initial;
+		const subscribers = new Set<(value: T) => void>();
 		return {
-			loadFolloweesOfFollowees: vi.fn(),
-			notificationVisibility: createStore<NotificationVisibility>('all'),
-			fetchEvents: vi.fn(),
-			fetchRelays: vi.fn().mockResolvedValue(undefined),
-			calls: [] as string[]
+			subscribe(fn: (value: T) => void) {
+				fn(value);
+				subscribers.add(fn);
+				return () => subscribers.delete(fn);
+			},
+			set(next: T) {
+				value = next;
+				for (const fn of subscribers) {
+					fn(value);
+				}
+			}
 		};
-	});
+	}
+
+	return {
+		loadFolloweesOfFollowees: vi.fn(),
+		notificationVisibility: createStore<NotificationVisibility>('all'),
+		fetchEvents: vi.fn(),
+		fetchRelays: vi.fn().mockResolvedValue(undefined),
+		loadFolloweesMetadataCache: vi.fn().mockResolvedValue(undefined),
+		calls: [] as string[]
+	};
+});
 
 vi.mock('./features/notifications/application/followees-of-followees', () => ({
 	loadFolloweesOfFollowees
@@ -57,7 +64,7 @@ vi.mock('./timelines/MainTimeline', () => ({
 }));
 
 vi.mock('./cache/Events', () => ({
-	loadFolloweesMetadataCache: vi.fn().mockResolvedValue(undefined),
+	loadFolloweesMetadataCache,
 	pruneFolloweeReplaceableEventsCache: vi.fn()
 }));
 
@@ -90,12 +97,15 @@ describe('Login.withNpub', () => {
 		const { auth } = await import('./auth.svelte');
 		auth.reset();
 
-		const originalSetAuthenticated = Object.getPrototypeOf(auth).setAuthenticated.bind(auth);
-		vi.spyOn(auth, 'setAuthenticated').mockImplementation(() => {
-			calls.push('setAuthenticated');
-			originalSetAuthenticated();
-		});
+		const originalEstablish = Object.getPrototypeOf(auth).establish.bind(auth);
+		vi.spyOn(auth, 'establish').mockImplementation(
+			(pubkey: string, followingPubkeys: string[]) => {
+				calls.push('establish');
+				originalEstablish(pubkey, followingPubkeys);
+			}
+		);
 
+		loadFolloweesMetadataCache.mockResolvedValue(undefined);
 		fetchEvents.mockResolvedValue([['p', followee]]);
 		loadFolloweesOfFollowees.mockImplementation(() => {
 			calls.push('loadFolloweesOfFollowees');
@@ -129,7 +139,7 @@ describe('Login.withNpub', () => {
 		expect(auth.followees).toContain(followee);
 	});
 
-	it('starts the loader only after auth.setAuthenticated()', async () => {
+	it('starts the loader only after auth.establish()', async () => {
 		notificationVisibility.set('follows_of_follows');
 
 		const { nip19 } = await import('nostr-tools');
@@ -139,6 +149,40 @@ describe('Login.withNpub', () => {
 		const login = new Login();
 		await login.withNpub(npub);
 
-		expect(calls).toEqual(['setAuthenticated', 'loadFolloweesOfFollowees']);
+		expect(calls).toEqual(['establish', 'loadFolloweesOfFollowees']);
+	});
+
+	it('does not publish pubkey/followingPubkeys/followees/authenticated status to global auth until account initialization completes', async () => {
+		let resolveMetadataCache: () => void = () => {};
+		loadFolloweesMetadataCache.mockImplementation(
+			() =>
+				new Promise<void>((resolve) => {
+					resolveMetadataCache = resolve;
+				})
+		);
+
+		const { nip19 } = await import('nostr-tools');
+		const { auth } = await import('./auth.svelte');
+		const { Login } = await import('./Login');
+		const npub = nip19.npubEncode(me);
+
+		const login = new Login();
+		const loginPromise = login.withNpub(npub);
+
+		await Promise.resolve();
+		await Promise.resolve();
+
+		expect(auth.pubkey).toBe('');
+		expect(auth.followingPubkeys).toEqual([]);
+		expect(auth.followees).toEqual([]);
+		expect(auth.status).not.toBe('authenticated');
+
+		resolveMetadataCache();
+		await loginPromise;
+
+		expect(auth.pubkey).toBe(me);
+		expect(auth.followingPubkeys).toEqual([followee]);
+		expect(auth.followees).toEqual([followee, me]);
+		expect(auth.status).toBe('authenticated');
 	});
 });

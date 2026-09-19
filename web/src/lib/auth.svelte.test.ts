@@ -42,10 +42,29 @@ describe('Auth.updateFollowingPubkeys', () => {
 
 	it('uses the explicitly passed accountPubkey as self, ignoring auth.pubkey', () => {
 		const auth = new Auth();
-		auth.pubkey = b;
+		auth.establish(b, []);
 		auth.updateFollowingPubkeys([a], me);
 		expect(auth.followees).toEqual([a, me]);
 		expect(auth.followees).not.toContain(b);
+	});
+});
+
+describe('Auth.establish', () => {
+	it('publishes pubkey, followingPubkeys, followees and authenticated status together', () => {
+		const auth = new Auth();
+
+		expect(auth.pubkey).toBe('');
+		expect(auth.followingPubkeys).toEqual([]);
+		expect(auth.followees).toEqual([]);
+		expect(auth.isAuthenticated).toBe(false);
+
+		auth.establish(me, [a, b]);
+
+		expect(auth.pubkey).toBe(me);
+		expect(auth.followingPubkeys).toEqual([a, b]);
+		expect(auth.followees).toEqual([a, b, me]);
+		expect(auth.status).toBe('authenticated');
+		expect(auth.isAuthenticated).toBe(true);
 	});
 });
 
@@ -76,9 +95,9 @@ describe('Auth status machine', () => {
 		expect(auth.isAuthenticated).toBe(false);
 	});
 
-	it('is ready and authenticated after setAuthenticated', () => {
+	it('is ready and authenticated after establish', () => {
 		const auth = new Auth();
-		auth.setAuthenticated();
+		auth.establish(me, []);
 		expect(auth.status).toBe('authenticated');
 		expect(auth.isInitializing).toBe(false);
 		expect(auth.isReady).toBe(true);
@@ -98,9 +117,7 @@ describe('Auth status machine', () => {
 describe('Auth.reset', () => {
 	it('clears authentication state and becomes anonymous', () => {
 		const auth = new Auth();
-		auth.pubkey = me;
-		auth.updateFollowingPubkeys([a, b], me);
-		auth.setAuthenticated();
+		auth.establish(me, [a, b]);
 
 		auth.reset();
 

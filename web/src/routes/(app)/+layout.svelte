@@ -13,6 +13,7 @@
 	import { fetchMinutes } from '$lib/Helper';
 	import { applyTheme } from '$lib/Theme';
 	import { author, followees } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import { observePageLifecycle } from '$lib/platform/browser/page-lifecycle';
 	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
 	interface Props {
@@ -125,7 +126,7 @@
 
 	let initialized = false;
 	$effect(() => {
-		if ($author === undefined || initialized) {
+		if (!auth.isAuthenticated || $author === undefined || initialized) {
 			return;
 		}
 		initialized = true;

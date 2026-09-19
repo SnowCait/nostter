@@ -5,12 +5,16 @@ export type AuthStatus = 'idle' | 'restoring' | 'authenticating' | 'authenticate
 
 export class Auth {
 	#status = $state<AuthStatus>('idle');
-	pubkey = $state('');
+	#pubkey = $state('');
 	#followees = $state<string[]>([]);
 	#followingPubkeys = $state<string[]>([]);
 
 	get status(): AuthStatus {
 		return this.#status;
+	}
+
+	get pubkey(): string {
+		return this.#pubkey;
 	}
 
 	get followees(): string[] {
@@ -40,7 +44,9 @@ export class Auth {
 		this.#followees = unique([...this.#followingPubkeys, accountPubkey]);
 	}
 
-	setAuthenticated(): void {
+	establish(pubkey: string, followingPubkeys: string[]): void {
+		this.#pubkey = pubkey;
+		this.updateFollowingPubkeys(followingPubkeys, pubkey);
 		this.#status = 'authenticated';
 	}
 
@@ -49,7 +55,7 @@ export class Auth {
 	}
 
 	reset(): void {
-		this.pubkey = '';
+		this.#pubkey = '';
 		this.#followees = [];
 		this.#followingPubkeys = [];
 		this.#status = 'anonymous';
