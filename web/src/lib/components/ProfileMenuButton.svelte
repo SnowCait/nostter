@@ -224,7 +224,7 @@
 		<div>RSS</div>
 		<div class="secondary-icon"><IconExternalLink /></div>
 	</div>
-	{#if $authorPubkey && !$rom}
+	{#if $authorPubkey !== undefined && !$rom}
 		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('preferences.mute.mute')}</div>
 		{#if $mutePubkeys.includes(pubkey)}

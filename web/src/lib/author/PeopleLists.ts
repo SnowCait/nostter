@@ -26,7 +26,11 @@ export function storePeopleList(event: Nostr.Event): void {
 }
 
 export function fetchPeopleLists(): void {
-	const $authorPubkey = get(authorPubkey);
+	const accountPubkey = get(authorPubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const req = createRxBackwardReq();
 	rxNostr
 		.use(req)
@@ -43,7 +47,7 @@ export function fetchPeopleLists(): void {
 	req.emit([
 		{
 			kinds: [kind],
-			authors: [$authorPubkey]
+			authors: [accountPubkey]
 		}
 	]);
 	req.over();
@@ -74,10 +78,13 @@ export async function contains(pubkey: string, event: Nostr.Event): Promise<bool
 		return false;
 	}
 
-	const $authorPubkey = get(authorPubkey);
+	const accountPubkey = get(authorPubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
 
 	try {
-		const [privateTags] = await decryptListContent($authorPubkey, event.content);
+		const [privateTags] = await decryptListContent(accountPubkey, event.content);
 		return privateTags.some(([tagName, p]) => tagName === 'p' && p === pubkey);
 	} catch (error) {
 		console.warn('[people list decode error]', error);
@@ -86,10 +93,14 @@ export async function contains(pubkey: string, event: Nostr.Event): Promise<bool
 }
 
 export async function createPeopleList(title: string, pubkey: string): Promise<void> {
-	const $authorPubkey = get(authorPubkey);
+	const accountPubkey = get(authorPubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const event = await Signer.signEvent({
 		kind: kind,
-		pubkey: $authorPubkey,
+		pubkey: accountPubkey,
 		content: '',
 		tags: [
 			['d', title],
@@ -150,9 +161,9 @@ export async function removeFromPeopleList(event: Nostr.Event, pubkey: string): 
 }
 
 async function validate(event: Nostr.Event): Promise<boolean> {
-	const $authorPubkey = get(authorPubkey);
+	const accountPubkey = get(authorPubkey);
 	const identifier = findIdentifier(event.tags);
-	if (event.kind !== kind || event.pubkey !== $authorPubkey || identifier === undefined) {
+	if (event.kind !== kind || event.pubkey !== accountPubkey || identifier === undefined) {
 		return false;
 	}
 

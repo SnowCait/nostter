@@ -26,13 +26,18 @@
 	async function loadCachedVersions() {
 		loading = true;
 		const authorPubkey = get(pubkey);
-		if (authorPubkey) {
+		if (authorPubkey !== undefined) {
 			cachedEvents = await eventCache.getReplaceableEvents(3, authorPubkey);
 		}
 		loading = false;
 	}
 
 	async function restore(oldEvent: Nostr.Event): Promise<void> {
+		const accountPubkey = get(pubkey);
+		if (accountPubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
+
 		if (!confirm($_('preferences.backup.confirm'))) {
 			return;
 		}
@@ -40,7 +45,7 @@
 		rxNostr.send(event);
 		updateFolloweesStore(event.tags);
 		const storage = new WebStorage(localStorage);
-		storage.setReplaceableEvent(event, get(pubkey));
+		storage.setReplaceableEvent(event, accountPubkey);
 		$open = false;
 	}
 	$effect(() => {

@@ -12,7 +12,7 @@ export const lastReadAt: Writable<number> = writable(0);
 export async function fetchLastNotification(): Promise<void> {
 	const $pubkey = get(pubkey);
 	const $author = get(author);
-	if ($author === undefined) {
+	if ($pubkey === undefined || $author === undefined) {
 		return;
 	}
 

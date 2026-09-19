@@ -11,6 +11,10 @@ vi.mock('$lib/timelines/MainTimeline', () => ({
 }));
 vi.mock('$lib/Signer', () => ({ Signer: { signEvent } }));
 vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: vi.fn(async () => undefined) }));
+vi.mock('$lib/stores/Author', async () => {
+	const { writable } = await import('svelte/store');
+	return { pubkey: writable('account-pubkey') };
+});
 vi.mock('$lib/WebStorage', () => ({
 	WebStorage: class {
 		getReplaceableEvent() {

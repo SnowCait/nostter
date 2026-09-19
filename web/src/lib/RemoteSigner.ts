@@ -34,8 +34,12 @@ class RemoteSigner {
 		if (!this.enabled) {
 			return '';
 		}
+		const accountPubkey = get(pubkey);
+		if (accountPubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
 		return toBunkerURL({
-			pubkey: get(pubkey),
+			pubkey: accountPubkey,
 			relays: this.#relays,
 			secret: get(this.#secret)
 		});
@@ -71,6 +75,10 @@ class RemoteSigner {
 		if (this.#subscription && !this.#subscription.closed) {
 			return;
 		}
+		const accountPubkey = get(pubkey);
+		if (accountPubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
 		const req = createRxForwardReq();
 		this.#subscription = this.#rxNostr!.use(req)
 			.pipe(uniq())
@@ -101,7 +109,7 @@ class RemoteSigner {
 					console.error('[remote signer error]', error);
 				}
 			});
-		req.emit([{ kinds: [NostrConnect], '#p': [get(pubkey)] }]);
+		req.emit([{ kinds: [NostrConnect], '#p': [accountPubkey] }]);
 	}
 
 	#unsubscribe(): void {

@@ -91,14 +91,15 @@ observable
 export function authorActionReqEmit(event: Nostr.Event): void {
 	const ids = [event.id, ...filterTags('e', event.tags)];
 	console.debug('[rx-nostr author action req]', ids);
-	const $pubkey = get(pubkey);
-	const filters: LazyFilter[] = [
-		{
+	const accountPubkey = get(pubkey);
+	const filters: LazyFilter[] = [];
+	if (accountPubkey !== undefined) {
+		filters.push({
 			kinds: [6, 7],
-			authors: [$pubkey],
+			authors: [accountPubkey],
 			'#e': ids
-		}
-	];
+		});
+	}
 	const $deletedEventIdsByPubkey = get(deletedEventIdsByPubkey);
 	const $deletedEventIds = $deletedEventIdsByPubkey.get(event.pubkey);
 	if ($deletedEventIds === undefined || !$deletedEventIds.has(event.id)) {
@@ -109,5 +110,7 @@ export function authorActionReqEmit(event: Nostr.Event): void {
 			'#e': [event.id]
 		});
 	}
-	authorActionReq.emit(filters);
+	if (filters.length > 0) {
+		authorActionReq.emit(filters);
+	}
 }

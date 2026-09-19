@@ -9,8 +9,13 @@ import { pubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 
 async function fetchPinnedChannelsEvent(): Promise<EventTemplate | undefined> {
+	const accountPubkey = get(pubkey);
+	if (accountPubkey === undefined) {
+		throw new Error('Not authenticated');
+	}
+
 	const req = createRxOneshotReq({
-		filters: { kinds: [PublicChatsList], authors: [get(pubkey)], limit: 1 }
+		filters: { kinds: [PublicChatsList], authors: [accountPubkey], limit: 1 }
 	});
 	try {
 		const packet = await firstValueFrom(rxNostr.use(req).pipe(tie, latest()));

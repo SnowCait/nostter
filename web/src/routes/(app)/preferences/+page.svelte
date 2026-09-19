@@ -84,11 +84,13 @@
 				{/await}
 			</details>
 		{/if}
-		<div>
-			<a href="/{nip19.nprofileEncode({ pubkey: $pubkey })}/relays">
-				{$_('pages.relays_edit')}
-			</a>
-		</div>
+		{#if $pubkey !== undefined}
+			<div>
+				<a href="/{nip19.nprofileEncode({ pubkey: $pubkey })}/relays">
+					{$_('pages.relays_edit')}
+				</a>
+			</div>
+		{/if}
 	</section>
 {/if}
 

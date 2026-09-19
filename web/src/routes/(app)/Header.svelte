@@ -21,7 +21,7 @@
 
 <div class="header">
 	<div id="logo-icon-wrapper">
-		<a href={$pubkey ? homeLink : '/'} id="logo-icon">
+		<a href={$pubkey !== undefined ? homeLink : '/'} id="logo-icon">
 			<div class="logo-for-mobile">
 				<NostterLogoIcon />
 			</div>
@@ -31,7 +31,7 @@
 		</a>
 	</div>
 	<AppNavigation pubkey={$pubkey} {homeLink} />
-	{#if $pubkey && !$rom}
+	{#if $pubkey !== undefined && !$rom}
 		<button
 			class:inline-composer-active={composerFocus.current !== undefined}
 			title="{$_('post')} (N)"
@@ -40,7 +40,7 @@
 			<IconPencilPlus size={30} />
 			<p>{$_('post')}</p>
 		</button>
-	{:else if !$pubkey}
+	{:else if $pubkey === undefined}
 		<button onclick={async () => await goto('/')}>
 			<IconLogin size={30} />
 			<p>{$_('login.login')}</p>

@@ -60,5 +60,9 @@
 </script>
 
 {#if timeline !== undefined}
-	<TimelineView items={timeline.items} readonly={!$authorPubkey} load={timeline.load} />
+	<TimelineView
+		items={timeline.items}
+		readonly={$authorPubkey === undefined}
+		load={timeline.load}
+	/>
 {/if}

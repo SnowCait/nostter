@@ -23,7 +23,7 @@
 	let complete: (value: File | PromiseLike<File | undefined> | undefined) => void;
 
 	$effect(() => {
-		if ($isReady && !$pubkey) {
+		if ($isReady && $pubkey === undefined) {
 			goto('/');
 		}
 	});
@@ -139,6 +139,11 @@
 			return;
 		}
 
+		const accountPubkey = $pubkey;
+		if (accountPubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
+
 		try {
 			const event = await sendEvent(
 				Kind.Metadata,
@@ -147,8 +152,8 @@
 			);
 			storeMetadata(event);
 			const storage = new WebStorage(localStorage);
-			storage.setReplaceableEvent(event, $pubkey);
-			await goto(`/${nip19.npubEncode($pubkey)}`);
+			storage.setReplaceableEvent(event, accountPubkey);
+			await goto(`/${nip19.npubEncode(accountPubkey)}`);
 		} catch (error) {
 			console.error('[save metadata failed]', error);
 			alert('Failed to update profile.');
