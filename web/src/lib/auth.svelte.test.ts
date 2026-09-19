@@ -107,12 +107,9 @@ describe('Auth.updateFollowingPubkeys', () => {
 		expect(auth.followees).not.toContain(b);
 	});
 
-	it('keeps the session unauthenticated when there is no established session', () => {
+	it('rejects updates without an authenticated session', () => {
 		const auth = new Auth();
-		auth.updateFollowingPubkeys([a, b], me);
-		expect(auth.status).toBe('initializing');
-		expect(auth.followingPubkeys).toEqual([]);
-		expect(auth.followees).toEqual([]);
+		expect(() => auth.updateFollowingPubkeys([a, b], me)).toThrow();
 	});
 });
 

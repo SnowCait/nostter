@@ -40,7 +40,7 @@ export class Auth {
 
 	updateFollowingPubkeys(followingPubkeys: string[], accountPubkey: string): void {
 		if (this.#state.status !== 'authenticated') {
-			return;
+			throw new Error('Cannot update following pubkeys without an authenticated session');
 		}
 
 		const uniqueFollowingPubkeys = unique(followingPubkeys);
