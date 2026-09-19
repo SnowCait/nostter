@@ -36,7 +36,7 @@ export class Auth {
 	}
 
 	updateFollowingPubkeys(followingPubkeys: string[], accountPubkey: string): void {
-		this.#followingPubkeys = followingPubkeys;
+		this.#followingPubkeys = unique(followingPubkeys);
 		this.#followees = unique([...this.#followingPubkeys, accountPubkey]);
 	}
 

@@ -13,6 +13,13 @@ describe('Auth.updateFollowingPubkeys', () => {
 		expect(auth.followees).toEqual([a, b, me]);
 	});
 
+	it('deduplicates followingPubkeys', () => {
+		const auth = new Auth();
+		auth.updateFollowingPubkeys([a, a, b], me);
+		expect(auth.followingPubkeys).toEqual([a, b]);
+		expect(auth.followees).toEqual([a, b, me]);
+	});
+
 	it('does not add self to followingPubkeys', () => {
 		const auth = new Auth();
 		auth.updateFollowingPubkeys([a], me);
