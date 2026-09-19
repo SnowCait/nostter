@@ -36,6 +36,6 @@ export class Contacts {
 }
 
 export function updateFolloweesStore(tags: string[][]): void {
-	auth.updateFollowees(tags);
+	auth.updateFollowees(tags, auth.pubkey);
 	pruneFolloweeReplaceableEventsCache(auth.followees);
 }

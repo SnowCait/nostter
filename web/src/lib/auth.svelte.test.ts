@@ -8,51 +8,63 @@ const b = 'b'.repeat(64);
 describe('Auth.updateFollowees', () => {
 	it('sets originalFollowees and appends self to followees', () => {
 		const auth = new Auth();
-		auth.pubkey = me;
-		auth.updateFollowees([
-			['p', a],
-			['p', b]
-		]);
+		auth.updateFollowees(
+			[
+				['p', a],
+				['p', b]
+			],
+			me
+		);
 		expect(auth.originalFollowees).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
 	});
 
 	it('does not add self to originalFollowees', () => {
 		const auth = new Auth();
-		auth.pubkey = me;
-		auth.updateFollowees([['p', a]]);
+		auth.updateFollowees([['p', a]], me);
 		expect(auth.originalFollowees).not.toContain(me);
 		expect(auth.followees).toContain(me);
 	});
 
 	it('deduplicates followees', () => {
 		const auth = new Auth();
-		auth.pubkey = me;
-		auth.updateFollowees([
-			['p', a],
-			['p', a],
-			['p', b]
-		]);
+		auth.updateFollowees(
+			[
+				['p', a],
+				['p', a],
+				['p', b]
+			],
+			me
+		);
 		expect(auth.originalFollowees).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
 	});
 
 	it('leaves only self when tags are empty', () => {
 		const auth = new Auth();
-		auth.pubkey = me;
-		auth.updateFollowees([]);
+		auth.updateFollowees([], me);
 		expect(auth.originalFollowees).toEqual([]);
 		expect(auth.followees).toEqual([me]);
 	});
 
 	it('exposes followeesSet matching followees', () => {
 		const auth = new Auth();
-		auth.pubkey = me;
-		auth.updateFollowees([
-			['p', a],
-			['p', b]
-		]);
+		auth.updateFollowees(
+			[
+				['p', a],
+				['p', b]
+			],
+			me
+		);
 		expect(auth.followeesSet).toEqual(new Set([a, b, me]));
+	});
+
+	it('uses the explicitly passed accountPubkey as self, ignoring auth.pubkey', () => {
+		const auth = new Auth();
+		auth.pubkey = b;
+		auth.updateFollowees([['p', a]], me);
+		expect(auth.followees).toEqual([a, me]);
+		expect(auth.followees).not.toContain(b);
 	});
 });
 
@@ -106,10 +118,13 @@ describe('Auth.reset', () => {
 	it('clears authentication state and becomes anonymous', () => {
 		const auth = new Auth();
 		auth.pubkey = me;
-		auth.updateFollowees([
-			['p', a],
-			['p', b]
-		]);
+		auth.updateFollowees(
+			[
+				['p', a],
+				['p', b]
+			],
+			me
+		);
 		auth.setAuthenticated();
 
 		auth.reset();

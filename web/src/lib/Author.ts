@@ -112,7 +112,7 @@ export class Author {
 		console.log('[profile]', get(authorProfile));
 
 		const contactsTags = this.storeRelays(replaceableEvents);
-		auth.updateFollowees(contactsTags);
+		auth.updateFollowees(contactsTags, this.pubkey);
 
 		customEmojiListEvent.set(replaceableEvents.get(Kind.UserEmojiList));
 		const $customEmojiListEvent = get(customEmojiListEvent);
