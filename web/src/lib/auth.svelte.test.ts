@@ -95,10 +95,13 @@ describe('Auth status machine', () => {
 		expect(auth.isAuthenticated).toBe(false);
 	});
 
-	it('is ready and authenticated after setAuthenticated', () => {
+	it('is ready and authenticated after establish', () => {
 		const auth = new Auth();
-		auth.setAuthenticated();
+		auth.establish(me, []);
 		expect(auth.status).toBe('authenticated');
+		expect(auth.pubkey).toBe(me);
+		expect(auth.followingPubkeys).toEqual([]);
+		expect(auth.followees).toEqual([me]);
 		expect(auth.isInitializing).toBe(false);
 		expect(auth.isReady).toBe(true);
 		expect(auth.isAuthenticated).toBe(true);
@@ -117,15 +120,10 @@ describe('Auth status machine', () => {
 describe('Auth.reset', () => {
 	it('clears authentication state and becomes anonymous', () => {
 		const auth = new Auth();
-		auth.pubkey = me;
-		auth.updateFollowees(
-			[
-				['p', a],
-				['p', b]
-			],
-			me
-		);
-		auth.setAuthenticated();
+		auth.establish(me, [
+			['p', a],
+			['p', b]
+		]);
 
 		auth.reset();
 
