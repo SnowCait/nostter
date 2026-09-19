@@ -132,7 +132,7 @@ async function publish(): Promise<void> {
 		throw new Error('Cache is outdated.');
 	}
 
-	storage.setReplaceableEvent(event);
+	storage.setReplaceableEvent(event, get(pubkey));
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {

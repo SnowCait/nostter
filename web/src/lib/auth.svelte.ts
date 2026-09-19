@@ -37,7 +37,11 @@ export class Auth {
 	}
 
 	updateFollowees(tags: string[][]): void {
-		this.#originalFollowees = pubkeysFromTags(tags);
+		this.setFollowees(pubkeysFromTags(tags));
+	}
+
+	setFollowees(originalFollowees: string[]): void {
+		this.#originalFollowees = originalFollowees;
 		this.#followees = unique([...this.#originalFollowees, this.pubkey]);
 	}
 
