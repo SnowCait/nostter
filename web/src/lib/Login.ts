@@ -1,17 +1,16 @@
 import { get } from 'svelte/store';
 import { author, authorProfile, loginType } from './stores/Author';
 import { Signer } from './Signer';
-import { Author } from './Author';
 import { getPublicKey, nip19 } from 'nostr-tools';
 import { robohash } from './Items';
 import { WebStorage } from './WebStorage';
 import { rxNostr } from './timelines/MainTimeline';
-import { loadFolloweesMetadataCache, pruneFolloweeReplaceableEventsCache } from './cache/Events';
 import { now } from 'rx-nostr';
 import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
 import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
 import { auth } from './auth.svelte';
+import { initializeAccount } from './features/account/application/initialize-account';
 import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 
@@ -152,19 +151,9 @@ export class Login {
 		console.time('fetch author');
 		setLoginStatus('fetching_profile');
 
-		const $author = new Author(auth.pubkey);
-
-		await $author.fetchRelays();
-		console.timeLog('fetch author');
-
-		const contactsTags = await $author.fetchEvents();
-		auth.updateFollowees(contactsTags, auth.pubkey);
+		await initializeAccount(auth.pubkey);
 		console.timeEnd('fetch author');
 
-		await loadFolloweesMetadataCache(auth.followees);
-		pruneFolloweeReplaceableEventsCache(auth.followees);
-
-		author.set($author);
 		auth.setAuthenticated();
 		clearLoginStatus();
 
