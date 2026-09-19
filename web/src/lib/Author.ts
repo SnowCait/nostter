@@ -34,8 +34,6 @@ import {
 import { bookmarkEvent, legacyBookmarkEvent } from './author/Bookmark.svelte';
 import { legacyProfileBadgesKey, setProfileBadgesEvent } from './author/ProfileBadges';
 import { profileBadgesKind } from './ProfileBadgesEvent';
-import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
-import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 import {
 	getAccountLocalPreferences,
 	initializeMediaUploaderPreference
@@ -137,10 +135,6 @@ export class Author {
 			const preferences = new Preferences(preferencesEvent.content);
 			legacyMediaUploader = preferences.mediaUploader;
 			preferencesStore.set(preferences);
-
-			if (get(notificationVisibility) === 'follows_of_follows') {
-				loadFolloweesOfFollowees(auth.followees);
-			}
 		} else {
 			const regacyReactionEmojiEvent = parameterizedReplaceableEvents.get(
 				`${30078}:nostter-reaction-emoji`

@@ -1,3 +1,4 @@
+import { get } from 'svelte/store';
 import { author, authorProfile, loginType } from './stores/Author';
 import { Signer } from './Signer';
 import { Author } from './Author';
@@ -11,6 +12,8 @@ import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
 import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
 import { auth } from './auth.svelte';
+import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
+import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -163,6 +166,10 @@ export class Login {
 		author.set($author);
 		auth.setAuthenticated();
 		clearLoginStatus();
+
+		if (get(notificationVisibility) === 'follows_of_follows') {
+			loadFolloweesOfFollowees(auth.followees);
+		}
 
 		remoteSigner.subscribeIfEnabled();
 	}
