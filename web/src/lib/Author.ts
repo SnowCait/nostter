@@ -138,10 +138,7 @@ export class Author {
 			legacyMediaUploader = preferences.mediaUploader;
 			preferencesStore.set(preferences);
 
-			if (
-				preferences.muteAutomatically ||
-				get(notificationVisibility) === 'follows_of_follows'
-			) {
+			if (get(notificationVisibility) === 'follows_of_follows') {
 				contactsOfFolloweesReqEmit();
 			}
 		} else {

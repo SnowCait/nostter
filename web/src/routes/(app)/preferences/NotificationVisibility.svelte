@@ -3,7 +3,6 @@
 		contactsOfFolloweesReqEmit,
 		followeesOfFollowees
 	} from '$lib/author/MuteAutomatically';
-	import { preferencesStore, savePreferences } from '$lib/Preferences';
 	import {
 		notificationVisibilities,
 		notificationVisibility
@@ -17,28 +16,10 @@
 			contactsOfFolloweesReqEmit();
 		}
 	});
-
-	//#region Migration
-
-	let saving = false;
-
-	function onchange() {
-		if ($preferencesStore.muteAutomatically === undefined || saving) {
-			return;
-		}
-
-		saving = true;
-		$preferencesStore.muteAutomatically = undefined;
-		savePreferences().finally(() => {
-			saving = false;
-		});
-	}
-
-	//#endregion
 </script>
 
 <h3>{$_('preferences.notification.visibility.title')}</h3>
-<select bind:value={$notificationVisibility} {onchange}>
+<select bind:value={$notificationVisibility}>
 	{#each notificationVisibilities as visibility}
 		<option value={visibility}>
 			{$_(`preferences.notification.visibility.${visibility}`)}
