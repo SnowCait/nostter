@@ -15,6 +15,11 @@
 	} from '$lib/preferences/AccountLocalPreferences';
 	import { fetchNip96 } from '$lib/media/FileStorageServer';
 
+	if (auth.pubkey === undefined) {
+		throw new Error(
+			'Cannot render media uploader preferences without an authenticated session'
+		);
+	}
 	const accountLocalPreferences = getAccountLocalPreferences(auth.pubkey);
 	const displayedBlossomServer = $derived(
 		getBlossomServer() ??

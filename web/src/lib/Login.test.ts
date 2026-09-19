@@ -172,7 +172,7 @@ describe('Login.withNpub', () => {
 		await Promise.resolve();
 		await Promise.resolve();
 
-		expect(auth.pubkey).toBe('');
+		expect(auth.pubkey).toBeUndefined();
 		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.followees).toEqual([]);
 		expect(auth.status).not.toBe('authenticated');

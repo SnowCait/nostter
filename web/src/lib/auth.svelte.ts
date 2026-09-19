@@ -19,8 +19,8 @@ export class Auth {
 		return this.#state.status;
 	}
 
-	get pubkey(): string {
-		return this.#state.status === 'authenticated' ? this.#state.pubkey : '';
+	get pubkey(): string | undefined {
+		return this.#state.status === 'authenticated' ? this.#state.pubkey : undefined;
 	}
 
 	get followingPubkeys(): string[] {
