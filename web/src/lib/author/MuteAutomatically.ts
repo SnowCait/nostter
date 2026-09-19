@@ -5,10 +5,11 @@ import type * as Nostr from 'nostr-typedef';
 import { chunk } from '$lib/array';
 import { filterLimit, maxFilters } from '$lib/Constants';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
-import { auth } from '$lib/auth.svelte';
 import { cacheFolloweeReplaceableEvent, followeeEventCache } from '$lib/cache/Events';
 
 export const followeesOfFollowees = writable<Set<string>>(new Set());
+
+let latestFollowees: string[] = [];
 
 const contactsOfFollowees = writable<Map<string, Nostr.Event>>(new Map());
 contactsOfFollowees.subscribe((events) => {
@@ -16,18 +17,19 @@ contactsOfFollowees.subscribe((events) => {
 		return;
 	}
 
-	const $followees = auth.followees;
 	const pubkeys = [...events]
 		.flatMap(([, event]) =>
 			event.tags.filter(([t, pubkey]) => t === 'p' && typeof pubkey === 'string')
 		)
 		.map(([, pubkey]) => pubkey);
-	followeesOfFollowees.set(new Set([...$followees, ...pubkeys]));
+	followeesOfFollowees.set(new Set([...latestFollowees, ...pubkeys]));
 	console.debug('[followees followees]', get(followeesOfFollowees));
 });
 
 let loaded = false;
-export function contactsOfFolloweesReqEmit(): void {
+export function contactsOfFolloweesReqEmit(followees: string[]): void {
+	latestFollowees = followees;
+
 	const $contactsOfFollowees = get(contactsOfFollowees);
 	if (loaded) {
 		return; // Already fetched
@@ -35,10 +37,9 @@ export function contactsOfFolloweesReqEmit(): void {
 
 	loaded = true;
 
-	const $followees = auth.followees;
-	followeesOfFollowees.set(new Set($followees)); // For UX
+	followeesOfFollowees.set(new Set(followees)); // For UX
 
-	followeeEventCache.getLatest(Kind.Contacts, $followees).then((cached) => {
+	followeeEventCache.getLatest(Kind.Contacts, followees).then((cached) => {
 		if (cached.size === 0) {
 			return;
 		}
@@ -67,7 +68,7 @@ export function contactsOfFolloweesReqEmit(): void {
 			}
 		});
 
-	const filters = chunk($followees, filterLimit).map((authors) => ({
+	const filters = chunk(followees, filterLimit).map((authors) => ({
 		kinds: [Kind.Contacts],
 		authors
 	}));
