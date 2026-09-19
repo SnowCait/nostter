@@ -14,6 +14,8 @@ import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
 import { auth } from './auth.svelte';
 import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
+import { pubkeysFromTags } from './pubkey';
+import { unique } from './array';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -64,13 +66,13 @@ export class Login {
 		loginType.set('NIP-07');
 		setLoginStatus('getting_pubkey');
 
+		let pubkey: string;
 		try {
-			auth.pubkey = await Signer.getPublicKey();
-			const $pubkey = auth.pubkey;
-			if (!$pubkey) {
+			pubkey = await Signer.getPublicKey();
+			if (!pubkey) {
 				throw new Error('undefined');
 			}
-			console.debug('[pubkey]', $pubkey);
+			console.debug('[pubkey]', pubkey);
 		} catch (error) {
 			console.error('[NIP-07 getPublicKey()]', error);
 			console.timeEnd('NIP-07');
@@ -81,7 +83,7 @@ export class Login {
 
 		console.timeLog('NIP-07');
 
-		await this.fetchAuthor();
+		await this.fetchAuthor(pubkey);
 
 		console.timeEnd('NIP-07');
 	}
@@ -107,8 +109,8 @@ export class Login {
 		const storage = new WebStorage(localStorage);
 		storage.set('login', bunker);
 
-		auth.pubkey = await Signer.getPublicKey();
-		await this.fetchAuthor();
+		const pubkey = await Signer.getPublicKey();
+		await this.fetchAuthor(pubkey);
 
 		console.timeEnd('NIP-46');
 		return true;
@@ -126,8 +128,8 @@ export class Login {
 		storage.set('login', key);
 
 		loginType.set('nsec');
-		auth.pubkey = getPublicKey(seckey);
-		await this.fetchAuthor();
+		const pubkey = getPublicKey(seckey);
+		await this.fetchAuthor(pubkey);
 	}
 
 	public async withNpub(key: string) {
@@ -144,28 +146,28 @@ export class Login {
 		storage.set('login', key);
 
 		loginType.set('npub');
-		auth.pubkey = data;
-		await this.fetchAuthor();
+		await this.fetchAuthor(data);
 	}
 
-	private async fetchAuthor() {
+	private async fetchAuthor(pubkey: string) {
 		console.time('fetch author');
 		setLoginStatus('fetching_profile');
 
-		const $author = new Author(auth.pubkey);
+		const $author = new Author(pubkey);
 
 		await $author.fetchRelays();
 		console.timeLog('fetch author');
 
 		const contactsTags = await $author.fetchEvents();
-		auth.updateFollowees(contactsTags, auth.pubkey);
+		const followingPubkeys = pubkeysFromTags(contactsTags);
+		const followees = unique([...followingPubkeys, pubkey]);
 		console.timeEnd('fetch author');
 
-		await loadFolloweesMetadataCache(auth.followees);
-		pruneFolloweeReplaceableEventsCache(auth.followees);
+		await loadFolloweesMetadataCache(followees);
+		pruneFolloweeReplaceableEventsCache(followees);
 
 		author.set($author);
-		auth.setAuthenticated();
+		auth.establish(pubkey, contactsTags);
 		clearLoginStatus();
 
 		if (get(notificationVisibility) === 'follows_of_follows') {

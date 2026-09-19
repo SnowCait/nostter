@@ -90,11 +90,13 @@ describe('Login.withNpub', () => {
 		const { auth } = await import('./auth.svelte');
 		auth.reset();
 
-		const originalSetAuthenticated = Object.getPrototypeOf(auth).setAuthenticated.bind(auth);
-		vi.spyOn(auth, 'setAuthenticated').mockImplementation(() => {
-			calls.push('setAuthenticated');
-			originalSetAuthenticated();
-		});
+		const originalEstablish = Object.getPrototypeOf(auth).establish.bind(auth);
+		vi.spyOn(auth, 'establish').mockImplementation(
+			(pubkey: string, contactsTags: string[][]) => {
+				calls.push('establish');
+				originalEstablish(pubkey, contactsTags);
+			}
+		);
 
 		fetchEvents.mockResolvedValue([['p', followee]]);
 		loadFolloweesOfFollowees.mockImplementation(() => {
@@ -129,7 +131,7 @@ describe('Login.withNpub', () => {
 		expect(auth.followees).toContain(followee);
 	});
 
-	it('starts the loader only after auth.setAuthenticated()', async () => {
+	it('starts the loader only after auth.establish()', async () => {
 		notificationVisibility.set('follows_of_follows');
 
 		const { nip19 } = await import('nostr-tools');
@@ -139,6 +141,58 @@ describe('Login.withNpub', () => {
 		const login = new Login();
 		await login.withNpub(npub);
 
-		expect(calls).toEqual(['setAuthenticated', 'loadFolloweesOfFollowees']);
+		expect(calls).toEqual(['establish', 'loadFolloweesOfFollowees']);
+	});
+
+	it('does not publish auth.pubkey while account initialization is in progress', async () => {
+		const { auth } = await import('./auth.svelte');
+		const { nip19 } = await import('nostr-tools');
+		const { Login } = await import('./Login');
+		const npub = nip19.npubEncode(me);
+
+		fetchRelays.mockImplementation(async () => {
+			expect(auth.pubkey).toBe('');
+		});
+		fetchEvents.mockImplementation(async () => {
+			expect(auth.pubkey).toBe('');
+			return [['p', followee]];
+		});
+
+		const login = new Login();
+		await login.withNpub(npub);
+
+		expect(auth.pubkey).toBe(me);
+	});
+
+	it('initializes the followees metadata cache from local state, not auth.followees', async () => {
+		const { auth } = await import('./auth.svelte');
+		const { loadFolloweesMetadataCache } = await import('./cache/Events');
+		const { nip19 } = await import('nostr-tools');
+		const { Login } = await import('./Login');
+		const npub = nip19.npubEncode(me);
+
+		vi.mocked(loadFolloweesMetadataCache).mockImplementation(async () => {
+			expect(auth.followees).toEqual([]);
+		});
+
+		const login = new Login();
+		await login.withNpub(npub);
+
+		expect(loadFolloweesMetadataCache).toHaveBeenCalledWith([followee, me]);
+	});
+
+	it('publishes the established account state once initialization completes', async () => {
+		const { auth } = await import('./auth.svelte');
+		const { nip19 } = await import('nostr-tools');
+		const { Login } = await import('./Login');
+		const npub = nip19.npubEncode(me);
+
+		const login = new Login();
+		await login.withNpub(npub);
+
+		expect(auth.pubkey).toBe(me);
+		expect(auth.followingPubkeys).toEqual([followee]);
+		expect(auth.followees).toEqual([followee, me]);
+		expect(auth.status).toBe('authenticated');
 	});
 });

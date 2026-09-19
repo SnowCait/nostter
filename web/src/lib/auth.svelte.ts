@@ -45,6 +45,13 @@ export class Auth {
 		this.#status = 'authenticated';
 	}
 
+	/** Publishes a fully initialized account as the established authenticated session in one operation. */
+	establish(pubkey: string, contactsTags: string[][]): void {
+		this.pubkey = pubkey;
+		this.updateFollowees(contactsTags, pubkey);
+		this.#status = 'authenticated';
+	}
+
 	setAnonymous(): void {
 		this.#status = 'anonymous';
 	}
