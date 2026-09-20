@@ -8,7 +8,7 @@ function stringField(form: FormData, name: string): string | null {
 	return null;
 }
 
-export function receivedShare(form: FormData): Omit<SharedPost, 'id'> {
+export function receivedShare(form: FormData): Omit<SharedPost, 'id' | 'createdAt'> {
 	const files: File[] = [];
 	for (const value of form.getAll('images')) {
 		if (!(value instanceof File)) {

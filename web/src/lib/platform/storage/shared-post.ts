@@ -2,6 +2,7 @@ import Dexie, { type EntityTable } from 'dexie';
 
 export interface SharedPost {
 	id: string;
+	createdAt: number;
 	title: string | null;
 	text: string | null;
 	url: string | null;
@@ -12,10 +13,26 @@ type SharedPostDB = Dexie & { shares: EntityTable<SharedPost, 'id'> };
 
 const db = new Dexie('shared-posts') as SharedPostDB;
 db.version(1).stores({ shares: 'id' });
+db.version(2)
+	.stores({ shares: 'id, createdAt' })
+	.upgrade((transaction) => transaction.table('shares').clear());
 
-export async function saveSharedPost(share: Omit<SharedPost, 'id'>): Promise<string> {
+const sharedPostTtlMs = 60 * 60 * 1000;
+
+async function deleteExpiredShares(now: number): Promise<void> {
+	await db.shares
+		.where('createdAt')
+		.below(now - sharedPostTtlMs)
+		.delete();
+}
+
+export async function saveSharedPost(share: Omit<SharedPost, 'id' | 'createdAt'>): Promise<string> {
 	const id = crypto.randomUUID();
-	await db.shares.add({ id, ...share });
+	const createdAt = Date.now();
+	await db.transaction('rw', db.shares, async () => {
+		await deleteExpiredShares(createdAt);
+		await db.shares.add({ id, createdAt, ...share });
+	});
 	return id;
 }
 

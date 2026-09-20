@@ -1,6 +1,10 @@
 import 'fake-indexeddb/auto';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { consumeSharedPost, saveSharedPost } from './shared-post';
+
+afterEach(() => {
+	vi.restoreAllMocks();
+});
 
 describe('shared post storage', () => {
 	it('preserves multiple files and consumes a share only once', async () => {
@@ -11,7 +15,13 @@ describe('shared post storage', () => {
 		const id = await saveSharedPost({ title: 'title', text: 'text', url: null, files });
 
 		const share = await consumeSharedPost(id);
-		expect(share).toMatchObject({ id, title: 'title', text: 'text', url: null });
+		expect(share).toMatchObject({
+			id,
+			createdAt: expect.any(Number),
+			title: 'title',
+			text: 'text',
+			url: null
+		});
 		expect(share?.files).toHaveLength(2);
 		expect(share?.files.map((file) => [file.name, file.type])).toEqual([
 			['first.png', 'image/png'],
@@ -20,5 +30,30 @@ describe('shared post storage', () => {
 		expect(await share?.files[0].text()).toBe('first');
 		expect(await share?.files[1].text()).toBe('second');
 		await expect(consumeSharedPost(id)).resolves.toBeUndefined();
+	});
+
+	it('removes expired shares while keeping recent shares available', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(new Date('2026-01-01T00:00:00Z').valueOf());
+		const expiredId = await saveSharedPost({
+			title: null,
+			text: 'expired',
+			url: null,
+			files: []
+		});
+
+		vi.mocked(Date.now).mockReturnValue(new Date('2026-01-01T01:00:00.001Z').valueOf());
+		const recentId = await saveSharedPost({
+			title: null,
+			text: 'recent',
+			url: null,
+			files: []
+		});
+
+		await expect(consumeSharedPost(expiredId)).resolves.toBeUndefined();
+		await expect(consumeSharedPost(recentId)).resolves.toMatchObject({
+			id: recentId,
+			createdAt: Date.now(),
+			text: 'recent'
+		});
 	});
 });
