@@ -213,35 +213,6 @@ class NsecSigner implements SignerStrategy {
 	}
 }
 
-class NpubSigner implements SignerStrategy {
-	readonly type: LoginType = 'npub';
-	readonly canSign = signerCanSign(this.type);
-
-	async getPublicKey(): Promise<string> {
-		throw new Error('[logic error]');
-	}
-
-	async signEvent(): Promise<Event> {
-		throw new Error('[logic error]');
-	}
-
-	async encrypt(): Promise<string> {
-		throw new Error('[logic error]');
-	}
-
-	async decrypt(): Promise<string> {
-		throw new Error('[logic error]');
-	}
-
-	async encryptNip44(): Promise<string> {
-		throw new Error('[logic error]');
-	}
-
-	async decryptNip44(): Promise<string> {
-		throw new Error('[logic error]');
-	}
-}
-
 export const resolveSigner = (): SignerStrategy => {
 	const storage = new WebStorage(localStorage);
 	const login = storage.get('login');
@@ -255,8 +226,6 @@ export const resolveSigner = (): SignerStrategy => {
 		return new Nip46Signer();
 	} else if (login.startsWith('nsec')) {
 		return new NsecSigner(login);
-	} else if (login.startsWith('npub')) {
-		return new NpubSigner();
 	} else {
 		throw new Error('[logic error]');
 	}

@@ -36,11 +36,9 @@ describe('resolveSigner', () => {
 		expect(signer.canSign).toBe(true);
 	});
 
-	it('resolves npub as read-only', () => {
+	it('throws when login is npub because no signer is available', () => {
 		stubLogin('npub1abc');
-		const signer = resolveSigner();
-		expect(signer.type).toBe('npub');
-		expect(signer.canSign).toBe(false);
+		expect(() => resolveSigner()).toThrow('[logic error]');
 	});
 
 	it('throws when login is missing', () => {
