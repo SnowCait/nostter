@@ -13,20 +13,18 @@ export class PrivateKeySigner implements Signer {
 	constructor(private readonly secretKey: Uint8Array) {}
 
 	readonly nip04: Encryption = {
-		encrypt: async (pubkey, plaintext) =>
-			await nip04.encrypt(this.secretKey, pubkey, plaintext),
-		decrypt: async (pubkey, ciphertext) =>
-			await nip04.decrypt(this.secretKey, pubkey, ciphertext)
+		encrypt: async (pubkey, plaintext) => nip04.encrypt(this.secretKey, pubkey, plaintext),
+		decrypt: async (pubkey, ciphertext) => nip04.decrypt(this.secretKey, pubkey, ciphertext)
 	};
 
 	readonly nip44: Encryption = {
 		encrypt: async (pubkey, plaintext) => {
 			const conversationKey = nip44.getConversationKey(this.secretKey, pubkey);
-			return await nip44.encrypt(plaintext, conversationKey);
+			return nip44.encrypt(plaintext, conversationKey);
 		},
 		decrypt: async (pubkey, ciphertext) => {
 			const conversationKey = nip44.getConversationKey(this.secretKey, pubkey);
-			return await nip44.decrypt(ciphertext, conversationKey);
+			return nip44.decrypt(ciphertext, conversationKey);
 		}
 	};
 
