@@ -13,7 +13,6 @@ import { bytesToHex, hexToBytes } from 'nostr-tools/utils';
 import { WebStorage } from './WebStorage';
 import { nip46ConnectTimeout } from './Constants';
 import type * as Nostr from 'nostr-typedef';
-import { type LoginType, signerCanSign } from './nostr/signing/signer-capability';
 
 declare const window: {
 	nostr: Nostr.Nip07.Nostr | undefined;
@@ -79,9 +78,7 @@ export async function abolishBunkerConnection(): Promise<void> {
 	}
 }
 
-interface SignerStrategy {
-	readonly type: LoginType;
-	readonly canSign: boolean;
+interface SignerBackend {
 	getPublicKey(): Promise<string>;
 	signEvent(unsignedEvent: EventTemplate | Nostr.UnsignedEvent): Promise<Event>;
 	encrypt(pubkey: string, plaintext: string): Promise<string>;
@@ -90,10 +87,7 @@ interface SignerStrategy {
 	decryptNip44(pubkey: string, ciphertext: string): Promise<string>;
 }
 
-class Nip07Signer implements SignerStrategy {
-	readonly type: LoginType = 'NIP-07';
-	readonly canSign = signerCanSign(this.type);
-
+class Nip07Signer implements SignerBackend {
 	async getPublicKey(): Promise<string> {
 		if (window.nostr !== undefined) {
 			return window.nostr.getPublicKey();
@@ -137,10 +131,7 @@ class Nip07Signer implements SignerStrategy {
 	}
 }
 
-class Nip46Signer implements SignerStrategy {
-	readonly type: LoginType = 'NIP-46';
-	readonly canSign = signerCanSign(this.type);
-
+class Nip46Signer implements SignerBackend {
 	async getPublicKey(): Promise<string> {
 		return nip46CachedPublicKey!;
 	}
@@ -166,10 +157,7 @@ class Nip46Signer implements SignerStrategy {
 	}
 }
 
-class NsecSigner implements SignerStrategy {
-	readonly type: LoginType = 'nsec';
-	readonly canSign = signerCanSign(this.type);
-
+class NsecSigner implements SignerBackend {
 	constructor(private readonly login: string) {}
 
 	async getPublicKey(): Promise<string> {
@@ -213,7 +201,7 @@ class NsecSigner implements SignerStrategy {
 	}
 }
 
-export const resolveSigner = (): SignerStrategy => {
+export const resolveSigner = (): SignerBackend => {
 	const storage = new WebStorage(localStorage);
 	const login = storage.get('login');
 	if (login === null) {
