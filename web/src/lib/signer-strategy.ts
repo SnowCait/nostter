@@ -1,22 +1,13 @@
-import {
-	type Event,
-	nip19,
-	type EventTemplate,
-	getPublicKey,
-	nip04,
-	finalizeEvent,
-	nip44
-} from 'nostr-tools';
+import { type Event, nip19, type EventTemplate, getPublicKey } from 'nostr-tools';
 import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';
 import { generateSecretKey } from 'nostr-tools/pure';
 import { bytesToHex, hexToBytes } from 'nostr-tools/utils';
 import { WebStorage } from './WebStorage';
 import { nip46ConnectTimeout } from './Constants';
 import type * as Nostr from 'nostr-typedef';
-
-declare const window: {
-	nostr: Nostr.Nip07.Nostr | undefined;
-};
+import { BrowserSigner } from './nostr/signing/browser-signer';
+import { PrivateKeySigner } from './nostr/signing/private-key-signer';
+import type { Signer } from './nostr/signing/signer';
 
 let bunkerSigner: BunkerSigner | undefined;
 let nip46CachedPublicKey: string | undefined;
@@ -78,60 +69,7 @@ export async function abolishBunkerConnection(): Promise<void> {
 	}
 }
 
-interface SignerBackend {
-	getPublicKey(): Promise<string>;
-	signEvent(unsignedEvent: EventTemplate | Nostr.UnsignedEvent): Promise<Event>;
-	encrypt(pubkey: string, plaintext: string): Promise<string>;
-	decrypt(pubkey: string, ciphertext: string): Promise<string>;
-	encryptNip44(pubkey: string, plaintext: string): Promise<string>;
-	decryptNip44(pubkey: string, ciphertext: string): Promise<string>;
-}
-
-class Nip07Signer implements SignerBackend {
-	async getPublicKey(): Promise<string> {
-		if (window.nostr !== undefined) {
-			return window.nostr.getPublicKey();
-		}
-		throw new Error('[logic error]');
-	}
-
-	async signEvent(unsignedEvent: EventTemplate | Nostr.UnsignedEvent): Promise<Event> {
-		if (window.nostr !== undefined) {
-			return await window.nostr.signEvent(unsignedEvent);
-		}
-		throw new Error('[logic error]');
-	}
-
-	async encrypt(pubkey: string, plaintext: string): Promise<string> {
-		if (window.nostr !== undefined && window.nostr.nip04 !== undefined) {
-			return await window.nostr.nip04.encrypt(pubkey, plaintext);
-		}
-		throw new Error('[logic error]');
-	}
-
-	async decrypt(pubkey: string, ciphertext: string): Promise<string> {
-		if (window.nostr !== undefined && window.nostr.nip04 !== undefined) {
-			return await window.nostr.nip04.decrypt(pubkey, ciphertext);
-		}
-		throw new Error('[logic error]');
-	}
-
-	async encryptNip44(pubkey: string, plaintext: string): Promise<string> {
-		if (window.nostr !== undefined && window.nostr.nip44 !== undefined) {
-			return await window.nostr.nip44.encrypt(pubkey, plaintext);
-		}
-		throw new Error('[logic error]');
-	}
-
-	async decryptNip44(pubkey: string, ciphertext: string): Promise<string> {
-		if (window.nostr !== undefined && window.nostr.nip44 !== undefined) {
-			return await window.nostr.nip44.decrypt(pubkey, ciphertext);
-		}
-		throw new Error('[logic error]');
-	}
-}
-
-class Nip46Signer implements SignerBackend {
+class Nip46Signer implements Signer {
 	async getPublicKey(): Promise<string> {
 		return nip46CachedPublicKey!;
 	}
@@ -157,51 +95,7 @@ class Nip46Signer implements SignerBackend {
 	}
 }
 
-class NsecSigner implements SignerBackend {
-	constructor(private readonly login: string) {}
-
-	async getPublicKey(): Promise<string> {
-		const { data: seckey } = nip19.decode(this.login);
-		return getPublicKey(seckey as Uint8Array);
-	}
-
-	async signEvent(unsignedEvent: EventTemplate | Nostr.UnsignedEvent): Promise<Event> {
-		const { data: seckey } = nip19.decode(this.login);
-		return finalizeEvent(unsignedEvent, seckey as Uint8Array);
-	}
-
-	async encrypt(pubkey: string, plaintext: string): Promise<string> {
-		const { data: seckey } = nip19.decode(this.login);
-		return await nip04.encrypt(seckey as string, pubkey, plaintext);
-	}
-
-	async decrypt(pubkey: string, ciphertext: string): Promise<string> {
-		const { data: seckey } = nip19.decode(this.login);
-		return await nip04.decrypt(seckey as string, pubkey, ciphertext);
-	}
-
-	async encryptNip44(pubkey: string, plaintext: string): Promise<string> {
-		const result = nip19.decode(this.login);
-		if (result.type !== 'nsec') {
-			throw new Error('[logic error]');
-		}
-		const seckey = result.data;
-		const conversationKey = nip44.getConversationKey(seckey, pubkey);
-		return await nip44.encrypt(plaintext, conversationKey);
-	}
-
-	async decryptNip44(pubkey: string, ciphertext: string): Promise<string> {
-		const result = nip19.decode(this.login);
-		if (result.type !== 'nsec') {
-			throw new Error('[logic error]');
-		}
-		const seckey = result.data;
-		const conversationKey = nip44.getConversationKey(seckey, pubkey);
-		return await nip44.decrypt(ciphertext, conversationKey);
-	}
-}
-
-export const resolveSigner = (): SignerBackend => {
+export const resolveSigner = (): Signer => {
 	const storage = new WebStorage(localStorage);
 	const login = storage.get('login');
 	if (login === null) {
@@ -209,11 +103,15 @@ export const resolveSigner = (): SignerBackend => {
 	}
 
 	if (login === 'NIP-07') {
-		return new Nip07Signer();
+		return new BrowserSigner();
 	} else if (login.startsWith('bunker://')) {
 		return new Nip46Signer();
 	} else if (login.startsWith('nsec')) {
-		return new NsecSigner(login);
+		const result = nip19.decode(login);
+		if (result.type !== 'nsec') {
+			throw new Error('[logic error]');
+		}
+		return new PrivateKeySigner(result.data);
 	} else {
 		throw new Error('[logic error]');
 	}

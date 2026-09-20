@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { generateSecretKey, nip19 } from 'nostr-tools';
 import { resolveSigner } from './signer-strategy';
 
 function stubLogin(value: string | null): void {
@@ -26,8 +27,13 @@ describe('resolveSigner', () => {
 	});
 
 	it('accepts nsec as a signer login', () => {
-		stubLogin('nsec1abc');
+		stubLogin(nip19.nsecEncode(generateSecretKey()));
 		expect(() => resolveSigner()).not.toThrow();
+	});
+
+	it('throws when nsec is malformed', () => {
+		stubLogin('nsec1abc');
+		expect(() => resolveSigner()).toThrow();
 	});
 
 	it('throws when login is npub because no signer is available', () => {
