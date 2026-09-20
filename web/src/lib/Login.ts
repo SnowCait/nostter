@@ -14,7 +14,6 @@ import { auth } from './auth.svelte';
 import { initializeAccount } from './features/account/application/initialize-account';
 import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
-import { abolishBunkerConnection } from './signer-strategy';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -169,7 +168,7 @@ export class Login {
 }
 
 export async function resetLoginState(): Promise<void> {
-	const closingRemoteSigner = abolishBunkerConnection();
+	const closingRemoteSigner = Signer.abolishBunkerConnection();
 	loginType.set(undefined);
 	author.set(undefined);
 	auth.reset();

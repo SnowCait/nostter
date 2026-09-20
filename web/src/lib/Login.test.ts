@@ -68,10 +68,8 @@ vi.mock('./WebStorage', () => ({
 	}
 }));
 
-vi.mock('./signer-strategy', () => ({
-	resolveSigner: vi.fn(),
-	establishBunkerConnection: vi.fn(),
-	abolishBunkerConnection
+vi.mock('./Signer', () => ({
+	Signer: { abolishBunkerConnection }
 }));
 
 vi.mock('./timelines/MainTimeline', () => ({
