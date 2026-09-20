@@ -1,7 +1,7 @@
 import type { Event, EventTemplate } from 'nostr-tools';
 import { BunkerSigner, type BunkerPointer } from 'nostr-tools/nip46';
 import type * as Nostr from 'nostr-typedef';
-import type { Signer } from './signer';
+import type { Encryption, Signer } from './signer';
 
 type ConnectOptions = {
 	onAuth: (url: string) => void;
@@ -10,6 +10,16 @@ type ConnectOptions = {
 
 export class RemoteSignerClient implements Signer {
 	private constructor(private readonly connection: BunkerSigner) {}
+
+	readonly nip04: Encryption = {
+		encrypt: (pubkey, plaintext) => this.connection.nip04Encrypt(pubkey, plaintext),
+		decrypt: (pubkey, ciphertext) => this.connection.nip04Decrypt(pubkey, ciphertext)
+	};
+
+	readonly nip44: Encryption = {
+		encrypt: (pubkey, plaintext) => this.connection.nip44Encrypt(pubkey, plaintext),
+		decrypt: (pubkey, ciphertext) => this.connection.nip44Decrypt(pubkey, ciphertext)
+	};
 
 	static async connect(
 		bunkerPointer: BunkerPointer,
@@ -61,21 +71,5 @@ export class RemoteSignerClient implements Signer {
 
 	async signEvent(unsignedEvent: EventTemplate | Nostr.UnsignedEvent): Promise<Event> {
 		return await this.connection.signEvent(unsignedEvent);
-	}
-
-	async encrypt(pubkey: string, plaintext: string): Promise<string> {
-		return await this.connection.nip04Encrypt(pubkey, plaintext);
-	}
-
-	async decrypt(pubkey: string, ciphertext: string): Promise<string> {
-		return await this.connection.nip04Decrypt(pubkey, ciphertext);
-	}
-
-	async encryptNip44(pubkey: string, plaintext: string): Promise<string> {
-		return await this.connection.nip44Encrypt(pubkey, plaintext);
-	}
-
-	async decryptNip44(pubkey: string, ciphertext: string): Promise<string> {
-		return await this.connection.nip44Decrypt(pubkey, ciphertext);
 	}
 }

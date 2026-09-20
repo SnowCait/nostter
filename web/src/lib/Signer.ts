@@ -26,18 +26,34 @@ export class Signer {
 	}
 
 	public static async encrypt(pubkey: string, plaintext: string): Promise<string> {
-		return resolveSigner().encrypt(pubkey, plaintext);
+		const nip04 = resolveSigner().nip04;
+		if (nip04 === undefined) {
+			throw new Error('[logic error]');
+		}
+		return nip04.encrypt(pubkey, plaintext);
 	}
 
 	public static async decrypt(pubkey: string, ciphertext: string): Promise<string> {
-		return resolveSigner().decrypt(pubkey, ciphertext);
+		const nip04 = resolveSigner().nip04;
+		if (nip04 === undefined) {
+			throw new Error('[logic error]');
+		}
+		return nip04.decrypt(pubkey, ciphertext);
 	}
 
 	public static async encryptNip44(pubkey: string, plaintext: string): Promise<string> {
-		return resolveSigner().encryptNip44(pubkey, plaintext);
+		const nip44 = resolveSigner().nip44;
+		if (nip44 === undefined) {
+			throw new Error('[logic error]');
+		}
+		return nip44.encrypt(pubkey, plaintext);
 	}
 
 	public static async decryptNip44(pubkey: string, ciphertext: string): Promise<string> {
-		return resolveSigner().decryptNip44(pubkey, ciphertext);
+		const nip44 = resolveSigner().nip44;
+		if (nip44 === undefined) {
+			throw new Error('[logic error]');
+		}
+		return nip44.decrypt(pubkey, ciphertext);
 	}
 }
