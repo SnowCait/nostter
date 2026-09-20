@@ -1,6 +1,24 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { generateSecretKey, nip19 } from 'nostr-tools';
-import { resolveSigner } from './signer-strategy';
+import { parseBunkerInput, type BunkerPointer } from 'nostr-tools/nip46';
+import { RemoteSignerClient } from './nostr/signing/remote-signer-client';
+import {
+	abolishBunkerConnection,
+	establishBunkerConnection,
+	resolveSigner
+} from './signer-strategy';
+
+vi.mock('nostr-tools/nip46', () => ({ parseBunkerInput: vi.fn() }));
+vi.mock('./nostr/signing/remote-signer-client', () => ({
+	RemoteSignerClient: { connect: vi.fn() }
+}));
+
+const bunkerLogin = 'bunker://remote?relay=wss://relay.example.com';
+const bunkerPointer: BunkerPointer = {
+	pubkey: 'remote',
+	relays: ['wss://relay.example.com'],
+	secret: null
+};
 
 function stubLogin(value: string | null): void {
 	vi.stubGlobal('localStorage', {
@@ -11,8 +29,10 @@ function stubLogin(value: string | null): void {
 	});
 }
 
-afterEach(() => {
+afterEach(async () => {
+	await abolishBunkerConnection();
 	vi.unstubAllGlobals();
+	vi.clearAllMocks();
 });
 
 describe('resolveSigner', () => {
@@ -21,9 +41,67 @@ describe('resolveSigner', () => {
 		expect(() => resolveSigner()).not.toThrow();
 	});
 
-	it('accepts a bunker URL as a signer login', () => {
-		stubLogin('bunker://relay.example.com?pubkey=abc');
-		expect(() => resolveSigner()).not.toThrow();
+	it('resolves a bunker login only while its remote client is connected', async () => {
+		stubLogin(bunkerLogin);
+		expect(() => resolveSigner()).toThrow('[logic error]');
+		vi.mocked(parseBunkerInput).mockResolvedValue(bunkerPointer);
+		const client = {
+			close: vi.fn().mockResolvedValue(undefined)
+		} as unknown as RemoteSignerClient;
+		const connecting = Promise.withResolvers<RemoteSignerClient>();
+		vi.mocked(RemoteSignerClient.connect).mockReturnValue(connecting.promise);
+
+		const establishing = establishBunkerConnection(bunkerLogin);
+		await vi.waitFor(() => expect(RemoteSignerClient.connect).toHaveBeenCalledOnce());
+		expect(() => resolveSigner()).toThrow('[logic error]');
+		connecting.resolve(client);
+		await establishing;
+		expect(resolveSigner()).toBe(client);
+
+		await abolishBunkerConnection();
+		expect(() => resolveSigner()).toThrow('[logic error]');
+		expect(client.close).toHaveBeenCalledOnce();
+	});
+
+	it('keeps a failed connection unavailable', async () => {
+		stubLogin(bunkerLogin);
+		vi.mocked(parseBunkerInput).mockResolvedValue(bunkerPointer);
+		vi.mocked(RemoteSignerClient.connect).mockRejectedValue(new Error('connection failed'));
+
+		await expect(establishBunkerConnection(bunkerLogin)).rejects.toThrow('connection failed');
+		expect(() => resolveSigner()).toThrow('[logic error]');
+	});
+
+	it('closes the previous client when a new connection becomes active', async () => {
+		stubLogin(bunkerLogin);
+		vi.mocked(parseBunkerInput).mockResolvedValue(bunkerPointer);
+		const first = {
+			close: vi.fn().mockResolvedValue(undefined)
+		} as unknown as RemoteSignerClient;
+		const second = {
+			close: vi.fn().mockResolvedValue(undefined)
+		} as unknown as RemoteSignerClient;
+		vi.mocked(RemoteSignerClient.connect)
+			.mockResolvedValueOnce(first)
+			.mockResolvedValueOnce(second);
+
+		await establishBunkerConnection(bunkerLogin);
+		await establishBunkerConnection(bunkerLogin);
+		expect(first.close).toHaveBeenCalledOnce();
+		expect(resolveSigner()).toBe(second);
+	});
+
+	it('clears the active client even when closing fails', async () => {
+		stubLogin(bunkerLogin);
+		vi.mocked(parseBunkerInput).mockResolvedValue(bunkerPointer);
+		const client = {
+			close: vi.fn().mockRejectedValue(new Error('close failed'))
+		} as unknown as RemoteSignerClient;
+		vi.mocked(RemoteSignerClient.connect).mockResolvedValue(client);
+
+		await establishBunkerConnection(bunkerLogin);
+		await abolishBunkerConnection();
+		expect(() => resolveSigner()).toThrow('[logic error]');
 	});
 
 	it('accepts nsec as a signer login', () => {
