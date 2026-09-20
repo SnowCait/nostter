@@ -12,10 +12,7 @@ export interface SharedPost {
 type SharedPostDB = Dexie & { shares: EntityTable<SharedPost, 'id'> };
 
 const db = new Dexie('shared-posts') as SharedPostDB;
-db.version(1).stores({ shares: 'id' });
-db.version(2)
-	.stores({ shares: 'id, createdAt' })
-	.upgrade((transaction) => transaction.table('shares').clear());
+db.version(1).stores({ shares: 'id, createdAt' });
 
 const sharedPostTtlMs = 60 * 60 * 1000;
 
@@ -39,7 +36,9 @@ export async function saveSharedPost(share: Omit<SharedPost, 'id' | 'createdAt'>
 export async function consumeSharedPost(id: string): Promise<SharedPost | undefined> {
 	return db.transaction('rw', db.shares, async () => {
 		const share = await db.shares.get(id);
-		if (share !== undefined) await db.shares.delete(id);
+		if (share === undefined) return undefined;
+		await db.shares.delete(id);
+		if (share.createdAt < Date.now() - sharedPostTtlMs) return undefined;
 		return share;
 	});
 }

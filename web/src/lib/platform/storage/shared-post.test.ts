@@ -32,8 +32,28 @@ describe('shared post storage', () => {
 		await expect(consumeSharedPost(id)).resolves.toBeUndefined();
 	});
 
-	it('removes expired shares while keeping recent shares available', async () => {
-		vi.spyOn(Date, 'now').mockReturnValue(new Date('2026-01-01T00:00:00Z').valueOf());
+	it('consumes shares through the TTL boundary', async () => {
+		const createdAt = new Date('2026-01-01T00:00:00Z').valueOf();
+		vi.spyOn(Date, 'now').mockReturnValue(createdAt);
+		const id = await saveSharedPost({ title: null, text: 'recent', url: null, files: [] });
+
+		vi.mocked(Date.now).mockReturnValue(createdAt + 60 * 60 * 1000);
+		await expect(consumeSharedPost(id)).resolves.toMatchObject({ id, text: 'recent' });
+	});
+
+	it('expires and removes a share when consumed after its TTL', async () => {
+		const createdAt = new Date('2026-01-01T00:00:00Z').valueOf();
+		vi.spyOn(Date, 'now').mockReturnValue(createdAt);
+		const id = await saveSharedPost({ title: null, text: 'expired', url: null, files: [] });
+
+		vi.mocked(Date.now).mockReturnValue(createdAt + 60 * 60 * 1000 + 1);
+		await expect(consumeSharedPost(id)).resolves.toBeUndefined();
+		await expect(consumeSharedPost(id)).resolves.toBeUndefined();
+	});
+
+	it('removes expired unconsumed shares when saving a new share', async () => {
+		const createdAt = new Date('2026-01-01T00:00:00Z').valueOf();
+		vi.spyOn(Date, 'now').mockReturnValue(createdAt);
 		const expiredId = await saveSharedPost({
 			title: null,
 			text: 'expired',
@@ -41,7 +61,7 @@ describe('shared post storage', () => {
 			files: []
 		});
 
-		vi.mocked(Date.now).mockReturnValue(new Date('2026-01-01T01:00:00.001Z').valueOf());
+		vi.mocked(Date.now).mockReturnValue(createdAt + 60 * 60 * 1000 + 1);
 		const recentId = await saveSharedPost({
 			title: null,
 			text: 'recent',
@@ -50,10 +70,6 @@ describe('shared post storage', () => {
 		});
 
 		await expect(consumeSharedPost(expiredId)).resolves.toBeUndefined();
-		await expect(consumeSharedPost(recentId)).resolves.toMatchObject({
-			id: recentId,
-			createdAt: Date.now(),
-			text: 'recent'
-		});
+		await expect(consumeSharedPost(recentId)).resolves.toMatchObject({ id: recentId });
 	});
 });
