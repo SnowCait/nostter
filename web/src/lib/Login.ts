@@ -14,6 +14,7 @@ import { auth } from './auth.svelte';
 import { initializeAccount } from './features/account/application/initialize-account';
 import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
+import { abolishBunkerConnection } from './signer-strategy';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -167,10 +168,22 @@ export class Login {
 	}
 }
 
-export function resetLoginState(): void {
+export async function resetLoginState(): Promise<void> {
+	const cleanup = abolishBunkerConnection();
 	loginType.set(undefined);
 	author.set(undefined);
 	auth.reset();
+	try {
+		await cleanup;
+	} catch (error) {
+		console.debug('[NIP-46] close error', error);
+	}
+}
+
+export async function logout(): Promise<void> {
+	await resetLoginState();
+	new WebStorage(localStorage).clear();
+	location.href = '/';
 }
 
 export async function tryLogin(): Promise<boolean> {
@@ -218,7 +231,7 @@ export async function tryLogin(): Promise<boolean> {
 		return false;
 	} finally {
 		if (auth.status !== 'authenticated') {
-			resetLoginState();
+			await resetLoginState();
 		}
 	}
 }
