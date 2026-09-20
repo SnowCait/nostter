@@ -1,4 +1,6 @@
+import { get } from 'svelte/store';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Author } from './Author';
 import type { NotificationVisibility } from './preferences/NotificationVisibility.svelte';
 
 const {
@@ -8,6 +10,8 @@ const {
 	fetchRelays,
 	loadFolloweesMetadataCache,
 	remoteSignerSubscribeIfEnabled,
+	storageClear,
+	abolishBunkerConnection,
 	calls
 } = vi.hoisted(() => {
 	function createStore<T>(initial: T) {
@@ -35,6 +39,8 @@ const {
 		fetchRelays: vi.fn().mockResolvedValue(undefined),
 		loadFolloweesMetadataCache: vi.fn().mockResolvedValue(undefined),
 		remoteSignerSubscribeIfEnabled: vi.fn(),
+		storageClear: vi.fn(),
+		abolishBunkerConnection: vi.fn().mockResolvedValue(undefined),
 		calls: [] as string[]
 	};
 });
@@ -58,7 +64,12 @@ vi.mock('./WebStorage', () => ({
 	WebStorage: class {
 		set = vi.fn();
 		get = vi.fn().mockReturnValue(null);
+		clear = storageClear;
 	}
+}));
+
+vi.mock('./Signer', () => ({
+	Signer: { abolishBunkerConnection }
 }));
 
 vi.mock('./timelines/MainTimeline', () => ({
@@ -230,5 +241,75 @@ describe('Login.withNsec', () => {
 		expect(auth.status).toBe('authenticated');
 		expect(auth.pubkey).toBe(getPublicKey(seckey));
 		expect(remoteSignerSubscribeIfEnabled).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe('session teardown', () => {
+	beforeEach(async () => {
+		vi.clearAllMocks();
+		const { auth } = await import('./auth.svelte');
+		const { author, loginType } = await import('./stores/Author');
+		auth.reset();
+		author.set(undefined);
+		loginType.set(undefined);
+		abolishBunkerConnection.mockResolvedValue(undefined);
+	});
+
+	it('detaches the remote signer and clears session state before cleanup completes', async () => {
+		const cleanup = Promise.withResolvers<void>();
+		abolishBunkerConnection.mockReturnValue(cleanup.promise);
+		const { auth } = await import('./auth.svelte');
+		const { author, loginType } = await import('./stores/Author');
+		const { resetLoginState } = await import('./Login');
+		auth.establish(me, [followee]);
+		author.set({} as Author);
+		loginType.set('NIP-46');
+
+		const resetting = resetLoginState();
+
+		expect(abolishBunkerConnection).toHaveBeenCalledOnce();
+		expect(auth.status).toBe('anonymous');
+		expect(get(loginType)).toBeUndefined();
+		expect(get(author)).toBeUndefined();
+		let resetCompleted = false;
+		void resetting.then(() => (resetCompleted = true));
+		await Promise.resolve();
+		expect(resetCompleted).toBe(false);
+
+		cleanup.resolve();
+		await resetting;
+	});
+
+	it('clears storage and navigates after session teardown', async () => {
+		const calls: string[] = [];
+		const cleanup = Promise.withResolvers<void>();
+		abolishBunkerConnection.mockImplementation(() => {
+			calls.push('dispose');
+			return cleanup.promise;
+		});
+		storageClear.mockImplementation(() => calls.push('clear storage'));
+		vi.stubGlobal('location', {
+			set href(path: string) {
+				calls.push(`navigate:${path}`);
+			}
+		});
+		const { auth } = await import('./auth.svelte');
+		const { author, loginType } = await import('./stores/Author');
+		const { logout } = await import('./Login');
+		auth.establish(me, [followee]);
+		author.set({} as Author);
+		loginType.set('NIP-46');
+
+		const loggingOut = logout();
+
+		expect(calls).toEqual(['dispose']);
+		expect(auth.status).toBe('anonymous');
+		expect(get(loginType)).toBeUndefined();
+		expect(get(author)).toBeUndefined();
+
+		cleanup.resolve();
+		await loggingOut;
+
+		expect(calls).toEqual(['dispose', 'clear storage', 'navigate:/']);
 	});
 });

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
+	import { logout as logoutSession } from '$lib/Login';
 	import { WebStorage } from '$lib/WebStorage';
 	import { loginType } from '$lib/stores/Author';
 
@@ -7,8 +8,7 @@
 	let showNsec = $state(false);
 
 	async function logout() {
-		new WebStorage(localStorage).clear();
-		location.href = '/';
+		await logoutSession();
 	}
 </script>
 

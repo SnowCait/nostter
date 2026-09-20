@@ -104,6 +104,25 @@ describe('resolveSigner', () => {
 		expect(() => resolveSigner()).toThrow('[logic error]');
 	});
 
+	it('detaches the active client before closing it completes', async () => {
+		stubLogin(bunkerLogin);
+		vi.mocked(parseBunkerInput).mockResolvedValue(bunkerPointer);
+		const close = Promise.withResolvers<void>();
+		const client = {
+			close: vi.fn().mockReturnValue(close.promise)
+		} as unknown as RemoteSignerClient;
+		vi.mocked(RemoteSignerClient.connect).mockResolvedValue(client);
+
+		await establishBunkerConnection(bunkerLogin);
+		const disposing = abolishBunkerConnection();
+
+		expect(client.close).toHaveBeenCalledOnce();
+		expect(() => resolveSigner()).toThrow('[logic error]');
+
+		close.resolve();
+		await disposing;
+	});
+
 	it('accepts nsec as a signer login', () => {
 		stubLogin(nip19.nsecEncode(generateSecretKey()));
 		expect(() => resolveSigner()).not.toThrow();

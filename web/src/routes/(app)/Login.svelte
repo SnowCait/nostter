@@ -27,9 +27,9 @@
 
 	const login = new Login();
 
-	function resetLoginProgress() {
+	async function resetLoginProgress(): Promise<void> {
 		loggingInWith = undefined;
-		resetLoginState();
+		await resetLoginState();
 	}
 
 	async function loginWithNip07() {
@@ -45,12 +45,12 @@
 		try {
 			await login.withNip07();
 			if (!(await gotoHome())) {
-				resetLoginProgress();
+				await resetLoginProgress();
 			}
 		} catch (error) {
 			console.error('[NIP-07 login failed]', error);
 			setLoginStatus('failed', 'error');
-			resetLoginProgress();
+			await resetLoginProgress();
 		}
 	}
 
@@ -66,17 +66,17 @@
 			const success = await login.withNip46(bunker);
 			if (!success) {
 				failedToLogin = true;
-				resetLoginProgress();
+				await resetLoginProgress();
 				return;
 			}
 			if (!(await gotoHome())) {
-				resetLoginProgress();
+				await resetLoginProgress();
 			}
 		} catch (error) {
 			console.error('[NIP-46 login failed]', error);
 			setLoginStatus('failed', 'error');
 			failedToLogin = true;
-			resetLoginProgress();
+			await resetLoginProgress();
 		}
 	}
 
@@ -95,12 +95,12 @@
 				await login.withNpub(key);
 			}
 			if (!(await gotoHome())) {
-				resetLoginProgress();
+				await resetLoginProgress();
 			}
 		} catch (error) {
 			console.error('[key login failed]', error);
 			setLoginStatus('failed', 'error');
-			resetLoginProgress();
+			await resetLoginProgress();
 		}
 	}
 
@@ -130,7 +130,7 @@
 			console.error('[register failed]', error);
 			setLoginStatus('failed', 'error');
 			registering = false;
-			resetLoginState();
+			await resetLoginState();
 		}
 	}
 

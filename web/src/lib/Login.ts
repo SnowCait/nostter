@@ -167,10 +167,18 @@ export class Login {
 	}
 }
 
-export function resetLoginState(): void {
+export async function resetLoginState(): Promise<void> {
+	const closingRemoteSigner = Signer.abolishBunkerConnection();
 	loginType.set(undefined);
 	author.set(undefined);
 	auth.reset();
+	await closingRemoteSigner;
+}
+
+export async function logout(): Promise<void> {
+	await resetLoginState();
+	new WebStorage(localStorage).clear();
+	location.href = '/';
 }
 
 export async function tryLogin(): Promise<boolean> {
@@ -218,7 +226,7 @@ export async function tryLogin(): Promise<boolean> {
 		return false;
 	} finally {
 		if (auth.status !== 'authenticated') {
-			resetLoginState();
+			await resetLoginState();
 		}
 	}
 }
