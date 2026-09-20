@@ -21,31 +21,11 @@ export class BrowserSigner implements Signer {
 		throw new Error('[logic error]');
 	}
 
-	async encrypt(pubkey: string, plaintext: string): Promise<string> {
-		if (window.nostr !== undefined && window.nostr.nip04 !== undefined) {
-			return await window.nostr.nip04.encrypt(pubkey, plaintext);
-		}
-		throw new Error('[logic error]');
+	get nip04(): Nostr.Nip07.Nip04Crypto | undefined {
+		return window.nostr?.nip04;
 	}
 
-	async decrypt(pubkey: string, ciphertext: string): Promise<string> {
-		if (window.nostr !== undefined && window.nostr.nip04 !== undefined) {
-			return await window.nostr.nip04.decrypt(pubkey, ciphertext);
-		}
-		throw new Error('[logic error]');
-	}
-
-	async encryptNip44(pubkey: string, plaintext: string): Promise<string> {
-		if (window.nostr !== undefined && window.nostr.nip44 !== undefined) {
-			return await window.nostr.nip44.encrypt(pubkey, plaintext);
-		}
-		throw new Error('[logic error]');
-	}
-
-	async decryptNip44(pubkey: string, ciphertext: string): Promise<string> {
-		if (window.nostr !== undefined && window.nostr.nip44 !== undefined) {
-			return await window.nostr.nip44.decrypt(pubkey, ciphertext);
-		}
-		throw new Error('[logic error]');
+	get nip44(): Nostr.Nip07.Nip44Crypto | undefined {
+		return window.nostr?.nip44;
 	}
 }

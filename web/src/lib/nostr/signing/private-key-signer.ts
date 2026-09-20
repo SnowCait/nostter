@@ -7,10 +7,26 @@ import {
 	nip44
 } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
-import type { Signer } from './signer';
+import type { Encryption, Signer } from './signer';
 
 export class PrivateKeySigner implements Signer {
 	constructor(private readonly secretKey: Uint8Array) {}
+
+	readonly nip04: Encryption = {
+		encrypt: async (pubkey, plaintext) => nip04.encrypt(this.secretKey, pubkey, plaintext),
+		decrypt: async (pubkey, ciphertext) => nip04.decrypt(this.secretKey, pubkey, ciphertext)
+	};
+
+	readonly nip44: Encryption = {
+		encrypt: async (pubkey, plaintext) => {
+			const conversationKey = nip44.getConversationKey(this.secretKey, pubkey);
+			return nip44.encrypt(plaintext, conversationKey);
+		},
+		decrypt: async (pubkey, ciphertext) => {
+			const conversationKey = nip44.getConversationKey(this.secretKey, pubkey);
+			return nip44.decrypt(ciphertext, conversationKey);
+		}
+	};
 
 	async getPublicKey(): Promise<string> {
 		return getPublicKey(this.secretKey);
@@ -18,23 +34,5 @@ export class PrivateKeySigner implements Signer {
 
 	async signEvent(unsignedEvent: EventTemplate | Nostr.UnsignedEvent): Promise<Event> {
 		return finalizeEvent(unsignedEvent, this.secretKey);
-	}
-
-	async encrypt(pubkey: string, plaintext: string): Promise<string> {
-		return await nip04.encrypt(this.secretKey, pubkey, plaintext);
-	}
-
-	async decrypt(pubkey: string, ciphertext: string): Promise<string> {
-		return await nip04.decrypt(this.secretKey, pubkey, ciphertext);
-	}
-
-	async encryptNip44(pubkey: string, plaintext: string): Promise<string> {
-		const conversationKey = nip44.getConversationKey(this.secretKey, pubkey);
-		return await nip44.encrypt(plaintext, conversationKey);
-	}
-
-	async decryptNip44(pubkey: string, ciphertext: string): Promise<string> {
-		const conversationKey = nip44.getConversationKey(this.secretKey, pubkey);
-		return await nip44.decrypt(ciphertext, conversationKey);
 	}
 }
