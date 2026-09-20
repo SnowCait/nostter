@@ -594,7 +594,7 @@
 		addAttachments(files);
 	}
 
-	function addAttachments(files: FileList | File[]): void {
+	export function addAttachments(files: FileList | File[]): void {
 		if (composerLocked) return;
 		localAttachments.add(files);
 	}

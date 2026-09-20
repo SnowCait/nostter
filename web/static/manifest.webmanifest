@@ -28,11 +28,29 @@
 	],
 	"share_target": {
 		"action": "/post",
-		"method": "GET",
+		"method": "POST",
+		"enctype": "multipart/form-data",
 		"params": {
 			"title": "title",
 			"text": "text",
-			"url": "url"
+			"url": "url",
+			"files": [
+				{
+					"name": "images",
+					"accept": [
+						"image/*",
+						".apng",
+						".avif",
+						".gif",
+						".jpg",
+						".jpeg",
+						".png",
+						".webp",
+						".bmp",
+						".svg"
+					]
+				}
+			]
 		}
 	}
 }
