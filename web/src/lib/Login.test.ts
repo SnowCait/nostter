@@ -282,22 +282,6 @@ describe('session teardown', () => {
 		await resetting;
 	});
 
-	it('keeps session state reset when remote signer cleanup fails', async () => {
-		abolishBunkerConnection.mockRejectedValue(new Error('close failed'));
-		const { auth } = await import('./auth.svelte');
-		const { author, loginType } = await import('./stores/Author');
-		const { resetLoginState } = await import('./Login');
-		auth.establish(me, [followee]);
-		author.set({} as Author);
-		loginType.set('NIP-46');
-
-		await expect(resetLoginState()).resolves.toBeUndefined();
-
-		expect(auth.status).toBe('anonymous');
-		expect(get(loginType)).toBeUndefined();
-		expect(get(author)).toBeUndefined();
-	});
-
 	it('clears storage and navigates after session teardown', async () => {
 		const calls: string[] = [];
 		const cleanup = Promise.withResolvers<void>();

@@ -169,15 +169,11 @@ export class Login {
 }
 
 export async function resetLoginState(): Promise<void> {
-	const cleanup = abolishBunkerConnection();
+	const closingRemoteSigner = abolishBunkerConnection();
 	loginType.set(undefined);
 	author.set(undefined);
 	auth.reset();
-	try {
-		await cleanup;
-	} catch (error) {
-		console.debug('[NIP-46] close error', error);
-	}
+	await closingRemoteSigner;
 }
 
 export async function logout(): Promise<void> {
