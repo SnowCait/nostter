@@ -169,7 +169,7 @@ export class Author {
 		const mutedByKindEvents = [...parameterizedReplaceableEvents]
 			.map(([, event]) => event)
 			.filter((event) => Number(event.kind) === 30007);
-		storeMutedPubkeysByKind(mutedByKindEvents, decryptPrivateListContent);
+		await storeMutedPubkeysByKind(mutedByKindEvents, decryptPrivateListContent);
 
 		// Channels
 		const channelsEvent = replaceableEvents.get(10005);
