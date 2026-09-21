@@ -11,10 +11,16 @@ const {
 	loadFolloweesMetadataCache,
 	remoteSignerSubscribeIfEnabled,
 	storageClear,
+	storageGet,
 	abolishBunkerConnection,
 	establishBunkerConnection,
-	getPublicKey,
-	getEncryptionCapabilities,
+	browserGetPublicKey,
+	privateGetPublicKey,
+	browserCapabilities,
+	browserSignerInstances,
+	privateSignerInstances,
+	remoteSigner,
+	waitNostr,
 	calls
 } = vi.hoisted(() => {
 	function createStore<T>(initial: T) {
@@ -35,6 +41,26 @@ const {
 		};
 	}
 
+	const browserGetPublicKey = vi.fn();
+	const privateGetPublicKey = vi.fn();
+	const browserCapabilities: {
+		nip04?: { encrypt: ReturnType<typeof vi.fn>; decrypt: ReturnType<typeof vi.fn> };
+		nip44?: { encrypt: ReturnType<typeof vi.fn>; decrypt: ReturnType<typeof vi.fn> };
+	} = {};
+	const browserSignerInstances: object[] = [];
+	const privateSignerInstances: Array<{
+		secretKey: Uint8Array;
+		getPublicKey: ReturnType<typeof vi.fn>;
+		nip04: { encrypt: ReturnType<typeof vi.fn>; decrypt: ReturnType<typeof vi.fn> };
+		nip44: { encrypt: ReturnType<typeof vi.fn>; decrypt: ReturnType<typeof vi.fn> };
+	}> = [];
+	const remoteSigner = {
+		getPublicKey: vi.fn(),
+		signEvent: vi.fn(),
+		nip04: { encrypt: vi.fn(), decrypt: vi.fn() },
+		nip44: { encrypt: vi.fn(), decrypt: vi.fn() }
+	};
+
 	return {
 		loadFolloweesOfFollowees: vi.fn(),
 		notificationVisibility: createStore<NotificationVisibility>('all'),
@@ -43,10 +69,16 @@ const {
 		loadFolloweesMetadataCache: vi.fn().mockResolvedValue(undefined),
 		remoteSignerSubscribeIfEnabled: vi.fn(),
 		storageClear: vi.fn(),
+		storageGet: vi.fn().mockReturnValue(null),
 		abolishBunkerConnection: vi.fn().mockResolvedValue(undefined),
-		establishBunkerConnection: vi.fn().mockResolvedValue(undefined),
-		getPublicKey: vi.fn(),
-		getEncryptionCapabilities: vi.fn(),
+		establishBunkerConnection: vi.fn().mockResolvedValue(remoteSigner),
+		browserGetPublicKey,
+		privateGetPublicKey,
+		browserCapabilities,
+		browserSignerInstances,
+		privateSignerInstances,
+		remoteSigner,
+		waitNostr: vi.fn().mockResolvedValue({}),
 		calls: [] as string[]
 	};
 });
@@ -69,7 +101,7 @@ vi.mock('./Author', () => ({
 vi.mock('./WebStorage', () => ({
 	WebStorage: class {
 		set = vi.fn();
-		get = vi.fn().mockReturnValue(null);
+		get = storageGet;
 		clear = storageClear;
 	}
 }));
@@ -77,11 +109,43 @@ vi.mock('./WebStorage', () => ({
 vi.mock('./Signer', () => ({
 	Signer: {
 		abolishBunkerConnection,
-		establishBunkerConnection,
-		getPublicKey,
-		getEncryptionCapabilities
+		establishBunkerConnection
 	}
 }));
+
+vi.mock('./nostr/signing/browser-signer', () => ({
+	BrowserSigner: class {
+		constructor() {
+			browserSignerInstances.push(this);
+		}
+
+		getPublicKey = browserGetPublicKey;
+		signEvent = vi.fn();
+
+		get nip04() {
+			return browserCapabilities.nip04;
+		}
+
+		get nip44() {
+			return browserCapabilities.nip44;
+		}
+	}
+}));
+
+vi.mock('./nostr/signing/private-key-signer', () => ({
+	PrivateKeySigner: class {
+		getPublicKey = privateGetPublicKey;
+		signEvent = vi.fn();
+		nip04 = { encrypt: vi.fn(), decrypt: vi.fn() };
+		nip44 = { encrypt: vi.fn(), decrypt: vi.fn() };
+
+		constructor(public readonly secretKey: Uint8Array) {
+			privateSignerInstances.push(this);
+		}
+	}
+}));
+
+vi.mock('nip07-awaiter', () => ({ waitNostr }));
 
 vi.mock('./timelines/MainTimeline', () => ({
 	rxNostr: { getDefaultRelays: vi.fn().mockReturnValue({}), send: vi.fn(), use: vi.fn() }
@@ -111,6 +175,19 @@ vi.stubGlobal('localStorage', {
 	clear: vi.fn()
 });
 
+beforeEach(async () => {
+	const { clearActiveSigner } = await import('./nostr/signing/active-signer');
+	clearActiveSigner();
+	browserSignerInstances.length = 0;
+	privateSignerInstances.length = 0;
+	delete browserCapabilities.nip04;
+	delete browserCapabilities.nip44;
+	browserGetPublicKey.mockResolvedValue(me);
+	privateGetPublicKey.mockResolvedValue(me);
+	remoteSigner.getPublicKey.mockResolvedValue(me);
+	storageGet.mockReturnValue(null);
+});
+
 describe('Login.withNpub', () => {
 	beforeEach(async () => {
 		vi.clearAllMocks();
@@ -131,7 +208,6 @@ describe('Login.withNpub', () => {
 
 		loadFolloweesMetadataCache.mockResolvedValue(undefined);
 		fetchEvents.mockResolvedValue([['p', followee]]);
-		getEncryptionCapabilities.mockReturnValue({});
 		loadFolloweesOfFollowees.mockImplementation(() => {
 			calls.push('loadFolloweesOfFollowees');
 		});
@@ -231,8 +307,20 @@ describe('Login.withNpub', () => {
 		await new Login().withNpub(nip19.npubEncode(me));
 
 		expect(fetchEvents).toHaveBeenCalledWith(undefined);
-		expect(getPublicKey).not.toHaveBeenCalled();
-		expect(getEncryptionCapabilities).not.toHaveBeenCalled();
+		expect(browserSignerInstances).toHaveLength(0);
+		expect(privateSignerInstances).toHaveLength(0);
+		expect(establishBunkerConnection).not.toHaveBeenCalled();
+	});
+
+	it('clears a stale signer before publishing the read-only session', async () => {
+		const { nip19 } = await import('nostr-tools');
+		const { getActiveSigner, setActiveSigner } = await import('./nostr/signing/active-signer');
+		const { Login } = await import('./Login');
+		setActiveSigner(remoteSigner);
+
+		await new Login().withNpub(nip19.npubEncode(me));
+
+		expect(() => getActiveSigner()).toThrow('[logic error]');
 	});
 });
 
@@ -244,19 +332,20 @@ describe('Login.withNip07', () => {
 		const { auth } = await import('./auth.svelte');
 		auth.reset();
 		fetchEvents.mockResolvedValue([['p', followee]]);
-		getPublicKey.mockResolvedValue(me);
 	});
 
 	it('initializes without a decrypter when the extension has no encryption capability', async () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-		getEncryptionCapabilities.mockReturnValue({});
 		const { auth } = await import('./auth.svelte');
+		const { getActiveSigner } = await import('./nostr/signing/active-signer');
 		const { Login } = await import('./Login');
 
 		await new Login().withNip07();
 
 		expect(auth.status).toBe('authenticated');
 		expect(fetchEvents).toHaveBeenCalledWith(undefined);
+		expect(browserSignerInstances).toHaveLength(1);
+		expect(getActiveSigner()).toBe(browserSignerInstances[0]);
 		expect(warn).not.toHaveBeenCalled();
 	});
 
@@ -265,7 +354,7 @@ describe('Login.withNip07', () => {
 			encrypt: vi.fn(),
 			decrypt: vi.fn().mockResolvedValue(JSON.stringify([['p', 'private']]))
 		};
-		getEncryptionCapabilities.mockReturnValue({ nip44 });
+		browserCapabilities.nip44 = nip44;
 		const { Login } = await import('./Login');
 
 		await new Login().withNip07();
@@ -281,7 +370,7 @@ describe('Login.withNip07', () => {
 			encrypt: vi.fn(),
 			decrypt: vi.fn().mockResolvedValue(JSON.stringify([['p', 'private']]))
 		};
-		getEncryptionCapabilities.mockReturnValue({ nip04 });
+		browserCapabilities.nip04 = nip04;
 		const { Login } = await import('./Login');
 
 		await new Login().withNip07();
@@ -292,6 +381,29 @@ describe('Login.withNip07', () => {
 		await expect(decrypter(me, 'nip44-content')).resolves.toEqual([[], false]);
 		expect(nip04.decrypt).toHaveBeenCalledOnce();
 		expect(warn).not.toHaveBeenCalled();
+	});
+
+	it('attaches the same browser signer only after account initialization', async () => {
+		const initialized = Promise.withResolvers<void>();
+		loadFolloweesMetadataCache.mockReturnValue(initialized.promise);
+		const { auth } = await import('./auth.svelte');
+		const { getActiveSigner } = await import('./nostr/signing/active-signer');
+		const { Login } = await import('./Login');
+		const originalEstablish = Object.getPrototypeOf(auth).establish.bind(auth);
+		vi.spyOn(auth, 'establish').mockImplementation((pubkey, followingPubkeys) => {
+			expect(getActiveSigner()).toBe(browserSignerInstances[0]);
+			originalEstablish(pubkey, followingPubkeys);
+		});
+
+		const loggingIn = new Login().withNip07();
+		await vi.waitFor(() => expect(browserSignerInstances).toHaveLength(1));
+		expect(() => getActiveSigner()).toThrow('[logic error]');
+
+		initialized.resolve();
+		await loggingIn;
+
+		expect(getActiveSigner()).toBe(browserSignerInstances[0]);
+		expect(auth.status).toBe('authenticated');
 	});
 });
 
@@ -307,15 +419,12 @@ describe('Login.withNsec', () => {
 
 		loadFolloweesMetadataCache.mockResolvedValue(undefined);
 		fetchEvents.mockResolvedValue([['p', followee]]);
-		getEncryptionCapabilities.mockReturnValue({
-			nip04: { encrypt: vi.fn(), decrypt: vi.fn() },
-			nip44: { encrypt: vi.fn(), decrypt: vi.fn() }
-		});
 	});
 
 	it('starts the remote signer for a signing-capable session', async () => {
-		const { nip19, getPublicKey } = await import('nostr-tools');
+		const { nip19 } = await import('nostr-tools');
 		const { auth } = await import('./auth.svelte');
+		const { getActiveSigner } = await import('./nostr/signing/active-signer');
 		const { Login } = await import('./Login');
 
 		const seckey = new Uint8Array(32).fill(1);
@@ -325,7 +434,10 @@ describe('Login.withNsec', () => {
 		await login.withNsec(nsec);
 
 		expect(auth.status).toBe('authenticated');
-		expect(auth.pubkey).toBe(getPublicKey(seckey));
+		expect(auth.pubkey).toBe(me);
+		expect(privateSignerInstances).toHaveLength(1);
+		expect(privateSignerInstances[0]?.secretKey).toEqual(seckey);
+		expect(getActiveSigner()).toBe(privateSignerInstances[0]);
 		expect(remoteSignerSubscribeIfEnabled).toHaveBeenCalledTimes(1);
 	});
 
@@ -336,7 +448,9 @@ describe('Login.withNsec', () => {
 		await new Login().withNsec(nip19.nsecEncode(new Uint8Array(32).fill(1)));
 
 		expect(fetchEvents).toHaveBeenCalledWith(expect.any(Function));
-		expect(getEncryptionCapabilities).toHaveBeenCalledOnce();
+		expect(privateSignerInstances).toHaveLength(1);
+		const { getActiveSigner } = await import('./nostr/signing/active-signer');
+		expect(getActiveSigner()).toBe(privateSignerInstances[0]);
 	});
 });
 
@@ -347,21 +461,30 @@ describe('Login.withNip46', () => {
 		const { auth } = await import('./auth.svelte');
 		auth.reset();
 		fetchEvents.mockResolvedValue([['p', followee]]);
-		getPublicKey.mockResolvedValue(me);
-		getEncryptionCapabilities.mockReturnValue({
-			nip04: { encrypt: vi.fn(), decrypt: vi.fn() },
-			nip44: { encrypt: vi.fn(), decrypt: vi.fn() }
-		});
 	});
 
-	it('provides a private-list decrypter from the remote signer capabilities', async () => {
+	it('uses the connected remote signer for initialization and the active session', async () => {
+		const { getActiveSigner } = await import('./nostr/signing/active-signer');
 		const { Login } = await import('./Login');
 
 		await new Login().withNip46('bunker://remote');
 
 		expect(establishBunkerConnection).toHaveBeenCalledWith('bunker://remote');
 		expect(fetchEvents).toHaveBeenCalledWith(expect.any(Function));
-		expect(getEncryptionCapabilities).toHaveBeenCalledOnce();
+		expect(getActiveSigner()).toBe(remoteSigner);
+	});
+
+	it('cleans up the remote connection when account initialization fails', async () => {
+		fetchRelays.mockRejectedValueOnce(new Error('initialization failed'));
+		const { getActiveSigner } = await import('./nostr/signing/active-signer');
+		const { Login } = await import('./Login');
+
+		await expect(new Login().withNip46('bunker://remote')).rejects.toThrow(
+			'initialization failed'
+		);
+
+		expect(abolishBunkerConnection).toHaveBeenCalledOnce();
+		expect(() => getActiveSigner()).toThrow('[logic error]');
 	});
 });
 
@@ -381,10 +504,12 @@ describe('session teardown', () => {
 		abolishBunkerConnection.mockReturnValue(cleanup.promise);
 		const { auth } = await import('./auth.svelte');
 		const { author, loginType } = await import('./stores/Author');
+		const { getActiveSigner, setActiveSigner } = await import('./nostr/signing/active-signer');
 		const { resetLoginState } = await import('./Login');
 		auth.establish(me, [followee]);
 		author.set({} as Author);
 		loginType.set('NIP-46');
+		setActiveSigner(remoteSigner);
 
 		const resetting = resetLoginState();
 
@@ -392,6 +517,7 @@ describe('session teardown', () => {
 		expect(auth.status).toBe('anonymous');
 		expect(get(loginType)).toBeUndefined();
 		expect(get(author)).toBeUndefined();
+		expect(() => getActiveSigner()).toThrow('[logic error]');
 		let resetCompleted = false;
 		void resetting.then(() => (resetCompleted = true));
 		await Promise.resolve();
@@ -432,5 +558,52 @@ describe('session teardown', () => {
 		await loggingOut;
 
 		expect(calls).toEqual(['dispose', 'clear storage', 'navigate:/']);
+	});
+});
+
+describe('tryLogin', () => {
+	beforeEach(async () => {
+		vi.clearAllMocks();
+		const { auth } = await import('./auth.svelte');
+		auth.reset();
+	});
+
+	it('uses persisted login only to select the login flow', async () => {
+		const { auth } = await import('./auth.svelte');
+		const { Login, tryLogin } = await import('./Login');
+		const establishAuth = () => auth.establish(me, []);
+		const flows = {
+			nip07: vi.spyOn(Login.prototype, 'withNip07').mockImplementation(async () => {
+				establishAuth();
+			}),
+			nip46: vi.spyOn(Login.prototype, 'withNip46').mockImplementation(async () => {
+				establishAuth();
+				return true;
+			}),
+			nsec: vi.spyOn(Login.prototype, 'withNsec').mockImplementation(async () => {
+				establishAuth();
+			}),
+			npub: vi.spyOn(Login.prototype, 'withNpub').mockImplementation(async () => {
+				establishAuth();
+			})
+		};
+		const cases = [
+			['NIP-07', 'nip07'],
+			['bunker://remote', 'nip46'],
+			['nsec1saved', 'nsec'],
+			['npub1saved', 'npub']
+		] as const;
+
+		for (const [savedLogin, selectedFlow] of cases) {
+			auth.reset();
+			storageGet.mockReturnValue(savedLogin);
+			for (const flow of Object.values(flows)) flow.mockClear();
+
+			await expect(tryLogin()).resolves.toBe(true);
+
+			for (const [name, flow] of Object.entries(flows)) {
+				expect(flow).toHaveBeenCalledTimes(name === selectedFlow ? 1 : 0);
+			}
+		}
 	});
 });

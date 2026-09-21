@@ -2,7 +2,7 @@ import { get } from 'svelte/store';
 import { author, authorProfile, loginType } from './stores/Author';
 import { signerCanSign } from './nostr/signing/signer-capability';
 import { Signer } from './Signer';
-import { getPublicKey, nip19 } from 'nostr-tools';
+import { nip19 } from 'nostr-tools';
 import { robohash } from './Items';
 import { WebStorage } from './WebStorage';
 import { rxNostr } from './timelines/MainTimeline';
@@ -14,7 +14,11 @@ import { auth } from './auth.svelte';
 import { initializeAccount } from './features/account/application/initialize-account';
 import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
-import { createListContentDecrypter, type ListContentDecrypter } from './List';
+import { createListContentDecrypter } from './List';
+import { BrowserSigner } from './nostr/signing/browser-signer';
+import { PrivateKeySigner } from './nostr/signing/private-key-signer';
+import type { Signer as SigningSigner } from './nostr/signing/signer';
+import { clearActiveSigner, setActiveSigner } from './nostr/signing/active-signer';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -65,9 +69,10 @@ export class Login {
 		loginType.set('NIP-07');
 		setLoginStatus('getting_pubkey');
 
+		const signer = new BrowserSigner();
 		let pubkey: string;
 		try {
-			pubkey = await Signer.getPublicKey();
+			pubkey = await signer.getPublicKey();
 			if (!pubkey) {
 				throw new Error('undefined');
 			}
@@ -82,10 +87,7 @@ export class Login {
 
 		console.timeLog('NIP-07');
 
-		await this.fetchAuthor(
-			pubkey,
-			createListContentDecrypter(Signer.getEncryptionCapabilities())
-		);
+		await this.fetchAuthor(pubkey, signer);
 
 		console.timeEnd('NIP-07');
 	}
@@ -97,8 +99,9 @@ export class Login {
 		loginType.set('NIP-46');
 		setLoginStatus('connecting_bunker');
 
+		let signer: SigningSigner;
 		try {
-			await Signer.establishBunkerConnection(bunker);
+			signer = await Signer.establishBunkerConnection(bunker);
 		} catch {
 			console.timeEnd('NIP-46 error');
 			console.error('Failed to connect to NIP-46 bunker');
@@ -111,11 +114,13 @@ export class Login {
 		const storage = new WebStorage(localStorage);
 		storage.set('login', bunker);
 
-		const pubkey = await Signer.getPublicKey();
-		await this.fetchAuthor(
-			pubkey,
-			createListContentDecrypter(Signer.getEncryptionCapabilities())
-		);
+		try {
+			const pubkey = await signer.getPublicKey();
+			await this.fetchAuthor(pubkey, signer);
+		} catch (error) {
+			await Signer.abolishBunkerConnection();
+			throw error;
+		}
 
 		console.timeEnd('NIP-46');
 		return true;
@@ -133,11 +138,9 @@ export class Login {
 		storage.set('login', key);
 
 		loginType.set('nsec');
-		const pubkey = getPublicKey(seckey);
-		await this.fetchAuthor(
-			pubkey,
-			createListContentDecrypter(Signer.getEncryptionCapabilities())
-		);
+		const signer = new PrivateKeySigner(seckey);
+		const pubkey = await signer.getPublicKey();
+		await this.fetchAuthor(pubkey, signer);
 	}
 
 	public async withNpub(key: string) {
@@ -157,13 +160,15 @@ export class Login {
 		await this.fetchAuthor(data);
 	}
 
-	private async fetchAuthor(pubkey: string, decryptPrivateListContent?: ListContentDecrypter) {
+	private async fetchAuthor(pubkey: string, signer?: SigningSigner) {
 		console.time('fetch author');
 		setLoginStatus('fetching_profile');
 
+		const decryptPrivateListContent = signer ? createListContentDecrypter(signer) : undefined;
 		const followingPubkeys = await initializeAccount(pubkey, decryptPrivateListContent);
 		console.timeEnd('fetch author');
 
+		setActiveSigner(signer);
 		auth.establish(pubkey, followingPubkeys);
 		clearLoginStatus();
 
@@ -178,6 +183,7 @@ export class Login {
 }
 
 export async function resetLoginState(): Promise<void> {
+	clearActiveSigner();
 	const closingRemoteSigner = Signer.abolishBunkerConnection();
 	loginType.set(undefined);
 	author.set(undefined);
