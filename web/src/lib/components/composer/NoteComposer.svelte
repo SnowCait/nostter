@@ -22,6 +22,7 @@
 	import { RelayList } from '$lib/RelayList';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import { author, pubkey, rom } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import { customEmojiTags, findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
 	import { fetchFolloweesMetadata } from '$lib/author/Follow';
 	import EventComponent from '../items/EventComponent.svelte';
@@ -487,17 +488,24 @@
 		}
 		const finalContent = appendUrls(contentTarget, uploadedUrls);
 
-		const event = await compose(
-			replyEvent?.kind === Kind.ChannelMessage ? Kind.ChannelMessage : Kind.ShortTextNote,
-			Content.replaceNip19(finalContent),
-			[
-				...replyTags(finalContent, replyEvent),
-				...hashtags(finalContent),
-				...(await createEmojiTags(finalContent, $state.snapshot(emojiTags))),
-				...contentWarningTags(contentWarningReason),
-				...(enableVia ? [createViaTag()] : [])
-			]
-		);
+		const signer = auth.signer;
+		const event =
+			signer === undefined
+				? null
+				: await compose(
+						(template) => signer.signEvent(template),
+						replyEvent?.kind === Kind.ChannelMessage
+							? Kind.ChannelMessage
+							: Kind.ShortTextNote,
+						Content.replaceNip19(finalContent),
+						[
+							...replyTags(finalContent, replyEvent),
+							...hashtags(finalContent),
+							...(await createEmojiTags(finalContent, $state.snapshot(emojiTags))),
+							...contentWarningTags(contentWarningReason),
+							...(enableVia ? [createViaTag()] : [])
+						]
+					);
 
 		if (event === null) {
 			posting = false;

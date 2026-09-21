@@ -27,6 +27,7 @@
 	} from '$lib/media/LocalAttachment';
 	import { LocalAttachments } from '$lib/media/LocalAttachments.svelte';
 	import { composerFocus } from './ComposerFocus.svelte';
+	import { auth } from '$lib/auth.svelte';
 
 	interface Props {
 		channelId: string;
@@ -72,11 +73,20 @@
 		}
 		const finalContent = appendUrls(contentTarget, uploadedUrls);
 
-		const event = await compose(ChannelMessage, Content.replaceNip19(finalContent), [
-			...replyTags(finalContent, replyTarget, channelId),
-			...hashtags(finalContent),
-			...(await createEmojiTags(finalContent, emojiTagsTarget))
-		]);
+		const signer = auth.signer;
+		const event =
+			signer === undefined
+				? null
+				: await compose(
+						(template) => signer.signEvent(template),
+						ChannelMessage,
+						Content.replaceNip19(finalContent),
+						[
+							...replyTags(finalContent, replyTarget, channelId),
+							...hashtags(finalContent),
+							...(await createEmojiTags(finalContent, emojiTagsTarget))
+						]
+					);
 
 		if (event === null) {
 			posting = false;
