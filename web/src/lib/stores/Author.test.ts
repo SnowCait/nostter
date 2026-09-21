@@ -2,17 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
 
-const mocks = vi.hoisted(() => ({ decryptListContent: vi.fn() }));
-
-vi.mock('$lib/List', () => ({ decryptListContent: mocks.decryptListContent }));
-
 import {
 	muteEvent,
 	muteEventIds,
 	mutePubkeys,
 	muteWords,
+	mutedPubkeysByKindMap,
 	storeMutedTags,
-	storeMutedTagsByEvent
+	storeMutedTagsByEvent,
+	storeMutedPubkeysByKind
 } from './Author';
 
 const accountPubkey = 'a'.repeat(64);
@@ -37,6 +35,7 @@ describe('mute list state', () => {
 		mutePubkeys.set([]);
 		muteEventIds.set([]);
 		muteWords.set([]);
+		mutedPubkeysByKindMap.set(new Map());
 	});
 
 	it('excludes the explicit account pubkey while retaining other mute tags', async () => {
@@ -56,8 +55,8 @@ describe('mute list state', () => {
 		expect(get(muteWords)).toEqual(['spoiler']);
 	});
 
-	it('uses the explicit account pubkey when storing mute tags from an event', async () => {
-		mocks.decryptListContent.mockResolvedValue([
+	it('merges public and private tags when a decrypter is provided', async () => {
+		const decryptPrivateListContent = vi.fn().mockResolvedValue([
 			[
 				['p', accountPubkey],
 				['p', mutedPubkey],
@@ -68,11 +67,55 @@ describe('mute list state', () => {
 		]);
 		const muteListEvent = event([['e', 'public-event']]);
 
-		await storeMutedTagsByEvent(muteListEvent, accountPubkey);
+		await storeMutedTagsByEvent(muteListEvent, accountPubkey, decryptPrivateListContent);
 
 		expect(get(muteEvent)).toBe(muteListEvent);
+		expect(decryptPrivateListContent).toHaveBeenCalledWith(
+			muteListEvent.pubkey,
+			muteListEvent.content
+		);
 		expect(get(mutePubkeys)).toEqual([mutedPubkey]);
 		expect(get(muteEventIds)).toEqual(['public-event', 'private-event']);
 		expect(get(muteWords)).toEqual(['private-word']);
+	});
+
+	it('stores public mute tags without decrypting private content when no decrypter is provided', async () => {
+		const muteListEvent = event([
+			['p', mutedPubkey],
+			['e', 'public-event'],
+			['word', 'public-word']
+		]);
+
+		await storeMutedTagsByEvent(muteListEvent, accountPubkey);
+
+		expect(get(mutePubkeys)).toEqual([mutedPubkey]);
+		expect(get(muteEventIds)).toEqual(['public-event']);
+		expect(get(muteWords)).toEqual(['public-word']);
+	});
+
+	it('merges public and private tags for kind mute sets only when a decrypter is provided', async () => {
+		const kindMuteEvent = {
+			...event([
+				['d', '6'],
+				['p', mutedPubkey]
+			]),
+			kind: 30007
+		};
+		const privateMutedPubkey = 'd'.repeat(64);
+		const decryptPrivateListContent = vi
+			.fn()
+			.mockResolvedValue([[['p', privateMutedPubkey]], false]);
+
+		await storeMutedPubkeysByKind([kindMuteEvent], decryptPrivateListContent);
+
+		expect(get(mutedPubkeysByKindMap).get(6)).toEqual(
+			new Set([mutedPubkey, privateMutedPubkey])
+		);
+
+		mutedPubkeysByKindMap.set(new Map());
+		await storeMutedPubkeysByKind([kindMuteEvent]);
+
+		expect(get(mutedPubkeysByKindMap).get(6)).toEqual(new Set([mutedPubkey]));
+		expect(decryptPrivateListContent).toHaveBeenCalledTimes(1);
 	});
 });

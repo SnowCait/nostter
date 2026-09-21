@@ -128,7 +128,7 @@ async function publish(muteKind: number, accountPubkey: string): Promise<void> {
 		created_at: now()
 	});
 	storage.setParameterizedReplaceableEvent(event, accountPubkey);
-	storeMutedPubkeysByKind([event]);
+	storeMutedPubkeysByKind([event], decryptListContent);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {

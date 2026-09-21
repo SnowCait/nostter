@@ -12,6 +12,7 @@ const {
 	remoteSignerSubscribeIfEnabled,
 	storageClear,
 	abolishBunkerConnection,
+	decryptListContent,
 	calls
 } = vi.hoisted(() => {
 	function createStore<T>(initial: T) {
@@ -41,6 +42,7 @@ const {
 		remoteSignerSubscribeIfEnabled: vi.fn(),
 		storageClear: vi.fn(),
 		abolishBunkerConnection: vi.fn().mockResolvedValue(undefined),
+		decryptListContent: vi.fn(),
 		calls: [] as string[]
 	};
 });
@@ -71,6 +73,8 @@ vi.mock('./WebStorage', () => ({
 vi.mock('./Signer', () => ({
 	Signer: { abolishBunkerConnection }
 }));
+
+vi.mock('./List', () => ({ decryptListContent }));
 
 vi.mock('./timelines/MainTimeline', () => ({
 	rxNostr: { getDefaultRelays: vi.fn().mockReturnValue({}), send: vi.fn(), use: vi.fn() }
@@ -211,6 +215,15 @@ describe('Login.withNpub', () => {
 		expect(auth.status).toBe('authenticated');
 		expect(remoteSignerSubscribeIfEnabled).not.toHaveBeenCalled();
 	});
+
+	it('does not provide a private-list decrypter during initialization', async () => {
+		const { nip19 } = await import('nostr-tools');
+		const { Login } = await import('./Login');
+
+		await new Login().withNpub(nip19.npubEncode(me));
+
+		expect(fetchEvents).toHaveBeenCalledWith(undefined);
+	});
 });
 
 describe('Login.withNsec', () => {
@@ -241,6 +254,15 @@ describe('Login.withNsec', () => {
 		expect(auth.status).toBe('authenticated');
 		expect(auth.pubkey).toBe(getPublicKey(seckey));
 		expect(remoteSignerSubscribeIfEnabled).toHaveBeenCalledTimes(1);
+	});
+
+	it('provides a private-list decrypter during initialization', async () => {
+		const { nip19 } = await import('nostr-tools');
+		const { Login } = await import('./Login');
+
+		await new Login().withNsec(nip19.nsecEncode(new Uint8Array(32).fill(1)));
+
+		expect(fetchEvents).toHaveBeenCalledWith(decryptListContent);
 	});
 });
 

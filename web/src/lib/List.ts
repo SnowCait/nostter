@@ -9,6 +9,11 @@ import { isLegacyEncryption } from './nostr/protocol/nip04';
 import { pubkey } from './stores/Author';
 import { Signer } from './Signer';
 
+export type ListContentDecrypter = (
+	pubkey: string,
+	content: string
+) => Promise<[tags: string[][], legacy: boolean]>;
+
 export async function fetchListEvent(
 	kind: number,
 	pubkey: string,
