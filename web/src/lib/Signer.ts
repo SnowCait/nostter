@@ -1,14 +1,12 @@
-import {
-	resolveSigner,
-	establishBunkerConnection,
-	abolishBunkerConnection
-} from './signer-strategy';
+import { establishBunkerConnection, abolishBunkerConnection } from './nip46-connection';
 import type { Event, EventTemplate } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
 import type { EncryptionCapabilities } from './nostr/signing/signer';
+import { getActiveSigner } from './nostr/signing/active-signer';
+import type { RemoteSignerClient } from './nostr/signing/remote-signer-client';
 
 export class Signer {
-	public static async establishBunkerConnection(bunker: string): Promise<void> {
+	public static async establishBunkerConnection(bunker: string): Promise<RemoteSignerClient> {
 		return establishBunkerConnection(bunker);
 	}
 
@@ -17,22 +15,22 @@ export class Signer {
 	}
 
 	public static async getPublicKey(): Promise<string> {
-		return resolveSigner().getPublicKey();
+		return getActiveSigner().getPublicKey();
 	}
 
 	public static async signEvent(
 		unsignedEvent: EventTemplate | Nostr.UnsignedEvent
 	): Promise<Event> {
-		return resolveSigner().signEvent(unsignedEvent);
+		return getActiveSigner().signEvent(unsignedEvent);
 	}
 
 	public static getEncryptionCapabilities(): EncryptionCapabilities {
-		const { nip04, nip44 } = resolveSigner();
+		const { nip04, nip44 } = getActiveSigner();
 		return { nip04, nip44 };
 	}
 
 	public static async encrypt(pubkey: string, plaintext: string): Promise<string> {
-		const nip04 = resolveSigner().nip04;
+		const nip04 = getActiveSigner().nip04;
 		if (nip04 === undefined) {
 			throw new Error('[logic error]');
 		}
@@ -40,7 +38,7 @@ export class Signer {
 	}
 
 	public static async decrypt(pubkey: string, ciphertext: string): Promise<string> {
-		const nip04 = resolveSigner().nip04;
+		const nip04 = getActiveSigner().nip04;
 		if (nip04 === undefined) {
 			throw new Error('[logic error]');
 		}
@@ -48,7 +46,7 @@ export class Signer {
 	}
 
 	public static async encryptNip44(pubkey: string, plaintext: string): Promise<string> {
-		const nip44 = resolveSigner().nip44;
+		const nip44 = getActiveSigner().nip44;
 		if (nip44 === undefined) {
 			throw new Error('[logic error]');
 		}
@@ -56,7 +54,7 @@ export class Signer {
 	}
 
 	public static async decryptNip44(pubkey: string, ciphertext: string): Promise<string> {
-		const nip44 = resolveSigner().nip44;
+		const nip44 = getActiveSigner().nip44;
 		if (nip44 === undefined) {
 			throw new Error('[logic error]');
 		}

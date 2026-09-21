@@ -1,34 +1,32 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Event, EventTemplate } from 'nostr-tools';
 import type { Signer as SigningSigner } from './nostr/signing/signer';
+import { clearActiveSigner, setActiveSigner } from './nostr/signing/active-signer';
 import { Signer } from './Signer';
-import { resolveSigner } from './signer-strategy';
 
-vi.mock('./signer-strategy', () => ({
-	resolveSigner: vi.fn(),
+vi.mock('./nip46-connection', () => ({
 	establishBunkerConnection: vi.fn(),
 	abolishBunkerConnection: vi.fn()
 }));
 
-describe('Signer encryption facade', () => {
-	it('exposes the actual signer encryption capabilities', () => {
-		const nip44 = {
-			encrypt: vi.fn(),
-			decrypt: vi.fn()
-		};
-		const signer = {
-			getPublicKey: vi.fn(),
-			signEvent: vi.fn(),
-			nip44
-		} satisfies SigningSigner;
-		vi.mocked(resolveSigner).mockReturnValue(signer);
+afterEach(() => {
+	clearActiveSigner();
+	vi.clearAllMocks();
+});
 
-		expect(Signer.getEncryptionCapabilities()).toEqual({
-			nip04: undefined,
-			nip44
-		});
+describe('Signer facade', () => {
+	it('throws a logic error for every operation when no signer is active', async () => {
+		await expect(Signer.getPublicKey()).rejects.toThrow('[logic error]');
+		await expect(Signer.signEvent({} as EventTemplate)).rejects.toThrow('[logic error]');
+		expect(() => Signer.getEncryptionCapabilities()).toThrow('[logic error]');
+		await expect(Signer.encrypt('peer', 'plain')).rejects.toThrow('[logic error]');
+		await expect(Signer.decrypt('peer', 'cipher')).rejects.toThrow('[logic error]');
+		await expect(Signer.encryptNip44('peer', 'plain')).rejects.toThrow('[logic error]');
+		await expect(Signer.decryptNip44('peer', 'cipher')).rejects.toThrow('[logic error]');
 	});
 
-	it('delegates encryption operations through available NIP capabilities', async () => {
+	it('delegates every operation to the attached signer instance', async () => {
+		const signedEvent = { id: 'event' } as Event;
 		const nip04 = {
 			encrypt: vi.fn().mockResolvedValue('nip04-ciphertext'),
 			decrypt: vi.fn().mockResolvedValue('nip04-plaintext')
@@ -38,18 +36,23 @@ describe('Signer encryption facade', () => {
 			decrypt: vi.fn().mockResolvedValue('nip44-plaintext')
 		};
 		const signer = {
-			getPublicKey: vi.fn(),
-			signEvent: vi.fn(),
+			getPublicKey: vi.fn().mockResolvedValue('pubkey'),
+			signEvent: vi.fn().mockResolvedValue(signedEvent),
 			nip04,
 			nip44
 		} satisfies SigningSigner;
-		vi.mocked(resolveSigner).mockReturnValue(signer);
+		const unsignedEvent = { kind: 1 } as EventTemplate;
+		setActiveSigner(signer);
 
+		await expect(Signer.getPublicKey()).resolves.toBe('pubkey');
+		await expect(Signer.signEvent(unsignedEvent)).resolves.toBe(signedEvent);
+		expect(Signer.getEncryptionCapabilities()).toEqual({ nip04, nip44 });
 		await expect(Signer.encrypt('peer', 'plain')).resolves.toBe('nip04-ciphertext');
 		await expect(Signer.decrypt('peer', 'cipher')).resolves.toBe('nip04-plaintext');
 		await expect(Signer.encryptNip44('peer', 'plain')).resolves.toBe('nip44-ciphertext');
 		await expect(Signer.decryptNip44('peer', 'cipher')).resolves.toBe('nip44-plaintext');
 
+		expect(signer.signEvent).toHaveBeenCalledWith(unsignedEvent);
 		expect(nip04.encrypt).toHaveBeenCalledWith('peer', 'plain');
 		expect(nip04.decrypt).toHaveBeenCalledWith('peer', 'cipher');
 		expect(nip44.encrypt).toHaveBeenCalledWith('peer', 'plain');
@@ -60,8 +63,7 @@ describe('Signer encryption facade', () => {
 		['NIP-04', () => Signer.encrypt('peer', 'plain')],
 		['NIP-44', () => Signer.encryptNip44('peer', 'plain')]
 	])('throws when the %s capability is unavailable', async (_name, encrypt) => {
-		const signer = { getPublicKey: vi.fn(), signEvent: vi.fn() } satisfies SigningSigner;
-		vi.mocked(resolveSigner).mockReturnValue(signer);
+		setActiveSigner({ getPublicKey: vi.fn(), signEvent: vi.fn() });
 
 		await expect(encrypt()).rejects.toThrow('[logic error]');
 	});
