@@ -5,6 +5,7 @@ import {
 } from './signer-strategy';
 import type { Event, EventTemplate } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
+import type { EncryptionCapabilities } from './nostr/signing/signer';
 
 export class Signer {
 	public static async establishBunkerConnection(bunker: string): Promise<void> {
@@ -23,6 +24,11 @@ export class Signer {
 		unsignedEvent: EventTemplate | Nostr.UnsignedEvent
 	): Promise<Event> {
 		return resolveSigner().signEvent(unsignedEvent);
+	}
+
+	public static getEncryptionCapabilities(): EncryptionCapabilities {
+		const { nip04, nip44 } = resolveSigner();
+		return { nip04, nip44 };
 	}
 
 	public static async encrypt(pubkey: string, plaintext: string): Promise<string> {

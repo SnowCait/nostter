@@ -8,6 +8,41 @@ import { findIdentifier } from './nostr/protocol/event-address';
 import { isLegacyEncryption } from './nostr/protocol/nip04';
 import { pubkey } from './stores/Author';
 import { Signer } from './Signer';
+import type { EncryptionCapabilities } from './nostr/signing/signer';
+
+export type ListContentDecrypter = (
+	pubkey: string,
+	content: string
+) => Promise<[tags: string[][], legacy: boolean]>;
+
+export function createListContentDecrypter({
+	nip04,
+	nip44
+}: EncryptionCapabilities): ListContentDecrypter | undefined {
+	if (nip04 === undefined && nip44 === undefined) {
+		return undefined;
+	}
+
+	return async (pubkey, content) => {
+		if (content === '') {
+			return [[], false];
+		}
+
+		const legacy = isLegacyEncryption(content);
+		const encryption = legacy ? nip04 : nip44;
+		if (encryption === undefined) {
+			return [[], false];
+		}
+
+		try {
+			const json = await encryption.decrypt(pubkey, content);
+			return [JSON.parse(json), legacy];
+		} catch (error) {
+			console.warn('[list parse error]', error);
+			return [[], false];
+		}
+	};
+}
 
 export async function fetchListEvent(
 	kind: number,
@@ -50,13 +85,12 @@ export async function decryptListContent(
 	if (content === '') {
 		return [[], false];
 	}
-
 	try {
-		const legacy = isLegacyEncryption(content);
-		const json = await (legacy
-			? Signer.decrypt(pubkey, content)
-			: Signer.decryptNip44(pubkey, content));
-		return [JSON.parse(json), legacy];
+		const decrypter = createListContentDecrypter(Signer.getEncryptionCapabilities());
+		if (decrypter === undefined) {
+			return [[], false];
+		}
+		return decrypter(pubkey, content);
 	} catch (error) {
 		console.warn('[list parse error]', error);
 		return [[], false];

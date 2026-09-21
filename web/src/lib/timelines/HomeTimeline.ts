@@ -63,6 +63,7 @@ import { excludeKinds } from '$lib/TimelineFilter';
 import { fetchMinutes } from '$lib/Helper';
 import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
 import { updateBlossomServerList } from '$lib/author/BlossomServerList.svelte';
+import { decryptListContent } from '$lib/List';
 
 const maxTimelineLength = minTimelineLength * 2;
 
@@ -123,7 +124,7 @@ export class HomeTimeline extends NewTimeline {
 			this.subscribe();
 		});
 		replaceable$.pipe(filterByKind(Kind.Mutelist)).subscribe(async ({ event }) => {
-			await storeMutedTagsByEvent(event, accountPubkey);
+			await storeMutedTagsByEvent(event, accountPubkey, decryptListContent);
 		});
 		replaceable$
 			.pipe(filterByKind(Kind.PublicChatsList))
@@ -180,7 +181,7 @@ export class HomeTimeline extends NewTimeline {
 			.subscribe(({ event }) => legacyBookmarkEvent.set(event));
 		addressable$
 			.pipe(filterByKind(30007))
-			.subscribe(({ event }) => storeMutedPubkeysByKind([event]));
+			.subscribe(({ event }) => storeMutedPubkeysByKind([event], decryptListContent));
 		addressable$
 			.pipe(filter(({ event }) => isProfileBadgesEvent(event)))
 			.subscribe(({ event }) => updateProfileBadgesEvent(event));

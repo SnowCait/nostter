@@ -8,7 +8,7 @@ import { filterTags } from '$lib/EventHelper';
 import { findIdentifier } from '$lib/nostr/protocol/event-address';
 import { getZapSenderPubkey } from '$lib/nostr/protocol/nip57';
 import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
-import { decryptListContent } from '$lib/List';
+import type { ListContentDecrypter } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
 import { type LoginType, signerCanSign } from '$lib/nostr/signing/signer-capability';
 
@@ -126,13 +126,20 @@ export const updateRelays = (event: Event) => {
 	console.debug('[relays after]', get(readRelays), get(writeRelays));
 };
 
-export const storeMutedTagsByEvent = async (event: Event, accountPubkey: string): Promise<void> => {
+export const storeMutedTagsByEvent = async (
+	event: Event,
+	accountPubkey: string,
+	decryptPrivateListContent?: ListContentDecrypter
+): Promise<void> => {
 	const $muteEvent = get(muteEvent);
 	if ($muteEvent !== undefined && event.created_at <= $muteEvent.created_at) {
 		return;
 	}
 	muteEvent.set(event);
-	const [privateTags] = await decryptListContent(event.pubkey, event.content);
+	const [privateTags] =
+		decryptPrivateListContent === undefined
+			? [[], false]
+			: await decryptPrivateListContent(event.pubkey, event.content);
 	await storeMutedTags([...event.tags, ...privateTags], accountPubkey);
 };
 
@@ -151,7 +158,10 @@ export const storeMutedTags = async (tags: string[][], accountPubkey: string): P
 	);
 };
 
-export const storeMutedPubkeysByKind = async (events: Event[]): Promise<void> => {
+export const storeMutedPubkeysByKind = async (
+	events: Event[],
+	decryptPrivateListContent?: ListContentDecrypter
+): Promise<void> => {
 	const $mutedPubkeysByKindMap = get(mutedPubkeysByKindMap);
 	for (const event of events) {
 		const kind = findIdentifier(event.tags);
@@ -159,9 +169,9 @@ export const storeMutedPubkeysByKind = async (events: Event[]): Promise<void> =>
 			continue;
 		}
 		const privateTags: string[][] = [];
-		if (event.content !== '') {
+		if (event.content !== '' && decryptPrivateListContent !== undefined) {
 			try {
-				const [tags] = await decryptListContent(event.pubkey, event.content);
+				const [tags] = await decryptPrivateListContent(event.pubkey, event.content);
 				privateTags.push(...tags);
 			} catch (error) {
 				console.warn('[kind 30007 content parse error]', event, error);

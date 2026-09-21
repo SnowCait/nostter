@@ -35,6 +35,7 @@ import {
 	initializeMediaUploaderPreference
 } from './preferences/AccountLocalPreferences';
 import { updateBlossomServerList } from './author/BlossomServerList.svelte';
+import type { ListContentDecrypter } from './List';
 
 export class Author {
 	constructor(private pubkey: string) {}
@@ -89,7 +90,9 @@ export class Author {
 		return contactsEvent?.tags ?? [];
 	}
 
-	public async fetchEvents(): Promise<string[][]> {
+	public async fetchEvents(
+		decryptPrivateListContent?: ListContentDecrypter
+	): Promise<string[][]> {
 		const { replaceableEvents, parameterizedReplaceableEvents } =
 			await this.fetchAuthorEventsWithCache(this.pubkey);
 
@@ -160,13 +163,13 @@ export class Author {
 
 		const muteEvent = replaceableEvents.get(10000);
 		if (muteEvent !== undefined) {
-			await storeMutedTagsByEvent(muteEvent, this.pubkey);
+			await storeMutedTagsByEvent(muteEvent, this.pubkey, decryptPrivateListContent);
 		}
 
 		const mutedByKindEvents = [...parameterizedReplaceableEvents]
 			.map(([, event]) => event)
 			.filter((event) => Number(event.kind) === 30007);
-		storeMutedPubkeysByKind(mutedByKindEvents);
+		storeMutedPubkeysByKind(mutedByKindEvents, decryptPrivateListContent);
 
 		// Channels
 		const channelsEvent = replaceableEvents.get(10005);
