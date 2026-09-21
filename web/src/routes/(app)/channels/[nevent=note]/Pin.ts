@@ -4,7 +4,7 @@ import { get } from 'svelte/store';
 import type { EventTemplate } from 'nostr-tools';
 import { PublicChatsList } from 'nostr-tools/kinds';
 import { authorChannelsEventStore } from '$lib/cache/Events';
-import { Signer } from '$lib/Signer';
+import type { Signer } from '$lib/nostr/signing/signer';
 import { pubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 
@@ -28,8 +28,12 @@ async function fetchPinnedChannelsEvent(): Promise<EventTemplate | undefined> {
 	}
 }
 
-function send(unsignedEvent: EventTemplate, failureMessage: string): Promise<void> {
-	return Signer.signEvent(unsignedEvent).then((event) => {
+function send(
+	signEvent: Signer['signEvent'],
+	unsignedEvent: EventTemplate,
+	failureMessage: string
+): Promise<void> {
+	return signEvent(unsignedEvent).then((event) => {
 		const observable = rxNostr.send(event);
 		observable.subscribe((packet) => {
 			if (packet.ok && get(authorChannelsEventStore)?.id !== event.id) {
@@ -45,13 +49,14 @@ function send(unsignedEvent: EventTemplate, failureMessage: string): Promise<voi
 	});
 }
 
-export async function pinChannel(channelId: string): Promise<void> {
+export async function pinChannel(channelId: string, signEvent: Signer['signEvent']): Promise<void> {
 	const latestEvent = await fetchPinnedChannelsEvent();
 	if (latestEvent?.tags.some(([tagName, id]) => tagName === 'e' && id === channelId) === true) {
 		return;
 	}
 
 	await send(
+		signEvent,
 		{
 			kind: PublicChatsList,
 			content: latestEvent?.content ?? '',
@@ -62,7 +67,10 @@ export async function pinChannel(channelId: string): Promise<void> {
 	);
 }
 
-export async function unpinChannel(channelId: string): Promise<void> {
+export async function unpinChannel(
+	channelId: string,
+	signEvent: Signer['signEvent']
+): Promise<void> {
 	const latestEvent = await fetchPinnedChannelsEvent();
 	if (latestEvent === undefined) {
 		return;
@@ -72,6 +80,7 @@ export async function unpinChannel(channelId: string): Promise<void> {
 	}
 
 	await send(
+		signEvent,
 		{
 			kind: latestEvent.kind,
 			content: latestEvent.content,
