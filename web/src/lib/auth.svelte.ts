@@ -1,5 +1,6 @@
 import { toStore } from 'svelte/store';
 import { unique } from './array';
+import type { Signer } from './nostr/signing/signer';
 
 export type AuthState =
 	| { status: 'initializing' }
@@ -8,6 +9,7 @@ export type AuthState =
 			status: 'authenticated';
 			pubkey: string;
 			followingPubkeys: string[];
+			signer?: Signer;
 	  };
 
 export type AuthStatus = AuthState['status'];
@@ -25,6 +27,10 @@ export class Auth {
 
 	get followingPubkeys(): string[] {
 		return this.#state.status === 'authenticated' ? this.#state.followingPubkeys : [];
+	}
+
+	get signer(): Signer | undefined {
+		return this.#state.status === 'authenticated' ? this.#state.signer : undefined;
 	}
 
 	#followees = $derived(
@@ -54,11 +60,12 @@ export class Auth {
 		};
 	}
 
-	establish(pubkey: string, followingPubkeys: string[]): void {
+	establish(pubkey: string, followingPubkeys: string[], signer?: Signer): void {
 		this.#state = {
 			status: 'authenticated',
 			pubkey,
-			followingPubkeys: unique(followingPubkeys)
+			followingPubkeys: unique(followingPubkeys),
+			signer
 		};
 	}
 

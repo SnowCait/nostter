@@ -1,26 +1,34 @@
 import type { Event, EventTemplate } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
-import type { EncryptionCapabilities } from './nostr/signing/signer';
-import { getActiveSigner } from './nostr/signing/active-signer';
+import { auth } from './auth.svelte';
+import type { EncryptionCapabilities, Signer as SigningSigner } from './nostr/signing/signer';
+
+function getSessionSigner(): SigningSigner {
+	const signer = auth.signer;
+	if (signer === undefined) {
+		throw new Error('[logic error]');
+	}
+	return signer;
+}
 
 export class Signer {
 	public static async getPublicKey(): Promise<string> {
-		return getActiveSigner().getPublicKey();
+		return getSessionSigner().getPublicKey();
 	}
 
 	public static async signEvent(
 		unsignedEvent: EventTemplate | Nostr.UnsignedEvent
 	): Promise<Event> {
-		return getActiveSigner().signEvent(unsignedEvent);
+		return getSessionSigner().signEvent(unsignedEvent);
 	}
 
 	public static getEncryptionCapabilities(): EncryptionCapabilities {
-		const { nip04, nip44 } = getActiveSigner();
+		const { nip04, nip44 } = getSessionSigner();
 		return { nip04, nip44 };
 	}
 
 	public static async encrypt(pubkey: string, plaintext: string): Promise<string> {
-		const nip04 = getActiveSigner().nip04;
+		const nip04 = getSessionSigner().nip04;
 		if (nip04 === undefined) {
 			throw new Error('[logic error]');
 		}
@@ -28,7 +36,7 @@ export class Signer {
 	}
 
 	public static async decrypt(pubkey: string, ciphertext: string): Promise<string> {
-		const nip04 = getActiveSigner().nip04;
+		const nip04 = getSessionSigner().nip04;
 		if (nip04 === undefined) {
 			throw new Error('[logic error]');
 		}
@@ -36,7 +44,7 @@ export class Signer {
 	}
 
 	public static async encryptNip44(pubkey: string, plaintext: string): Promise<string> {
-		const nip44 = getActiveSigner().nip44;
+		const nip44 = getSessionSigner().nip44;
 		if (nip44 === undefined) {
 			throw new Error('[logic error]');
 		}
@@ -44,7 +52,7 @@ export class Signer {
 	}
 
 	public static async decryptNip44(pubkey: string, ciphertext: string): Promise<string> {
-		const nip44 = getActiveSigner().nip44;
+		const nip44 = getSessionSigner().nip44;
 		if (nip44 === undefined) {
 			throw new Error('[logic error]');
 		}

@@ -18,7 +18,6 @@ import { createListContentDecrypter } from './List';
 import { BrowserSigner } from './nostr/signing/browser-signer';
 import { PrivateKeySigner } from './nostr/signing/private-key-signer';
 import type { Signer as SigningSigner } from './nostr/signing/signer';
-import { clearActiveSigner, setActiveSigner } from './nostr/signing/active-signer';
 import { abolishBunkerConnection, establishBunkerConnection } from './nip46-connection';
 
 export class Login {
@@ -169,8 +168,7 @@ export class Login {
 		const followingPubkeys = await initializeAccount(pubkey, decryptPrivateListContent);
 		console.timeEnd('fetch author');
 
-		setActiveSigner(signer);
-		auth.establish(pubkey, followingPubkeys);
+		auth.establish(pubkey, followingPubkeys, signer);
 		clearLoginStatus();
 
 		if (get(notificationVisibility) === 'follows_of_follows') {
@@ -184,7 +182,6 @@ export class Login {
 }
 
 export async function resetLoginState(): Promise<void> {
-	clearActiveSigner();
 	const closingRemoteSigner = abolishBunkerConnection();
 	loginType.set(undefined);
 	author.set(undefined);
