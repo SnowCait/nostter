@@ -20,13 +20,16 @@ web/src/lib/
 │     ├─ domain/
 │     ├─ application/
 │     └─ presentation/
+├─ embeds/
 ├─ platform/
 │  ├─ storage/
 │  └─ browser/
 └─ components/
 ```
 
-Directories should be created only when they represent a meaningful responsibility. Do not create empty layers or abstractions only to match this structure.
+Top-level directories under `web/src/lib` should be added only when they represent a clear, independent responsibility that does not naturally belong to an existing area. Do not create them merely to organize files or in anticipation of future growth.
+
+Directories within those areas should likewise represent meaningful responsibilities. Do not create empty layers or abstractions only to match this structure.
 
 ## Responsibilities
 
@@ -59,6 +62,12 @@ Product behavior is organized by feature.
 - `presentation`: feature-specific UI and presentation state
 
 State belongs to the feature or capability that owns its meaning. Being a Svelte store is not a reason to place state in a global store directory.
+
+### `embeds`
+
+Provider-specific semantics for embedding external services, such as recognizing and parsing supported URLs, normalizing provider-specific forms, generating embed URLs, and translating embed parameters.
+
+UI rendering and feature-specific product behavior do not belong here.
 
 ### `platform`
 
