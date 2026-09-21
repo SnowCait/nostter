@@ -3,9 +3,15 @@
 	import { now } from 'rx-nostr';
 	import { filter } from 'rxjs';
 	import type { ChannelMetadata } from '$lib/nostr/protocol/nip28';
+	import type { Signer } from '$lib/nostr/signing/signer';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import { Signer } from '$lib/Signer';
 	import ModalDialog from '../ModalDialog.svelte';
+
+	interface Props {
+		signEvent: Signer['signEvent'];
+	}
+
+	let { signEvent }: Props = $props();
 
 	let open = $state(false);
 
@@ -35,7 +41,7 @@
 		}
 
 		let first = true;
-		Signer.signEvent({
+		signEvent({
 			kind,
 			content: JSON.stringify(content),
 			tags: [],

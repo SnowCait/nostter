@@ -13,7 +13,9 @@
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
 	import { appName } from '$lib/app';
+	import { auth } from '$lib/auth.svelte';
 	import CreateChannelButton from '$lib/components/actions/CreateChannelButton.svelte';
+	import type { Signer } from '$lib/nostr/signing/signer';
 	import { share } from 'rxjs';
 	import { SvelteSet } from 'svelte/reactivity';
 
@@ -89,6 +91,15 @@
 		const q = encodeURIComponent(`${keyword} kind:40 kind:41`);
 		await goto(`/search?q=${q}`);
 	}
+
+	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot create a channel without a signing session');
+		}
+
+		return signer.signEvent(template);
+	}
 </script>
 
 <svelte:head>
@@ -103,7 +114,7 @@
 </form>
 
 <div>
-	<CreateChannelButton />
+	<CreateChannelButton {signEvent} />
 </div>
 
 <TimelineView {items} showLoading={false} />
