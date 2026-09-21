@@ -9,10 +9,11 @@ const mocks = vi.hoisted(() => ({
 	userPubkey: 'f'.repeat(64),
 	fetchLastEvent: vi.fn(),
 	use: vi.fn(),
-	signEvent: vi.fn(),
-	decrypt: vi.fn(),
-	decryptNip44: vi.fn(),
-	encryptNip44: vi.fn(),
+	normalSignEvent: vi.fn(),
+	copySignEvent: vi.fn(),
+	copyDecrypt: vi.fn(),
+	copyDecryptNip44: vi.fn(),
+	copyEncryptNip44: vi.fn(),
 	send: vi.fn(),
 	getReplaceableEvent: vi.fn(),
 	setReplaceableEvent: vi.fn(),
@@ -26,10 +27,7 @@ vi.mock('$lib/stores/Author', async () => {
 vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: mocks.fetchLastEvent }));
 vi.mock('$lib/Signer', () => ({
 	Signer: {
-		signEvent: mocks.signEvent,
-		decrypt: mocks.decrypt,
-		decryptNip44: mocks.decryptNip44,
-		encryptNip44: mocks.encryptNip44
+		signEvent: mocks.normalSignEvent
 	}
 }));
 vi.mock('$lib/nostr/relay/client', () => ({
@@ -60,7 +58,10 @@ import {
 	bookmarkOperationState,
 	legacyBookmarkEvent
 } from '../../../author/Bookmark.svelte';
-import { copyLegacyBookmarks } from './copy-legacy-bookmarks';
+import {
+	copyLegacyBookmarks as copyLegacyBookmarksWithSigner,
+	type BookmarkMigrationSigner
+} from './copy-legacy-bookmarks';
 
 const eventId = 'a'.repeat(64);
 const otherEventId = 'b'.repeat(64);
@@ -92,6 +93,14 @@ function signedEvent(unsigned: Nostr.UnsignedEvent, id = 'signed'): Nostr.Event 
 let legacyRelayEvent: Nostr.Event | undefined;
 let standardRelayEvent: Nostr.Event | undefined;
 
+const migrationSigner: BookmarkMigrationSigner = {
+	signEvent: mocks.copySignEvent,
+	nip04: { decrypt: mocks.copyDecrypt },
+	nip44: { decrypt: mocks.copyDecryptNip44, encrypt: mocks.copyEncryptNip44 }
+};
+
+const copyLegacyBookmarks = () => copyLegacyBookmarksWithSigner(migrationSigner);
+
 beforeEach(() => {
 	vi.resetAllMocks();
 	legacyRelayEvent = event(Kind.Genericlists, [
@@ -112,10 +121,13 @@ beforeEach(() => {
 		);
 		return from(events.map((sourceEvent) => ({ event: sourceEvent, from: 'relay.example' })));
 	});
-	mocks.signEvent.mockImplementation(async (unsigned: Nostr.UnsignedEvent) =>
+	mocks.normalSignEvent.mockImplementation(async (unsigned: Nostr.UnsignedEvent) =>
 		signedEvent(unsigned)
 	);
-	mocks.encryptNip44.mockImplementation(
+	mocks.copySignEvent.mockImplementation(async (unsigned: Nostr.UnsignedEvent) =>
+		signedEvent(unsigned)
+	);
+	mocks.copyEncryptNip44.mockImplementation(
 		async (_pubkey: string, plaintext: string) => `nip44:${plaintext}`
 	);
 	mocks.send.mockImplementation((sentEvent: Nostr.Event) => {
@@ -134,13 +146,13 @@ describe('copy exclusivity', () => {
 	it('rejects copy while a normal bookmark write is processing', async () => {
 		const pendingSign = Promise.withResolvers<Nostr.Event>();
 		let unsignedEvent: Nostr.UnsignedEvent | undefined;
-		mocks.signEvent.mockImplementationOnce((unsigned: Nostr.UnsignedEvent) => {
+		mocks.normalSignEvent.mockImplementationOnce((unsigned: Nostr.UnsignedEvent) => {
 			unsignedEvent = unsigned;
 			return pendingSign.promise;
 		});
 
 		const normalWrite = bookmark(['e', eventId]);
-		await vi.waitFor(() => expect(mocks.signEvent).toHaveBeenCalledOnce());
+		await vi.waitFor(() => expect(mocks.normalSignEvent).toHaveBeenCalledOnce());
 		expect(bookmarkOperationState.copyInProgress).toBe(false);
 		expect(bookmarkOperationState.canStartCopy).toBe(false);
 		await expect(bookmark(['e', otherEventId])).resolves.toBeUndefined();
@@ -150,19 +162,19 @@ describe('copy exclusivity', () => {
 
 		pendingSign.resolve(signedEvent(unsignedEvent!, 'normal-write'));
 		await normalWrite;
-		expect(mocks.signEvent).toHaveBeenCalledTimes(2);
+		expect(mocks.normalSignEvent).toHaveBeenCalledTimes(2);
 		expect(bookmarkOperationState.canStartCopy).toBe(true);
 	});
 
 	it('releases normal processing state after a publish failure', async () => {
-		mocks.signEvent.mockRejectedValueOnce(new Error('sign failed'));
+		mocks.normalSignEvent.mockRejectedValueOnce(new Error('sign failed'));
 
 		await expect(bookmark(['e', eventId])).rejects.toThrow('sign failed');
 		expect(bookmarkOperationState.copyInProgress).toBe(false);
 		expect(bookmarkOperationState.canStartCopy).toBe(true);
 
 		await bookmark(['e', otherEventId]);
-		expect(mocks.signEvent).toHaveBeenCalledTimes(2);
+		expect(mocks.normalSignEvent).toHaveBeenCalledTimes(2);
 	});
 
 	it('does not enqueue bookmarks during copy and releases the lock after failure', async () => {
@@ -174,7 +186,8 @@ describe('copy exclusivity', () => {
 		expect(bookmarkOperationState.copyInProgress).toBe(true);
 		expect(bookmarkOperationState.canStartCopy).toBe(false);
 		await expect(bookmark(['e', eventId])).rejects.toThrow('copy is in progress');
-		expect(mocks.signEvent).not.toHaveBeenCalled();
+		expect(mocks.normalSignEvent).not.toHaveBeenCalled();
+		expect(mocks.copySignEvent).not.toHaveBeenCalled();
 
 		pendingSources.error(new Error('relay failure'));
 		await expect(copy).rejects.toThrow('not found');
@@ -182,8 +195,8 @@ describe('copy exclusivity', () => {
 		expect(bookmarkOperationState.canStartCopy).toBe(true);
 		await bookmark(['e', otherEventId]);
 
-		expect(mocks.signEvent).toHaveBeenCalledOnce();
-		expect(mocks.signEvent).toHaveBeenCalledWith(
+		expect(mocks.normalSignEvent).toHaveBeenCalledOnce();
+		expect(mocks.normalSignEvent).toHaveBeenCalledWith(
 			expect.objectContaining({ tags: [['e', otherEventId]] })
 		);
 	});
@@ -208,11 +221,22 @@ describe('copy exclusivity', () => {
 		await bookmark(['e', otherEventId]);
 
 		expect(copiedEvent?.kind).toBe(Kind.BookmarkList);
-		expect(mocks.signEvent).toHaveBeenCalledTimes(2);
+		expect(mocks.copySignEvent).toHaveBeenCalledOnce();
+		expect(mocks.normalSignEvent).toHaveBeenCalledOnce();
 	});
 });
 
 describe('copy sources and public references', () => {
+	it('copies public bookmarks with only event signing capability', async () => {
+		const signer: BookmarkMigrationSigner = { signEvent: mocks.copySignEvent };
+
+		await copyLegacyBookmarksWithSigner(signer);
+
+		expect(mocks.copySignEvent).toHaveBeenCalledWith(
+			expect.objectContaining({ tags: [['e', eventId]], content: '' })
+		);
+	});
+
 	it('fetches and uses the latest legacy bookmark event from relays', async () => {
 		const staleEvent = event(
 			Kind.Genericlists,
@@ -247,7 +271,7 @@ describe('copy sources and public references', () => {
 		await copyLegacyBookmarks();
 
 		expect(mocks.use).toHaveBeenCalledOnce();
-		expect(mocks.signEvent).toHaveBeenCalledWith(
+		expect(mocks.copySignEvent).toHaveBeenCalledWith(
 			expect.objectContaining({ tags: [['e', eventId]] })
 		);
 	});
@@ -257,7 +281,7 @@ describe('copy sources and public references', () => {
 
 		await expect(copyLegacyBookmarks()).rejects.toThrow('not found');
 
-		expect(mocks.signEvent).not.toHaveBeenCalled();
+		expect(mocks.copySignEvent).not.toHaveBeenCalled();
 		expect(mocks.send).not.toHaveBeenCalled();
 	});
 
@@ -266,7 +290,7 @@ describe('copy sources and public references', () => {
 
 		await expect(copyLegacyBookmarks()).rejects.toThrow('Invalid legacy');
 
-		expect(mocks.signEvent).not.toHaveBeenCalled();
+		expect(mocks.copySignEvent).not.toHaveBeenCalled();
 		expect(mocks.send).not.toHaveBeenCalled();
 	});
 
@@ -275,7 +299,7 @@ describe('copy sources and public references', () => {
 
 		await expect(copyLegacyBookmarks()).rejects.toThrow('freshness');
 
-		expect(mocks.signEvent).not.toHaveBeenCalled();
+		expect(mocks.copySignEvent).not.toHaveBeenCalled();
 		expect(mocks.send).not.toHaveBeenCalled();
 	});
 
@@ -295,7 +319,7 @@ describe('copy sources and public references', () => {
 		await copyLegacyBookmarks();
 
 		expect(mocks.use).toHaveBeenCalledOnce();
-		expect(mocks.signEvent).toHaveBeenCalledWith(
+		expect(mocks.copySignEvent).toHaveBeenCalledWith(
 			expect.objectContaining({
 				tags: [
 					['e', otherEventId],
@@ -322,7 +346,7 @@ describe('copy sources and public references', () => {
 
 		await copyLegacyBookmarks();
 
-		expect(mocks.signEvent).toHaveBeenCalledWith(
+		expect(mocks.copySignEvent).toHaveBeenCalledWith(
 			expect.objectContaining({
 				tags: [
 					['e', eventId, 'wss://relay.example'],
@@ -339,13 +363,29 @@ describe('copy sources and public references', () => {
 
 		await expect(copyLegacyBookmarks()).resolves.toBeUndefined();
 
-		expect(mocks.encryptNip44).not.toHaveBeenCalled();
-		expect(mocks.signEvent).not.toHaveBeenCalled();
+		expect(mocks.copyEncryptNip44).not.toHaveBeenCalled();
+		expect(mocks.copySignEvent).not.toHaveBeenCalled();
 		expect(mocks.send).not.toHaveBeenCalled();
 	});
 });
 
 describe('private bookmark copy', () => {
+	it('rejects private content without its required encryption capability', async () => {
+		legacyRelayEvent = event(
+			Kind.Genericlists,
+			[['d', legacyBookmarkIdentifier]],
+			'legacy-nip44'
+		);
+		const signer: BookmarkMigrationSigner = { signEvent: mocks.copySignEvent };
+
+		await expect(copyLegacyBookmarksWithSigner(signer)).rejects.toThrow(
+			'Required bookmark encryption capability is unavailable'
+		);
+
+		expect(mocks.copySignEvent).not.toHaveBeenCalled();
+		expect(mocks.send).not.toHaveBeenCalled();
+	});
+
 	it('strictly decrypts, merges, and re-encrypts private references with NIP-44', async () => {
 		standardRelayEvent = event(Kind.BookmarkList, [['e', eventId]], 'standard-nip44');
 		legacyRelayEvent = event(
@@ -356,10 +396,10 @@ describe('private bookmark copy', () => {
 			],
 			'legacy?iv=nip04'
 		);
-		mocks.decryptNip44.mockResolvedValue(
+		mocks.copyDecryptNip44.mockResolvedValue(
 			JSON.stringify([['a', address, 'wss://articles.example']])
 		);
-		mocks.decrypt.mockResolvedValue(
+		mocks.copyDecrypt.mockResolvedValue(
 			JSON.stringify([
 				['a', address],
 				['e', otherEventId],
@@ -369,9 +409,9 @@ describe('private bookmark copy', () => {
 
 		await copyLegacyBookmarks();
 
-		expect(mocks.decryptNip44).toHaveBeenCalledWith(mocks.userPubkey, 'standard-nip44');
-		expect(mocks.decrypt).toHaveBeenCalledWith(mocks.userPubkey, 'legacy?iv=nip04');
-		expect(mocks.encryptNip44).toHaveBeenCalledWith(
+		expect(mocks.copyDecryptNip44).toHaveBeenCalledWith(mocks.userPubkey, 'standard-nip44');
+		expect(mocks.copyDecrypt).toHaveBeenCalledWith(mocks.userPubkey, 'legacy?iv=nip04');
+		expect(mocks.copyEncryptNip44).toHaveBeenCalledWith(
 			mocks.userPubkey,
 			JSON.stringify([
 				['a', address, 'wss://articles.example'],
@@ -379,7 +419,7 @@ describe('private bookmark copy', () => {
 				['a', otherAddress]
 			])
 		);
-		expect(mocks.signEvent).toHaveBeenCalledWith(
+		expect(mocks.copySignEvent).toHaveBeenCalledWith(
 			expect.objectContaining({
 				tags: [
 					['e', eventId],
@@ -396,13 +436,13 @@ describe('private bookmark copy', () => {
 			[['d', legacyBookmarkIdentifier]],
 			'legacy-nip44'
 		);
-		mocks.decryptNip44.mockResolvedValue(JSON.stringify([['a', address]]));
+		mocks.copyDecryptNip44.mockResolvedValue(JSON.stringify([['a', address]]));
 
 		await copyLegacyBookmarks();
 
-		expect(mocks.decryptNip44).toHaveBeenCalledWith(mocks.userPubkey, 'legacy-nip44');
-		expect(mocks.decrypt).not.toHaveBeenCalled();
-		expect(mocks.encryptNip44).toHaveBeenCalledOnce();
+		expect(mocks.copyDecryptNip44).toHaveBeenCalledWith(mocks.userPubkey, 'legacy-nip44');
+		expect(mocks.copyDecrypt).not.toHaveBeenCalled();
+		expect(mocks.copyEncryptNip44).toHaveBeenCalledOnce();
 	});
 
 	it('rejects a legacy private decrypt failure before signing or publishing', async () => {
@@ -411,21 +451,21 @@ describe('private bookmark copy', () => {
 			[['d', legacyBookmarkIdentifier]],
 			'legacy-nip44'
 		);
-		mocks.decryptNip44.mockRejectedValue(new Error('decrypt failed'));
+		mocks.copyDecryptNip44.mockRejectedValue(new Error('decrypt failed'));
 
 		await expect(copyLegacyBookmarks()).rejects.toThrow('decrypt failed');
 
-		expect(mocks.signEvent).not.toHaveBeenCalled();
+		expect(mocks.copySignEvent).not.toHaveBeenCalled();
 		expect(mocks.send).not.toHaveBeenCalled();
 	});
 
 	it('rejects a standard private decrypt failure before signing or publishing', async () => {
 		standardRelayEvent = event(Kind.BookmarkList, [], 'standard-nip44');
-		mocks.decryptNip44.mockRejectedValue(new Error('decrypt failed'));
+		mocks.copyDecryptNip44.mockRejectedValue(new Error('decrypt failed'));
 
 		await expect(copyLegacyBookmarks()).rejects.toThrow('decrypt failed');
 
-		expect(mocks.signEvent).not.toHaveBeenCalled();
+		expect(mocks.copySignEvent).not.toHaveBeenCalled();
 		expect(mocks.send).not.toHaveBeenCalled();
 	});
 
@@ -437,11 +477,11 @@ describe('private bookmark copy', () => {
 				[['d', legacyBookmarkIdentifier]],
 				'legacy-nip44'
 			);
-			mocks.decryptNip44.mockResolvedValue(plaintext);
+			mocks.copyDecryptNip44.mockResolvedValue(plaintext);
 
 			await expect(copyLegacyBookmarks()).rejects.toThrow();
 
-			expect(mocks.signEvent).not.toHaveBeenCalled();
+			expect(mocks.copySignEvent).not.toHaveBeenCalled();
 			expect(mocks.send).not.toHaveBeenCalled();
 		}
 	);
