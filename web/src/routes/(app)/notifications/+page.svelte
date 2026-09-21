@@ -10,7 +10,7 @@
 	import { EventItem } from '$lib/Items';
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import { pubkey, author } from '$lib/stores/Author';
-	import { isAuthenticated, isReady } from '$lib/auth.svelte';
+	import { auth, isAuthenticated, isReady } from '$lib/auth.svelte';
 	import TimelineView from '../TimelineView.svelte';
 	import NotificationTimeline from './NotificationTimeline.svelte';
 	import {
@@ -21,7 +21,6 @@
 		IconHeart,
 		IconRepeat
 	} from '@tabler/icons-svelte-runes';
-	import { Signer } from '$lib/Signer';
 	import { createTabs, melt } from '@melt-ui/svelte';
 	import { crossfade } from 'svelte/transition';
 	import { cubicInOut } from 'svelte/easing';
@@ -58,7 +57,12 @@
 	beforeNavigate(async () => {
 		console.debug('[notifications page leave]');
 
-		const event = await Signer.signEvent({
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot update notification read state without a signing session');
+		}
+
+		const event = await signer.signEvent({
 			kind: 30078,
 			content: '',
 			tags: [['d', 'nostter-read']],
