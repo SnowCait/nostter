@@ -31,7 +31,7 @@ export function createListContentDecrypter({
 		const legacy = isLegacyEncryption(content);
 		const encryption = legacy ? nip04 : nip44;
 		if (encryption === undefined) {
-			return [[], false];
+			return [[], legacy];
 		}
 
 		try {
@@ -39,7 +39,7 @@ export function createListContentDecrypter({
 			return [JSON.parse(json), legacy];
 		} catch (error) {
 			console.warn('[list parse error]', error);
-			return [[], false];
+			return [[], legacy];
 		}
 	};
 }
@@ -88,12 +88,12 @@ export async function decryptListContent(
 	try {
 		const decrypter = createListContentDecrypter(Signer.getEncryptionCapabilities());
 		if (decrypter === undefined) {
-			return [[], false];
+			return [[], isLegacyEncryption(content)];
 		}
 		return decrypter(pubkey, content);
 	} catch (error) {
 		console.warn('[list parse error]', error);
-		return [[], false];
+		return [[], isLegacyEncryption(content)];
 	}
 }
 
