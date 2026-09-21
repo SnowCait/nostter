@@ -18,7 +18,15 @@ import { createListContentDecrypter } from './List';
 import { BrowserSigner } from './nostr/signing/browser-signer';
 import { PrivateKeySigner } from './nostr/signing/private-key-signer';
 import type { Signer as SigningSigner } from './nostr/signing/signer';
-import { abolishBunkerConnection, establishBunkerConnection } from './nip46-connection';
+import { establishBunkerConnection } from './nip46-connection';
+
+async function disposeSigner(signer: SigningSigner | undefined): Promise<void> {
+	try {
+		await signer?.dispose?.();
+	} catch (error) {
+		console.debug('[signer] dispose error', error);
+	}
+}
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -105,7 +113,6 @@ export class Login {
 		} catch {
 			console.timeEnd('NIP-46 error');
 			console.error('Failed to connect to NIP-46 bunker');
-			await abolishBunkerConnection();
 			loginType.set(undefined);
 			setLoginStatus('bunker_failed', 'error');
 			return false;
@@ -118,7 +125,7 @@ export class Login {
 			const pubkey = await signer.getPublicKey();
 			await this.fetchAuthor(pubkey, signer);
 		} catch (error) {
-			await abolishBunkerConnection();
+			await disposeSigner(signer);
 			throw error;
 		}
 
@@ -182,11 +189,11 @@ export class Login {
 }
 
 export async function resetLoginState(): Promise<void> {
-	const closingRemoteSigner = abolishBunkerConnection();
+	const disposingSigner = disposeSigner(auth.signer);
 	loginType.set(undefined);
 	author.set(undefined);
 	auth.reset();
-	await closingRemoteSigner;
+	await disposingSigner;
 }
 
 export async function logout(): Promise<void> {

@@ -11,6 +11,7 @@ export interface Signer {
 	signEvent(unsignedEvent: EventTemplate | Nostr.UnsignedEvent): Promise<Event>;
 	readonly nip04?: Encryption;
 	readonly nip44?: Encryption;
+	dispose?(): Promise<void>;
 }
 
 export type EncryptionCapabilities = Pick<Signer, 'nip04' | 'nip44'>;
