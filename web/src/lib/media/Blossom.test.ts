@@ -15,7 +15,6 @@ const { uploadBlob, uploadMedia, createUploadAuth, signEvent } = vi.hoisted(() =
 vi.mock(import('blossom-client-sdk/actions/upload'), () => ({ uploadBlob }));
 vi.mock(import('blossom-client-sdk/actions/media'), () => ({ uploadMedia }));
 vi.mock(import('blossom-client-sdk/auth'), () => ({ createUploadAuth }));
-vi.mock('$lib/Signer', () => ({ Signer: { signEvent } }));
 
 import { Blossom } from './Blossom';
 
@@ -41,7 +40,7 @@ describe('Blossom SDK adapter', () => {
 		['video', 'video/mp4']
 	])('uses uploadMedia for an %s', async (_name, type) => {
 		const file = new File(['media'], 'media', { type });
-		const blossom = new Blossom(new URL('https://upload.example/path'));
+		const blossom = new Blossom(new URL('https://upload.example/path'), signEvent);
 		await expect(blossom.upload(file)).resolves.toEqual({
 			url: descriptor.url,
 			data: descriptor
@@ -56,7 +55,7 @@ describe('Blossom SDK adapter', () => {
 
 	it('uses uploadBlob for other files', async () => {
 		const file = new File(['document'], 'document.pdf', { type: 'application/pdf' });
-		await new Blossom(new URL('https://upload.example')).upload(file);
+		await new Blossom(new URL('https://upload.example'), signEvent).upload(file);
 		expect(uploadBlob).toHaveBeenCalledWith(
 			new URL('https://upload.example'),
 			file,
@@ -65,11 +64,11 @@ describe('Blossom SDK adapter', () => {
 		expect(uploadMedia).not.toHaveBeenCalled();
 	});
 
-	it('connects the nostter signer through the SDK auth callback', async () => {
+	it('uses the injected signing capability through the SDK auth callback', async () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date('2026-08-15T00:00:00Z'));
 		const file = new File(['document'], 'document.pdf', { type: 'application/pdf' });
-		await new Blossom(new URL('https://upload.example')).upload(file);
+		await new Blossom(new URL('https://upload.example'), signEvent).upload(file);
 		const onAuth = uploadBlob.mock.calls[0][2].onAuth;
 		await onAuth(new URL('https://upload.example'), 'abc123', 'upload', file);
 

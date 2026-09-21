@@ -1,6 +1,6 @@
 import { now } from 'rx-nostr';
-import { Signer } from '$lib/Signer';
 import { filterTags } from '$lib/EventHelper';
+import type { Signer } from '$lib/nostr/signing/signer';
 import type { Media, MediaResult } from './Media';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,7 +15,10 @@ export async function fetchNip96(origin: string): Promise<any> {
 }
 
 export class FileStorageServer implements Media {
-	constructor(private readonly origin: string) {}
+	constructor(
+		private readonly origin: string,
+		private readonly signEvent: Signer['signEvent']
+	) {}
 
 	async upload(file: File): Promise<MediaResult> {
 		const nip96Json = await fetchNip96(this.origin);
@@ -30,7 +33,7 @@ export class FileStorageServer implements Media {
 		const form = new FormData();
 		form.append('file', file);
 
-		const event = await Signer.signEvent({
+		const event = await this.signEvent({
 			kind: 27235,
 			content: '',
 			created_at: now(),
@@ -60,7 +63,7 @@ export class FileStorageServer implements Media {
 		// If the media provider uses delayed processing, we need to wait for the processing to be done
 		const startTime = now();
 		while (data.processing_url) {
-			const processingEvent = await Signer.signEvent({
+			const processingEvent = await this.signEvent({
 				kind: 27235,
 				content: '',
 				created_at: now(),
