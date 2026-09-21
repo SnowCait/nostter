@@ -8,6 +8,7 @@
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
 	import { auth } from '$lib/auth.svelte';
+	import type { Signer } from '$lib/nostr/signing/signer';
 	import { author, muteEvent, pubkey, rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import AutoRefresh from './AutoRefresh.svelte';
@@ -36,6 +37,15 @@
 	import WorkAsRemoteSigner from './WorkAsRemoteSigner.svelte';
 	import NotificationVisibility from './NotificationVisibility.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
+
+	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot restore a backup without a signing session');
+		}
+
+		return signer.signEvent(template);
+	}
 </script>
 
 <svelte:head>
@@ -107,7 +117,7 @@
 	<div><Notification /></div>
 	<div><UriScheme /></div>
 	<div><WalletConnect /></div>
-	<div><Backup /></div>
+	<div><Backup {signEvent} /></div>
 	<div><DeveloperMode /></div>
 	{#if $developerMode}
 		<div><SeenOnRelayIcon /></div>

@@ -10,10 +10,16 @@
 	import { hexRegexp } from '$lib/Constants';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { now } from 'rx-nostr';
-	import { Signer } from '$lib/Signer';
+	import type { Signer } from '$lib/nostr/signing/signer';
 	import { WebStorage } from '$lib/WebStorage';
 	import { updateFolloweesStore } from '$lib/Contacts';
 	import { broadcast } from '$lib/Broadcast';
+
+	interface Props {
+		signEvent: Signer['signEvent'];
+	}
+
+	let { signEvent }: Props = $props();
 
 	let cachedEvents: Nostr.Event[] = $state([]);
 	let loading = $state(false);
@@ -41,7 +47,7 @@
 		if (!confirm($_('preferences.backup.confirm'))) {
 			return;
 		}
-		const event = await Signer.signEvent({ ...oldEvent, created_at: now() });
+		const event = await signEvent({ ...oldEvent, created_at: now() });
 		rxNostr.send(event);
 		updateFolloweesStore(event.tags);
 		const storage = new WebStorage(localStorage);
