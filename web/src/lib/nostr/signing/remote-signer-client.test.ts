@@ -69,7 +69,7 @@ describe('RemoteSignerClient', () => {
 		await expect(connecting).resolves.toBeInstanceOf(RemoteSignerClient);
 	});
 
-	it('delegates signer operations, encryption capabilities, and close to its connection', async () => {
+	it('delegates signer operations, encryption capabilities, and disposal to its connection', async () => {
 		const client = await connectClient();
 		const unsignedEvent = { created_at: 1, kind: 1, tags: [], content: '' };
 
@@ -79,7 +79,7 @@ describe('RemoteSignerClient', () => {
 		await expect(client.nip04.decrypt('peer', 'cipher')).resolves.toBe('nip04-plaintext');
 		await expect(client.nip44.encrypt('peer', 'plain')).resolves.toBe('nip44-ciphertext');
 		await expect(client.nip44.decrypt('peer', 'cipher')).resolves.toBe('nip44-plaintext');
-		await client.close();
+		await client.dispose();
 
 		expect(connection.signEvent).toHaveBeenCalledWith(unsignedEvent);
 		expect(connection.nip04Encrypt).toHaveBeenCalledWith('peer', 'plain');

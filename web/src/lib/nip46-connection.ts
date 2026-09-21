@@ -6,8 +6,6 @@ import { WebStorage } from './WebStorage';
 import { nip46ConnectTimeout } from './Constants';
 import { RemoteSignerClient } from './nostr/signing/remote-signer-client';
 
-let remoteSignerClient: RemoteSignerClient | undefined;
-
 export async function establishBunkerConnection(bunker: string): Promise<RemoteSignerClient> {
 	const bunkerPointer = await parseBunkerInput(bunker);
 	if (!bunkerPointer) throw new Error(`Failed to parse bunker URL`);
@@ -27,27 +25,6 @@ export async function establishBunkerConnection(bunker: string): Promise<RemoteS
 		onAuth: (url) => open(url, '_blank'),
 		timeoutMs: nip46ConnectTimeout
 	});
-	const previousClient = remoteSignerClient;
-	remoteSignerClient = client;
-	if (previousClient) {
-		try {
-			await previousClient.close();
-		} catch (error) {
-			console.debug('[NIP-46] close error', error);
-		}
-	}
 	console.debug('[NIP-46 connected]');
 	return client;
-}
-
-export async function abolishBunkerConnection(): Promise<void> {
-	const client = remoteSignerClient;
-	remoteSignerClient = undefined;
-	if (client) {
-		try {
-			await client.close();
-		} catch (e) {
-			console.debug('[NIP-46] close error', e);
-		}
-	}
 }

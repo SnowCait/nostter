@@ -61,7 +61,7 @@ export class RemoteSignerClient implements Signer {
 		}
 	}
 
-	async close(): Promise<void> {
+	async dispose(): Promise<void> {
 		await this.connection.close();
 	}
 

@@ -12,7 +12,6 @@ const {
 	remoteSignerSubscribeIfEnabled,
 	storageClear,
 	storageGet,
-	abolishBunkerConnection,
 	establishBunkerConnection,
 	browserGetPublicKey,
 	privateGetPublicKey,
@@ -58,7 +57,8 @@ const {
 		getPublicKey: vi.fn(),
 		signEvent: vi.fn(),
 		nip04: { encrypt: vi.fn(), decrypt: vi.fn() },
-		nip44: { encrypt: vi.fn(), decrypt: vi.fn() }
+		nip44: { encrypt: vi.fn(), decrypt: vi.fn() },
+		dispose: vi.fn().mockResolvedValue(undefined)
 	};
 
 	return {
@@ -70,7 +70,6 @@ const {
 		remoteSignerSubscribeIfEnabled: vi.fn(),
 		storageClear: vi.fn(),
 		storageGet: vi.fn().mockReturnValue(null),
-		abolishBunkerConnection: vi.fn().mockResolvedValue(undefined),
 		establishBunkerConnection: vi.fn().mockResolvedValue(remoteSigner),
 		browserGetPublicKey,
 		privateGetPublicKey,
@@ -107,7 +106,6 @@ vi.mock('./WebStorage', () => ({
 }));
 
 vi.mock('./nip46-connection', () => ({
-	abolishBunkerConnection,
 	establishBunkerConnection
 }));
 
@@ -183,6 +181,7 @@ beforeEach(async () => {
 	browserGetPublicKey.mockResolvedValue(me);
 	privateGetPublicKey.mockResolvedValue(me);
 	remoteSigner.getPublicKey.mockResolvedValue(me);
+	remoteSigner.dispose.mockResolvedValue(undefined);
 	storageGet.mockReturnValue(null);
 });
 
@@ -483,6 +482,21 @@ describe('Login.withNip46', () => {
 		fetchEvents.mockResolvedValue([['p', followee]]);
 	});
 
+	it('does not dispose a signer when connection establishment fails', async () => {
+		establishBunkerConnection.mockRejectedValueOnce(new Error('connection failed'));
+		const time = vi.spyOn(console, 'time').mockImplementation(() => {});
+		const timeEnd = vi.spyOn(console, 'timeEnd').mockImplementation(() => {});
+		const { auth } = await import('./auth.svelte');
+		const { Login } = await import('./Login');
+
+		await expect(new Login().withNip46('bunker://remote')).resolves.toBe(false);
+
+		expect(remoteSigner.dispose).not.toHaveBeenCalled();
+		expect(auth.signer).toBeUndefined();
+		time.mockRestore();
+		timeEnd.mockRestore();
+	});
+
 	it('uses the connected remote signer for initialization and the active session', async () => {
 		const { auth } = await import('./auth.svelte');
 		const { Login } = await import('./Login');
@@ -514,6 +528,8 @@ describe('Login.withNip46', () => {
 
 	it('cleans up the remote connection when account initialization fails', async () => {
 		fetchRelays.mockRejectedValueOnce(new Error('initialization failed'));
+		const time = vi.spyOn(console, 'time').mockImplementation(() => {});
+		const timeEnd = vi.spyOn(console, 'timeEnd').mockImplementation(() => {});
 		const { auth } = await import('./auth.svelte');
 		const { Login } = await import('./Login');
 
@@ -521,8 +537,29 @@ describe('Login.withNip46', () => {
 			'initialization failed'
 		);
 
-		expect(abolishBunkerConnection).toHaveBeenCalledOnce();
+		expect(remoteSigner.dispose).toHaveBeenCalledOnce();
 		expect(auth.signer).toBeUndefined();
+		expect(auth.status).toBe('anonymous');
+		time.mockRestore();
+		timeEnd.mockRestore();
+	});
+
+	it('preserves the initialization error when signer disposal fails', async () => {
+		fetchRelays.mockRejectedValueOnce(new Error('initialization failed'));
+		remoteSigner.dispose.mockRejectedValueOnce(new Error('dispose failed'));
+		const debug = vi.spyOn(console, 'debug').mockImplementation(() => {});
+		const time = vi.spyOn(console, 'time').mockImplementation(() => {});
+		const timeEnd = vi.spyOn(console, 'timeEnd').mockImplementation(() => {});
+		const { Login } = await import('./Login');
+
+		await expect(new Login().withNip46('bunker://remote')).rejects.toThrow(
+			'initialization failed'
+		);
+
+		expect(debug).toHaveBeenCalledWith('[signer] dispose error', expect.any(Error));
+		debug.mockRestore();
+		time.mockRestore();
+		timeEnd.mockRestore();
 	});
 });
 
@@ -534,12 +571,12 @@ describe('session teardown', () => {
 		auth.reset();
 		author.set(undefined);
 		loginType.set(undefined);
-		abolishBunkerConnection.mockResolvedValue(undefined);
+		remoteSigner.dispose.mockResolvedValue(undefined);
 	});
 
 	it('detaches the remote signer and clears session state before cleanup completes', async () => {
 		const cleanup = Promise.withResolvers<void>();
-		abolishBunkerConnection.mockReturnValue(cleanup.promise);
+		remoteSigner.dispose.mockReturnValue(cleanup.promise);
 		const { auth } = await import('./auth.svelte');
 		const { author, loginType } = await import('./stores/Author');
 		const { resetLoginState } = await import('./Login');
@@ -550,7 +587,7 @@ describe('session teardown', () => {
 
 		const resetting = resetLoginState();
 
-		expect(abolishBunkerConnection).toHaveBeenCalledOnce();
+		expect(remoteSigner.dispose).toHaveBeenCalledOnce();
 		expect(auth.status).toBe('anonymous');
 		expect(get(loginType)).toBeUndefined();
 		expect(get(author)).toBeUndefined();
@@ -568,7 +605,7 @@ describe('session teardown', () => {
 	it('clears storage and navigates after session teardown', async () => {
 		const calls: string[] = [];
 		const cleanup = Promise.withResolvers<void>();
-		abolishBunkerConnection.mockImplementation(() => {
+		remoteSigner.dispose.mockImplementation(() => {
 			calls.push('dispose');
 			return cleanup.promise;
 		});
@@ -581,7 +618,7 @@ describe('session teardown', () => {
 		const { auth } = await import('./auth.svelte');
 		const { author, loginType } = await import('./stores/Author');
 		const { logout } = await import('./Login');
-		auth.establish(me, [followee]);
+		auth.establish(me, [followee], remoteSigner);
 		author.set({} as Author);
 		loginType.set('NIP-46');
 
@@ -596,6 +633,17 @@ describe('session teardown', () => {
 		await loggingOut;
 
 		expect(calls).toEqual(['dispose', 'clear storage', 'navigate:/']);
+	});
+
+	it('tears down a session whose signer has no disposable resource', async () => {
+		const { auth } = await import('./auth.svelte');
+		const { resetLoginState } = await import('./Login');
+		auth.establish(me, [], { getPublicKey: vi.fn(), signEvent: vi.fn() });
+
+		await expect(resetLoginState()).resolves.toBeUndefined();
+
+		expect(auth.status).toBe('anonymous');
+		expect(auth.signer).toBeUndefined();
 	});
 });
 
