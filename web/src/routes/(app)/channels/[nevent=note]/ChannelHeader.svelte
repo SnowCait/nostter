@@ -16,6 +16,7 @@
 	import type { ChannelMetadata } from '$lib/nostr/protocol/nip28';
 	import { author, muteEventIds } from '$lib/stores/Author';
 	import { authorChannelsEventStore } from '$lib/cache/Events';
+	import { auth } from '$lib/auth.svelte';
 	import { mute, unmute } from '$lib/author/Mute';
 	import { shareUrl } from '$lib/platform/browser/share';
 	import { copy } from '$lib/platform/browser/clipboard';
@@ -59,6 +60,22 @@
 			await copy(url);
 		}
 	}
+
+	async function pin(): Promise<void> {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot pin a channel without a signing session');
+		}
+		await pinChannel(channelId, (template) => signer.signEvent(template));
+	}
+
+	async function unpin(): Promise<void> {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot unpin a channel without a signing session');
+		}
+		await unpinChannel(channelId, (template) => signer.signEvent(template));
+	}
 </script>
 
 <header>
@@ -97,14 +114,14 @@
 				{#if pinned}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div use:melt={$item} onclick={() => unpinChannel(channelId)} class="item undo">
+					<div use:melt={$item} onclick={unpin} class="item undo">
 						<div class="icon"><IconPinnedFilled size={18} /></div>
 						<div>{$_('actions.unpin.button')}</div>
 					</div>
 				{:else}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div use:melt={$item} onclick={() => pinChannel(channelId)} class="item">
+					<div use:melt={$item} onclick={pin} class="item">
 						<div class="icon"><IconPin size={18} /></div>
 						<div>{$_('actions.pin.button')}</div>
 					</div>
