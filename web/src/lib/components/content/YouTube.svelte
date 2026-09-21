@@ -37,13 +37,16 @@
 		if (link.pathname.startsWith('/live/')) {
 			return { id: link.pathname.replace('/live/', ''), short: false };
 		}
+		const [, pathType, pathVideoId] = link.pathname.split('/');
+		if (pathType === 'embed') {
+			return { id: pathVideoId || undefined, short: false };
+		}
 		const v = link.searchParams.get('v');
 		if (v !== null) {
 			return { id: v, short: false };
 		}
-		if (link.pathname.includes('shorts')) {
-			const match = link.pathname.match(/\/shorts\/(?<id>\w+)/);
-			return { id: match?.groups?.id, short: true };
+		if (pathType === 'shorts') {
+			return { id: pathVideoId || undefined, short: true };
 		}
 		return { id: undefined, short: false };
 	});
