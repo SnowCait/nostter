@@ -1,7 +1,6 @@
 import { kinds as Kind, type Event } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { createRxBackwardReq, createRxOneshotReq, latest, latestEach, now, uniq } from 'rx-nostr';
-import { firstValueFrom, EmptyError } from 'rxjs';
+import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import {
 	readRelays,
 	writeRelays,
@@ -13,7 +12,6 @@ import {
 	storeMutedTagsByEvent
 } from './stores/Author';
 import { RelayList } from './author/RelayList';
-import { filterTags } from './EventHelper';
 import { findIdentifier } from './nostr/protocol/event-address';
 import { parseLegacyRelayList } from './nostr/protocol/nip24';
 import { customEmojiListEvent, storeCustomEmojis } from './author/CustomEmojis';
@@ -22,7 +20,6 @@ import { lastReadAt } from './author/Notifications';
 import { WebStorage } from './WebStorage';
 import { Preferences, preferencesStore } from './Preferences';
 import { rxNostr, tie } from './timelines/MainTimeline';
-import { Signer } from './Signer';
 import { authorChannelsEventStore, storeMetadata } from './cache/Events';
 import {
 	authorReplaceableKinds,
@@ -172,12 +169,8 @@ export class Author {
 		storeMutedPubkeysByKind(mutedByKindEvents);
 
 		// Channels
-		const pinEvent = replaceableEvents.get(10001);
 		const channelsEvent = replaceableEvents.get(10005);
 		authorChannelsEventStore.set(channelsEvent);
-		if (channelsEvent === undefined && pinEvent !== undefined) {
-			await this.migrateChannels(pinEvent);
-		}
 
 		console.log('[relays]', get(readRelays), get(writeRelays));
 
@@ -275,91 +268,5 @@ export class Author {
 			authorReq.over();
 		});
 		return { replaceableEvents, parameterizedReplaceableEvents };
-	}
-
-	private async migrateChannels(regacyChannelsEvent: Event) {
-		console.log('[channels migration]', regacyChannelsEvent);
-
-		const ids = filterTags('e', regacyChannelsEvent.tags);
-		if (ids.length === 0) {
-			return;
-		}
-
-		const storage = new WebStorage(localStorage);
-
-		try {
-			const channelsReq = createRxOneshotReq({
-				filters: {
-					kinds: [10005],
-					authors: [regacyChannelsEvent.pubkey]
-				}
-			});
-			const packet = await firstValueFrom(
-				rxNostr.use(channelsReq).pipe(tie, uniq(), latest())
-			);
-			console.log('[channels event]', packet);
-			storage.setReplaceableEvent(packet.event, this.pubkey);
-			authorChannelsEventStore.set(packet.event);
-			return; // Already migrated
-		} catch (error) {
-			if (!(error instanceof EmptyError)) {
-				throw error;
-			}
-		}
-
-		const channelIds = new Set<string>();
-		const channelsMetadataReq = createRxOneshotReq({
-			filters: [
-				{
-					kinds: [40],
-					ids
-				}
-			]
-		});
-		rxNostr
-			.use(channelsMetadataReq)
-			.pipe(tie, uniq())
-			.subscribe({
-				next: (packet) => {
-					console.log('[channel metadata next]', packet);
-					channelIds.add(packet.event.id);
-				},
-				complete: async () => {
-					console.log('[channels metadata complete]');
-
-					if (channelIds.size === 0) {
-						return;
-					}
-
-					const event = await Signer.signEvent({
-						kind: 10005,
-						content: '',
-						tags: regacyChannelsEvent.tags.filter(
-							([tagName, id]) => tagName === 'e' && channelIds.has(id)
-						),
-						created_at: now()
-					});
-					rxNostr.send(event).subscribe((packet) => {
-						console.log('[channels migration send]', packet);
-						if (packet.ok) {
-							storage.setReplaceableEvent(event, this.pubkey);
-							authorChannelsEventStore.set(event);
-						}
-					});
-
-					const pinEvent = await Signer.signEvent({
-						kind: regacyChannelsEvent.kind,
-						content: regacyChannelsEvent.content,
-						tags: regacyChannelsEvent.tags.filter(
-							([tagName, id]) => !(tagName === 'e' && channelIds.has(id))
-						),
-						created_at: now()
-					});
-					rxNostr.send(pinEvent).subscribe((packet) => {
-						console.log('[channels migration send pin]', packet);
-						storage.setReplaceableEvent(pinEvent, this.pubkey);
-					});
-				}
-			});
 	}
 }
