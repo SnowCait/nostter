@@ -19,6 +19,7 @@ import { BrowserSigner } from './nostr/signing/browser-signer';
 import { PrivateKeySigner } from './nostr/signing/private-key-signer';
 import type { Signer as SigningSigner } from './nostr/signing/signer';
 import { clearActiveSigner, setActiveSigner } from './nostr/signing/active-signer';
+import { abolishBunkerConnection, establishBunkerConnection } from './nip46-connection';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -101,11 +102,11 @@ export class Login {
 
 		let signer: SigningSigner;
 		try {
-			signer = await Signer.establishBunkerConnection(bunker);
+			signer = await establishBunkerConnection(bunker);
 		} catch {
 			console.timeEnd('NIP-46 error');
 			console.error('Failed to connect to NIP-46 bunker');
-			await Signer.abolishBunkerConnection();
+			await abolishBunkerConnection();
 			loginType.set(undefined);
 			setLoginStatus('bunker_failed', 'error');
 			return false;
@@ -118,7 +119,7 @@ export class Login {
 			const pubkey = await signer.getPublicKey();
 			await this.fetchAuthor(pubkey, signer);
 		} catch (error) {
-			await Signer.abolishBunkerConnection();
+			await abolishBunkerConnection();
 			throw error;
 		}
 
@@ -184,7 +185,7 @@ export class Login {
 
 export async function resetLoginState(): Promise<void> {
 	clearActiveSigner();
-	const closingRemoteSigner = Signer.abolishBunkerConnection();
+	const closingRemoteSigner = abolishBunkerConnection();
 	loginType.set(undefined);
 	author.set(undefined);
 	auth.reset();

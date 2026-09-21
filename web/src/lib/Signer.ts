@@ -1,19 +1,9 @@
-import { establishBunkerConnection, abolishBunkerConnection } from './nip46-connection';
 import type { Event, EventTemplate } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
 import type { EncryptionCapabilities } from './nostr/signing/signer';
 import { getActiveSigner } from './nostr/signing/active-signer';
-import type { RemoteSignerClient } from './nostr/signing/remote-signer-client';
 
 export class Signer {
-	public static async establishBunkerConnection(bunker: string): Promise<RemoteSignerClient> {
-		return establishBunkerConnection(bunker);
-	}
-
-	public static async abolishBunkerConnection(): Promise<void> {
-		return abolishBunkerConnection();
-	}
-
 	public static async getPublicKey(): Promise<string> {
 		return getActiveSigner().getPublicKey();
 	}
