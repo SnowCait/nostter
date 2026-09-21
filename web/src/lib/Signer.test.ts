@@ -4,11 +4,6 @@ import type { Signer as SigningSigner } from './nostr/signing/signer';
 import { clearActiveSigner, setActiveSigner } from './nostr/signing/active-signer';
 import { Signer } from './Signer';
 
-vi.mock('./nip46-connection', () => ({
-	establishBunkerConnection: vi.fn(),
-	abolishBunkerConnection: vi.fn()
-}));
-
 afterEach(() => {
 	clearActiveSigner();
 	vi.clearAllMocks();

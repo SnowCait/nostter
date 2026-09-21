@@ -106,11 +106,9 @@ vi.mock('./WebStorage', () => ({
 	}
 }));
 
-vi.mock('./Signer', () => ({
-	Signer: {
-		abolishBunkerConnection,
-		establishBunkerConnection
-	}
+vi.mock('./nip46-connection', () => ({
+	abolishBunkerConnection,
+	establishBunkerConnection
 }));
 
 vi.mock('./nostr/signing/browser-signer', () => ({
