@@ -34,4 +34,18 @@ describe('YouTube URL', () => {
 			playerSrc('https://www.youtube.com/embed/M7lc1UVf-VE?t=90').searchParams.get('start')
 		).toBe('90');
 	});
+
+	it('preserves the privacy-enhanced embed host and converted start time', () => {
+		const src = playerSrc('https://www.youtube-nocookie.com/embed/M7lc1UVf-VE?t=90');
+
+		expect(src.hostname).toBe('www.youtube-nocookie.com');
+		expect(src.searchParams.get('start')).toBe('90');
+	});
+
+	it.each([
+		['https://www.youtube.com/embed/M7lc1UVf-VE', 'www.youtube.com'],
+		['https://youtu.be/M7lc1UVf-VE', 'www.youtube.com']
+	])('uses the standard embed host for %s', (link, expectedHost) => {
+		expect(playerSrc(link).hostname).toBe(expectedHost);
+	});
 });

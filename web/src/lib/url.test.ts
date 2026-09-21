@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isHttpUrl, isSimplexSmpUrl } from './url';
+import { isHttpUrl, isSimplexSmpUrl, isYouTubeUrl } from './url';
 
 describe('isHttpUrl', () => {
 	it.each([
@@ -23,5 +23,26 @@ describe('isSimplexSmpUrl', () => {
 		['SMP hostname without a number', 'https://smp.simplex.im', false]
 	])('identifies %s', (_description, value, expected) => {
 		expect(isSimplexSmpUrl(new URL(value))).toBe(expected);
+	});
+});
+
+describe('isYouTubeUrl', () => {
+	it.each([
+		['YouTube URL', 'https://www.youtube.com/embed/M7lc1UVf-VE', true],
+		['YouTube short URL', 'https://youtu.be/M7lc1UVf-VE', true],
+		['privacy-enhanced embed URL', 'https://www.youtube-nocookie.com/embed/M7lc1UVf-VE', true],
+		['privacy-enhanced root domain', 'https://youtube-nocookie.com/embed/M7lc1UVf-VE', false],
+		[
+			'privacy-enhanced subdomain',
+			'https://embed.youtube-nocookie.com/embed/M7lc1UVf-VE',
+			false
+		],
+		[
+			'privacy-enhanced non-embed URL',
+			'https://www.youtube-nocookie.com/watch?v=M7lc1UVf-VE',
+			false
+		]
+	])('identifies %s', (_description, value, expected) => {
+		expect(isYouTubeUrl(new URL(value))).toBe(expected);
 	});
 });

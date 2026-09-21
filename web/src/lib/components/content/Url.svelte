@@ -57,7 +57,7 @@
 	import { Spotify } from '$lib/Spotify';
 	import { Twitter } from '$lib/Twitter';
 	import { enablePreview } from '$lib/stores/Preference';
-	import { isSimplexSmpUrl } from '$lib/url';
+	import { isSimplexSmpUrl, isYouTubeUrl } from '$lib/url';
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import SoundCloudPlayer from '$lib/components/content/SoundCloud.svelte';
@@ -154,7 +154,7 @@
 	{:else}
 		<ExternalLink {link} />
 	{/if}
-{:else if (link.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(link.hostname)) && !link.pathname.startsWith('/@')}
+{:else if isYouTubeUrl(link)}
 	<YouTube {link} />
 {:else if link.hostname.endsWith('nicovideo.jp') && nicovideoRegexp.test(link.href)}
 	<Nicovideo {link} />
