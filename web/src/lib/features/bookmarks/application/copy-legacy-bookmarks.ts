@@ -13,7 +13,7 @@ import { WebStorage } from '$lib/WebStorage';
 import { bookmarkEvent, runBookmarkCopyExclusively } from '$lib/author/Bookmark.svelte';
 import { isLegacyBookmarkEvent, mergeBookmarkReferences } from '../domain/bookmark-migration';
 
-export interface BookmarkMigrationSigner {
+export interface BookmarkMigrationCapabilities {
 	signEvent(unsignedEvent: EventTemplate | Nostr.UnsignedEvent): Promise<Nostr.Event>;
 	readonly nip04?: Pick<Encryption, 'decrypt'>;
 	readonly nip44?: Encryption;
@@ -27,7 +27,7 @@ function isTagCollection(value: unknown): value is string[][] {
 }
 
 async function decryptBookmarkContentStrict(
-	signer: BookmarkMigrationSigner,
+	signer: BookmarkMigrationCapabilities,
 	pubkey: string,
 	content: string
 ): Promise<string[][]> {
@@ -100,7 +100,7 @@ async function fetchBookmarkSources(pubkey: string): Promise<{
 }
 
 export async function copyLegacyBookmarks(
-	signer: BookmarkMigrationSigner
+	signer: BookmarkMigrationCapabilities
 ): Promise<Nostr.Event | undefined> {
 	const accountPubkey = get(pubkey);
 	if (accountPubkey === undefined) {

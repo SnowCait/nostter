@@ -60,7 +60,7 @@ import {
 } from '../../../author/Bookmark.svelte';
 import {
 	copyLegacyBookmarks as copyLegacyBookmarksWithSigner,
-	type BookmarkMigrationSigner
+	type BookmarkMigrationCapabilities
 } from './copy-legacy-bookmarks';
 
 const eventId = 'a'.repeat(64);
@@ -93,7 +93,7 @@ function signedEvent(unsigned: Nostr.UnsignedEvent, id = 'signed'): Nostr.Event 
 let legacyRelayEvent: Nostr.Event | undefined;
 let standardRelayEvent: Nostr.Event | undefined;
 
-const migrationSigner: BookmarkMigrationSigner = {
+const migrationSigner: BookmarkMigrationCapabilities = {
 	signEvent: mocks.copySignEvent,
 	nip04: { decrypt: mocks.copyDecrypt },
 	nip44: { decrypt: mocks.copyDecryptNip44, encrypt: mocks.copyEncryptNip44 }
@@ -228,7 +228,7 @@ describe('copy exclusivity', () => {
 
 describe('copy sources and public references', () => {
 	it('copies public bookmarks with only event signing capability', async () => {
-		const signer: BookmarkMigrationSigner = { signEvent: mocks.copySignEvent };
+		const signer: BookmarkMigrationCapabilities = { signEvent: mocks.copySignEvent };
 
 		await copyLegacyBookmarksWithSigner(signer);
 
@@ -376,7 +376,7 @@ describe('private bookmark copy', () => {
 			[['d', legacyBookmarkIdentifier]],
 			'legacy-nip44'
 		);
-		const signer: BookmarkMigrationSigner = { signEvent: mocks.copySignEvent };
+		const signer: BookmarkMigrationCapabilities = { signEvent: mocks.copySignEvent };
 
 		await expect(copyLegacyBookmarksWithSigner(signer)).rejects.toThrow(
 			'Required bookmark encryption capability is unavailable'
