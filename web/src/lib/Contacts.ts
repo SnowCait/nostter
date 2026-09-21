@@ -2,6 +2,7 @@ import { kinds as Kind } from 'nostr-tools';
 import { Api } from './Api';
 import { auth } from './auth.svelte';
 import { parseFollowList } from './nostr/protocol/nip02';
+import type { Signer } from './nostr/signing/signer';
 import { sendEvent } from './RxNostrHelper';
 import { pruneFolloweeReplaceableEventsCache } from './cache/Events';
 
@@ -14,7 +15,8 @@ export class Contacts {
 
 	// For legacy clients
 	public async updateRelays(
-		relays: Map<string, { read: boolean; write: boolean }>
+		relays: Map<string, { read: boolean; write: boolean }>,
+		signEvent: Signer['signEvent']
 	): Promise<void> {
 		const contacts = await this.api.fetchContactsEvent(this.authorPubkey, {
 			defaultWriteRelays: true
@@ -32,7 +34,7 @@ export class Contacts {
 			return;
 		}
 
-		await sendEvent(Kind.Contacts, content, contacts.tags);
+		await sendEvent(signEvent, Kind.Contacts, content, contacts.tags);
 	}
 }
 
