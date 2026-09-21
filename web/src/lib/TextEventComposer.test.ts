@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { kinds as Kind, type Event } from 'nostr-tools';
-import { replyTags } from './TextEventComposer';
+import { compose, replyTags } from './TextEventComposer';
 
 describe('replyTags', () => {
 	it('preserves NIP-28 root, reply, and pubkey tags when replying to a channel message', () => {
@@ -25,5 +25,20 @@ describe('replyTags', () => {
 		expect(tags).toContainEqual(['p', 'reply-author']);
 		expect(tags).toContainEqual(['p', 'channel-creator']);
 		expect(tags).toContainEqual(['p', 'mentioned-pubkey']);
+	});
+});
+
+describe('compose', () => {
+	it('returns null when event signing fails', async () => {
+		await expect(
+			compose(
+				async () => {
+					throw new Error('signing failed');
+				},
+				Kind.ShortTextNote,
+				'content',
+				[]
+			)
+		).resolves.toBeNull();
 	});
 });

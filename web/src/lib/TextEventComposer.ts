@@ -1,5 +1,4 @@
 import { nip19, type Event } from 'nostr-tools';
-import { Signer } from './Signer';
 import { now } from 'rx-nostr';
 import { Content } from './Content';
 import type { User } from '../routes/types';
@@ -7,14 +6,16 @@ import { Api } from './Api';
 import { extractThreadReferenceTags } from './nostr/protocol/nip10';
 import { getRelayHint } from './timelines/MainTimeline';
 import { unique } from './array';
+import type { Signer } from './nostr/signing/signer';
 
 export async function compose(
+	signEvent: Signer['signEvent'],
 	kind: number,
 	content: string,
 	tags: string[][]
 ): Promise<Event | null> {
 	try {
-		return await Signer.signEvent({
+		return await signEvent({
 			kind,
 			content,
 			tags,
