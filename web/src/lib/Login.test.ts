@@ -174,8 +174,8 @@ vi.stubGlobal('localStorage', {
 });
 
 beforeEach(async () => {
-	const { clearActiveSigner } = await import('./nostr/signing/active-signer');
-	clearActiveSigner();
+	const { auth } = await import('./auth.svelte');
+	auth.reset();
 	browserSignerInstances.length = 0;
 	privateSignerInstances.length = 0;
 	delete browserCapabilities.nip04;
@@ -197,12 +197,10 @@ describe('Login.withNpub', () => {
 		auth.reset();
 
 		const originalEstablish = Object.getPrototypeOf(auth).establish.bind(auth);
-		vi.spyOn(auth, 'establish').mockImplementation(
-			(pubkey: string, followingPubkeys: string[]) => {
-				calls.push('establish');
-				originalEstablish(pubkey, followingPubkeys);
-			}
-		);
+		vi.spyOn(auth, 'establish').mockImplementation((pubkey, followingPubkeys, signer) => {
+			calls.push('establish');
+			originalEstablish(pubkey, followingPubkeys, signer);
+		});
 
 		loadFolloweesMetadataCache.mockResolvedValue(undefined);
 		fetchEvents.mockResolvedValue([['p', followee]]);
@@ -275,6 +273,7 @@ describe('Login.withNpub', () => {
 		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.followees).toEqual([]);
 		expect(auth.status).not.toBe('authenticated');
+		expect(auth.signer).toBeUndefined();
 
 		resolveMetadataCache();
 		await loginPromise;
@@ -283,6 +282,7 @@ describe('Login.withNpub', () => {
 		expect(auth.followingPubkeys).toEqual([followee]);
 		expect(auth.followees).toEqual([followee, me]);
 		expect(auth.status).toBe('authenticated');
+		expect(auth.signer).toBeUndefined();
 	});
 
 	it('does not start the remote signer for a read-only session', async () => {
@@ -310,15 +310,16 @@ describe('Login.withNpub', () => {
 		expect(establishBunkerConnection).not.toHaveBeenCalled();
 	});
 
-	it('clears a stale signer before publishing the read-only session', async () => {
+	it('replaces a signing session with a read-only session without retaining its signer', async () => {
 		const { nip19 } = await import('nostr-tools');
-		const { getActiveSigner, setActiveSigner } = await import('./nostr/signing/active-signer');
+		const { auth } = await import('./auth.svelte');
 		const { Login } = await import('./Login');
-		setActiveSigner(remoteSigner);
+		auth.establish(me, [], remoteSigner);
 
 		await new Login().withNpub(nip19.npubEncode(me));
 
-		expect(() => getActiveSigner()).toThrow('[logic error]');
+		expect(auth.status).toBe('authenticated');
+		expect(auth.signer).toBeUndefined();
 	});
 });
 
@@ -335,7 +336,6 @@ describe('Login.withNip07', () => {
 	it('initializes without a decrypter when the extension has no encryption capability', async () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 		const { auth } = await import('./auth.svelte');
-		const { getActiveSigner } = await import('./nostr/signing/active-signer');
 		const { Login } = await import('./Login');
 
 		await new Login().withNip07();
@@ -343,7 +343,7 @@ describe('Login.withNip07', () => {
 		expect(auth.status).toBe('authenticated');
 		expect(fetchEvents).toHaveBeenCalledWith(undefined);
 		expect(browserSignerInstances).toHaveLength(1);
-		expect(getActiveSigner()).toBe(browserSignerInstances[0]);
+		expect(auth.signer).toBe(browserSignerInstances[0]);
 		expect(warn).not.toHaveBeenCalled();
 	});
 
@@ -385,22 +385,26 @@ describe('Login.withNip07', () => {
 		const initialized = Promise.withResolvers<void>();
 		loadFolloweesMetadataCache.mockReturnValue(initialized.promise);
 		const { auth } = await import('./auth.svelte');
-		const { getActiveSigner } = await import('./nostr/signing/active-signer');
 		const { Login } = await import('./Login');
 		const originalEstablish = Object.getPrototypeOf(auth).establish.bind(auth);
-		vi.spyOn(auth, 'establish').mockImplementation((pubkey, followingPubkeys) => {
-			expect(getActiveSigner()).toBe(browserSignerInstances[0]);
-			originalEstablish(pubkey, followingPubkeys);
+		vi.spyOn(auth, 'establish').mockImplementation((pubkey, followingPubkeys, signer) => {
+			expect(auth.pubkey).toBeUndefined();
+			expect(auth.signer).toBeUndefined();
+			expect(signer).toBe(browserSignerInstances[0]);
+			originalEstablish(pubkey, followingPubkeys, signer);
+			expect(auth.pubkey).toBe(me);
+			expect(auth.signer).toBe(browserSignerInstances[0]);
 		});
 
 		const loggingIn = new Login().withNip07();
 		await vi.waitFor(() => expect(browserSignerInstances).toHaveLength(1));
-		expect(() => getActiveSigner()).toThrow('[logic error]');
+		expect(auth.pubkey).toBeUndefined();
+		expect(auth.signer).toBeUndefined();
 
 		initialized.resolve();
 		await loggingIn;
 
-		expect(getActiveSigner()).toBe(browserSignerInstances[0]);
+		expect(auth.signer).toBe(browserSignerInstances[0]);
 		expect(auth.status).toBe('authenticated');
 	});
 });
@@ -422,7 +426,6 @@ describe('Login.withNsec', () => {
 	it('starts the remote signer for a signing-capable session', async () => {
 		const { nip19 } = await import('nostr-tools');
 		const { auth } = await import('./auth.svelte');
-		const { getActiveSigner } = await import('./nostr/signing/active-signer');
 		const { Login } = await import('./Login');
 
 		const seckey = new Uint8Array(32).fill(1);
@@ -435,7 +438,7 @@ describe('Login.withNsec', () => {
 		expect(auth.pubkey).toBe(me);
 		expect(privateSignerInstances).toHaveLength(1);
 		expect(privateSignerInstances[0]?.secretKey).toEqual(seckey);
-		expect(getActiveSigner()).toBe(privateSignerInstances[0]);
+		expect(auth.signer).toBe(privateSignerInstances[0]);
 		expect(remoteSignerSubscribeIfEnabled).toHaveBeenCalledTimes(1);
 	});
 
@@ -447,8 +450,27 @@ describe('Login.withNsec', () => {
 
 		expect(fetchEvents).toHaveBeenCalledWith(expect.any(Function));
 		expect(privateSignerInstances).toHaveLength(1);
-		const { getActiveSigner } = await import('./nostr/signing/active-signer');
-		expect(getActiveSigner()).toBe(privateSignerInstances[0]);
+		const { auth } = await import('./auth.svelte');
+		expect(auth.signer).toBe(privateSignerInstances[0]);
+	});
+
+	it('does not publish the private-key signer before account initialization completes', async () => {
+		const initialized = Promise.withResolvers<void>();
+		loadFolloweesMetadataCache.mockReturnValue(initialized.promise);
+		const { nip19 } = await import('nostr-tools');
+		const { auth } = await import('./auth.svelte');
+		const { Login } = await import('./Login');
+
+		const loggingIn = new Login().withNsec(nip19.nsecEncode(new Uint8Array(32).fill(1)));
+		await vi.waitFor(() => expect(privateSignerInstances).toHaveLength(1));
+		expect(auth.pubkey).toBeUndefined();
+		expect(auth.signer).toBeUndefined();
+
+		initialized.resolve();
+		await loggingIn;
+
+		expect(auth.pubkey).toBe(me);
+		expect(auth.signer).toBe(privateSignerInstances[0]);
 	});
 });
 
@@ -462,19 +484,37 @@ describe('Login.withNip46', () => {
 	});
 
 	it('uses the connected remote signer for initialization and the active session', async () => {
-		const { getActiveSigner } = await import('./nostr/signing/active-signer');
+		const { auth } = await import('./auth.svelte');
 		const { Login } = await import('./Login');
 
 		await new Login().withNip46('bunker://remote');
 
 		expect(establishBunkerConnection).toHaveBeenCalledWith('bunker://remote');
 		expect(fetchEvents).toHaveBeenCalledWith(expect.any(Function));
-		expect(getActiveSigner()).toBe(remoteSigner);
+		expect(auth.signer).toBe(remoteSigner);
+	});
+
+	it('does not publish the remote signer before account initialization completes', async () => {
+		const initialized = Promise.withResolvers<void>();
+		loadFolloweesMetadataCache.mockReturnValue(initialized.promise);
+		const { auth } = await import('./auth.svelte');
+		const { Login } = await import('./Login');
+
+		const loggingIn = new Login().withNip46('bunker://remote');
+		await vi.waitFor(() => expect(establishBunkerConnection).toHaveBeenCalledOnce());
+		expect(auth.pubkey).toBeUndefined();
+		expect(auth.signer).toBeUndefined();
+
+		initialized.resolve();
+		await loggingIn;
+
+		expect(auth.pubkey).toBe(me);
+		expect(auth.signer).toBe(remoteSigner);
 	});
 
 	it('cleans up the remote connection when account initialization fails', async () => {
 		fetchRelays.mockRejectedValueOnce(new Error('initialization failed'));
-		const { getActiveSigner } = await import('./nostr/signing/active-signer');
+		const { auth } = await import('./auth.svelte');
 		const { Login } = await import('./Login');
 
 		await expect(new Login().withNip46('bunker://remote')).rejects.toThrow(
@@ -482,7 +522,7 @@ describe('Login.withNip46', () => {
 		);
 
 		expect(abolishBunkerConnection).toHaveBeenCalledOnce();
-		expect(() => getActiveSigner()).toThrow('[logic error]');
+		expect(auth.signer).toBeUndefined();
 	});
 });
 
@@ -502,12 +542,11 @@ describe('session teardown', () => {
 		abolishBunkerConnection.mockReturnValue(cleanup.promise);
 		const { auth } = await import('./auth.svelte');
 		const { author, loginType } = await import('./stores/Author');
-		const { getActiveSigner, setActiveSigner } = await import('./nostr/signing/active-signer');
 		const { resetLoginState } = await import('./Login');
-		auth.establish(me, [followee]);
+		const { Signer } = await import('./Signer');
+		auth.establish(me, [followee], remoteSigner);
 		author.set({} as Author);
 		loginType.set('NIP-46');
-		setActiveSigner(remoteSigner);
 
 		const resetting = resetLoginState();
 
@@ -515,7 +554,8 @@ describe('session teardown', () => {
 		expect(auth.status).toBe('anonymous');
 		expect(get(loginType)).toBeUndefined();
 		expect(get(author)).toBeUndefined();
-		expect(() => getActiveSigner()).toThrow('[logic error]');
+		expect(auth.signer).toBeUndefined();
+		await expect(Signer.getPublicKey()).rejects.toThrow('[logic error]');
 		let resetCompleted = false;
 		void resetting.then(() => (resetCompleted = true));
 		await Promise.resolve();

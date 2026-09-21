@@ -1,16 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Event, EventTemplate } from 'nostr-tools';
+import { auth } from './auth.svelte';
 import type { Signer as SigningSigner } from './nostr/signing/signer';
-import { clearActiveSigner, setActiveSigner } from './nostr/signing/active-signer';
 import { Signer } from './Signer';
 
 afterEach(() => {
-	clearActiveSigner();
+	auth.reset();
 	vi.clearAllMocks();
 });
 
 describe('Signer facade', () => {
-	it('throws a logic error for every operation when no signer is active', async () => {
+	it('throws a logic error for every operation in an anonymous session', async () => {
 		await expect(Signer.getPublicKey()).rejects.toThrow('[logic error]');
 		await expect(Signer.signEvent({} as EventTemplate)).rejects.toThrow('[logic error]');
 		expect(() => Signer.getEncryptionCapabilities()).toThrow('[logic error]');
@@ -18,6 +18,19 @@ describe('Signer facade', () => {
 		await expect(Signer.decrypt('peer', 'cipher')).rejects.toThrow('[logic error]');
 		await expect(Signer.encryptNip44('peer', 'plain')).rejects.toThrow('[logic error]');
 		await expect(Signer.decryptNip44('peer', 'cipher')).rejects.toThrow('[logic error]');
+	});
+
+	it('throws a logic error in an authenticated session without a signer', async () => {
+		auth.establish('pubkey', [], undefined);
+
+		await expect(Signer.getPublicKey()).rejects.toThrow('[logic error]');
+	});
+
+	it('throws a logic error after the session is reset', async () => {
+		auth.establish('pubkey', [], { getPublicKey: vi.fn(), signEvent: vi.fn() });
+		auth.reset();
+
+		await expect(Signer.getPublicKey()).rejects.toThrow('[logic error]');
 	});
 
 	it('delegates every operation to the attached signer instance', async () => {
@@ -37,7 +50,7 @@ describe('Signer facade', () => {
 			nip44
 		} satisfies SigningSigner;
 		const unsignedEvent = { kind: 1 } as EventTemplate;
-		setActiveSigner(signer);
+		auth.establish('pubkey', [], signer);
 
 		await expect(Signer.getPublicKey()).resolves.toBe('pubkey');
 		await expect(Signer.signEvent(unsignedEvent)).resolves.toBe(signedEvent);
@@ -58,7 +71,7 @@ describe('Signer facade', () => {
 		['NIP-04', () => Signer.encrypt('peer', 'plain')],
 		['NIP-44', () => Signer.encryptNip44('peer', 'plain')]
 	])('throws when the %s capability is unavailable', async (_name, encrypt) => {
-		setActiveSigner({ getPublicKey: vi.fn(), signEvent: vi.fn() });
+		auth.establish('pubkey', [], { getPublicKey: vi.fn(), signEvent: vi.fn() });
 
 		await expect(encrypt()).rejects.toThrow('[logic error]');
 	});

@@ -1,9 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import type { Signer } from './nostr/signing/signer';
 import { Auth } from './auth.svelte';
 
 const me = 'f'.repeat(64);
 const a = 'a'.repeat(64);
 const b = 'b'.repeat(64);
+const signer = {
+	getPublicKey: vi.fn(),
+	signEvent: vi.fn()
+} satisfies Signer;
 
 describe('Auth lifecycle', () => {
 	it('starts initializing', () => {
@@ -12,6 +17,7 @@ describe('Auth lifecycle', () => {
 		expect(auth.isInitializing).toBe(true);
 		expect(auth.isReady).toBe(false);
 		expect(auth.isAuthenticated).toBe(false);
+		expect(auth.signer).toBeUndefined();
 	});
 
 	it('is ready but not authenticated after reset', () => {
@@ -21,6 +27,7 @@ describe('Auth lifecycle', () => {
 		expect(auth.isInitializing).toBe(false);
 		expect(auth.isReady).toBe(true);
 		expect(auth.isAuthenticated).toBe(false);
+		expect(auth.signer).toBeUndefined();
 	});
 
 	it('is ready and authenticated after establish', () => {
@@ -34,21 +41,33 @@ describe('Auth lifecycle', () => {
 });
 
 describe('Auth.establish', () => {
-	it('publishes pubkey, followingPubkeys, derived followees and authenticated status together', () => {
+	it('publishes identity and the same signer instance in the authenticated session', () => {
 		const auth = new Auth();
 
 		expect(auth.pubkey).toBeUndefined();
 		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.followees).toEqual([]);
 		expect(auth.isAuthenticated).toBe(false);
+		expect(auth.signer).toBeUndefined();
 
-		auth.establish(me, [a, b]);
+		auth.establish(me, [a, b], signer);
 
 		expect(auth.pubkey).toBe(me);
 		expect(auth.followingPubkeys).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
 		expect(auth.status).toBe('authenticated');
 		expect(auth.isAuthenticated).toBe(true);
+		expect(auth.signer).toBe(signer);
+	});
+
+	it('represents an authenticated session without a signer', () => {
+		const auth = new Auth();
+
+		auth.establish(me, [a], undefined);
+
+		expect(auth.status).toBe('authenticated');
+		expect(auth.pubkey).toBe(me);
+		expect(auth.signer).toBeUndefined();
 	});
 
 	it('deduplicates followingPubkeys', () => {
@@ -106,9 +125,9 @@ describe('Auth.updateFollowingPubkeys', () => {
 });
 
 describe('Auth.reset', () => {
-	it('clears authentication state and becomes anonymous', () => {
+	it('clears authentication state and its signer reference', () => {
 		const auth = new Auth();
-		auth.establish(me, [a, b]);
+		auth.establish(me, [a, b], signer);
 
 		auth.reset();
 
@@ -116,5 +135,6 @@ describe('Auth.reset', () => {
 		expect(auth.followees).toEqual([]);
 		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.status).toBe('anonymous');
+		expect(auth.signer).toBeUndefined();
 	});
 });
