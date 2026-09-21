@@ -57,7 +57,8 @@
 	import { Spotify } from '$lib/Spotify';
 	import { Twitter } from '$lib/Twitter';
 	import { enablePreview } from '$lib/stores/Preference';
-	import { isSimplexSmpUrl, isYouTubeUrl } from '$lib/url';
+	import { isYouTubeUrl } from '$lib/embeds/youtube';
+	import { isSimplexSmpUrl } from '$lib/url';
 	import Text from './Text.svelte';
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import SoundCloudPlayer from '$lib/components/content/SoundCloud.svelte';

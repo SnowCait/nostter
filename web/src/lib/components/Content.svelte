@@ -14,7 +14,8 @@
 	import { Twitter } from '$lib/Twitter';
 	import { nicovideoRegexp } from '$lib/Constants';
 	import { mediaExtensionRegexp } from '$lib/media/MediaType';
-	import { isSimplexSmpUrl, isYouTubeUrl } from '$lib/url';
+	import { isYouTubeUrl } from '$lib/embeds/youtube';
+	import { isSimplexSmpUrl } from '$lib/url';
 	import type * as Nostr from 'nostr-typedef';
 	import type { LocalMediaPreview } from '$lib/media/LocalAttachment';
 	import LocalMedia from './content/LocalMedia.svelte';
