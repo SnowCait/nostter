@@ -10,6 +10,24 @@ vi.mock('./signer-strategy', () => ({
 }));
 
 describe('Signer encryption facade', () => {
+	it('exposes the actual signer encryption capabilities', () => {
+		const nip44 = {
+			encrypt: vi.fn(),
+			decrypt: vi.fn()
+		};
+		const signer = {
+			getPublicKey: vi.fn(),
+			signEvent: vi.fn(),
+			nip44
+		} satisfies SigningSigner;
+		vi.mocked(resolveSigner).mockReturnValue(signer);
+
+		expect(Signer.getEncryptionCapabilities()).toEqual({
+			nip04: undefined,
+			nip44
+		});
+	});
+
 	it('delegates encryption operations through available NIP capabilities', async () => {
 		const nip04 = {
 			encrypt: vi.fn().mockResolvedValue('nip04-ciphertext'),

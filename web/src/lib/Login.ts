@@ -14,7 +14,7 @@ import { auth } from './auth.svelte';
 import { initializeAccount } from './features/account/application/initialize-account';
 import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
-import { decryptListContent, type ListContentDecrypter } from './List';
+import { createListContentDecrypter, type ListContentDecrypter } from './List';
 
 export class Login {
 	public async saveBasicInfo(name: string): Promise<void> {
@@ -82,7 +82,10 @@ export class Login {
 
 		console.timeLog('NIP-07');
 
-		await this.fetchAuthor(pubkey, decryptListContent);
+		await this.fetchAuthor(
+			pubkey,
+			createListContentDecrypter(Signer.getEncryptionCapabilities())
+		);
 
 		console.timeEnd('NIP-07');
 	}
@@ -109,7 +112,10 @@ export class Login {
 		storage.set('login', bunker);
 
 		const pubkey = await Signer.getPublicKey();
-		await this.fetchAuthor(pubkey, decryptListContent);
+		await this.fetchAuthor(
+			pubkey,
+			createListContentDecrypter(Signer.getEncryptionCapabilities())
+		);
 
 		console.timeEnd('NIP-46');
 		return true;
@@ -128,7 +134,10 @@ export class Login {
 
 		loginType.set('nsec');
 		const pubkey = getPublicKey(seckey);
-		await this.fetchAuthor(pubkey, decryptListContent);
+		await this.fetchAuthor(
+			pubkey,
+			createListContentDecrypter(Signer.getEncryptionCapabilities())
+		);
 	}
 
 	public async withNpub(key: string) {

@@ -12,7 +12,9 @@ const {
 	remoteSignerSubscribeIfEnabled,
 	storageClear,
 	abolishBunkerConnection,
-	decryptListContent,
+	establishBunkerConnection,
+	getPublicKey,
+	getEncryptionCapabilities,
 	calls
 } = vi.hoisted(() => {
 	function createStore<T>(initial: T) {
@@ -42,7 +44,9 @@ const {
 		remoteSignerSubscribeIfEnabled: vi.fn(),
 		storageClear: vi.fn(),
 		abolishBunkerConnection: vi.fn().mockResolvedValue(undefined),
-		decryptListContent: vi.fn(),
+		establishBunkerConnection: vi.fn().mockResolvedValue(undefined),
+		getPublicKey: vi.fn(),
+		getEncryptionCapabilities: vi.fn(),
 		calls: [] as string[]
 	};
 });
@@ -71,10 +75,13 @@ vi.mock('./WebStorage', () => ({
 }));
 
 vi.mock('./Signer', () => ({
-	Signer: { abolishBunkerConnection }
+	Signer: {
+		abolishBunkerConnection,
+		establishBunkerConnection,
+		getPublicKey,
+		getEncryptionCapabilities
+	}
 }));
-
-vi.mock('./List', () => ({ decryptListContent }));
 
 vi.mock('./timelines/MainTimeline', () => ({
 	rxNostr: { getDefaultRelays: vi.fn().mockReturnValue({}), send: vi.fn(), use: vi.fn() }
@@ -124,6 +131,7 @@ describe('Login.withNpub', () => {
 
 		loadFolloweesMetadataCache.mockResolvedValue(undefined);
 		fetchEvents.mockResolvedValue([['p', followee]]);
+		getEncryptionCapabilities.mockReturnValue({});
 		loadFolloweesOfFollowees.mockImplementation(() => {
 			calls.push('loadFolloweesOfFollowees');
 		});
@@ -223,6 +231,67 @@ describe('Login.withNpub', () => {
 		await new Login().withNpub(nip19.npubEncode(me));
 
 		expect(fetchEvents).toHaveBeenCalledWith(undefined);
+		expect(getPublicKey).not.toHaveBeenCalled();
+		expect(getEncryptionCapabilities).not.toHaveBeenCalled();
+	});
+});
+
+describe('Login.withNip07', () => {
+	beforeEach(async () => {
+		vi.clearAllMocks();
+		vi.restoreAllMocks();
+		notificationVisibility.set('all');
+		const { auth } = await import('./auth.svelte');
+		auth.reset();
+		fetchEvents.mockResolvedValue([['p', followee]]);
+		getPublicKey.mockResolvedValue(me);
+	});
+
+	it('initializes without a decrypter when the extension has no encryption capability', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		getEncryptionCapabilities.mockReturnValue({});
+		const { auth } = await import('./auth.svelte');
+		const { Login } = await import('./Login');
+
+		await new Login().withNip07();
+
+		expect(auth.status).toBe('authenticated');
+		expect(fetchEvents).toHaveBeenCalledWith(undefined);
+		expect(warn).not.toHaveBeenCalled();
+	});
+
+	it('uses an extension NIP-44 capability for current private lists', async () => {
+		const nip44 = {
+			encrypt: vi.fn(),
+			decrypt: vi.fn().mockResolvedValue(JSON.stringify([['p', 'private']]))
+		};
+		getEncryptionCapabilities.mockReturnValue({ nip44 });
+		const { Login } = await import('./Login');
+
+		await new Login().withNip07();
+
+		const decrypter = fetchEvents.mock.calls[0]?.[0];
+		expect(decrypter).toEqual(expect.any(Function));
+		await expect(decrypter(me, 'nip44-content')).resolves.toEqual([[['p', 'private']], false]);
+	});
+
+	it('uses an extension NIP-04 capability for legacy private lists', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const nip04 = {
+			encrypt: vi.fn(),
+			decrypt: vi.fn().mockResolvedValue(JSON.stringify([['p', 'private']]))
+		};
+		getEncryptionCapabilities.mockReturnValue({ nip04 });
+		const { Login } = await import('./Login');
+
+		await new Login().withNip07();
+
+		const decrypter = fetchEvents.mock.calls[0]?.[0];
+		expect(decrypter).toEqual(expect.any(Function));
+		await expect(decrypter(me, 'legacy?iv=value')).resolves.toEqual([[['p', 'private']], true]);
+		await expect(decrypter(me, 'nip44-content')).resolves.toEqual([[], false]);
+		expect(nip04.decrypt).toHaveBeenCalledOnce();
+		expect(warn).not.toHaveBeenCalled();
 	});
 });
 
@@ -238,6 +307,10 @@ describe('Login.withNsec', () => {
 
 		loadFolloweesMetadataCache.mockResolvedValue(undefined);
 		fetchEvents.mockResolvedValue([['p', followee]]);
+		getEncryptionCapabilities.mockReturnValue({
+			nip04: { encrypt: vi.fn(), decrypt: vi.fn() },
+			nip44: { encrypt: vi.fn(), decrypt: vi.fn() }
+		});
 	});
 
 	it('starts the remote signer for a signing-capable session', async () => {
@@ -256,13 +329,39 @@ describe('Login.withNsec', () => {
 		expect(remoteSignerSubscribeIfEnabled).toHaveBeenCalledTimes(1);
 	});
 
-	it('provides a private-list decrypter during initialization', async () => {
+	it('provides a private-list decrypter from both encryption capabilities', async () => {
 		const { nip19 } = await import('nostr-tools');
 		const { Login } = await import('./Login');
 
 		await new Login().withNsec(nip19.nsecEncode(new Uint8Array(32).fill(1)));
 
-		expect(fetchEvents).toHaveBeenCalledWith(decryptListContent);
+		expect(fetchEvents).toHaveBeenCalledWith(expect.any(Function));
+		expect(getEncryptionCapabilities).toHaveBeenCalledOnce();
+	});
+});
+
+describe('Login.withNip46', () => {
+	beforeEach(async () => {
+		vi.clearAllMocks();
+		notificationVisibility.set('all');
+		const { auth } = await import('./auth.svelte');
+		auth.reset();
+		fetchEvents.mockResolvedValue([['p', followee]]);
+		getPublicKey.mockResolvedValue(me);
+		getEncryptionCapabilities.mockReturnValue({
+			nip04: { encrypt: vi.fn(), decrypt: vi.fn() },
+			nip44: { encrypt: vi.fn(), decrypt: vi.fn() }
+		});
+	});
+
+	it('provides a private-list decrypter from the remote signer capabilities', async () => {
+		const { Login } = await import('./Login');
+
+		await new Login().withNip46('bunker://remote');
+
+		expect(establishBunkerConnection).toHaveBeenCalledWith('bunker://remote');
+		expect(fetchEvents).toHaveBeenCalledWith(expect.any(Function));
+		expect(getEncryptionCapabilities).toHaveBeenCalledOnce();
 	});
 });
 

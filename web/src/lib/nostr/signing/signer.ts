@@ -12,3 +12,5 @@ export interface Signer {
 	readonly nip04?: Encryption;
 	readonly nip44?: Encryption;
 }
+
+export type EncryptionCapabilities = Pick<Signer, 'nip04' | 'nip44'>;
