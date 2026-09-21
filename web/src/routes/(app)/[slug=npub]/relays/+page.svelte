@@ -19,6 +19,7 @@
 	import Loading from '$lib/components/Loading.svelte';
 	import { sendEvent } from '$lib/RxNostrHelper';
 	import { unique } from '$lib/array';
+	import { auth } from '$lib/auth.svelte';
 
 	interface Props {
 		data: LayoutData;
@@ -95,8 +96,15 @@
 		rxNostr.setDefaultRelays(relays);
 
 		try {
+			const signer = auth.signer;
+			if (signer === undefined) {
+				throw new Error('Cannot save relays without a signing session');
+			}
+			const signEvent = (template: Parameters<typeof signer.signEvent>[0]) =>
+				signer.signEvent(template);
 			// kind 10002
 			await sendEvent(
+				signEvent,
 				Kind.RelayList,
 				'',
 				relays
@@ -117,7 +125,8 @@
 			if (saveToKind3) {
 				const contacts = new Contacts(accountPubkey);
 				await contacts.updateRelays(
-					new Map(relays.map(({ url, read, write }) => [url, { read, write }]))
+					new Map(relays.map(({ url, read, write }) => [url, { read, write }])),
+					signEvent
 				);
 			}
 

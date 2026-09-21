@@ -10,7 +10,7 @@ import {
 } from 'rx-nostr';
 import { filter, firstValueFrom, tap } from 'rxjs';
 import { reverseChronological } from '$lib/Constants';
-import { Signer } from './Signer';
+import type { Signer } from './nostr/signing/signer';
 
 export async function fetchFirstEvent(filter: LazyFilter): Promise<Nostr.Event | undefined> {
 	try {
@@ -93,12 +93,13 @@ export async function fetchEvents(
 }
 
 export async function sendEvent(
+	signEvent: Signer['signEvent'],
 	kind: number,
 	content: string,
 	tags: string[][]
 ): Promise<Nostr.Event> {
 	const { promise, resolve, reject } = Promise.withResolvers<void>();
-	const event = await Signer.signEvent({ kind, content, tags, created_at: now() });
+	const event = await signEvent({ kind, content, tags, created_at: now() });
 	rxNostr
 		.send(event)
 		.pipe(filter(({ ok }) => ok))

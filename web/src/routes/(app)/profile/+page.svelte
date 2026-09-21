@@ -11,7 +11,7 @@
 	import { sendEvent } from '$lib/RxNostrHelper';
 	import { storeMetadata } from '$lib/cache/Events';
 	import { WebStorage } from '$lib/WebStorage';
-	import { isReady } from '$lib/auth.svelte';
+	import { auth, isReady } from '$lib/auth.svelte';
 
 	//#region Cropper
 
@@ -145,7 +145,12 @@
 		}
 
 		try {
+			const signer = auth.signer;
+			if (signer === undefined) {
+				throw new Error('Cannot update profile without a signing session');
+			}
 			const event = await sendEvent(
+				(template) => signer.signEvent(template),
 				Kind.Metadata,
 				JSON.stringify($authorProfile),
 				$metadataEvent?.tags ?? []
