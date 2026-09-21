@@ -34,11 +34,8 @@
 		if (link.hostname === 'youtu.be') {
 			return { id: link.pathname.replace('/', ''), short: false };
 		}
-		if (link.pathname.startsWith('/live/')) {
-			return { id: link.pathname.replace('/live/', ''), short: false };
-		}
 		const [, pathType, pathVideoId] = link.pathname.split('/');
-		if (pathType === 'embed') {
+		if (pathType === 'embed' || pathType === 'live') {
 			return { id: pathVideoId || undefined, short: false };
 		}
 		const v = link.searchParams.get('v');

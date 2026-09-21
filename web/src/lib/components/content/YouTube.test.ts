@@ -23,7 +23,8 @@ describe('YouTube URL', () => {
 		'https://www.youtube.com/shorts/M7lc1UVf-VE',
 		'https://www.youtube.com/watch?v=M7lc1UVf-VE',
 		'https://youtu.be/M7lc1UVf-VE',
-		'https://www.youtube.com/live/M7lc1UVf-VE'
+		'https://www.youtube.com/live/M7lc1UVf-VE',
+		'https://www.youtube.com/live/M7lc1UVf-VE/extra'
 	])('embeds the video from %s', (link) => {
 		expect(playerSrc(link).pathname).toBe('/embed/M7lc1UVf-VE');
 	});
