@@ -2,16 +2,22 @@ import { get } from 'svelte/store';
 import { createRxBackwardReq, latestEach, now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
-import { kinds as Kind } from 'nostr-tools';
+import { kinds as Kind, type EventTemplate } from 'nostr-tools';
 import { legacyBookmarkIdentifier } from '$lib/Constants';
 import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
 import { rxNostr } from '$lib/nostr/relay/client';
 import { tie } from '$lib/nostr/relay/relay-hints';
-import { Signer } from '$lib/Signer';
+import type { Encryption } from '$lib/nostr/signing/signer';
 import { pubkey } from '$lib/stores/Author';
 import { WebStorage } from '$lib/WebStorage';
 import { bookmarkEvent, runBookmarkCopyExclusively } from '$lib/author/Bookmark.svelte';
 import { isLegacyBookmarkEvent, mergeBookmarkReferences } from '../domain/bookmark-migration';
+
+export interface BookmarkMigrationSigner {
+	signEvent(unsignedEvent: EventTemplate | Nostr.UnsignedEvent): Promise<Nostr.Event>;
+	readonly nip04?: Pick<Encryption, 'decrypt'>;
+	readonly nip44?: Encryption;
+}
 
 function isTagCollection(value: unknown): value is string[][] {
 	return (
@@ -20,7 +26,8 @@ function isTagCollection(value: unknown): value is string[][] {
 	);
 }
 
-export async function decryptBookmarkContentStrict(
+async function decryptBookmarkContentStrict(
+	signer: BookmarkMigrationSigner,
 	pubkey: string,
 	content: string
 ): Promise<string[][]> {
@@ -29,8 +36,11 @@ export async function decryptBookmarkContentStrict(
 	}
 
 	const plaintext = await (isLegacyEncryption(content)
-		? Signer.decrypt(pubkey, content)
-		: Signer.decryptNip44(pubkey, content));
+		? signer.nip04?.decrypt(pubkey, content)
+		: signer.nip44?.decrypt(pubkey, content));
+	if (plaintext === undefined) {
+		throw new Error('Required bookmark encryption capability is unavailable.');
+	}
 	const tags: unknown = JSON.parse(plaintext);
 	if (!isTagCollection(tags)) {
 		throw new Error('Invalid bookmark content.');
@@ -89,7 +99,9 @@ async function fetchBookmarkSources(pubkey: string): Promise<{
 	});
 }
 
-export async function copyLegacyBookmarks(): Promise<Nostr.Event | undefined> {
+export async function copyLegacyBookmarks(
+	signer: BookmarkMigrationSigner
+): Promise<Nostr.Event | undefined> {
 	const accountPubkey = get(pubkey);
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
@@ -113,10 +125,12 @@ export async function copyLegacyBookmarks(): Promise<Nostr.Event | undefined> {
 		const existingPublic = standardEvent?.tags ?? [];
 		const mergedPublic = mergeBookmarkReferences(existingPublic, legacyEvent.tags);
 		const existingPrivate = await decryptBookmarkContentStrict(
+			signer,
 			accountPubkey,
 			standardEvent?.content ?? ''
 		);
 		const legacyPrivate = await decryptBookmarkContentStrict(
+			signer,
 			accountPubkey,
 			legacyEvent.content
 		);
@@ -129,8 +143,11 @@ export async function copyLegacyBookmarks(): Promise<Nostr.Event | undefined> {
 		const content =
 			mergedPrivate.length === 0
 				? ''
-				: await Signer.encryptNip44(accountPubkey, JSON.stringify(mergedPrivate));
-		const event = await Signer.signEvent({
+				: await signer.nip44?.encrypt(accountPubkey, JSON.stringify(mergedPrivate));
+		if (content === undefined) {
+			throw new Error('Required bookmark encryption capability is unavailable.');
+		}
+		const event = await signer.signEvent({
 			kind: Kind.BookmarkList,
 			content,
 			tags: mergedPublic,

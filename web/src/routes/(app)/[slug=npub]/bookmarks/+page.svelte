@@ -28,6 +28,7 @@
 	import { copyLegacyBookmarks } from '$lib/features/bookmarks/application/copy-legacy-bookmarks';
 	import { addToast } from '$lib/components/Toaster.svelte';
 	import { deleteLegacyBookmarks } from '$lib/features/bookmarks/application/delete-legacy-bookmarks';
+	import { auth } from '$lib/auth.svelte';
 
 	let { data }: LayoutProps = $props();
 
@@ -83,7 +84,11 @@
 		}
 
 		try {
-			const event = await copyLegacyBookmarks();
+			const signer = auth.signer;
+			if (signer === undefined) {
+				throw new Error('No signer is available for the authenticated session.');
+			}
+			const event = await copyLegacyBookmarks(signer);
 			addToast({
 				data: {
 					title: $_(
