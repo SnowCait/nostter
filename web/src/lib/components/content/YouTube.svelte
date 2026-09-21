@@ -7,7 +7,7 @@
 		link: URL;
 	}
 
-	function getStartTime(value: string | null): number | undefined {
+	function parseStartTime(value: string | null): number | undefined {
 		if (value === null) return undefined;
 
 		if (/^\d+$/u.test(value)) {
@@ -54,7 +54,7 @@
 		const url = new URL(`https://www.youtube.com/embed/${video.id}`);
 		url.searchParams.set('origin', $page.url.origin);
 
-		const startTime = getStartTime(link.searchParams.get('t'));
+		const startTime = parseStartTime(link.searchParams.get('t'));
 		if (startTime !== undefined) {
 			url.searchParams.set('start', startTime.toString());
 		}
