@@ -51,7 +51,11 @@
 	let embedUrl = $derived.by(() => {
 		if (video.id === undefined) return undefined;
 
-		const url = new URL(`https://www.youtube.com/embed/${video.id}`);
+		const host =
+			link.hostname === 'www.youtube-nocookie.com'
+				? 'www.youtube-nocookie.com'
+				: 'www.youtube.com';
+		const url = new URL(`https://${host}/embed/${video.id}`);
 		url.searchParams.set('origin', $page.url.origin);
 
 		const startTime = parseStartTime(link.searchParams.get('t'));

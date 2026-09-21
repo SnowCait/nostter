@@ -14,6 +14,7 @@
 	import { Twitter } from '$lib/Twitter';
 	import { nicovideoRegexp } from '$lib/Constants';
 	import { mediaExtensionRegexp } from '$lib/media/MediaType';
+	import { isYouTubeUrl } from '$lib/embeds/youtube';
 	import { isSimplexSmpUrl } from '$lib/url';
 	import type * as Nostr from 'nostr-typedef';
 	import type { LocalMediaPreview } from '$lib/media/LocalAttachment';
@@ -73,7 +74,7 @@
 				<!-- Spotify -->
 			{:else if SoundCloud.isSoundCloudUrl(url)}
 				<!-- SoundCloud -->
-			{:else if (url.hostname === 'youtu.be' || /^(.+\.)*youtube\.com$/s.test(url.hostname)) && !url.pathname.startsWith('/@')}
+			{:else if isYouTubeUrl(url)}
 				<!-- YouTube -->
 			{:else if url.hostname.endsWith('nicovideo.jp') && nicovideoRegexp.test(url.href)}
 				<!-- Niconico -->
