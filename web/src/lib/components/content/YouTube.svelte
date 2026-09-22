@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
+	import { getYouTubeEmbed } from '$lib/embeds/youtube';
 	import { enablePreview } from '$lib/stores/Preference';
 	import ExternalLink from '../ExternalLink.svelte';
 
@@ -7,71 +8,15 @@
 		link: URL;
 	}
 
-	function parseStartTime(value: string | null): number | undefined {
-		if (value === null) return undefined;
-
-		if (/^\d+$/u.test(value)) {
-			const seconds = Number(value);
-			return Number.isSafeInteger(seconds) && seconds > 0 ? seconds : undefined;
-		}
-
-		const match = value.match(
-			/^(?:(?<hours>\d+)h)?(?:(?<minutes>\d+)m)?(?:(?<seconds>\d+)s)?$/u
-		);
-		if (match === null || match[0] === '') return undefined;
-
-		const hours = Number(match.groups?.hours ?? 0);
-		const minutes = Number(match.groups?.minutes ?? 0);
-		const seconds = Number(match.groups?.seconds ?? 0);
-		const totalSeconds = hours * 60 * 60 + minutes * 60 + seconds;
-
-		return Number.isSafeInteger(totalSeconds) && totalSeconds > 0 ? totalSeconds : undefined;
-	}
-
 	let { link }: Props = $props();
-
-	let video = $derived.by(() => {
-		if (link.hostname === 'youtu.be') {
-			return { id: link.pathname.replace('/', ''), short: false };
-		}
-		const [, pathType, pathVideoId] = link.pathname.split('/');
-		if (pathType === 'embed' || pathType === 'live') {
-			return { id: pathVideoId || undefined, short: false };
-		}
-		const v = link.searchParams.get('v');
-		if (v !== null) {
-			return { id: v, short: false };
-		}
-		if (pathType === 'shorts') {
-			return { id: pathVideoId || undefined, short: true };
-		}
-		return { id: undefined, short: false };
-	});
-
-	let embedUrl = $derived.by(() => {
-		if (video.id === undefined) return undefined;
-
-		const host =
-			link.hostname === 'www.youtube-nocookie.com'
-				? 'www.youtube-nocookie.com'
-				: 'www.youtube.com';
-		const url = new URL(`https://${host}/embed/${video.id}`);
-		url.searchParams.set('origin', $page.url.origin);
-
-		const startTime = parseStartTime(link.searchParams.get('t'));
-		if (startTime !== undefined) {
-			url.searchParams.set('start', startTime.toString());
-		}
-
-		return url.toString();
-	});
+	let embed = $derived(getYouTubeEmbed(link, page.url.origin));
 </script>
 
-{#if video.id !== undefined && $enablePreview}
+{#if embed !== undefined && $enablePreview}
 	<iframe
-		class:short={video.short}
+		class:short={embed.short}
 		id="ytplayer"
-		src={embedUrl}
+		src={embed.src.href}
 		title=""
 		frameborder="0"
 		allow="fullscreen; picture-in-picture; web-share"
