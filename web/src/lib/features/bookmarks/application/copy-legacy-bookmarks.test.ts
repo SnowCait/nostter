@@ -25,11 +25,6 @@ vi.mock('$lib/stores/Author', async () => {
 	return { pubkey: writable(mocks.userPubkey) };
 });
 vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: mocks.fetchLastEvent }));
-vi.mock('$lib/Signer', () => ({
-	Signer: {
-		signEvent: mocks.normalSignEvent
-	}
-}));
 vi.mock('$lib/nostr/relay/client', () => ({
 	rxNostr: { send: mocks.send, use: mocks.use }
 }));
@@ -151,11 +146,11 @@ describe('copy exclusivity', () => {
 			return pendingSign.promise;
 		});
 
-		const normalWrite = bookmark(['e', eventId]);
+		const normalWrite = bookmark(mocks.normalSignEvent, ['e', eventId]);
 		await vi.waitFor(() => expect(mocks.normalSignEvent).toHaveBeenCalledOnce());
 		expect(bookmarkOperationState.copyInProgress).toBe(false);
 		expect(bookmarkOperationState.canStartCopy).toBe(false);
-		await expect(bookmark(['e', otherEventId])).resolves.toBeUndefined();
+		await expect(bookmark(mocks.normalSignEvent, ['e', otherEventId])).resolves.toBeUndefined();
 
 		await expect(copyLegacyBookmarks()).rejects.toThrow('busy');
 		expect(mocks.use).not.toHaveBeenCalled();
@@ -169,11 +164,13 @@ describe('copy exclusivity', () => {
 	it('releases normal processing state after a publish failure', async () => {
 		mocks.normalSignEvent.mockRejectedValueOnce(new Error('sign failed'));
 
-		await expect(bookmark(['e', eventId])).rejects.toThrow('sign failed');
+		await expect(bookmark(mocks.normalSignEvent, ['e', eventId])).rejects.toThrow(
+			'sign failed'
+		);
 		expect(bookmarkOperationState.copyInProgress).toBe(false);
 		expect(bookmarkOperationState.canStartCopy).toBe(true);
 
-		await bookmark(['e', otherEventId]);
+		await bookmark(mocks.normalSignEvent, ['e', otherEventId]);
 		expect(mocks.normalSignEvent).toHaveBeenCalledTimes(2);
 	});
 
@@ -185,7 +182,9 @@ describe('copy exclusivity', () => {
 		await vi.waitFor(() => expect(mocks.use).toHaveBeenCalledOnce());
 		expect(bookmarkOperationState.copyInProgress).toBe(true);
 		expect(bookmarkOperationState.canStartCopy).toBe(false);
-		await expect(bookmark(['e', eventId])).rejects.toThrow('copy is in progress');
+		await expect(bookmark(mocks.normalSignEvent, ['e', eventId])).rejects.toThrow(
+			'copy is in progress'
+		);
 		expect(mocks.normalSignEvent).not.toHaveBeenCalled();
 		expect(mocks.copySignEvent).not.toHaveBeenCalled();
 
@@ -193,7 +192,7 @@ describe('copy exclusivity', () => {
 		await expect(copy).rejects.toThrow('not found');
 		expect(bookmarkOperationState.copyInProgress).toBe(false);
 		expect(bookmarkOperationState.canStartCopy).toBe(true);
-		await bookmark(['e', otherEventId]);
+		await bookmark(mocks.normalSignEvent, ['e', otherEventId]);
 
 		expect(mocks.normalSignEvent).toHaveBeenCalledOnce();
 		expect(mocks.normalSignEvent).toHaveBeenCalledWith(
@@ -218,7 +217,7 @@ describe('copy exclusivity', () => {
 		expect(bookmarkOperationState.copyInProgress).toBe(false);
 		expect(bookmarkOperationState.canStartCopy).toBe(true);
 
-		await bookmark(['e', otherEventId]);
+		await bookmark(mocks.normalSignEvent, ['e', otherEventId]);
 
 		expect(copiedEvent?.kind).toBe(Kind.BookmarkList);
 		expect(mocks.copySignEvent).toHaveBeenCalledOnce();

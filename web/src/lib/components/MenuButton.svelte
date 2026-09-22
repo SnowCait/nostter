@@ -83,7 +83,7 @@
 		bookmarked = true;
 
 		try {
-			await bookmark(['e', event.id]);
+			await bookmark(signEvent, ['e', event.id]);
 		} catch (error) {
 			console.error('[bookmark failed]', error);
 			bookmarked = false;
@@ -101,7 +101,7 @@
 		bookmarked = false;
 
 		try {
-			await unbookmark(['e', event.id]);
+			await unbookmark(signEvent, ['e', event.id]);
 		} catch (error) {
 			console.error('[remove bookmark failed]', error);
 			bookmarked = true;

@@ -6,9 +6,9 @@ import { kinds as Kind } from 'nostr-tools';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
-import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
 import { pubkey } from '../stores/Author';
+import type { Signer } from '$lib/nostr/signing/signer';
 
 type DataType = 'bookmark' | 'unbookmark';
 type Data = {
@@ -60,17 +60,17 @@ export const isBookmarked = (event: Nostr.Event): boolean => {
 	return currentBookmarkEvent.tags.some(([tagName, id]) => tagName === 'e' && id === event.id);
 };
 
-export async function bookmark(tag: string[]): Promise<void> {
+export async function bookmark(signEvent: Signer['signEvent'], tag: string[]): Promise<void> {
 	console.log('[bookmark]', tag, queue.dump());
-	await save('bookmark', tag);
+	await save(signEvent, 'bookmark', tag);
 }
 
-export async function unbookmark(tag: string[]): Promise<void> {
+export async function unbookmark(signEvent: Signer['signEvent'], tag: string[]): Promise<void> {
 	console.log('[unbookmark]', tag, queue.dump());
-	await save('unbookmark', tag);
+	await save(signEvent, 'unbookmark', tag);
 }
 
-async function save(type: DataType, tag: string[]): Promise<void> {
+async function save(signEvent: Signer['signEvent'], type: DataType, tag: string[]): Promise<void> {
 	if (copying) {
 		throw new Error('Bookmark copy is in progress.');
 	}
@@ -88,7 +88,7 @@ async function save(type: DataType, tag: string[]): Promise<void> {
 	if (!processing) {
 		processing = true;
 		try {
-			await publish(accountPubkey);
+			await publish(signEvent, accountPubkey);
 		} finally {
 			processing = false;
 		}
@@ -108,7 +108,7 @@ export async function runBookmarkCopyExclusively<T>(copy: () => Promise<T>): Pro
 	}
 }
 
-async function publish(accountPubkey: string): Promise<void> {
+async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getReplaceableEvent(Kind.BookmarkList);
 	let tags = lastEvent?.tags ?? [];
@@ -122,7 +122,7 @@ async function publish(accountPubkey: string): Promise<void> {
 		tags = updateBookmarkTags(tags, data);
 	}
 
-	const event = await Signer.signEvent({
+	const event = await signEvent({
 		kind: Kind.BookmarkList,
 		content: lastEvent?.content ?? '',
 		tags,
@@ -141,7 +141,7 @@ async function publish(accountPubkey: string): Promise<void> {
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish(accountPubkey);
+		await publish(signEvent, accountPubkey);
 	}
 }
 
