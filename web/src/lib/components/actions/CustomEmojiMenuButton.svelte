@@ -18,6 +18,8 @@
 		removeFromEmojiList
 	} from '$lib/author/CustomEmojis';
 	import { emojiEditorUrl } from '$lib/Constants';
+	import { auth } from '$lib/auth.svelte';
+	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
 		event: Nostr.Event;
@@ -56,9 +58,18 @@
 	);
 	let url = $derived(`${emojiEditorUrl}#/a/${naddr}`);
 
+	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot sign an event without a signing session');
+		}
+
+		return signer.signEvent(template);
+	}
+
 	async function add(): Promise<void> {
 		try {
-			await addToEmojiList(address);
+			await addToEmojiList(signEvent, address);
 		} catch {
 			alert($_('emoji.custom.failed'));
 		}
@@ -66,7 +77,7 @@
 
 	async function remove(): Promise<void> {
 		try {
-			await removeFromEmojiList(address);
+			await removeFromEmojiList(signEvent, address);
 		} catch {
 			alert($_('emoji.custom.failed'));
 		}

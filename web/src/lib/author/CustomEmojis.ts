@@ -15,9 +15,9 @@ import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { WebStorage } from '$lib/WebStorage';
 import { Emojisets, UserEmojiList } from 'nostr-tools/kinds';
-import { Signer } from '$lib/Signer';
 import { pubkey } from '$lib/stores/Author';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
+import type { Signer } from '$lib/nostr/signing/signer';
 
 // kind 10030
 export const customEmojiListEvent = writable<Nostr.Event | undefined>();
@@ -120,15 +120,25 @@ const queue = new Queue<Data>();
 
 let processing = false;
 
-export async function addToEmojiList(address: string): Promise<void> {
-	await save('add', address);
+export async function addToEmojiList(
+	signEvent: Signer['signEvent'],
+	address: string
+): Promise<void> {
+	await save(signEvent, 'add', address);
 }
 
-export async function removeFromEmojiList(address: string): Promise<void> {
-	await save('remove', address);
+export async function removeFromEmojiList(
+	signEvent: Signer['signEvent'],
+	address: string
+): Promise<void> {
+	await save(signEvent, 'remove', address);
 }
 
-async function save(type: DataType, address: string): Promise<void> {
+async function save(
+	signEvent: Signer['signEvent'],
+	type: DataType,
+	address: string
+): Promise<void> {
 	const accountPubkey = get(pubkey);
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
@@ -138,12 +148,12 @@ async function save(type: DataType, address: string): Promise<void> {
 
 	if (!processing) {
 		processing = true;
-		await publish(accountPubkey);
+		await publish(signEvent, accountPubkey);
 		processing = false;
 	}
 }
 
-async function publish(accountPubkey: string): Promise<void> {
+async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getReplaceableEvent(UserEmojiList);
 	let tags = lastEvent?.tags ?? [];
@@ -170,7 +180,7 @@ async function publish(accountPubkey: string): Promise<void> {
 		throw new Error('Cache is outdated.');
 	}
 
-	const event = await Signer.signEvent({
+	const event = await signEvent({
 		kind: UserEmojiList,
 		content: lastEvent?.content ?? '',
 		tags,
@@ -184,7 +194,7 @@ async function publish(accountPubkey: string): Promise<void> {
 	storeCustomEmojis(event);
 
 	if (queue.length > 0) {
-		await publish(accountPubkey);
+		await publish(signEvent, accountPubkey);
 	}
 }
 
