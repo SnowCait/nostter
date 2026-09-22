@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import type { Signer } from '$lib/nostr/signing/signer';
 	import ZapDialog from './ZapDialog.svelte';
 	import IconBolt from '@tabler/icons-svelte-runes/icons/bolt';
 
@@ -9,9 +10,10 @@
 		size?: number;
 		width?: string;
 		height?: string;
+		signEvent: Signer['signEvent'];
 	}
 
-	let { pubkey, size = 24, width = '34px', height = '34px' }: Props = $props();
+	let { pubkey, size = 24, width = '34px', height = '34px', signEvent }: Props = $props();
 
 	let metadata = $derived($metadataStore.get(pubkey));
 	$effect(() => {
@@ -31,7 +33,7 @@
 >
 	<IconBolt {size} />
 </button>
-<ZapDialog {pubkey} bind:this={zapDialogComponent} />
+<ZapDialog {pubkey} {signEvent} bind:this={zapDialogComponent} />
 
 <style>
 	button {

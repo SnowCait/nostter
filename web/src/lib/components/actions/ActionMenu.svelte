@@ -73,7 +73,7 @@
 	): ReturnType<Signer['signEvent']> {
 		const signer = auth.signer;
 		if (signer === undefined) {
-			throw new Error('Cannot repost without a signing session');
+			throw new Error('Cannot sign an event without a signing session');
 		}
 
 		return signer.signEvent(...args);
@@ -99,7 +99,13 @@
 	</button>
 	<MenuButton event={item.event} {iconSize} bind:showDetails={jsonDisplay} />
 </div>
-<ZapDialog pubkey={item.event.pubkey} {item} bind:this={zapDialogComponent} {onZapped} />
+<ZapDialog
+	pubkey={item.event.pubkey}
+	{item}
+	{signEvent}
+	bind:this={zapDialogComponent}
+	{onZapped}
+/>
 {#if jsonDisplay}
 	<div class="develop">
 		<h5>Event ID</h5>

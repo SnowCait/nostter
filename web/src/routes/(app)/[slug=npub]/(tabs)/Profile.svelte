@@ -24,6 +24,8 @@
 	import { untrack } from 'svelte';
 	import Foldable from '$lib/components/shared/Foldable.svelte';
 	import ProfileIconThumbnail from '$lib/components/profile/ProfileIconThumbnail.svelte';
+	import { auth } from '$lib/auth.svelte';
+	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
 		slug: string;
@@ -39,6 +41,17 @@
 
 	let user = $derived(metadata?.content);
 	let url = $derived(user?.website ? URL.parse(user.website) : null);
+
+	async function signEvent(
+		...args: Parameters<Signer['signEvent']>
+	): ReturnType<Signer['signEvent']> {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot sign an event without a signing session');
+		}
+
+		return signer.signEvent(...args);
+	}
 
 	$effect(() => {
 		if (p === pubkey) {
@@ -103,7 +116,7 @@
 				</div>
 				{#if !$rom && pubkey !== undefined}
 					<div class="zap">
-						<ZapButton {pubkey} />
+						<ZapButton {pubkey} {signEvent} />
 					</div>
 					<div>
 						<ProfileMenuButton {pubkey} />

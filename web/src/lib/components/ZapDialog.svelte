@@ -4,7 +4,7 @@
 	import { writeRelays } from '$lib/stores/Author';
 	import { persistedStore } from '$lib/platform/storage/persisted-store';
 	import { WebStorage } from '$lib/WebStorage';
-	import { Signer } from '$lib/Signer';
+	import type { Signer } from '$lib/nostr/signing/signer';
 	import { zapWithWalletConnect } from '$lib/Zap';
 	import { metadataStore } from '$lib/cache/Events';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
@@ -18,9 +18,10 @@
 		pubkey: string;
 		item?: EventItem | undefined;
 		onZapped?: () => void;
+		signEvent: Signer['signEvent'];
 	}
 
-	let { pubkey, item, onZapped }: Props = $props();
+	let { pubkey, item, onZapped, signEvent }: Props = $props();
 
 	let metadata = $derived($metadataStore.get(pubkey));
 
@@ -58,7 +59,7 @@
 				? { pubkey, amount, comment, relays }
 				: { event: item.event, amount, comment, relays }
 		);
-		const zapRequestEvent = await Signer.signEvent(zapRequest);
+		const zapRequestEvent = await signEvent(zapRequest);
 		console.debug('[zap request]', zapRequestEvent, metadata?.content);
 		const encoded = encodeURI(JSON.stringify(zapRequestEvent));
 
