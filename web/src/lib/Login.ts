@@ -1,7 +1,6 @@
 import { get } from 'svelte/store';
 import { author, authorProfile, loginType } from './stores/Author';
 import { signerCanSign } from './nostr/signing/signer-capability';
-import { Signer } from './Signer';
 import { nip19 } from 'nostr-tools';
 import { robohash } from './Items';
 import { WebStorage } from './WebStorage';
@@ -29,16 +28,19 @@ async function disposeSigner(signer: SigningSigner | undefined): Promise<void> {
 }
 
 export class Login {
-	public async saveBasicInfo(name: string): Promise<void> {
+	public async saveBasicInfo(
+		name: string,
+		pubkey: string,
+		signEvent: SigningSigner['signEvent']
+	): Promise<void> {
 		console.debug('[relays]', rxNostr.getDefaultRelays());
 
-		const pubkey = await Signer.getPublicKey();
 		const user = {
 			name,
 			display_name: name,
 			picture: robohash(pubkey)
 		} as User;
-		const metadataEvent = await Signer.signEvent({
+		const metadataEvent = await signEvent({
 			kind: 0,
 			content: JSON.stringify(user),
 			tags: [],
@@ -50,7 +52,7 @@ export class Login {
 		});
 		authorProfile.set(user);
 
-		const relayListEvent = await Signer.signEvent({
+		const relayListEvent = await signEvent({
 			kind: 10002,
 			content: '',
 			tags: Object.entries(rxNostr.getDefaultRelays()).map(([, { url, read, write }]) => {

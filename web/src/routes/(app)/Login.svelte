@@ -124,7 +124,14 @@
 		registering = true;
 		try {
 			await login.withNsec(key);
-			await login.saveBasicInfo(name);
+			const pubkey = auth.pubkey;
+			const signer = auth.signer;
+			if (pubkey === undefined || signer === undefined) {
+				throw new Error('Account registration did not establish a signing session');
+			}
+			await login.saveBasicInfo(name, pubkey, (unsignedEvent) =>
+				signer.signEvent(unsignedEvent)
+			);
 			await goto('/public');
 		} catch (error) {
 			console.error('[register failed]', error);
