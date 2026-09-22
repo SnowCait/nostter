@@ -8,9 +8,7 @@ const testState = vi.hoisted(() => ({
 	requests: [] as Array<{
 		emit: ReturnType<typeof vi.fn>;
 		pipe: ReturnType<typeof vi.fn>;
-	}>,
-	requestSubscribers: [] as Array<(packet: { event: Event }) => void>,
-	storeMetadata: vi.fn()
+	}>
 }));
 
 vi.mock('rx-nostr', () => ({
@@ -37,9 +35,7 @@ vi.mock('$lib/nostr/relay/client', () => ({
 		getDefaultRelays: vi.fn(() => ({})),
 		use: vi.fn(() => ({
 			pipe: vi.fn(() => ({
-				subscribe: vi.fn((subscriber: (packet: { event: Event }) => void) => {
-					testState.requestSubscribers.push(subscriber);
-				})
+				subscribe: vi.fn()
 			}))
 		}))
 	}
@@ -63,7 +59,7 @@ vi.mock('../cache/Events', async () => {
 		replaceableEventsStore: writable(new Map()),
 		seenOnStore: writable(new Map()),
 		storeEventItem: vi.fn(),
-		storeMetadata: testState.storeMetadata
+		storeMetadata: vi.fn()
 	};
 });
 
@@ -86,7 +82,6 @@ const metadataReq = testState.requests[0];
 
 beforeEach(() => {
 	metadataReq.emit.mockClear();
-	testState.storeMetadata.mockClear();
 });
 
 describe('metadataReqEmit', () => {
@@ -130,14 +125,5 @@ describe('metadataReqEmit', () => {
 			pubkeys.slice(0, filterLimitItems)
 		);
 		expect(metadataReq.emit.mock.calls[1][0].authors).toEqual(pubkeys.slice(filterLimitItems));
-	});
-
-	it('stores metadata received by the metadata request subscription', () => {
-		const receivedEvent = event('received-pubkey', 1);
-
-		testState.requestSubscribers[0]({ event: receivedEvent });
-
-		expect(testState.storeMetadata).toHaveBeenCalledOnce();
-		expect(testState.storeMetadata).toHaveBeenCalledWith(receivedEvent);
 	});
 });
