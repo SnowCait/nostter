@@ -1,7 +1,6 @@
 import { get } from 'svelte/store';
 import { author, authorProfile, loginType } from './stores/Author';
 import { signerCanSign } from './nostr/signing/signer-capability';
-import { Signer } from './Signer';
 import { nip19 } from 'nostr-tools';
 import { robohash } from './Items';
 import { WebStorage } from './WebStorage';
@@ -20,6 +19,8 @@ import { PrivateKeySigner } from './nostr/signing/private-key-signer';
 import type { Signer as SigningSigner } from './nostr/signing/signer';
 import { establishBunkerConnection } from './nip46-connection';
 
+type BasicInfoSigner = Pick<SigningSigner, 'getPublicKey' | 'signEvent'>;
+
 async function disposeSigner(signer: SigningSigner | undefined): Promise<void> {
 	try {
 		await signer?.dispose?.();
@@ -29,16 +30,16 @@ async function disposeSigner(signer: SigningSigner | undefined): Promise<void> {
 }
 
 export class Login {
-	public async saveBasicInfo(name: string): Promise<void> {
+	public async saveBasicInfo(name: string, signer: BasicInfoSigner): Promise<void> {
 		console.debug('[relays]', rxNostr.getDefaultRelays());
 
-		const pubkey = await Signer.getPublicKey();
+		const pubkey = await signer.getPublicKey();
 		const user = {
 			name,
 			display_name: name,
 			picture: robohash(pubkey)
 		} as User;
-		const metadataEvent = await Signer.signEvent({
+		const metadataEvent = await signer.signEvent({
 			kind: 0,
 			content: JSON.stringify(user),
 			tags: [],
@@ -50,7 +51,7 @@ export class Login {
 		});
 		authorProfile.set(user);
 
-		const relayListEvent = await Signer.signEvent({
+		const relayListEvent = await signer.signEvent({
 			kind: 10002,
 			content: '',
 			tags: Object.entries(rxNostr.getDefaultRelays()).map(([, { url, read, write }]) => {
