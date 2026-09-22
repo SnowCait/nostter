@@ -7,16 +7,12 @@ import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
-import {
-	createListContentDecrypter,
-	createListContentEncrypter,
-	decryptListContent
-} from '$lib/List';
-import type { Signer } from '$lib/nostr/signing/signer';
+import { createListContentDecrypter, createListContentEncrypter } from '$lib/List';
+import type { EncryptionCapabilities, Signer } from '$lib/nostr/signing/signer';
 
 const kind = 30000;
 
-export type PeopleListMutationCapabilities = Pick<Signer, 'signEvent' | 'nip04' | 'nip44'>;
+export type PeopleListCapabilities = Pick<Signer, 'signEvent' | 'nip04' | 'nip44'>;
 
 export const peopleLists = writable(new Map<string, Nostr.Event>());
 export const processing = writable(false);
@@ -75,7 +71,11 @@ export async function isPeopleList(event: Nostr.Event): Promise<boolean> {
 	);
 }
 
-export async function contains(pubkey: string, event: Nostr.Event): Promise<boolean> {
+export async function contains(
+	getEncryptionCapabilities: () => EncryptionCapabilities,
+	pubkey: string,
+	event: Nostr.Event
+): Promise<boolean> {
 	if (event.tags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
 		return true;
 	}
@@ -90,7 +90,11 @@ export async function contains(pubkey: string, event: Nostr.Event): Promise<bool
 	}
 
 	try {
-		const [privateTags] = await decryptListContent(accountPubkey, event.content);
+		const decrypter = createListContentDecrypter(getEncryptionCapabilities());
+		if (decrypter === undefined) {
+			return false;
+		}
+		const [privateTags] = await decrypter(accountPubkey, event.content);
 		return privateTags.some(([tagName, p]) => tagName === 'p' && p === pubkey);
 	} catch (error) {
 		console.warn('[people list decode error]', error);
@@ -153,7 +157,7 @@ export async function addToPeopleList(
 }
 
 export async function removeFromPeopleList(
-	capabilities: PeopleListMutationCapabilities,
+	capabilities: PeopleListCapabilities,
 	event: Nostr.Event,
 	pubkey: string
 ): Promise<void> {
