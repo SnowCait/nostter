@@ -13,11 +13,13 @@
 	import type * as Nostr from 'nostr-typedef';
 	import { notesKinds } from '$lib/Constants';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
+	import { auth } from '$lib/auth.svelte';
 	import { rom } from '$lib/stores/Author';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import CodePoints from './CodePoints.svelte';
 	import type { PickerEmoji } from '$lib/Emoji';
+	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
 		item: EventItem;
@@ -65,13 +67,24 @@
 	function onZapped() {
 		zapped = true;
 	}
+
+	async function signEvent(
+		...args: Parameters<Signer['signEvent']>
+	): ReturnType<Signer['signEvent']> {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot repost without a signing session');
+		}
+
+		return signer.signEvent(...args);
+	}
 </script>
 
 <div class="action-menu">
 	<button class:hidden={!notesKinds.includes(item.event.kind)} onclick={reply}>
 		<IconMessageCircle size={iconSize} />
 	</button>
-	<RepostButton event={item.event} {iconSize} />
+	<RepostButton event={item.event} {iconSize} {signEvent} />
 	<ReactionButton event={item.event} {iconSize} />
 	<span>
 		<EmojiPicker onPick={(emoji) => emojiReaction(item.event, emoji)} />
