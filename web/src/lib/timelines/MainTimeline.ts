@@ -18,7 +18,6 @@ import { getEventAddress, parseEventAddress } from '$lib/nostr/protocol/event-ad
 import { Metadata, type EventItem } from '$lib/Items';
 import {
 	eventItemStore,
-	metadataStore,
 	replaceableEventsStore,
 	seenOnStore,
 	storeEventItem,
@@ -78,12 +77,17 @@ observable.pipe(filterByType('CLOSED')).subscribe((packet) => {
 const metadataReq = createRxBackwardReq();
 const referencesReq = createRxBackwardReq();
 const replaceableEventsReq = createRxBackwardReq();
+const requestedMetadataPubkeys = new Set<string>();
 
 export async function metadataReqEmit(pubkeys: string[]): Promise<void> {
-	const groupedPubkeys = chunk(
-		pubkeys.filter((pubkey) => !get(metadataStore).has(pubkey)),
-		filterLimitItems
-	);
+	const unrequestedPubkeys = pubkeys.filter((pubkey) => {
+		if (requestedMetadataPubkeys.has(pubkey)) {
+			return false;
+		}
+		requestedMetadataPubkeys.add(pubkey);
+		return true;
+	});
+	const groupedPubkeys = chunk(unrequestedPubkeys, filterLimitItems);
 	for (const pubkeys of groupedPubkeys) {
 		metadataReq.emit({
 			kinds: [0],
