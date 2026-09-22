@@ -76,6 +76,19 @@
 
 		return signer.signEvent(template);
 	}
+
+	function getMenuButtonCapabilities(): Pick<Signer, 'signEvent' | 'nip04' | 'nip44'> {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot access menu capabilities without a signing session');
+		}
+
+		return {
+			signEvent: (template) => signer.signEvent(template),
+			nip04: signer.nip04,
+			nip44: signer.nip44
+		};
+	}
 </script>
 
 <div class="action-menu">
@@ -95,7 +108,12 @@
 	>
 		<IconBolt size={iconSize} />
 	</button>
-	<MenuButton event={item.event} {iconSize} {signEvent} bind:showDetails={jsonDisplay} />
+	<MenuButton
+		event={item.event}
+		{iconSize}
+		getCapabilities={getMenuButtonCapabilities}
+		bind:showDetails={jsonDisplay}
+	/>
 </div>
 <ZapDialog
 	pubkey={item.event.pubkey}

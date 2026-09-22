@@ -9,6 +9,7 @@
 	import Logout from '../Logout.svelte';
 	import { auth } from '$lib/auth.svelte';
 	import type { Signer } from '$lib/nostr/signing/signer';
+	import type { MuteCapabilities } from '$lib/author/Mute';
 	import { author, muteEvent, pubkey, rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import AutoRefresh from './AutoRefresh.svelte';
@@ -45,6 +46,19 @@
 		}
 
 		return signer.signEvent(template);
+	}
+
+	function getMuteCapabilities(): MuteCapabilities {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot access mute capabilities without a signing session');
+		}
+
+		return {
+			signEvent: (template) => signer.signEvent(template),
+			nip04: signer.nip04,
+			nip44: signer.nip44
+		};
 	}
 
 	async function decryptMuteEvent(event: Event | undefined): Promise<string[][]> {
@@ -90,15 +104,15 @@
 		<h3>{$_('preferences.mute.mute')}</h3>
 		<details>
 			<summary>{$_('preferences.mute.pubkeys')}</summary>
-			<MutedUsers {signEvent} />
+			<MutedUsers {getMuteCapabilities} />
 		</details>
 		<details>
 			<summary>{$_('preferences.mute.events')}</summary>
-			<MutedEvents {signEvent} />
+			<MutedEvents {getMuteCapabilities} />
 		</details>
 		<details>
 			<summary>{$_('preferences.mute.words')}</summary>
-			<MutedWords {signEvent} />
+			<MutedWords {getMuteCapabilities} />
 		</details>
 		{#if $developerMode}
 			<details>

@@ -39,14 +39,16 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import type { Signer } from '$lib/nostr/signing/signer';
 
+	type MenuButtonCapabilities = Pick<Signer, 'signEvent' | 'nip04' | 'nip44'>;
+
 	interface Props {
 		event: Nostr.Event;
 		iconSize: number;
 		showDetails?: boolean;
-		signEvent: Signer['signEvent'];
+		getCapabilities: () => MenuButtonCapabilities;
 	}
 
-	let { event, iconSize, showDetails = $bindable(false), signEvent }: Props = $props();
+	let { event, iconSize, showDetails = $bindable(false), getCapabilities }: Props = $props();
 
 	const {
 		elements: { menu, item, trigger, overlay, separator }
@@ -67,6 +69,10 @@
 	let isChannelMuteTarget = $derived(
 		event.kind === ChannelMessage && rootTag?.at(1) !== undefined
 	);
+
+	function signEvent(template: Parameters<Signer['signEvent']>[0]) {
+		return getCapabilities().signEvent(template);
+	}
 
 	async function onBookmark() {
 		if (bookmarkOperationState.copyInProgress) {
@@ -176,7 +182,8 @@
 		console.debug('[mute pubkey]', event.pubkey);
 
 		try {
-			await mute(signEvent, 'p', event.pubkey);
+			const capabilities = getCapabilities();
+			await mute(capabilities, 'p', event.pubkey);
 		} catch (error) {
 			console.error('[mute failed]', error);
 			alert($_('actions.mute.failed'));
@@ -187,7 +194,8 @@
 		console.debug('[unmute pubkey]', event.pubkey);
 
 		try {
-			await unmute(signEvent, 'p', event.pubkey);
+			const capabilities = getCapabilities();
+			await unmute(capabilities, 'p', event.pubkey);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert($_('actions.unmute.failed'));
@@ -198,7 +206,8 @@
 		console.debug('[mute thread]', rootId);
 
 		try {
-			await mute(signEvent, 'e', rootId);
+			const capabilities = getCapabilities();
+			await mute(capabilities, 'e', rootId);
 		} catch (error) {
 			console.error('[mute failed]', error);
 			alert($_('actions.mute.failed'));
@@ -209,7 +218,8 @@
 		console.debug('[unmute thread]', rootId);
 
 		try {
-			await unmute(signEvent, 'e', rootId);
+			const capabilities = getCapabilities();
+			await unmute(capabilities, 'e', rootId);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert($_('actions.unmute.failed'));
