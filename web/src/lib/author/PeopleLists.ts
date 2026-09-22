@@ -5,10 +5,10 @@ import { isDecodable } from '$lib/Encryption';
 import { findIdentifier, getEventAddress } from '$lib/nostr/protocol/event-address';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
-import { Signer } from '$lib/Signer';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
 import { decryptListContent, encryptListContent } from '$lib/List';
+import type { Signer } from '$lib/nostr/signing/signer';
 
 const kind = 30000;
 
@@ -92,13 +92,17 @@ export async function contains(pubkey: string, event: Nostr.Event): Promise<bool
 	}
 }
 
-export async function createPeopleList(title: string, pubkey: string): Promise<void> {
+export async function createPeopleList(
+	signEvent: Signer['signEvent'],
+	title: string,
+	pubkey: string
+): Promise<void> {
 	const accountPubkey = get(authorPubkey);
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}
 
-	const event = await Signer.signEvent({
+	const event = await signEvent({
 		kind: kind,
 		pubkey: accountPubkey,
 		content: '',
@@ -115,7 +119,11 @@ export async function createPeopleList(title: string, pubkey: string): Promise<v
 	});
 }
 
-export async function addToPeopleList(event: Nostr.Event, pubkey: string): Promise<void> {
+export async function addToPeopleList(
+	signEvent: Signer['signEvent'],
+	event: Nostr.Event,
+	pubkey: string
+): Promise<void> {
 	const accountPubkey = get(authorPubkey);
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
@@ -125,7 +133,7 @@ export async function addToPeopleList(event: Nostr.Event, pubkey: string): Promi
 		return;
 	}
 
-	const newEvent = await Signer.signEvent({
+	const newEvent = await signEvent({
 		kind: event.kind,
 		pubkey: event.pubkey,
 		content: event.content,
@@ -138,7 +146,11 @@ export async function addToPeopleList(event: Nostr.Event, pubkey: string): Promi
 	});
 }
 
-export async function removeFromPeopleList(event: Nostr.Event, pubkey: string): Promise<void> {
+export async function removeFromPeopleList(
+	signEvent: Signer['signEvent'],
+	event: Nostr.Event,
+	pubkey: string
+): Promise<void> {
 	const accountPubkey = get(authorPubkey);
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
@@ -157,7 +169,7 @@ export async function removeFromPeopleList(event: Nostr.Event, pubkey: string): 
 		}
 	}
 
-	const newEvent = await Signer.signEvent({
+	const newEvent = await signEvent({
 		kind: event.kind,
 		pubkey: event.pubkey,
 		content,
