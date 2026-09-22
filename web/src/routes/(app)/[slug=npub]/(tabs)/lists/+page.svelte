@@ -45,11 +45,6 @@
 		loading = true;
 		metadataReqEmit([data.pubkey]);
 
-		const accountPubkey = auth.pubkey;
-		const signer = auth.signer;
-		const decryptPrivateListContent =
-			signer === undefined ? undefined : createListContentDecrypter(signer);
-
 		const req = createRxBackwardReq();
 		subscription = rxNostr
 			.use(req)
@@ -65,13 +60,17 @@
 						event.tags.some(
 							([tagName, pubkey]) => tagName === 'p' && pubkey !== undefined
 						) ||
-						(event.pubkey === accountPubkey && event.content !== '')
+						(event.pubkey === auth.pubkey && event.content !== '')
 					);
 				})
 			)
 			.subscribe({
 				next: async ({ event }) => {
 					console.debug('[lists event]', event);
+					const accountPubkey = auth.pubkey;
+					const signer = auth.signer;
+					const decryptPrivateListContent =
+						signer === undefined ? undefined : createListContentDecrypter(signer);
 
 					const [privateTags] =
 						event.pubkey === accountPubkey &&
