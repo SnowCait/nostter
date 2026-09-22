@@ -6,9 +6,9 @@ import { pubkey, storeMutedPubkeysByKind } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
-import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
 import { decryptListContent, encryptListContent } from '$lib/List';
+import type { Signer } from '$lib/nostr/signing/signer';
 
 type DataType = 'mute' | 'unmute';
 type Data = {
@@ -27,17 +27,30 @@ const queues = new Map([
 
 let processing = false;
 
-export async function muteByKind(muteKind: number, pubkey: string): Promise<void> {
+export async function muteByKind(
+	signEvent: Signer['signEvent'],
+	muteKind: number,
+	pubkey: string
+): Promise<void> {
 	console.debug('[mute kind]', muteKind, pubkey, queues.get(muteKind)?.dump());
-	await save('mute', muteKind, pubkey);
+	await save(signEvent, 'mute', muteKind, pubkey);
 }
 
-export async function unmuteByKind(muteKind: number, pubkey: string): Promise<void> {
+export async function unmuteByKind(
+	signEvent: Signer['signEvent'],
+	muteKind: number,
+	pubkey: string
+): Promise<void> {
 	console.debug('[unmute kind]', muteKind, pubkey, queues.get(muteKind)?.dump());
-	await save('unmute', muteKind, pubkey);
+	await save(signEvent, 'unmute', muteKind, pubkey);
 }
 
-async function save(type: DataType, muteKind: number, targetPubkey: string): Promise<void> {
+async function save(
+	signEvent: Signer['signEvent'],
+	type: DataType,
+	muteKind: number,
+	targetPubkey: string
+): Promise<void> {
 	const queue = queues.get(muteKind);
 	if (queue === undefined) {
 		console.warn('[mute kind unsupported]', muteKind);
@@ -57,12 +70,16 @@ async function save(type: DataType, muteKind: number, targetPubkey: string): Pro
 
 	if (!processing) {
 		processing = true;
-		await publish(muteKind, accountPubkey);
+		await publish(signEvent, muteKind, accountPubkey);
 		processing = false;
 	}
 }
 
-async function publish(muteKind: number, accountPubkey: string): Promise<void> {
+async function publish(
+	signEvent: Signer['signEvent'],
+	muteKind: number,
+	accountPubkey: string
+): Promise<void> {
 	const queue = queues.get(muteKind);
 	if (queue === undefined) {
 		console.warn('[mute kind logic error]');
@@ -121,7 +138,7 @@ async function publish(muteKind: number, accountPubkey: string): Promise<void> {
 		throw new Error('Cache is outdated.');
 	}
 
-	const event = await Signer.signEvent({
+	const event = await signEvent({
 		kind,
 		content: await encryptListContent(accountPubkey, privateTags, legacy),
 		tags,
@@ -132,7 +149,7 @@ async function publish(muteKind: number, accountPubkey: string): Promise<void> {
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish(muteKind, accountPubkey);
+		await publish(signEvent, muteKind, accountPubkey);
 	}
 }
 
