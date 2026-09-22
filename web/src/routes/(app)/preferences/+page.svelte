@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { nip19 } from 'nostr-tools';
+	import { nip19, type Event } from 'nostr-tools';
 	import { appName } from '$lib/app';
 	import { emojiEditorUrl } from '$lib/Constants';
-	import { decryptListContent } from '$lib/List';
+	import { createListContentDecrypter } from '$lib/List';
 	import Notification from './Notification.svelte';
 	import ReactionEmoji from './ReactionEmoji.svelte';
 	import Logout from '../Logout.svelte';
@@ -46,6 +46,25 @@
 
 		return signer.signEvent(template);
 	}
+
+	async function decryptMuteEvent(event: Event | undefined): Promise<string[][]> {
+		if (event === undefined || event.content === '') {
+			return [];
+		}
+
+		const signer = auth.signer;
+		if (signer === undefined) {
+			return [];
+		}
+
+		const decryptPrivateListContent = createListContentDecrypter(signer);
+		if (decryptPrivateListContent === undefined) {
+			return [];
+		}
+
+		const [tags] = await decryptPrivateListContent(event.pubkey, event.content);
+		return tags;
+	}
 </script>
 
 <svelte:head>
@@ -87,9 +106,9 @@
 				<div>public</div>
 				<Json object={$muteEvent?.tags ?? []} />
 				<div>private</div>
-				{#await decryptListContent($muteEvent?.pubkey ?? '', $muteEvent?.content ?? '')}
+				{#await decryptMuteEvent($muteEvent)}
 					<Json object={[]} />
-				{:then [tags]}
+				{:then tags}
 					<Json object={tags} />
 				{/await}
 			</details>
