@@ -4,7 +4,13 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { appName } from '$lib/app';
-	import { fetchListEvent, getListPubkeys, getListTitle } from '$lib/List';
+	import { auth } from '$lib/auth.svelte';
+	import {
+		createListContentDecrypter,
+		fetchListEvent,
+		getListPubkeys,
+		getListTitle
+	} from '$lib/List';
 	import { Metadata } from '$lib/Items';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
@@ -44,7 +50,11 @@
 			return;
 		}
 
-		pubkeys = await getListPubkeys(listEvent);
+		const accountPubkey = auth.pubkey;
+		const signer = auth.signer;
+		const decryptPrivateListContent =
+			signer === undefined ? undefined : createListContentDecrypter(signer);
+		pubkeys = await getListPubkeys(listEvent, accountPubkey, decryptPrivateListContent);
 		metadataReqEmit(pubkeys);
 
 		if ($author !== undefined) {

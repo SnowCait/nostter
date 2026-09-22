@@ -1,4 +1,3 @@
-import { get } from 'svelte/store';
 import { createRxOneshotReq, latest } from 'rx-nostr';
 import { lastValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
@@ -6,7 +5,6 @@ import { rxNostr, tie } from './timelines/MainTimeline';
 import { filterTags } from './EventHelper';
 import { findIdentifier } from './nostr/protocol/event-address';
 import { isLegacyEncryption } from './nostr/protocol/nip04';
-import { pubkey } from './stores/Author';
 import { Signer } from './Signer';
 import type { EncryptionCapabilities } from './nostr/signing/signer';
 
@@ -89,12 +87,15 @@ export function getListTitle(tags: string[][]): string {
 	return filterTags('title', tags).at(0) ?? findIdentifier(tags) ?? '-';
 }
 
-export async function getListPubkeys(event: Nostr.Event): Promise<string[]> {
+export async function getListPubkeys(
+	event: Nostr.Event,
+	accountPubkey: string | undefined,
+	decryptPrivateListContent?: ListContentDecrypter
+): Promise<string[]> {
 	const tags = event.tags;
 
-	const $pubkey = get(pubkey);
-	if (event.pubkey === $pubkey) {
-		const [privateTags] = await decryptListContent(event.pubkey, event.content);
+	if (event.pubkey === accountPubkey && decryptPrivateListContent !== undefined) {
+		const [privateTags] = await decryptPrivateListContent(event.pubkey, event.content);
 		tags.push(...privateTags);
 	}
 

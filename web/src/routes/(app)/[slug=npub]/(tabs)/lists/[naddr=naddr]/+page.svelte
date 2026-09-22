@@ -11,8 +11,14 @@
 	} from '$lib/timelines/ListTimeline';
 	import { IconUsers } from '@tabler/icons-svelte-runes';
 	import { appName } from '$lib/app';
+	import { auth } from '$lib/auth.svelte';
 	import { findIdentifier } from '$lib/nostr/protocol/event-address';
-	import { fetchListEvent, getListPubkeys, getListTitle } from '$lib/List';
+	import {
+		createListContentDecrypter,
+		fetchListEvent,
+		getListPubkeys,
+		getListTitle
+	} from '$lib/List';
 	import type { PageProps } from './$types';
 	import TimelineView from '../../../../TimelineView.svelte';
 	import ProfileTabs from '../../ProfileTabs.svelte';
@@ -43,7 +49,11 @@
 			return;
 		}
 
-		$pubkeys = await getListPubkeys($event);
+		const accountPubkey = auth.pubkey;
+		const signer = auth.signer;
+		const decryptPrivateListContent =
+			signer === undefined ? undefined : createListContentDecrypter(signer);
+		$pubkeys = await getListPubkeys($event, accountPubkey, decryptPrivateListContent);
 		subscribeListTimeline();
 		loadListTimeline();
 	});
