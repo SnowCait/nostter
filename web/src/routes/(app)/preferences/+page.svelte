@@ -71,15 +71,15 @@
 		<h3>{$_('preferences.mute.mute')}</h3>
 		<details>
 			<summary>{$_('preferences.mute.pubkeys')}</summary>
-			<MutedUsers />
+			<MutedUsers {signEvent} />
 		</details>
 		<details>
 			<summary>{$_('preferences.mute.events')}</summary>
-			<MutedEvents />
+			<MutedEvents {signEvent} />
 		</details>
 		<details>
 			<summary>{$_('preferences.mute.words')}</summary>
-			<MutedWords />
+			<MutedWords {signEvent} />
 		</details>
 		{#if $developerMode}
 			<details>

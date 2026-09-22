@@ -18,6 +18,7 @@
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { auth } from '$lib/auth.svelte';
 	import { mute, unmute } from '$lib/author/Mute';
+	import type { Signer } from '$lib/nostr/signing/signer';
 	import { shareUrl } from '$lib/platform/browser/share';
 	import { copy } from '$lib/platform/browser/clipboard';
 	import Content from '$lib/components/Content.svelte';
@@ -59,6 +60,15 @@
 		if (!(await shareUrl(url))) {
 			await copy(url);
 		}
+	}
+
+	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot sign an event without a signing session');
+		}
+
+		return signer.signEvent(template);
 	}
 
 	async function pin(): Promise<void> {
@@ -153,14 +163,22 @@
 				{#if muted}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div use:melt={$item} onclick={() => unmute('e', channelId)} class="item undo">
+					<div
+						use:melt={$item}
+						onclick={() => unmute(signEvent, 'e', channelId)}
+						class="item undo"
+					>
 						<div class="icon"><IconVolumeOff size={18} /></div>
 						<div>{$_('actions.unmute.button')}</div>
 					</div>
 				{:else}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div use:melt={$item} onclick={() => mute('e', channelId)} class="item">
+					<div
+						use:melt={$item}
+						onclick={() => mute(signEvent, 'e', channelId)}
+						class="item"
+					>
 						<div class="icon"><IconVolumeOff size={18} /></div>
 						<div>{$_('actions.mute.button')}</div>
 					</div>

@@ -3,10 +3,17 @@
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { unmute } from '$lib/author/Mute';
+	import type { Signer } from '$lib/nostr/signing/signer';
 	import { mutePubkeys } from '$lib/stores/Author';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import IconTrash from '@tabler/icons-svelte-runes/icons/trash';
 	import OnelineProfile from '$lib/components/profile/OnelineProfile.svelte';
+
+	interface Props {
+		signEvent: Signer['signEvent'];
+	}
+
+	let { signEvent }: Props = $props();
 
 	let unmuting = $state(false);
 
@@ -20,7 +27,7 @@
 		unmuting = true;
 
 		try {
-			await unmute('p', pubkey);
+			await unmute(signEvent, 'p', pubkey);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert('Failed to unmute.');

@@ -2,7 +2,14 @@
 	import { _ } from 'svelte-i18n';
 	import IconTrash from '@tabler/icons-svelte-runes/icons/trash';
 	import { mute, unmute } from '$lib/author/Mute';
+	import type { Signer } from '$lib/nostr/signing/signer';
 	import { muteWords } from '$lib/stores/Author';
+
+	interface Props {
+		signEvent: Signer['signEvent'];
+	}
+
+	let { signEvent }: Props = $props();
 
 	let word = $state('');
 
@@ -11,7 +18,7 @@
 		console.log('[mute word]', word);
 
 		try {
-			await mute('word', word);
+			await mute(signEvent, 'word', word);
 			word = '';
 		} catch (error) {
 			console.error('[mute failed]', error);
@@ -23,7 +30,7 @@
 		console.log('[unmute word]', word);
 
 		try {
-			await unmute('word', word);
+			await unmute(signEvent, 'word', word);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert('Failed to unmute.');
