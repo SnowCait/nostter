@@ -7,8 +7,8 @@ import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 import { updateFolloweesStore } from '$lib/Contacts';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
-import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
+import type { Signer } from '$lib/nostr/signing/signer';
 import { followees, pubkey } from '../stores/Author';
 import { timeline as homeTimeline } from '$lib/timelines/HomeTimeline';
 
@@ -23,17 +23,21 @@ const queue = new Queue<Data>();
 
 let processing = false;
 
-export async function follow(pubkeys: string[]): Promise<void> {
+export async function follow(signEvent: Signer['signEvent'], pubkeys: string[]): Promise<void> {
 	console.debug('[follow]', pubkeys, queue.dump());
-	await save('follow', pubkeys);
+	await save(signEvent, 'follow', pubkeys);
 }
 
-export async function unfollow(pubkeys: string[]): Promise<void> {
+export async function unfollow(signEvent: Signer['signEvent'], pubkeys: string[]): Promise<void> {
 	console.debug('[unfollow]', pubkeys, queue.dump());
-	await save('unfollow', pubkeys);
+	await save(signEvent, 'unfollow', pubkeys);
 }
 
-async function save(type: DataType, pubkeys: string[]): Promise<void> {
+async function save(
+	signEvent: Signer['signEvent'],
+	type: DataType,
+	pubkeys: string[]
+): Promise<void> {
 	const accountPubkey = get(pubkey);
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
@@ -48,12 +52,12 @@ async function save(type: DataType, pubkeys: string[]): Promise<void> {
 
 	if (!processing) {
 		processing = true;
-		await publish(accountPubkey);
+		await publish(signEvent, accountPubkey);
 		processing = false;
 	}
 }
 
-async function publish(accountPubkey: string): Promise<void> {
+async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getReplaceableEvent(kind);
 	let tags = lastEvent?.tags ?? [];
@@ -85,7 +89,7 @@ async function publish(accountPubkey: string): Promise<void> {
 		throw new Error('Cache is outdated.');
 	}
 
-	const event = await Signer.signEvent({
+	const event = await signEvent({
 		kind,
 		content: lastEvent?.content ?? '',
 		tags,
@@ -95,7 +99,7 @@ async function publish(accountPubkey: string): Promise<void> {
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish(accountPubkey);
+		await publish(signEvent, accountPubkey);
 	} else {
 		homeTimeline.subscribe();
 	}
