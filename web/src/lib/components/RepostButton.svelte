@@ -3,7 +3,7 @@
 	import { ShortTextNote, EncryptedDirectMessage, Repost } from 'nostr-tools/kinds';
 	import type * as Nostr from 'nostr-typedef';
 	import { repostedEvents, updateRepostedEvents } from '$lib/author/Action';
-	import { Signer } from '$lib/Signer';
+	import type { Signer } from '$lib/nostr/signing/signer';
 	import { rom } from '$lib/stores/Author';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
@@ -14,9 +14,10 @@
 	interface Props {
 		event: Nostr.Event;
 		iconSize: number;
+		signEvent: Signer['signEvent'];
 	}
 
-	let { event, iconSize }: Props = $props();
+	let { event, iconSize, signEvent }: Props = $props();
 	const openNoteDialog = getOpenNoteDialog();
 
 	const {
@@ -41,7 +42,7 @@
 			eTag.push(relay);
 		}
 
-		const repostEvent = await Signer.signEvent({
+		const repostEvent = await signEvent({
 			created_at: Math.round(Date.now() / 1000),
 			kind: Repost,
 			tags: [eTag, ['p', event.pubkey]],
