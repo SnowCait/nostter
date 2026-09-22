@@ -5,15 +5,13 @@
 	import { auth } from '$lib/auth.svelte';
 	import type { Signer } from '$lib/nostr/signing/signer';
 
-	async function signEvent(
-		...args: Parameters<Signer['signEvent']>
-	): ReturnType<Signer['signEvent']> {
+	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
 		const signer = auth.signer;
 		if (signer === undefined) {
 			throw new Error('Cannot sign an event without a signing session');
 		}
 
-		return signer.signEvent(...args);
+		return signer.signEvent(template);
 	}
 </script>
 
