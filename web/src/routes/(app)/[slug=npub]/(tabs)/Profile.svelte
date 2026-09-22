@@ -42,15 +42,13 @@
 	let user = $derived(metadata?.content);
 	let url = $derived(user?.website ? URL.parse(user.website) : null);
 
-	async function signEvent(
-		...args: Parameters<Signer['signEvent']>
-	): ReturnType<Signer['signEvent']> {
+	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
 		const signer = auth.signer;
 		if (signer === undefined) {
 			throw new Error('Cannot sign an event without a signing session');
 		}
 
-		return signer.signEvent(...args);
+		return signer.signEvent(template);
 	}
 
 	$effect(() => {
