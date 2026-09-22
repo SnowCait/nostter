@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createListContentDecrypter, decryptListContent, getListTitle } from './List';
+import {
+	createListContentDecrypter,
+	createListContentEncrypter,
+	decryptListContent,
+	getListTitle
+} from './List';
 import { Signer } from './Signer';
 
 describe('list', () => {
@@ -103,6 +108,62 @@ describe('createListContentDecrypter', () => {
 
 		await expect(decrypter?.('author', '')).resolves.toEqual([[], false]);
 		expect(nip44.decrypt).not.toHaveBeenCalled();
+	});
+});
+
+describe('createListContentEncrypter', () => {
+	it('encrypts current list content with a NIP-44-only capability', async () => {
+		const nip44 = {
+			encrypt: vi.fn().mockResolvedValue('nip44-content'),
+			decrypt: vi.fn()
+		};
+		const encrypter = createListContentEncrypter({ nip44 });
+		const tags = [['p', 'private']];
+
+		await expect(encrypter('author', tags)).resolves.toBe('nip44-content');
+		expect(nip44.encrypt).toHaveBeenCalledWith('author', JSON.stringify(tags));
+	});
+
+	it('encrypts legacy list content with a NIP-04-only capability', async () => {
+		const nip04 = {
+			encrypt: vi.fn().mockResolvedValue('legacy-content'),
+			decrypt: vi.fn()
+		};
+		const encrypter = createListContentEncrypter({ nip04 });
+		const tags = [['p', 'private']];
+
+		await expect(encrypter('author', tags, true)).resolves.toBe('legacy-content');
+		expect(nip04.encrypt).toHaveBeenCalledWith('author', JSON.stringify(tags));
+	});
+
+	it('returns empty content without encrypting empty tags', async () => {
+		const nip04 = { encrypt: vi.fn(), decrypt: vi.fn() };
+		const nip44 = { encrypt: vi.fn(), decrypt: vi.fn() };
+		const encrypter = createListContentEncrypter({ nip04, nip44 });
+
+		await expect(encrypter('author', [])).resolves.toBe('');
+		expect(nip04.encrypt).not.toHaveBeenCalled();
+		expect(nip44.encrypt).not.toHaveBeenCalled();
+	});
+
+	it('does not fall back to NIP-04 for current list content', async () => {
+		const nip04 = { encrypt: vi.fn(), decrypt: vi.fn() };
+		const encrypter = createListContentEncrypter({ nip04 });
+
+		await expect(encrypter('author', [['p', 'private']])).rejects.toThrow(
+			'NIP-44 encryption capability is unavailable'
+		);
+		expect(nip04.encrypt).not.toHaveBeenCalled();
+	});
+
+	it('does not fall back to NIP-44 for legacy list content', async () => {
+		const nip44 = { encrypt: vi.fn(), decrypt: vi.fn() };
+		const encrypter = createListContentEncrypter({ nip44 });
+
+		await expect(encrypter('author', [['p', 'private']], true)).rejects.toThrow(
+			'NIP-04 encryption capability is unavailable'
+		);
+		expect(nip44.encrypt).not.toHaveBeenCalled();
 	});
 });
 
