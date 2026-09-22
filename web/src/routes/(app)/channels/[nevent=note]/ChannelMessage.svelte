@@ -15,6 +15,8 @@
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import ZapDialog from '$lib/components/ZapDialog.svelte';
 	import type { PickerEmoji } from '$lib/Emoji';
+	import { auth } from '$lib/auth.svelte';
+	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
 		event: Event;
@@ -50,6 +52,17 @@
 			(emoji.shortcodes ? emoji.shortcodes : `:${emoji.id.replaceAll('+', '_')}:`);
 		const url = emoji.native === undefined && emoji.src !== undefined ? emoji.src : undefined;
 		sendReaction(event as Nostr.Event, content, url);
+	}
+
+	async function signEvent(
+		...args: Parameters<Signer['signEvent']>
+	): ReturnType<Signer['signEvent']> {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot sign an event without a signing session');
+		}
+
+		return signer.signEvent(...args);
 	}
 </script>
 
@@ -97,7 +110,7 @@
 				<IconBolt size={20} />
 			</button>
 		</div>
-		<ZapDialog pubkey={event.pubkey} item={eventItem} bind:this={zapDialog} />
+		<ZapDialog pubkey={event.pubkey} item={eventItem} {signEvent} bind:this={zapDialog} />
 	{/if}
 </div>
 
