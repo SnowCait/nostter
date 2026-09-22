@@ -6,7 +6,6 @@ import { metadataStore, seenOnStore } from '$lib/cache/Events';
 import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
-import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
 import {
 	addAcceptedBadgeTags,
@@ -17,6 +16,7 @@ import {
 	selectProfileBadgesEvent
 } from '$lib/ProfileBadgesEvent';
 import { followees, pubkey } from '../stores/Author';
+import type { Signer } from '$lib/nostr/signing/signer';
 
 type DataType = 'accept';
 type Data = {
@@ -62,12 +62,21 @@ function getCachedProfileBadgesEvent(storage: WebStorage): Nostr.Event | undefin
 	);
 }
 
-export async function acceptBadge(a: string, e: string): Promise<void> {
+export async function acceptBadge(
+	signEvent: Signer['signEvent'],
+	a: string,
+	e: string
+): Promise<void> {
 	console.log('[badge accept]', a, e, queue.dump());
-	await save('accept', a, e);
+	await save(signEvent, 'accept', a, e);
 }
 
-async function save(type: DataType, a: string, e: string): Promise<void> {
+async function save(
+	signEvent: Signer['signEvent'],
+	type: DataType,
+	a: string,
+	e: string
+): Promise<void> {
 	const accountPubkey = get(pubkey);
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
@@ -77,12 +86,12 @@ async function save(type: DataType, a: string, e: string): Promise<void> {
 
 	if (!processing) {
 		processing = true;
-		await publish(accountPubkey);
+		await publish(signEvent, accountPubkey);
 		processing = false;
 	}
 }
 
-async function publish(accountPubkey: string): Promise<void> {
+async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
 	const lastEvent = getCachedProfileBadgesEvent(storage);
 	let tags = lastEvent?.tags ?? [];
@@ -117,7 +126,7 @@ async function publish(accountPubkey: string): Promise<void> {
 		return;
 	}
 
-	const event = await Signer.signEvent({
+	const event = await signEvent({
 		kind: profileBadgesKind,
 		content: lastEvent?.content ?? '',
 		tags,
@@ -138,7 +147,7 @@ async function publish(accountPubkey: string): Promise<void> {
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish(accountPubkey);
+		await publish(signEvent, accountPubkey);
 	}
 }
 

@@ -16,6 +16,8 @@
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
+	import { auth } from '$lib/auth.svelte';
+	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
 		item: Item;
@@ -50,11 +52,22 @@
 		jsonDisplay = !jsonDisplay;
 	};
 
+	async function signEvent(
+		...args: Parameters<Signer['signEvent']>
+	): ReturnType<Signer['signEvent']> {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot sign an event without a signing session');
+		}
+
+		return signer.signEvent(...args);
+	}
+
 	function accept(badgeDefinitionEvent: Nostr.Event): void {
 		console.log('[badge accept]', badgeDefinitionEvent, event);
 
 		const a = getEventAddress(badgeDefinitionEvent);
-		acceptBadge(a, event.id);
+		acceptBadge(signEvent, a, event.id);
 	}
 </script>
 
