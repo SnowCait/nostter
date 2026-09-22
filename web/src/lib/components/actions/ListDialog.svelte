@@ -15,7 +15,7 @@
 		processing,
 		removeFromPeopleList
 	} from '$lib/author/PeopleLists';
-	import type { PeopleListMutationCapabilities } from '$lib/author/PeopleLists';
+	import type { PeopleListCapabilities } from '$lib/author/PeopleLists';
 	import { getListTitle } from '$lib/List';
 	import { getEventAddress } from '$lib/nostr/protocol/event-address';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
@@ -24,11 +24,11 @@
 
 	interface Props {
 		pubkey: string;
-		getPeopleListMutationCapabilities: () => PeopleListMutationCapabilities;
+		getPeopleListCapabilities: () => PeopleListCapabilities;
 		open?: boolean;
 	}
 
-	let { pubkey, getPeopleListMutationCapabilities, open = $bindable(false) }: Props = $props();
+	let { pubkey, getPeopleListCapabilities, open = $bindable(false) }: Props = $props();
 
 	let lists = $derived([...$peopleLists].map(([, event]) => event));
 
@@ -77,7 +77,7 @@
 					return;
 				}
 
-				const capabilities = getPeopleListMutationCapabilities();
+				const capabilities = getPeopleListCapabilities();
 				clearListTimelineIfActive(event);
 
 				if (add) {
@@ -102,7 +102,7 @@
 		}
 
 		console.log('[people list create]', title);
-		const capabilities = getPeopleListMutationCapabilities();
+		const capabilities = getPeopleListCapabilities();
 		await createPeopleList(capabilities.signEvent, title, pubkey);
 		title = '';
 	}
@@ -116,7 +116,7 @@
 				{#each lists as list}
 					<tr>
 						<td>{getListTitle(list.tags)}</td>
-						{#await contains(pubkey, list)}
+						{#await contains(getPeopleListCapabilities, pubkey, list)}
 							<td><input type="checkbox" checked={false} disabled /></td>
 						{:then contained}
 							<td>
