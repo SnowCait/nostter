@@ -66,7 +66,7 @@
 	): ReturnType<Signer['signEvent']> {
 		const signer = auth.signer;
 		if (signer === undefined) {
-			throw new Error('Cannot update people lists without a signing session');
+			throw new Error('Cannot sign an event without a signing session');
 		}
 
 		return signer.signEvent(...args);
@@ -125,7 +125,7 @@
 		console.log('[mute reposts]', pubkey);
 
 		try {
-			await Promise.allSettled([6, 16].map((kind) => muteByKind(kind, pubkey)));
+			await Promise.allSettled([6, 16].map((kind) => muteByKind(signEvent, kind, pubkey)));
 		} catch (error) {
 			console.error('[mute reposts failed]', error);
 			alert('Failed to mute reposts.');
@@ -136,7 +136,7 @@
 		console.log('[unmute reposts]', pubkey);
 
 		try {
-			await Promise.allSettled([6, 16].map((kind) => unmuteByKind(kind, pubkey)));
+			await Promise.allSettled([6, 16].map((kind) => unmuteByKind(signEvent, kind, pubkey)));
 		} catch (error) {
 			console.error('[unmute reposts failed]', error);
 			alert('Failed to unmute reposts.');
@@ -147,7 +147,7 @@
 		console.log('[mute reactions]', pubkey);
 
 		try {
-			await muteByKind(7, pubkey);
+			await muteByKind(signEvent, 7, pubkey);
 		} catch (error) {
 			console.error('[mute reactions failed]', error);
 			alert('Failed to mute reactions.');
@@ -158,7 +158,7 @@
 		console.log('[unmute reactions]', pubkey);
 
 		try {
-			await unmuteByKind(7, pubkey);
+			await unmuteByKind(signEvent, 7, pubkey);
 		} catch (error) {
 			console.error('[unmute reactions failed]', error);
 			alert('Failed to unmute reactions.');
@@ -169,7 +169,7 @@
 		console.log('[mute zaps]', pubkey);
 
 		try {
-			await muteByKind(9735, pubkey);
+			await muteByKind(signEvent, 9735, pubkey);
 		} catch (error) {
 			console.error('[mute zaps failed]', error);
 			alert('Failed to mute zaps.');
@@ -180,7 +180,7 @@
 		console.log('[unmute zaps]', pubkey);
 
 		try {
-			await unmuteByKind(9735, pubkey);
+			await unmuteByKind(signEvent, 9735, pubkey);
 		} catch (error) {
 			console.error('[unmute zaps failed]', error);
 			alert('Failed to unmute zaps.');
