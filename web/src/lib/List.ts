@@ -15,6 +15,12 @@ export type ListContentDecrypter = (
 	content: string
 ) => Promise<[tags: string[][], legacy: boolean]>;
 
+export type ListContentEncrypter = (
+	pubkey: string,
+	tags: string[][],
+	legacy?: boolean
+) => Promise<string>;
+
 export function createListContentDecrypter({
 	nip04,
 	nip44
@@ -41,6 +47,24 @@ export function createListContentDecrypter({
 			console.warn('[list parse error]', error);
 			return [[], legacy];
 		}
+	};
+}
+
+export function createListContentEncrypter({
+	nip04,
+	nip44
+}: EncryptionCapabilities): ListContentEncrypter {
+	return async (pubkey, tags, legacy = false) => {
+		if (tags.length === 0) {
+			return '';
+		}
+
+		const encryption = legacy ? nip04 : nip44;
+		if (encryption === undefined) {
+			throw new Error(`NIP-${legacy ? '04' : '44'} encryption capability is unavailable`);
+		}
+
+		return encryption.encrypt(pubkey, JSON.stringify(tags));
 	};
 }
 
@@ -106,7 +130,6 @@ export async function encryptListContent(
 		return '';
 	}
 
-	return legacy
-		? Signer.encrypt(pubkey, JSON.stringify(tags))
-		: Signer.encryptNip44(pubkey, JSON.stringify(tags));
+	const encrypter = createListContentEncrypter(Signer.getEncryptionCapabilities());
+	return encrypter(pubkey, tags, legacy);
 }
