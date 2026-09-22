@@ -74,7 +74,7 @@
 		console.log('[follow]');
 
 		try {
-			await follow([pubkey]);
+			await follow(signEvent, [pubkey]);
 		} catch (error) {
 			console.error('[follow failed]', error);
 			alert('Failed to follow.');
@@ -90,7 +90,7 @@
 		}
 
 		try {
-			await unfollow([pubkey]);
+			await unfollow(signEvent, [pubkey]);
 		} catch (error) {
 			console.error('[unfollow failed]', error);
 			alert('Failed to unfollow.');
