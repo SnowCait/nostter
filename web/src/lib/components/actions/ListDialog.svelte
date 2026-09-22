@@ -19,14 +19,16 @@
 	import { getEventAddress } from '$lib/nostr/protocol/event-address';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { clearListTimelineIfActive } from '$lib/timelines/ListTimeline';
+	import type { Signer } from '$lib/nostr/signing/signer';
 	import ModalDialog from '../ModalDialog.svelte';
 
 	interface Props {
 		pubkey: string;
+		signEvent: Signer['signEvent'];
 		open?: boolean;
 	}
 
-	let { pubkey, open = $bindable(false) }: Props = $props();
+	let { pubkey, signEvent, open = $bindable(false) }: Props = $props();
 
 	let lists = $derived([...$peopleLists].map(([, event]) => event));
 
@@ -78,9 +80,9 @@
 				clearListTimelineIfActive(event);
 
 				if (add) {
-					await addToPeopleList(event, pubkey);
+					await addToPeopleList(signEvent, event, pubkey);
 				} else {
-					await removeFromPeopleList(event, pubkey);
+					await removeFromPeopleList(signEvent, event, pubkey);
 				}
 			})
 		);
@@ -99,7 +101,7 @@
 		}
 
 		console.log('[people list create]', title);
-		await createPeopleList(title, pubkey);
+		await createPeopleList(signEvent, title, pubkey);
 		title = '';
 	}
 </script>
