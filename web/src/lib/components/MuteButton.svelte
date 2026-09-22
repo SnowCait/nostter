@@ -9,6 +9,8 @@
 		muteWords
 	} from '$lib/stores/Author';
 	import { mute, unmute } from '$lib/author/Mute';
+	import { auth } from '$lib/auth.svelte';
+	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
 		tagName: 'p' | 'e' | 'word';
@@ -19,6 +21,15 @@
 	let { tagName, tagContent, text = undefined }: Props = $props();
 
 	let executing = $state(false);
+
+	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot sign an event without a signing session');
+		}
+
+		return signer.signEvent(template);
+	}
 
 	const texts = {
 		p: 'user',
@@ -43,7 +54,7 @@
 		executing = true;
 
 		try {
-			await mute(tagName, tagContent);
+			await mute(signEvent, tagName, tagContent);
 		} catch (error) {
 			console.error('[mute failed]', error);
 			alert('Failed to mute.');
@@ -63,7 +74,7 @@
 		executing = true;
 
 		try {
-			await unmute(tagName, tagContent);
+			await unmute(signEvent, tagName, tagContent);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert('Failed to unmute.');

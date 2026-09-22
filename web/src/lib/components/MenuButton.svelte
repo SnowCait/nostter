@@ -176,7 +176,7 @@
 		console.debug('[mute pubkey]', event.pubkey);
 
 		try {
-			await mute('p', event.pubkey);
+			await mute(signEvent, 'p', event.pubkey);
 		} catch (error) {
 			console.error('[mute failed]', error);
 			alert($_('actions.mute.failed'));
@@ -187,7 +187,7 @@
 		console.debug('[unmute pubkey]', event.pubkey);
 
 		try {
-			await unmute('p', event.pubkey);
+			await unmute(signEvent, 'p', event.pubkey);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert($_('actions.unmute.failed'));
@@ -198,7 +198,7 @@
 		console.debug('[mute thread]', rootId);
 
 		try {
-			await mute('e', rootId);
+			await mute(signEvent, 'e', rootId);
 		} catch (error) {
 			console.error('[mute failed]', error);
 			alert($_('actions.mute.failed'));
@@ -209,7 +209,7 @@
 		console.debug('[unmute thread]', rootId);
 
 		try {
-			await unmute('e', rootId);
+			await unmute(signEvent, 'e', rootId);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert($_('actions.unmute.failed'));

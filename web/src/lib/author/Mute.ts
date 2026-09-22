@@ -6,9 +6,9 @@ import { pubkey, storeMutedTags } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
-import { Signer } from '$lib/Signer';
 import { WebStorage } from '$lib/WebStorage';
 import { decryptListContent, encryptListContent } from '$lib/List';
+import type { Signer } from '$lib/nostr/signing/signer';
 
 type DataType = 'mute' | 'unmute';
 type Data = {
@@ -22,17 +22,30 @@ const queue = new Queue<Data>();
 
 let processing = false;
 
-export async function mute(tagName: string, tagContent: string): Promise<void> {
+export async function mute(
+	signEvent: Signer['signEvent'],
+	tagName: string,
+	tagContent: string
+): Promise<void> {
 	console.log('[mute]', tagName, tagContent, queue.dump());
-	await save('mute', tagName, tagContent);
+	await save(signEvent, 'mute', tagName, tagContent);
 }
 
-export async function unmute(tagName: string, tagContent: string): Promise<void> {
+export async function unmute(
+	signEvent: Signer['signEvent'],
+	tagName: string,
+	tagContent: string
+): Promise<void> {
 	console.log('[unmute]', tagName, tagContent, queue.dump());
-	await save('unmute', tagName, tagContent);
+	await save(signEvent, 'unmute', tagName, tagContent);
 }
 
-async function save(type: DataType, tagName: string, tagContent: string): Promise<void> {
+async function save(
+	signEvent: Signer['signEvent'],
+	type: DataType,
+	tagName: string,
+	tagContent: string
+): Promise<void> {
 	const accountPubkey = get(pubkey);
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
@@ -46,12 +59,12 @@ async function save(type: DataType, tagName: string, tagContent: string): Promis
 
 	if (!processing) {
 		processing = true;
-		await publish(accountPubkey);
+		await publish(signEvent, accountPubkey);
 		processing = false;
 	}
 }
 
-async function publish(accountPubkey: string): Promise<void> {
+async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
 	const lastEvent = storage.getReplaceableEvent(kind);
 	let tags = lastEvent?.tags.concat() ?? [];
@@ -118,7 +131,7 @@ async function publish(accountPubkey: string): Promise<void> {
 		throw new Error('Cache is outdated.');
 	}
 
-	const event = await Signer.signEvent({
+	const event = await signEvent({
 		kind,
 		content: await encryptListContent(accountPubkey, privateTags, legacy),
 		tags,
@@ -128,7 +141,7 @@ async function publish(accountPubkey: string): Promise<void> {
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish(accountPubkey);
+		await publish(signEvent, accountPubkey);
 	}
 }
 

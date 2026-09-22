@@ -101,7 +101,7 @@
 		console.log('[mute pubkey]');
 
 		try {
-			await mute('p', pubkey);
+			await mute(signEvent, 'p', pubkey);
 		} catch (error) {
 			console.error('[mute failed]', error);
 			alert($_('actions.mute.failed'));
@@ -112,7 +112,7 @@
 		console.log('[unmute pubkey]');
 
 		try {
-			await unmute('p', pubkey);
+			await unmute(signEvent, 'p', pubkey);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert($_('actions.unmute.failed'));
