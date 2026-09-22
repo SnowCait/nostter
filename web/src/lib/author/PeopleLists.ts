@@ -12,9 +12,11 @@ import {
 	createListContentEncrypter,
 	decryptListContent
 } from '$lib/List';
-import type { EncryptionCapabilities, Signer } from '$lib/nostr/signing/signer';
+import type { Signer } from '$lib/nostr/signing/signer';
 
 const kind = 30000;
+
+export type PeopleListMutationCapabilities = Pick<Signer, 'signEvent' | 'nip04' | 'nip44'>;
 
 export const peopleLists = writable(new Map<string, Nostr.Event>());
 export const processing = writable(false);
@@ -151,8 +153,7 @@ export async function addToPeopleList(
 }
 
 export async function removeFromPeopleList(
-	signEvent: Signer['signEvent'],
-	encryptionCapabilities: EncryptionCapabilities,
+	capabilities: PeopleListMutationCapabilities,
 	event: Nostr.Event,
 	pubkey: string
 ): Promise<void> {
@@ -167,20 +168,20 @@ export async function removeFromPeopleList(
 
 	let content = event.content;
 	if (content !== '') {
-		const decrypter = createListContentDecrypter(encryptionCapabilities);
+		const decrypter = createListContentDecrypter(capabilities);
 		if (decrypter !== undefined) {
 			const [privateTags, legacy] = await decrypter(event.pubkey, event.content);
 			if (privateTags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
 				const tags = privateTags.filter(
 					([tagName, p]) => !(tagName === 'p' && p === pubkey)
 				);
-				const encrypter = createListContentEncrypter(encryptionCapabilities);
+				const encrypter = createListContentEncrypter(capabilities);
 				content = await encrypter(accountPubkey, tags, legacy);
 			}
 		}
 	}
 
-	const newEvent = await signEvent({
+	const newEvent = await capabilities.signEvent({
 		kind: event.kind,
 		pubkey: event.pubkey,
 		content,
