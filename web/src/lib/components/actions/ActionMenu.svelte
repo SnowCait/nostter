@@ -77,7 +77,7 @@
 		return signer.signEvent(template);
 	}
 
-	function getMenuButtonCapabilities() {
+	function getMenuButtonCapabilities(): Pick<Signer, 'signEvent' | 'nip04' | 'nip44'> {
 		const signer = auth.signer;
 		if (signer === undefined) {
 			throw new Error('Cannot access menu capabilities without a signing session');
