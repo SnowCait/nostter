@@ -41,7 +41,7 @@
 	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
 		const signer = auth.signer;
 		if (signer === undefined) {
-			throw new Error('Cannot restore a backup without a signing session');
+			throw new Error('Cannot sign an event without a signing session');
 		}
 
 		return signer.signEvent(template);
@@ -61,7 +61,7 @@
 		<div>
 			<a href="/profile">{$_('pages.profile_edit')}</a>
 		</div>
-		<div><ReactionEmoji /></div>
+		<div><ReactionEmoji {signEvent} /></div>
 		<div>
 			<ExternalLink link={new URL(emojiEditorUrl)}>
 				{$_('preferences.emoji.custom')}
