@@ -8,7 +8,7 @@
 	import type { PeopleListCapabilities } from '$lib/author/PeopleLists';
 	import { follow, unfollow } from '$lib/author/Follow';
 	import { mute, unmute } from '$lib/author/Mute';
-	import { muteByKind, unmuteByKind } from '$lib/author/MuteKind';
+	import { muteByKind, unmuteByKind, type MuteKindCapabilities } from '$lib/author/MuteKind';
 	import { metadataStore } from '$lib/cache/Events';
 	import {
 		pubkey as authorPubkey,
@@ -84,6 +84,19 @@
 		};
 	}
 
+	function getMuteKindCapabilities(): MuteKindCapabilities {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot access mute kind capabilities without a signing session');
+		}
+
+		return {
+			signEvent: (template) => signer.signEvent(template),
+			nip04: signer.nip04,
+			nip44: signer.nip44
+		};
+	}
+
 	async function onFollow(): Promise<void> {
 		console.log('[follow]');
 
@@ -137,7 +150,8 @@
 		console.log('[mute reposts]', pubkey);
 
 		try {
-			await Promise.allSettled([6, 16].map((kind) => muteByKind(signEvent, kind, pubkey)));
+			const capabilities = getMuteKindCapabilities();
+			await Promise.allSettled([6, 16].map((kind) => muteByKind(capabilities, kind, pubkey)));
 		} catch (error) {
 			console.error('[mute reposts failed]', error);
 			alert('Failed to mute reposts.');
@@ -148,7 +162,10 @@
 		console.log('[unmute reposts]', pubkey);
 
 		try {
-			await Promise.allSettled([6, 16].map((kind) => unmuteByKind(signEvent, kind, pubkey)));
+			const capabilities = getMuteKindCapabilities();
+			await Promise.allSettled(
+				[6, 16].map((kind) => unmuteByKind(capabilities, kind, pubkey))
+			);
 		} catch (error) {
 			console.error('[unmute reposts failed]', error);
 			alert('Failed to unmute reposts.');
@@ -159,7 +176,8 @@
 		console.log('[mute reactions]', pubkey);
 
 		try {
-			await muteByKind(signEvent, 7, pubkey);
+			const capabilities = getMuteKindCapabilities();
+			await muteByKind(capabilities, 7, pubkey);
 		} catch (error) {
 			console.error('[mute reactions failed]', error);
 			alert('Failed to mute reactions.');
@@ -170,7 +188,8 @@
 		console.log('[unmute reactions]', pubkey);
 
 		try {
-			await unmuteByKind(signEvent, 7, pubkey);
+			const capabilities = getMuteKindCapabilities();
+			await unmuteByKind(capabilities, 7, pubkey);
 		} catch (error) {
 			console.error('[unmute reactions failed]', error);
 			alert('Failed to unmute reactions.');
@@ -181,7 +200,8 @@
 		console.log('[mute zaps]', pubkey);
 
 		try {
-			await muteByKind(signEvent, 9735, pubkey);
+			const capabilities = getMuteKindCapabilities();
+			await muteByKind(capabilities, 9735, pubkey);
 		} catch (error) {
 			console.error('[mute zaps failed]', error);
 			alert('Failed to mute zaps.');
@@ -192,7 +212,8 @@
 		console.log('[unmute zaps]', pubkey);
 
 		try {
-			await unmuteByKind(signEvent, 9735, pubkey);
+			const capabilities = getMuteKindCapabilities();
+			await unmuteByKind(capabilities, 9735, pubkey);
 		} catch (error) {
 			console.error('[unmute zaps failed]', error);
 			alert('Failed to unmute zaps.');

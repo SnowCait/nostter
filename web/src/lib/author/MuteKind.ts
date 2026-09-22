@@ -7,7 +7,8 @@ import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
-import { decryptListContent, encryptListContent } from '$lib/List';
+import { createListContentDecrypter, createListContentEncrypter } from '$lib/List';
+import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
 import type { Signer } from '$lib/nostr/signing/signer';
 
 type DataType = 'mute' | 'unmute';
@@ -27,26 +28,28 @@ const queues = new Map([
 
 let processing = false;
 
+export type MuteKindCapabilities = Pick<Signer, 'signEvent' | 'nip04' | 'nip44'>;
+
 export async function muteByKind(
-	signEvent: Signer['signEvent'],
+	capabilities: MuteKindCapabilities,
 	muteKind: number,
 	pubkey: string
 ): Promise<void> {
 	console.debug('[mute kind]', muteKind, pubkey, queues.get(muteKind)?.dump());
-	await save(signEvent, 'mute', muteKind, pubkey);
+	await save(capabilities, 'mute', muteKind, pubkey);
 }
 
 export async function unmuteByKind(
-	signEvent: Signer['signEvent'],
+	capabilities: MuteKindCapabilities,
 	muteKind: number,
 	pubkey: string
 ): Promise<void> {
 	console.debug('[unmute kind]', muteKind, pubkey, queues.get(muteKind)?.dump());
-	await save(signEvent, 'unmute', muteKind, pubkey);
+	await save(capabilities, 'unmute', muteKind, pubkey);
 }
 
 async function save(
-	signEvent: Signer['signEvent'],
+	capabilities: MuteKindCapabilities,
 	type: DataType,
 	muteKind: number,
 	targetPubkey: string
@@ -70,13 +73,13 @@ async function save(
 
 	if (!processing) {
 		processing = true;
-		await publish(signEvent, muteKind, accountPubkey);
+		await publish(capabilities, muteKind, accountPubkey);
 		processing = false;
 	}
 }
 
 async function publish(
-	signEvent: Signer['signEvent'],
+	capabilities: MuteKindCapabilities,
 	muteKind: number,
 	accountPubkey: string
 ): Promise<void> {
@@ -90,9 +93,10 @@ async function publish(
 	const lastEvent = storage.getParameterizedReplaceableEvent(kind, `${muteKind}`);
 	let tags = lastEvent?.tags.concat() ?? [['d', `${muteKind}`]];
 	let privateTags: string[][] = [];
-	let legacy = false;
-	if (lastEvent !== undefined) {
-		const [_privateTags, _legacy] = await decryptListContent(
+	let legacy = lastEvent === undefined ? false : isLegacyEncryption(lastEvent.content);
+	const decryptPrivateListContent = createListContentDecrypter(capabilities);
+	if (lastEvent !== undefined && decryptPrivateListContent !== undefined) {
+		const [_privateTags, _legacy] = await decryptPrivateListContent(
 			lastEvent.pubkey,
 			lastEvent.content
 		);
@@ -138,18 +142,19 @@ async function publish(
 		throw new Error('Cache is outdated.');
 	}
 
-	const event = await signEvent({
+	const encryptPrivateListContent = createListContentEncrypter(capabilities);
+	const event = await capabilities.signEvent({
 		kind,
-		content: await encryptListContent(accountPubkey, privateTags, legacy),
+		content: await encryptPrivateListContent(accountPubkey, privateTags, legacy),
 		tags,
 		created_at: now()
 	});
 	storage.setParameterizedReplaceableEvent(event, accountPubkey);
-	storeMutedPubkeysByKind([event], decryptListContent);
+	storeMutedPubkeysByKind([event], decryptPrivateListContent);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish(signEvent, muteKind, accountPubkey);
+		await publish(capabilities, muteKind, accountPubkey);
 	}
 }
 
