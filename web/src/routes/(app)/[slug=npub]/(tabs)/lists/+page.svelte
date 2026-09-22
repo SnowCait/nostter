@@ -9,12 +9,12 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { getSeenOnRelays, metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { appName } from '$lib/app';
+	import { auth } from '$lib/auth.svelte';
 	import { reverseChronologicalItem } from '$lib/Constants';
 	import { filterTags } from '$lib/EventHelper';
 	import { findIdentifier } from '$lib/nostr/protocol/event-address';
-	import { decryptListContent, getListTitle } from '$lib/List';
+	import { createListContentDecrypter, getListTitle } from '$lib/List';
 	import type { LayoutProps } from '../$types';
-	import { pubkey } from '$lib/stores/Author';
 	import Loading from '$lib/components/Loading.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { page } from '$app/state';
@@ -45,6 +45,11 @@
 		loading = true;
 		metadataReqEmit([data.pubkey]);
 
+		const accountPubkey = auth.pubkey;
+		const signer = auth.signer;
+		const decryptPrivateListContent =
+			signer === undefined ? undefined : createListContentDecrypter(signer);
+
 		const req = createRxBackwardReq();
 		subscription = rxNostr
 			.use(req)
@@ -60,7 +65,7 @@
 						event.tags.some(
 							([tagName, pubkey]) => tagName === 'p' && pubkey !== undefined
 						) ||
-						(event.pubkey === $pubkey && event.content !== '')
+						(event.pubkey === accountPubkey && event.content !== '')
 					);
 				})
 			)
@@ -69,8 +74,10 @@
 					console.debug('[lists event]', event);
 
 					const [privateTags] =
-						event.pubkey === $pubkey && event.content !== ''
-							? await decryptListContent(event.pubkey, event.content)
+						event.pubkey === accountPubkey &&
+						event.content !== '' &&
+						decryptPrivateListContent !== undefined
+							? await decryptPrivateListContent(event.pubkey, event.content)
 							: [[] as string[][]];
 
 					const pubkeys = new Set([
