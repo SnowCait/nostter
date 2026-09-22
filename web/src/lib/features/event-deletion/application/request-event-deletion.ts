@@ -4,10 +4,11 @@ import { isAddressableKind, isReplaceableKind } from 'nostr-tools/kinds';
 import type * as Nostr from 'nostr-typedef';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr } from '$lib/nostr/relay/client';
-import { Signer } from '$lib/Signer';
 import { getEventAddress } from '$lib/nostr/protocol/event-address';
+import type { Signer } from '$lib/nostr/signing/signer';
 
 export async function requestEventDeletion(
+	signEvent: Signer['signEvent'],
 	events: readonly Nostr.Event[],
 	reason = ''
 ): Promise<void> {
@@ -32,7 +33,7 @@ export async function requestEventDeletion(
 		targetTags.set(`${tag[0]}:${tag[1]}`, tag);
 	}
 
-	const event = await Signer.signEvent({
+	const event = await signEvent({
 		kind: 5,
 		pubkey: accountPubkey,
 		content: reason,

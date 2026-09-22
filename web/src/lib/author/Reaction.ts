@@ -7,6 +7,7 @@ import { requestEventDeletion } from '../features/event-deletion/application/req
 import { sortEvents } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { findCustomEmojiSetAddress } from './CustomEmojis';
+import type { Signer as SigningSigner } from '$lib/nostr/signing/signer';
 
 export async function sendReaction(
 	target: Nostr.Event,
@@ -41,7 +42,7 @@ export async function sendReaction(
 	updateReactionedEvents([event]);
 }
 
-export function deleteReaction(target: Nostr.Event): void {
+export function deleteReaction(signEvent: SigningSigner['signEvent'], target: Nostr.Event): void {
 	const $reactionedEvents = get(reactionedEvents);
 	const events = $reactionedEvents.get(target.id);
 	if (events === undefined || events.length === 0) {
@@ -49,7 +50,7 @@ export function deleteReaction(target: Nostr.Event): void {
 	}
 
 	const sortedEvents = sortEvents(events);
-	void requestEventDeletion(sortedEvents.slice(0, 1)).catch(() => {});
+	void requestEventDeletion(signEvent, sortedEvents.slice(0, 1)).catch(() => {});
 	$reactionedEvents.set(target.id, sortedEvents.slice(1));
 	reactionedEvents.set($reactionedEvents);
 }

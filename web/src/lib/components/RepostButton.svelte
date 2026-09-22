@@ -62,7 +62,7 @@
 			return;
 		}
 
-		undoRepost(event);
+		undoRepost(signEvent, event);
 	}
 
 	function onQuote(): void {

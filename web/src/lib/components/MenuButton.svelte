@@ -37,14 +37,16 @@
 	import { addToast } from './Toaster.svelte';
 	import { get } from 'svelte/store';
 	import { metadataStore } from '$lib/cache/Events';
+	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
 		event: Nostr.Event;
 		iconSize: number;
 		showDetails?: boolean;
+		signEvent: Signer['signEvent'];
 	}
 
-	let { event, iconSize, showDetails = $bindable(false) }: Props = $props();
+	let { event, iconSize, showDetails = $bindable(false), signEvent }: Props = $props();
 
 	const {
 		elements: { menu, item, trigger, overlay, separator }
@@ -135,7 +137,7 @@
 		}
 
 		console.log('[delete]', event);
-		void requestEventDeletion([event]).catch(() => {});
+		void requestEventDeletion(signEvent, [event]).catch(() => {});
 	}
 
 	function onTranslate(): void {

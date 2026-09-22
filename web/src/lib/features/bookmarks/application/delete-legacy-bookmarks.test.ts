@@ -6,6 +6,7 @@ import { legacyBookmarkIdentifier } from '$lib/Constants';
 
 const mocks = vi.hoisted(() => ({
 	userPubkey: 'f'.repeat(64),
+	signEvent: vi.fn(),
 	requestEventDeletion: vi.fn()
 }));
 
@@ -91,10 +92,10 @@ describe('deleteLegacyBookmarks', () => {
 		const acceptance = Promise.withResolvers<void>();
 		mocks.requestEventDeletion.mockReturnValue(acceptance.promise);
 
-		const deletion = deleteLegacyBookmarks();
+		const deletion = deleteLegacyBookmarks(mocks.signEvent);
 		await vi.waitFor(() => expect(mocks.requestEventDeletion).toHaveBeenCalledOnce());
 
-		expect(mocks.requestEventDeletion).toHaveBeenCalledWith([legacyEvent]);
+		expect(mocks.requestEventDeletion).toHaveBeenCalledWith(mocks.signEvent, [legacyEvent]);
 		expect(
 			storage.getParameterizedReplaceableEvent(Kind.Genericlists, legacyBookmarkIdentifier)
 		).toEqual(legacyEvent);
@@ -121,7 +122,7 @@ describe('deleteLegacyBookmarks', () => {
 		legacyBookmarkEvent.set(legacyEvent);
 		mocks.requestEventDeletion.mockRejectedValue(new Error('relay rejected'));
 
-		await expect(deleteLegacyBookmarks()).rejects.toThrow('relay rejected');
+		await expect(deleteLegacyBookmarks(mocks.signEvent)).rejects.toThrow('relay rejected');
 
 		expect(
 			storage.getParameterizedReplaceableEvent(Kind.Genericlists, legacyBookmarkIdentifier)

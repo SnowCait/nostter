@@ -4,8 +4,9 @@ import { WebStorage } from '$lib/WebStorage';
 import { legacyBookmarkEvent } from '$lib/author/Bookmark.svelte';
 import { isLegacyBookmarkEvent } from '$lib/features/bookmarks/domain/bookmark-migration';
 import { requestEventDeletion } from '$lib/features/event-deletion/application/request-event-deletion';
+import type { Signer } from '$lib/nostr/signing/signer';
 
-export async function deleteLegacyBookmarks(): Promise<void> {
+export async function deleteLegacyBookmarks(signEvent: Signer['signEvent']): Promise<void> {
 	const legacyEvent = get(legacyBookmarkEvent);
 	if (legacyEvent === undefined) {
 		throw new Error('Legacy bookmark event not found.');
@@ -14,7 +15,7 @@ export async function deleteLegacyBookmarks(): Promise<void> {
 		throw new Error('Invalid legacy bookmark event.');
 	}
 
-	await requestEventDeletion([legacyEvent]);
+	await requestEventDeletion(signEvent, [legacyEvent]);
 
 	const storage = new WebStorage(localStorage);
 	storage.removeParameterizedReplaceableEvent(legacyEvent.kind, legacyBookmarkIdentifier);
