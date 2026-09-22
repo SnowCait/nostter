@@ -2,16 +2,16 @@
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { unmute } from '$lib/author/Mute';
-	import type { Signer } from '$lib/nostr/signing/signer';
+	import type { MuteCapabilities } from '$lib/author/Mute';
 	import { muteEventIds } from '$lib/stores/Author';
 	import IconTrash from '@tabler/icons-svelte-runes/icons/trash';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 
 	interface Props {
-		signEvent: Signer['signEvent'];
+		getMuteCapabilities: () => MuteCapabilities;
 	}
 
-	let { signEvent }: Props = $props();
+	let { getMuteCapabilities }: Props = $props();
 
 	let unmuting = $state(false);
 
@@ -21,7 +21,8 @@
 		unmuting = true;
 
 		try {
-			await unmute(signEvent, 'e', eventId);
+			const capabilities = getMuteCapabilities();
+			await unmute(capabilities, 'e', eventId);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert('Failed to unmute.');

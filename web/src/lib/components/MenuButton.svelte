@@ -38,15 +38,23 @@
 	import { get } from 'svelte/store';
 	import { metadataStore } from '$lib/cache/Events';
 	import type { Signer } from '$lib/nostr/signing/signer';
+	import type { MuteCapabilities } from '$lib/author/Mute';
 
 	interface Props {
 		event: Nostr.Event;
 		iconSize: number;
 		showDetails?: boolean;
 		signEvent: Signer['signEvent'];
+		getMuteCapabilities: () => MuteCapabilities;
 	}
 
-	let { event, iconSize, showDetails = $bindable(false), signEvent }: Props = $props();
+	let {
+		event,
+		iconSize,
+		showDetails = $bindable(false),
+		signEvent,
+		getMuteCapabilities
+	}: Props = $props();
 
 	const {
 		elements: { menu, item, trigger, overlay, separator }
@@ -176,7 +184,8 @@
 		console.debug('[mute pubkey]', event.pubkey);
 
 		try {
-			await mute(signEvent, 'p', event.pubkey);
+			const capabilities = getMuteCapabilities();
+			await mute(capabilities, 'p', event.pubkey);
 		} catch (error) {
 			console.error('[mute failed]', error);
 			alert($_('actions.mute.failed'));
@@ -187,7 +196,8 @@
 		console.debug('[unmute pubkey]', event.pubkey);
 
 		try {
-			await unmute(signEvent, 'p', event.pubkey);
+			const capabilities = getMuteCapabilities();
+			await unmute(capabilities, 'p', event.pubkey);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert($_('actions.unmute.failed'));
@@ -198,7 +208,8 @@
 		console.debug('[mute thread]', rootId);
 
 		try {
-			await mute(signEvent, 'e', rootId);
+			const capabilities = getMuteCapabilities();
+			await mute(capabilities, 'e', rootId);
 		} catch (error) {
 			console.error('[mute failed]', error);
 			alert($_('actions.mute.failed'));
@@ -209,7 +220,8 @@
 		console.debug('[unmute thread]', rootId);
 
 		try {
-			await unmute(signEvent, 'e', rootId);
+			const capabilities = getMuteCapabilities();
+			await unmute(capabilities, 'e', rootId);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert($_('actions.unmute.failed'));

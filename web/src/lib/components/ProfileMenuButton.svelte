@@ -7,7 +7,7 @@
 	import type { Signer } from '$lib/nostr/signing/signer';
 	import type { PeopleListCapabilities } from '$lib/author/PeopleLists';
 	import { follow, unfollow } from '$lib/author/Follow';
-	import { mute, unmute } from '$lib/author/Mute';
+	import { mute, unmute, type MuteCapabilities } from '$lib/author/Mute';
 	import { muteByKind, unmuteByKind, type MuteKindCapabilities } from '$lib/author/MuteKind';
 	import { metadataStore } from '$lib/cache/Events';
 	import {
@@ -97,6 +97,19 @@
 		};
 	}
 
+	function getMuteCapabilities(): MuteCapabilities {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot access mute capabilities without a signing session');
+		}
+
+		return {
+			signEvent: (template) => signer.signEvent(template),
+			nip04: signer.nip04,
+			nip44: signer.nip44
+		};
+	}
+
 	async function onFollow(): Promise<void> {
 		console.log('[follow]');
 
@@ -128,7 +141,8 @@
 		console.log('[mute pubkey]');
 
 		try {
-			await mute(signEvent, 'p', pubkey);
+			const capabilities = getMuteCapabilities();
+			await mute(capabilities, 'p', pubkey);
 		} catch (error) {
 			console.error('[mute failed]', error);
 			alert($_('actions.mute.failed'));
@@ -139,7 +153,8 @@
 		console.log('[unmute pubkey]');
 
 		try {
-			await unmute(signEvent, 'p', pubkey);
+			const capabilities = getMuteCapabilities();
+			await unmute(capabilities, 'p', pubkey);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert($_('actions.unmute.failed'));

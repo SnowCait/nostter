@@ -8,9 +8,8 @@
 		muteEventIds,
 		muteWords
 	} from '$lib/stores/Author';
-	import { mute, unmute } from '$lib/author/Mute';
+	import { mute, unmute, type MuteCapabilities } from '$lib/author/Mute';
 	import { auth } from '$lib/auth.svelte';
-	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
 		tagName: 'p' | 'e' | 'word';
@@ -22,13 +21,17 @@
 
 	let executing = $state(false);
 
-	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
+	function getMuteCapabilities(): MuteCapabilities {
 		const signer = auth.signer;
 		if (signer === undefined) {
-			throw new Error('Cannot sign an event without a signing session');
+			throw new Error('Cannot access mute capabilities without a signing session');
 		}
 
-		return signer.signEvent(template);
+		return {
+			signEvent: (template) => signer.signEvent(template),
+			nip04: signer.nip04,
+			nip44: signer.nip44
+		};
 	}
 
 	const texts = {
@@ -54,7 +57,8 @@
 		executing = true;
 
 		try {
-			await mute(signEvent, tagName, tagContent);
+			const capabilities = getMuteCapabilities();
+			await mute(capabilities, tagName, tagContent);
 		} catch (error) {
 			console.error('[mute failed]', error);
 			alert('Failed to mute.');
@@ -74,7 +78,8 @@
 		executing = true;
 
 		try {
-			await unmute(signEvent, tagName, tagContent);
+			const capabilities = getMuteCapabilities();
+			await unmute(capabilities, tagName, tagContent);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert('Failed to unmute.');

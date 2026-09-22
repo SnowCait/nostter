@@ -17,8 +17,7 @@
 	import { author, muteEventIds } from '$lib/stores/Author';
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { auth } from '$lib/auth.svelte';
-	import { mute, unmute } from '$lib/author/Mute';
-	import type { Signer } from '$lib/nostr/signing/signer';
+	import { mute, unmute, type MuteCapabilities } from '$lib/author/Mute';
 	import { shareUrl } from '$lib/platform/browser/share';
 	import { copy } from '$lib/platform/browser/clipboard';
 	import Content from '$lib/components/Content.svelte';
@@ -62,13 +61,17 @@
 		}
 	}
 
-	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
+	function getMuteCapabilities(): MuteCapabilities {
 		const signer = auth.signer;
 		if (signer === undefined) {
-			throw new Error('Cannot sign an event without a signing session');
+			throw new Error('Cannot access mute capabilities without a signing session');
 		}
 
-		return signer.signEvent(template);
+		return {
+			signEvent: (template) => signer.signEvent(template),
+			nip04: signer.nip04,
+			nip44: signer.nip44
+		};
 	}
 
 	async function pin(): Promise<void> {
@@ -165,7 +168,7 @@
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div
 						use:melt={$item}
-						onclick={() => unmute(signEvent, 'e', channelId)}
+						onclick={() => unmute(getMuteCapabilities(), 'e', channelId)}
 						class="item undo"
 					>
 						<div class="icon"><IconVolumeOff size={18} /></div>
@@ -176,7 +179,7 @@
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div
 						use:melt={$item}
-						onclick={() => mute(signEvent, 'e', channelId)}
+						onclick={() => mute(getMuteCapabilities(), 'e', channelId)}
 						class="item"
 					>
 						<div class="icon"><IconVolumeOff size={18} /></div>

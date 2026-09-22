@@ -20,6 +20,7 @@
 	import CodePoints from './CodePoints.svelte';
 	import type { PickerEmoji } from '$lib/Emoji';
 	import type { Signer } from '$lib/nostr/signing/signer';
+	import type { MuteCapabilities } from '$lib/author/Mute';
 
 	interface Props {
 		item: EventItem;
@@ -76,6 +77,19 @@
 
 		return signer.signEvent(template);
 	}
+
+	function getMuteCapabilities(): MuteCapabilities {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot access mute capabilities without a signing session');
+		}
+
+		return {
+			signEvent: (template) => signer.signEvent(template),
+			nip04: signer.nip04,
+			nip44: signer.nip44
+		};
+	}
 </script>
 
 <div class="action-menu">
@@ -95,7 +109,13 @@
 	>
 		<IconBolt size={iconSize} />
 	</button>
-	<MenuButton event={item.event} {iconSize} {signEvent} bind:showDetails={jsonDisplay} />
+	<MenuButton
+		event={item.event}
+		{iconSize}
+		{signEvent}
+		{getMuteCapabilities}
+		bind:showDetails={jsonDisplay}
+	/>
 </div>
 <ZapDialog
 	pubkey={item.event.pubkey}

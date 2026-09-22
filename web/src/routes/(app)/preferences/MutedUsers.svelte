@@ -3,17 +3,17 @@
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { unmute } from '$lib/author/Mute';
-	import type { Signer } from '$lib/nostr/signing/signer';
+	import type { MuteCapabilities } from '$lib/author/Mute';
 	import { mutePubkeys } from '$lib/stores/Author';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import IconTrash from '@tabler/icons-svelte-runes/icons/trash';
 	import OnelineProfile from '$lib/components/profile/OnelineProfile.svelte';
 
 	interface Props {
-		signEvent: Signer['signEvent'];
+		getMuteCapabilities: () => MuteCapabilities;
 	}
 
-	let { signEvent }: Props = $props();
+	let { getMuteCapabilities }: Props = $props();
 
 	let unmuting = $state(false);
 
@@ -27,7 +27,8 @@
 		unmuting = true;
 
 		try {
-			await unmute(signEvent, 'p', pubkey);
+			const capabilities = getMuteCapabilities();
+			await unmute(capabilities, 'p', pubkey);
 		} catch (error) {
 			console.error('[unmute failed]', error);
 			alert('Failed to unmute.');
