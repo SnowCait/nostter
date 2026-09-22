@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type * as Nostr from 'nostr-typedef';
 import {
 	createListContentDecrypter,
 	createListContentEncrypter,
 	decryptListContent,
+	getListPubkeys,
 	getListTitle
 } from './List';
 import { Signer } from './Signer';
@@ -18,6 +20,75 @@ describe('list', () => {
 	});
 	it('alt title', () => {
 		expect(getListTitle([['d', 'list1']])).toStrictEqual('list1');
+	});
+});
+
+describe('getListPubkeys', () => {
+	it('returns public tags', async () => {
+		const event = {
+			pubkey: 'author',
+			content: '',
+			tags: [['p', 'public']]
+		} as Nostr.Event;
+
+		await expect(getListPubkeys(event, undefined)).resolves.toEqual(['public']);
+	});
+
+	it('includes private tags for the current account when a decrypter is available', async () => {
+		const event = {
+			pubkey: 'account',
+			content: 'private-content',
+			tags: [['p', 'public']]
+		} as Nostr.Event;
+		const decrypter = vi.fn().mockResolvedValue([[['p', 'private']], false]);
+
+		await expect(getListPubkeys(event, 'account', decrypter)).resolves.toEqual([
+			'public',
+			'private'
+		]);
+		expect(decrypter).toHaveBeenCalledWith('account', 'private-content');
+	});
+
+	it("does not decrypt another account's list", async () => {
+		const event = {
+			pubkey: 'author',
+			content: 'private-content',
+			tags: [['p', 'public']]
+		} as Nostr.Event;
+		const decrypter = vi.fn();
+
+		await expect(getListPubkeys(event, 'account', decrypter)).resolves.toEqual(['public']);
+		expect(decrypter).not.toHaveBeenCalled();
+	});
+
+	it('returns public tags when the current account has no decrypter', async () => {
+		const event = {
+			pubkey: 'account',
+			content: 'private-content',
+			tags: [['p', 'public']]
+		} as Nostr.Event;
+
+		await expect(getListPubkeys(event, 'account')).resolves.toEqual(['public']);
+	});
+
+	it('deduplicates public and private pubkeys', async () => {
+		const event = {
+			pubkey: 'account',
+			content: 'private-content',
+			tags: [['p', 'shared']]
+		} as Nostr.Event;
+		const decrypter = vi.fn().mockResolvedValue([
+			[
+				['p', 'shared'],
+				['p', 'private']
+			],
+			false
+		]);
+
+		await expect(getListPubkeys(event, 'account', decrypter)).resolves.toEqual([
+			'shared',
+			'private'
+		]);
 	});
 });
 
