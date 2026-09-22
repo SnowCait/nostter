@@ -98,7 +98,7 @@
 					<IconMessageCircle size={20} />
 				</button>
 			{/if}
-			<ReactionButton {event} iconSize={20} />
+			<ReactionButton {event} iconSize={20} {signEvent} />
 			<span class="emoji">
 				<EmojiPicker onPick={emojiReaction} />
 			</span>

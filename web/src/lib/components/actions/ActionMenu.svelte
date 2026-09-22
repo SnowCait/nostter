@@ -85,7 +85,7 @@
 		<IconMessageCircle size={iconSize} />
 	</button>
 	<RepostButton event={item.event} {iconSize} {signEvent} />
-	<ReactionButton event={item.event} {iconSize} />
+	<ReactionButton event={item.event} {iconSize} {signEvent} />
 	<span>
 		<EmojiPicker onPick={(emoji) => emojiReaction(item.event, emoji)} />
 	</span>
@@ -97,7 +97,7 @@
 	>
 		<IconBolt size={iconSize} />
 	</button>
-	<MenuButton event={item.event} {iconSize} bind:showDetails={jsonDisplay} />
+	<MenuButton event={item.event} {iconSize} {signEvent} bind:showDetails={jsonDisplay} />
 </div>
 <ZapDialog
 	pubkey={item.event.pubkey}

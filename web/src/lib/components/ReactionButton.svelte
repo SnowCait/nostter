@@ -10,13 +10,15 @@
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import ReactionIcon from './ReactionIcon.svelte';
 	import { IconTrash } from '@tabler/icons-svelte-runes';
+	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
 		event: Nostr.Event;
 		iconSize: number;
+		signEvent: Signer['signEvent'];
 	}
 
-	let { event, iconSize }: Props = $props();
+	let { event, iconSize, signEvent }: Props = $props();
 
 	const {
 		elements: { menu, item, trigger, overlay, separator }
@@ -49,7 +51,7 @@
 			return;
 		}
 
-		deleteReaction(event);
+		deleteReaction(signEvent, event);
 	}
 </script>
 

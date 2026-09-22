@@ -12,7 +12,6 @@ vi.mock('$lib/stores/Author', async () => {
 	const { writable } = await import('svelte/store');
 	return { pubkey: writable(mocks.userPubkey) };
 });
-vi.mock('$lib/Signer', () => ({ Signer: { signEvent: mocks.signEvent } }));
 vi.mock('$lib/nostr/relay/client', () => ({ rxNostr: { send: mocks.send } }));
 
 import { requestEventDeletion } from './request-event-deletion';
@@ -41,6 +40,7 @@ describe('requestEventDeletion', () => {
 		mocks.send.mockReturnValue(responses);
 		let resolved = false;
 		const request = requestEventDeletion(
+			mocks.signEvent,
 			[
 				event('regular', 1),
 				event('replaceable', 10003, mocks.userPubkey, [['d', 'ignored']]),
@@ -83,12 +83,14 @@ describe('requestEventDeletion', () => {
 	it('rejects when no relay accepts the request', async () => {
 		mocks.send.mockReturnValue(EMPTY);
 
-		await expect(requestEventDeletion([event('first', 1)])).rejects.toThrow();
+		await expect(requestEventDeletion(mocks.signEvent, [event('first', 1)])).rejects.toThrow();
 	});
 
 	it('rejects invalid deletion targets', async () => {
-		await expect(requestEventDeletion([])).rejects.toThrow();
-		await expect(requestEventDeletion([event('first', 1, 'another-author')])).rejects.toThrow();
+		await expect(requestEventDeletion(mocks.signEvent, [])).rejects.toThrow();
+		await expect(
+			requestEventDeletion(mocks.signEvent, [event('first', 1, 'another-author')])
+		).rejects.toThrow();
 		expect(mocks.signEvent).not.toHaveBeenCalled();
 		expect(mocks.send).not.toHaveBeenCalled();
 	});

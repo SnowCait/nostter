@@ -29,12 +29,24 @@
 	import { addToast } from '$lib/components/Toaster.svelte';
 	import { deleteLegacyBookmarks } from '$lib/features/bookmarks/application/delete-legacy-bookmarks';
 	import { auth } from '$lib/auth.svelte';
+	import type { Signer } from '$lib/nostr/signing/signer';
 
 	let { data }: LayoutProps = $props();
 
 	let privateBookmarkEventItems: EventItem[] = $state([]);
 	let privateLegacyBookmarkEventItems: EventItem[] = $state([]);
 	let deletingLegacyBookmarks = $state(false);
+
+	async function signEvent(
+		...args: Parameters<Signer['signEvent']>
+	): ReturnType<Signer['signEvent']> {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot sign an event without a signing session');
+		}
+
+		return signer.signEvent(...args);
+	}
 
 	function loadPublicItems(event: Nostr.Event, addItem: (item: EventItem) => void): () => void {
 		const ids = filterTags('e', event.tags);
@@ -124,7 +136,7 @@
 
 		deletingLegacyBookmarks = true;
 		try {
-			await deleteLegacyBookmarks();
+			await deleteLegacyBookmarks(signEvent);
 			addToast({
 				data: {
 					title: $_('bookmarks.delete.success.title'),
