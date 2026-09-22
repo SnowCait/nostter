@@ -4,8 +4,8 @@ import type * as Nostr from 'nostr-typedef';
 import { browser } from '$app/environment';
 import { rxNostr, tie } from './timelines/MainTimeline';
 import { WebStorage } from './WebStorage';
-import { Signer } from './Signer';
 import { pubkey } from './stores/Author';
+import type { Signer } from './nostr/signing/signer';
 
 const interestKind = 10015;
 const followQueue: string[] = [];
@@ -27,7 +27,7 @@ function getFollowingHashtags(): string[] {
 	);
 }
 
-export function followHashtag(hashtag: string): void {
+export function followHashtag(signEvent: Signer['signEvent'], hashtag: string): void {
 	console.log('[follow hashtag]', hashtag);
 
 	const accountPubkey = get(pubkey);
@@ -45,10 +45,10 @@ export function followHashtag(hashtag: string): void {
 		return;
 	}
 
-	save(accountPubkey);
+	save(signEvent, accountPubkey);
 }
 
-export function unfollowHashtag(hashtag: string): void {
+export function unfollowHashtag(signEvent: Signer['signEvent'], hashtag: string): void {
 	console.log('[unfollow hashtag]', hashtag);
 
 	const accountPubkey = get(pubkey);
@@ -66,10 +66,10 @@ export function unfollowHashtag(hashtag: string): void {
 		return;
 	}
 
-	save(accountPubkey);
+	save(signEvent, accountPubkey);
 }
 
-async function save(accountPubkey: string): Promise<void> {
+async function save(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
 	processing = true;
 
 	const latest = await fetch(accountPubkey);
@@ -119,7 +119,7 @@ async function save(accountPubkey: string): Promise<void> {
 	}
 
 	let first = true;
-	rxNostr.send(await Signer.signEvent(event)).subscribe((packet) => {
+	rxNostr.send(await signEvent(event)).subscribe((packet) => {
 		console.log('[rx-nostr interest send]', packet);
 		if (packet.ok && first) {
 			first = false;
