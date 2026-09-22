@@ -2,14 +2,14 @@ import { now } from 'rx-nostr';
 import type * as Nostr from 'nostr-typedef';
 import { reactionedEvents, updateReactionedEvents } from './Action';
 import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
-import { Signer } from '$lib/Signer';
 import { requestEventDeletion } from '../features/event-deletion/application/request-event-deletion';
 import { sortEvents } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { findCustomEmojiSetAddress } from './CustomEmojis';
-import type { Signer as SigningSigner } from '$lib/nostr/signing/signer';
+import type { Signer } from '$lib/nostr/signing/signer';
 
 export async function sendReaction(
+	signEvent: Signer['signEvent'],
 	target: Nostr.Event,
 	content: string,
 	emojiUrl: string | undefined
@@ -30,7 +30,7 @@ export async function sendReaction(
 		tags.push(emojiTag);
 	}
 
-	const event = await Signer.signEvent({
+	const event = await signEvent({
 		kind: 7,
 		content,
 		tags,
@@ -42,7 +42,7 @@ export async function sendReaction(
 	updateReactionedEvents([event]);
 }
 
-export function deleteReaction(signEvent: SigningSigner['signEvent'], target: Nostr.Event): void {
+export function deleteReaction(signEvent: Signer['signEvent'], target: Nostr.Event): void {
 	const $reactionedEvents = get(reactionedEvents);
 	const events = $reactionedEvents.get(target.id);
 	if (events === undefined || events.length === 0) {

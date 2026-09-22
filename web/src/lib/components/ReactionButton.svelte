@@ -37,6 +37,7 @@
 		}
 
 		await sendReaction(
+			signEvent,
 			event,
 			$preferencesStore.reactionEmoji.content,
 			$preferencesStore.reactionEmoji.url
