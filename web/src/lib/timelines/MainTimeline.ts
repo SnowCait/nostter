@@ -80,14 +80,13 @@ const replaceableEventsReq = createRxBackwardReq();
 const requestedMetadataPubkeys = new Set<string>();
 
 export async function metadataReqEmit(pubkeys: string[]): Promise<void> {
-	const unrequestedPubkeys = pubkeys.filter((pubkey) => {
-		if (requestedMetadataPubkeys.has(pubkey)) {
-			return false;
-		}
+	const pubkeysToRequest = unique(pubkeys).filter(
+		(pubkey) => !requestedMetadataPubkeys.has(pubkey)
+	);
+	for (const pubkey of pubkeysToRequest) {
 		requestedMetadataPubkeys.add(pubkey);
-		return true;
-	});
-	const groupedPubkeys = chunk(unrequestedPubkeys, filterLimitItems);
+	}
+	const groupedPubkeys = chunk(pubkeysToRequest, filterLimitItems);
 	for (const pubkeys of groupedPubkeys) {
 		metadataReq.emit({
 			kinds: [0],

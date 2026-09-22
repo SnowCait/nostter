@@ -90,11 +90,11 @@ beforeEach(() => {
 });
 
 describe('metadataReqEmit', () => {
-	it('requests metadata once per session even when cached metadata exists', async () => {
+	it('requests cached metadata once per session and deduplicates an input', async () => {
 		const pubkey = 'cached-pubkey';
 		metadataStore.set(new Map([[pubkey, new Metadata(event(pubkey))]]));
 
-		await metadataReqEmit([pubkey]);
+		await metadataReqEmit([pubkey, pubkey]);
 		await metadataReqEmit([pubkey]);
 
 		expect(get(metadataStore).has(pubkey)).toBe(true);
