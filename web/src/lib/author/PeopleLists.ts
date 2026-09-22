@@ -7,8 +7,12 @@ import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
-import { decryptListContent, encryptListContent } from '$lib/List';
-import type { Signer } from '$lib/nostr/signing/signer';
+import {
+	createListContentDecrypter,
+	createListContentEncrypter,
+	decryptListContent
+} from '$lib/List';
+import type { EncryptionCapabilities, Signer } from '$lib/nostr/signing/signer';
 
 const kind = 30000;
 
@@ -148,6 +152,7 @@ export async function addToPeopleList(
 
 export async function removeFromPeopleList(
 	signEvent: Signer['signEvent'],
+	encryptionCapabilities: EncryptionCapabilities,
 	event: Nostr.Event,
 	pubkey: string
 ): Promise<void> {
@@ -162,10 +167,16 @@ export async function removeFromPeopleList(
 
 	let content = event.content;
 	if (content !== '') {
-		const [privateTags, legacy] = await decryptListContent(event.pubkey, event.content);
-		if (privateTags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
-			const tags = privateTags.filter(([tagName, p]) => !(tagName === 'p' && p === pubkey));
-			content = await encryptListContent(accountPubkey, tags, legacy);
+		const decrypter = createListContentDecrypter(encryptionCapabilities);
+		if (decrypter !== undefined) {
+			const [privateTags, legacy] = await decrypter(event.pubkey, event.content);
+			if (privateTags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
+				const tags = privateTags.filter(
+					([tagName, p]) => !(tagName === 'p' && p === pubkey)
+				);
+				const encrypter = createListContentEncrypter(encryptionCapabilities);
+				content = await encrypter(accountPubkey, tags, legacy);
+			}
 		}
 	}
 

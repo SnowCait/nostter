@@ -19,16 +19,17 @@
 	import { getEventAddress } from '$lib/nostr/protocol/event-address';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { clearListTimelineIfActive } from '$lib/timelines/ListTimeline';
-	import type { Signer } from '$lib/nostr/signing/signer';
+	import type { EncryptionCapabilities, Signer } from '$lib/nostr/signing/signer';
 	import ModalDialog from '../ModalDialog.svelte';
 
 	interface Props {
 		pubkey: string;
 		signEvent: Signer['signEvent'];
+		getEncryptionCapabilities: () => EncryptionCapabilities;
 		open?: boolean;
 	}
 
-	let { pubkey, signEvent, open = $bindable(false) }: Props = $props();
+	let { pubkey, signEvent, getEncryptionCapabilities, open = $bindable(false) }: Props = $props();
 
 	let lists = $derived([...$peopleLists].map(([, event]) => event));
 
@@ -82,7 +83,12 @@
 				if (add) {
 					await addToPeopleList(signEvent, event, pubkey);
 				} else {
-					await removeFromPeopleList(signEvent, event, pubkey);
+					await removeFromPeopleList(
+						signEvent,
+						getEncryptionCapabilities(),
+						event,
+						pubkey
+					);
 				}
 			})
 		);
