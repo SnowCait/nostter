@@ -61,7 +61,7 @@
 			(emoji.shortcodes ? emoji.shortcodes : `:${emoji.id.replaceAll('+', '_')}:`);
 		const emojiUrl =
 			emoji.native === undefined && emoji.src !== undefined ? emoji.src : undefined;
-		sendReaction(note, content, emojiUrl);
+		sendReaction(signEvent, note, content, emojiUrl);
 	}
 
 	function onZapped() {

@@ -12,6 +12,8 @@
 	import { EventItem } from '$lib/Items';
 	import { tap } from 'rxjs';
 	import { parseEventAddress } from '$lib/nostr/protocol/event-address';
+	import { auth } from '$lib/auth.svelte';
+	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
 		text?: string;
@@ -67,8 +69,17 @@
 		}
 	});
 
+	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot sign an event without a signing session');
+		}
+
+		return signer.signEvent(template);
+	}
+
 	async function reaction(): Promise<void> {
-		await sendReaction(event!, shortcode, url);
+		await sendReaction(signEvent, event!, shortcode, url);
 		popover.open = false;
 	}
 

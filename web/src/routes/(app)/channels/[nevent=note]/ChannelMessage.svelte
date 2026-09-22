@@ -51,7 +51,7 @@
 			emoji.native ??
 			(emoji.shortcodes ? emoji.shortcodes : `:${emoji.id.replaceAll('+', '_')}:`);
 		const url = emoji.native === undefined && emoji.src !== undefined ? emoji.src : undefined;
-		sendReaction(event as Nostr.Event, content, url);
+		sendReaction(signEvent, event as Nostr.Event, content, url);
 	}
 
 	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
