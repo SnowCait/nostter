@@ -22,6 +22,7 @@
 	import { cubicInOut } from 'svelte/easing';
 	import { onMount, untrack } from 'svelte';
 	import { now } from 'rx-nostr';
+	import type { Signer } from '$lib/nostr/signing/signer';
 
 	const {
 		elements: { root, list, content, trigger },
@@ -49,6 +50,15 @@
 	let tabKey = 'notes';
 
 	const search = new Search();
+
+	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot sign an event without a signing session');
+		}
+
+		return signer.signEvent(template);
+	}
 
 	onMount(() => {
 		const unsubscribe = value.subscribe((v) => {
@@ -283,9 +293,9 @@
 	<section>
 		{#each hashtags as hashtag}
 			{#if $followingHashtags.includes(hashtag)}
-				<UnfollowHashtagButton {hashtag} />
+				<UnfollowHashtagButton {hashtag} {signEvent} />
 			{:else}
-				<FollowHashtagButton {hashtag} />
+				<FollowHashtagButton {hashtag} {signEvent} />
 			{/if}
 		{/each}
 	</section>
