@@ -2,7 +2,7 @@
 	import { createRxOneshotReq, uniq } from 'rx-nostr';
 	import type * as Nostr from 'nostr-typedef';
 	import { tap } from 'rxjs';
-	import { onDestroy, tick } from 'svelte';
+	import { onDestroy, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
@@ -18,7 +18,7 @@
 	import { EventItem } from '$lib/Items';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import type { LayoutProps } from '../$types';
-	import { decryptListContent } from '$lib/List';
+	import { createListContentDecrypter } from '$lib/List';
 	import {
 		getAdjacentBookmarkListTab,
 		legacyBookmarkListId,
@@ -178,12 +178,23 @@
 	// Private bookmarks
 	$effect(() => {
 		const event = $bookmarkEvent;
+		const accountPubkey = $authorPubkey;
 		let active = true;
 		let unsubscribe = () => {};
 		privateBookmarkEventItems = [];
 
-		if (data.pubkey === $authorPubkey && !$rom && event !== undefined && event.content !== '') {
-			decryptListContent($authorPubkey, event.content).then(([tags]) => {
+		if (
+			data.pubkey === accountPubkey &&
+			accountPubkey !== undefined &&
+			!$rom &&
+			event !== undefined &&
+			event.content !== ''
+		) {
+			const signer = untrack(() => auth.signer);
+			const decryptPrivateListContent =
+				signer === undefined ? undefined : createListContentDecrypter(signer);
+
+			decryptPrivateListContent?.(accountPubkey, event.content).then(([tags]) => {
 				if (!active) {
 					return;
 				}
@@ -226,13 +237,21 @@
 
 	// Private legacy bookmarks
 	$effect(() => {
+		const accountPubkey = $authorPubkey;
+		const event = $legacyBookmarkEvent;
+
 		if (
-			data.pubkey === $authorPubkey &&
+			data.pubkey === accountPubkey &&
+			accountPubkey !== undefined &&
 			!$rom &&
-			$legacyBookmarkEvent !== undefined &&
-			$legacyBookmarkEvent.content !== ''
+			event !== undefined &&
+			event.content !== ''
 		) {
-			decryptListContent($authorPubkey, $legacyBookmarkEvent.content).then(([tags]) => {
+			const signer = untrack(() => auth.signer);
+			const decryptPrivateListContent =
+				signer === undefined ? undefined : createListContentDecrypter(signer);
+
+			decryptPrivateListContent?.(accountPubkey, event.content).then(([tags]) => {
 				const ids = filterTags('e', tags);
 				if (ids.length > 0) {
 					const eventsReq = createRxOneshotReq({ filters: [{ ids }] });
