@@ -5,6 +5,7 @@
 	import { page } from '$app/stores';
 	import { auth } from '$lib/auth.svelte';
 	import type { Signer } from '$lib/nostr/signing/signer';
+	import type { PeopleListMutationCapabilities } from '$lib/author/PeopleLists';
 	import { follow, unfollow } from '$lib/author/Follow';
 	import { mute, unmute } from '$lib/author/Mute';
 	import { muteByKind, unmuteByKind } from '$lib/author/MuteKind';
@@ -68,6 +69,19 @@
 		}
 
 		return signer.signEvent(template);
+	}
+
+	function getPeopleListMutationCapabilities(): PeopleListMutationCapabilities {
+		const signer = auth.signer;
+		if (signer === undefined) {
+			throw new Error('Cannot mutate a people list without a signing session');
+		}
+
+		return {
+			signEvent: (template) => signer.signEvent(template),
+			nip04: signer.nip04,
+			nip44: signer.nip44
+		};
 	}
 
 	async function onFollow(): Promise<void> {
@@ -320,7 +334,7 @@
 </div>
 
 {#if auth.isAuthenticated && !$rom}
-	<ListDialog {pubkey} {signEvent} bind:open={listDialogOpen} />
+	<ListDialog {pubkey} {getPeopleListMutationCapabilities} bind:open={listDialogOpen} />
 {/if}
 
 <style>

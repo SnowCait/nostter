@@ -7,10 +7,16 @@ import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
-import { decryptListContent, encryptListContent } from '$lib/List';
+import {
+	createListContentDecrypter,
+	createListContentEncrypter,
+	decryptListContent
+} from '$lib/List';
 import type { Signer } from '$lib/nostr/signing/signer';
 
 const kind = 30000;
+
+export type PeopleListMutationCapabilities = Pick<Signer, 'signEvent' | 'nip04' | 'nip44'>;
 
 export const peopleLists = writable(new Map<string, Nostr.Event>());
 export const processing = writable(false);
@@ -147,7 +153,7 @@ export async function addToPeopleList(
 }
 
 export async function removeFromPeopleList(
-	signEvent: Signer['signEvent'],
+	capabilities: PeopleListMutationCapabilities,
 	event: Nostr.Event,
 	pubkey: string
 ): Promise<void> {
@@ -162,14 +168,20 @@ export async function removeFromPeopleList(
 
 	let content = event.content;
 	if (content !== '') {
-		const [privateTags, legacy] = await decryptListContent(event.pubkey, event.content);
-		if (privateTags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
-			const tags = privateTags.filter(([tagName, p]) => !(tagName === 'p' && p === pubkey));
-			content = await encryptListContent(accountPubkey, tags, legacy);
+		const decrypter = createListContentDecrypter(capabilities);
+		if (decrypter !== undefined) {
+			const [privateTags, legacy] = await decrypter(event.pubkey, event.content);
+			if (privateTags.some(([tagName, p]) => tagName === 'p' && p === pubkey)) {
+				const tags = privateTags.filter(
+					([tagName, p]) => !(tagName === 'p' && p === pubkey)
+				);
+				const encrypter = createListContentEncrypter(capabilities);
+				content = await encrypter(accountPubkey, tags, legacy);
+			}
 		}
 	}
 
-	const newEvent = await signEvent({
+	const newEvent = await capabilities.signEvent({
 		kind: event.kind,
 		pubkey: event.pubkey,
 		content,
