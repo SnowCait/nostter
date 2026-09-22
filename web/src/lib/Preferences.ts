@@ -2,8 +2,8 @@ import { get, writable } from 'svelte/store';
 import { now } from 'rx-nostr';
 import { fileStorageServers } from './Constants';
 import type { Emoji } from './Emoji';
-import { Signer } from './Signer';
 import { rxNostr } from './timelines/MainTimeline';
+import type { Signer } from './nostr/signing/signer';
 
 let saving = false;
 let unsaved = false;
@@ -48,7 +48,7 @@ export class Preferences {
 
 export const preferencesStore = writable(new Preferences('{}'));
 
-export async function savePreferences(): Promise<void> {
+export async function savePreferences(signEvent: Signer['signEvent']): Promise<void> {
 	console.debug('[preferences try save]', saving, unsaved);
 	if (saving) {
 		unsaved = true;
@@ -58,7 +58,7 @@ export async function savePreferences(): Promise<void> {
 	saving = true;
 	unsaved = false;
 
-	const event = await Signer.signEvent({
+	const event = await signEvent({
 		kind: 30078,
 		content: get(preferencesStore).toJson(),
 		tags: [['d', 'nostter-preferences']],
@@ -70,7 +70,7 @@ export async function savePreferences(): Promise<void> {
 		console.log('[preferences saved]', event);
 		saving = false;
 		if (unsaved) {
-			savePreferences();
+			savePreferences(signEvent);
 		}
 	};
 	rxNostr.send(event).subscribe({

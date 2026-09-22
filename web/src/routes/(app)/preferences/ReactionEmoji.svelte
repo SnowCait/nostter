@@ -5,6 +5,13 @@
 	import IconHeart from '@tabler/icons-svelte-runes/icons/heart';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import CustomEmoji from '$lib/components/content/CustomEmoji.svelte';
+	import type { Signer } from '$lib/nostr/signing/signer';
+
+	interface Props {
+		signEvent: Signer['signEvent'];
+	}
+
+	let { signEvent }: Props = $props();
 
 	async function save(pickerEmoji: PickerEmoji) {
 		const emoji = toEmoji(pickerEmoji);
@@ -19,7 +26,7 @@
 		}
 
 		$preferencesStore.reactionEmoji = emoji;
-		savePreferences();
+		savePreferences(signEvent);
 	}
 </script>
 
