@@ -46,16 +46,11 @@ describe('getYouTubeEmbed', () => {
 		expect(result?.src.searchParams.get('origin')).toBe('https://nostter.example');
 	});
 
-	it('uses only the first path segment as a youtu.be video ID', () => {
-		expect(embed('https://youtu.be/M7lc1UVf-VE/extra')?.src.pathname).toBe(
-			'/embed/M7lc1UVf-VE'
-		);
-	});
-
-	it('uses only the first path segment as a live video ID', () => {
-		expect(embed('https://www.youtube.com/live/M7lc1UVf-VE/extra')?.src.pathname).toBe(
-			'/embed/M7lc1UVf-VE'
-		);
+	it.each([
+		['youtu.be', 'https://youtu.be/M7lc1UVf-VE/extra'],
+		['live', 'https://www.youtube.com/live/M7lc1UVf-VE/extra']
+	])('uses only the first path segment as a %s video ID', (_type, link) => {
+		expect(embed(link)?.src.pathname).toBe('/embed/M7lc1UVf-VE');
 	});
 
 	it('preserves the privacy-enhanced embed host', () => {
