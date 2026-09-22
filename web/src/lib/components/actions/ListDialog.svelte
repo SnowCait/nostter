@@ -20,22 +20,15 @@
 	import { getEventAddress } from '$lib/nostr/protocol/event-address';
 	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { clearListTimelineIfActive } from '$lib/timelines/ListTimeline';
-	import type { Signer } from '$lib/nostr/signing/signer';
 	import ModalDialog from '../ModalDialog.svelte';
 
 	interface Props {
 		pubkey: string;
-		signEvent: Signer['signEvent'];
 		getPeopleListMutationCapabilities: () => PeopleListMutationCapabilities;
 		open?: boolean;
 	}
 
-	let {
-		pubkey,
-		signEvent,
-		getPeopleListMutationCapabilities,
-		open = $bindable(false)
-	}: Props = $props();
+	let { pubkey, getPeopleListMutationCapabilities, open = $bindable(false) }: Props = $props();
 
 	let lists = $derived([...$peopleLists].map(([, event]) => event));
 
@@ -84,12 +77,12 @@
 					return;
 				}
 
+				const capabilities = getPeopleListMutationCapabilities();
 				clearListTimelineIfActive(event);
 
 				if (add) {
-					await addToPeopleList(signEvent, event, pubkey);
+					await addToPeopleList(capabilities.signEvent, event, pubkey);
 				} else {
-					const capabilities = getPeopleListMutationCapabilities();
 					await removeFromPeopleList(capabilities, event, pubkey);
 				}
 			})
@@ -109,7 +102,8 @@
 		}
 
 		console.log('[people list create]', title);
-		await createPeopleList(signEvent, title, pubkey);
+		const capabilities = getPeopleListMutationCapabilities();
+		await createPeopleList(capabilities.signEvent, title, pubkey);
 		title = '';
 	}
 </script>

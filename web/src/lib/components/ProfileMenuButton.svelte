@@ -334,12 +334,7 @@
 </div>
 
 {#if auth.isAuthenticated && !$rom}
-	<ListDialog
-		{pubkey}
-		{signEvent}
-		{getPeopleListMutationCapabilities}
-		bind:open={listDialogOpen}
-	/>
+	<ListDialog {pubkey} {getPeopleListMutationCapabilities} bind:open={listDialogOpen} />
 {/if}
 
 <style>
