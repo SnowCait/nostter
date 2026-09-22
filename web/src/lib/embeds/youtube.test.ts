@@ -52,6 +52,12 @@ describe('getYouTubeEmbed', () => {
 		);
 	});
 
+	it('uses only the first path segment as a live video ID', () => {
+		expect(embed('https://www.youtube.com/live/M7lc1UVf-VE/extra')?.src.pathname).toBe(
+			'/embed/M7lc1UVf-VE'
+		);
+	});
+
 	it('preserves the privacy-enhanced embed host', () => {
 		expect(embed('https://www.youtube-nocookie.com/embed/M7lc1UVf-VE')?.src.hostname).toBe(
 			'www.youtube-nocookie.com'
