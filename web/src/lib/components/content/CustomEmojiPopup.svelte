@@ -2,7 +2,6 @@
 	import { _ } from 'svelte-i18n';
 	import CustomEmoji from './CustomEmoji.svelte';
 	import { Popover } from 'melt/builders';
-	import { rom } from '$lib/stores/Author';
 	import { sendReaction } from '$lib/author/Reaction';
 	import type * as Nostr from 'nostr-typedef';
 	import { developerMode } from '$lib/stores/Preference';
@@ -104,7 +103,7 @@
 
 		{#if emojisetEvent}
 			<blockquote>
-				<EventComponent item={new EventItem(emojisetEvent)} readonly={$rom} />
+				<EventComponent item={new EventItem(emojisetEvent)} readonly={false} />
 			</blockquote>
 		{/if}
 	</div>

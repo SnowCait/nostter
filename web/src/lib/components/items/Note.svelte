@@ -3,7 +3,6 @@
 	import type { EventItem, Item } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
 	import IconMessages from '@tabler/icons-svelte-runes/icons/messages';
-	import { rom } from '$lib/stores/Author';
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
 	import Content from '$lib/components/Content.svelte';
@@ -34,10 +33,6 @@
 	let { item, readonly = $bindable(), createdAtFormat = 'auto', full = false }: Props = $props();
 
 	let eventItem = $derived(item as EventItem);
-
-	if ($rom) {
-		readonly = true;
-	}
 
 	let channelId: string | undefined = $state();
 	let channelName: string | undefined = $state();

@@ -2,7 +2,6 @@
 	import { nip19 } from 'nostr-tools';
 	import FollowButton from '$lib/components/FollowButton.svelte';
 	import { auth } from '$lib/auth.svelte';
-	import { rom } from '$lib/stores/Author';
 	import { lastNotesMap } from '$lib/stores/LastNotes';
 	import Content from '$lib/components/Content.svelte';
 	import type { Metadata } from '$lib/Items';
@@ -44,7 +43,7 @@
 		{#if metadata.content?.about !== undefined}
 			<Content content={metadata.content.about} tags={metadata.event.tags} />
 		{/if}
-		{#if !$rom && createdAt !== undefined}
+		{#if createdAt !== undefined}
 			<div>Last note: {new Date(createdAt * 1000).toLocaleString()}</div>
 		{/if}
 	</div>
