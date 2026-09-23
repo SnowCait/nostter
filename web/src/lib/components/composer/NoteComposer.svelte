@@ -21,7 +21,7 @@
 	import type * as Nostr from 'nostr-typedef';
 	import { RelayList } from '$lib/RelayList';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
-	import { pubkey, rom } from '$lib/stores/Author';
+	import { pubkey } from '$lib/stores/Author';
 	import { auth } from '$lib/auth.svelte';
 	import { customEmojiTags, findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
 	import { fetchFolloweesMetadata } from '$lib/author/Follow';
@@ -745,7 +745,6 @@
 				onclick={postNote}
 				disabled={auth.signer === undefined ||
 					(content === '' && !localAttachments.hasAttachments) ||
-					$rom ||
 					posting ||
 					localAttachments.uploading}
 			>

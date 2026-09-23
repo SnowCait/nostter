@@ -88,7 +88,7 @@
 
 <h1>{$_('layout.header.preferences')}</h1>
 
-{#if auth.signer !== undefined && !$rom}
+{#if auth.signer !== undefined}
 	<section class="card">
 		<h2>{$_('preferences.shared')}</h2>
 		<div>
