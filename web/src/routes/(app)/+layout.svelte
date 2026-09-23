@@ -12,7 +12,6 @@
 	import '$lib/styles/menu.css';
 	import { fetchMinutes } from '$lib/Helper';
 	import { applyTheme } from '$lib/Theme';
-	import { followees } from '$lib/stores/Author';
 	import { auth } from '$lib/auth.svelte';
 	import { observePageLifecycle } from '$lib/platform/browser/page-lifecycle';
 	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
@@ -112,7 +111,7 @@
 			case 'visible': {
 				if (hiddenAt !== undefined) {
 					const visibleAt = now();
-					if (visibleAt - hiddenAt > fetchMinutes($followees.length) * 60) {
+					if (visibleAt - hiddenAt > fetchMinutes(auth.followees.length) * 60) {
 						homeTimeline.clear();
 						homeTimeline.older();
 					} else if (visibleAt > hiddenAt) {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { followees } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import { gifAutoplay, imageOptimization } from '$lib/stores/Preference';
 	import type * as Nostr from 'nostr-typedef';
 	import { getContext } from 'svelte';
@@ -14,7 +14,7 @@
 	const { href: src, pathname } = $derived(url);
 	const events = getContext<Nostr.Event[] | undefined>('events');
 	const blur = $derived(
-		events !== undefined && !events.some((event) => $followees.includes(event.pubkey))
+		events !== undefined && !events.some((event) => auth.followeesSet.has(event.pubkey))
 	);
 
 	const optimize = $derived(

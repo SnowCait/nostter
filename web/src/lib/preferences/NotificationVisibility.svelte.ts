@@ -1,7 +1,8 @@
 import { followeesOfFollowees } from '$lib/features/notifications/application/followees-of-followees';
-import { followees } from '$lib/stores/Author';
 import { persistedStore } from '$lib/platform/storage/persisted-store';
+import { untrack } from 'svelte';
 import { get } from 'svelte/store';
+import { auth } from '$lib/auth.svelte';
 
 export const notificationVisibilities = ['all', 'follows_of_follows', 'follows'] as const;
 export type NotificationVisibility = (typeof notificationVisibilities)[number];
@@ -19,7 +20,7 @@ export function isVisibleNotification(pubkey: string): boolean {
 			return get(followeesOfFollowees).has(pubkey);
 		}
 		case 'follows': {
-			return get(followees).includes(pubkey);
+			return untrack(() => auth.followeesSet.has(pubkey));
 		}
 		default: {
 			console.warn('[notification visibility logic error]', get(notificationVisibility));

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Api } from '$lib/Api';
 	import TimelineView from '../../../TimelineView.svelte';
-	import { followees as authorFollowees } from '$lib/stores/Author';
 	import { auth } from '$lib/auth.svelte';
 	import {
 		UserFollowingTimeline,
@@ -33,7 +32,7 @@
 			}
 			$currentPubkey = pubkey;
 			if (pubkey === auth.pubkey) {
-				followees = $authorFollowees;
+				followees = auth.followees;
 			} else {
 				new Api().fetchFollowees(pubkey).then((pubkeys) => {
 					followees = pubkeys;

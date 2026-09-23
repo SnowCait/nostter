@@ -3,7 +3,6 @@
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/auth.svelte';
-	import { followees } from '$lib/stores/Author';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
@@ -16,7 +15,7 @@
 	}
 
 	let homeLink = $derived(
-		$followees.filter((x) => x !== auth.pubkey).length > 0 ? '/home' : '/public'
+		auth.followees.filter((x) => x !== auth.pubkey).length > 0 ? '/home' : '/public'
 	);
 </script>
 

@@ -1,4 +1,4 @@
-import { get, writable, toStore, type Writable } from 'svelte/store';
+import { get, writable, type Writable } from 'svelte/store';
 import escapeStringRegexp from 'escape-string-regexp';
 import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
@@ -14,7 +14,6 @@ import { auth } from '$lib/auth.svelte';
 export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
-export const followees = toStore(() => auth.followees);
 export const muteEvent = writable<Event | undefined>();
 export const mutePubkeys: Writable<string[]> = writable([]);
 export const mutedPubkeysByKindMap = writable(new Map<number, Set<string>>());

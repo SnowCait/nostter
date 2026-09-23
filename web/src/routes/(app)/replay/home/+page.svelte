@@ -21,7 +21,7 @@
 	import { EventItem } from '$lib/Items';
 	import { Timeline } from '$lib/Timeline';
 	import type { PageData } from './$types';
-	import { followees } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import TimelineView from '../../TimelineView.svelte';
 
 	interface Props {
@@ -58,6 +58,7 @@
 
 	function fetchNext(since: number, replaySpeed: number): void {
 		console.log('[replay fetch]', new Date(since * 1000));
+		const followees = auth.followees;
 
 		const until = since + fetchInterval;
 
@@ -90,7 +91,7 @@
 				}
 			});
 
-		const followeesFilters = Timeline.createChunkedFilters($followees, since, until);
+		const followeesFilters = Timeline.createChunkedFilters(followees, since, until);
 		req.emit(followeesFilters);
 		req.over();
 	}
