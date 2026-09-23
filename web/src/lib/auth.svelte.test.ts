@@ -18,6 +18,7 @@ describe('Auth lifecycle', () => {
 		expect(auth.isReady).toBe(false);
 		expect(auth.isAuthenticated).toBe(false);
 		expect(auth.signer).toBeUndefined();
+		expect(auth.loginMethod).toBeUndefined();
 	});
 
 	it('is ready but not authenticated after reset', () => {
@@ -28,15 +29,17 @@ describe('Auth lifecycle', () => {
 		expect(auth.isReady).toBe(true);
 		expect(auth.isAuthenticated).toBe(false);
 		expect(auth.signer).toBeUndefined();
+		expect(auth.loginMethod).toBeUndefined();
 	});
 
 	it('is ready and authenticated after establish', () => {
 		const auth = new Auth();
-		auth.establish(me, []);
+		auth.establish({ pubkey: me, followingPubkeys: [], loginMethod: 'npub' });
 		expect(auth.status).toBe('authenticated');
 		expect(auth.isInitializing).toBe(false);
 		expect(auth.isReady).toBe(true);
 		expect(auth.isAuthenticated).toBe(true);
+		expect(auth.loginMethod).toBe('npub');
 	});
 });
 
@@ -50,7 +53,7 @@ describe('Auth.establish', () => {
 		expect(auth.isAuthenticated).toBe(false);
 		expect(auth.signer).toBeUndefined();
 
-		auth.establish(me, [a, b], signer);
+		auth.establish({ pubkey: me, followingPubkeys: [a, b], loginMethod: 'NIP-07', signer });
 
 		expect(auth.pubkey).toBe(me);
 		expect(auth.followingPubkeys).toEqual([a, b]);
@@ -58,21 +61,23 @@ describe('Auth.establish', () => {
 		expect(auth.status).toBe('authenticated');
 		expect(auth.isAuthenticated).toBe(true);
 		expect(auth.signer).toBe(signer);
+		expect(auth.loginMethod).toBe('NIP-07');
 	});
 
 	it('represents an authenticated session without a signer', () => {
 		const auth = new Auth();
 
-		auth.establish(me, [a], undefined);
+		auth.establish({ pubkey: me, followingPubkeys: [a], loginMethod: 'npub' });
 
 		expect(auth.status).toBe('authenticated');
 		expect(auth.pubkey).toBe(me);
 		expect(auth.signer).toBeUndefined();
+		expect(auth.loginMethod).toBe('npub');
 	});
 
 	it('deduplicates followingPubkeys', () => {
 		const auth = new Auth();
-		auth.establish(me, [a, a, b]);
+		auth.establish({ pubkey: me, followingPubkeys: [a, a, b], loginMethod: 'npub' });
 		expect(auth.followingPubkeys).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
 	});
@@ -81,7 +86,7 @@ describe('Auth.establish', () => {
 describe('Auth.updateFollowingPubkeys', () => {
 	it('sets followingPubkeys and re-derives followees with self', () => {
 		const auth = new Auth();
-		auth.establish(me, []);
+		auth.establish({ pubkey: me, followingPubkeys: [], loginMethod: 'npub' });
 		auth.updateFollowingPubkeys([a, b]);
 		expect(auth.followingPubkeys).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
@@ -89,7 +94,7 @@ describe('Auth.updateFollowingPubkeys', () => {
 
 	it('deduplicates followingPubkeys', () => {
 		const auth = new Auth();
-		auth.establish(me, []);
+		auth.establish({ pubkey: me, followingPubkeys: [], loginMethod: 'npub' });
 		auth.updateFollowingPubkeys([a, a, b]);
 		expect(auth.followingPubkeys).toEqual([a, b]);
 		expect(auth.followees).toEqual([a, b, me]);
@@ -97,7 +102,7 @@ describe('Auth.updateFollowingPubkeys', () => {
 
 	it('does not add self to followingPubkeys', () => {
 		const auth = new Auth();
-		auth.establish(me, []);
+		auth.establish({ pubkey: me, followingPubkeys: [], loginMethod: 'npub' });
 		auth.updateFollowingPubkeys([a]);
 		expect(auth.followingPubkeys).not.toContain(me);
 		expect(auth.followees).toContain(me);
@@ -105,7 +110,7 @@ describe('Auth.updateFollowingPubkeys', () => {
 
 	it('leaves only self when followingPubkeys is empty', () => {
 		const auth = new Auth();
-		auth.establish(me, [a, b]);
+		auth.establish({ pubkey: me, followingPubkeys: [a, b], loginMethod: 'npub' });
 		auth.updateFollowingPubkeys([]);
 		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.followees).toEqual([me]);
@@ -113,7 +118,7 @@ describe('Auth.updateFollowingPubkeys', () => {
 
 	it('exposes followeesSet matching followees', () => {
 		const auth = new Auth();
-		auth.establish(me, []);
+		auth.establish({ pubkey: me, followingPubkeys: [], loginMethod: 'npub' });
 		auth.updateFollowingPubkeys([a, b]);
 		expect(auth.followeesSet).toEqual(new Set([a, b, me]));
 	});
@@ -127,7 +132,7 @@ describe('Auth.updateFollowingPubkeys', () => {
 describe('Auth.reset', () => {
 	it('clears authentication state and its signer reference', () => {
 		const auth = new Auth();
-		auth.establish(me, [a, b], signer);
+		auth.establish({ pubkey: me, followingPubkeys: [a, b], loginMethod: 'NIP-07', signer });
 
 		auth.reset();
 
@@ -136,5 +141,6 @@ describe('Auth.reset', () => {
 		expect(auth.followingPubkeys).toEqual([]);
 		expect(auth.status).toBe('anonymous');
 		expect(auth.signer).toBeUndefined();
+		expect(auth.loginMethod).toBeUndefined();
 	});
 });

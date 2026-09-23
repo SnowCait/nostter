@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import { author, authorProfile, loginType } from './stores/Author';
+import { author, authorProfile } from './stores/Author';
 import { nip19 } from 'nostr-tools';
 import { robohash } from './Items';
 import { WebStorage } from './WebStorage';
@@ -8,7 +8,7 @@ import { now } from 'rx-nostr';
 import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
 import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
-import { auth } from './auth.svelte';
+import { auth, type LoginMethod } from './auth.svelte';
 import { initializeAccount } from './features/account/application/initialize-account';
 import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
@@ -74,7 +74,6 @@ export class Login {
 		console.debug('Login with NIP-07');
 		console.time('NIP-07');
 
-		loginType.set('NIP-07');
 		setLoginStatus('getting_pubkey');
 
 		const signer = new BrowserSigner();
@@ -88,14 +87,13 @@ export class Login {
 		} catch (error) {
 			console.error('[NIP-07 getPublicKey()]', error);
 			console.timeEnd('NIP-07');
-			loginType.set(undefined);
 			setLoginStatus('failed', 'error');
 			return;
 		}
 
 		console.timeLog('NIP-07');
 
-		await this.fetchAuthor(pubkey, signer);
+		await this.fetchAuthor(pubkey, 'NIP-07', signer);
 
 		console.timeEnd('NIP-07');
 	}
@@ -104,7 +102,6 @@ export class Login {
 		console.debug('Login with NIP-46');
 		console.time('NIP-46');
 
-		loginType.set('NIP-46');
 		setLoginStatus('connecting_bunker');
 
 		let signer: SigningSigner;
@@ -113,7 +110,6 @@ export class Login {
 		} catch {
 			console.timeEnd('NIP-46 error');
 			console.error('Failed to connect to NIP-46 bunker');
-			loginType.set(undefined);
 			setLoginStatus('bunker_failed', 'error');
 			return false;
 		}
@@ -123,7 +119,7 @@ export class Login {
 
 		try {
 			const pubkey = await signer.getPublicKey();
-			await this.fetchAuthor(pubkey, signer);
+			await this.fetchAuthor(pubkey, 'NIP-46', signer);
 		} catch (error) {
 			await disposeSigner(signer);
 			throw error;
@@ -144,10 +140,9 @@ export class Login {
 		const storage = new WebStorage(localStorage);
 		storage.set('login', key);
 
-		loginType.set('nsec');
 		const signer = new PrivateKeySigner(seckey);
 		const pubkey = await signer.getPublicKey();
-		await this.fetchAuthor(pubkey, signer);
+		await this.fetchAuthor(pubkey, 'nsec', signer);
 	}
 
 	public async withNpub(key: string) {
@@ -163,11 +158,10 @@ export class Login {
 		const storage = new WebStorage(localStorage);
 		storage.set('login', key);
 
-		loginType.set('npub');
-		await this.fetchAuthor(data);
+		await this.fetchAuthor(data, 'npub');
 	}
 
-	private async fetchAuthor(pubkey: string, signer?: SigningSigner) {
+	private async fetchAuthor(pubkey: string, loginMethod: LoginMethod, signer?: SigningSigner) {
 		console.time('fetch author');
 		setLoginStatus('fetching_profile');
 
@@ -175,7 +169,7 @@ export class Login {
 		const followingPubkeys = await initializeAccount(pubkey, decryptPrivateListContent);
 		console.timeEnd('fetch author');
 
-		auth.establish(pubkey, followingPubkeys, signer);
+		auth.establish({ pubkey, followingPubkeys, loginMethod, signer });
 		clearLoginStatus();
 
 		if (get(notificationVisibility) === 'follows_of_follows') {
@@ -190,7 +184,6 @@ export class Login {
 
 export async function resetLoginState(): Promise<void> {
 	const disposingSigner = disposeSigner(auth.signer);
-	loginType.set(undefined);
 	author.set(undefined);
 	auth.reset();
 	await disposingSigner;

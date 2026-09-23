@@ -1,4 +1,4 @@
-import { get, writable, toStore, derived, type Writable } from 'svelte/store';
+import { get, writable, toStore, type Writable } from 'svelte/store';
 import escapeStringRegexp from 'escape-string-regexp';
 import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
@@ -11,9 +11,6 @@ import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protoc
 import type { ListContentDecrypter } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
 
-export type LoginType = 'NIP-07' | 'NIP-46' | 'nsec' | 'npub';
-
-export const loginType: Writable<LoginType | undefined> = writable();
 export const pubkey = toStore(() => auth.pubkey);
 export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
@@ -32,7 +29,7 @@ export const readRelays: Writable<string[]> = writable(
 export const writeRelays: Writable<string[]> = writable(
 	defaultRelays.filter((relay) => relay.write).map((relay) => relay.url)
 );
-export const rom = derived(loginType, ($loginType) => $loginType === 'npub');
+export const rom = toStore(() => auth.loginMethod === 'npub');
 
 let mutePubkeysSetRef: string[] | undefined;
 let mutePubkeysSet = new Set<string>();
