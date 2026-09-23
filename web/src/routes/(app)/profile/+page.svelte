@@ -5,7 +5,7 @@
 	import { goto } from '$app/navigation';
 	import { getMediaUploader } from '$lib/media/Uploader';
 	import { appName } from '$lib/app';
-	import { pubkey, authorProfile, metadataEvent } from '$lib/stores/Author';
+	import { authorProfile, metadataEvent } from '$lib/stores/Author';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 	import { sendEvent } from '$lib/RxNostrHelper';
@@ -23,7 +23,7 @@
 	let complete: (value: File | PromiseLike<File | undefined> | undefined) => void;
 
 	$effect(() => {
-		if (auth.isReady && $pubkey === undefined) {
+		if (auth.isReady && auth.pubkey === undefined) {
 			goto('/');
 		}
 	});
@@ -139,7 +139,7 @@
 			return;
 		}
 
-		const accountPubkey = $pubkey;
+		const accountPubkey = auth.pubkey;
 		if (accountPubkey === undefined) {
 			throw new Error('Not authenticated');
 		}

@@ -9,7 +9,7 @@
 	import { minTimelineLength } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
-	import { pubkey, author } from '$lib/stores/Author';
+	import { author } from '$lib/stores/Author';
 	import { auth } from '$lib/auth.svelte';
 	import TimelineView from '../TimelineView.svelte';
 	import NotificationTimeline from './NotificationTimeline.svelte';
@@ -74,7 +74,7 @@
 
 	async function load() {
 		console.log('[rx-nostr notification timeline load]');
-		const currentPubkey = $pubkey;
+		const currentPubkey = auth.pubkey;
 
 		if (!isValidPubkey(currentPubkey)) {
 			console.warn('[rx-nostr notification timeline invalid pubkey]', currentPubkey);

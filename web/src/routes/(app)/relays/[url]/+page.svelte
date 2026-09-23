@@ -4,7 +4,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
-	import { pubkey as authorPubkey } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import { EventItem } from '$lib/Items';
 	import { appName } from '$lib/app';
 	import { minTimelineLength } from '$lib/Constants';
@@ -129,7 +129,7 @@
 </section>
 
 <section>
-	<TimelineView items={events} readonly={$authorPubkey === undefined} {load} />
+	<TimelineView items={events} readonly={auth.pubkey === undefined} {load} />
 </section>
 
 <style>

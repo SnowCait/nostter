@@ -5,7 +5,6 @@
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { type Metadata, alternativeName } from '$lib/Items';
-	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
@@ -121,7 +120,7 @@
 					<ProfileMenuButton {pubkey} />
 				</div>
 				{#if auth.signer !== undefined}
-					{#if pubkey === $authorPubkey}
+					{#if pubkey === auth.pubkey}
 						<a href="/profile" class="rounded-button">{$_('pages.profile_edit')}</a>
 					{:else}
 						<FollowButton {pubkey} />
@@ -145,7 +144,7 @@
 					<span>{alternativeName(pubkey)}</span>
 				{/if}
 			</h2>
-			{#if followees?.some((pubkey) => pubkey === $authorPubkey)}
+			{#if followees?.some((pubkey) => pubkey === auth.pubkey)}
 				<p class="label">Follows you</p>
 			{/if}
 			{#if pubkey !== undefined}

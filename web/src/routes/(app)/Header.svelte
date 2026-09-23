@@ -3,7 +3,7 @@
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/auth.svelte';
-	import { followees, pubkey } from '$lib/stores/Author';
+	import { followees } from '$lib/stores/Author';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
@@ -16,13 +16,13 @@
 	}
 
 	let homeLink = $derived(
-		$followees.filter((x) => x !== $pubkey).length > 0 ? '/home' : '/public'
+		$followees.filter((x) => x !== auth.pubkey).length > 0 ? '/home' : '/public'
 	);
 </script>
 
 <div class="header">
 	<div id="logo-icon-wrapper">
-		<a href={$pubkey !== undefined ? homeLink : '/'} id="logo-icon">
+		<a href={auth.pubkey !== undefined ? homeLink : '/'} id="logo-icon">
 			<div class="logo-for-mobile">
 				<NostterLogoIcon />
 			</div>
@@ -31,7 +31,7 @@
 			</div>
 		</a>
 	</div>
-	<AppNavigation pubkey={$pubkey} {homeLink} />
+	<AppNavigation pubkey={auth.pubkey} {homeLink} />
 	{#if auth.signer !== undefined}
 		<button
 			class:inline-composer-active={composerFocus.current !== undefined}
@@ -41,7 +41,7 @@
 			<IconPencilPlus size={30} />
 			<p>{$_('post')}</p>
 		</button>
-	{:else if $pubkey === undefined}
+	{:else if auth.pubkey === undefined}
 		<button onclick={async () => await goto('/')}>
 			<IconLogin size={30} />
 			<p>{$_('login.login')}</p>

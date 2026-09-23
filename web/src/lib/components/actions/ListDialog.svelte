@@ -18,9 +18,9 @@
 	import type { PeopleListCapabilities } from '$lib/author/PeopleLists';
 	import { getListTitle } from '$lib/List';
 	import { getEventAddress } from '$lib/nostr/protocol/event-address';
-	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { clearListTimelineIfActive } from '$lib/timelines/ListTimeline';
 	import ModalDialog from '../ModalDialog.svelte';
+	import { auth } from '$lib/auth.svelte';
 
 	interface Props {
 		pubkey: string;
@@ -95,7 +95,12 @@
 	async function create(): Promise<void> {
 		if (title === '') {
 			return;
-		} else if ($peopleLists.has(`30000:${$authorPubkey}:${title}`)) {
+		}
+
+		const accountPubkey = auth.pubkey;
+		if (accountPubkey === undefined) {
+			return;
+		} else if ($peopleLists.has(`30000:${accountPubkey}:${title}`)) {
 			console.log('[people list create duplicate]', title);
 			title = '';
 			return;

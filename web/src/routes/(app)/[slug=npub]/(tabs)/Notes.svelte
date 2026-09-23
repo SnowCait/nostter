@@ -3,7 +3,7 @@
 	import { tap } from 'rxjs';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
-	import { pubkey as authorPubkey } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import { Timeline } from '$lib/Timeline';
 	import { EventItem } from '$lib/Items';
 	import { minTimelineLength } from '$lib/Constants';
@@ -107,5 +107,5 @@
 </script>
 
 <section>
-	<TimelineView {items} readonly={$authorPubkey === undefined} {load} />
+	<TimelineView {items} readonly={auth.pubkey === undefined} {load} />
 </section>
