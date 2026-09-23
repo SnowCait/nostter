@@ -14,7 +14,6 @@
 	import { notesKinds } from '$lib/Constants';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import { auth } from '$lib/auth.svelte';
-	import { rom } from '$lib/stores/Author';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import CodePoints from './CodePoints.svelte';
@@ -35,6 +34,7 @@
 	const openNoteDialog = getOpenNoteDialog();
 
 	let metadata = $derived($metadataStore.get(item.event.pubkey));
+	let canSign = $derived(auth.signer !== undefined);
 	let nevent = $derived(
 		nip19.neventEncode({
 			id: item.event.id,
@@ -50,11 +50,6 @@
 
 	async function emojiReaction(note: Nostr.Event, emoji: PickerEmoji) {
 		console.log('[reaction with emoji]', note, emoji);
-
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
 
 		const content =
 			emoji.native ??
@@ -92,36 +87,41 @@
 </script>
 
 <div class="action-menu">
-	<button class:hidden={!notesKinds.includes(item.event.kind)} onclick={reply}>
-		<IconMessageCircle size={iconSize} />
-	</button>
-	<RepostButton event={item.event} {iconSize} {signEvent} />
-	<ReactionButton event={item.event} {iconSize} {signEvent} />
-	<span>
-		<EmojiPicker onPick={(emoji) => emojiReaction(item.event, emoji)} />
-	</span>
-	<button
-		class="zap"
-		class:hidden={!metadata?.canZap}
-		disabled={zapped}
-		onclick={() => zapDialogComponent?.openZapDialog()}
-	>
-		<IconBolt size={iconSize} />
-	</button>
+	{#if canSign}
+		<button class:hidden={!notesKinds.includes(item.event.kind)} onclick={reply}>
+			<IconMessageCircle size={iconSize} />
+		</button>
+		<RepostButton event={item.event} {iconSize} {signEvent} />
+		<ReactionButton event={item.event} {iconSize} {signEvent} />
+		<span>
+			<EmojiPicker onPick={(emoji) => emojiReaction(item.event, emoji)} />
+		</span>
+		<button
+			class="zap"
+			class:hidden={!metadata?.canZap}
+			disabled={zapped}
+			onclick={() => zapDialogComponent?.openZapDialog()}
+		>
+			<IconBolt size={iconSize} />
+		</button>
+	{/if}
 	<MenuButton
 		event={item.event}
 		{iconSize}
+		{canSign}
 		getCapabilities={getMenuButtonCapabilities}
 		bind:showDetails={jsonDisplay}
 	/>
 </div>
-<ZapDialog
-	pubkey={item.event.pubkey}
-	{item}
-	{signEvent}
-	bind:this={zapDialogComponent}
-	{onZapped}
-/>
+{#if canSign}
+	<ZapDialog
+		pubkey={item.event.pubkey}
+		{item}
+		{signEvent}
+		bind:this={zapDialogComponent}
+		{onZapped}
+	/>
+{/if}
 {#if jsonDisplay}
 	<div class="develop">
 		<h5>Event ID</h5>

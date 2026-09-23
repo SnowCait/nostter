@@ -4,7 +4,6 @@
 	import type * as Nostr from 'nostr-typedef';
 	import { repostedEvents, updateRepostedEvents } from '$lib/author/Action';
 	import type { Signer } from '$lib/nostr/signing/signer';
-	import { rom } from '$lib/stores/Author';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import { getRelayHint, rxNostr, seenOn } from '$lib/timelines/MainTimeline';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
@@ -31,11 +30,6 @@
 	async function onRepost(): Promise<void> {
 		console.debug('[repost]', event);
 
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
-
 		const eTag = ['e', event.id];
 		const relay = getRelayHint(event.id);
 		if (relay) {
@@ -56,11 +50,6 @@
 
 	function onUndoRepost(): void {
 		console.debug('[repost undo]', event);
-
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
 
 		undoRepost(signEvent, event);
 	}

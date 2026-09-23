@@ -6,7 +6,6 @@
 	import { IconMessageCircle, IconBolt } from '@tabler/icons-svelte-runes';
 	import { metadataStore } from '$lib/cache/Events';
 	import { alternativeName, EventItem } from '$lib/Items';
-	import { rom } from '$lib/stores/Author';
 	import { sendReaction } from '$lib/author/Reaction';
 	import Content from '$lib/components/Content.svelte';
 	import CreatedAt from '$lib/components/CreatedAt.svelte';
@@ -44,9 +43,6 @@
 	}
 
 	function emojiReaction(emoji: PickerEmoji): void {
-		if ($rom) {
-			return;
-		}
 		const content =
 			emoji.native ??
 			(emoji.shortcodes ? emoji.shortcodes : `:${emoji.id.replaceAll('+', '_')}:`);
