@@ -156,9 +156,7 @@
 		<div><SeenOnRelayIcon /></div>
 		<div><ShowVia /></div>
 
-		{#if auth.signer?.nip44 !== undefined}
-			<div><WorkAsRemoteSigner /></div>
-		{/if}
+		<div><WorkAsRemoteSigner canEnable={auth.signer?.nip44 !== undefined} /></div>
 
 		<div><RelayStates /></div>
 		<div><WebStorage /></div>
