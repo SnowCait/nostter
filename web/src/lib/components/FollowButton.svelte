@@ -5,7 +5,6 @@
 	import { metadataStore } from '$lib/cache/Events';
 	import { alternativeName } from '$lib/Items';
 	import type { Signer } from '$lib/nostr/signing/signer';
-	import { followingPubkeys } from '$lib/stores/Author';
 
 	interface Props {
 		pubkey: string;
@@ -62,7 +61,7 @@
 	}
 </script>
 
-{#if $followingPubkeys.includes(pubkey)}
+{#if auth.followingPubkeys.includes(pubkey)}
 	<button onclick={onUnfollow} class="rounded-button" disabled={processing}>
 		{$_('follow.following')}
 	</button>

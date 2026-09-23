@@ -16,7 +16,6 @@ export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
 export const followees = toStore(() => auth.followees);
-export const followingPubkeys = toStore(() => auth.followingPubkeys);
 export const muteEvent = writable<Event | undefined>();
 export const mutePubkeys: Writable<string[]> = writable([]);
 export const mutedPubkeysByKindMap = writable(new Map<number, Set<string>>());
