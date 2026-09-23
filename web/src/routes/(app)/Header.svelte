@@ -2,7 +2,8 @@
 	import { IconLogin, IconPencilPlus } from '@tabler/icons-svelte-runes';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import { followees, pubkey, rom } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
+	import { followees, pubkey } from '$lib/stores/Author';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 	import NostterLogoIcon from '$lib/components/logo/NostterLogoIcon.svelte';
@@ -31,7 +32,7 @@
 		</a>
 	</div>
 	<AppNavigation pubkey={$pubkey} {homeLink} />
-	{#if $pubkey !== undefined && !$rom}
+	{#if auth.signer !== undefined}
 		<button
 			class:inline-composer-active={composerFocus.current !== undefined}
 			title="{$_('post')} (N)"
