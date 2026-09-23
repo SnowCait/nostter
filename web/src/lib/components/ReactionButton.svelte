@@ -5,7 +5,6 @@
 	import { reactionedEvents } from '$lib/author/Action';
 	import { deleteReaction, sendReaction } from '$lib/author/Reaction';
 	import { preferencesStore } from '$lib/Preferences';
-	import { rom } from '$lib/stores/Author';
 	import { isAprilFool } from '$lib/Helper';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
 	import ReactionIcon from './ReactionIcon.svelte';
@@ -31,11 +30,6 @@
 	async function onReaction(): Promise<void> {
 		console.debug('[reaction]', event);
 
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
-
 		await sendReaction(
 			signEvent,
 			event,
@@ -46,11 +40,6 @@
 
 	function onDelete(): void {
 		console.debug('[reaction delete]', event);
-
-		if ($rom) {
-			console.error('Readonly');
-			return;
-		}
 
 		deleteReaction(signEvent, event);
 	}

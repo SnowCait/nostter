@@ -14,7 +14,7 @@
 	import { broadcast } from '$lib/Broadcast';
 	import { copy } from '$lib/platform/browser/clipboard';
 	import { shareUrl } from '$lib/platform/browser/share';
-	import { rom, pubkey as authorPubkey, mutePubkeys, muteEventIds } from '$lib/stores/Author';
+	import { pubkey as authorPubkey, mutePubkeys, muteEventIds } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import {
 		IconBookmark,
@@ -45,10 +45,17 @@
 		event: Nostr.Event;
 		iconSize: number;
 		showDetails?: boolean;
+		canSign: boolean;
 		getCapabilities: () => MenuButtonCapabilities;
 	}
 
-	let { event, iconSize, showDetails = $bindable(false), getCapabilities }: Props = $props();
+	let {
+		event,
+		iconSize,
+		showDetails = $bindable(false),
+		canSign,
+		getCapabilities
+	}: Props = $props();
 
 	const {
 		elements: { menu, item, trigger, overlay, separator }
@@ -79,7 +86,7 @@
 			return;
 		}
 
-		console.log('[bookmark]', event, $rom);
+		console.log('[bookmark]', event);
 
 		if (bookmarked) {
 			console.debug('[bookmark already]');
@@ -102,7 +109,7 @@
 			return;
 		}
 
-		console.log('[unbookmark]', event, $rom);
+		console.log('[unbookmark]', event);
 
 		bookmarked = false;
 
@@ -246,7 +253,7 @@
 		<div>{$_('thread.translation.title')}</div>
 		<div class="secondary-icon"><IconExternalLink /></div>
 	</div>
-	{#if !$rom && event.kind === ShortTextNote}
+	{#if canSign && event.kind === ShortTextNote}
 		{#if bookmarked}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -302,7 +309,7 @@
 		<div class="icon"><IconCode size={iconSize} /></div>
 		<div>{$_('actions.embed.button')}</div>
 	</div>
-	{#if !$rom}
+	{#if canSign}
 		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('preferences.mute.mute')}</div>
 		{#if $mutePubkeys.includes(event.pubkey)}
