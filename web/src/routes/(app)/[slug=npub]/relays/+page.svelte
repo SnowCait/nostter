@@ -7,7 +7,7 @@
 	import { Api } from '$lib/Api';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { pubkey as authorPubkey, readRelays, writeRelays } from '$lib/stores/Author';
+	import { readRelays, writeRelays } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import { kinds as Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
@@ -46,7 +46,7 @@
 
 		const events = await api.fetchRelayEvents(
 			pubkey,
-			unique([...data.relays, ...(pubkey === $authorPubkey ? $writeRelays : $readRelays)])
+			unique([...data.relays, ...(pubkey === auth.pubkey ? $writeRelays : $readRelays)])
 		);
 		console.log('[relay events]', events);
 		const kind10002 = events.get(Kind.RelayList);
@@ -59,7 +59,7 @@
 			});
 		} else {
 			console.warn('[relay events not found]');
-			if (pubkey === $authorPubkey) {
+			if (pubkey === auth.pubkey) {
 				relays = Object.entries(rxNostr.getDefaultRelays()).map(([, config]) => config);
 			}
 		}
@@ -88,7 +88,7 @@
 		e.preventDefault();
 		console.log('[save relays]', relays);
 
-		const accountPubkey = $authorPubkey;
+		const accountPubkey = auth.pubkey;
 		if (accountPubkey === undefined) {
 			throw new Error('Not authenticated');
 		}
@@ -176,7 +176,7 @@
 		{/each}
 	</ul>
 
-	{#if pubkey === $authorPubkey}
+	{#if pubkey === auth.pubkey}
 		{#if editable}
 			<div>
 				<input type="url" bind:value={addingRelay} />

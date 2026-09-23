@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
-	import { pubkey as authorPubkey } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import { hexRegexp } from '$lib/Constants';
 	import ExternalLink from './ExternalLink.svelte';
 	import type * as Nostr from 'nostr-typedef';
@@ -45,7 +45,7 @@
 	$effect(() => {
 		const targetPubkey = pubkey;
 		const targetRelays = relays;
-		const isAuthor = targetPubkey === $authorPubkey;
+		const isAuthor = targetPubkey === auth.pubkey;
 
 		untrack(() => {
 			profileBadges = undefined;
@@ -209,7 +209,7 @@
 			.map((address) => badgeDefinitions.get(address)!)
 	);
 
-	let visible = $derived(awardedDefinitions.length > 0 || pubkey === $authorPubkey);
+	let visible = $derived(awardedDefinitions.length > 0 || pubkey === auth.pubkey);
 </script>
 
 {#if visible}

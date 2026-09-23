@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { get } from 'svelte/store';
 	import type * as Nostr from 'nostr-typedef';
 	import { createCollapsible, melt } from '@melt-ui/svelte';
 	import IconChevronDown from '@tabler/icons-svelte-runes/icons/chevron-down';
 	import { eventCache } from '$lib/cache/Events';
-	import { pubkey } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import Loading from '$lib/components/Loading.svelte';
 	import { hexRegexp } from '$lib/Constants';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
@@ -31,7 +30,7 @@
 
 	async function loadCachedVersions() {
 		loading = true;
-		const authorPubkey = get(pubkey);
+		const authorPubkey = auth.pubkey;
 		if (authorPubkey !== undefined) {
 			cachedEvents = await eventCache.getReplaceableEvents(3, authorPubkey);
 		}
@@ -39,7 +38,7 @@
 	}
 
 	async function restore(oldEvent: Nostr.Event): Promise<void> {
-		const accountPubkey = get(pubkey);
+		const accountPubkey = auth.pubkey;
 		if (accountPubkey === undefined) {
 			throw new Error('Not authenticated');
 		}

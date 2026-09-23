@@ -10,7 +10,7 @@
 	import { mute, unmute, type MuteCapabilities } from '$lib/author/Mute';
 	import { muteByKind, unmuteByKind, type MuteKindCapabilities } from '$lib/author/MuteKind';
 	import { metadataStore } from '$lib/cache/Events';
-	import { pubkey as authorPubkey, mutedPubkeysByKindMap, mutePubkeys } from '$lib/stores/Author';
+	import { mutedPubkeysByKindMap, mutePubkeys } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import { copy } from '$lib/platform/browser/clipboard';
 	import { alternativeName } from '$lib/Items';
@@ -278,7 +278,7 @@
 		<div>RSS</div>
 		<div class="secondary-icon"><IconExternalLink /></div>
 	</div>
-	{#if $authorPubkey !== undefined && auth.signer !== undefined}
+	{#if auth.pubkey !== undefined && auth.signer !== undefined}
 		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('preferences.mute.mute')}</div>
 		{#if $mutePubkeys.includes(pubkey)}
@@ -288,7 +288,7 @@
 				<div class="icon"><IconVolumeOff /></div>
 				<div>{$_('actions.unmute.button')}</div>
 			</div>
-		{:else if pubkey !== $authorPubkey}
+		{:else if pubkey !== auth.pubkey}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={onMute} class="item">
@@ -341,7 +341,7 @@
 				<div>{$_('actions.mute.zaps')}</div>
 			</div>
 		{/if}
-		{#if $developerMode && pubkey === $authorPubkey}
+		{#if $developerMode && pubkey === auth.pubkey}
 			<div use:melt={$separator} class="separator"></div>
 			<div class="text">{$_('menu.developer')}</div>
 			{#if auth.followingPubkeys.includes(pubkey)}

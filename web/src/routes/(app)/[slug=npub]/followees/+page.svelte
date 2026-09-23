@@ -4,7 +4,6 @@
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
-	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { auth } from '$lib/auth.svelte';
 	import { appName } from '$lib/app';
 	import { Metadata } from '$lib/Items';
@@ -68,7 +67,7 @@
 
 <div>
 	<h1>{$_('pages.followees')} ({pubkeys.length})</h1>
-	{#if data.pubkey === $authorPubkey}
+	{#if data.pubkey === auth.pubkey}
 		<button
 			onclick={() =>
 				open('https://tsukemonogit.github.io/NFO/', '_blank', 'noopener,noreferrer')}

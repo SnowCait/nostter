@@ -8,7 +8,7 @@
 	import { EventItem } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import type { LayoutProps } from '../$types';
-	import { pubkey as authorPubkey } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import TimelineView from '../../../TimelineView.svelte';
 	import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import ProfileTabs from '../ProfileTabs.svelte';
@@ -169,5 +169,5 @@
 <ProfileTabs tab="media" {slug} />
 
 <section>
-	<TimelineView {items} readonly={$authorPubkey === undefined} {load} />
+	<TimelineView {items} readonly={auth.pubkey === undefined} {load} />
 </section>

@@ -21,7 +21,6 @@
 	import type * as Nostr from 'nostr-typedef';
 	import { RelayList } from '$lib/RelayList';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
-	import { pubkey } from '$lib/stores/Author';
 	import { auth } from '$lib/auth.svelte';
 	import { customEmojiTags, findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
 	import { fetchFolloweesMetadata } from '$lib/author/Follow';
@@ -546,26 +545,24 @@
 			return;
 		}
 
-		RelayList.fetchEvents(filterTags('p', replyEvent.tags).filter((p) => p !== $pubkey)).then(
-			(relayListEventsMap) => {
-				if (relayListEventsMap.size === 0) {
-					return;
-				}
-
-				const readRelays = [...relayListEventsMap]
-					.flatMap(([, relayListEvent]) =>
-						getReadRelays(parseRelayList(relayListEvent.tags))
-					)
-					.filter((url) => url.startsWith('wss://') && !sendToRelays.includes(url));
-				console.log('[rx-nostr send addition]', readRelays, relayListEventsMap);
-				if (readRelays.length === 0) {
-					return;
-				}
-				rxNostr.send(event, { relays: [...new Set(readRelays)] }).subscribe((packet) => {
-					console.log('[rx-nostr send additional next]', packet);
-				});
+		RelayList.fetchEvents(
+			filterTags('p', replyEvent.tags).filter((p) => p !== auth.pubkey)
+		).then((relayListEventsMap) => {
+			if (relayListEventsMap.size === 0) {
+				return;
 			}
-		);
+
+			const readRelays = [...relayListEventsMap]
+				.flatMap(([, relayListEvent]) => getReadRelays(parseRelayList(relayListEvent.tags)))
+				.filter((url) => url.startsWith('wss://') && !sendToRelays.includes(url));
+			console.log('[rx-nostr send addition]', readRelays, relayListEventsMap);
+			if (readRelays.length === 0) {
+				return;
+			}
+			rxNostr.send(event, { relays: [...new Set(readRelays)] }).subscribe((packet) => {
+				console.log('[rx-nostr send additional next]', packet);
+			});
+		});
 	}
 
 	async function paste(event: ClipboardEvent) {
@@ -646,8 +643,8 @@
 	{/if}
 	<div class="content">
 		<div>
-			{#if $pubkey !== undefined}
-				<ProfileIcon pubkey={$pubkey} width="40px" height="40px" />
+			{#if auth.pubkey !== undefined}
+				<ProfileIcon pubkey={auth.pubkey} width="40px" height="40px" />
 			{/if}
 		</div>
 		<div class="input">

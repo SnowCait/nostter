@@ -2,12 +2,7 @@
 	import { nip19 } from 'nostr-tools';
 	import IconVolumeOff from '@tabler/icons-svelte-runes/icons/volume-off';
 	import IconTrash from '@tabler/icons-svelte-runes/icons/trash';
-	import {
-		pubkey as authorPubkey,
-		mutePubkeys,
-		muteEventIds,
-		muteWords
-	} from '$lib/stores/Author';
+	import { mutePubkeys, muteEventIds, muteWords } from '$lib/stores/Author';
 	import { mute, unmute, type MuteCapabilities } from '$lib/author/Mute';
 	import { auth } from '$lib/auth.svelte';
 
@@ -94,7 +89,7 @@
 		<span>Muting</span>
 		<button onclick={onUnmute} disabled={executing}><IconTrash /></button>
 	</div>
-{:else if $authorPubkey !== undefined}
+{:else if auth.pubkey !== undefined}
 	<button onclick={onMute} disabled={executing}><IconVolumeOff /></button>
 {/if}
 

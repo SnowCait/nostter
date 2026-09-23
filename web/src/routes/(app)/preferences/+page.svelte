@@ -10,7 +10,7 @@
 	import { auth } from '$lib/auth.svelte';
 	import type { Signer } from '$lib/nostr/signing/signer';
 	import type { MuteCapabilities } from '$lib/author/Mute';
-	import { muteEvent, pubkey } from '$lib/stores/Author';
+	import { muteEvent } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import AutoRefresh from './AutoRefresh.svelte';
 	import MutedUsers from './MutedUsers.svelte';
@@ -127,9 +127,9 @@
 				{/await}
 			</details>
 		{/if}
-		{#if $pubkey !== undefined}
+		{#if auth.pubkey !== undefined}
 			<div>
-				<a href="/{nip19.nprofileEncode({ pubkey: $pubkey })}/relays">
+				<a href="/{nip19.nprofileEncode({ pubkey: auth.pubkey })}/relays">
 					{$_('pages.relays_edit')}
 				</a>
 			</div>

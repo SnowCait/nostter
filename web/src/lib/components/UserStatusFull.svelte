@@ -3,7 +3,7 @@
 	import { chronological } from '$lib/Constants';
 	import { findIdentifier } from '$lib/nostr/protocol/event-address';
 	import { userStatusesMap } from '$lib/UserStatus';
-	import { pubkey as authorPubkey } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import { IconMusic, IconUser } from '@tabler/icons-svelte-runes';
 	import EmojifiedContent from './EmojifiedContent.svelte';
 	import ExternalLink from './ExternalLink.svelte';
@@ -20,7 +20,7 @@
 	let generalLink = $state<URL>();
 	let musicLink = $state<URL>();
 
-	let isAuthor = $derived(pubkey === $authorPubkey);
+	let isAuthor = $derived(pubkey === auth.pubkey);
 	let hasGeneral = $derived(generalEvent !== undefined && generalEvent.content !== '');
 	let hasMusic = $derived(musicEvent !== undefined && musicEvent.content !== '');
 	let visible = $derived(hasGeneral || hasMusic || isAuthor);

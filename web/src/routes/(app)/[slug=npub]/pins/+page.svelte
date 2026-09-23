@@ -11,7 +11,8 @@
 	import { WebStorage } from '$lib/WebStorage';
 	import { EventItem } from '$lib/Items';
 	import { filterTags } from '$lib/EventHelper';
-	import { pubkey as authorPubkey, readRelays } from '$lib/stores/Author';
+	import { readRelays } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import { tie, verificationClient } from '$lib/timelines/MainTimeline';
 	import TimelineView from '../../TimelineView.svelte';
 
@@ -32,7 +33,7 @@
 		rxNostr.setDefaultRelays([...$readRelays, ...data.relays]);
 
 		let event: Nostr.Event | undefined;
-		if (data.pubkey === $authorPubkey) {
+		if (data.pubkey === auth.pubkey) {
 			const storage = new WebStorage(localStorage);
 			event = storage.getReplaceableEvent(10001);
 			console.debug('[pin event (author)]', event);

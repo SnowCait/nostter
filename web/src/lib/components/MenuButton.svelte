@@ -14,7 +14,8 @@
 	import { broadcast } from '$lib/Broadcast';
 	import { copy } from '$lib/platform/browser/clipboard';
 	import { shareUrl } from '$lib/platform/browser/share';
-	import { pubkey as authorPubkey, mutePubkeys, muteEventIds } from '$lib/stores/Author';
+	import { mutePubkeys, muteEventIds } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import { developerMode } from '$lib/stores/Preference';
 	import {
 		IconBookmark,
@@ -319,7 +320,7 @@
 				<div class="icon"><IconVolumeOff size={iconSize} /></div>
 				<div>{$_('actions.unmute.user')}</div>
 			</div>
-		{:else if event.pubkey !== $authorPubkey}
+		{:else if event.pubkey !== auth.pubkey}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={onMute} class="item">
@@ -346,7 +347,7 @@
 				</div>
 			</div>
 		{/if}
-		{#if event.pubkey === $authorPubkey}
+		{#if event.pubkey === auth.pubkey}
 			<div use:melt={$separator} class="separator"></div>
 			<div class="text">{$_('menu.caution')}</div>
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
