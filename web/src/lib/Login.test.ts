@@ -343,6 +343,7 @@ describe('Login.withNip07', () => {
 		expect(fetchEvents).toHaveBeenCalledWith(undefined);
 		expect(browserSignerInstances).toHaveLength(1);
 		expect(auth.signer).toBe(browserSignerInstances[0]);
+		expect(remoteSignerSubscribeIfEnabled).toHaveBeenCalledOnce();
 		expect(warn).not.toHaveBeenCalled();
 	});
 
@@ -506,6 +507,7 @@ describe('Login.withNip46', () => {
 		expect(establishBunkerConnection).toHaveBeenCalledWith('bunker://remote');
 		expect(fetchEvents).toHaveBeenCalledWith(expect.any(Function));
 		expect(auth.signer).toBe(remoteSigner);
+		expect(remoteSignerSubscribeIfEnabled).toHaveBeenCalledOnce();
 	});
 
 	it('does not publish the remote signer before account initialization completes', async () => {
