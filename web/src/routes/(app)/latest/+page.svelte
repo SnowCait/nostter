@@ -5,13 +5,14 @@
 	import { EventItem } from '$lib/Items';
 	import { lastNoteReqEmit } from '$lib/LastNotes';
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
-	import { followees } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import { lastNotesMap } from '$lib/stores/LastNotes';
 	import TimelineView from '../TimelineView.svelte';
 
-	if ($followees.length > 0) {
-		metadataReqEmit($followees);
-		lastNoteReqEmit($followees);
+	const followees = auth.followees;
+	if (followees.length > 0) {
+		metadataReqEmit(followees);
+		lastNoteReqEmit(followees);
 	}
 
 	let items = $derived(

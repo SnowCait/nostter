@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { followees } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import type * as Nostr from 'nostr-typedef';
 	import { getContext } from 'svelte';
 	import { _ } from 'svelte-i18n';
@@ -12,7 +12,7 @@
 
 	const events = getContext<Nostr.Event[] | undefined>('events');
 	const shouldBlur = $derived(
-		events !== undefined && !events.some((event) => $followees.includes(event.pubkey))
+		events !== undefined && !events.some((event) => auth.followeesSet.has(event.pubkey))
 	);
 	let revealed = $state(false);
 	const blur = $derived(shouldBlur && !revealed);
