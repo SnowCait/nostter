@@ -10,10 +10,6 @@ const mocks = vi.hoisted(() => ({
 	requestEventDeletion: vi.fn()
 }));
 
-vi.mock('$lib/stores/Author', async () => {
-	const { writable } = await import('svelte/store');
-	return { pubkey: writable(mocks.userPubkey) };
-});
 vi.mock('$lib/cache/Events', () => ({
 	eventCache: { addIfNotExists: vi.fn() }
 }));

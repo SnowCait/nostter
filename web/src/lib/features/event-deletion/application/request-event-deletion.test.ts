@@ -8,10 +8,13 @@ const mocks = vi.hoisted(() => ({
 	send: vi.fn()
 }));
 
-vi.mock('$lib/stores/Author', async () => {
-	const { writable } = await import('svelte/store');
-	return { pubkey: writable(mocks.userPubkey) };
-});
+vi.mock('$lib/auth.svelte', () => ({
+	auth: {
+		get pubkey() {
+			return mocks.userPubkey;
+		}
+	}
+}));
 vi.mock('$lib/relay-client', () => ({ rxNostr: { send: mocks.send } }));
 
 import { requestEventDeletion } from './request-event-deletion';

@@ -2,12 +2,12 @@ import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, filterAsync, latestEach, now, uniq } from 'rx-nostr';
 import type * as Nostr from 'nostr-typedef';
 import { findIdentifier, getEventAddress } from '$lib/nostr/protocol/event-address';
-import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
 import { createListContentDecrypter, createListContentEncrypter } from '$lib/List';
 import type { EncryptionCapabilities, Signer } from '$lib/nostr/signing/signer';
+import { auth } from '$lib/auth.svelte';
 
 const kind = 30000;
 
@@ -30,7 +30,7 @@ export function storePeopleList(event: Nostr.Event): void {
 export function fetchPeopleLists(
 	getClassifierCapabilities: () => PeopleListClassifierCapabilities
 ): void {
-	const accountPubkey = get(authorPubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}
@@ -99,7 +99,7 @@ export async function contains(
 		return false;
 	}
 
-	const accountPubkey = get(authorPubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}
@@ -122,7 +122,7 @@ export async function createPeopleList(
 	title: string,
 	pubkey: string
 ): Promise<void> {
-	const accountPubkey = get(authorPubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}
@@ -149,7 +149,7 @@ export async function addToPeopleList(
 	event: Nostr.Event,
 	pubkey: string
 ): Promise<void> {
-	const accountPubkey = get(authorPubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}
@@ -176,7 +176,7 @@ export async function removeFromPeopleList(
 	event: Nostr.Event,
 	pubkey: string
 ): Promise<void> {
-	const accountPubkey = get(authorPubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}

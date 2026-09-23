@@ -5,11 +5,11 @@ import type { EventTemplate } from 'nostr-tools';
 import { PublicChatsList } from 'nostr-tools/kinds';
 import { authorChannelsEventStore } from '$lib/cache/Events';
 import type { Signer } from '$lib/nostr/signing/signer';
-import { pubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
+import { auth } from '$lib/auth.svelte';
 
 async function fetchPinnedChannelsEvent(): Promise<EventTemplate | undefined> {
-	const accountPubkey = get(pubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}

@@ -15,7 +15,16 @@ vi.mock('$lib/timelines/MainTimeline', () => ({
 	rxNostr: { send: () => of({ ok: true }) }
 }));
 vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: vi.fn(async () => undefined) }));
-vi.mock('$lib/stores/Author', () => ({ pubkey: accountPubkey }));
+vi.mock('$lib/auth.svelte', async () => {
+	const { get } = await import('svelte/store');
+	return {
+		auth: {
+			get pubkey() {
+				return get(accountPubkey);
+			}
+		}
+	};
+});
 vi.mock('$lib/WebStorage', () => ({
 	WebStorage: class {
 		getReplaceableEvent() {
