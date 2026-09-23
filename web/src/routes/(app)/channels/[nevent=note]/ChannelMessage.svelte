@@ -6,7 +6,7 @@
 	import { IconMessageCircle, IconBolt } from '@tabler/icons-svelte-runes';
 	import { metadataStore } from '$lib/cache/Events';
 	import { alternativeName, EventItem } from '$lib/Items';
-	import { author, rom } from '$lib/stores/Author';
+	import { rom } from '$lib/stores/Author';
 	import { sendReaction } from '$lib/author/Reaction';
 	import Content from '$lib/components/Content.svelte';
 	import CreatedAt from '$lib/components/CreatedAt.svelte';
@@ -85,7 +85,7 @@
 			<Content content={event.content} tags={event.tags} {event} />
 		</div>
 	</div>
-	{#if $author !== undefined}
+	{#if auth.signer !== undefined}
 		<div class="actions">
 			{#if onReply !== undefined}
 				<button

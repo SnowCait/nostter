@@ -14,7 +14,7 @@
 		IconClipboard
 	} from '@tabler/icons-svelte-runes';
 	import type { ChannelMetadata } from '$lib/nostr/protocol/nip28';
-	import { author, muteEventIds } from '$lib/stores/Author';
+	import { muteEventIds } from '$lib/stores/Author';
 	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { auth } from '$lib/auth.svelte';
 	import { mute, unmute, type MuteCapabilities } from '$lib/author/Mute';
@@ -123,7 +123,7 @@
 		</button>
 		<div use:melt={$overlay} class="overlay"></div>
 		<div use:melt={$menu} class="menu">
-			{#if $author !== undefined}
+			{#if auth.signer !== undefined}
 				{#if pinned}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -161,7 +161,7 @@
 				<div class="icon"><IconClipboard size={18} /></div>
 				<div>{$_('actions.copy_id.button')}</div>
 			</div>
-			{#if $author !== undefined}
+			{#if auth.signer !== undefined}
 				<div use:melt={$separator} class="separator"></div>
 				{#if muted}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->

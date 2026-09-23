@@ -15,7 +15,6 @@
 	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { metadataStore } from '$lib/cache/Events';
 	import { lastNoteReqEmit } from '$lib/LastNotes';
-	import { author } from '$lib/stores/Author';
 	import FollowAllButton from '$lib/components/actions/FollowAllButton.svelte';
 	import Loading from '$lib/components/Loading.svelte';
 	import type { PageProps } from './$types';
@@ -57,7 +56,7 @@
 		pubkeys = await getListPubkeys(listEvent, accountPubkey, decryptPrivateListContent);
 		metadataReqEmit(pubkeys);
 
-		if ($author !== undefined) {
+		if (auth.isAuthenticated) {
 			lastNoteReqEmit(pubkeys);
 		}
 	});

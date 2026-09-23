@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { isReady } from '$lib/auth.svelte';
+	import { auth, isReady } from '$lib/auth.svelte';
 	import { resolveLandingPath } from '$lib/post-login-navigation';
 	import { goto } from '$app/navigation';
-	import { author } from '$lib/stores/Author';
 	import { timeline } from '$lib/timelines/HomeTimeline';
 	import { applyTimelieFilter } from '$lib/TimelineFilter';
 	import { _ } from 'svelte-i18n';
@@ -54,7 +53,7 @@
 				<TimelineFilter />
 			</section>
 
-			{#if $author !== undefined}
+			{#if auth.isAuthenticated}
 				<section>
 					<h2>{$_('about.others')}</h2>
 					<ul>

@@ -49,7 +49,7 @@
 	);
 
 	$effect(() => {
-		if ($isReady && $author === undefined) {
+		if ($isReady && !$isAuthenticated) {
 			goto('/');
 		}
 	});

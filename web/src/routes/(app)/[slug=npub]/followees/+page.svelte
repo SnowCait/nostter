@@ -4,7 +4,8 @@
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
 	import TimelineView from '../../TimelineView.svelte';
-	import { author, pubkey as authorPubkey } from '$lib/stores/Author';
+	import { pubkey as authorPubkey } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 	import { appName } from '$lib/app';
 	import { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
@@ -49,7 +50,7 @@
 				console.log('[rx-nostr contacts]', packet);
 				pubkeys = [...new Set(filterTags('p', packet.event.tags).reverse())];
 				metadataReqEmit(pubkeys);
-				if ($author === undefined) {
+				if (!auth.isAuthenticated) {
 					return;
 				}
 				lastNoteReqEmit(pubkeys);
