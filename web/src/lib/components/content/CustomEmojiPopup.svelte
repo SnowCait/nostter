@@ -98,7 +98,7 @@
 			<div>{shortcode}</div>
 		{/if}
 
-		{#if event && !$rom}
+		{#if event && auth.signer !== undefined}
 			<button onclick={reaction}>{$_('actions.reaction.same')}</button>
 		{/if}
 
