@@ -1,7 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, filterAsync, latestEach, now, uniq } from 'rx-nostr';
 import type * as Nostr from 'nostr-typedef';
-import { isDecodable } from '$lib/Encryption';
 import { findIdentifier, getEventAddress } from '$lib/nostr/protocol/event-address';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
@@ -13,6 +12,7 @@ import type { EncryptionCapabilities, Signer } from '$lib/nostr/signing/signer';
 const kind = 30000;
 
 export type PeopleListCapabilities = Pick<Signer, 'signEvent' | 'nip04' | 'nip44'>;
+export type PeopleListClassifierCapabilities = Pick<Signer, 'nip04'>;
 
 export const peopleLists = writable(new Map<string, Nostr.Event>());
 export const processing = writable(false);
@@ -27,7 +27,9 @@ export function storePeopleList(event: Nostr.Event): void {
 	}
 }
 
-export function fetchPeopleLists(): void {
+export function fetchPeopleLists(
+	getClassifierCapabilities: () => PeopleListClassifierCapabilities
+): void {
 	const accountPubkey = get(authorPubkey);
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
@@ -40,7 +42,7 @@ export function fetchPeopleLists(): void {
 			tie,
 			uniq(),
 			latestEach(({ event }) => getEventAddress(event)),
-			filterAsync(({ event }) => isPeopleList(event))
+			filterAsync(({ event }) => isPeopleList(event, getClassifierCapabilities))
 		)
 		.subscribe(({ event }) => {
 			console.debug('[people list]', event);
@@ -56,7 +58,10 @@ export function fetchPeopleLists(): void {
 }
 
 // For legacy clients
-export async function isPeopleList(event: Nostr.Event): Promise<boolean> {
+export async function isPeopleList(
+	event: Nostr.Event,
+	getCapabilities: () => PeopleListClassifierCapabilities
+): Promise<boolean> {
 	if (event.kind !== kind) {
 		return false;
 	}
@@ -65,10 +70,20 @@ export async function isPeopleList(event: Nostr.Event): Promise<boolean> {
 		return false;
 	}
 
-	return (
-		event.tags.some(([tagName, pubkey]) => tagName === 'p' && pubkey !== undefined) ||
-		(await isDecodable(event.pubkey, event.content))
-	);
+	if (event.tags.some(([tagName, pubkey]) => tagName === 'p' && pubkey !== undefined)) {
+		return true;
+	}
+
+	try {
+		const { nip04 } = getCapabilities();
+		if (nip04 === undefined) {
+			return false;
+		}
+		await nip04.decrypt(event.pubkey, event.content);
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 export async function contains(

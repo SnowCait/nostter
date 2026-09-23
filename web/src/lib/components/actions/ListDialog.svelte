@@ -41,7 +41,7 @@
 			return;
 		}
 		fetched = true;
-		fetchPeopleLists();
+		fetchPeopleLists(getPeopleListCapabilities);
 	});
 
 	function toggled(e: Event, event: Nostr.Event): void {
