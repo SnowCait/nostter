@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { Item } from '$lib/Items';
 	import { deletedEventIdsByPubkey } from '$lib/features/event-deletion/application/deletion-state';
-	import { author, isMuteEvent } from '$lib/stores/Author';
+	import { isMuteEvent } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
+	import { isNotifiedEvent } from '$lib/features/notifications/application/is-notified-event';
 	import Loading from '$lib/components/Loading.svelte';
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import { innerHeight, scrollY } from 'svelte/reactivity/window';
@@ -61,7 +63,8 @@
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
 					class={canTransition ? 'canTransition-post' : ''}
-					class:related={$author?.isNotified(data.event)}
+					class:related={auth.pubkey !== undefined &&
+						isNotifiedEvent(data.event, auth.pubkey)}
 					onmousedown={(e) => preventMiddleClickDefault(e, canTransition)}
 					onmouseup={(e) => navigateTo(e, data.event, canTransition)}
 				>

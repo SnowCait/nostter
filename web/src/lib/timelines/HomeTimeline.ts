@@ -46,12 +46,7 @@ import {
 	followeesFilterKinds
 } from '$lib/Constants';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
-import {
-	author,
-	updateRelays,
-	storeMutedPubkeysByKind,
-	storeMutedTagsByEvent
-} from '../stores/Author';
+import { updateRelays, storeMutedPubkeysByKind, storeMutedTagsByEvent } from '../stores/Author';
 import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { saveLastNote } from '../stores/LastNotes';
 import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';
@@ -63,6 +58,7 @@ import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.s
 import { updateBlossomServerList } from '$lib/author/BlossomServerList.svelte';
 import { createListContentDecrypter } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
+import { isNotifiedEvent } from '$lib/features/notifications/application/is-notified-event';
 
 const maxTimelineLength = minTimelineLength * 2;
 
@@ -243,7 +239,7 @@ export class HomeTimeline extends NewTimeline {
 		});
 		timeline$
 			.pipe(
-				filter(({ event }) => get(author)!.isNotified(event)),
+				filter(({ event }) => isNotifiedEvent(event, accountPubkey)),
 				filter(({ event }) => !get(notifiedEventItems).some((x) => x.event.id === event.id))
 			)
 			.subscribe(({ event }) => {
