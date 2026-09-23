@@ -7,7 +7,6 @@
 	import { filterTags } from '$lib/EventHelper';
 	import { getEventAddress } from '$lib/nostr/protocol/event-address';
 	import { type Item } from '$lib/Items';
-	import { rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import IconCodeDots from '@tabler/icons-svelte-runes/icons/code-dots';
 	import IconAward from '@tabler/icons-svelte-runes/icons/award';
@@ -94,7 +93,7 @@
 	<main>
 		{#each badgeDefinitions as event}
 			<BadgeDefinition {event}>
-				{#if !readonly && !$rom}
+				{#if !readonly && auth.signer !== undefined}
 					{@const own = myBadgeDefinitionsA.includes(getEventAddress(event))}
 					<button class="round" disabled={own} onclick={() => accept(event)}>
 						{#if own}

@@ -9,7 +9,6 @@
 	import { minTimelineLength, searchRelays } from '$lib/Constants';
 	import { followingHashtags } from '$lib/Interest';
 	import { EventItem } from '$lib/Items';
-	import { rom } from '$lib/stores/Author';
 	import TimelineView from '../TimelineView.svelte';
 	import SearchForm from './SearchForm.svelte';
 	import Trending from './Trending.svelte';
@@ -289,7 +288,7 @@
 	<SearchForm {query} {scope} />
 </section>
 
-{#if auth.isAuthenticated && !$rom && hashtags.length > 0}
+{#if auth.signer !== undefined && hashtags.length > 0}
 	<section>
 		{#each hashtags as hashtag}
 			{#if $followingHashtags.includes(hashtag)}
