@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { auth, isReady } from '$lib/auth.svelte';
+	import { auth } from '$lib/auth.svelte';
 	import { resolveLandingPath } from '$lib/post-login-navigation';
 	import { goto } from '$app/navigation';
 	import { timeline } from '$lib/timelines/HomeTimeline';
@@ -21,7 +21,7 @@
 
 	let initialized = false;
 	$effect(() => {
-		if (!$isReady || initialized) {
+		if (!auth.isReady || initialized) {
 			return;
 		}
 		initialized = true;
@@ -77,7 +77,7 @@
 	{/if}
 </header>
 
-{#if $isReady}
+{#if auth.isReady}
 	<div class="timeline">
 		<Timeline {timeline} scrollToTopTarget="/home" />
 	</div>

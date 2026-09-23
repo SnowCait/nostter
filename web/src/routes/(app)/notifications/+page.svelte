@@ -10,7 +10,7 @@
 	import { EventItem } from '$lib/Items';
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
 	import { pubkey, author } from '$lib/stores/Author';
-	import { auth, isAuthenticated, isReady } from '$lib/auth.svelte';
+	import { auth } from '$lib/auth.svelte';
 	import TimelineView from '../TimelineView.svelte';
 	import NotificationTimeline from './NotificationTimeline.svelte';
 	import {
@@ -49,7 +49,7 @@
 	);
 
 	$effect(() => {
-		if ($isReady && !$isAuthenticated) {
+		if (auth.isReady && !auth.isAuthenticated) {
 			goto('/');
 		}
 	});
@@ -203,7 +203,7 @@
 		{/each}
 	</div>
 	<div use:melt={$content('all')}>
-		<NotificationTimeline authenticated={$isAuthenticated} {items} {load} />
+		<NotificationTimeline authenticated={auth.isAuthenticated} {items} {load} />
 	</div>
 	<div use:melt={$content('mentions')}>
 		<TimelineView items={items.filter((item) => item.event.kind === 1)} showLoading={false} />

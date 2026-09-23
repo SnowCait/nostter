@@ -11,7 +11,7 @@
 	import { sendEvent } from '$lib/RxNostrHelper';
 	import { storeMetadata } from '$lib/cache/Events';
 	import { WebStorage } from '$lib/WebStorage';
-	import { auth, isReady } from '$lib/auth.svelte';
+	import { auth } from '$lib/auth.svelte';
 
 	//#region Cropper
 
@@ -23,7 +23,7 @@
 	let complete: (value: File | PromiseLike<File | undefined> | undefined) => void;
 
 	$effect(() => {
-		if ($isReady && $pubkey === undefined) {
+		if (auth.isReady && $pubkey === undefined) {
 			goto('/');
 		}
 	});
