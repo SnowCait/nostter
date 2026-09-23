@@ -6,13 +6,10 @@ import { auth } from '$lib/auth.svelte';
 import type { Subscription } from 'rxjs';
 import { persistedStore } from '$lib/platform/storage/persisted-store';
 import type { Persisted } from 'svelte-persisted-store';
-import type { Signer as SigningSigner } from '$lib/nostr/signing/signer';
+import type { Signer } from '$lib/nostr/signing/signer';
 import { verificationClient } from './timelines/MainTimeline';
 
-type RemoteSignerCapabilities = Pick<
-	SigningSigner,
-	'getPublicKey' | 'signEvent' | 'nip04' | 'nip44'
->;
+type RemoteSignerCapabilities = Pick<Signer, 'getPublicKey' | 'signEvent' | 'nip04' | 'nip44'>;
 
 class RemoteSigner {
 	#relays: string[];
