@@ -4,7 +4,7 @@
 	import { tap } from 'rxjs';
 	import { onDestroy, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
+	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import TimelineView from '../../TimelineView.svelte';
 	import {
 		bookmarkEvent,
@@ -321,7 +321,7 @@
 		aria-labelledby={`bookmark-tab-${tab.id}`}
 		hidden={selectedBookmarkList?.id !== tab.id}
 	>
-		{#if tab.id === legacyBookmarkListId && data.pubkey === $authorPubkey && !$rom}
+		{#if tab.id === legacyBookmarkListId && data.pubkey === $authorPubkey && auth.signer !== undefined}
 			<div class="legacy-bookmark-actions">
 				<button
 					type="button"
