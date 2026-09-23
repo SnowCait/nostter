@@ -5,7 +5,7 @@
 	import { goto } from '$app/navigation';
 	import { getMediaUploader } from '$lib/media/Uploader';
 	import { appName } from '$lib/app';
-	import { pubkey, author, authorProfile, metadataEvent } from '$lib/stores/Author';
+	import { pubkey, authorProfile, metadataEvent } from '$lib/stores/Author';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 	import { sendEvent } from '$lib/RxNostrHelper';
@@ -259,7 +259,7 @@
 			<label for="about">{$_('profile.about')}</label>
 			<textarea id="about" bind:value={$authorProfile.about}></textarea>
 		</div>
-		{#if $author}
+		{#if auth.signer !== undefined}
 			<div>
 				<input type="submit" value={$_('profile.save')} />
 			</div>

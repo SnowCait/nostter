@@ -21,7 +21,7 @@
 	import type * as Nostr from 'nostr-typedef';
 	import { RelayList } from '$lib/RelayList';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
-	import { author, pubkey, rom } from '$lib/stores/Author';
+	import { pubkey, rom } from '$lib/stores/Author';
 	import { auth } from '$lib/auth.svelte';
 	import { customEmojiTags, findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
 	import { fetchFolloweesMetadata } from '$lib/author/Follow';
@@ -743,7 +743,7 @@
 				title="{$_('editor.post.button')} (Ctrl + Enter)"
 				class="active"
 				onclick={postNote}
-				disabled={$author === undefined ||
+				disabled={auth.signer === undefined ||
 					(content === '' && !localAttachments.hasAttachments) ||
 					$rom ||
 					posting ||

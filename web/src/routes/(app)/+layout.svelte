@@ -12,7 +12,7 @@
 	import '$lib/styles/menu.css';
 	import { fetchMinutes } from '$lib/Helper';
 	import { applyTheme } from '$lib/Theme';
-	import { author, followees } from '$lib/stores/Author';
+	import { followees } from '$lib/stores/Author';
 	import { auth } from '$lib/auth.svelte';
 	import { observePageLifecycle } from '$lib/platform/browser/page-lifecycle';
 	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
@@ -131,7 +131,7 @@
 
 	let initialized = false;
 	$effect(() => {
-		if (!auth.isAuthenticated || $author === undefined || initialized) {
+		if (!auth.isAuthenticated || initialized) {
 			return;
 		}
 		initialized = true;

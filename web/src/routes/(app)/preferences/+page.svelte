@@ -10,7 +10,7 @@
 	import { auth } from '$lib/auth.svelte';
 	import type { Signer } from '$lib/nostr/signing/signer';
 	import type { MuteCapabilities } from '$lib/author/Mute';
-	import { author, muteEvent, pubkey, rom } from '$lib/stores/Author';
+	import { muteEvent, pubkey, rom } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import AutoRefresh from './AutoRefresh.svelte';
 	import MutedUsers from './MutedUsers.svelte';
@@ -88,7 +88,7 @@
 
 <h1>{$_('layout.header.preferences')}</h1>
 
-{#if auth.isAuthenticated && $author !== undefined && !$rom}
+{#if auth.signer !== undefined && !$rom}
 	<section class="card">
 		<h2>{$_('preferences.shared')}</h2>
 		<div>
