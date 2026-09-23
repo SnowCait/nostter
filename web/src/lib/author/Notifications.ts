@@ -3,17 +3,16 @@ import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 import { filter, lastValueFrom } from 'rxjs';
 import { notificationsFilterKinds } from '$lib/Constants';
 import { EventItem } from '$lib/Items';
-import { author } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { auth } from '$lib/auth.svelte';
+import { isNotifiedEvent } from '$lib/features/notifications/application/is-notified-event';
 
 export const notifiedEventItems: Writable<EventItem[]> = writable([]);
 export const lastReadAt: Writable<number> = writable(0);
 
 export async function fetchLastNotification(): Promise<void> {
-	const $pubkey = auth.pubkey;
-	const $author = get(author);
-	if ($pubkey === undefined || $author === undefined) {
+	const accountPubkey = auth.pubkey;
+	if (accountPubkey === undefined) {
 		return;
 	}
 
@@ -21,7 +20,7 @@ export async function fetchLastNotification(): Promise<void> {
 		filters: [
 			{
 				kinds: notificationsFilterKinds,
-				'#p': [$pubkey],
+				'#p': [accountPubkey],
 				limit: 10
 			}
 		]
@@ -31,7 +30,7 @@ export async function fetchLastNotification(): Promise<void> {
 			rxNostr.use(notificationExistsReq).pipe(
 				tie,
 				uniq(),
-				filter(({ event }) => $author.isNotified(event)),
+				filter(({ event }) => isNotifiedEvent(event, accountPubkey)),
 				latest()
 			)
 		);

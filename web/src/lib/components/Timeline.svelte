@@ -3,7 +3,9 @@
 	import { _ } from 'svelte-i18n';
 	import { EventItem } from '$lib/Items';
 	import { deletedEventIdsByPubkey } from '$lib/features/event-deletion/application/deletion-state';
-	import { author, isMuteEvent } from '$lib/stores/Author';
+	import { isMuteEvent } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
+	import { isNotifiedEvent } from '$lib/features/notifications/application/is-notified-event';
 	import Loading from './Loading.svelte';
 	import EventComponent from './items/EventComponent.svelte';
 	import type { NewTimeline } from '$lib/timelines/Timeline.svelte';
@@ -182,7 +184,7 @@
 		<div
 			id={item.id}
 			class={canTransition ? 'canTransition-post' : ''}
-			class:related={$author?.isNotified(item.event)}
+			class:related={auth.pubkey !== undefined && isNotifiedEvent(item.event, auth.pubkey)}
 			onmousedown={(e) => preventMiddleClickDefault(e, canTransition)}
 			onmouseup={(e) => navigateTo(e, item.event, canTransition)}
 		>

@@ -7,7 +7,6 @@ import {
 	updateRelays,
 	authorProfile,
 	metadataEvent,
-	isMuteEvent,
 	storeMutedPubkeysByKind,
 	storeMutedTagsByEvent
 } from './stores/Author';
@@ -39,16 +38,6 @@ import type { ListContentDecrypter } from './List';
 
 export class Author {
 	constructor(private pubkey: string) {}
-
-	public isRelated(event: Event): boolean {
-		return event.tags.some(
-			([tagName, tagContent]) => tagName === 'p' && tagContent === this.pubkey
-		);
-	}
-
-	public isNotified(event: Event): boolean {
-		return event.pubkey !== this.pubkey && this.isRelated(event) && !isMuteEvent(event);
-	}
 
 	public async fetchRelays() {
 		const relayEvents = await RelayList.fetchEvents(this.pubkey);

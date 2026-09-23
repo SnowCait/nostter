@@ -9,7 +9,6 @@
 	import { minTimelineLength } from '$lib/Constants';
 	import { EventItem } from '$lib/Items';
 	import { lastReadAt, notifiedEventItems } from '$lib/author/Notifications';
-	import { author } from '$lib/stores/Author';
 	import { auth } from '$lib/auth.svelte';
 	import TimelineView from '../TimelineView.svelte';
 	import NotificationTimeline from './NotificationTimeline.svelte';
@@ -26,6 +25,7 @@
 	import { cubicInOut } from 'svelte/easing';
 	import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
 	import { createNotificationFilter } from '$lib/features/notifications/domain/create-notification-filter';
+	import { isNotifiedEvent } from '$lib/features/notifications/application/is-notified-event';
 	import { isValidPubkey } from '$lib/nostr/protocol/pubkey';
 
 	const {
@@ -135,7 +135,7 @@
 								);
 								return;
 							}
-							if (!$author?.isNotified(packet.event)) {
+							if (!isNotifiedEvent(packet.event, currentPubkey)) {
 								return;
 							}
 							if ($notifiedEventItems.some((x) => x.event.id === packet.event.id)) {
