@@ -5,7 +5,7 @@
 	import { filterTags } from '$lib/EventHelper';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { type Metadata, alternativeName } from '$lib/Items';
-	import { pubkey as authorPubkey, rom } from '$lib/stores/Author';
+	import { pubkey as authorPubkey } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import ZapButton from '$lib/components/ZapButton.svelte';
 	import Nip21QrcodeButton from '$lib/components/Nip21QrcodeButton.svelte';
@@ -112,13 +112,15 @@
 				<div>
 					<ShareButton {pubkey} />
 				</div>
-				{#if !$rom && pubkey !== undefined}
+				{#if auth.signer !== undefined}
 					<div class="zap">
 						<ZapButton {pubkey} {signEvent} />
 					</div>
-					<div>
-						<ProfileMenuButton {pubkey} />
-					</div>
+				{/if}
+				<div>
+					<ProfileMenuButton {pubkey} />
+				</div>
+				{#if auth.signer !== undefined}
 					{#if pubkey === $authorPubkey}
 						<a href="/profile" class="rounded-button">{$_('pages.profile_edit')}</a>
 					{:else}
