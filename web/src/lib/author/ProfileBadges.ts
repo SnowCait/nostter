@@ -15,7 +15,6 @@ import {
 	isProfileBadgesEvent,
 	selectProfileBadgesEvent
 } from '$lib/ProfileBadgesEvent';
-import { followees } from '../stores/Author';
 import type { Signer } from '$lib/nostr/signing/signer';
 import { auth } from '$lib/auth.svelte';
 
@@ -182,9 +181,9 @@ export function fetchFolloweesMetadata(): void {
 		return;
 	}
 
-	const $followees = get(followees);
+	const followees = auth.followees;
 	const $metadataStore = get(metadataStore);
-	const pubkeys = $followees.filter((pubkey) => !$metadataStore.has(pubkey));
+	const pubkeys = followees.filter((pubkey) => !$metadataStore.has(pubkey));
 	if (pubkeys.length > 0) {
 		metadataReqEmit(pubkeys);
 	}

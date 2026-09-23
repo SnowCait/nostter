@@ -9,7 +9,6 @@ import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
 import type { Signer } from '$lib/nostr/signing/signer';
-import { followees } from '../stores/Author';
 import { timeline as homeTimeline } from '$lib/timelines/HomeTimeline';
 import { auth } from '$lib/auth.svelte';
 
@@ -129,9 +128,9 @@ export function fetchFolloweesMetadata(): void {
 		return;
 	}
 
-	const $followees = get(followees);
+	const followees = auth.followees;
 	const $metadataStore = get(metadataStore);
-	const pubkeys = $followees.filter((pubkey) => !$metadataStore.has(pubkey));
+	const pubkeys = followees.filter((pubkey) => !$metadataStore.has(pubkey));
 	if (pubkeys.length > 0) {
 		metadataReqEmit(pubkeys);
 	}
