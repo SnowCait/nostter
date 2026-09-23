@@ -64,7 +64,6 @@ vi.mock('$lib/platform/storage/persisted-store', () => ({
 }));
 
 import { auth } from '$lib/auth.svelte';
-import { pubkey } from './stores/Author';
 import { remoteSigner } from './RemoteSigner';
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -231,23 +230,5 @@ describe('RemoteSigner re-subscription after disable', () => {
 		const second = hoisted.streams[1];
 		expect(first.observed).toBe(false);
 		expect(second.observed).toBe(true);
-	});
-});
-
-describe('RemoteSigner startup after session establishment', () => {
-	it('can subscribe immediately after the session is established while the pubkey store is already subscribed', () => {
-		auth.reset();
-		remoteSigner.enable();
-
-		const unsubscribe = pubkey.subscribe(() => {});
-
-		try {
-			auth.establish({ pubkey: 'server-pubkey', followingPubkeys: [], loginMethod: 'nsec' });
-			remoteSigner.subscribeIfEnabled();
-
-			expect(hoisted.streams).toHaveLength(1);
-		} finally {
-			unsubscribe();
-		}
 	});
 });

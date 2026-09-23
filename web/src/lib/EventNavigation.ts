@@ -1,12 +1,11 @@
 import type * as Nostr from 'nostr-typedef';
 import { goto } from '$app/navigation';
 import { nip19 } from 'nostr-tools';
-import { get } from 'svelte/store';
 import { filterTags } from '$lib/EventHelper';
 import { findChannelId } from '$lib/nostr/protocol/nip28';
 import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 import { emojiPickerOpen } from '$lib/components/EmojiPicker.svelte';
-import { pubkey } from '$lib/stores/Author';
+import { auth } from '$lib/auth.svelte';
 import { MouseButton } from '$lib/platform/browser/mouse-button';
 
 const getTargetETag = (tags: string[][]): string => {
@@ -60,7 +59,7 @@ const resolveZapDestination = (nostrEvent: Nostr.Event): string | undefined => {
 	}
 	const recipient = filterTags('p', nostrEvent.tags).at(0);
 	const zapper = filterTags('P', nostrEvent.tags).at(0);
-	const target = recipient === get(pubkey) && zapper !== undefined ? zapper : recipient;
+	const target = recipient === auth.pubkey && zapper !== undefined ? zapper : recipient;
 	return target !== undefined ? `/${nip19.npubEncode(target)}` : undefined;
 };
 
