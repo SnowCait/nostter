@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { logout as logoutSession } from '$lib/Login';
 	import { WebStorage } from '$lib/WebStorage';
-	import { loginType } from '$lib/stores/Author';
+	import { auth } from '$lib/auth.svelte';
 
 	let saved = $state(false);
 	let showNsec = $state(false);
@@ -12,7 +12,7 @@
 	}
 </script>
 
-{#if $loginType === 'nsec'}
+{#if auth.loginMethod === 'nsec'}
 	<h4>{$_('logout.ensure')}</h4>
 	<div>
 		<span>{$_('logout.private_key')}:</span>
@@ -25,8 +25,10 @@
 	</div>
 {/if}
 
-<button onclick={logout} disabled={$loginType === 'nsec' && !saved}>{$_('logout.logout')}</button>
-{#if $loginType === 'nsec'}
+<button onclick={logout} disabled={auth.loginMethod === 'nsec' && !saved}
+	>{$_('logout.logout')}</button
+>
+{#if auth.loginMethod === 'nsec'}
 	<label>
 		<input type="checkbox" bind:checked={saved} />
 		<span>{$_('logout.saved')}</span>

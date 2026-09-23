@@ -196,9 +196,9 @@ describe('Login.withNpub', () => {
 		auth.reset();
 
 		const originalEstablish = Object.getPrototypeOf(auth).establish.bind(auth);
-		vi.spyOn(auth, 'establish').mockImplementation((pubkey, followingPubkeys, signer) => {
+		vi.spyOn(auth, 'establish').mockImplementation((session) => {
 			calls.push('establish');
-			originalEstablish(pubkey, followingPubkeys, signer);
+			originalEstablish(session);
 		});
 
 		loadFolloweesMetadataCache.mockResolvedValue(undefined);
@@ -273,6 +273,7 @@ describe('Login.withNpub', () => {
 		expect(auth.followees).toEqual([]);
 		expect(auth.status).not.toBe('authenticated');
 		expect(auth.signer).toBeUndefined();
+		expect(auth.loginMethod).toBeUndefined();
 
 		resolveMetadataCache();
 		await loginPromise;
@@ -282,6 +283,7 @@ describe('Login.withNpub', () => {
 		expect(auth.followees).toEqual([followee, me]);
 		expect(auth.status).toBe('authenticated');
 		expect(auth.signer).toBeUndefined();
+		expect(auth.loginMethod).toBe('npub');
 	});
 
 	it('does not start the remote signer for a read-only session', async () => {
@@ -295,6 +297,14 @@ describe('Login.withNpub', () => {
 
 		expect(auth.status).toBe('authenticated');
 		expect(remoteSignerSubscribeIfEnabled).not.toHaveBeenCalled();
+	});
+
+	it('does not establish a session for an invalid npub', async () => {
+		const { nip19 } = await import('nostr-tools');
+		const { auth } = await import('./auth.svelte');
+		const { Login } = await import('./Login');
+		await new Login().withNpub(nip19.nsecEncode(new Uint8Array(32).fill(1)));
+		expect(auth.loginMethod).toBeUndefined();
 	});
 
 	it('does not provide a private-list decrypter during initialization', async () => {
@@ -313,7 +323,12 @@ describe('Login.withNpub', () => {
 		const { nip19 } = await import('nostr-tools');
 		const { auth } = await import('./auth.svelte');
 		const { Login } = await import('./Login');
-		auth.establish(me, [], remoteSigner);
+		auth.establish({
+			pubkey: me,
+			followingPubkeys: [],
+			loginMethod: 'NIP-46',
+			signer: remoteSigner
+		});
 
 		await new Login().withNpub(nip19.npubEncode(me));
 
@@ -330,6 +345,14 @@ describe('Login.withNip07', () => {
 		const { auth } = await import('./auth.svelte');
 		auth.reset();
 		fetchEvents.mockResolvedValue([['p', followee]]);
+	});
+
+	it('does not establish a session when the extension rejects the public key request', async () => {
+		browserGetPublicKey.mockRejectedValueOnce(new Error('extension rejected'));
+		const { auth } = await import('./auth.svelte');
+		const { Login } = await import('./Login');
+		await new Login().withNip07();
+		expect(auth.loginMethod).toBeUndefined();
 	});
 
 	it('initializes without a decrypter when the extension has no encryption capability', async () => {
@@ -387,11 +410,11 @@ describe('Login.withNip07', () => {
 		const { auth } = await import('./auth.svelte');
 		const { Login } = await import('./Login');
 		const originalEstablish = Object.getPrototypeOf(auth).establish.bind(auth);
-		vi.spyOn(auth, 'establish').mockImplementation((pubkey, followingPubkeys, signer) => {
+		vi.spyOn(auth, 'establish').mockImplementation((session) => {
 			expect(auth.pubkey).toBeUndefined();
 			expect(auth.signer).toBeUndefined();
-			expect(signer).toBe(browserSignerInstances[0]);
-			originalEstablish(pubkey, followingPubkeys, signer);
+			expect(session.signer).toBe(browserSignerInstances[0]);
+			originalEstablish(session);
 			expect(auth.pubkey).toBe(me);
 			expect(auth.signer).toBe(browserSignerInstances[0]);
 		});
@@ -400,12 +423,14 @@ describe('Login.withNip07', () => {
 		await vi.waitFor(() => expect(browserSignerInstances).toHaveLength(1));
 		expect(auth.pubkey).toBeUndefined();
 		expect(auth.signer).toBeUndefined();
+		expect(auth.loginMethod).toBeUndefined();
 
 		initialized.resolve();
 		await loggingIn;
 
 		expect(auth.signer).toBe(browserSignerInstances[0]);
 		expect(auth.status).toBe('authenticated');
+		expect(auth.loginMethod).toBe('NIP-07');
 	});
 });
 
@@ -465,12 +490,14 @@ describe('Login.withNsec', () => {
 		await vi.waitFor(() => expect(privateSignerInstances).toHaveLength(1));
 		expect(auth.pubkey).toBeUndefined();
 		expect(auth.signer).toBeUndefined();
+		expect(auth.loginMethod).toBeUndefined();
 
 		initialized.resolve();
 		await loggingIn;
 
 		expect(auth.pubkey).toBe(me);
 		expect(auth.signer).toBe(privateSignerInstances[0]);
+		expect(auth.loginMethod).toBe('nsec');
 	});
 });
 
@@ -494,6 +521,7 @@ describe('Login.withNip46', () => {
 
 		expect(remoteSigner.dispose).not.toHaveBeenCalled();
 		expect(auth.signer).toBeUndefined();
+		expect(auth.loginMethod).toBeUndefined();
 		time.mockRestore();
 		timeEnd.mockRestore();
 	});
@@ -520,12 +548,14 @@ describe('Login.withNip46', () => {
 		await vi.waitFor(() => expect(establishBunkerConnection).toHaveBeenCalledOnce());
 		expect(auth.pubkey).toBeUndefined();
 		expect(auth.signer).toBeUndefined();
+		expect(auth.loginMethod).toBeUndefined();
 
 		initialized.resolve();
 		await loggingIn;
 
 		expect(auth.pubkey).toBe(me);
 		expect(auth.signer).toBe(remoteSigner);
+		expect(auth.loginMethod).toBe('NIP-46');
 	});
 
 	it('cleans up the remote connection when account initialization fails', async () => {
@@ -542,6 +572,7 @@ describe('Login.withNip46', () => {
 		expect(remoteSigner.dispose).toHaveBeenCalledOnce();
 		expect(auth.signer).toBeUndefined();
 		expect(auth.status).toBe('anonymous');
+		expect(auth.loginMethod).toBeUndefined();
 		time.mockRestore();
 		timeEnd.mockRestore();
 	});
@@ -569,10 +600,9 @@ describe('session teardown', () => {
 	beforeEach(async () => {
 		vi.clearAllMocks();
 		const { auth } = await import('./auth.svelte');
-		const { author, loginType } = await import('./stores/Author');
+		const { author } = await import('./stores/Author');
 		auth.reset();
 		author.set(undefined);
-		loginType.set(undefined);
 		remoteSigner.dispose.mockResolvedValue(undefined);
 	});
 
@@ -580,17 +610,21 @@ describe('session teardown', () => {
 		const cleanup = Promise.withResolvers<void>();
 		remoteSigner.dispose.mockReturnValue(cleanup.promise);
 		const { auth } = await import('./auth.svelte');
-		const { author, loginType } = await import('./stores/Author');
+		const { author } = await import('./stores/Author');
 		const { resetLoginState } = await import('./Login');
-		auth.establish(me, [followee], remoteSigner);
+		auth.establish({
+			pubkey: me,
+			followingPubkeys: [followee],
+			loginMethod: 'NIP-46',
+			signer: remoteSigner
+		});
 		author.set({} as Author);
-		loginType.set('NIP-46');
 
 		const resetting = resetLoginState();
 
 		expect(remoteSigner.dispose).toHaveBeenCalledOnce();
 		expect(auth.status).toBe('anonymous');
-		expect(get(loginType)).toBeUndefined();
+		expect(auth.loginMethod).toBeUndefined();
 		expect(get(author)).toBeUndefined();
 		expect(auth.signer).toBeUndefined();
 		let resetCompleted = false;
@@ -616,17 +650,21 @@ describe('session teardown', () => {
 			}
 		});
 		const { auth } = await import('./auth.svelte');
-		const { author, loginType } = await import('./stores/Author');
+		const { author } = await import('./stores/Author');
 		const { logout } = await import('./Login');
-		auth.establish(me, [followee], remoteSigner);
+		auth.establish({
+			pubkey: me,
+			followingPubkeys: [followee],
+			loginMethod: 'NIP-46',
+			signer: remoteSigner
+		});
 		author.set({} as Author);
-		loginType.set('NIP-46');
 
 		const loggingOut = logout();
 
 		expect(calls).toEqual(['dispose']);
 		expect(auth.status).toBe('anonymous');
-		expect(get(loginType)).toBeUndefined();
+		expect(auth.loginMethod).toBeUndefined();
 		expect(get(author)).toBeUndefined();
 
 		cleanup.resolve();
@@ -638,7 +676,12 @@ describe('session teardown', () => {
 	it('tears down a session whose signer has no disposable resource', async () => {
 		const { auth } = await import('./auth.svelte');
 		const { resetLoginState } = await import('./Login');
-		auth.establish(me, [], { getPublicKey: vi.fn(), signEvent: vi.fn() });
+		auth.establish({
+			pubkey: me,
+			followingPubkeys: [],
+			loginMethod: 'NIP-07',
+			signer: { getPublicKey: vi.fn(), signEvent: vi.fn() }
+		});
 
 		await expect(resetLoginState()).resolves.toBeUndefined();
 
@@ -657,7 +700,8 @@ describe('tryLogin', () => {
 	it('uses persisted login only to select the login flow', async () => {
 		const { auth } = await import('./auth.svelte');
 		const { Login, tryLogin } = await import('./Login');
-		const establishAuth = () => auth.establish(me, []);
+		const establishAuth = () =>
+			auth.establish({ pubkey: me, followingPubkeys: [], loginMethod: 'npub' });
 		const flows = {
 			nip07: vi.spyOn(Login.prototype, 'withNip07').mockImplementation(async () => {
 				establishAuth();

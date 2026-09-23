@@ -76,12 +76,17 @@ const packet = (id: string): RequestPacket => ({
 beforeEach(() => {
 	remoteSigner.disable();
 	auth.reset();
-	auth.establish('server-pubkey', [], {
-		getPublicKey: vi.fn(async () => 'server-pubkey'),
-		signEvent: hoisted.signEvent,
-		nip44: {
-			encrypt: hoisted.encryptNip44,
-			decrypt: hoisted.decryptNip44
+	auth.establish({
+		pubkey: 'server-pubkey',
+		followingPubkeys: [],
+		loginMethod: 'nsec',
+		signer: {
+			getPublicKey: vi.fn(async () => 'server-pubkey'),
+			signEvent: hoisted.signEvent,
+			nip44: {
+				encrypt: hoisted.encryptNip44,
+				decrypt: hoisted.decryptNip44
+			}
 		}
 	});
 	hoisted.streams.length = 0;
@@ -154,7 +159,12 @@ describe('RemoteSigner request signer snapshot', () => {
 			nip44: { decrypt: secondDecrypt, encrypt: secondEncrypt }
 		};
 		hoisted.decryptNip44.mockImplementationOnce(async () => {
-			auth.establish('server-pubkey', [], secondSigner);
+			auth.establish({
+				pubkey: 'server-pubkey',
+				followingPubkeys: [],
+				loginMethod: 'nsec',
+				signer: secondSigner
+			});
 			return JSON.stringify({
 				id: 'sign',
 				method: 'sign_event',
@@ -232,7 +242,7 @@ describe('RemoteSigner startup after session establishment', () => {
 		const unsubscribe = pubkey.subscribe(() => {});
 
 		try {
-			auth.establish('server-pubkey', []);
+			auth.establish({ pubkey: 'server-pubkey', followingPubkeys: [], loginMethod: 'nsec' });
 			remoteSigner.subscribeIfEnabled();
 
 			expect(hoisted.streams).toHaveLength(1);

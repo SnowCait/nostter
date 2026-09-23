@@ -4,9 +4,8 @@
 	import type * as Nostr from 'nostr-typedef';
 	import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 	import { Login, resetLoginState } from '$lib/Login';
-	import { loginType } from '$lib/stores/Author';
 	import { page } from '$app/state';
-	import { afterNavigate, goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { auth } from '$lib/auth.svelte';
 	import { gotoAfterLogin } from '$lib/post-login-navigation';
 	import { WebStorage } from '$lib/WebStorage';
@@ -24,16 +23,20 @@
 	let failedToLogin = $state(false);
 	let registering = $state(false);
 	let loggingInWith: 'nip07' | 'nip46' | 'key' | undefined = $state();
+	let handledQueryNpub: string | undefined;
+	let loginBusy = $derived(
+		loggingInWith !== undefined || registering || auth.status !== 'anonymous'
+	);
 
 	const login = new Login();
 
 	async function resetLoginProgress(): Promise<void> {
-		loggingInWith = undefined;
 		await resetLoginState();
+		loggingInWith = undefined;
 	}
 
 	async function loginWithNip07() {
-		if (loggingInWith !== undefined) {
+		if (loginBusy) {
 			return;
 		}
 
@@ -56,7 +59,7 @@
 
 	async function loginWithNip46(e: SubmitEvent) {
 		e.preventDefault();
-		if (loggingInWith !== undefined) {
+		if (loginBusy) {
 			return;
 		}
 
@@ -82,7 +85,7 @@
 
 	async function loginWithKey(e: SubmitEvent) {
 		e.preventDefault();
-		if (loggingInWith !== undefined) {
+		if (loginBusy) {
 			return;
 		}
 
@@ -105,6 +108,7 @@
 	}
 
 	async function loginWithDemo() {
+		if (loginBusy) return;
 		await goto('/public');
 	}
 
@@ -117,7 +121,7 @@
 
 	async function register(e: SubmitEvent): Promise<void> {
 		e.preventDefault();
-		if (registering) {
+		if (loginBusy) {
 			return;
 		}
 
@@ -158,15 +162,30 @@
 		return true;
 	}
 
-	afterNavigate(async () => {
-		const queryNpub = page.url.searchParams.get('login');
-
-		if (queryNpub === null || !queryNpub.startsWith('npub') || $loginType !== undefined) {
+	$effect(() => {
+		const requestedNpub = page.url.searchParams.get('login');
+		if (requestedNpub === null || !requestedNpub.startsWith('npub')) {
+			handledQueryNpub = undefined;
 			return;
 		}
 
-		key = queryNpub;
-		await login.withNpub(queryNpub);
+		if (requestedNpub === handledQueryNpub || loginBusy) {
+			return;
+		}
+
+		handledQueryNpub = requestedNpub;
+		key = requestedNpub;
+		loggingInWith = 'key';
+		void login
+			.withNpub(requestedNpub)
+			.catch(async (error) => {
+				console.error('[query npub login failed]', error);
+				setLoginStatus('failed', 'error');
+				await resetLoginState();
+			})
+			.finally(() => {
+				loggingInWith = undefined;
+			});
 	});
 </script>
 
@@ -217,7 +236,7 @@
 											<button
 												type="submit"
 												class="submit-button"
-												disabled={$loginType !== undefined || registering}
+												disabled={loginBusy}
 												aria-busy={registering}
 											>
 												{#if registering}
@@ -235,7 +254,7 @@
 				</section>
 
 				<section>
-					<button onclick={loginWithDemo} disabled={$loginType !== undefined}>
+					<button onclick={loginWithDemo} disabled={loginBusy}>
 						{$_('login.try_demo')}
 					</button>
 				</section>
@@ -267,9 +286,7 @@
 									<button
 										onclick={loginWithNip07}
 										class="submit-button"
-										disabled={$loginType !== undefined ||
-											loggingInWith !== undefined ||
-											nostr === undefined}
+										disabled={loginBusy || nostr === undefined}
 										aria-busy={loggingInWith === 'nip07'}
 									>
 										{#if loggingInWith === 'nip07'}
@@ -303,8 +320,7 @@
 										<button
 											type="submit"
 											class="submit-button"
-											disabled={$loginType !== undefined ||
-												loggingInWith !== undefined}
+											disabled={loginBusy}
 											aria-busy={loggingInWith === 'nip46'}
 										>
 											{#if loggingInWith === 'nip46'}
@@ -343,8 +359,7 @@
 										<button
 											type="submit"
 											class="submit-button"
-											disabled={$loginType !== undefined ||
-												loggingInWith !== undefined}
+											disabled={loginBusy}
 											aria-busy={loggingInWith === 'key'}
 										>
 											{#if loggingInWith === 'key'}
