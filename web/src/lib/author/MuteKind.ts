@@ -1,8 +1,7 @@
-import { get } from 'svelte/store';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
-import { pubkey, storeMutedPubkeysByKind } from '$lib/stores/Author';
+import { storeMutedPubkeysByKind } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
@@ -10,6 +9,7 @@ import { WebStorage } from '$lib/WebStorage';
 import { createListContentDecrypter, createListContentEncrypter } from '$lib/List';
 import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
 import type { Signer } from '$lib/nostr/signing/signer';
+import { auth } from '$lib/auth.svelte';
 
 type DataType = 'mute' | 'unmute';
 type Data = {
@@ -60,7 +60,7 @@ async function save(
 		return;
 	}
 
-	const accountPubkey = get(pubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}

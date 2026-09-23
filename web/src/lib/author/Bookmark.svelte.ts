@@ -7,8 +7,8 @@ import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
-import { pubkey } from '../stores/Author';
 import type { Signer } from '$lib/nostr/signing/signer';
+import { auth } from '$lib/auth.svelte';
 
 type DataType = 'bookmark' | 'unbookmark';
 type Data = {
@@ -75,7 +75,7 @@ async function save(signEvent: Signer['signEvent'], type: DataType, tag: string[
 		throw new Error('Bookmark copy is in progress.');
 	}
 
-	const accountPubkey = get(pubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}

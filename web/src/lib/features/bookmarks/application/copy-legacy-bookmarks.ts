@@ -1,4 +1,3 @@
-import { get } from 'svelte/store';
 import { createRxBackwardReq, latestEach, now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
@@ -8,10 +7,10 @@ import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
 import { rxNostr } from '$lib/relay-client';
 import { tie } from '$lib/nostr/relay/relay-hints';
 import type { Encryption } from '$lib/nostr/signing/signer';
-import { pubkey } from '$lib/stores/Author';
 import { WebStorage } from '$lib/WebStorage';
 import { bookmarkEvent, runBookmarkCopyExclusively } from '$lib/author/Bookmark.svelte';
 import { isLegacyBookmarkEvent, mergeBookmarkReferences } from '../domain/bookmark-migration';
+import { auth } from '$lib/auth.svelte';
 
 export interface BookmarkMigrationCapabilities {
 	signEvent(unsignedEvent: EventTemplate | Nostr.UnsignedEvent): Promise<Nostr.Event>;
@@ -102,7 +101,7 @@ async function fetchBookmarkSources(pubkey: string): Promise<{
 export async function copyLegacyBookmarks(
 	signer: BookmarkMigrationCapabilities
 ): Promise<Nostr.Event | undefined> {
-	const accountPubkey = get(pubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}

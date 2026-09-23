@@ -15,9 +15,9 @@ import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { WebStorage } from '$lib/WebStorage';
 import { Emojisets, UserEmojiList } from 'nostr-tools/kinds';
-import { pubkey } from '$lib/stores/Author';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import type { Signer } from '$lib/nostr/signing/signer';
+import { auth } from '$lib/auth.svelte';
 
 // kind 10030
 export const customEmojiListEvent = writable<Nostr.Event | undefined>();
@@ -139,7 +139,7 @@ async function save(
 	type: DataType,
 	address: string
 ): Promise<void> {
-	const accountPubkey = get(pubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}

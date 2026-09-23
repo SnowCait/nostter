@@ -3,14 +3,15 @@ import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
 import { filter, lastValueFrom } from 'rxjs';
 import { notificationsFilterKinds } from '$lib/Constants';
 import { EventItem } from '$lib/Items';
-import { author, pubkey } from '$lib/stores/Author';
+import { author } from '$lib/stores/Author';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
+import { auth } from '$lib/auth.svelte';
 
 export const notifiedEventItems: Writable<EventItem[]> = writable([]);
 export const lastReadAt: Writable<number> = writable(0);
 
 export async function fetchLastNotification(): Promise<void> {
-	const $pubkey = get(pubkey);
+	const $pubkey = auth.pubkey;
 	const $author = get(author);
 	if ($pubkey === undefined || $author === undefined) {
 		return;

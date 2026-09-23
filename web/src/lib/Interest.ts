@@ -1,11 +1,11 @@
-import { get, writable } from 'svelte/store';
+import { writable } from 'svelte/store';
 import { createRxBackwardReq, latest, type EventPacket, now } from 'rx-nostr';
 import type * as Nostr from 'nostr-typedef';
 import { browser } from '$app/environment';
 import { rxNostr, tie } from './timelines/MainTimeline';
 import { WebStorage } from './WebStorage';
-import { pubkey } from './stores/Author';
 import type { Signer } from './nostr/signing/signer';
+import { auth } from './auth.svelte';
 
 const interestKind = 10015;
 const followQueue: string[] = [];
@@ -30,7 +30,7 @@ function getFollowingHashtags(): string[] {
 export function followHashtag(signEvent: Signer['signEvent'], hashtag: string): void {
 	console.log('[follow hashtag]', hashtag);
 
-	const accountPubkey = get(pubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}
@@ -51,7 +51,7 @@ export function followHashtag(signEvent: Signer['signEvent'], hashtag: string): 
 export function unfollowHashtag(signEvent: Signer['signEvent'], hashtag: string): void {
 	console.log('[unfollow hashtag]', hashtag);
 
-	const accountPubkey = get(pubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}

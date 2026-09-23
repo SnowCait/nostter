@@ -9,8 +9,9 @@ import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
 import type { Signer } from '$lib/nostr/signing/signer';
-import { followees, pubkey } from '../stores/Author';
+import { followees } from '../stores/Author';
 import { timeline as homeTimeline } from '$lib/timelines/HomeTimeline';
+import { auth } from '$lib/auth.svelte';
 
 type DataType = 'follow' | 'unfollow';
 type Data = {
@@ -38,7 +39,7 @@ async function save(
 	type: DataType,
 	pubkeys: string[]
 ): Promise<void> {
-	const accountPubkey = get(pubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}

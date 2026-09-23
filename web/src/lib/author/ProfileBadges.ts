@@ -15,8 +15,9 @@ import {
 	isProfileBadgesEvent,
 	selectProfileBadgesEvent
 } from '$lib/ProfileBadgesEvent';
-import { followees, pubkey } from '../stores/Author';
+import { followees } from '../stores/Author';
 import type { Signer } from '$lib/nostr/signing/signer';
+import { auth } from '$lib/auth.svelte';
 
 type DataType = 'accept';
 type Data = {
@@ -77,7 +78,7 @@ async function save(
 	a: string,
 	e: string
 ): Promise<void> {
-	const accountPubkey = get(pubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}

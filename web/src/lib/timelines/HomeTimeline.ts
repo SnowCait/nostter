@@ -47,7 +47,6 @@ import {
 } from '$lib/Constants';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
 import {
-	pubkey,
 	author,
 	updateRelays,
 	followees,
@@ -90,7 +89,7 @@ export class HomeTimeline extends NewTimeline {
 
 	#createSubscriptions(): void {
 		console.debug('[home timeline create subscriptions]');
-		const accountPubkey = get(pubkey);
+		const accountPubkey = auth.pubkey;
 		if (accountPubkey === undefined) {
 			throw new Error('Not authenticated');
 		}
@@ -266,7 +265,7 @@ export class HomeTimeline extends NewTimeline {
 	}
 
 	#createForwardFilters(): LazyFilter[] {
-		const accountPubkey = get(pubkey);
+		const accountPubkey = auth.pubkey;
 		if (accountPubkey === undefined) {
 			throw new Error('Not authenticated');
 		}
@@ -314,7 +313,7 @@ export class HomeTimeline extends NewTimeline {
 	}
 
 	#createBackwardFilters(limit?: number): LazyFilter[] {
-		const accountPubkey = get(pubkey);
+		const accountPubkey = auth.pubkey;
 		if (accountPubkey === undefined) {
 			throw new Error('Not authenticated');
 		}

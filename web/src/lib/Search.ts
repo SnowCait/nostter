@@ -3,9 +3,10 @@ import { get } from 'svelte/store';
 import { authorActionReqEmit } from './author/Action';
 import { hashtagsRegexp, reverseChronological, searchRelays } from './Constants';
 import { EventItem } from './Items';
-import { pubkey, readRelays } from './stores/Author';
+import { readRelays } from './stores/Author';
 import { referencesReqEmit } from './timelines/MainTimeline';
 import { fetchEvents } from './RxNostrHelper';
+import { auth } from './auth.svelte';
 
 export const searchScopes = ['all', 'nostr', 'following', 'mine'] as const;
 export type SearchScope = (typeof searchScopes)[number];
@@ -149,7 +150,7 @@ export function parseSearchQuery(
 	console.debug('[search matches]', fromPubkeys, toPubkeys, hashtags, kinds, since, until);
 
 	if (mine) {
-		const accountPubkey = get(pubkey);
+		const accountPubkey = auth.pubkey;
 		if (accountPubkey === undefined) {
 			throw new Error('Not authenticated');
 		}

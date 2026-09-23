@@ -8,7 +8,7 @@ import { filterTags } from '$lib/EventHelper';
 import { getRepostTargetEventId } from '$lib/nostr/protocol/nip18';
 import { getReactionTargetEventId } from '$lib/nostr/protocol/nip25';
 import type { id } from '$lib/Types';
-import { pubkey } from '../stores/Author';
+import { auth } from '$lib/auth.svelte';
 import {
 	deletedEventIdsByPubkey,
 	markEventsDeleted
@@ -19,9 +19,10 @@ export const repostedEvents = writable(new Map<id, Nostr.Event[]>());
 export const reactionedEvents = writable(new Map<id, Nostr.Event[]>());
 
 export function updateRepostedEvents(events: Nostr.Event[]): void {
+	const accountPubkey = auth.pubkey;
 	const $repostedEvents = get(repostedEvents);
 	for (const event of events.filter(
-		(event) => event.kind === Repost && event.pubkey === get(pubkey) // Ensure
+		(event) => event.kind === Repost && event.pubkey === accountPubkey // Ensure
 	)) {
 		const id = getRepostTargetEventId(event.tags);
 		if (id === undefined) {
@@ -40,9 +41,10 @@ export function updateRepostedEvents(events: Nostr.Event[]): void {
 }
 
 export function updateReactionedEvents(events: Nostr.Event[]): void {
+	const accountPubkey = auth.pubkey;
 	const $reactionedEvents = get(reactionedEvents);
 	for (const event of events.filter(
-		(event) => event.kind === Reaction && event.pubkey === get(pubkey) // Ensure
+		(event) => event.kind === Reaction && event.pubkey === accountPubkey // Ensure
 	)) {
 		const id = getReactionTargetEventId(event.tags);
 		if (id === undefined) {
@@ -91,7 +93,7 @@ observable
 export function authorActionReqEmit(event: Nostr.Event): void {
 	const ids = [event.id, ...filterTags('e', event.tags)];
 	console.debug('[rx-nostr author action req]', ids);
-	const accountPubkey = get(pubkey);
+	const accountPubkey = auth.pubkey;
 	const filters: LazyFilter[] = [];
 	if (accountPubkey !== undefined) {
 		filters.push({

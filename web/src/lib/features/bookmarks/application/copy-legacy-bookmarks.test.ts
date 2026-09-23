@@ -20,10 +20,13 @@ const mocks = vi.hoisted(() => ({
 	storage: { cachedEvent: undefined as unknown }
 }));
 
-vi.mock('$lib/stores/Author', async () => {
-	const { writable } = await import('svelte/store');
-	return { pubkey: writable(mocks.userPubkey) };
-});
+vi.mock('$lib/auth.svelte', () => ({
+	auth: {
+		get pubkey() {
+			return mocks.userPubkey;
+		}
+	}
+}));
 vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: mocks.fetchLastEvent }));
 vi.mock('$lib/relay-client', () => ({
 	rxNostr: { send: mocks.send, use: mocks.use }

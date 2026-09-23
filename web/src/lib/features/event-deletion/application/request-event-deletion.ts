@@ -1,11 +1,10 @@
-import { get } from 'svelte/store';
 import { now } from 'rx-nostr';
 import { isAddressableKind, isReplaceableKind } from 'nostr-tools/kinds';
 import type * as Nostr from 'nostr-typedef';
-import { pubkey as authorPubkey } from '$lib/stores/Author';
 import { rxNostr } from '$lib/relay-client';
 import { getEventAddress } from '$lib/nostr/protocol/event-address';
 import type { Signer } from '$lib/nostr/signing/signer';
+import { auth } from '$lib/auth.svelte';
 
 export async function requestEventDeletion(
 	signEvent: Signer['signEvent'],
@@ -16,7 +15,7 @@ export async function requestEventDeletion(
 		throw new Error('Deletion request requires at least one target event');
 	}
 
-	const accountPubkey = get(authorPubkey);
+	const accountPubkey = auth.pubkey;
 	if (accountPubkey === undefined) {
 		throw new Error('Not authenticated');
 	}
