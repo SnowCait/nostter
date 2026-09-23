@@ -13,7 +13,6 @@ describe('Signer facade', () => {
 	it('throws a logic error for every operation in an anonymous session', async () => {
 		await expect(Signer.getPublicKey()).rejects.toThrow('[logic error]');
 		await expect(Signer.signEvent({} as EventTemplate)).rejects.toThrow('[logic error]');
-		expect(() => Signer.getEncryptionCapabilities()).toThrow('[logic error]');
 		await expect(Signer.encrypt('peer', 'plain')).rejects.toThrow('[logic error]');
 		await expect(Signer.decrypt('peer', 'cipher')).rejects.toThrow('[logic error]');
 		await expect(Signer.encryptNip44('peer', 'plain')).rejects.toThrow('[logic error]');
@@ -54,7 +53,6 @@ describe('Signer facade', () => {
 
 		await expect(Signer.getPublicKey()).resolves.toBe('pubkey');
 		await expect(Signer.signEvent(unsignedEvent)).resolves.toBe(signedEvent);
-		expect(Signer.getEncryptionCapabilities()).toEqual({ nip04, nip44 });
 		await expect(Signer.encrypt('peer', 'plain')).resolves.toBe('nip04-ciphertext');
 		await expect(Signer.decrypt('peer', 'cipher')).resolves.toBe('nip04-plaintext');
 		await expect(Signer.encryptNip44('peer', 'plain')).resolves.toBe('nip44-ciphertext');

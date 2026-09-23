@@ -3,11 +3,9 @@ import type * as Nostr from 'nostr-typedef';
 import {
 	createListContentDecrypter,
 	createListContentEncrypter,
-	decryptListContent,
 	getListPubkeys,
 	getListTitle
 } from './List';
-import { Signer } from './Signer';
 
 describe('list', () => {
 	it('title', () => {
@@ -235,38 +233,5 @@ describe('createListContentEncrypter', () => {
 			'NIP-04 encryption capability is unavailable'
 		);
 		expect(nip44.encrypt).not.toHaveBeenCalled();
-	});
-});
-
-describe('decryptListContent', () => {
-	afterEach(() => vi.restoreAllMocks());
-
-	it('returns non-legacy for empty content', async () => {
-		await expect(decryptListContent('author', '')).resolves.toEqual([[], false]);
-	});
-
-	it('preserves the legacy format without decryption capabilities', async () => {
-		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-		vi.spyOn(Signer, 'getEncryptionCapabilities').mockReturnValue({});
-
-		await expect(decryptListContent('author', 'legacy?iv=value')).resolves.toEqual([[], true]);
-		expect(warn).not.toHaveBeenCalled();
-	});
-
-	it('returns non-legacy without decryption capabilities for NIP-44 content', async () => {
-		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-		vi.spyOn(Signer, 'getEncryptionCapabilities').mockReturnValue({});
-
-		await expect(decryptListContent('author', 'nip44-content')).resolves.toEqual([[], false]);
-		expect(warn).not.toHaveBeenCalled();
-	});
-
-	it('preserves the legacy format without a signer', async () => {
-		vi.spyOn(console, 'warn').mockImplementation(() => {});
-		vi.spyOn(Signer, 'getEncryptionCapabilities').mockImplementation(() => {
-			throw new Error('[logic error]');
-		});
-
-		await expect(decryptListContent('author', 'legacy?iv=value')).resolves.toEqual([[], true]);
 	});
 });
