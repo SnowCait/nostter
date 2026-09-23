@@ -12,7 +12,7 @@ vi.mock('$lib/stores/Author', async () => {
 	const { writable } = await import('svelte/store');
 	return { pubkey: writable(mocks.userPubkey) };
 });
-vi.mock('$lib/nostr/relay/client', () => ({ rxNostr: { send: mocks.send } }));
+vi.mock('$lib/relay-client', () => ({ rxNostr: { send: mocks.send } }));
 
 import { requestEventDeletion } from './request-event-deletion';
 

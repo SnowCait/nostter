@@ -5,7 +5,7 @@ import type * as Nostr from 'nostr-typedef';
 import { kinds as Kind, type EventTemplate } from 'nostr-tools';
 import { legacyBookmarkIdentifier } from '$lib/Constants';
 import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
-import { rxNostr } from '$lib/nostr/relay/client';
+import { rxNostr } from '$lib/relay-client';
 import { tie } from '$lib/nostr/relay/relay-hints';
 import type { Encryption } from '$lib/nostr/signing/signer';
 import { pubkey } from '$lib/stores/Author';
