@@ -10,7 +10,8 @@ import { getZapSenderPubkey } from '$lib/nostr/protocol/nip57';
 import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 import type { ListContentDecrypter } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
-import { type LoginType, signerCanSign } from '$lib/nostr/signing/signer-capability';
+
+export type LoginType = 'NIP-07' | 'NIP-46' | 'nsec' | 'npub';
 
 export const loginType: Writable<LoginType | undefined> = writable();
 export const pubkey = toStore(() => auth.pubkey);
@@ -31,10 +32,7 @@ export const readRelays: Writable<string[]> = writable(
 export const writeRelays: Writable<string[]> = writable(
 	defaultRelays.filter((relay) => relay.write).map((relay) => relay.url)
 );
-export const rom = derived(
-	loginType,
-	($loginType) => $loginType !== undefined && !signerCanSign($loginType)
-);
+export const rom = derived(loginType, ($loginType) => $loginType === 'npub');
 
 let mutePubkeysSetRef: string[] | undefined;
 let mutePubkeysSet = new Set<string>();
