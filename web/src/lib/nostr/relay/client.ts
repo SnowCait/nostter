@@ -10,7 +10,9 @@ Nip11Registry.setDefault({
 	}
 });
 
-export function createRelayClient(getSigner: () => Signer | undefined): RxNostr {
+type RelaySignerCapabilities = Pick<Signer, 'getPublicKey' | 'signEvent'>;
+
+export function createRelayClient(getSigner: () => RelaySignerCapabilities | undefined): RxNostr {
 	return createRxNostr({
 		verifier: verificationClient.verifier,
 		connectionStrategy: 'lazy-keep',
