@@ -10,7 +10,7 @@
 	import { auth } from '$lib/auth.svelte';
 	import type { Signer } from '$lib/nostr/signing/signer';
 	import type { MuteCapabilities } from '$lib/author/Mute';
-	import { muteEvent, pubkey, rom } from '$lib/stores/Author';
+	import { muteEvent, pubkey } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import AutoRefresh from './AutoRefresh.svelte';
 	import MutedUsers from './MutedUsers.svelte';
@@ -156,7 +156,7 @@
 		<div><SeenOnRelayIcon /></div>
 		<div><ShowVia /></div>
 
-		{#if auth.isAuthenticated && !$rom}
+		{#if auth.signer?.nip44 !== undefined}
 			<div><WorkAsRemoteSigner /></div>
 		{/if}
 
