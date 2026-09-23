@@ -6,8 +6,10 @@ import { auth } from '$lib/auth.svelte';
 import type { Subscription } from 'rxjs';
 import { persistedStore } from '$lib/platform/storage/persisted-store';
 import type { Persisted } from 'svelte-persisted-store';
-import { Signer } from './Signer';
+import type { Signer } from '$lib/nostr/signing/signer';
 import { verificationClient } from './timelines/MainTimeline';
+
+type RemoteSignerCapabilities = Pick<Signer, 'getPublicKey' | 'signEvent' | 'nip04' | 'nip44'>;
 
 class RemoteSigner {
 	#relays: string[];
@@ -83,20 +85,36 @@ class RemoteSigner {
 		this.#subscription = this.#rxNostr!.use(req)
 			.pipe(uniq())
 			.subscribe(async ({ event: requestEvent }) => {
-				const content = await Signer.decryptNip44(
-					requestEvent.pubkey,
-					requestEvent.content
-				);
+				const signer = auth.signer;
+				if (signer === undefined) {
+					throw new Error('[logic error]');
+				}
+				const capabilities: RemoteSignerCapabilities = {
+					getPublicKey: () => signer.getPublicKey(),
+					signEvent: (event) => signer.signEvent(event),
+					nip04: signer.nip04,
+					nip44: signer.nip44
+				};
+				const nip44 = capabilities.nip44;
+				if (nip44 === undefined) {
+					throw new Error('[logic error]');
+				}
+				const content = await nip44.decrypt(requestEvent.pubkey, requestEvent.content);
 				try {
 					const { id, method, params } = JSON.parse(content) as {
 						id: string;
 						method: string;
 						params: string[];
 					};
-					const { result, error } = await this.#call(method, params, requestEvent.pubkey);
-					const responseEvent = await Signer.signEvent({
+					const { result, error } = await this.#call(
+						capabilities,
+						method,
+						params,
+						requestEvent.pubkey
+					);
+					const responseEvent = await capabilities.signEvent({
 						kind: NostrConnect,
-						content: await Signer.encryptNip44(
+						content: await nip44.encrypt(
 							requestEvent.pubkey,
 							JSON.stringify({ id, result, error })
 						),
@@ -122,6 +140,7 @@ class RemoteSigner {
 	//#region Methods
 
 	async #call(
+		capabilities: RemoteSignerCapabilities,
 		method: string,
 		params: string[],
 		clientPubkey: string
@@ -141,7 +160,7 @@ class RemoteSigner {
 			}
 			case 'sign_event': {
 				try {
-					const event = await Signer.signEvent(JSON.parse(params[0]));
+					const event = await capabilities.signEvent(JSON.parse(params[0]));
 					return { result: JSON.stringify(event) };
 				} catch {
 					return { result: '', error: 'failed to sign event' };
@@ -151,32 +170,48 @@ class RemoteSigner {
 				return { result: 'pong' };
 			}
 			case 'get_public_key': {
-				return { result: await Signer.getPublicKey() };
+				return { result: await capabilities.getPublicKey() };
 			}
 			case 'nip04_encrypt': {
 				try {
-					return { result: await Signer.encrypt(params[0], params[1]) };
+					const nip04 = capabilities.nip04;
+					if (nip04 === undefined) {
+						throw new Error('[logic error]');
+					}
+					return { result: await nip04.encrypt(params[0], params[1]) };
 				} catch {
 					return { result: '', error: 'failed to encrypt' };
 				}
 			}
 			case 'nip04_decrypt': {
 				try {
-					return { result: await Signer.decrypt(params[0], params[1]) };
+					const nip04 = capabilities.nip04;
+					if (nip04 === undefined) {
+						throw new Error('[logic error]');
+					}
+					return { result: await nip04.decrypt(params[0], params[1]) };
 				} catch {
 					return { result: '', error: 'failed to decrypt' };
 				}
 			}
 			case 'nip44_encrypt': {
 				try {
-					return { result: await Signer.encryptNip44(params[0], params[1]) };
+					const nip44 = capabilities.nip44;
+					if (nip44 === undefined) {
+						throw new Error('[logic error]');
+					}
+					return { result: await nip44.encrypt(params[0], params[1]) };
 				} catch {
 					return { result: '', error: 'failed to encrypt' };
 				}
 			}
 			case 'nip44_decrypt': {
 				try {
-					return { result: await Signer.decryptNip44(params[0], params[1]) };
+					const nip44 = capabilities.nip44;
+					if (nip44 === undefined) {
+						throw new Error('[logic error]');
+					}
+					return { result: await nip44.decrypt(params[0], params[1]) };
 				} catch {
 					return { result: '', error: 'failed to decrypt' };
 				}
