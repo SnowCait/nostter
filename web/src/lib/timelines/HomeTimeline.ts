@@ -49,7 +49,6 @@ import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
 import {
 	author,
 	updateRelays,
-	followees,
 	storeMutedPubkeysByKind,
 	storeMutedTagsByEvent
 } from '../stores/Author';
@@ -270,9 +269,9 @@ export class HomeTimeline extends NewTimeline {
 			throw new Error('Not authenticated');
 		}
 
-		const $followees = get(followees);
+		const followees = auth.followees;
 
-		const followeesFilter: LazyFilter[] = chunk($followees, filterLimitItems).map(
+		const followeesFilter: LazyFilter[] = chunk(followees, filterLimitItems).map(
 			(chunkedAuthors) => {
 				return {
 					kinds: homeFolloweesFilterKinds,
@@ -318,13 +317,13 @@ export class HomeTimeline extends NewTimeline {
 			throw new Error('Not authenticated');
 		}
 
-		const $followees = get(followees);
+		const followees = auth.followees;
 		const $followingHashtags = get(followingHashtags);
 
 		const until = this.eventsStore.at(-1)?.created_at ?? now();
-		const since = until - fetchMinutes($followees.length) * 60;
+		const since = until - fetchMinutes(followees.length) * 60;
 
-		const followeesFilters = chunk($followees, filterLimitItems).map((chunkedAuthors) => {
+		const followeesFilters = chunk(followees, filterLimitItems).map((chunkedAuthors) => {
 			return {
 				kinds: followeesFilterKinds,
 				authors: chunkedAuthors,

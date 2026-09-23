@@ -1,10 +1,10 @@
 import { kinds as Kind, type Event } from 'nostr-tools';
-import { get, writable } from 'svelte/store';
-import { followees } from './Author';
+import { writable } from 'svelte/store';
+import { auth } from '$lib/auth.svelte';
 
 export const lastNotesMap = writable(new Map<string, Event>());
 export const saveLastNote = (event: Event) => {
-	if (event.kind !== Kind.ShortTextNote || !get(followees).includes(event.pubkey)) {
+	if (event.kind !== Kind.ShortTextNote || !auth.followeesSet.has(event.pubkey)) {
 		return;
 	}
 
