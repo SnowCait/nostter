@@ -174,7 +174,9 @@ export class HomeTimeline extends NewTimeline {
 		addressable$
 			.pipe(
 				filterByKind(Kind.Followsets),
-				filterAsync(({ event }) => isPeopleList(event))
+				filterAsync(({ event }) =>
+					isPeopleList(event, () => ({ nip04: auth.signer?.nip04 }))
+				)
 			)
 			.subscribe(({ event }) => storePeopleList(event));
 		addressable$
