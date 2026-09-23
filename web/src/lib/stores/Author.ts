@@ -29,8 +29,6 @@ export const readRelays: Writable<string[]> = writable(
 export const writeRelays: Writable<string[]> = writable(
 	defaultRelays.filter((relay) => relay.write).map((relay) => relay.url)
 );
-export const rom = toStore(() => auth.loginMethod === 'npub');
-
 let mutePubkeysSetRef: string[] | undefined;
 let mutePubkeysSet = new Set<string>();
 const getMutePubkeysSet = (): Set<string> => {
