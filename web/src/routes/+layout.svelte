@@ -6,7 +6,6 @@
 	import LoginStatus from '$lib/components/LoginStatus.svelte';
 	import { onMount } from 'svelte';
 	import { tryLogin } from '$lib/Login';
-	import { auth } from '$lib/auth.svelte';
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
@@ -14,10 +13,6 @@
 	let { children }: Props = $props();
 
 	onMount(() => {
-		if (page.url.searchParams.get('login')?.startsWith('npub')) {
-			auth.reset();
-			return;
-		}
 		void tryLogin();
 	});
 </script>
