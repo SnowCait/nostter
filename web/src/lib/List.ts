@@ -5,7 +5,6 @@ import { rxNostr, tie } from './timelines/MainTimeline';
 import { filterTags } from './EventHelper';
 import { findIdentifier } from './nostr/protocol/event-address';
 import { isLegacyEncryption } from './nostr/protocol/nip04';
-import { Signer } from './Signer';
 import type { EncryptionCapabilities } from './nostr/signing/signer';
 
 export type ListContentDecrypter = (
@@ -101,36 +100,4 @@ export async function getListPubkeys(
 
 	const pubkeys = filterTags('p', tags);
 	return [...new Set(pubkeys)];
-}
-
-export async function decryptListContent(
-	pubkey: string,
-	content: string
-): Promise<[tags: string[][], legacy: boolean]> {
-	if (content === '') {
-		return [[], false];
-	}
-	try {
-		const decrypter = createListContentDecrypter(Signer.getEncryptionCapabilities());
-		if (decrypter === undefined) {
-			return [[], isLegacyEncryption(content)];
-		}
-		return decrypter(pubkey, content);
-	} catch (error) {
-		console.warn('[list parse error]', error);
-		return [[], isLegacyEncryption(content)];
-	}
-}
-
-export async function encryptListContent(
-	pubkey: string,
-	tags: string[][],
-	legacy: boolean = false
-): Promise<string> {
-	if (tags.length === 0) {
-		return '';
-	}
-
-	const encrypter = createListContentEncrypter(Signer.getEncryptionCapabilities());
-	return encrypter(pubkey, tags, legacy);
 }

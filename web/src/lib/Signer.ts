@@ -1,7 +1,7 @@
 import type { Event, EventTemplate } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
 import { auth } from './auth.svelte';
-import type { EncryptionCapabilities, Signer as SigningSigner } from './nostr/signing/signer';
+import type { Signer as SigningSigner } from './nostr/signing/signer';
 
 function getSessionSigner(): SigningSigner {
 	const signer = auth.signer;
@@ -20,11 +20,6 @@ export class Signer {
 		unsignedEvent: EventTemplate | Nostr.UnsignedEvent
 	): Promise<Event> {
 		return getSessionSigner().signEvent(unsignedEvent);
-	}
-
-	public static getEncryptionCapabilities(): EncryptionCapabilities {
-		const { nip04, nip44 } = getSessionSigner();
-		return { nip04, nip44 };
 	}
 
 	public static async encrypt(pubkey: string, plaintext: string): Promise<string> {
