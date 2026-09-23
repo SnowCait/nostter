@@ -14,8 +14,7 @@
 		pubkey as authorPubkey,
 		mutedPubkeysByKindMap,
 		mutePubkeys,
-		followingPubkeys,
-		rom
+		followingPubkeys
 	} from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import { copy } from '$lib/platform/browser/clipboard';
@@ -241,7 +240,7 @@
 </button>
 <div use:melt={$overlay} class="overlay"></div>
 <div use:melt={$menu} class="menu">
-	{#if auth.isAuthenticated && !$rom}
+	{#if auth.signer !== undefined}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div use:melt={$item} onclick={editLists} class="item">
@@ -284,7 +283,7 @@
 		<div>RSS</div>
 		<div class="secondary-icon"><IconExternalLink /></div>
 	</div>
-	{#if $authorPubkey !== undefined && !$rom}
+	{#if $authorPubkey !== undefined && auth.signer !== undefined}
 		<div use:melt={$separator} class="separator"></div>
 		<div class="text">{$_('preferences.mute.mute')}</div>
 		{#if $mutePubkeys.includes(pubkey)}
@@ -369,7 +368,7 @@
 	{/if}
 </div>
 
-{#if auth.isAuthenticated && !$rom}
+{#if auth.signer !== undefined}
 	<ListDialog {pubkey} {getPeopleListCapabilities} bind:open={listDialogOpen} />
 {/if}
 
