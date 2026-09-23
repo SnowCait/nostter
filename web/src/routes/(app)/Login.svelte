@@ -5,7 +5,7 @@
 	import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 	import { Login, resetLoginState } from '$lib/Login';
 	import { page } from '$app/state';
-	import { afterNavigate, goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { auth } from '$lib/auth.svelte';
 	import { gotoAfterLogin } from '$lib/post-login-navigation';
 	import { WebStorage } from '$lib/WebStorage';
@@ -23,8 +23,7 @@
 	let failedToLogin = $state(false);
 	let registering = $state(false);
 	let loggingInWith: 'nip07' | 'nip46' | 'key' | undefined = $state();
-	let queryNpub = $state<string | undefined>();
-	let handledQueryNpub = $state<string | undefined>();
+	let handledQueryNpub: string | undefined;
 	let loginBusy = $derived(
 		loggingInWith !== undefined || registering || auth.status !== 'anonymous'
 	);
@@ -163,22 +162,17 @@
 		return true;
 	}
 
-	afterNavigate(() => {
+	$effect(() => {
 		const requestedNpub = page.url.searchParams.get('login');
 		if (requestedNpub === null || !requestedNpub.startsWith('npub')) {
-			queryNpub = undefined;
 			handledQueryNpub = undefined;
 			return;
 		}
-		queryNpub = requestedNpub;
-	});
 
-	$effect(() => {
-		if (queryNpub === undefined || queryNpub === handledQueryNpub || loginBusy) {
+		if (requestedNpub === handledQueryNpub || loginBusy) {
 			return;
 		}
 
-		const requestedNpub = queryNpub;
 		handledQueryNpub = requestedNpub;
 		key = requestedNpub;
 		loggingInWith = 'key';
