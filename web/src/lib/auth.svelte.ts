@@ -1,4 +1,3 @@
-import { toStore } from 'svelte/store';
 import { unique } from './array';
 import type { Signer } from './nostr/signing/signer';
 
@@ -81,7 +80,3 @@ export class Auth {
 }
 
 export const auth = new Auth();
-
-export const isInitializing = toStore(() => auth.isInitializing);
-export const isReady = toStore(() => auth.isReady);
-export const isAuthenticated = toStore(() => auth.isAuthenticated);

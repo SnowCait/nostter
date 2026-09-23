@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { isAuthenticated, isInitializing } from '$lib/auth.svelte';
+	import { auth } from '$lib/auth.svelte';
 	import { gotoAfterLogin } from '$lib/post-login-navigation';
 	import Notice from '$lib/components/Notice.svelte';
 	import SplashScreen from './SplashScreen.svelte';
 	import Login from './(app)/Login.svelte';
 
 	$effect(() => {
-		if ($isAuthenticated) {
+		if (auth.isAuthenticated) {
 			gotoAfterLogin();
 		}
 	});
@@ -14,7 +14,7 @@
 
 <Notice />
 
-{#if $isInitializing || $isAuthenticated}
+{#if auth.isInitializing || auth.isAuthenticated}
 	<SplashScreen />
 {:else}
 	<Login />
