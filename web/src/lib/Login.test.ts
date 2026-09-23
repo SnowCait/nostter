@@ -1,6 +1,4 @@
-import { get } from 'svelte/store';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Author } from './Author';
 import type { NotificationVisibility } from './preferences/NotificationVisibility.svelte';
 
 const {
@@ -600,9 +598,7 @@ describe('session teardown', () => {
 	beforeEach(async () => {
 		vi.clearAllMocks();
 		const { auth } = await import('./auth.svelte');
-		const { author } = await import('./stores/Author');
 		auth.reset();
-		author.set(undefined);
 		remoteSigner.dispose.mockResolvedValue(undefined);
 	});
 
@@ -610,7 +606,6 @@ describe('session teardown', () => {
 		const cleanup = Promise.withResolvers<void>();
 		remoteSigner.dispose.mockReturnValue(cleanup.promise);
 		const { auth } = await import('./auth.svelte');
-		const { author } = await import('./stores/Author');
 		const { resetLoginState } = await import('./Login');
 		auth.establish({
 			pubkey: me,
@@ -618,14 +613,11 @@ describe('session teardown', () => {
 			loginMethod: 'NIP-46',
 			signer: remoteSigner
 		});
-		author.set({} as Author);
-
 		const resetting = resetLoginState();
 
 		expect(remoteSigner.dispose).toHaveBeenCalledOnce();
 		expect(auth.status).toBe('anonymous');
 		expect(auth.loginMethod).toBeUndefined();
-		expect(get(author)).toBeUndefined();
 		expect(auth.signer).toBeUndefined();
 		let resetCompleted = false;
 		void resetting.then(() => (resetCompleted = true));
@@ -650,7 +642,6 @@ describe('session teardown', () => {
 			}
 		});
 		const { auth } = await import('./auth.svelte');
-		const { author } = await import('./stores/Author');
 		const { logout } = await import('./Login');
 		auth.establish({
 			pubkey: me,
@@ -658,15 +649,11 @@ describe('session teardown', () => {
 			loginMethod: 'NIP-46',
 			signer: remoteSigner
 		});
-		author.set({} as Author);
-
 		const loggingOut = logout();
 
 		expect(calls).toEqual(['dispose']);
 		expect(auth.status).toBe('anonymous');
 		expect(auth.loginMethod).toBeUndefined();
-		expect(get(author)).toBeUndefined();
-
 		cleanup.resolve();
 		await loggingOut;
 

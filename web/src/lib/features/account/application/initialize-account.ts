@@ -1,5 +1,4 @@
 import { Author } from '$lib/Author';
-import { author } from '$lib/stores/Author';
 import { unique } from '$lib/array';
 import { parseFollowList } from '$lib/nostr/protocol/nip02';
 import { loadFolloweesMetadataCache, pruneFolloweeReplaceableEventsCache } from '$lib/cache/Events';
@@ -9,18 +8,16 @@ export async function initializeAccount(
 	pubkey: string,
 	decryptPrivateListContent?: ListContentDecrypter
 ): Promise<string[]> {
-	const $author = new Author(pubkey);
+	const author = new Author(pubkey);
 
-	await $author.fetchRelays();
+	await author.fetchRelays();
 
-	const contactsTags = await $author.fetchEvents(decryptPrivateListContent);
+	const contactsTags = await author.fetchEvents(decryptPrivateListContent);
 	const followingPubkeys = parseFollowList(contactsTags).map(({ pubkey }) => pubkey);
 	const followees = unique([...followingPubkeys, pubkey]);
 
 	await loadFolloweesMetadataCache(followees);
 	pruneFolloweeReplaceableEventsCache(followees);
-
-	author.set($author);
 
 	return followingPubkeys;
 }

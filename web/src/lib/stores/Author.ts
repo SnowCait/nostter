@@ -3,7 +3,6 @@ import escapeStringRegexp from 'escape-string-regexp';
 import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
-import type { Author } from '$lib/Author';
 import { filterTags } from '$lib/EventHelper';
 import { findIdentifier } from '$lib/nostr/protocol/event-address';
 import { getZapSenderPubkey } from '$lib/nostr/protocol/nip57';
@@ -11,7 +10,6 @@ import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protoc
 import type { ListContentDecrypter } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
 
-export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
 export const muteEvent = writable<Event | undefined>();

@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import { author, authorProfile } from './stores/Author';
+import { authorProfile } from './stores/Author';
 import { nip19 } from 'nostr-tools';
 import { robohash } from './Items';
 import { WebStorage } from './WebStorage';
@@ -184,7 +184,6 @@ export class Login {
 
 export async function resetLoginState(): Promise<void> {
 	const disposingSigner = disposeSigner(auth.signer);
-	author.set(undefined);
 	auth.reset();
 	await disposingSigner;
 }
