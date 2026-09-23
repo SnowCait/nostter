@@ -63,7 +63,8 @@ import { excludeKinds } from '$lib/TimelineFilter';
 import { fetchMinutes } from '$lib/Helper';
 import { isVisibleNotification } from '$lib/preferences/NotificationVisibility.svelte';
 import { updateBlossomServerList } from '$lib/author/BlossomServerList.svelte';
-import { decryptListContent } from '$lib/List';
+import { createListContentDecrypter } from '$lib/List';
+import { auth } from '$lib/auth.svelte';
 
 const maxTimelineLength = minTimelineLength * 2;
 
@@ -124,7 +125,10 @@ export class HomeTimeline extends NewTimeline {
 			this.subscribe();
 		});
 		replaceable$.pipe(filterByKind(Kind.Mutelist)).subscribe(async ({ event }) => {
-			await storeMutedTagsByEvent(event, accountPubkey, decryptListContent);
+			const signer = auth.signer;
+			const decryptPrivateListContent =
+				signer === undefined ? undefined : createListContentDecrypter(signer);
+			await storeMutedTagsByEvent(event, accountPubkey, decryptPrivateListContent);
 		});
 		replaceable$
 			.pipe(filterByKind(Kind.PublicChatsList))
@@ -179,9 +183,12 @@ export class HomeTimeline extends NewTimeline {
 				filter(({ event }) => findIdentifier(event.tags) === legacyBookmarkIdentifier)
 			)
 			.subscribe(({ event }) => legacyBookmarkEvent.set(event));
-		addressable$
-			.pipe(filterByKind(30007))
-			.subscribe(({ event }) => storeMutedPubkeysByKind([event], decryptListContent));
+		addressable$.pipe(filterByKind(30007)).subscribe(({ event }) => {
+			const signer = auth.signer;
+			const decryptPrivateListContent =
+				signer === undefined ? undefined : createListContentDecrypter(signer);
+			storeMutedPubkeysByKind([event], decryptPrivateListContent);
+		});
 		addressable$
 			.pipe(filter(({ event }) => isProfileBadgesEvent(event)))
 			.subscribe(({ event }) => updateProfileBadgesEvent(event));
