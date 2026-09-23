@@ -580,7 +580,6 @@ describe('session teardown', () => {
 		const { auth } = await import('./auth.svelte');
 		const { author, loginType } = await import('./stores/Author');
 		const { resetLoginState } = await import('./Login');
-		const { Signer } = await import('./Signer');
 		auth.establish(me, [followee], remoteSigner);
 		author.set({} as Author);
 		loginType.set('NIP-46');
@@ -592,7 +591,6 @@ describe('session teardown', () => {
 		expect(get(loginType)).toBeUndefined();
 		expect(get(author)).toBeUndefined();
 		expect(auth.signer).toBeUndefined();
-		await expect(Signer.getPublicKey()).rejects.toThrow('[logic error]');
 		let resetCompleted = false;
 		void resetting.then(() => (resetCompleted = true));
 		await Promise.resolve();

@@ -3,7 +3,7 @@ import { now } from 'rx-nostr';
 import { isAddressableKind, isReplaceableKind } from 'nostr-tools/kinds';
 import type * as Nostr from 'nostr-typedef';
 import { pubkey as authorPubkey } from '$lib/stores/Author';
-import { rxNostr } from '$lib/nostr/relay/client';
+import { rxNostr } from '$lib/relay-client';
 import { getEventAddress } from '$lib/nostr/protocol/event-address';
 import type { Signer } from '$lib/nostr/signing/signer';
 

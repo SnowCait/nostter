@@ -2,7 +2,7 @@ import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import { kinds as Kind } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
 import type { pubkey } from './Types';
-import { rxNostr } from '$lib/nostr/relay/client';
+import { rxNostr } from '$lib/relay-client';
 import { tie } from '$lib/nostr/relay/relay-hints';
 import { cacheFolloweeReplaceableEvent, followeeEventCache } from './cache/Events';
 

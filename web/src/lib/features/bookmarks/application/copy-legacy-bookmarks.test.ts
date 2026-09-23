@@ -25,7 +25,7 @@ vi.mock('$lib/stores/Author', async () => {
 	return { pubkey: writable(mocks.userPubkey) };
 });
 vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: mocks.fetchLastEvent }));
-vi.mock('$lib/nostr/relay/client', () => ({
+vi.mock('$lib/relay-client', () => ({
 	rxNostr: { send: mocks.send, use: mocks.use }
 }));
 vi.mock('$lib/nostr/relay/relay-hints', () => ({

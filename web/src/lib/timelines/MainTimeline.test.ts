@@ -26,7 +26,7 @@ vi.mock('rx-nostr', () => ({
 	uniq: vi.fn()
 }));
 
-vi.mock('$lib/nostr/relay/client', () => ({
+vi.mock('$lib/relay-client', () => ({
 	rxNostr: {
 		createConnectionStateObservable: vi.fn(() => ({ subscribe: vi.fn() })),
 		createAllMessageObservable: vi.fn(() => ({
