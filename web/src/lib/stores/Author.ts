@@ -11,7 +11,6 @@ import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protoc
 import type { ListContentDecrypter } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
 
-export const pubkey = toStore(() => auth.pubkey);
 export const author: Writable<Author | undefined> = writable();
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
@@ -70,7 +69,7 @@ const getMuteWordsRegExp = (): RegExp | undefined => {
 export const isMutePubkey = (pubkey: string) => getMutePubkeysSet().has(pubkey);
 export const isMuteEvent = (event: Event) => {
 	// Avoid being muted if content contains muted words
-	if (event.pubkey === get(pubkey)) {
+	if (event.pubkey === auth.pubkey) {
 		return false;
 	}
 
