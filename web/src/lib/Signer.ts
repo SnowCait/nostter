@@ -21,36 +21,4 @@ export class Signer {
 	): Promise<Event> {
 		return getSessionSigner().signEvent(unsignedEvent);
 	}
-
-	public static async encrypt(pubkey: string, plaintext: string): Promise<string> {
-		const nip04 = getSessionSigner().nip04;
-		if (nip04 === undefined) {
-			throw new Error('[logic error]');
-		}
-		return nip04.encrypt(pubkey, plaintext);
-	}
-
-	public static async decrypt(pubkey: string, ciphertext: string): Promise<string> {
-		const nip04 = getSessionSigner().nip04;
-		if (nip04 === undefined) {
-			throw new Error('[logic error]');
-		}
-		return nip04.decrypt(pubkey, ciphertext);
-	}
-
-	public static async encryptNip44(pubkey: string, plaintext: string): Promise<string> {
-		const nip44 = getSessionSigner().nip44;
-		if (nip44 === undefined) {
-			throw new Error('[logic error]');
-		}
-		return nip44.encrypt(pubkey, plaintext);
-	}
-
-	public static async decryptNip44(pubkey: string, ciphertext: string): Promise<string> {
-		const nip44 = getSessionSigner().nip44;
-		if (nip44 === undefined) {
-			throw new Error('[logic error]');
-		}
-		return nip44.decrypt(pubkey, ciphertext);
-	}
 }
