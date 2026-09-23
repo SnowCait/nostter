@@ -36,6 +36,10 @@
 	let privateBookmarkEventItems: EventItem[] = $state([]);
 	let privateLegacyBookmarkEventItems: EventItem[] = $state([]);
 	let deletingLegacyBookmarks = $state(false);
+	let canDecryptPrivateLists = $derived.by(() => {
+		const signer = auth.signer;
+		return signer?.nip04 !== undefined || signer?.nip44 !== undefined;
+	});
 
 	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
 		const signer = auth.signer;
@@ -186,7 +190,7 @@
 		if (
 			data.pubkey === accountPubkey &&
 			accountPubkey !== undefined &&
-			!$rom &&
+			canDecryptPrivateLists &&
 			event !== undefined &&
 			event.content !== ''
 		) {
@@ -243,7 +247,7 @@
 		if (
 			data.pubkey === accountPubkey &&
 			accountPubkey !== undefined &&
-			!$rom &&
+			canDecryptPrivateLists &&
 			event !== undefined &&
 			event.content !== ''
 		) {
