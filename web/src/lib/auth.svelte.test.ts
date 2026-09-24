@@ -41,6 +41,23 @@ describe('Auth lifecycle', () => {
 		expect(auth.isAuthenticated).toBe(true);
 		expect(auth.loginMethod).toBe('npub');
 	});
+
+	it('hides established session values during the publication boundary', () => {
+		const auth = new Auth();
+		auth.establish({ pubkey: me, followingPubkeys: [a], loginMethod: 'NIP-07', signer });
+
+		auth.beginInitialization();
+
+		expect(auth.status).toBe('initializing');
+		expect(auth.pubkey).toBeUndefined();
+		expect(auth.followingPubkeys).toEqual([]);
+		expect(auth.followees).toEqual([]);
+		expect(auth.loginMethod).toBeUndefined();
+		expect(auth.signer).toBeUndefined();
+		expect(auth.isInitializing).toBe(true);
+		expect(auth.isReady).toBe(false);
+		expect(auth.isAuthenticated).toBe(false);
+	});
 });
 
 describe('Auth.establish', () => {

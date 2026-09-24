@@ -76,7 +76,6 @@ export function applyAccountState(pubkey: string, state: PreparedAccountState): 
 }
 
 export function applyAccountChannels(state: PreparedAccountState): void {
-	// Keep channel publication after mute initialization, matching the existing failure boundary.
 	authorChannelsEventStore.set(state.channelsEvent);
 	console.log('[relays]', get(readRelays), get(writeRelays));
 }

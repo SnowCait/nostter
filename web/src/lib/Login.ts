@@ -9,7 +9,8 @@ import type { User } from '../routes/types';
 import { remoteSigner } from './RemoteSigner';
 import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
 import { auth, type LoginMethod } from './auth.svelte';
-import { initializeAccount } from './features/account/application/initialize-account';
+import { prepareAccountInitialization } from './features/account/application/initialize-account';
+import { applyAccountInitialization } from './features/account/application/apply-account-initialization';
 import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 import { createListContentDecrypter } from './List';
@@ -166,10 +167,17 @@ export class Login {
 		setLoginStatus('fetching_profile');
 
 		const decryptPrivateListContent = signer ? createListContentDecrypter(signer) : undefined;
-		const followingPubkeys = await initializeAccount(pubkey, decryptPrivateListContent);
+		const prepared = await prepareAccountInitialization(pubkey, decryptPrivateListContent);
 		console.timeEnd('fetch author');
 
-		auth.establish({ pubkey, followingPubkeys, loginMethod, signer });
+		auth.beginInitialization();
+		applyAccountInitialization(pubkey, prepared);
+		auth.establish({
+			pubkey,
+			followingPubkeys: prepared.followingPubkeys,
+			loginMethod,
+			signer
+		});
 		clearLoginStatus();
 
 		if (get(notificationVisibility) === 'follows_of_follows') {
