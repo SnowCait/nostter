@@ -48,6 +48,7 @@ function emptyPrepared(): PreparedAccountInitialization {
 		}),
 		muteState: {
 			mute: { event: undefined, tags: { pubkeys: [], eventIds: [], words: [] } },
+			baselineMuteEvent: get(muteEvent),
 			mutedPubkeysByKind: new Map()
 		}
 	};
@@ -137,6 +138,7 @@ describe('applyAccountInitialization snapshot', () => {
 				event: targetMuteEvent,
 				tags: { pubkeys: ['target-muted'], eventIds: [], words: [] }
 			},
+			baselineMuteEvent: prepared.muteState.baselineMuteEvent,
 			mutedPubkeysByKind: new Map([[6, new Set(['target-kind-6'])]])
 		};
 
@@ -147,16 +149,35 @@ describe('applyAccountInitialization snapshot', () => {
 		expect(get(mutedPubkeysByKindMap)).toEqual(new Map([[6, new Set(['target-kind-6'])]]));
 	});
 
+	it('preserves a target account live mute event that arrives after an empty snapshot was prepared', () => {
+		const prepared = emptyPrepared();
+		const liveEvent = event(accountB, 50);
+		muteEvent.set(liveEvent);
+		mutePubkeys.set(['live-muted']);
+		muteEventIds.set(['live-event']);
+		muteWords.set(['live-word']);
+
+		applyAccountInitialization(accountB, prepared);
+
+		expect(get(muteEvent)).toBe(liveEvent);
+		expect(get(mutePubkeys)).toEqual(['live-muted']);
+		expect(get(muteEventIds)).toEqual(['live-event']);
+		expect(get(muteWords)).toEqual(['live-word']);
+	});
+
 	it('keeps a newer live mute event for the same account over an older prepared event', () => {
+		const baselineMuteEvent = event(accountB, 100);
+		muteEvent.set(baselineMuteEvent);
+		mutePubkeys.set(['baseline-muted']);
 		const newerLiveEvent = event(accountB, 300);
 		const olderPreparedEvent = event(accountB, 200);
-		muteEvent.set(newerLiveEvent);
-		mutePubkeys.set(['newer-live-muted']);
 		const prepared = emptyPrepared();
 		prepared.muteState.mute = {
 			event: olderPreparedEvent,
-			tags: { pubkeys: ['older-prepared-muted'], eventIds: [], words: [] }
+			tags: { pubkeys: ['prepared-muted'], eventIds: [], words: [] }
 		};
+		muteEvent.set(newerLiveEvent);
+		mutePubkeys.set(['newer-live-muted']);
 
 		applyAccountInitialization(accountB, prepared);
 

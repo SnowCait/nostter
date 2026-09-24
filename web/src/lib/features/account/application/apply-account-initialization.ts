@@ -11,11 +11,11 @@ export function applyAccountInitialization(
 
 	const currentMuteEvent = get(muteEvent);
 	const preparedMuteEvent = prepared.muteState.mute.event;
-	const newerSameAccountMuteEvent =
-		preparedMuteEvent !== undefined &&
-		currentMuteEvent?.pubkey === pubkey &&
-		currentMuteEvent.created_at >= preparedMuteEvent.created_at;
-	if (!newerSameAccountMuteEvent) {
+	const muteEventChangedDuringPreparation =
+		currentMuteEvent?.id !== prepared.muteState.baselineMuteEvent?.id;
+	const sameAccountLiveMuteEventArrived =
+		muteEventChangedDuringPreparation && currentMuteEvent?.pubkey === pubkey;
+	if (!sameAccountLiveMuteEventArrived) {
 		muteEvent.set(preparedMuteEvent);
 		applyMuteTags(prepared.muteState.mute.tags);
 	}

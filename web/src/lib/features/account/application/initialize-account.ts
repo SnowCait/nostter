@@ -16,6 +16,7 @@ import { prepareAccountState, type PreparedAccountState } from './prepare-accoun
 
 export type PreparedAccountMuteState = {
 	mute: { event: Event | undefined; tags: PreparedMuteTags };
+	baselineMuteEvent: Event | undefined;
 	mutedPubkeysByKind: Map<number, Set<string>>;
 };
 
@@ -50,8 +51,9 @@ async function prepareAccountMuteState(
 	events: LoadedAccountEvents,
 	decryptPrivateListContent?: ListContentDecrypter
 ): Promise<PreparedAccountMuteState> {
+	const baselineMuteEvent = get(muteEvent);
 	const candidate = events.replaceableEvents.get(10000);
-	const currentMuteEvent = get(muteEvent);
+	const currentMuteEvent = baselineMuteEvent;
 	let mute: PreparedAccountMuteState['mute'];
 	if (
 		candidate !== undefined &&
@@ -85,5 +87,5 @@ async function prepareAccountMuteState(
 		mutedByKindEvents,
 		decryptPrivateListContent
 	);
-	return { mute, mutedPubkeysByKind };
+	return { mute, baselineMuteEvent, mutedPubkeysByKind };
 }
