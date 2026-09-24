@@ -1,7 +1,14 @@
 import { Author } from '$lib/Author';
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
-import { muteEvent, mutePubkeys, muteEventIds, muteWords } from '$lib/stores/Author';
+import {
+	getRegularMuteStateVersion,
+	muteEvent,
+	mutePubkeys,
+	muteEventIds,
+	muteWords
+} from '$lib/stores/Author';
+import type { RegularMuteStateVersion } from '$lib/stores/Author';
 import {
 	prepareMuteTagsFromEvent,
 	prepareMutedPubkeysByKind,
@@ -16,7 +23,7 @@ import { prepareAccountState, type PreparedAccountState } from './prepare-accoun
 
 export type PreparedAccountMuteState = {
 	mute: { event: Event | undefined; tags: PreparedMuteTags };
-	baselineMuteEvent: Event | undefined;
+	baselineVersion: RegularMuteStateVersion;
 	mutedPubkeysByKind: Map<number, Set<string>>;
 };
 
@@ -51,9 +58,9 @@ async function prepareAccountMuteState(
 	events: LoadedAccountEvents,
 	decryptPrivateListContent?: ListContentDecrypter
 ): Promise<PreparedAccountMuteState> {
-	const baselineMuteEvent = get(muteEvent);
+	const baselineVersion = getRegularMuteStateVersion();
+	const currentMuteEvent = get(muteEvent);
 	const candidate = events.replaceableEvents.get(10000);
-	const currentMuteEvent = baselineMuteEvent;
 	let mute: PreparedAccountMuteState['mute'];
 	if (
 		candidate !== undefined &&
@@ -87,5 +94,5 @@ async function prepareAccountMuteState(
 		mutedByKindEvents,
 		decryptPrivateListContent
 	);
-	return { mute, baselineMuteEvent, mutedPubkeysByKind };
+	return { mute, baselineVersion, mutedPubkeysByKind };
 }

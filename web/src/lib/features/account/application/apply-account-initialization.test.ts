@@ -6,12 +6,17 @@ import { Preferences, preferencesStore } from '$lib/Preferences';
 import {
 	authorProfile,
 	metadataEvent,
+	applyMuteTags,
+	getRegularMuteStateVersion,
 	muteEvent,
 	muteEventIds,
 	mutePubkeys,
 	muteWords,
 	mutedPubkeysByKindMap,
 	readRelays,
+	setMuteEventForAccount,
+	storeMutedTags,
+	storeMutedTagsByEvent,
 	writeRelays
 } from '$lib/stores/Author';
 import { customEmojiListEvent, customEmojiTags } from '$lib/author/CustomEmojis';
@@ -48,7 +53,7 @@ function emptyPrepared(): PreparedAccountInitialization {
 		}),
 		muteState: {
 			mute: { event: undefined, tags: { pubkeys: [], eventIds: [], words: [] } },
-			baselineMuteEvent: get(muteEvent),
+			baselineVersion: getRegularMuteStateVersion(),
 			mutedPubkeysByKind: new Map()
 		}
 	};
@@ -67,10 +72,11 @@ beforeEach(() => {
 	legacyBookmarkEvent.set(event(accountA, 23, 30003));
 	profileBadgesEvent.set(event(accountA, 24, 30008));
 	eventCache.authorChannelsEventStore.set(event(accountA, 25, 10005));
-	muteEvent.set(event(accountA, 200));
-	mutePubkeys.set(['old-muted']);
-	muteEventIds.set(['old-event']);
-	muteWords.set(['old-word']);
+	setMuteEventForAccount(event(accountA, 200), accountA);
+	applyMuteTags(
+		{ pubkeys: ['old-muted'], eventIds: ['old-event'], words: ['old-word'] },
+		accountA
+	);
 	mutedPubkeysByKindMap.set(
 		new Map([
 			[6, new Set(['old-kind-6'])],
@@ -138,7 +144,7 @@ describe('applyAccountInitialization snapshot', () => {
 				event: targetMuteEvent,
 				tags: { pubkeys: ['target-muted'], eventIds: [], words: [] }
 			},
-			baselineMuteEvent: prepared.muteState.baselineMuteEvent,
+			baselineVersion: prepared.muteState.baselineVersion,
 			mutedPubkeysByKind: new Map([[6, new Set(['target-kind-6'])]])
 		};
 
@@ -149,13 +155,20 @@ describe('applyAccountInitialization snapshot', () => {
 		expect(get(mutedPubkeysByKindMap)).toEqual(new Map([[6, new Set(['target-kind-6'])]]));
 	});
 
-	it('preserves a target account live mute event that arrives after an empty snapshot was prepared', () => {
-		const prepared = emptyPrepared();
+	it('preserves same-event optimistic tag updates made after preparation', async () => {
 		const liveEvent = event(accountB, 50);
-		muteEvent.set(liveEvent);
-		mutePubkeys.set(['live-muted']);
-		muteEventIds.set(['live-event']);
-		muteWords.set(['live-word']);
+		setMuteEventForAccount(liveEvent, accountB);
+		applyMuteTags({ pubkeys: ['old'], eventIds: [], words: [] }, accountB);
+		const prepared = emptyPrepared();
+
+		await storeMutedTags(
+			[
+				['p', 'live-muted'],
+				['e', 'live-event'],
+				['word', 'live-word']
+			],
+			accountB
+		);
 
 		applyAccountInitialization(accountB, prepared);
 
@@ -165,10 +178,42 @@ describe('applyAccountInitialization snapshot', () => {
 		expect(get(muteWords)).toEqual(['live-word']);
 	});
 
+	it('preserves tags published when a live event decrypt completes after preparation', async () => {
+		setMuteEventForAccount(event(accountA, 1), accountA);
+		applyMuteTags({ pubkeys: ['old-account-muted'], eventIds: [], words: [] }, accountA);
+		const liveEvent = event(accountB, 50);
+		const decryption = Promise.withResolvers<[string[][], boolean]>();
+		const liveUpdate = storeMutedTagsByEvent(
+			liveEvent,
+			accountB,
+			vi.fn(() => decryption.promise)
+		);
+		const prepared = emptyPrepared();
+
+		decryption.resolve([[['p', 'decrypted-live-muted']], false]);
+		await liveUpdate;
+		applyAccountInitialization(accountB, prepared);
+
+		expect(get(muteEvent)).toBe(liveEvent);
+		expect(get(mutePubkeys)).toEqual(['decrypted-live-muted']);
+	});
+
+	it('does not let a previous account tag update block the target empty snapshot', async () => {
+		const prepared = emptyPrepared();
+		await storeMutedTags([['p', 'updated-account-a']], accountA);
+
+		applyAccountInitialization(accountB, prepared);
+
+		expect(get(muteEvent)).toBeUndefined();
+		expect(get(mutePubkeys)).toEqual([]);
+		expect(get(muteEventIds)).toEqual([]);
+		expect(get(muteWords)).toEqual([]);
+	});
+
 	it('keeps a newer live mute event for the same account over an older prepared event', () => {
 		const baselineMuteEvent = event(accountB, 100);
-		muteEvent.set(baselineMuteEvent);
-		mutePubkeys.set(['baseline-muted']);
+		setMuteEventForAccount(baselineMuteEvent, accountB);
+		applyMuteTags({ pubkeys: ['baseline-muted'], eventIds: [], words: [] }, accountB);
 		const newerLiveEvent = event(accountB, 300);
 		const olderPreparedEvent = event(accountB, 200);
 		const prepared = emptyPrepared();
@@ -176,8 +221,8 @@ describe('applyAccountInitialization snapshot', () => {
 			event: olderPreparedEvent,
 			tags: { pubkeys: ['prepared-muted'], eventIds: [], words: [] }
 		};
-		muteEvent.set(newerLiveEvent);
-		mutePubkeys.set(['newer-live-muted']);
+		setMuteEventForAccount(newerLiveEvent, accountB);
+		applyMuteTags({ pubkeys: ['newer-live-muted'], eventIds: [], words: [] }, accountB);
 
 		applyAccountInitialization(accountB, prepared);
 

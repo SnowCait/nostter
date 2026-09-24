@@ -21,6 +21,13 @@ export const mutePubkeys: Writable<string[]> = writable([]);
 export const mutedPubkeysByKindMap = writable(new Map<number, Set<string>>());
 export const muteEventIds: Writable<string[]> = writable([]);
 export const muteWords: Writable<string[]> = writable([]);
+export type RegularMuteStateVersion = {
+	accountPubkey: string | undefined;
+	revision: number;
+};
+let regularMuteStateAccountPubkey: string | undefined;
+let regularMuteStateRevision = 0;
+const pendingRegularMuteDecryptionByAccount = new Map<string, number>();
 export const pinNotes: Writable<string[]> = writable([]);
 export const readRelays: Writable<string[]> = writable(
 	defaultRelays.filter((relay) => relay.read).map((relay) => relay.url)
@@ -118,6 +125,34 @@ export const updateRelays = (event: Event) => {
 	console.debug('[relays after]', get(readRelays), get(writeRelays));
 };
 
+export function getRegularMuteStateVersion(): RegularMuteStateVersion {
+	return {
+		accountPubkey: regularMuteStateAccountPubkey,
+		revision: regularMuteStateRevision
+	};
+}
+
+export function hasRegularMuteStateChangedForAccount(
+	baseline: RegularMuteStateVersion,
+	accountPubkey: string
+): boolean {
+	return (
+		regularMuteStateAccountPubkey === accountPubkey &&
+		(regularMuteStateRevision !== baseline.revision ||
+			(pendingRegularMuteDecryptionByAccount.get(accountPubkey) ?? 0) > 0)
+	);
+}
+
+function recordRegularMuteStateMutation(accountPubkey: string): void {
+	regularMuteStateAccountPubkey = accountPubkey;
+	regularMuteStateRevision++;
+}
+
+export function setMuteEventForAccount(event: Event | undefined, accountPubkey: string): void {
+	recordRegularMuteStateMutation(accountPubkey);
+	muteEvent.set(event);
+}
+
 export const storeMutedTagsByEvent = async (
 	event: Event,
 	accountPubkey: string,
@@ -127,20 +162,42 @@ export const storeMutedTagsByEvent = async (
 	if ($muteEvent !== undefined && event.created_at <= $muteEvent.created_at) {
 		return;
 	}
-	muteEvent.set(event);
-	const prepared = await prepareMuteTagsFromEvent(
-		event,
+	setMuteEventForAccount(event, accountPubkey);
+	const eventVersion = getRegularMuteStateVersion();
+	pendingRegularMuteDecryptionByAccount.set(
 		accountPubkey,
-		decryptPrivateListContent
+		(pendingRegularMuteDecryptionByAccount.get(accountPubkey) ?? 0) + 1
 	);
-	applyMuteTags(prepared);
+	try {
+		const prepared = await prepareMuteTagsFromEvent(
+			event,
+			accountPubkey,
+			decryptPrivateListContent
+		);
+		const currentVersion = getRegularMuteStateVersion();
+		if (
+			currentVersion.accountPubkey === accountPubkey &&
+			currentVersion.revision === eventVersion.revision &&
+			get(muteEvent)?.id === event.id
+		) {
+			applyMuteTags(prepared, accountPubkey);
+		}
+	} finally {
+		const pending = pendingRegularMuteDecryptionByAccount.get(accountPubkey) ?? 0;
+		if (pending <= 1) {
+			pendingRegularMuteDecryptionByAccount.delete(accountPubkey);
+		} else {
+			pendingRegularMuteDecryptionByAccount.set(accountPubkey, pending - 1);
+		}
+	}
 };
 
 export const storeMutedTags = async (tags: string[][], accountPubkey: string): Promise<void> => {
-	applyMuteTags(prepareMuteTags(tags, accountPubkey));
+	applyMuteTags(prepareMuteTags(tags, accountPubkey), accountPubkey);
 };
 
-export const applyMuteTags = (state: PreparedMuteTags): void => {
+export const applyMuteTags = (state: PreparedMuteTags, accountPubkey: string): void => {
+	recordRegularMuteStateMutation(accountPubkey);
 	mutePubkeys.set(state.pubkeys);
 	muteEventIds.set(state.eventIds);
 	muteWords.set(state.words);
