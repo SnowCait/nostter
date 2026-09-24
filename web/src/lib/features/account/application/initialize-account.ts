@@ -1,14 +1,7 @@
 import { Author } from '$lib/Author';
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
-import {
-	getRegularMuteStateVersion,
-	muteEvent,
-	mutePubkeys,
-	muteEventIds,
-	muteWords
-} from '$lib/stores/Author';
-import type { RegularMuteStateVersion } from '$lib/stores/Author';
+import { muteEvent } from '$lib/stores/Author';
 import {
 	prepareMuteTagsFromEvent,
 	prepareMutedPubkeysByKind,
@@ -22,8 +15,7 @@ import type { ListContentDecrypter } from '$lib/List';
 import { prepareAccountState, type PreparedAccountState } from './prepare-account-state';
 
 export type PreparedAccountMuteState = {
-	mute: { event: Event | undefined; tags: PreparedMuteTags };
-	baselineVersion: RegularMuteStateVersion;
+	mute: { type: 'apply'; event: Event; tags: PreparedMuteTags } | { type: 'unchanged' };
 	mutedPubkeysByKind: Map<number, Set<string>>;
 };
 
@@ -58,32 +50,17 @@ async function prepareAccountMuteState(
 	events: LoadedAccountEvents,
 	decryptPrivateListContent?: ListContentDecrypter
 ): Promise<PreparedAccountMuteState> {
-	const baselineVersion = getRegularMuteStateVersion();
 	const currentMuteEvent = get(muteEvent);
 	const candidate = events.replaceableEvents.get(10000);
-	let mute: PreparedAccountMuteState['mute'];
+	let mute: PreparedAccountMuteState['mute'] = { type: 'unchanged' };
 	if (
 		candidate !== undefined &&
-		currentMuteEvent?.pubkey === pubkey &&
-		candidate.created_at <= currentMuteEvent.created_at
+		(currentMuteEvent === undefined || candidate.created_at > currentMuteEvent.created_at)
 	) {
 		mute = {
-			event: currentMuteEvent,
-			tags: {
-				pubkeys: get(mutePubkeys),
-				eventIds: get(muteEventIds),
-				words: get(muteWords)
-			}
-		};
-	} else if (candidate !== undefined) {
-		mute = {
+			type: 'apply',
 			event: candidate,
 			tags: await prepareMuteTagsFromEvent(candidate, pubkey, decryptPrivateListContent)
-		};
-	} else {
-		mute = {
-			event: undefined,
-			tags: { pubkeys: [], eventIds: [], words: [] }
 		};
 	}
 
@@ -94,5 +71,5 @@ async function prepareAccountMuteState(
 		mutedByKindEvents,
 		decryptPrivateListContent
 	);
-	return { mute, baselineVersion, mutedPubkeysByKind };
+	return { mute, mutedPubkeysByKind };
 }

@@ -71,8 +71,7 @@ describe('prepareAccountInitialization', () => {
 
 		const prepared = await preparation;
 		expect(prepared.followingPubkeys).toEqual([followee]);
-		expect(prepared.muteState.mute.event).toBe(mute);
-		expect(prepared.muteState.mute.tags.pubkeys).toEqual(['public-muted', 'private-muted']);
+		expect(prepared.muteState.mute).toMatchObject({ type: 'apply', event: mute });
 		expect(prune).toHaveBeenCalledWith([followee, me]);
 	});
 
@@ -88,32 +87,5 @@ describe('prepareAccountInitialization', () => {
 		expect(get(muteEvent)).toBeUndefined();
 		expect(get(mutePubkeys)).toEqual(['existing-muted']);
 		expect(loadMetadata).not.toHaveBeenCalled();
-	});
-
-	it('does not compare the target mute event with another account’s timestamp', async () => {
-		const otherAccountMuteEvent = { ...mute, pubkey: 'b'.repeat(64), created_at: 200 };
-		muteEvent.set(otherAccountMuteEvent);
-		const decrypter = vi.fn().mockResolvedValue([[['p', 'target-muted']], false]);
-		const { prepareAccountInitialization } = await import('./initialize-account');
-
-		const prepared = await prepareAccountInitialization(me, decrypter);
-
-		expect(decrypter).toHaveBeenCalledOnce();
-		expect(prepared.muteState.mute.event).toBe(mute);
-		expect(prepared.muteState.mute.tags.pubkeys).toEqual(['public-muted', 'target-muted']);
-	});
-
-	it('keeps a newer same-account mute event during preparation without decrypting a stale candidate', async () => {
-		const newerMuteEvent = { ...mute, created_at: 200 };
-		muteEvent.set(newerMuteEvent);
-		mutePubkeys.set(['newer-muted']);
-		const decrypter = vi.fn();
-		const { prepareAccountInitialization } = await import('./initialize-account');
-
-		const prepared = await prepareAccountInitialization(me, decrypter);
-
-		expect(decrypter).not.toHaveBeenCalled();
-		expect(prepared.muteState.mute.event).toBe(newerMuteEvent);
-		expect(prepared.muteState.mute.tags.pubkeys).toEqual(['newer-muted']);
 	});
 });
