@@ -1,4 +1,5 @@
 import { Author } from '$lib/Author';
+import { applyAccountEvents } from './apply-account-events';
 import { unique } from '$lib/array';
 import { parseFollowList } from '$lib/nostr/protocol/nip02';
 import { loadFolloweesMetadataCache, pruneFolloweeReplaceableEventsCache } from '$lib/cache/Events';
@@ -12,7 +13,8 @@ export async function initializeAccount(
 
 	await author.fetchRelays();
 
-	const contactsTags = await author.fetchEvents(decryptPrivateListContent);
+	const events = await author.fetchEvents();
+	const contactsTags = await applyAccountEvents(pubkey, events, decryptPrivateListContent);
 	const followingPubkeys = parseFollowList(contactsTags).map(({ pubkey }) => pubkey);
 	const followees = unique([...followingPubkeys, pubkey]);
 
