@@ -3,12 +3,16 @@ import escapeStringRegexp from 'escape-string-regexp';
 import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
-import { filterTags } from '$lib/EventHelper';
-import { findIdentifier } from '$lib/nostr/protocol/event-address';
 import { getZapSenderPubkey } from '$lib/nostr/protocol/nip57';
 import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 import type { ListContentDecrypter } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
+import {
+	prepareMuteTags,
+	prepareMuteTagsFromEvent,
+	prepareMutedPubkeysByKind,
+	type PreparedMuteTags
+} from '$lib/features/mute/application/prepare-mute-state';
 
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
@@ -124,17 +128,22 @@ export const storeMutedTagsByEvent = async (
 		return;
 	}
 	muteEvent.set(event);
-	const [privateTags] =
-		decryptPrivateListContent === undefined
-			? [[], false]
-			: await decryptPrivateListContent(event.pubkey, event.content);
-	await storeMutedTags([...event.tags, ...privateTags], accountPubkey);
+	const prepared = await prepareMuteTagsFromEvent(
+		event,
+		accountPubkey,
+		decryptPrivateListContent
+	);
+	applyMuteTags(prepared);
 };
 
 export const storeMutedTags = async (tags: string[][], accountPubkey: string): Promise<void> => {
-	mutePubkeys.set([...new Set(filterTags('p', tags).filter((p) => p !== accountPubkey))]);
-	muteEventIds.set([...new Set(filterTags('e', tags))]);
-	muteWords.set([...new Set(filterTags('word', tags))]);
+	applyMuteTags(prepareMuteTags(tags, accountPubkey));
+};
+
+export const applyMuteTags = (state: PreparedMuteTags): void => {
+	mutePubkeys.set(state.pubkeys);
+	muteEventIds.set(state.eventIds);
+	muteWords.set(state.words);
 	console.log(
 		'[mute lists]',
 		'p',
@@ -151,23 +160,17 @@ export const storeMutedPubkeysByKind = async (
 	decryptPrivateListContent?: ListContentDecrypter
 ): Promise<void> => {
 	const $mutedPubkeysByKindMap = get(mutedPubkeysByKindMap);
-	for (const event of events) {
-		const kind = findIdentifier(event.tags);
-		if (!kind || isNaN(Number(kind))) {
-			continue;
-		}
-		const privateTags: string[][] = [];
-		if (event.content !== '' && decryptPrivateListContent !== undefined) {
-			try {
-				const [tags] = await decryptPrivateListContent(event.pubkey, event.content);
-				privateTags.push(...tags);
-			} catch (error) {
-				console.warn('[kind 30007 content parse error]', event, error);
-			}
-		}
-		const pubkeys = filterTags('p', [...event.tags, ...privateTags]);
-		$mutedPubkeysByKindMap.set(Number(kind), new Set(pubkeys));
+	const updates = await prepareMutedPubkeysByKind(events, decryptPrivateListContent);
+	applyMutedPubkeysByKind(updates, $mutedPubkeysByKindMap);
+};
+
+export const applyMutedPubkeysByKind = (
+	updates: Map<number, Set<string>>,
+	state: Map<number, Set<string>> = get(mutedPubkeysByKindMap)
+): void => {
+	for (const [kind, pubkeys] of updates) {
+		state.set(kind, pubkeys);
 	}
-	mutedPubkeysByKindMap.set($mutedPubkeysByKindMap);
-	console.log('[mute by kind]', $mutedPubkeysByKindMap);
+	mutedPubkeysByKindMap.set(state);
+	console.log('[mute by kind]', state);
 };

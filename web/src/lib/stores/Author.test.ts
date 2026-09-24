@@ -79,6 +79,34 @@ describe('mute list state', () => {
 		expect(get(muteWords)).toEqual(['private-word']);
 	});
 
+	it('ignores stale mute events without publishing or decrypting them', async () => {
+		const current = { ...event([]), created_at: 2 };
+		const stale = { ...event([['p', mutedPubkey]]), created_at: 1 };
+		const decryptPrivateListContent = vi.fn();
+		muteEvent.set(current);
+
+		await storeMutedTagsByEvent(stale, accountPubkey, decryptPrivateListContent);
+
+		expect(get(muteEvent)).toBe(current);
+		expect(decryptPrivateListContent).not.toHaveBeenCalled();
+		expect(get(mutePubkeys)).toEqual([]);
+	});
+
+	it('publishes the mute event before decrypt and keeps it published on decrypt failure', async () => {
+		const muteListEvent = event([]);
+		const decryptError = new Error('decrypt failed');
+		const decryptPrivateListContent = vi.fn().mockImplementation(async () => {
+			expect(get(muteEvent)).toBe(muteListEvent);
+			throw decryptError;
+		});
+
+		await expect(
+			storeMutedTagsByEvent(muteListEvent, accountPubkey, decryptPrivateListContent)
+		).rejects.toBe(decryptError);
+		expect(get(muteEvent)).toBe(muteListEvent);
+		expect(get(mutePubkeys)).toEqual([]);
+	});
+
 	it('stores public mute tags without decrypting private content when no decrypter is provided', async () => {
 		const muteListEvent = event([
 			['p', mutedPubkey],
