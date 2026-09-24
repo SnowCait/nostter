@@ -40,7 +40,7 @@ export function storeCustomEmojis(event: Nostr.Event): void {
 
 	// emoji tags
 	customEmojiTags.set(filterEmojiTags(event.tags));
-	const $customEmojiTags = get(customEmojiTags);
+	const sourceEventId = event.id;
 
 	// a tags
 	const addressTags = event.tags.filter(([tagName]) => tagName === 'a');
@@ -69,17 +69,19 @@ export function storeCustomEmojis(event: Nostr.Event): void {
 				console.debug('[custom emoji next]', packet);
 
 				const { event } = packet;
+				if (get(customEmojiListEvent)?.id !== sourceEventId) {
+					return;
+				}
 
 				customEmojiSetEventsMap.set(
 					`${event.pubkey}:${findIdentifier(event.tags) ?? ''}`,
 					event
 				);
 
-				$customEmojiTags.push(...filterEmojiTags(event.tags));
-				customEmojiTags.set($customEmojiTags);
+				customEmojiTags.update((tags) => [...tags, ...filterEmojiTags(event.tags)]);
 			},
 			complete: () => {
-				console.debug('[custom emoji tags]', $customEmojiTags);
+				console.debug('[custom emoji tags]', get(customEmojiTags));
 			},
 			error: (error) => {
 				console.error('[custom emoji error]', error);
