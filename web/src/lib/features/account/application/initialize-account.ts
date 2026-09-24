@@ -50,8 +50,8 @@ async function prepareAccountMuteState(
 	events: LoadedAccountEvents,
 	decryptPrivateListContent?: ListContentDecrypter
 ): Promise<PreparedAccountMuteState> {
-	const currentMuteEvent = get(muteEvent);
 	const candidate = events.replaceableEvents.get(10000);
+	const currentMuteEvent = get(muteEvent);
 	let mute: PreparedAccountMuteState['mute'] = { type: 'unchanged' };
 	if (
 		candidate !== undefined &&

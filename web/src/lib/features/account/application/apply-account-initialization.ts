@@ -1,5 +1,10 @@
 import { get } from 'svelte/store';
-import { applyMuteTags, muteEvent, mutedPubkeysByKindMap } from '$lib/stores/Author';
+import {
+	applyMuteTags,
+	applyMutedPubkeysByKind,
+	muteEvent,
+	mutedPubkeysByKindMap
+} from '$lib/stores/Author';
 import { applyAccountChannels, applyAccountState } from './apply-account-state';
 import type { PreparedAccountInitialization } from './initialize-account';
 
@@ -20,6 +25,6 @@ export function applyAccountInitialization(
 		}
 	}
 
-	mutedPubkeysByKindMap.set(new Map(prepared.muteState.mutedPubkeysByKind));
+	applyMutedPubkeysByKind(prepared.muteState.mutedPubkeysByKind, get(mutedPubkeysByKindMap));
 	applyAccountChannels(prepared.accountState);
 }

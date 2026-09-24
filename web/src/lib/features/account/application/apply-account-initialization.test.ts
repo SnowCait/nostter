@@ -3,13 +3,7 @@ import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
 import { Preferences, preferencesStore } from '$lib/Preferences';
-import {
-	authorProfile,
-	metadataEvent,
-	mutedPubkeysByKindMap,
-	readRelays,
-	writeRelays
-} from '$lib/stores/Author';
+import { authorProfile, metadataEvent, readRelays, writeRelays } from '$lib/stores/Author';
 import { customEmojiListEvent, customEmojiTags } from '$lib/author/CustomEmojis';
 import { lastReadAt } from '$lib/author/Notifications';
 import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark.svelte';
@@ -62,12 +56,6 @@ beforeEach(() => {
 	legacyBookmarkEvent.set(event(accountA, 23, 30003));
 	profileBadgesEvent.set(event(accountA, 24, 30008));
 	eventCache.authorChannelsEventStore.set(event(accountA, 25, 10005));
-	mutedPubkeysByKindMap.set(
-		new Map([
-			[6, new Set(['old-kind-6'])],
-			[7, new Set(['old-kind-7'])]
-		])
-	);
 });
 
 describe('applyAccountInitialization snapshot', () => {
@@ -90,7 +78,6 @@ describe('applyAccountInitialization snapshot', () => {
 		expect(get(legacyBookmarkEvent)).toBeUndefined();
 		expect(get(profileBadgesEvent)).toBeUndefined();
 		expect(get(eventCache.authorChannelsEventStore)).toBeUndefined();
-		expect(get(mutedPubkeysByKindMap)).toEqual(new Map());
 	});
 
 	it('publishes invalid metadata and replaces the previous account profile with an empty profile', () => {
@@ -115,14 +102,5 @@ describe('applyAccountInitialization snapshot', () => {
 		expect(storeMetadata).toHaveBeenCalledWith(invalidMetadata);
 		storeMetadata.mockRestore();
 		warn.mockRestore();
-	});
-
-	it('replaces muted-by-kind state with the target account map', () => {
-		const prepared = emptyPrepared();
-		prepared.muteState.mutedPubkeysByKind = new Map([[6, new Set(['target-kind-6'])]]);
-
-		applyAccountInitialization(accountB, prepared);
-
-		expect(get(mutedPubkeysByKindMap)).toEqual(new Map([[6, new Set(['target-kind-6'])]]));
 	});
 });
