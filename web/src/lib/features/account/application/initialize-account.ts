@@ -1,7 +1,7 @@
 import { Author } from '$lib/Author';
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
-import { muteEvent } from '$lib/stores/Author';
+import { muteEvent, mutePubkeys, muteEventIds, muteWords } from '$lib/stores/Author';
 import {
 	prepareMuteTagsFromEvent,
 	prepareMutedPubkeysByKind,
@@ -15,7 +15,7 @@ import type { ListContentDecrypter } from '$lib/List';
 import { prepareAccountState, type PreparedAccountState } from './prepare-account-state';
 
 export type PreparedAccountMuteState = {
-	mute: { type: 'apply'; event: Event; tags: PreparedMuteTags } | { type: 'unchanged' };
+	mute: { event: Event | undefined; tags: PreparedMuteTags };
 	mutedPubkeysByKind: Map<number, Set<string>>;
 };
 
@@ -52,15 +52,29 @@ async function prepareAccountMuteState(
 ): Promise<PreparedAccountMuteState> {
 	const candidate = events.replaceableEvents.get(10000);
 	const currentMuteEvent = get(muteEvent);
-	let mute: PreparedAccountMuteState['mute'] = { type: 'unchanged' };
+	let mute: PreparedAccountMuteState['mute'];
 	if (
 		candidate !== undefined &&
-		(currentMuteEvent === undefined || candidate.created_at > currentMuteEvent.created_at)
+		currentMuteEvent?.pubkey === pubkey &&
+		candidate.created_at <= currentMuteEvent.created_at
 	) {
 		mute = {
-			type: 'apply',
+			event: currentMuteEvent,
+			tags: {
+				pubkeys: get(mutePubkeys),
+				eventIds: get(muteEventIds),
+				words: get(muteWords)
+			}
+		};
+	} else if (candidate !== undefined) {
+		mute = {
 			event: candidate,
 			tags: await prepareMuteTagsFromEvent(candidate, pubkey, decryptPrivateListContent)
+		};
+	} else {
+		mute = {
+			event: undefined,
+			tags: { pubkeys: [], eventIds: [], words: [] }
 		};
 	}
 

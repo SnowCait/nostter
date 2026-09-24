@@ -1,5 +1,6 @@
 import type { Event } from 'nostr-tools';
 import { describe, expect, it } from 'vitest';
+import { defaultRelays } from '$lib/Constants';
 import { Preferences } from '$lib/Preferences';
 import { prepareAccountState } from './prepare-account-state';
 
@@ -31,7 +32,7 @@ function accountEvents(
 }
 
 describe('prepareAccountState', () => {
-	it('lets kind 10002 relay values override legacy contacts relays', () => {
+	it('uses kind 10002 relays over legacy kind 3 relays and defaults', () => {
 		const state = prepareAccountState(
 			accountEvents([
 				event(3, JSON.stringify({ 'wss://legacy.example': { read: true, write: false } }), [
@@ -42,61 +43,73 @@ describe('prepareAccountState', () => {
 		);
 
 		expect(state.contactsTags).toEqual([['p', 'followee']]);
-		expect(state.relayUpdates).toEqual([
-			{
-				source: 'contacts',
-				readRelays: ['wss://legacy.example'],
-				writeRelays: []
-			},
-			{
-				source: 'relay-list',
-				readRelays: [],
-				writeRelays: ['wss://current.example']
-			}
-		]);
+		expect(state.readRelays).toEqual([]);
+		expect(state.writeRelays).toEqual(['wss://current.example']);
 	});
 
-	it('preserves preference update versus unchanged semantics', () => {
+	it('uses non-empty kind 3 relays when kind 10002 is missing', () => {
+		const state = prepareAccountState(
+			accountEvents([
+				event(3, JSON.stringify({ 'wss://legacy.example': { read: true, write: false } }))
+			])
+		);
+
+		expect(state.readRelays).toEqual(['wss://legacy.example']);
+		expect(state.writeRelays).toEqual([]);
+	});
+
+	it('uses default relays when relay events are missing or kind 3 is empty', () => {
+		const defaultsRead = defaultRelays.filter(({ read }) => read).map(({ url }) => url);
+		const defaultsWrite = defaultRelays.filter(({ write }) => write).map(({ url }) => url);
 		const missing = prepareAccountState(accountEvents());
-		expect(missing.preferences).toEqual({ type: 'unchanged' });
+		expect(missing.readRelays).toEqual(defaultsRead);
+		expect(missing.writeRelays).toEqual(defaultsWrite);
+
+		const emptyContacts = prepareAccountState(
+			accountEvents([event(3, '', [['p', 'followee']])])
+		);
+		expect(emptyContacts.readRelays).toEqual(defaultsRead);
+		expect(emptyContacts.writeRelays).toEqual(defaultsWrite);
+	});
+
+	it('uses default preferences when current and legacy events are missing', () => {
+		const missing = prepareAccountState(accountEvents());
+		expect(missing.preferences).toEqual(new Preferences('{}'));
 
 		const legacy = event(30078, '✨', [['d', 'nostter-reaction-emoji']]);
 		const fallback = prepareAccountState(accountEvents([], [legacy]));
-		expect(fallback.preferences).toEqual({
-			type: 'publish',
-			value: Object.assign(new Preferences('{}'), { reactionEmoji: { content: '✨' } })
-		});
+		expect(fallback.preferences).toEqual(
+			Object.assign(new Preferences('{}'), { reactionEmoji: { content: '✨' } })
+		);
 		expect(fallback.legacyReactionEmojiEvent).toBe(legacy);
 
 		const current = event(30078, JSON.stringify({ reactionEmoji: { content: '♥' } }), [
 			['d', 'nostter-preferences']
 		]);
 		const currentState = prepareAccountState(accountEvents([], [legacy, current]));
-		expect(currentState.preferences).toMatchObject({
-			type: 'publish',
-			value: { reactionEmoji: { content: '♥' } }
-		});
+		expect(currentState.preferences).toMatchObject({ reactionEmoji: { content: '♥' } });
 		expect(currentState.legacyReactionEmojiEvent).toBeUndefined();
 	});
 
-	it('prefers current last-read state and leaves it unchanged when both events are missing', () => {
+	it('prefers current then legacy last-read state and defaults to zero', () => {
 		const current = event(30078, '', [['d', 'nostter-read']], 20);
 		const legacy = event(30000, '', [['d', 'notifications/lastOpened']], 10);
 		const state = prepareAccountState(accountEvents([], [current, legacy]));
-		expect(state.lastReadAt).toEqual({ type: 'publish', value: 20 });
+		expect(state.lastReadAt).toBe(20);
 
-		expect(prepareAccountState(accountEvents()).lastReadAt).toEqual({ type: 'unchanged' });
+		expect(prepareAccountState(accountEvents([], [legacy])).lastReadAt).toBe(10);
+		expect(prepareAccountState(accountEvents()).lastReadAt).toBe(0);
 	});
 
-	it('distinguishes missing metadata from invalid metadata', () => {
+	it('prepares empty metadata/profile values for missing and invalid metadata', () => {
 		const missing = prepareAccountState(accountEvents());
-		expect(missing.metadataEvent).toEqual({ type: 'unchanged' });
-		expect(missing.authorProfile).toEqual({ type: 'publish', value: {} });
+		expect(missing.metadataEvent).toBeUndefined();
+		expect(missing.authorProfile).toEqual({});
 
 		const invalid = event(0, '{');
 		const state = prepareAccountState(accountEvents([invalid]));
-		expect(state.metadataEvent).toEqual({ type: 'publish', value: invalid });
-		expect(state.authorProfile).toEqual({ type: 'unchanged' });
+		expect(state.metadataEvent).toBe(invalid);
+		expect(state.authorProfile).toEqual({});
 		expect(state.invalidMetadata?.event).toBe(invalid);
 		expect(state.invalidMetadata?.error).toBeInstanceOf(SyntaxError);
 	});

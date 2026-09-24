@@ -26,6 +26,15 @@ export const customEmojiTags = writable<string[][]>([]);
 
 const customEmojiSetEventsMap = new Map<string, Nostr.Event>();
 
+export function applyCustomEmojiListSnapshot(event: Nostr.Event | undefined): void {
+	customEmojiListEvent.set(event);
+	if (event === undefined) {
+		customEmojiTags.set([]);
+		return;
+	}
+	storeCustomEmojis(event);
+}
+
 export function storeCustomEmojis(event: Nostr.Event): void {
 	console.debug('[custom emoji]', event);
 
