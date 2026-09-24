@@ -4,6 +4,8 @@ import type { NotificationVisibility } from './preferences/NotificationVisibilit
 const {
 	loadFolloweesOfFollowees,
 	notificationVisibility,
+	applyAccountEvents,
+	loadedEvents,
 	fetchEvents,
 	fetchRelays,
 	loadFolloweesMetadataCache,
@@ -58,10 +60,16 @@ const {
 		nip44: { encrypt: vi.fn(), decrypt: vi.fn() },
 		dispose: vi.fn().mockResolvedValue(undefined)
 	};
+	const loadedEvents = {
+		replaceableEvents: new Map(),
+		parameterizedReplaceableEvents: new Map()
+	};
 
 	return {
 		loadFolloweesOfFollowees: vi.fn(),
 		notificationVisibility: createStore<NotificationVisibility>('all'),
+		applyAccountEvents: vi.fn(),
+		loadedEvents,
 		fetchEvents: vi.fn(),
 		fetchRelays: vi.fn().mockResolvedValue(undefined),
 		loadFolloweesMetadataCache: vi.fn().mockResolvedValue(undefined),
@@ -82,6 +90,10 @@ const {
 
 vi.mock('./features/notifications/application/followees-of-followees', () => ({
 	loadFolloweesOfFollowees
+}));
+
+vi.mock('./features/account/application/apply-account-events', () => ({
+	applyAccountEvents
 }));
 
 vi.mock('./preferences/NotificationVisibility.svelte', () => ({
@@ -181,6 +193,8 @@ beforeEach(async () => {
 	remoteSigner.getPublicKey.mockResolvedValue(me);
 	remoteSigner.dispose.mockResolvedValue(undefined);
 	storageGet.mockReturnValue(null);
+	fetchEvents.mockResolvedValue(loadedEvents);
+	applyAccountEvents.mockResolvedValue([['p', followee]]);
 });
 
 describe('Login.withNpub', () => {
@@ -200,7 +214,6 @@ describe('Login.withNpub', () => {
 		});
 
 		loadFolloweesMetadataCache.mockResolvedValue(undefined);
-		fetchEvents.mockResolvedValue([['p', followee]]);
 		loadFolloweesOfFollowees.mockImplementation(() => {
 			calls.push('loadFolloweesOfFollowees');
 		});
@@ -263,8 +276,7 @@ describe('Login.withNpub', () => {
 		const login = new Login();
 		const loginPromise = login.withNpub(npub);
 
-		await Promise.resolve();
-		await Promise.resolve();
+		await vi.waitFor(() => expect(loadFolloweesMetadataCache).toHaveBeenCalledOnce());
 
 		expect(auth.pubkey).toBeUndefined();
 		expect(auth.followingPubkeys).toEqual([]);
@@ -311,7 +323,8 @@ describe('Login.withNpub', () => {
 
 		await new Login().withNpub(nip19.npubEncode(me));
 
-		expect(fetchEvents).toHaveBeenCalledWith(undefined);
+		expect(fetchEvents).toHaveBeenCalledWith();
+		expect(applyAccountEvents).toHaveBeenCalledWith(me, loadedEvents, undefined);
 		expect(browserSignerInstances).toHaveLength(0);
 		expect(privateSignerInstances).toHaveLength(0);
 		expect(establishBunkerConnection).not.toHaveBeenCalled();
@@ -342,7 +355,6 @@ describe('Login.withNip07', () => {
 		notificationVisibility.set('all');
 		const { auth } = await import('./auth.svelte');
 		auth.reset();
-		fetchEvents.mockResolvedValue([['p', followee]]);
 	});
 
 	it('does not establish a session when the extension rejects the public key request', async () => {
@@ -361,7 +373,8 @@ describe('Login.withNip07', () => {
 		await new Login().withNip07();
 
 		expect(auth.status).toBe('authenticated');
-		expect(fetchEvents).toHaveBeenCalledWith(undefined);
+		expect(fetchEvents).toHaveBeenCalledWith();
+		expect(applyAccountEvents).toHaveBeenCalledWith(me, loadedEvents, undefined);
 		expect(browserSignerInstances).toHaveLength(1);
 		expect(auth.signer).toBe(browserSignerInstances[0]);
 		expect(remoteSignerSubscribeIfEnabled).toHaveBeenCalledOnce();
@@ -378,7 +391,7 @@ describe('Login.withNip07', () => {
 
 		await new Login().withNip07();
 
-		const decrypter = fetchEvents.mock.calls[0]?.[0];
+		const decrypter = applyAccountEvents.mock.calls[0]?.[2];
 		expect(decrypter).toEqual(expect.any(Function));
 		await expect(decrypter(me, 'nip44-content')).resolves.toEqual([[['p', 'private']], false]);
 	});
@@ -394,7 +407,7 @@ describe('Login.withNip07', () => {
 
 		await new Login().withNip07();
 
-		const decrypter = fetchEvents.mock.calls[0]?.[0];
+		const decrypter = applyAccountEvents.mock.calls[0]?.[2];
 		expect(decrypter).toEqual(expect.any(Function));
 		await expect(decrypter(me, 'legacy?iv=value')).resolves.toEqual([[['p', 'private']], true]);
 		await expect(decrypter(me, 'nip44-content')).resolves.toEqual([[], false]);
@@ -443,7 +456,6 @@ describe('Login.withNsec', () => {
 		auth.reset();
 
 		loadFolloweesMetadataCache.mockResolvedValue(undefined);
-		fetchEvents.mockResolvedValue([['p', followee]]);
 	});
 
 	it('starts the remote signer for a signing-capable session', async () => {
@@ -471,7 +483,7 @@ describe('Login.withNsec', () => {
 
 		await new Login().withNsec(nip19.nsecEncode(new Uint8Array(32).fill(1)));
 
-		expect(fetchEvents).toHaveBeenCalledWith(expect.any(Function));
+		expect(applyAccountEvents).toHaveBeenCalledWith(me, loadedEvents, expect.any(Function));
 		expect(privateSignerInstances).toHaveLength(1);
 		const { auth } = await import('./auth.svelte');
 		expect(auth.signer).toBe(privateSignerInstances[0]);
@@ -505,7 +517,6 @@ describe('Login.withNip46', () => {
 		notificationVisibility.set('all');
 		const { auth } = await import('./auth.svelte');
 		auth.reset();
-		fetchEvents.mockResolvedValue([['p', followee]]);
 	});
 
 	it('does not dispose a signer when connection establishment fails', async () => {
@@ -531,7 +542,7 @@ describe('Login.withNip46', () => {
 		await new Login().withNip46('bunker://remote');
 
 		expect(establishBunkerConnection).toHaveBeenCalledWith('bunker://remote');
-		expect(fetchEvents).toHaveBeenCalledWith(expect.any(Function));
+		expect(applyAccountEvents).toHaveBeenCalledWith(me, loadedEvents, expect.any(Function));
 		expect(auth.signer).toBe(remoteSigner);
 		expect(remoteSignerSubscribeIfEnabled).toHaveBeenCalledOnce();
 	});
