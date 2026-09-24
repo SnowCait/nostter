@@ -32,7 +32,6 @@ export type PreparedAccountState = {
 	bookmarkEvent: Event | undefined;
 	legacyBookmarkEvent: Event | undefined;
 	profileBadgesEvent: Event | undefined;
-	preferencesEvent: Event | undefined;
 	preferences: Publication<Preferences>;
 	legacyReactionEmojiEvent: Event | undefined;
 	legacyMediaUploader: string | undefined;
@@ -145,7 +144,6 @@ export function prepareAccountState(events: LoadedAccountEvents): PreparedAccoun
 				? legacyProfileBadges
 				: undefined
 		),
-		preferencesEvent,
 		preferences,
 		legacyReactionEmojiEvent,
 		legacyMediaUploader,

@@ -66,6 +66,10 @@ export class Auth {
 		};
 	}
 
+	beginInitialization(): void {
+		this.#state = { status: 'initializing' };
+	}
+
 	establish(session: Omit<Extract<AuthState, { status: 'authenticated' }>, 'status'>): void {
 		this.#state = {
 			status: 'authenticated',

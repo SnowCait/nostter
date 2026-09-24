@@ -58,7 +58,6 @@ describe('prepareAccountState', () => {
 
 	it('preserves preference update versus unchanged semantics', () => {
 		const missing = prepareAccountState(accountEvents());
-		expect(missing.preferencesEvent).toBeUndefined();
 		expect(missing.preferences).toEqual({ type: 'unchanged' });
 
 		const legacy = event(30078, '✨', [['d', 'nostter-reaction-emoji']]);
@@ -73,7 +72,6 @@ describe('prepareAccountState', () => {
 			['d', 'nostter-preferences']
 		]);
 		const currentState = prepareAccountState(accountEvents([], [legacy, current]));
-		expect(currentState.preferencesEvent).toBe(current);
 		expect(currentState.preferences).toMatchObject({
 			type: 'publish',
 			value: { reactionEmoji: { content: '♥' } }
