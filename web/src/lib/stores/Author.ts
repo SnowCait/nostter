@@ -8,11 +8,10 @@ import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protoc
 import type { ListContentDecrypter } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
 import {
-	prepareMuteTags,
-	prepareMuteTagsFromEvent,
-	prepareMutedPubkeysByKind,
-	type PreparedMuteTags
+	prepareRegularMuteStateFromEvent,
+	prepareKindMuteStates
 } from '$lib/features/mute/application/prepare-mute-state';
+import { prepareMuteTags, type PreparedMuteTags } from '$lib/features/mute/domain/mute-state';
 
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
@@ -128,12 +127,12 @@ export const storeMutedTagsByEvent = async (
 		return;
 	}
 	muteEvent.set(event);
-	const prepared = await prepareMuteTagsFromEvent(
+	const prepared = await prepareRegularMuteStateFromEvent(
 		event,
 		accountPubkey,
 		decryptPrivateListContent
 	);
-	applyMuteTags(prepared);
+	applyMuteTags(prepared.tags);
 };
 
 export const storeMutedTags = async (tags: string[][], accountPubkey: string): Promise<void> => {
@@ -160,8 +159,11 @@ export const storeMutedPubkeysByKind = async (
 	decryptPrivateListContent?: ListContentDecrypter
 ): Promise<void> => {
 	const $mutedPubkeysByKindMap = get(mutedPubkeysByKindMap);
-	const updates = await prepareMutedPubkeysByKind(events, decryptPrivateListContent);
-	applyMutedPubkeysByKind(updates, $mutedPubkeysByKindMap);
+	const updates = await prepareKindMuteStates(events, decryptPrivateListContent);
+	applyMutedPubkeysByKind(
+		new Map([...updates].map(([kind, { pubkeys }]) => [kind, new Set(pubkeys)])),
+		$mutedPubkeysByKindMap
+	);
 };
 
 export const applyMutedPubkeysByKind = (

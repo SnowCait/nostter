@@ -1,11 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Event } from 'nostr-tools';
 
-import {
-	prepareMuteTags,
-	prepareMuteTagsFromEvent,
-	prepareMutedPubkeysByKind
-} from './prepare-mute-state';
+import { prepareRegularMuteStateFromEvent, prepareKindMuteStates } from './prepare-mute-state';
+import { prepareMuteTags } from '../domain/mute-state';
 
 const accountPubkey = 'a'.repeat(64);
 const publicPubkey = 'b'.repeat(64);
@@ -41,44 +38,79 @@ describe('mute state preparation', () => {
 		).toEqual({ pubkeys: [publicPubkey], eventIds: ['event-id'], words: ['spoiler'] });
 	});
 
-	it('prepares public and private mute tags, and uses public tags without a decrypter', async () => {
+	it('completes public and private regular mute tags with their source event', async () => {
 		const muteEvent = event([
 			['p', publicPubkey],
+			['p', publicPubkey],
+			['p', accountPubkey],
+			['e', 'public-event'],
+			['e', 'public-event'],
 			['word', 'public']
 		]);
 		const decryptPrivateListContent = vi.fn().mockResolvedValue([
 			[
 				['p', privatePubkey],
+				['p', privatePubkey],
+				['e', 'private-event'],
+				['e', 'private-event'],
+				['word', 'public'],
 				['word', 'private']
 			],
 			false
 		]);
 
-		await expect(
-			prepareMuteTagsFromEvent(muteEvent, accountPubkey, decryptPrivateListContent)
-		).resolves.toEqual({
+		const prepared = await prepareRegularMuteStateFromEvent(
+			muteEvent,
+			accountPubkey,
+			decryptPrivateListContent
+		);
+		expect(prepared.event).toBe(muteEvent);
+		expect(prepared.tags).toEqual({
 			pubkeys: [publicPubkey, privatePubkey],
-			eventIds: [],
+			eventIds: ['public-event', 'private-event'],
 			words: ['public', 'private']
 		});
-		await expect(prepareMuteTagsFromEvent(muteEvent, accountPubkey)).resolves.toEqual({
-			pubkeys: [publicPubkey],
-			eventIds: [],
-			words: ['public']
+		await expect(prepareRegularMuteStateFromEvent(muteEvent, accountPubkey)).resolves.toEqual({
+			event: muteEvent,
+			tags: { pubkeys: [publicPubkey], eventIds: ['public-event'], words: ['public'] }
 		});
 	});
 
-	it('prepares kind mute updates from event inputs and falls back to public tags on decrypt failure', async () => {
+	it('represents a missing regular event as a complete empty state', async () => {
+		await expect(prepareRegularMuteStateFromEvent(undefined, accountPubkey)).resolves.toEqual({
+			event: undefined,
+			tags: { pubkeys: [], eventIds: [], words: [] }
+		});
+	});
+
+	it('retains kind mute source events and public/private pubkeys', async () => {
+		const kindEvent = {
+			...event([
+				['d', '6'],
+				['p', publicPubkey]
+			]),
+			kind: 30007
+		};
+		const updates = await prepareKindMuteStates(
+			[kindEvent],
+			vi.fn().mockResolvedValue([[['p', privatePubkey]], false])
+		);
+		expect(updates.get(6)?.event).toBe(kindEvent);
+		expect(updates.get(6)?.pubkeys).toEqual(new Set([publicPubkey, privatePubkey]));
+	});
+
+	it('ignores invalid d tags and keeps public kind mute tags on decrypt failure', async () => {
 		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-		const updates = await prepareMutedPubkeysByKind(
+		const kindEvent = {
+			...event([
+				['d', '6'],
+				['p', publicPubkey]
+			]),
+			kind: 30007
+		};
+		const updates = await prepareKindMuteStates(
 			[
-				{
-					...event([
-						['d', '6'],
-						['p', publicPubkey]
-					]),
-					kind: 30007
-				},
+				kindEvent,
 				{
 					...event([
 						['d', 'invalid'],
@@ -90,7 +122,9 @@ describe('mute state preparation', () => {
 			vi.fn().mockRejectedValue(new Error('decrypt failed'))
 		);
 
-		expect(updates).toEqual(new Map([[6, new Set([publicPubkey])]]));
+		expect(updates).toEqual(
+			new Map([[6, { event: kindEvent, pubkeys: new Set([publicPubkey]) }]])
+		);
 		expect(consoleWarn).toHaveBeenCalledOnce();
 		consoleWarn.mockRestore();
 	});
