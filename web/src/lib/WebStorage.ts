@@ -21,8 +21,8 @@ export class WebStorage {
 		this.storage.clear();
 	}
 
-	public getReplaceableEvent(kind: number): Event | undefined {
-		const json = this.get(`kind:${kind}`);
+	public getReplaceableEvent(kind: number, accountPubkey: string): Event | undefined {
+		const json = this.get(`account:${accountPubkey}:kind:${kind}`);
 		if (json === null) {
 			return undefined;
 		}
@@ -38,16 +38,20 @@ export class WebStorage {
 		if (event.pubkey !== accountPubkey) {
 			throw new Error('Logic error');
 		}
-		const cache = this.getReplaceableEvent(event.kind);
+		const cache = this.getReplaceableEvent(event.kind, accountPubkey);
 		if (cache === undefined || cache.created_at < event.created_at) {
-			this.set(`kind:${event.kind}`, JSON.stringify(event));
-			this.setCachedAt();
+			this.set(`account:${accountPubkey}:kind:${event.kind}`, JSON.stringify(event));
+			this.setCachedAt(accountPubkey);
 			eventCache.addIfNotExists(event); // Fire and forget
 		}
 	}
 
-	public getParameterizedReplaceableEvent(kind: number, identifier: string): Event | undefined {
-		const json = this.get(`kind:${kind}:${identifier}`);
+	public getParameterizedReplaceableEvent(
+		kind: number,
+		identifier: string,
+		accountPubkey: string
+	): Event | undefined {
+		const json = this.get(`account:${accountPubkey}:kind:${kind}:${identifier}`);
 		if (json === null) {
 			return undefined;
 		}
@@ -59,6 +63,16 @@ export class WebStorage {
 		}
 	}
 
+	public getParameterizedIdentifiers(kind: number, accountPubkey: string): string[] {
+		const prefix = `nostter:account:${accountPubkey}:kind:${kind}:`;
+		const identifiers: string[] = [];
+		for (let index = 0; index < this.storage.length; index++) {
+			const key = this.storage.key(index);
+			if (key?.startsWith(prefix)) identifiers.push(key.slice(prefix.length));
+		}
+		return identifiers;
+	}
+
 	public setParameterizedReplaceableEvent(event: Event, accountPubkey: string): void {
 		if (event.pubkey !== accountPubkey) {
 			throw new Error('Logic error');
@@ -67,24 +81,35 @@ export class WebStorage {
 		if (identifier === undefined) {
 			return;
 		}
-		const cache = this.getParameterizedReplaceableEvent(event.kind, identifier);
+		const cache = this.getParameterizedReplaceableEvent(event.kind, identifier, accountPubkey);
 		if (cache === undefined || cache.created_at < event.created_at) {
-			this.set(`kind:${event.kind}:${identifier}`, JSON.stringify(event));
-			this.setCachedAt();
+			this.set(
+				`account:${accountPubkey}:kind:${event.kind}:${identifier}`,
+				JSON.stringify(event)
+			);
+			this.setCachedAt(accountPubkey);
 		}
 	}
 
-	public removeParameterizedReplaceableEvent(kind: number, identifier: string): void {
-		this.remove(`kind:${kind}:${identifier}`);
+	public removeParameterizedReplaceableEvent(
+		kind: number,
+		identifier: string,
+		accountPubkey: string
+	): void {
+		this.remove(`account:${accountPubkey}:kind:${kind}:${identifier}`);
 	}
 
-	public getCachedAt(): number | null {
-		const cachedAt = this.get('cached_at');
+	public getCachedAt(accountPubkey: string): number | null {
+		const cachedAt = this.get(`account:${accountPubkey}:cached_at`);
 		return cachedAt === null ? null : Number(cachedAt);
 	}
 
-	private setCachedAt() {
+	public removeCachedAt(accountPubkey: string): void {
+		this.remove(`account:${accountPubkey}:cached_at`);
+	}
+
+	private setCachedAt(accountPubkey: string) {
 		const now = Math.floor(Date.now() / 1000);
-		this.set('cached_at', `${now}`);
+		this.set(`account:${accountPubkey}:cached_at`, `${now}`);
 	}
 }

@@ -104,7 +104,7 @@ export class HomeTimeline extends NewTimeline {
 			latestEach(({ event }) => event.kind),
 			filter(({ event }) => {
 				const storage = new WebStorage(localStorage);
-				const cache = storage.getReplaceableEvent(event.kind);
+				const cache = storage.getReplaceableEvent(event.kind, accountPubkey);
 				return cache === undefined || cache.created_at < event.created_at;
 			}),
 			tap(({ event }) => {
@@ -154,7 +154,8 @@ export class HomeTimeline extends NewTimeline {
 				const storage = new WebStorage(localStorage);
 				const cache = storage.getParameterizedReplaceableEvent(
 					event.kind,
-					findIdentifier(event.tags) ?? ''
+					findIdentifier(event.tags) ?? '',
+					accountPubkey
 				);
 				return cache === undefined || cache.created_at < event.created_at;
 			}),

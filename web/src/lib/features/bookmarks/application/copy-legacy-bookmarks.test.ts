@@ -39,11 +39,11 @@ vi.mock('$lib/timelines/MainTimeline', () => ({
 }));
 vi.mock('$lib/WebStorage', () => ({
 	WebStorage: class {
-		getReplaceableEvent() {
-			return mocks.getReplaceableEvent();
+		getReplaceableEvent(kind: number, accountPubkey: string) {
+			return mocks.getReplaceableEvent(kind, accountPubkey);
 		}
 
-		setReplaceableEvent(event: Nostr.Event) {
+		setReplaceableEvent(event: Nostr.Event, _accountPubkey: string) {
 			mocks.setReplaceableEvent(event);
 		}
 	}

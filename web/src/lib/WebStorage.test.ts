@@ -35,50 +35,120 @@ class MemoryStorage implements Storage {
 	}
 }
 
-const accountPubkey = 'a'.repeat(64);
-const otherPubkey = 'b'.repeat(64);
+const accountA = 'a'.repeat(64);
+const accountB = 'b'.repeat(64);
 
-function event(kind: number, pubkey = accountPubkey, tags: string[][] = []): Event {
-	return { id: 'id', kind, pubkey, tags, content: '', created_at: 1, sig: 'sig' };
+function event(kind: number, pubkey: string, created_at = 1, tags: string[][] = []): Event {
+	return {
+		id: `${pubkey}-${kind}-${created_at}`,
+		kind,
+		pubkey,
+		tags,
+		content: '',
+		created_at,
+		sig: 'sig'
+	};
 }
 
-describe('WebStorage event ownership', () => {
+describe('WebStorage account event cache', () => {
 	let storage: WebStorage;
 
 	beforeEach(() => {
 		storage = new WebStorage(new MemoryStorage());
 	});
 
-	it('stores a replaceable event for the explicit account pubkey', () => {
-		const ownEvent = event(3);
-		storage.setReplaceableEvent(ownEvent, accountPubkey);
-		expect(storage.getReplaceableEvent(3)).toEqual(ownEvent);
+	it.each([3, 10000])('keeps kind %i independent across delayed account writes', (kind) => {
+		const firstA = event(kind, accountA);
+		const secondA = event(kind, accountA, 2);
+		const accountBEvent = event(kind, accountB);
+		storage.setReplaceableEvent(firstA, accountA);
+		storage.setReplaceableEvent(accountBEvent, accountB);
+		expect(storage.getReplaceableEvent(kind, accountA)).toEqual(firstA);
+		expect(storage.getReplaceableEvent(kind, accountB)).toEqual(accountBEvent);
+
+		storage.setReplaceableEvent(secondA, accountA);
+		expect(storage.getReplaceableEvent(kind, accountA)).toEqual(secondA);
+		expect(storage.getReplaceableEvent(kind, accountB)).toEqual(accountBEvent);
 	});
 
-	it('rejects another account’s replaceable event without updating the cache', () => {
-		const ownEvent = event(3);
-		storage.setReplaceableEvent(ownEvent, accountPubkey);
-		const cachedAt = storage.getCachedAt();
+	it('keeps addressable events and identifiers within each account', () => {
+		const firstA = event(30007, accountA, 1, [['d', '6']]);
+		const secondA = event(30007, accountA, 2, [['d', '6']]);
+		const accountBEvent = event(30007, accountB, 1, [['d', '6']]);
+		storage.setParameterizedReplaceableEvent(firstA, accountA);
+		storage.setParameterizedReplaceableEvent(event(30007, accountA, 1, [['d', '7']]), accountA);
+		storage.setParameterizedReplaceableEvent(accountBEvent, accountB);
+		storage.setParameterizedReplaceableEvent(
+			event(30007, accountB, 1, [['d', '16']]),
+			accountB
+		);
 
-		expect(() => storage.setReplaceableEvent(event(3, otherPubkey), accountPubkey)).toThrow();
-		expect(storage.getReplaceableEvent(3)).toEqual(ownEvent);
-		expect(storage.getCachedAt()).toBe(cachedAt);
+		storage.setParameterizedReplaceableEvent(secondA, accountA);
+		expect(storage.getParameterizedReplaceableEvent(30007, '6', accountA)).toEqual(secondA);
+		expect(storage.getParameterizedReplaceableEvent(30007, '6', accountB)).toEqual(
+			accountBEvent
+		);
+		expect(storage.getParameterizedIdentifiers(30007, accountA)).toEqual(['6', '7']);
+		expect(storage.getParameterizedIdentifiers(30007, accountB)).toEqual(['6', '16']);
+
+		storage.removeParameterizedReplaceableEvent(30007, '6', accountA);
+		expect(storage.getParameterizedReplaceableEvent(30007, '6', accountA)).toBeUndefined();
+		expect(storage.getParameterizedReplaceableEvent(30007, '6', accountB)).toEqual(
+			accountBEvent
+		);
+		storage.removeParameterizedReplaceableEvent(30007, '6', accountB);
+		expect(storage.getParameterizedIdentifiers(30007, accountB)).toEqual(['16']);
 	});
 
-	it('stores a parameterized event for the explicit account pubkey', () => {
-		const ownEvent = event(30078, accountPubkey, [['d', 'settings']]);
-		storage.setParameterizedReplaceableEvent(ownEvent, accountPubkey);
-		expect(storage.getParameterizedReplaceableEvent(30078, 'settings')).toEqual(ownEvent);
+	it('tracks cache age independently without a global account marker', () => {
+		const clock = vi.spyOn(Date, 'now').mockReturnValue(100_000);
+		try {
+			storage.setReplaceableEvent(event(3, accountA), accountA);
+			clock.mockReturnValue(200_000);
+			storage.setReplaceableEvent(event(3, accountB), accountB);
+			expect(storage.getCachedAt(accountA)).toBe(100);
+			expect(storage.getCachedAt(accountB)).toBe(200);
+			clock.mockReturnValue(300_000);
+			storage.setReplaceableEvent(event(3, accountA, 2), accountA);
+			expect(storage.getCachedAt(accountA)).toBe(300);
+			expect(storage.getCachedAt(accountB)).toBe(200);
+			storage.removeCachedAt(accountA);
+			expect(storage.getCachedAt(accountA)).toBeNull();
+			expect(storage.getCachedAt(accountB)).toBe(200);
+			expect(storage.get('cached_account_pubkey')).toBeNull();
+		} finally {
+			clock.mockRestore();
+		}
 	});
 
-	it('rejects another account’s parameterized event without updating the cache', () => {
-		const ownEvent = event(30078, accountPubkey, [['d', 'settings']]);
-		storage.setParameterizedReplaceableEvent(ownEvent, accountPubkey);
-		const cachedAt = storage.getCachedAt();
-		const otherEvent = event(30078, otherPubkey, [['d', 'settings']]);
+	it('rejects events whose author differs from the specified cache account', () => {
+		expect(() => storage.setReplaceableEvent(event(3, accountA), accountB)).toThrow(
+			'Logic error'
+		);
+		expect(() =>
+			storage.setParameterizedReplaceableEvent(
+				event(30007, accountA, 1, [['d', '6']]),
+				accountB
+			)
+		).toThrow('Logic error');
+		expect(storage.getReplaceableEvent(3, accountB)).toBeUndefined();
+		expect(storage.getParameterizedReplaceableEvent(30007, '6', accountB)).toBeUndefined();
+		expect(storage.getCachedAt(accountB)).toBeNull();
+	});
 
-		expect(() => storage.setParameterizedReplaceableEvent(otherEvent, accountPubkey)).toThrow();
-		expect(storage.getParameterizedReplaceableEvent(30078, 'settings')).toEqual(ownEvent);
-		expect(storage.getCachedAt()).toBe(cachedAt);
+	it('keeps login and preferences global while ignoring legacy event cache keys', () => {
+		storage.set('login', 'saved-login');
+		storage.set('theme', 'dark');
+		storage.set('language', 'en');
+		storage.set('preference:notifications', 'follows');
+		storage.set('kind:3', JSON.stringify(event(3, accountA)));
+		storage.set('cached_at', '100');
+
+		expect(storage.getReplaceableEvent(3, accountA)).toBeUndefined();
+		expect(storage.getCachedAt(accountA)).toBeNull();
+		expect(storage.get('login')).toBe('saved-login');
+		expect(storage.get('theme')).toBe('dark');
+		expect(storage.get('language')).toBe('en');
+		expect(storage.get('preference:notifications')).toBe('follows');
 	});
 });

@@ -52,12 +52,16 @@ export function updateProfileBadgesEvent(event: Nostr.Event): void {
 	profileBadgesEvent.update((current) => selectProfileBadgesEvent(current, event));
 }
 
-function getCachedProfileBadgesEvent(storage: WebStorage): Nostr.Event | undefined {
+function getCachedProfileBadgesEvent(
+	storage: WebStorage,
+	accountPubkey: string
+): Nostr.Event | undefined {
 	return selectProfileBadgesEvent(
-		storage.getReplaceableEvent(profileBadgesKind),
+		storage.getReplaceableEvent(profileBadgesKind, accountPubkey),
 		storage.getParameterizedReplaceableEvent(
 			legacyProfileBadgesKind,
-			legacyProfileBadgesIdentifier
+			legacyProfileBadgesIdentifier,
+			accountPubkey
 		)
 	);
 }
@@ -93,7 +97,7 @@ async function save(
 
 async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
-	const lastEvent = getCachedProfileBadgesEvent(storage);
+	const lastEvent = getCachedProfileBadgesEvent(storage, accountPubkey);
 	let tags = lastEvent?.tags ?? [];
 	let updated = false;
 

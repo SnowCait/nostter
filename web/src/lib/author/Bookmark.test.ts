@@ -27,11 +27,11 @@ vi.mock('$lib/auth.svelte', async () => {
 });
 vi.mock('$lib/WebStorage', () => ({
 	WebStorage: class {
-		getReplaceableEvent() {
+		getReplaceableEvent(_kind: number, _accountPubkey: string) {
 			return undefined;
 		}
 
-		setReplaceableEvent() {}
+		setReplaceableEvent(_event: unknown, _accountPubkey: string) {}
 	}
 }));
 vi.stubGlobal('localStorage', {});

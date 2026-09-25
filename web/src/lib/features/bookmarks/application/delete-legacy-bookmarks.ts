@@ -18,6 +18,10 @@ export async function deleteLegacyBookmarks(signEvent: Signer['signEvent']): Pro
 	await requestEventDeletion(signEvent, [legacyEvent]);
 
 	const storage = new WebStorage(localStorage);
-	storage.removeParameterizedReplaceableEvent(legacyEvent.kind, legacyBookmarkIdentifier);
+	storage.removeParameterizedReplaceableEvent(
+		legacyEvent.kind,
+		legacyBookmarkIdentifier,
+		legacyEvent.pubkey
+	);
 	legacyBookmarkEvent.set(undefined);
 }

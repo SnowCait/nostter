@@ -90,7 +90,7 @@ async function publish(
 	}
 
 	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getParameterizedReplaceableEvent(kind, `${muteKind}`);
+	const lastEvent = storage.getParameterizedReplaceableEvent(kind, `${muteKind}`, accountPubkey);
 	let tags = lastEvent?.tags.concat() ?? [['d', `${muteKind}`]];
 	let privateTags: string[][] = [];
 	let legacy = lastEvent === undefined ? false : isLegacyEncryption(lastEvent.content);

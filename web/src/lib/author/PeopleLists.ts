@@ -220,7 +220,7 @@ async function validate(event: Nostr.Event, accountPubkey: string): Promise<bool
 	}
 
 	const storage = new WebStorage(localStorage);
-	const cache = storage.getParameterizedReplaceableEvent(event.kind, identifier);
+	const cache = storage.getParameterizedReplaceableEvent(event.kind, identifier, accountPubkey);
 	if (cache !== undefined && event.created_at < cache.created_at) {
 		console.error('[people list outdated cache]', event, cache);
 		return false;

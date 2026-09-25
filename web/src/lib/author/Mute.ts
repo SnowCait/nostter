@@ -69,7 +69,7 @@ async function save(
 
 async function publish(capabilities: MuteCapabilities, accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(kind);
+	const lastEvent = storage.getReplaceableEvent(kind, accountPubkey);
 	let tags = lastEvent?.tags.concat() ?? [];
 	let privateTags: string[][] = [];
 	let legacy = lastEvent === undefined ? false : isLegacyEncryption(lastEvent.content);

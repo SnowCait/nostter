@@ -116,7 +116,7 @@ export async function copyLegacyBookmarks(
 		}
 
 		const storage = new WebStorage(localStorage);
-		const cachedEvent = storage.getReplaceableEvent(Kind.BookmarkList);
+		const cachedEvent = storage.getReplaceableEvent(Kind.BookmarkList, accountPubkey);
 		if (standardEvent === undefined && cachedEvent !== undefined) {
 			throw new Error('Standard bookmark cache freshness could not be verified.');
 		}
