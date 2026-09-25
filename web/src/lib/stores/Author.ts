@@ -140,9 +140,9 @@ export const storeMutedTags = async (tags: string[][], accountPubkey: string): P
 };
 
 export const applyMuteTags = (state: PreparedMuteTags): void => {
-	mutePubkeys.set(state.pubkeys);
-	muteEventIds.set(state.eventIds);
-	muteWords.set(state.words);
+	mutePubkeys.set([...state.pubkeys]);
+	muteEventIds.set([...state.eventIds]);
+	muteWords.set([...state.words]);
 	console.log(
 		'[mute lists]',
 		'p',

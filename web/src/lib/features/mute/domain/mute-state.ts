@@ -1,27 +1,27 @@
 import type { Event } from 'nostr-tools';
-import { filterTags } from '$lib/EventHelper';
+import { getTagValues } from '$lib/nostr/protocol/event-tags';
 
 export type PreparedMuteTags = {
-	pubkeys: string[];
-	eventIds: string[];
-	words: string[];
+	readonly pubkeys: readonly string[];
+	readonly eventIds: readonly string[];
+	readonly words: readonly string[];
 };
 
 export type RegularMuteState = {
-	event: Event | undefined;
-	tags: PreparedMuteTags;
+	readonly event: Event | undefined;
+	readonly tags: PreparedMuteTags;
 };
 
 export type KindMuteState = {
-	event: Event;
-	pubkeys: ReadonlySet<string>;
+	readonly event: Event;
+	readonly pubkeys: ReadonlySet<string>;
 };
 
 export function prepareMuteTags(tags: string[][], accountPubkey: string): PreparedMuteTags {
 	return {
-		pubkeys: [...new Set(filterTags('p', tags).filter((pubkey) => pubkey !== accountPubkey))],
-		eventIds: [...new Set(filterTags('e', tags))],
-		words: [...new Set(filterTags('word', tags))]
+		pubkeys: [...new Set(getTagValues('p', tags).filter((pubkey) => pubkey !== accountPubkey))],
+		eventIds: [...new Set(getTagValues('e', tags))],
+		words: [...new Set(getTagValues('word', tags))]
 	};
 }
 
@@ -37,5 +37,5 @@ export function prepareRegularMuteState(
 }
 
 export function prepareKindMuteState(event: Event, privateTags: string[][] = []): KindMuteState {
-	return { event, pubkeys: new Set(filterTags('p', [...event.tags, ...privateTags])) };
+	return { event, pubkeys: new Set(getTagValues('p', [...event.tags, ...privateTags])) };
 }
