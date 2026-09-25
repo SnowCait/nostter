@@ -46,7 +46,9 @@ import {
 	followeesFilterKinds
 } from '$lib/Constants';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
-import { updateRelays, storeMutedPubkeysByKind, storeMutedTagsByEvent } from '../stores/Author';
+import { updateRelays } from '../stores/Author';
+import { mute } from '$lib/features/mute/application/mute-state.svelte';
+import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
 import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { saveLastNote } from '../stores/LastNotes';
 import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';
@@ -103,9 +105,15 @@ export class HomeTimeline extends NewTimeline {
 			filterByKinds(replaceableKinds),
 			latestEach(({ event }) => event.kind),
 			filter(({ event }) => {
+				if (event.kind === Kind.Mutelist && auth.pubkey !== accountPubkey) return false;
 				const storage = new WebStorage(localStorage);
 				const cache = storage.getReplaceableEvent(event.kind);
-				return cache === undefined || cache.created_at < event.created_at;
+				return (
+					cache === undefined ||
+					(event.kind === Kind.Mutelist
+						? cache.pubkey !== accountPubkey || shouldReplaceCurrentEvent(event, cache)
+						: cache.created_at < event.created_at)
+				);
 			}),
 			tap(({ event }) => {
 				console.debug('[author event]', event.kind, event);
@@ -122,7 +130,7 @@ export class HomeTimeline extends NewTimeline {
 			const signer = auth.signer;
 			const decryptPrivateListContent =
 				signer === undefined ? undefined : createListContentDecrypter(signer);
-			await storeMutedTagsByEvent(event, accountPubkey, decryptPrivateListContent);
+			await mute.ingestRegularEvent(accountPubkey, event, decryptPrivateListContent);
 		});
 		replaceable$
 			.pipe(filterByKind(Kind.PublicChatsList))
@@ -151,12 +159,18 @@ export class HomeTimeline extends NewTimeline {
 			filterByKinds(parameterizedReplaceableKinds),
 			latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`),
 			filter(({ event }) => {
+				if (event.kind === 30007 && auth.pubkey !== accountPubkey) return false;
 				const storage = new WebStorage(localStorage);
 				const cache = storage.getParameterizedReplaceableEvent(
 					event.kind,
 					findIdentifier(event.tags) ?? ''
 				);
-				return cache === undefined || cache.created_at < event.created_at;
+				return (
+					cache === undefined ||
+					(event.kind === 30007
+						? cache.pubkey !== accountPubkey || shouldReplaceCurrentEvent(event, cache)
+						: cache.created_at < event.created_at)
+				);
 			}),
 			tap(({ event }) => {
 				console.debug('[author event]', event.kind, findIdentifier(event.tags), event);
@@ -183,7 +197,7 @@ export class HomeTimeline extends NewTimeline {
 			const signer = auth.signer;
 			const decryptPrivateListContent =
 				signer === undefined ? undefined : createListContentDecrypter(signer);
-			storeMutedPubkeysByKind([event], decryptPrivateListContent);
+			void mute.ingestKindEvent(accountPubkey, event, decryptPrivateListContent);
 		});
 		addressable$
 			.pipe(filter(({ event }) => isProfileBadgesEvent(event)))

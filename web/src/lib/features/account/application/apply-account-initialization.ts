@@ -1,10 +1,4 @@
-import { get } from 'svelte/store';
-import {
-	applyMuteTags,
-	applyMutedPubkeysByKind,
-	muteEvent,
-	mutedPubkeysByKindMap
-} from '$lib/stores/Author';
+import { mute } from '$lib/features/mute/application/mute-state.svelte';
 import { applyAccountChannels, applyAccountState } from './apply-account-state';
 import type { PreparedAccountInitialization } from './initialize-account';
 
@@ -14,25 +8,6 @@ export function applyAccountInitialization(
 ): void {
 	applyAccountState(pubkey, prepared.accountState);
 
-	if (prepared.muteState.mute.type === 'apply') {
-		const currentMuteEvent = get(muteEvent);
-		if (
-			currentMuteEvent === undefined ||
-			prepared.muteState.mute.event.created_at > currentMuteEvent.created_at
-		) {
-			muteEvent.set(prepared.muteState.mute.event);
-			applyMuteTags(prepared.muteState.mute.tags);
-		}
-	}
-
-	applyMutedPubkeysByKind(
-		new Map(
-			[...prepared.muteState.mutedPubkeysByKind].map(([kind, { pubkeys }]) => [
-				kind,
-				new Set(pubkeys)
-			])
-		),
-		get(mutedPubkeysByKindMap)
-	);
+	mute.applySnapshot(pubkey, prepared.muteState.snapshot, prepared.muteState.baseline);
 	applyAccountChannels(prepared.accountState);
 }

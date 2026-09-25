@@ -32,7 +32,7 @@ export class Author {
 	private async fetchAuthorEventsWithCache(pubkey: string): Promise<LoadedAccountEvents> {
 		const storage = new WebStorage(localStorage);
 		const cachedAt = storage.getCachedAt();
-		if (cachedAt !== null) {
+		if (cachedAt !== null && storage.getCachedAccountPubkey() === pubkey) {
 			console.log('[cached at]', new Date(cachedAt * 1000));
 			const replaceableEvents = new Map(
 				authorReplaceableKinds
@@ -42,8 +42,13 @@ export class Author {
 			);
 			console.log('[author events cache re]', replaceableEvents);
 			const parameterizedReplaceableEvents = new Map(
-				authorReplaceableKinds
-					.filter(({ identifier }) => identifier !== undefined)
+				[
+					...authorReplaceableKinds.filter(({ identifier }) => identifier !== undefined),
+					...storage.getParameterizedIdentifiers(30007).map((identifier) => ({
+						kind: 30007,
+						identifier
+					}))
+				]
 					.map(({ kind, identifier }) => {
 						if (identifier === undefined) {
 							throw new Error('Logic error');
@@ -56,7 +61,13 @@ export class Author {
 					.filter((x): x is [string, Event] => x[1] !== undefined)
 			);
 			console.log('[author events cache pre]', parameterizedReplaceableEvents);
-			return { replaceableEvents, parameterizedReplaceableEvents };
+			if (
+				[...replaceableEvents.values(), ...parameterizedReplaceableEvents.values()].every(
+					(event) => event.pubkey === pubkey
+				)
+			) {
+				return { replaceableEvents, parameterizedReplaceableEvents };
+			}
 		}
 
 		console.log('[cached at]', cachedAt);

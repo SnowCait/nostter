@@ -1,5 +1,6 @@
 import type { Event } from 'nostr-tools';
 import { findIdentifier } from './nostr/protocol/event-address';
+import { shouldReplaceCurrentEvent } from './nostr/protocol/replaceable-event';
 import { eventCache } from './cache/Events';
 
 export class WebStorage {
@@ -39,9 +40,15 @@ export class WebStorage {
 			throw new Error('Logic error');
 		}
 		const cache = this.getReplaceableEvent(event.kind);
-		if (cache === undefined || cache.created_at < event.created_at) {
+		if (
+			cache === undefined ||
+			cache.pubkey !== accountPubkey ||
+			(event.kind === 10000
+				? shouldReplaceCurrentEvent(event, cache)
+				: cache.created_at < event.created_at)
+		) {
 			this.set(`kind:${event.kind}`, JSON.stringify(event));
-			this.setCachedAt();
+			this.setCachedAt(accountPubkey);
 			eventCache.addIfNotExists(event); // Fire and forget
 		}
 	}
@@ -59,6 +66,16 @@ export class WebStorage {
 		}
 	}
 
+	public getParameterizedIdentifiers(kind: number): string[] {
+		const prefix = `nostter:kind:${kind}:`;
+		const identifiers: string[] = [];
+		for (let index = 0; index < this.storage.length; index++) {
+			const key = this.storage.key(index);
+			if (key?.startsWith(prefix)) identifiers.push(key.slice(prefix.length));
+		}
+		return identifiers;
+	}
+
 	public setParameterizedReplaceableEvent(event: Event, accountPubkey: string): void {
 		if (event.pubkey !== accountPubkey) {
 			throw new Error('Logic error');
@@ -68,9 +85,15 @@ export class WebStorage {
 			return;
 		}
 		const cache = this.getParameterizedReplaceableEvent(event.kind, identifier);
-		if (cache === undefined || cache.created_at < event.created_at) {
+		if (
+			cache === undefined ||
+			cache.pubkey !== accountPubkey ||
+			(event.kind === 30007
+				? shouldReplaceCurrentEvent(event, cache)
+				: cache.created_at < event.created_at)
+		) {
 			this.set(`kind:${event.kind}:${identifier}`, JSON.stringify(event));
-			this.setCachedAt();
+			this.setCachedAt(accountPubkey);
 		}
 	}
 
@@ -83,8 +106,13 @@ export class WebStorage {
 		return cachedAt === null ? null : Number(cachedAt);
 	}
 
-	private setCachedAt() {
+	public getCachedAccountPubkey(): string | null {
+		return this.get('cached_account_pubkey');
+	}
+
+	private setCachedAt(accountPubkey: string) {
 		const now = Math.floor(Date.now() / 1000);
 		this.set('cached_at', `${now}`);
+		this.set('cached_account_pubkey', accountPubkey);
 	}
 }

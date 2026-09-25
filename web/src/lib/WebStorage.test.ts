@@ -81,4 +81,39 @@ describe('WebStorage event ownership', () => {
 		expect(storage.getParameterizedReplaceableEvent(30078, 'settings')).toEqual(ownEvent);
 		expect(storage.getCachedAt()).toBe(cachedAt);
 	});
+
+	it('keeps the NIP-01 preferred mute event at equal timestamps', () => {
+		const higherId = { ...event(10000), id: 'bb' };
+		const lowerId = { ...event(10000), id: 'aa' };
+		storage.setReplaceableEvent(higherId, accountPubkey);
+		storage.setReplaceableEvent(lowerId, accountPubkey);
+		storage.setReplaceableEvent(higherId, accountPubkey);
+		expect(storage.getReplaceableEvent(10000)).toEqual(lowerId);
+
+		const higherKindId = { ...event(30007, accountPubkey, [['d', '6']]), id: 'bb' };
+		const lowerKindId = { ...higherKindId, id: 'aa' };
+		storage.setParameterizedReplaceableEvent(higherKindId, accountPubkey);
+		storage.setParameterizedReplaceableEvent(lowerKindId, accountPubkey);
+		expect(storage.getParameterizedReplaceableEvent(30007, '6')).toEqual(lowerKindId);
+	});
+
+	it('replaces a previous account’s mute cache even when the new event has an older timestamp', () => {
+		storage.setReplaceableEvent({ ...event(10000), created_at: 10 }, accountPubkey);
+		const nextAccountEvent = { ...event(10000, otherPubkey), created_at: 1 };
+		storage.setReplaceableEvent(nextAccountEvent, otherPubkey);
+		expect(storage.getReplaceableEvent(10000)).toEqual(nextAccountEvent);
+		expect(storage.getCachedAccountPubkey()).toBe(otherPubkey);
+	});
+
+	it('finds cached kind mute identifiers for account snapshots', () => {
+		storage.setParameterizedReplaceableEvent(
+			event(30007, accountPubkey, [['d', '16']]),
+			accountPubkey
+		);
+		storage.setParameterizedReplaceableEvent(
+			event(30007, accountPubkey, [['d', '9735']]),
+			accountPubkey
+		);
+		expect(storage.getParameterizedIdentifiers(30007).sort()).toEqual(['16', '9735']);
+	});
 });

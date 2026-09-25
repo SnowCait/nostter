@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { authorProfile, muteEvent, mutePubkeys } from '$lib/stores/Author';
+import { mute as muteState } from '$lib/features/mute/application/mute-state.svelte';
+import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
 import type { User } from '../../../../routes/types';
 
 const { fetchRelays, fetchEvents, loadMetadata, prune } = vi.hoisted(() => ({
@@ -46,8 +48,15 @@ beforeEach(() => {
 		parameterizedReplaceableEvents: new Map()
 	});
 	authorProfile.set({ name: 'existing' } as User);
-	muteEvent.set(undefined);
-	mutePubkeys.set(['existing-muted']);
+	muteState.reset();
+	muteState.applySnapshot(
+		'a'.repeat(64),
+		{
+			regular: prepareRegularMuteState(undefined, 'a'.repeat(64), [['p', 'existing-muted']]),
+			byKind: new Map()
+		},
+		muteState.captureInitializationBaseline()
+	);
 });
 
 describe('prepareAccountInitialization', () => {
@@ -71,7 +80,7 @@ describe('prepareAccountInitialization', () => {
 
 		const prepared = await preparation;
 		expect(prepared.followingPubkeys).toEqual([followee]);
-		expect(prepared.muteState.mute).toMatchObject({ type: 'apply', event: mute });
+		expect(prepared.muteState.snapshot.regular.event).toBe(mute);
 		expect(prune).toHaveBeenCalledWith([followee, me]);
 	});
 
@@ -87,5 +96,20 @@ describe('prepareAccountInitialization', () => {
 		expect(get(muteEvent)).toBeUndefined();
 		expect(get(mutePubkeys)).toEqual(['existing-muted']);
 		expect(loadMetadata).not.toHaveBeenCalled();
+	});
+
+	it('prepares an empty mute snapshot when cached events belong to another account', async () => {
+		fetchEvents.mockResolvedValue({
+			replaceableEvents: new Map([[10000, { ...mute, pubkey: 'a'.repeat(64) }]]),
+			parameterizedReplaceableEvents: new Map([
+				['30007:6', { ...mute, pubkey: 'a'.repeat(64), kind: 30007, tags: [['d', '6']] }]
+			])
+		});
+		const { prepareAccountInitialization } = await import('./initialize-account');
+		const prepared = await prepareAccountInitialization(me);
+
+		expect(prepared.muteState.snapshot.regular.event).toBeUndefined();
+		expect(prepared.muteState.snapshot.regular.tags.pubkeys).toEqual([]);
+		expect(prepared.muteState.snapshot.byKind.size).toBe(0);
 	});
 });

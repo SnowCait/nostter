@@ -11,6 +11,7 @@ import { setLoginStatus, clearLoginStatus } from './stores/LoginStatus';
 import { auth, type LoginMethod } from './auth.svelte';
 import { prepareAccountInitialization } from './features/account/application/initialize-account';
 import { applyAccountInitialization } from './features/account/application/apply-account-initialization';
+import { mute } from './features/mute/application/mute-state.svelte';
 import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 import { createListContentDecrypter } from './List';
@@ -193,6 +194,7 @@ export class Login {
 export async function resetLoginState(): Promise<void> {
 	const disposingSigner = disposeSigner(auth.signer);
 	auth.reset();
+	mute.reset();
 	await disposingSigner;
 }
 

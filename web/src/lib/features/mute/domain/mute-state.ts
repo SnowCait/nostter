@@ -1,5 +1,6 @@
 import type { Event } from 'nostr-tools';
 import { getTagValues } from '$lib/nostr/protocol/event-tags';
+import { findIdentifier } from '$lib/nostr/protocol/event-address';
 
 export type PreparedMuteTags = {
 	readonly pubkeys: readonly string[];
@@ -38,4 +39,9 @@ export function prepareRegularMuteState(
 
 export function prepareKindMuteState(event: Event, privateTags: string[][] = []): KindMuteState {
 	return { event, pubkeys: new Set(getTagValues('p', [...event.tags, ...privateTags])) };
+}
+
+export function getKindMuteTarget(event: Event): number | undefined {
+	const identifier = findIdentifier(event.tags);
+	return identifier && !isNaN(Number(identifier)) ? Number(identifier) : undefined;
 }
