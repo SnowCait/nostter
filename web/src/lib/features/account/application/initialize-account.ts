@@ -3,10 +3,10 @@ import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
 import { muteEvent } from '$lib/stores/Author';
 import {
-	prepareMuteTagsFromEvent,
-	prepareMutedPubkeysByKind,
-	type PreparedMuteTags
+	prepareRegularMuteStateFromEvent,
+	prepareKindMuteStates
 } from '$lib/features/mute/application/prepare-mute-state';
+import type { KindMuteState, RegularMuteState } from '$lib/features/mute/domain/mute-state';
 import type { LoadedAccountEvents } from '$lib/Author';
 import { unique } from '$lib/array';
 import { parseFollowList } from '$lib/nostr/protocol/nip02';
@@ -15,8 +15,8 @@ import type { ListContentDecrypter } from '$lib/List';
 import { prepareAccountState, type PreparedAccountState } from './prepare-account-state';
 
 export type PreparedAccountMuteState = {
-	mute: { type: 'apply'; event: Event; tags: PreparedMuteTags } | { type: 'unchanged' };
-	mutedPubkeysByKind: Map<number, Set<string>>;
+	mute: ({ type: 'apply' } & RegularMuteState & { event: Event }) | { type: 'unchanged' };
+	mutedPubkeysByKind: Map<number, KindMuteState>;
 };
 
 export type PreparedAccountInitialization = {
@@ -59,15 +59,19 @@ async function prepareAccountMuteState(
 	) {
 		mute = {
 			type: 'apply',
-			event: candidate,
-			tags: await prepareMuteTagsFromEvent(candidate, pubkey, decryptPrivateListContent)
+			...(await prepareRegularMuteStateFromEvent(
+				candidate,
+				pubkey,
+				decryptPrivateListContent
+			)),
+			event: candidate
 		};
 	}
 
 	const mutedByKindEvents = [...events.parameterizedReplaceableEvents.values()].filter(
 		(event) => Number(event.kind) === 30007
 	);
-	const mutedPubkeysByKind = await prepareMutedPubkeysByKind(
+	const mutedPubkeysByKind = await prepareKindMuteStates(
 		mutedByKindEvents,
 		decryptPrivateListContent
 	);

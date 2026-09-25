@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
+import { prepareMuteTags } from '$lib/features/mute/domain/mute-state';
 
 import {
 	muteEvent,
@@ -8,6 +9,7 @@ import {
 	mutePubkeys,
 	muteWords,
 	mutedPubkeysByKindMap,
+	applyMuteTags,
 	storeMutedTags,
 	storeMutedTagsByEvent,
 	storeMutedPubkeysByKind
@@ -53,6 +55,15 @@ describe('mute list state', () => {
 		expect(get(mutePubkeys)).toEqual([mutedPubkey]);
 		expect(get(muteEventIds)).toEqual(['muted-event']);
 		expect(get(muteWords)).toEqual(['spoiler']);
+	});
+
+	it('projects prepared tags into mutable compatibility stores without sharing arrays', () => {
+		const prepared = prepareMuteTags([['p', mutedPubkey]], accountPubkey);
+
+		applyMuteTags(prepared);
+		get(mutePubkeys).push('another-pubkey');
+
+		expect(prepared.pubkeys).toEqual([mutedPubkey]);
 	});
 
 	it('merges public and private tags when a decrypter is provided', async () => {

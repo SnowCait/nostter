@@ -25,6 +25,14 @@ export function applyAccountInitialization(
 		}
 	}
 
-	applyMutedPubkeysByKind(prepared.muteState.mutedPubkeysByKind, get(mutedPubkeysByKindMap));
+	applyMutedPubkeysByKind(
+		new Map(
+			[...prepared.muteState.mutedPubkeysByKind].map(([kind, { pubkeys }]) => [
+				kind,
+				new Set(pubkeys)
+			])
+		),
+		get(mutedPubkeysByKindMap)
+	);
 	applyAccountChannels(prepared.accountState);
 }

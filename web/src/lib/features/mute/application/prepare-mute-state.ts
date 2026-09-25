@@ -1,39 +1,33 @@
 import type { Event } from 'nostr-tools';
-import { filterTags } from '$lib/EventHelper';
 import { findIdentifier } from '$lib/nostr/protocol/event-address';
 import type { ListContentDecrypter } from '$lib/List';
+import {
+	prepareKindMuteState,
+	prepareRegularMuteState,
+	type KindMuteState,
+	type RegularMuteState
+} from '../domain/mute-state';
 
-export type PreparedMuteTags = {
-	pubkeys: string[];
-	eventIds: string[];
-	words: string[];
-};
-
-export function prepareMuteTags(tags: string[][], accountPubkey: string): PreparedMuteTags {
-	return {
-		pubkeys: [...new Set(filterTags('p', tags).filter((pubkey) => pubkey !== accountPubkey))],
-		eventIds: [...new Set(filterTags('e', tags))],
-		words: [...new Set(filterTags('word', tags))]
-	};
-}
-
-export async function prepareMuteTagsFromEvent(
-	event: Event,
+export async function prepareRegularMuteStateFromEvent(
+	event: Event | undefined,
 	accountPubkey: string,
 	decryptPrivateListContent?: ListContentDecrypter
-): Promise<PreparedMuteTags> {
+): Promise<RegularMuteState> {
+	if (event === undefined) {
+		return prepareRegularMuteState(undefined, accountPubkey);
+	}
 	const [privateTags] =
 		decryptPrivateListContent === undefined
 			? [[], false]
 			: await decryptPrivateListContent(event.pubkey, event.content);
-	return prepareMuteTags([...event.tags, ...privateTags], accountPubkey);
+	return prepareRegularMuteState(event, accountPubkey, privateTags);
 }
 
-export async function prepareMutedPubkeysByKind(
+export async function prepareKindMuteStates(
 	events: Event[],
 	decryptPrivateListContent?: ListContentDecrypter
-): Promise<Map<number, Set<string>>> {
-	const updates = new Map<number, Set<string>>();
+): Promise<Map<number, KindMuteState>> {
+	const updates = new Map<number, KindMuteState>();
 	for (const event of events) {
 		const kind = findIdentifier(event.tags);
 		if (!kind || isNaN(Number(kind))) {
@@ -48,7 +42,7 @@ export async function prepareMutedPubkeysByKind(
 				console.warn('[kind 30007 content parse error]', event, error);
 			}
 		}
-		updates.set(Number(kind), new Set(filterTags('p', [...event.tags, ...privateTags])));
+		updates.set(Number(kind), prepareKindMuteState(event, privateTags));
 	}
 	return updates;
 }
