@@ -35,7 +35,7 @@
 		let event: Nostr.Event | undefined;
 		if (data.pubkey === auth.pubkey) {
 			const storage = new WebStorage(localStorage);
-			event = storage.getReplaceableEvent(10001);
+			event = storage.getReplaceableEvent(10001, data.pubkey);
 			console.debug('[pin event (author)]', event);
 		} else {
 			try {

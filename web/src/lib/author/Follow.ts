@@ -59,7 +59,7 @@ async function save(
 
 async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(kind);
+	const lastEvent = storage.getReplaceableEvent(kind, accountPubkey);
 	let tags = lastEvent?.tags ?? [];
 
 	while (queue.length > 0) {

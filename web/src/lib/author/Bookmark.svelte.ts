@@ -110,7 +110,7 @@ export async function runBookmarkCopyExclusively<T>(copy: () => Promise<T>): Pro
 
 async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
 	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(Kind.BookmarkList);
+	const lastEvent = storage.getReplaceableEvent(Kind.BookmarkList, accountPubkey);
 	let tags = lastEvent?.tags ?? [];
 
 	while (queue.length > 0) {

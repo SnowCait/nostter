@@ -83,7 +83,7 @@ describe('deleteLegacyBookmarks', () => {
 		storage.setParameterizedReplaceableEvent(legacyEvent, mocks.userPubkey);
 		storage.setParameterizedReplaceableEvent(otherParameterizedEvent, mocks.userPubkey);
 		storage.setReplaceableEvent(standardBookmarkEvent, mocks.userPubkey);
-		const cachedAt = storage.getCachedAt();
+		const cachedAt = storage.getCachedAt(mocks.userPubkey);
 		legacyBookmarkEvent.set(legacyEvent);
 		const acceptance = Promise.withResolvers<void>();
 		mocks.requestEventDeletion.mockReturnValue(acceptance.promise);
@@ -93,7 +93,11 @@ describe('deleteLegacyBookmarks', () => {
 
 		expect(mocks.requestEventDeletion).toHaveBeenCalledWith(mocks.signEvent, [legacyEvent]);
 		expect(
-			storage.getParameterizedReplaceableEvent(Kind.Genericlists, legacyBookmarkIdentifier)
+			storage.getParameterizedReplaceableEvent(
+				Kind.Genericlists,
+				legacyBookmarkIdentifier,
+				mocks.userPubkey
+			)
 		).toEqual(legacyEvent);
 		expect(get(legacyBookmarkEvent)).toEqual(legacyEvent);
 
@@ -101,13 +105,23 @@ describe('deleteLegacyBookmarks', () => {
 		await expect(deletion).resolves.toBeUndefined();
 
 		expect(
-			storage.getParameterizedReplaceableEvent(Kind.Genericlists, legacyBookmarkIdentifier)
+			storage.getParameterizedReplaceableEvent(
+				Kind.Genericlists,
+				legacyBookmarkIdentifier,
+				mocks.userPubkey
+			)
 		).toBeUndefined();
-		expect(storage.getParameterizedReplaceableEvent(Kind.Genericlists, 'other-list')).toEqual(
-			otherParameterizedEvent
+		expect(
+			storage.getParameterizedReplaceableEvent(
+				Kind.Genericlists,
+				'other-list',
+				mocks.userPubkey
+			)
+		).toEqual(otherParameterizedEvent);
+		expect(storage.getReplaceableEvent(Kind.BookmarkList, mocks.userPubkey)).toEqual(
+			standardBookmarkEvent
 		);
-		expect(storage.getReplaceableEvent(Kind.BookmarkList)).toEqual(standardBookmarkEvent);
-		expect(storage.getCachedAt()).toBe(cachedAt);
+		expect(storage.getCachedAt(mocks.userPubkey)).toBe(cachedAt);
 		expect(get(legacyBookmarkEvent)).toBeUndefined();
 	});
 
@@ -121,7 +135,11 @@ describe('deleteLegacyBookmarks', () => {
 		await expect(deleteLegacyBookmarks(mocks.signEvent)).rejects.toThrow('relay rejected');
 
 		expect(
-			storage.getParameterizedReplaceableEvent(Kind.Genericlists, legacyBookmarkIdentifier)
+			storage.getParameterizedReplaceableEvent(
+				Kind.Genericlists,
+				legacyBookmarkIdentifier,
+				mocks.userPubkey
+			)
 		).toEqual(legacyEvent);
 		expect(get(legacyBookmarkEvent)).toEqual(legacyEvent);
 	});

@@ -20,8 +20,10 @@ export function updateFollowingHashtags() {
 }
 
 function getFollowingHashtags(): string[] {
+	const accountPubkey = auth.pubkey;
+	if (accountPubkey === undefined) return [];
 	return (
-		getCache()
+		getCache(accountPubkey)
 			?.tags.filter(([tagName]) => tagName === 't')
 			.map(([, hashtag]) => hashtag) ?? []
 	);
@@ -73,7 +75,7 @@ async function save(signEvent: Signer['signEvent'], accountPubkey: string): Prom
 	processing = true;
 
 	const latest = await fetch(accountPubkey);
-	const cache = getCache();
+	const cache = getCache(accountPubkey);
 
 	// Validation
 	if (cache !== undefined) {
@@ -158,7 +160,7 @@ async function fetch(pubkey: string): Promise<Nostr.Event | undefined> {
 	});
 }
 
-export function getCache(): Nostr.Event | undefined {
+export function getCache(accountPubkey: string): Nostr.Event | undefined {
 	const storage = new WebStorage(localStorage);
-	return storage.getReplaceableEvent(interestKind);
+	return storage.getReplaceableEvent(interestKind, accountPubkey);
 }

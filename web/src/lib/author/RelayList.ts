@@ -14,7 +14,7 @@ export class RelayList {
 		// Load from cache
 		const relayEventsMap = new Map(
 			kinds
-				.map((kind) => [kind, storage.getReplaceableEvent(kind)])
+				.map((kind) => [kind, storage.getReplaceableEvent(kind, pubkey)])
 				.filter((x): x is [number, Event] => x[1] !== undefined)
 		);
 
