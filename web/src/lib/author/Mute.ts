@@ -3,7 +3,7 @@ import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Even
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
-import { storeMutedTags } from '$lib/stores/Author';
+import { regularMute } from '$lib/features/mute/application/regular-mute-state.svelte';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
@@ -85,7 +85,8 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		privateTags = _privateTags;
 		legacy = _legacy;
 	}
-	const cachedPrivateTags = privateTags.map((tag) => [...tag]);
+	const previous =
+		regularMute.state.accountPubkey === accountPubkey ? regularMute.state.regular : undefined;
 
 	while (queue.length > 0) {
 		const data = queue.dequeue();
@@ -127,14 +128,15 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		}
 	}
 
-	if (auth.pubkey === accountPubkey) {
-		await storeMutedTags([...tags, ...privateTags], accountPubkey);
-	}
+	const optimistic =
+		auth.pubkey === accountPubkey
+			? regularMute.replaceTags(accountPubkey, [...tags, ...privateTags])
+			: undefined;
 
 	// Lazy validation for UX
 	if (!(await validate(lastEvent, accountPubkey))) {
-		if (auth.pubkey === accountPubkey) {
-			await storeMutedTags([...(lastEvent?.tags ?? []), ...cachedPrivateTags], accountPubkey);
+		if (previous !== undefined && optimistic !== undefined) {
+			regularMute.restore(accountPubkey, previous, optimistic);
 		}
 		throw new Error('Cache is outdated.');
 	}
@@ -149,12 +151,15 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 	try {
 		assertSignedEventPubkey(event, accountPubkey);
 	} catch (error) {
-		if (auth.pubkey === accountPubkey) {
-			await storeMutedTags([...(lastEvent?.tags ?? []), ...cachedPrivateTags], accountPubkey);
+		if (previous !== undefined && optimistic !== undefined) {
+			regularMute.restore(accountPubkey, previous, optimistic);
 		}
 		throw error;
 	}
 	await cacheAccountEvent(event);
+	if (optimistic !== undefined) {
+		regularMute.completeLocalEvent(accountPubkey, event, privateTags, optimistic);
+	}
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {

@@ -46,7 +46,8 @@ import {
 	followeesFilterKinds
 } from '$lib/Constants';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
-import { updateRelays, storeMutedPubkeysByKind, storeMutedTagsByEvent } from '../stores/Author';
+import { updateRelays, storeMutedPubkeysByKind } from '../stores/Author';
+import { regularMute } from '$lib/features/mute/application/regular-mute-state.svelte';
 import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { saveLastNote } from '../stores/LastNotes';
 import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';
@@ -114,7 +115,7 @@ export class HomeTimeline extends NewTimeline {
 			const signer = auth.signer;
 			const decryptPrivateListContent =
 				signer === undefined ? undefined : createListContentDecrypter(signer);
-			await storeMutedTagsByEvent(event, accountPubkey, decryptPrivateListContent);
+			await regularMute.ingestEvent(accountPubkey, event, decryptPrivateListContent);
 		});
 		replaceable$
 			.pipe(filterByKind(Kind.PublicChatsList))

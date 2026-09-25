@@ -706,7 +706,16 @@ describe('session teardown', () => {
 		const cleanup = Promise.withResolvers<void>();
 		remoteSigner.dispose.mockReturnValue(cleanup.promise);
 		const { auth } = await import('./auth.svelte');
+		const { regularMute } =
+			await import('./features/mute/application/regular-mute-state.svelte');
+		const { prepareRegularMuteState } = await import('./features/mute/domain/mute-state');
 		const { resetLoginState } = await import('./Login');
+		regularMute.applySnapshot(
+			me,
+			prepareRegularMuteState(undefined, me),
+			regularMute.captureInitializationBaseline()
+		);
+		regularMute.replaceTags(me, [['p', 'muted']]);
 		auth.establish({
 			pubkey: me,
 			followingPubkeys: [followee],
@@ -719,6 +728,8 @@ describe('session teardown', () => {
 		expect(auth.status).toBe('anonymous');
 		expect(auth.loginMethod).toBeUndefined();
 		expect(auth.signer).toBeUndefined();
+		expect(regularMute.state.accountPubkey).toBeUndefined();
+		expect(regularMute.state.regular.tags.pubkeys).toEqual([]);
 		let resetCompleted = false;
 		void resetting.then(() => (resetCompleted = true));
 		await Promise.resolve();

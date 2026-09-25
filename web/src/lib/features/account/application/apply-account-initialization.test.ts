@@ -15,6 +15,8 @@ import type { PreparedAccountInitialization } from './initialize-account';
 import type { User } from '../../../../routes/types';
 import { followingHashtags } from '$lib/Interest';
 import { kinds as Kind } from 'nostr-tools';
+import { regularMute } from '$lib/features/mute/application/regular-mute-state.svelte';
+import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
 
 const accountA = 'a'.repeat(64);
 const accountB = 'b'.repeat(64);
@@ -39,13 +41,15 @@ function emptyPrepared(): PreparedAccountInitialization {
 			parameterizedReplaceableEvents: new Map()
 		}),
 		muteState: {
-			mute: { type: 'unchanged' },
+			mute: prepareRegularMuteState(undefined, accountB),
+			baseline: regularMute.captureInitializationBaseline(),
 			mutedPubkeysByKind: new Map()
 		}
 	};
 }
 
 beforeEach(() => {
+	regularMute.reset();
 	authorProfile.set({ name: 'account A' } as User);
 	metadataEvent.set(event(accountA, 20, 0));
 	readRelays.set(['wss://account-a-read.example']);
@@ -62,6 +66,18 @@ beforeEach(() => {
 });
 
 describe('applyAccountInitialization snapshot', () => {
+	it('replaces account A regular mutes with an explicit empty account B state', () => {
+		const preparedA = emptyPrepared();
+		const source = { ...event(accountA, 1), tags: [['p', 'muted-by-a']] };
+		preparedA.muteState.mute = prepareRegularMuteState(source, accountA);
+		applyAccountInitialization(accountA, preparedA);
+		expect(regularMute.state.regular.tags.pubkeys).toEqual(['muted-by-a']);
+
+		applyAccountInitialization(accountB, emptyPrepared());
+		expect(regularMute.state.accountPubkey).toBe(accountB);
+		expect(regularMute.state.regular).toEqual(prepareRegularMuteState(undefined, accountB));
+	});
+
 	it('replaces previous account event state with defaults for an empty account', () => {
 		applyAccountInitialization(accountB, emptyPrepared());
 
