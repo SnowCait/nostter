@@ -6,7 +6,8 @@ import { EventItem, Metadata } from '$lib/Items';
 import { ToastNotification } from '$lib/ToastNotification';
 import { replaceableKinds } from '$lib/Constants';
 import { auth } from '$lib/auth.svelte';
-import { db, EventCache, FolloweeReplaceableEventCache } from './db';
+import { db, EventCache, FolloweeReplaceableEventCache, AccountAddressableEventCache } from './db';
+import { isReplaceableKind } from 'nostr-tools/kinds';
 
 export const metadataStore = writable(new Map<pubkey, Metadata>());
 export const eventItemStore = writable(new Map<id, EventItem>());
@@ -46,6 +47,15 @@ export function storeEventItem(event: Nostr.Event): void {
 }
 
 export const eventCache = new EventCache(db);
+export const accountAddressableEventCache = new AccountAddressableEventCache(db);
+
+export async function cacheAccountEvent(event: Nostr.Event): Promise<boolean> {
+	const stored = await accountAddressableEventCache.put(event);
+	if (stored && isReplaceableKind(event.kind)) {
+		await eventCache.addIfNotExists(event);
+	}
+	return stored;
+}
 export const followeeEventCache = new FolloweeReplaceableEventCache(db);
 
 export function cacheFolloweeReplaceableEvent(event: Nostr.Event): void {

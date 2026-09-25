@@ -12,7 +12,7 @@ import {
 import { filter, share, tap } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
-import { WebStorage } from '$lib/WebStorage';
+import { filterAndCacheNewerAccountEvents } from '$lib/cache/account-event-cache-stream';
 import { kinds as Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
 import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark.svelte';
@@ -102,16 +102,8 @@ export class HomeTimeline extends NewTimeline {
 		const replaceable$ = author$.pipe(
 			filterByKinds(replaceableKinds),
 			latestEach(({ event }) => event.kind),
-			filter(({ event }) => {
-				const storage = new WebStorage(localStorage);
-				const cache = storage.getReplaceableEvent(event.kind);
-				return cache === undefined || cache.created_at < event.created_at;
-			}),
-			tap(({ event }) => {
-				console.debug('[author event]', event.kind, event);
-				const storage = new WebStorage(localStorage);
-				storage.setReplaceableEvent(event, accountPubkey);
-			}),
+			filterAndCacheNewerAccountEvents(),
+			tap(({ event }) => console.debug('[author event]', event.kind, event)),
 			share()
 		);
 		replaceable$.pipe(filterByKind(Kind.Contacts)).subscribe(({ event }) => {
@@ -130,8 +122,8 @@ export class HomeTimeline extends NewTimeline {
 		replaceable$
 			.pipe(filterByKind(Kind.RelayList))
 			.subscribe(({ event }) => updateRelays(event)); // TODO: Update subscription
-		replaceable$.pipe(filterByKind(Kind.InterestsList)).subscribe(() => {
-			updateFollowingHashtags();
+		replaceable$.pipe(filterByKind(Kind.InterestsList)).subscribe(({ event }) => {
+			updateFollowingHashtags(event);
 			this.subscribe();
 		});
 		replaceable$.pipe(filterByKind(Kind.UserEmojiList)).subscribe(({ event }) => {
@@ -150,19 +142,10 @@ export class HomeTimeline extends NewTimeline {
 		const addressable$ = author$.pipe(
 			filterByKinds(parameterizedReplaceableKinds),
 			latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`),
-			filter(({ event }) => {
-				const storage = new WebStorage(localStorage);
-				const cache = storage.getParameterizedReplaceableEvent(
-					event.kind,
-					findIdentifier(event.tags) ?? ''
-				);
-				return cache === undefined || cache.created_at < event.created_at;
-			}),
-			tap(({ event }) => {
-				console.debug('[author event]', event.kind, findIdentifier(event.tags), event);
-				const storage = new WebStorage(localStorage);
-				storage.setParameterizedReplaceableEvent(event, accountPubkey);
-			}),
+			filterAndCacheNewerAccountEvents(),
+			tap(({ event }) =>
+				console.debug('[author event]', event.kind, findIdentifier(event.tags), event)
+			),
 			share()
 		);
 		addressable$

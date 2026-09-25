@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { accountAddressableEventCache } from '$lib/cache/Events';
 	import { onDestroy } from 'svelte';
 	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
 	import { firstValueFrom, EmptyError } from 'rxjs';
@@ -8,7 +9,6 @@
 	import { page } from '$app/stores';
 	import type { LayoutData } from '../$types';
 	import { appName } from '$lib/app';
-	import { WebStorage } from '$lib/WebStorage';
 	import { EventItem } from '$lib/Items';
 	import { filterTags } from '$lib/EventHelper';
 	import { readRelays } from '$lib/stores/Author';
@@ -34,8 +34,7 @@
 
 		let event: Nostr.Event | undefined;
 		if (data.pubkey === auth.pubkey) {
-			const storage = new WebStorage(localStorage);
-			event = storage.getReplaceableEvent(10001);
+			event = await accountAddressableEventCache.get(data.pubkey, 10001);
 			console.debug('[pin event (author)]', event);
 		} else {
 			try {

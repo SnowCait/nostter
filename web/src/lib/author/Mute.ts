@@ -1,3 +1,5 @@
+import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
+import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
@@ -5,7 +7,6 @@ import { storeMutedTags } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
-import { WebStorage } from '$lib/WebStorage';
 import { createListContentDecrypter, createListContentEncrypter } from '$lib/List';
 import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
 import type { Signer } from '$lib/nostr/signing/signer';
@@ -62,14 +63,16 @@ async function save(
 
 	if (!processing) {
 		processing = true;
-		await publish(capabilities, accountPubkey);
-		processing = false;
+		try {
+			await publish(capabilities, accountPubkey);
+		} finally {
+			processing = false;
+		}
 	}
 }
 
 async function publish(capabilities: MuteCapabilities, accountPubkey: string): Promise<void> {
-	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(kind);
+	const lastEvent = await accountAddressableEventCache.get(accountPubkey, kind);
 	let tags = lastEvent?.tags.concat() ?? [];
 	let privateTags: string[][] = [];
 	let legacy = lastEvent === undefined ? false : isLegacyEncryption(lastEvent.content);
@@ -82,6 +85,7 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		privateTags = _privateTags;
 		legacy = _legacy;
 	}
+	const cachedPrivateTags = privateTags.map((tag) => [...tag]);
 
 	while (queue.length > 0) {
 		const data = queue.dequeue();
@@ -123,16 +127,15 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		}
 	}
 
-	storeMutedTags([...tags, ...privateTags], accountPubkey);
+	if (auth.pubkey === accountPubkey) {
+		await storeMutedTags([...tags, ...privateTags], accountPubkey);
+	}
 
 	// Lazy validation for UX
 	if (!(await validate(lastEvent, accountPubkey))) {
-		let cachedPrivateTags: string[][] = [];
-		if (lastEvent !== undefined && decryptPrivateListContent !== undefined) {
-			const [tags] = await decryptPrivateListContent(lastEvent.pubkey, lastEvent.content);
-			cachedPrivateTags = tags;
+		if (auth.pubkey === accountPubkey) {
+			await storeMutedTags([...(lastEvent?.tags ?? []), ...cachedPrivateTags], accountPubkey);
 		}
-		storeMutedTags([...(lastEvent?.tags ?? []), ...cachedPrivateTags], accountPubkey);
 		throw new Error('Cache is outdated.');
 	}
 
@@ -143,7 +146,15 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		tags,
 		created_at: now()
 	});
-	storage.setReplaceableEvent(event, accountPubkey);
+	try {
+		assertSignedEventPubkey(event, accountPubkey);
+	} catch (error) {
+		if (auth.pubkey === accountPubkey) {
+			await storeMutedTags([...(lastEvent?.tags ?? []), ...cachedPrivateTags], accountPubkey);
+		}
+		throw error;
+	}
+	await cacheAccountEvent(event);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {

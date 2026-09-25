@@ -1,3 +1,5 @@
+import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
+import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { createRxBackwardReq, latestEach, now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
@@ -7,7 +9,6 @@ import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
 import { rxNostr } from '$lib/relay-client';
 import { tie } from '$lib/nostr/relay/relay-hints';
 import type { Encryption } from '$lib/nostr/signing/signer';
-import { WebStorage } from '$lib/WebStorage';
 import { bookmarkEvent, runBookmarkCopyExclusively } from '$lib/author/Bookmark.svelte';
 import { isLegacyBookmarkEvent, mergeBookmarkReferences } from '../domain/bookmark-migration';
 import { auth } from '$lib/auth.svelte';
@@ -115,8 +116,10 @@ export async function copyLegacyBookmarks(
 			throw new Error('Invalid legacy bookmark event.');
 		}
 
-		const storage = new WebStorage(localStorage);
-		const cachedEvent = storage.getReplaceableEvent(Kind.BookmarkList);
+		const cachedEvent = await accountAddressableEventCache.get(
+			accountPubkey,
+			Kind.BookmarkList
+		);
 		if (standardEvent === undefined && cachedEvent !== undefined) {
 			throw new Error('Standard bookmark cache freshness could not be verified.');
 		}
@@ -153,8 +156,9 @@ export async function copyLegacyBookmarks(
 			created_at: now()
 		});
 
+		assertSignedEventPubkey(event, accountPubkey);
 		await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
-		storage.setReplaceableEvent(event, accountPubkey);
+		await cacheAccountEvent(event);
 		bookmarkEvent.set(event);
 		return event;
 	});

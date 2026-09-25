@@ -2,7 +2,7 @@ import type { Event } from 'nostr-tools';
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import { RelayList } from './author/RelayList';
 import { findIdentifier } from './nostr/protocol/event-address';
-import { WebStorage } from './WebStorage';
+import { accountAddressableEventCache, cacheAccountEvent } from './cache/Events';
 import { rxNostr, tie } from './timelines/MainTimeline';
 import {
 	authorReplaceableKinds,
@@ -30,46 +30,32 @@ export class Author {
 	}
 
 	private async fetchAuthorEventsWithCache(pubkey: string): Promise<LoadedAccountEvents> {
-		const storage = new WebStorage(localStorage);
-		const cachedAt = storage.getCachedAt();
-		if (cachedAt !== null) {
-			console.log('[cached at]', new Date(cachedAt * 1000));
-			const replaceableEvents = new Map(
-				authorReplaceableKinds
-					.filter(({ identifier }) => identifier === undefined)
-					.map(({ kind }) => [kind, storage.getReplaceableEvent(kind)])
-					.filter((x): x is [number, Event] => x[1] !== undefined)
-			);
-			console.log('[author events cache re]', replaceableEvents);
-			const parameterizedReplaceableEvents = new Map(
-				authorReplaceableKinds
-					.filter(({ identifier }) => identifier !== undefined)
-					.map(({ kind, identifier }) => {
-						if (identifier === undefined) {
-							throw new Error('Logic error');
-						}
-						return [
-							`${kind}:${identifier}`,
-							storage.getParameterizedReplaceableEvent(kind, identifier)
-						];
-					})
-					.filter((x): x is [string, Event] => x[1] !== undefined)
-			);
-			console.log('[author events cache pre]', parameterizedReplaceableEvents);
+		const cached = await Promise.all(
+			authorReplaceableKinds.map(async ({ kind, identifier }) => ({
+				kind,
+				identifier,
+				event: await accountAddressableEventCache.get(pubkey, kind, identifier ?? '')
+			}))
+		);
+		const replaceableEvents = new Map<number, Event>();
+		const parameterizedReplaceableEvents = new Map<string, Event>();
+		for (const { kind, identifier, event } of cached) {
+			if (event === undefined) continue;
+			if (identifier === undefined) replaceableEvents.set(kind, event);
+			else parameterizedReplaceableEvents.set(`${kind}:${identifier}`, event);
+		}
+		if (replaceableEvents.size + parameterizedReplaceableEvents.size > 0) {
 			return { replaceableEvents, parameterizedReplaceableEvents };
 		}
 
-		console.log('[cached at]', cachedAt);
-
-		const { replaceableEvents, parameterizedReplaceableEvents } =
-			await this.fetchAuthorEvents(pubkey);
-		for (const [, event] of [...replaceableEvents]) {
-			storage.setReplaceableEvent(event, pubkey);
+		const fetched = await this.fetchAuthorEvents(pubkey);
+		for (const event of [
+			...fetched.replaceableEvents.values(),
+			...fetched.parameterizedReplaceableEvents.values()
+		]) {
+			await cacheAccountEvent(event);
 		}
-		for (const [, event] of [...parameterizedReplaceableEvents]) {
-			storage.setParameterizedReplaceableEvent(event, pubkey);
-		}
-		return { replaceableEvents, parameterizedReplaceableEvents };
+		return fetched;
 	}
 
 	private async fetchAuthorEvents(pubkey: string) {

@@ -1,3 +1,5 @@
+import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
+import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { get, writable } from 'svelte/store';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
@@ -6,7 +8,6 @@ import { metadataStore, seenOnStore } from '$lib/cache/Events';
 import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
-import { WebStorage } from '$lib/WebStorage';
 import {
 	addAcceptedBadgeTags,
 	legacyProfileBadgesIdentifier,
@@ -52,14 +53,16 @@ export function updateProfileBadgesEvent(event: Nostr.Event): void {
 	profileBadgesEvent.update((current) => selectProfileBadgesEvent(current, event));
 }
 
-function getCachedProfileBadgesEvent(storage: WebStorage): Nostr.Event | undefined {
-	return selectProfileBadgesEvent(
-		storage.getReplaceableEvent(profileBadgesKind),
-		storage.getParameterizedReplaceableEvent(
+async function getCachedProfileBadgesEvent(pubkey: string): Promise<Nostr.Event | undefined> {
+	const [current, legacy] = await Promise.all([
+		accountAddressableEventCache.get(pubkey, profileBadgesKind),
+		accountAddressableEventCache.get(
+			pubkey,
 			legacyProfileBadgesKind,
 			legacyProfileBadgesIdentifier
 		)
-	);
+	]);
+	return selectProfileBadgesEvent(current, legacy);
 }
 
 export async function acceptBadge(
@@ -86,14 +89,16 @@ async function save(
 
 	if (!processing) {
 		processing = true;
-		await publish(signEvent, accountPubkey);
-		processing = false;
+		try {
+			await publish(signEvent, accountPubkey);
+		} finally {
+			processing = false;
+		}
 	}
 }
 
 async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
-	const storage = new WebStorage(localStorage);
-	const lastEvent = getCachedProfileBadgesEvent(storage);
+	const lastEvent = await getCachedProfileBadgesEvent(accountPubkey);
 	let tags = lastEvent?.tags ?? [];
 	let updated = false;
 
@@ -132,6 +137,7 @@ async function publish(signEvent: Signer['signEvent'], accountPubkey: string): P
 		tags,
 		created_at: now()
 	});
+	assertSignedEventPubkey(event, accountPubkey);
 	console.log('[badge accepted]', event);
 
 	profileBadgesEvent.set(event);
@@ -143,7 +149,7 @@ async function publish(signEvent: Signer['signEvent'], accountPubkey: string): P
 		return;
 	}
 
-	storage.setReplaceableEvent(event, accountPubkey);
+	await cacheAccountEvent(event);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {

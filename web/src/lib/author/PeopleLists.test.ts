@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import type * as Nostr from 'nostr-typedef';
 import type { Encryption } from '$lib/nostr/signing/signer';
-import { isPeopleList } from './PeopleLists';
+const cachedGet = vi.hoisted(() => vi.fn());
+vi.mock('$lib/cache/Events', () => ({ accountAddressableEventCache: { get: cachedGet } }));
+vi.mock('$lib/auth.svelte', () => ({ auth: { pubkey: 'author-pubkey' } }));
+import { addToPeopleList, isPeopleList } from './PeopleLists';
 
 function event(kind = 30000, tags: string[][] = []): Nostr.Event {
 	return {
@@ -87,5 +90,17 @@ describe('isPeopleList', () => {
 		await expect(isPeopleList(event(), getCapabilities)).resolves.toBe(false);
 		expect(getCapabilities).toHaveBeenCalledOnce();
 		expect(decrypt).toHaveBeenCalledOnce();
+	});
+});
+
+describe('PeopleLists validation cache', () => {
+	it('reads the event address in its explicit pubkey namespace', async () => {
+		const candidate = event(30000, [['d', 'group']]);
+		candidate.created_at = 1;
+		cachedGet.mockReset().mockResolvedValue({ ...candidate, created_at: 2 });
+		const signEvent = vi.fn();
+		await addToPeopleList(signEvent, candidate, 'another-pubkey');
+		expect(cachedGet).toHaveBeenCalledWith(candidate.pubkey, candidate.kind, 'group');
+		expect(signEvent).not.toHaveBeenCalled();
 	});
 });

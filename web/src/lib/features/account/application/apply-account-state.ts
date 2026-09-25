@@ -12,6 +12,7 @@ import {
 } from '$lib/preferences/AccountLocalPreferences';
 import { updateBlossomServerList } from '$lib/author/BlossomServerList.svelte';
 import type { PreparedAccountState } from './prepare-account-state';
+import { followingHashtags } from '$lib/Interest';
 
 export function applyAccountState(pubkey: string, state: PreparedAccountState): void {
 	metadataEvent.set(state.metadataEvent);
@@ -28,6 +29,7 @@ export function applyAccountState(pubkey: string, state: PreparedAccountState): 
 
 	readRelays.set(state.readRelays);
 	writeRelays.set(state.writeRelays);
+	followingHashtags.set(state.followingHashtags);
 
 	applyCustomEmojiListSnapshot(state.customEmojiListEvent);
 

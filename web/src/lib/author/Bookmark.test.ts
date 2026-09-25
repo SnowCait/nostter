@@ -2,8 +2,15 @@ import { describe, expect, it, vi } from 'vitest';
 import { of } from 'rxjs';
 import { kinds as Kind } from 'nostr-tools';
 
-const { signEvent } = vi.hoisted(() => ({
-	signEvent: vi.fn(async (event) => ({ ...event, id: 'signed', pubkey: 'pubkey', sig: 'sig' }))
+const { signEvent, send, cacheAccountEvent } = vi.hoisted(() => ({
+	signEvent: vi.fn(async (event) => ({
+		...event,
+		id: 'signed',
+		pubkey: 'account-pubkey',
+		sig: 'sig'
+	})),
+	send: vi.fn(() => of({ ok: true })),
+	cacheAccountEvent: vi.fn(async () => true)
 }));
 
 const { accountPubkey } = await vi.hoisted(async () => {
@@ -12,7 +19,7 @@ const { accountPubkey } = await vi.hoisted(async () => {
 });
 
 vi.mock('$lib/timelines/MainTimeline', () => ({
-	rxNostr: { send: () => of({ ok: true }) }
+	rxNostr: { send }
 }));
 vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: vi.fn(async () => undefined) }));
 vi.mock('$lib/auth.svelte', async () => {
@@ -25,14 +32,9 @@ vi.mock('$lib/auth.svelte', async () => {
 		}
 	};
 });
-vi.mock('$lib/WebStorage', () => ({
-	WebStorage: class {
-		getReplaceableEvent() {
-			return undefined;
-		}
-
-		setReplaceableEvent() {}
-	}
+vi.mock('$lib/cache/Events', () => ({
+	accountAddressableEventCache: { get: vi.fn(async () => undefined) },
+	cacheAccountEvent
 }));
 vi.stubGlobal('localStorage', {});
 
@@ -84,5 +86,39 @@ describe('Bookmark', () => {
 		expect(signEvent).toHaveBeenLastCalledWith(
 			expect.objectContaining({ tags: [['e', 'authenticated-id']] })
 		);
+	});
+});
+
+describe('publication account ownership', () => {
+	it('rejects a signer result from B before cache, relay, or optimistic state update', async () => {
+		const enteredSigning = Promise.withResolvers<void>();
+		const signed =
+			Promise.withResolvers<
+				ReturnType<typeof signEvent> extends Promise<infer T> ? T : never
+			>();
+		signEvent.mockImplementationOnce(async () => {
+			enteredSigning.resolve();
+			return signed.promise;
+		});
+		bookmarkEvent.set(undefined);
+		send.mockClear();
+		cacheAccountEvent.mockClear();
+		const publication = bookmark(signEvent, ['e', 'account-switch-event']);
+		await enteredSigning.promise;
+		accountPubkey.set('other-account-pubkey');
+		signed.resolve({
+			id: 'wrong-account',
+			pubkey: 'other-account-pubkey',
+			kind: Kind.BookmarkList,
+			tags: [],
+			content: '',
+			created_at: 1,
+			sig: 'sig'
+		});
+		await expect(publication).rejects.toThrow('publication account');
+		expect(cacheAccountEvent).not.toHaveBeenCalled();
+		expect(send).not.toHaveBeenCalled();
+		expect(get(bookmarkEvent)).toBeUndefined();
+		accountPubkey.set('account-pubkey');
 	});
 });

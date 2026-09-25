@@ -1,3 +1,5 @@
+import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
+import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, latestEach, now, uniq, type LazyFilter } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
@@ -13,7 +15,6 @@ import {
 import { filterEmojiTags } from '$lib/nostr/protocol/nip30';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
-import { WebStorage } from '$lib/WebStorage';
 import { Emojisets, UserEmojiList } from 'nostr-tools/kinds';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import type { Signer } from '$lib/nostr/signing/signer';
@@ -159,14 +160,16 @@ async function save(
 
 	if (!processing) {
 		processing = true;
-		await publish(signEvent, accountPubkey);
-		processing = false;
+		try {
+			await publish(signEvent, accountPubkey);
+		} finally {
+			processing = false;
+		}
 	}
 }
 
 async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
-	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(UserEmojiList);
+	const lastEvent = await accountAddressableEventCache.get(accountPubkey, UserEmojiList);
 	let tags = lastEvent?.tags ?? [];
 
 	while (queue.length > 0) {
@@ -197,7 +200,8 @@ async function publish(signEvent: Signer['signEvent'], accountPubkey: string): P
 		tags,
 		created_at: now()
 	});
-	storage.setReplaceableEvent(event, accountPubkey);
+	assertSignedEventPubkey(event, accountPubkey);
+	await cacheAccountEvent(event);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	// Store

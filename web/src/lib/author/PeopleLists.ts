@@ -1,10 +1,10 @@
+import { accountAddressableEventCache } from '$lib/cache/Events';
 import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, filterAsync, latestEach, now, uniq } from 'rx-nostr';
 import type * as Nostr from 'nostr-typedef';
 import { findIdentifier, getEventAddress } from '$lib/nostr/protocol/event-address';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
-import { WebStorage } from '$lib/WebStorage';
 import { createListContentDecrypter, createListContentEncrypter } from '$lib/List';
 import type { EncryptionCapabilities, Signer } from '$lib/nostr/signing/signer';
 import { auth } from '$lib/auth.svelte';
@@ -219,8 +219,7 @@ async function validate(event: Nostr.Event, accountPubkey: string): Promise<bool
 		return false;
 	}
 
-	const storage = new WebStorage(localStorage);
-	const cache = storage.getParameterizedReplaceableEvent(event.kind, identifier);
+	const cache = await accountAddressableEventCache.get(event.pubkey, event.kind, identifier);
 	if (cache !== undefined && event.created_at < cache.created_at) {
 		console.error('[people list outdated cache]', event, cache);
 		return false;

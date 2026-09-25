@@ -15,8 +15,8 @@ const mocks = vi.hoisted(() => ({
 	copyDecryptNip44: vi.fn(),
 	copyEncryptNip44: vi.fn(),
 	send: vi.fn(),
-	getReplaceableEvent: vi.fn(),
-	setReplaceableEvent: vi.fn(),
+	get: vi.fn(),
+	put: vi.fn(),
 	storage: { cachedEvent: undefined as unknown }
 }));
 
@@ -37,16 +37,9 @@ vi.mock('$lib/nostr/relay/relay-hints', () => ({
 vi.mock('$lib/timelines/MainTimeline', () => ({
 	rxNostr: { send: mocks.send }
 }));
-vi.mock('$lib/WebStorage', () => ({
-	WebStorage: class {
-		getReplaceableEvent() {
-			return mocks.getReplaceableEvent();
-		}
-
-		setReplaceableEvent(event: Nostr.Event) {
-			mocks.setReplaceableEvent(event);
-		}
-	}
+vi.mock('$lib/cache/Events', () => ({
+	accountAddressableEventCache: { get: mocks.get },
+	cacheAccountEvent: mocks.put
 }));
 vi.stubGlobal('localStorage', {});
 
@@ -132,8 +125,8 @@ beforeEach(() => {
 		standardRelayEvent = sentEvent;
 		return of({ ok: true });
 	});
-	mocks.getReplaceableEvent.mockImplementation(() => mocks.storage.cachedEvent);
-	mocks.setReplaceableEvent.mockImplementation((storedEvent: Nostr.Event) => {
+	mocks.get.mockImplementation(() => mocks.storage.cachedEvent);
+	mocks.put.mockImplementation((storedEvent: Nostr.Event) => {
 		mocks.storage.cachedEvent = storedEvent;
 	});
 	bookmarkEvent.set(undefined);
@@ -497,7 +490,7 @@ describe('copy publishing', () => {
 
 		await expect(copyLegacyBookmarks()).rejects.toThrow();
 
-		expect(mocks.setReplaceableEvent).not.toHaveBeenCalled();
+		expect(mocks.put).not.toHaveBeenCalled();
 		expect(get(bookmarkEvent)).toBe(previousEvent);
 	});
 
@@ -507,7 +500,7 @@ describe('copy publishing', () => {
 		const updateOrder: string[] = [];
 		bookmarkEvent.set(previousEvent);
 		mocks.send.mockReturnValue(relayResults);
-		mocks.setReplaceableEvent.mockImplementation((storedEvent: Nostr.Event) => {
+		mocks.put.mockImplementation((storedEvent: Nostr.Event) => {
 			updateOrder.push('cache');
 			mocks.storage.cachedEvent = storedEvent;
 		});
@@ -519,7 +512,7 @@ describe('copy publishing', () => {
 
 		const copy = copyLegacyBookmarks();
 		await vi.waitFor(() => expect(mocks.send).toHaveBeenCalledOnce());
-		expect(mocks.setReplaceableEvent).not.toHaveBeenCalled();
+		expect(mocks.put).not.toHaveBeenCalled();
 		expect(get(bookmarkEvent)).toBe(previousEvent);
 
 		relayResults.next({ ok: true });
@@ -530,7 +523,7 @@ describe('copy publishing', () => {
 		expect(mocks.send).toHaveBeenCalledWith(
 			expect.objectContaining({ kind: Kind.BookmarkList })
 		);
-		expect(mocks.setReplaceableEvent).toHaveBeenCalledWith(copiedEvent);
+		expect(mocks.put).toHaveBeenCalledWith(copiedEvent);
 		expect(get(bookmarkEvent)).toBe(copiedEvent);
 		expect(updateOrder).toEqual(['cache', 'store']);
 	});

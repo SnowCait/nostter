@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
+	import { cacheAccountEvent } from '$lib/cache/Events';
 	import { _ } from 'svelte-i18n';
 	import type * as Nostr from 'nostr-typedef';
 	import { createCollapsible, melt } from '@melt-ui/svelte';
@@ -10,7 +12,6 @@
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { now } from 'rx-nostr';
 	import type { Signer } from '$lib/nostr/signing/signer';
-	import { WebStorage } from '$lib/WebStorage';
 	import { updateFolloweesStore } from '$lib/Contacts';
 	import { broadcast } from '$lib/Broadcast';
 
@@ -47,10 +48,10 @@
 			return;
 		}
 		const event = await signEvent({ ...oldEvent, created_at: now() });
+		assertSignedEventPubkey(event, accountPubkey);
 		rxNostr.send(event);
 		updateFolloweesStore(event.tags);
-		const storage = new WebStorage(localStorage);
-		storage.setReplaceableEvent(event, accountPubkey);
+		await cacheAccountEvent(event);
 		$open = false;
 	}
 	$effect(() => {
