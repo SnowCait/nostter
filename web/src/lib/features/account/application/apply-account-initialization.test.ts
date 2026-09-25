@@ -13,6 +13,8 @@ import { applyAccountInitialization } from './apply-account-initialization';
 import { prepareAccountState } from './prepare-account-state';
 import type { PreparedAccountInitialization } from './initialize-account';
 import type { User } from '../../../../routes/types';
+import { followingHashtags } from '$lib/Interest';
+import { kinds as Kind } from 'nostr-tools';
 
 const accountA = 'a'.repeat(64);
 const accountB = 'b'.repeat(64);
@@ -56,6 +58,7 @@ beforeEach(() => {
 	legacyBookmarkEvent.set(event(accountA, 23, 30003));
 	profileBadgesEvent.set(event(accountA, 24, 30008));
 	eventCache.authorChannelsEventStore.set(event(accountA, 25, 10005));
+	followingHashtags.set(['from-account-a']);
 });
 
 describe('applyAccountInitialization snapshot', () => {
@@ -78,6 +81,41 @@ describe('applyAccountInitialization snapshot', () => {
 		expect(get(legacyBookmarkEvent)).toBeUndefined();
 		expect(get(profileBadgesEvent)).toBeUndefined();
 		expect(get(eventCache.authorChannelsEventStore)).toBeUndefined();
+		expect(get(followingHashtags)).toEqual([]);
+	});
+
+	it('applies cached InterestsList hashtags for each account without carrying over the prior account', () => {
+		const accountAInterests = {
+			...event(accountA, 26, Kind.InterestsList),
+			tags: [
+				['t', 'nostr'],
+				['p', 'ignored'],
+				['t', 'bitcoin']
+			]
+		};
+		const accountBInterests = {
+			...event(accountB, 27, Kind.InterestsList),
+			tags: [['t', 'bitcoin']]
+		};
+		const preparedA = emptyPrepared();
+		preparedA.accountState = prepareAccountState({
+			replaceableEvents: new Map([[Kind.InterestsList, accountAInterests]]),
+			parameterizedReplaceableEvents: new Map()
+		});
+		applyAccountInitialization(accountA, preparedA);
+		expect(get(followingHashtags)).toEqual(['nostr', 'bitcoin']);
+
+		const preparedB = emptyPrepared();
+		preparedB.accountState = prepareAccountState({
+			replaceableEvents: new Map([[Kind.InterestsList, accountBInterests]]),
+			parameterizedReplaceableEvents: new Map()
+		});
+		applyAccountInitialization(accountB, preparedB);
+		expect(get(followingHashtags)).toEqual(['bitcoin']);
+
+		applyAccountInitialization(accountA, preparedA);
+		applyAccountInitialization(accountB, emptyPrepared());
+		expect(get(followingHashtags)).toEqual([]);
 	});
 
 	it('publishes invalid metadata and replaces the previous account profile with an empty profile', () => {

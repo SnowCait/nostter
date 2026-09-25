@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { assertSignedEventPubkey } from '$lib/features/account/application/assert-signed-event-pubkey';
 	import { cacheAccountEvent } from '$lib/cache/Events';
 	import { _ } from 'svelte-i18n';
 	import type * as Nostr from 'nostr-typedef';
@@ -47,6 +48,7 @@
 			return;
 		}
 		const event = await signEvent({ ...oldEvent, created_at: now() });
+		assertSignedEventPubkey(event, accountPubkey);
 		rxNostr.send(event);
 		updateFolloweesStore(event.tags);
 		await cacheAccountEvent(event);

@@ -12,9 +12,11 @@ import {
 	selectProfileBadgesEvent
 } from '$lib/ProfileBadgesEvent';
 import type { LoadedAccountEvents } from '$lib/Author';
+import { parseFollowingHashtags } from '$lib/nostr/protocol/interest-list';
 
 export type PreparedAccountState = {
 	contactsTags: string[][];
+	followingHashtags: string[];
 	metadataEvent: Event | undefined;
 	authorProfile: User;
 	invalidMetadata: { event: Event; error: unknown } | undefined;
@@ -105,6 +107,7 @@ export function prepareAccountState(events: LoadedAccountEvents): PreparedAccoun
 
 	return {
 		contactsTags: contactsEvent?.tags ?? [],
+		followingHashtags: parseFollowingHashtags(replaceableEvents.get(Kind.InterestsList)),
 		metadataEvent,
 		authorProfile,
 		invalidMetadata,

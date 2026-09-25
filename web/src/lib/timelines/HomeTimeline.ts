@@ -122,8 +122,8 @@ export class HomeTimeline extends NewTimeline {
 		replaceable$
 			.pipe(filterByKind(Kind.RelayList))
 			.subscribe(({ event }) => updateRelays(event)); // TODO: Update subscription
-		replaceable$.pipe(filterByKind(Kind.InterestsList)).subscribe(async () => {
-			await updateFollowingHashtags();
+		replaceable$.pipe(filterByKind(Kind.InterestsList)).subscribe(({ event }) => {
+			updateFollowingHashtags(event);
 			this.subscribe();
 		});
 		replaceable$.pipe(filterByKind(Kind.UserEmojiList)).subscribe(({ event }) => {

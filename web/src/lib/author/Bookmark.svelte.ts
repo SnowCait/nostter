@@ -1,3 +1,4 @@
+import { assertSignedEventPubkey } from '$lib/features/account/application/assert-signed-event-pubkey';
 import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { get, writable, type Writable } from 'svelte/store';
 import { now } from 'rx-nostr';
@@ -128,6 +129,7 @@ async function publish(signEvent: Signer['signEvent'], accountPubkey: string): P
 		created_at: now()
 	});
 
+	assertSignedEventPubkey(event, accountPubkey);
 	bookmarkEvent.set(event);
 
 	// Lazy validation for UX

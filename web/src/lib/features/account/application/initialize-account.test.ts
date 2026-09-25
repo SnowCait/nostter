@@ -51,6 +51,31 @@ beforeEach(() => {
 });
 
 describe('prepareAccountInitialization', () => {
+	it('includes cached InterestsList tags in the prepared account snapshot', async () => {
+		fetchEvents.mockResolvedValue({
+			replaceableEvents: new Map([
+				[3, { ...mute, id: 'contacts', kind: 3, tags: [], content: '' }],
+				[
+					10015,
+					{
+						...mute,
+						id: 'interests',
+						kind: 10015,
+						tags: [
+							['t', 'nostr'],
+							['t', 'bitcoin']
+						],
+						content: ''
+					}
+				]
+			]),
+			parameterizedReplaceableEvents: new Map()
+		});
+		const { prepareAccountInitialization } = await import('./initialize-account');
+		const prepared = await prepareAccountInitialization(me);
+		expect(prepared.accountState.followingHashtags).toEqual(['nostr', 'bitcoin']);
+	});
+
 	it('waits for mute decryption and required metadata loading without publishing account state', async () => {
 		const decrypt = Promise.withResolvers<[string[][], boolean]>();
 		const decrypter = vi.fn(() => decrypt.promise);

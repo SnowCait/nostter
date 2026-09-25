@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { cacheAccountEvent } from '$lib/cache/Events';
+	import { assertSignedEventPubkey } from '$lib/features/account/application/assert-signed-event-pubkey';
+	import { now } from 'rx-nostr';
+	import { filter, firstValueFrom } from 'rxjs';
 	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import Cropper from 'svelte-easy-crop';
@@ -9,7 +12,7 @@
 	import { authorProfile, metadataEvent } from '$lib/stores/Author';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
-	import { sendEvent } from '$lib/RxNostrHelper';
+	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { storeMetadata } from '$lib/cache/Events';
 	import { auth } from '$lib/auth.svelte';
 
@@ -149,12 +152,14 @@
 			if (signer === undefined) {
 				throw new Error('Cannot update profile without a signing session');
 			}
-			const event = await sendEvent(
-				(template) => signer.signEvent(template),
-				Kind.Metadata,
-				JSON.stringify($authorProfile),
-				$metadataEvent?.tags ?? []
-			);
+			const event = await signer.signEvent({
+				kind: Kind.Metadata,
+				content: JSON.stringify($authorProfile),
+				tags: $metadataEvent?.tags ?? [],
+				created_at: now()
+			});
+			assertSignedEventPubkey(event, accountPubkey);
+			await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 			storeMetadata(event);
 			await cacheAccountEvent(event);
 			await goto(`/${nip19.npubEncode(accountPubkey)}`);

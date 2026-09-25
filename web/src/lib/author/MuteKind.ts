@@ -1,3 +1,4 @@
+import { assertSignedEventPubkey } from '$lib/features/account/application/assert-signed-event-pubkey';
 import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
@@ -73,8 +74,11 @@ async function save(
 
 	if (!processing) {
 		processing = true;
-		await publish(capabilities, muteKind, accountPubkey);
-		processing = false;
+		try {
+			await publish(capabilities, muteKind, accountPubkey);
+		} finally {
+			processing = false;
+		}
 	}
 }
 
@@ -148,6 +152,7 @@ async function publish(
 		tags,
 		created_at: now()
 	});
+	assertSignedEventPubkey(event, accountPubkey);
 	await cacheAccountEvent(event);
 	storeMutedPubkeysByKind([event], decryptPrivateListContent);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));

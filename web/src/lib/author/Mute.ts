@@ -1,3 +1,4 @@
+import { assertSignedEventPubkey } from '$lib/features/account/application/assert-signed-event-pubkey';
 import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
@@ -62,8 +63,11 @@ async function save(
 
 	if (!processing) {
 		processing = true;
-		await publish(capabilities, accountPubkey);
-		processing = false;
+		try {
+			await publish(capabilities, accountPubkey);
+		} finally {
+			processing = false;
+		}
 	}
 }
 
@@ -122,16 +126,8 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		}
 	}
 
-	storeMutedTags([...tags, ...privateTags], accountPubkey);
-
 	// Lazy validation for UX
 	if (!(await validate(lastEvent, accountPubkey))) {
-		let cachedPrivateTags: string[][] = [];
-		if (lastEvent !== undefined && decryptPrivateListContent !== undefined) {
-			const [tags] = await decryptPrivateListContent(lastEvent.pubkey, lastEvent.content);
-			cachedPrivateTags = tags;
-		}
-		storeMutedTags([...(lastEvent?.tags ?? []), ...cachedPrivateTags], accountPubkey);
 		throw new Error('Cache is outdated.');
 	}
 
@@ -142,6 +138,8 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		tags,
 		created_at: now()
 	});
+	assertSignedEventPubkey(event, accountPubkey);
+	storeMutedTags([...tags, ...privateTags], accountPubkey);
 	await cacheAccountEvent(event);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 

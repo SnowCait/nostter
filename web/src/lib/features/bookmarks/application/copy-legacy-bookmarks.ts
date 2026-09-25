@@ -1,3 +1,4 @@
+import { assertSignedEventPubkey } from '$lib/features/account/application/assert-signed-event-pubkey';
 import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { createRxBackwardReq, latestEach, now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
@@ -155,6 +156,7 @@ export async function copyLegacyBookmarks(
 			created_at: now()
 		});
 
+		assertSignedEventPubkey(event, accountPubkey);
 		await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 		await cacheAccountEvent(event);
 		bookmarkEvent.set(event);
