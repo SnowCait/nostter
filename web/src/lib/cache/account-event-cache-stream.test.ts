@@ -4,7 +4,7 @@ import type * as Nostr from 'nostr-typedef';
 
 const cacheAccountEvent = vi.hoisted(() => vi.fn<(_event: Nostr.Event) => Promise<boolean>>());
 vi.mock('./Events', () => ({ cacheAccountEvent }));
-import { filterStoredAccountEvents } from './account-event-stream';
+import { filterAndCacheNewerAccountEvents } from './account-event-cache-stream';
 
 const event = { id: 'event' } as Nostr.Event;
 
@@ -20,7 +20,7 @@ describe('HomeTimeline account event cache gate', () => {
 		const received: Nostr.Event[] = [];
 		const firstReceived = Promise.withResolvers<void>();
 		const completed = Promise.withResolvers<void>();
-		arrivals.pipe(filterStoredAccountEvents()).subscribe({
+		arrivals.pipe(filterAndCacheNewerAccountEvents()).subscribe({
 			next: ({ event }) => {
 				received.push(event);
 				firstReceived.resolve();
