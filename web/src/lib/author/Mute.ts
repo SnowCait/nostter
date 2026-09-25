@@ -1,13 +1,14 @@
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
-import { storeMutedTags } from '$lib/stores/Author';
+import { mute as muteState } from '$lib/features/mute/application/mute-state.svelte';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
 import { createListContentDecrypter, createListContentEncrypter } from '$lib/List';
 import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
+import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
 import type { Signer } from '$lib/nostr/signing/signer';
 import { auth } from '$lib/auth.svelte';
 
@@ -19,9 +20,8 @@ type Data = {
 };
 
 const kind = 10000;
-const queue = new Queue<Data>();
-
-let processing = false;
+const queues = new Map<string, Queue<Data>>();
+const processing = new Set<string>();
 
 export type MuteCapabilities = Pick<Signer, 'signEvent' | 'nip04' | 'nip44'>;
 
@@ -30,7 +30,7 @@ export async function mute(
 	tagName: string,
 	tagContent: string
 ): Promise<void> {
-	console.log('[mute]', tagName, tagContent, queue.dump());
+	console.log('[mute]', tagName, tagContent);
 	await save(capabilities, 'mute', tagName, tagContent);
 }
 
@@ -39,7 +39,7 @@ export async function unmute(
 	tagName: string,
 	tagContent: string
 ): Promise<void> {
-	console.log('[unmute]', tagName, tagContent, queue.dump());
+	console.log('[unmute]', tagName, tagContent);
 	await save(capabilities, 'unmute', tagName, tagContent);
 }
 
@@ -54,22 +54,36 @@ async function save(
 		throw new Error('Not authenticated');
 	}
 
+	let queue = queues.get(accountPubkey);
+	if (queue === undefined) {
+		queue = new Queue<Data>();
+		queues.set(accountPubkey, queue);
+	}
 	queue.enqueue({
 		type,
 		tagName,
 		tagContent
 	});
 
-	if (!processing) {
-		processing = true;
-		await publish(capabilities, accountPubkey);
-		processing = false;
+	if (!processing.has(accountPubkey)) {
+		processing.add(accountPubkey);
+		try {
+			await publish(capabilities, accountPubkey, queue);
+		} finally {
+			processing.delete(accountPubkey);
+			if (queue.length === 0) queues.delete(accountPubkey);
+		}
 	}
 }
 
-async function publish(capabilities: MuteCapabilities, accountPubkey: string): Promise<void> {
+async function publish(
+	capabilities: MuteCapabilities,
+	accountPubkey: string,
+	queue: Queue<Data>
+): Promise<void> {
 	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(kind);
+	const cachedEvent = storage.getReplaceableEvent(kind);
+	const lastEvent = cachedEvent?.pubkey === accountPubkey ? cachedEvent : undefined;
 	let tags = lastEvent?.tags.concat() ?? [];
 	let privateTags: string[][] = [];
 	let legacy = lastEvent === undefined ? false : isLegacyEncryption(lastEvent.content);
@@ -123,7 +137,7 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		}
 	}
 
-	storeMutedTags([...tags, ...privateTags], accountPubkey);
+	const optimistic = muteState.replaceRegularTags(accountPubkey, [...tags, ...privateTags]);
 
 	// Lazy validation for UX
 	if (!(await validate(lastEvent, accountPubkey))) {
@@ -132,7 +146,13 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 			const [tags] = await decryptPrivateListContent(lastEvent.pubkey, lastEvent.content);
 			cachedPrivateTags = tags;
 		}
-		storeMutedTags([...(lastEvent?.tags ?? []), ...cachedPrivateTags], accountPubkey);
+		if (optimistic !== undefined) {
+			muteState.replaceRegularTags(
+				accountPubkey,
+				[...(lastEvent?.tags ?? []), ...cachedPrivateTags],
+				optimistic
+			);
+		}
 		throw new Error('Cache is outdated.');
 	}
 
@@ -143,11 +163,16 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		tags,
 		created_at: now()
 	});
-	storage.setReplaceableEvent(event, accountPubkey);
+	if (muteState.state.accountPubkey === accountPubkey) {
+		storage.setReplaceableEvent(event, accountPubkey);
+	}
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
+	if (optimistic !== undefined) {
+		muteState.replaceRegularFromLocalEvent(accountPubkey, event, privateTags, optimistic);
+	}
 
 	if (queue.length > 0) {
-		await publish(capabilities, accountPubkey);
+		await publish(capabilities, accountPubkey, queue);
 	}
 }
 
@@ -158,7 +183,7 @@ async function validate(event: Nostr.Event | undefined, accountPubkey: string): 
 		if (lastEvent !== undefined) {
 			return false;
 		}
-	} else if (lastEvent === undefined || event.created_at < lastEvent.created_at) {
+	} else if (lastEvent === undefined || shouldReplaceCurrentEvent(lastEvent, event)) {
 		return false;
 	}
 

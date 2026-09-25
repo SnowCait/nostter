@@ -1,160 +1,89 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
-import { prepareMuteTags } from '$lib/features/mute/domain/mute-state';
-
+import { mute } from '$lib/features/mute/application/mute-state.svelte';
 import {
+	prepareKindMuteState,
+	prepareRegularMuteState
+} from '$lib/features/mute/domain/mute-state';
+import {
+	isMuteEvent,
 	muteEvent,
 	muteEventIds,
 	mutePubkeys,
 	muteWords,
-	mutedPubkeysByKindMap,
-	applyMuteTags,
-	storeMutedTags,
-	storeMutedTagsByEvent,
-	storeMutedPubkeysByKind
+	mutedPubkeysByKindMap
 } from './Author';
 
 const accountPubkey = 'a'.repeat(64);
 const mutedPubkey = 'b'.repeat(64);
 
-function event(tags: string[][]): Event {
+function event(kind: number, tags: string[][] = []): Event {
 	return {
 		id: 'event-id',
-		kind: 10000,
-		pubkey: 'c'.repeat(64),
-		content: 'encrypted',
+		kind,
+		pubkey: accountPubkey,
+		content: '',
 		tags,
 		created_at: 1,
 		sig: 'sig'
 	};
 }
 
-describe('mute list state', () => {
-	beforeEach(() => {
-		vi.resetAllMocks();
-		muteEvent.set(undefined);
-		mutePubkeys.set([]);
-		muteEventIds.set([]);
-		muteWords.set([]);
-		mutedPubkeysByKindMap.set(new Map());
-	});
+beforeEach(() => mute.reset());
 
-	it('excludes the explicit account pubkey while retaining other mute tags', async () => {
-		await storeMutedTags(
-			[
-				['p', accountPubkey],
-				['p', mutedPubkey],
-				['p', mutedPubkey],
-				['e', 'muted-event'],
-				['word', 'spoiler']
-			],
-			accountPubkey
+describe('mute compatibility projections', () => {
+	it('reflects completed state through read-only stores', () => {
+		const regularEvent = event(10000, [
+			['p', mutedPubkey],
+			['e', 'muted-event'],
+			['word', 'spoiler']
+		]);
+		const kindEvent = event(30007, [
+			['d', '6'],
+			['p', mutedPubkey]
+		]);
+		mute.applySnapshot(
+			accountPubkey,
+			{
+				regular: prepareRegularMuteState(regularEvent, accountPubkey),
+				byKind: new Map([[6, prepareKindMuteState(kindEvent)]])
+			},
+			mute.captureInitializationBaseline()
 		);
 
+		expect(get(muteEvent)).toEqual(regularEvent);
 		expect(get(mutePubkeys)).toEqual([mutedPubkey]);
 		expect(get(muteEventIds)).toEqual(['muted-event']);
 		expect(get(muteWords)).toEqual(['spoiler']);
-	});
-
-	it('projects prepared tags into mutable compatibility stores without sharing arrays', () => {
-		const prepared = prepareMuteTags([['p', mutedPubkey]], accountPubkey);
-
-		applyMuteTags(prepared);
-		get(mutePubkeys).push('another-pubkey');
-
-		expect(prepared.pubkeys).toEqual([mutedPubkey]);
-	});
-
-	it('merges public and private tags when a decrypter is provided', async () => {
-		const decryptPrivateListContent = vi.fn().mockResolvedValue([
-			[
-				['p', accountPubkey],
-				['p', mutedPubkey],
-				['e', 'private-event'],
-				['word', 'private-word']
-			],
-			false
-		]);
-		const muteListEvent = event([['e', 'public-event']]);
-
-		await storeMutedTagsByEvent(muteListEvent, accountPubkey, decryptPrivateListContent);
-
-		expect(get(muteEvent)).toBe(muteListEvent);
-		expect(decryptPrivateListContent).toHaveBeenCalledWith(
-			muteListEvent.pubkey,
-			muteListEvent.content
-		);
-		expect(get(mutePubkeys)).toEqual([mutedPubkey]);
-		expect(get(muteEventIds)).toEqual(['public-event', 'private-event']);
-		expect(get(muteWords)).toEqual(['private-word']);
-	});
-
-	it('ignores stale mute events without publishing or decrypting them', async () => {
-		const current = { ...event([]), created_at: 2 };
-		const stale = { ...event([['p', mutedPubkey]]), created_at: 1 };
-		const decryptPrivateListContent = vi.fn();
-		muteEvent.set(current);
-
-		await storeMutedTagsByEvent(stale, accountPubkey, decryptPrivateListContent);
-
-		expect(get(muteEvent)).toBe(current);
-		expect(decryptPrivateListContent).not.toHaveBeenCalled();
-		expect(get(mutePubkeys)).toEqual([]);
-	});
-
-	it('publishes the mute event before decrypt and keeps it published on decrypt failure', async () => {
-		const muteListEvent = event([]);
-		const decryptError = new Error('decrypt failed');
-		const decryptPrivateListContent = vi.fn().mockImplementation(async () => {
-			expect(get(muteEvent)).toBe(muteListEvent);
-			throw decryptError;
-		});
-
-		await expect(
-			storeMutedTagsByEvent(muteListEvent, accountPubkey, decryptPrivateListContent)
-		).rejects.toBe(decryptError);
-		expect(get(muteEvent)).toBe(muteListEvent);
-		expect(get(mutePubkeys)).toEqual([]);
-	});
-
-	it('stores public mute tags without decrypting private content when no decrypter is provided', async () => {
-		const muteListEvent = event([
-			['p', mutedPubkey],
-			['e', 'public-event'],
-			['word', 'public-word']
-		]);
-
-		await storeMutedTagsByEvent(muteListEvent, accountPubkey);
-
-		expect(get(mutePubkeys)).toEqual([mutedPubkey]);
-		expect(get(muteEventIds)).toEqual(['public-event']);
-		expect(get(muteWords)).toEqual(['public-word']);
-	});
-
-	it('merges public and private tags for kind mute sets only when a decrypter is provided', async () => {
-		const kindMuteEvent = {
-			...event([
-				['d', '6'],
-				['p', mutedPubkey]
-			]),
-			kind: 30007
-		};
-		const privateMutedPubkey = 'd'.repeat(64);
-		const decryptPrivateListContent = vi
-			.fn()
-			.mockResolvedValue([[['p', privateMutedPubkey]], false]);
-
-		await storeMutedPubkeysByKind([kindMuteEvent], decryptPrivateListContent);
-
-		expect(get(mutedPubkeysByKindMap).get(6)).toEqual(
-			new Set([mutedPubkey, privateMutedPubkey])
-		);
-
-		mutedPubkeysByKindMap.set(new Map());
-		await storeMutedPubkeysByKind([kindMuteEvent]);
-
 		expect(get(mutedPubkeysByKindMap).get(6)).toEqual(new Set([mutedPubkey]));
-		expect(decryptPrivateListContent).toHaveBeenCalledTimes(1);
+		expect(isMuteEvent({ ...event(6), pubkey: mutedPubkey })).toBe(true);
+	});
+
+	it('does not expose writable APIs or share mutable collections with completed state', () => {
+		const regularEvent = event(10000, [['p', mutedPubkey]]);
+		const kindEvent = event(30007, [
+			['d', '6'],
+			['p', mutedPubkey]
+		]);
+		mute.applySnapshot(
+			accountPubkey,
+			{
+				regular: prepareRegularMuteState(regularEvent, accountPubkey),
+				byKind: new Map([[6, prepareKindMuteState(kindEvent)]])
+			},
+			mute.captureInitializationBaseline()
+		);
+
+		expect('set' in mutePubkeys).toBe(false);
+		get(mutePubkeys).push('other');
+		get(mutedPubkeysByKindMap).get(6)?.add('other');
+		get(mutedPubkeysByKindMap).set(7, new Set(['other']));
+		get(muteEvent)?.tags.push(['p', 'other']);
+
+		expect(mute.state.regular.tags.pubkeys).toEqual([mutedPubkey]);
+		expect(mute.state.regular.event?.tags).toEqual([['p', mutedPubkey]]);
+		expect(mute.state.byKind.get(6)?.pubkeys).toEqual(new Set([mutedPubkey]));
+		expect(mute.state.byKind.has(7)).toBe(false);
 	});
 });

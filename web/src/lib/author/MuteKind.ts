@@ -1,13 +1,15 @@
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
-import { storeMutedPubkeysByKind } from '$lib/stores/Author';
+import { mute as muteState } from '$lib/features/mute/application/mute-state.svelte';
+import { prepareKindMuteState } from '$lib/features/mute/domain/mute-state';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
 import { WebStorage } from '$lib/WebStorage';
 import { createListContentDecrypter, createListContentEncrypter } from '$lib/List';
 import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
+import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
 import type { Signer } from '$lib/nostr/signing/signer';
 import { auth } from '$lib/auth.svelte';
 
@@ -19,14 +21,9 @@ type Data = {
 };
 
 const kind = 30007;
-const queues = new Map([
-	[6, new Queue<Data>()],
-	[7, new Queue<Data>()],
-	[16, new Queue<Data>()],
-	[9735, new Queue<Data>()]
-]);
-
-let processing = false;
+const supportedKinds = new Set([6, 7, 16, 9735]);
+const queues = new Map<string, Queue<Data>>();
+const processing = new Set<string>();
 
 export type MuteKindCapabilities = Pick<Signer, 'signEvent' | 'nip04' | 'nip44'>;
 
@@ -35,7 +32,7 @@ export async function muteByKind(
 	muteKind: number,
 	pubkey: string
 ): Promise<void> {
-	console.debug('[mute kind]', muteKind, pubkey, queues.get(muteKind)?.dump());
+	console.debug('[mute kind]', muteKind, pubkey);
 	await save(capabilities, 'mute', muteKind, pubkey);
 }
 
@@ -44,7 +41,7 @@ export async function unmuteByKind(
 	muteKind: number,
 	pubkey: string
 ): Promise<void> {
-	console.debug('[unmute kind]', muteKind, pubkey, queues.get(muteKind)?.dump());
+	console.debug('[unmute kind]', muteKind, pubkey);
 	await save(capabilities, 'unmute', muteKind, pubkey);
 }
 
@@ -54,8 +51,7 @@ async function save(
 	muteKind: number,
 	targetPubkey: string
 ): Promise<void> {
-	const queue = queues.get(muteKind);
-	if (queue === undefined) {
+	if (!supportedKinds.has(muteKind)) {
 		console.warn('[mute kind unsupported]', muteKind);
 		return;
 	}
@@ -65,32 +61,38 @@ async function save(
 		throw new Error('Not authenticated');
 	}
 
+	const queueKey = `${accountPubkey}:${muteKind}`;
+	let queue = queues.get(queueKey);
+	if (queue === undefined) {
+		queue = new Queue<Data>();
+		queues.set(queueKey, queue);
+	}
 	queue.enqueue({
 		type,
 		kind: muteKind,
 		pubkey: targetPubkey
 	});
 
-	if (!processing) {
-		processing = true;
-		await publish(capabilities, muteKind, accountPubkey);
-		processing = false;
+	if (!processing.has(queueKey)) {
+		processing.add(queueKey);
+		try {
+			await publish(capabilities, muteKind, accountPubkey, queue);
+		} finally {
+			processing.delete(queueKey);
+			if (queue.length === 0) queues.delete(queueKey);
+		}
 	}
 }
 
 async function publish(
 	capabilities: MuteKindCapabilities,
 	muteKind: number,
-	accountPubkey: string
+	accountPubkey: string,
+	queue: Queue<Data>
 ): Promise<void> {
-	const queue = queues.get(muteKind);
-	if (queue === undefined) {
-		console.warn('[mute kind logic error]');
-		return;
-	}
-
 	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getParameterizedReplaceableEvent(kind, `${muteKind}`);
+	const cachedEvent = storage.getParameterizedReplaceableEvent(kind, `${muteKind}`);
+	const lastEvent = cachedEvent?.pubkey === accountPubkey ? cachedEvent : undefined;
 	let tags = lastEvent?.tags.concat() ?? [['d', `${muteKind}`]];
 	let privateTags: string[][] = [];
 	let legacy = lastEvent === undefined ? false : isLegacyEncryption(lastEvent.content);
@@ -149,12 +151,14 @@ async function publish(
 		tags,
 		created_at: now()
 	});
-	storage.setParameterizedReplaceableEvent(event, accountPubkey);
-	storeMutedPubkeysByKind([event], decryptPrivateListContent);
+	if (muteState.state.accountPubkey === accountPubkey) {
+		storage.setParameterizedReplaceableEvent(event, accountPubkey);
+	}
+	muteState.replaceKind(accountPubkey, muteKind, prepareKindMuteState(event, privateTags));
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
-		await publish(capabilities, muteKind, accountPubkey);
+		await publish(capabilities, muteKind, accountPubkey, queue);
 	}
 }
 
@@ -174,7 +178,7 @@ async function validate(
 		if (lastEvent !== undefined) {
 			return false;
 		}
-	} else if (lastEvent === undefined || event.created_at < lastEvent.created_at) {
+	} else if (lastEvent === undefined || shouldReplaceCurrentEvent(lastEvent, event)) {
 		return false;
 	}
 

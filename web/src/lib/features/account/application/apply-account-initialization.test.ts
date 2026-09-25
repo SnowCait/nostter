@@ -4,6 +4,8 @@ import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
 import { Preferences, preferencesStore } from '$lib/Preferences';
 import { authorProfile, metadataEvent, readRelays, writeRelays } from '$lib/stores/Author';
+import { mute } from '$lib/features/mute/application/mute-state.svelte';
+import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
 import { customEmojiListEvent, customEmojiTags } from '$lib/author/CustomEmojis';
 import { lastReadAt } from '$lib/author/Notifications';
 import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark.svelte';
@@ -37,13 +39,14 @@ function emptyPrepared(): PreparedAccountInitialization {
 			parameterizedReplaceableEvents: new Map()
 		}),
 		muteState: {
-			mute: { type: 'unchanged' },
-			mutedPubkeysByKind: new Map()
+			snapshot: { regular: prepareRegularMuteState(undefined, accountB), byKind: new Map() },
+			baseline: mute.captureInitializationBaseline()
 		}
 	};
 }
 
 beforeEach(() => {
+	mute.reset();
 	authorProfile.set({ name: 'account A' } as User);
 	metadataEvent.set(event(accountA, 20, 0));
 	readRelays.set(['wss://account-a-read.example']);
