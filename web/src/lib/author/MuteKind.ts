@@ -1,3 +1,4 @@
+import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
@@ -5,7 +6,6 @@ import { storeMutedPubkeysByKind } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
-import { WebStorage } from '$lib/WebStorage';
 import { createListContentDecrypter, createListContentEncrypter } from '$lib/List';
 import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
 import type { Signer } from '$lib/nostr/signing/signer';
@@ -89,8 +89,7 @@ async function publish(
 		return;
 	}
 
-	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getParameterizedReplaceableEvent(kind, `${muteKind}`);
+	const lastEvent = await accountAddressableEventCache.get(accountPubkey, kind, `${muteKind}`);
 	let tags = lastEvent?.tags.concat() ?? [['d', `${muteKind}`]];
 	let privateTags: string[][] = [];
 	let legacy = lastEvent === undefined ? false : isLegacyEncryption(lastEvent.content);
@@ -149,7 +148,7 @@ async function publish(
 		tags,
 		created_at: now()
 	});
-	storage.setParameterizedReplaceableEvent(event, accountPubkey);
+	await cacheAccountEvent(event);
 	storeMutedPubkeysByKind([event], decryptPrivateListContent);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 

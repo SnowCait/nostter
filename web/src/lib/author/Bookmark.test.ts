@@ -25,14 +25,9 @@ vi.mock('$lib/auth.svelte', async () => {
 		}
 	};
 });
-vi.mock('$lib/WebStorage', () => ({
-	WebStorage: class {
-		getReplaceableEvent() {
-			return undefined;
-		}
-
-		setReplaceableEvent() {}
-	}
+vi.mock('$lib/cache/Events', () => ({
+	accountAddressableEventCache: { get: vi.fn(async () => undefined) },
+	cacheAccountEvent: vi.fn(async () => true)
 }));
 vi.stubGlobal('localStorage', {});
 

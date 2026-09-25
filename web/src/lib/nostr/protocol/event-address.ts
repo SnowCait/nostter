@@ -11,10 +11,12 @@ export function findIdentifier(tags: string[][]): string | undefined {
 	return tag.at(1) ?? '';
 }
 
-export function getEventAddress(event: Event): string {
-	const identifier = isAddressableKind(event.kind) ? (findIdentifier(event.tags) ?? '') : '';
+export function getEventIdentifier(event: Event): string {
+	return isAddressableKind(event.kind) ? (findIdentifier(event.tags) ?? '') : '';
+}
 
-	return `${event.kind}:${event.pubkey}:${identifier}`;
+export function getEventAddress(event: Event): string {
+	return `${event.kind}:${event.pubkey}:${getEventIdentifier(event)}`;
 }
 
 export function parseEventAddress(value: string): AddressPointer | undefined {

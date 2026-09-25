@@ -1,9 +1,8 @@
 import { writable } from 'svelte/store';
 import { createRxBackwardReq, latest, type EventPacket, now } from 'rx-nostr';
 import type * as Nostr from 'nostr-typedef';
-import { browser } from '$app/environment';
 import { rxNostr, tie } from './timelines/MainTimeline';
-import { WebStorage } from './WebStorage';
+import { accountAddressableEventCache } from './cache/Events';
 import type { Signer } from './nostr/signing/signer';
 import { auth } from './auth.svelte';
 
@@ -13,17 +12,14 @@ const unfollowQueue: string[] = [];
 
 let processing = false;
 
-export const followingHashtags = writable(browser ? getFollowingHashtags() : []);
+export const followingHashtags = writable<string[]>([]);
 
-export function updateFollowingHashtags() {
-	followingHashtags.set(getFollowingHashtags());
-}
-
-function getFollowingHashtags(): string[] {
-	return (
-		getCache()
-			?.tags.filter(([tagName]) => tagName === 't')
-			.map(([, hashtag]) => hashtag) ?? []
+export async function updateFollowingHashtags(): Promise<void> {
+	const accountPubkey = auth.pubkey;
+	if (accountPubkey === undefined) return;
+	const event = await getCache(accountPubkey);
+	followingHashtags.set(
+		event?.tags.filter(([tagName]) => tagName === 't').map(([, hashtag]) => hashtag) ?? []
 	);
 }
 
@@ -73,7 +69,7 @@ async function save(signEvent: Signer['signEvent'], accountPubkey: string): Prom
 	processing = true;
 
 	const latest = await fetch(accountPubkey);
-	const cache = getCache();
+	const cache = await getCache(accountPubkey);
 
 	// Validation
 	if (cache !== undefined) {
@@ -158,7 +154,6 @@ async function fetch(pubkey: string): Promise<Nostr.Event | undefined> {
 	});
 }
 
-export function getCache(): Nostr.Event | undefined {
-	const storage = new WebStorage(localStorage);
-	return storage.getReplaceableEvent(interestKind);
+export function getCache(pubkey: string): Promise<Nostr.Event | undefined> {
+	return accountAddressableEventCache.get(pubkey, interestKind);
 }

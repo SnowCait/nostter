@@ -1,21 +1,22 @@
+import { accountAddressableEventCache } from '$lib/cache/Events';
 import { kinds as Kind, type Event } from 'nostr-tools';
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
 import { rxNostr, tie } from '../timelines/MainTimeline';
 import { parseLegacyRelayList } from '../nostr/protocol/nip24';
 import { parseRelayList } from '../nostr/protocol/nip65';
-import { WebStorage } from '../WebStorage';
 import { metadataRelays } from '$lib/Constants';
 
 export class RelayList {
 	public static async fetchEvents(pubkey: string): Promise<Map<number, Event>> {
 		const kinds = [Kind.Contacts, Kind.RelayList];
-		const storage = new WebStorage(localStorage);
-
-		// Load from cache
-		const relayEventsMap = new Map(
-			kinds
-				.map((kind) => [kind, storage.getReplaceableEvent(kind)])
-				.filter((x): x is [number, Event] => x[1] !== undefined)
+		const cached = await Promise.all(
+			kinds.map(
+				async (kind) =>
+					[kind, await accountAddressableEventCache.get(pubkey, kind)] as const
+			)
+		);
+		const relayEventsMap = new Map<number, Event>(
+			cached.filter((entry): entry is readonly [number, Event] => entry[1] !== undefined)
 		);
 
 		if (relayEventsMap.size > 0) {

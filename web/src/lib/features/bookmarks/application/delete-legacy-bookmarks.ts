@@ -1,6 +1,6 @@
+import { accountAddressableEventCache } from '$lib/cache/Events';
 import { get } from 'svelte/store';
 import { legacyBookmarkIdentifier } from '$lib/Constants';
-import { WebStorage } from '$lib/WebStorage';
 import { legacyBookmarkEvent } from '$lib/author/Bookmark.svelte';
 import { isLegacyBookmarkEvent } from '$lib/features/bookmarks/domain/bookmark-migration';
 import { requestEventDeletion } from '$lib/features/event-deletion/application/request-event-deletion';
@@ -17,7 +17,10 @@ export async function deleteLegacyBookmarks(signEvent: Signer['signEvent']): Pro
 
 	await requestEventDeletion(signEvent, [legacyEvent]);
 
-	const storage = new WebStorage(localStorage);
-	storage.removeParameterizedReplaceableEvent(legacyEvent.kind, legacyBookmarkIdentifier);
+	await accountAddressableEventCache.remove(
+		legacyEvent.pubkey,
+		legacyEvent.kind,
+		legacyBookmarkIdentifier
+	);
 	legacyBookmarkEvent.set(undefined);
 }

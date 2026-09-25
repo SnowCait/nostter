@@ -1,7 +1,3 @@
-import type { Event } from 'nostr-tools';
-import { findIdentifier } from './nostr/protocol/event-address';
-import { eventCache } from './cache/Events';
-
 export class WebStorage {
 	public constructor(private readonly storage: Storage) {}
 
@@ -19,72 +15,5 @@ export class WebStorage {
 
 	public clear(): void {
 		this.storage.clear();
-	}
-
-	public getReplaceableEvent(kind: number): Event | undefined {
-		const json = this.get(`kind:${kind}`);
-		if (json === null) {
-			return undefined;
-		}
-		try {
-			return JSON.parse(json);
-		} catch (error) {
-			console.error('[invalid event]', error);
-			return undefined;
-		}
-	}
-
-	public setReplaceableEvent(event: Event, accountPubkey: string): void {
-		if (event.pubkey !== accountPubkey) {
-			throw new Error('Logic error');
-		}
-		const cache = this.getReplaceableEvent(event.kind);
-		if (cache === undefined || cache.created_at < event.created_at) {
-			this.set(`kind:${event.kind}`, JSON.stringify(event));
-			this.setCachedAt();
-			eventCache.addIfNotExists(event); // Fire and forget
-		}
-	}
-
-	public getParameterizedReplaceableEvent(kind: number, identifier: string): Event | undefined {
-		const json = this.get(`kind:${kind}:${identifier}`);
-		if (json === null) {
-			return undefined;
-		}
-		try {
-			return JSON.parse(json);
-		} catch (error) {
-			console.error('[invalid event]', error);
-			return undefined;
-		}
-	}
-
-	public setParameterizedReplaceableEvent(event: Event, accountPubkey: string): void {
-		if (event.pubkey !== accountPubkey) {
-			throw new Error('Logic error');
-		}
-		const identifier = findIdentifier(event.tags);
-		if (identifier === undefined) {
-			return;
-		}
-		const cache = this.getParameterizedReplaceableEvent(event.kind, identifier);
-		if (cache === undefined || cache.created_at < event.created_at) {
-			this.set(`kind:${event.kind}:${identifier}`, JSON.stringify(event));
-			this.setCachedAt();
-		}
-	}
-
-	public removeParameterizedReplaceableEvent(kind: number, identifier: string): void {
-		this.remove(`kind:${kind}:${identifier}`);
-	}
-
-	public getCachedAt(): number | null {
-		const cachedAt = this.get('cached_at');
-		return cachedAt === null ? null : Number(cachedAt);
-	}
-
-	private setCachedAt() {
-		const now = Math.floor(Date.now() / 1000);
-		this.set('cached_at', `${now}`);
 	}
 }

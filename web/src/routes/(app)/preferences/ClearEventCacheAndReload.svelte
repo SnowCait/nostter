@@ -1,10 +1,9 @@
 <script lang="ts">
+	import { accountAddressableEventCache } from '$lib/cache/Events';
 	import { _ } from 'svelte-i18n';
-	import { WebStorage } from '$lib/WebStorage';
 
-	function clearAndReload() {
-		const storage = new WebStorage(localStorage);
-		storage.remove('cached_at');
+	async function clearAndReload() {
+		await accountAddressableEventCache.clear();
 		location.href = '/';
 	}
 </script>

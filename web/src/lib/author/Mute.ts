@@ -1,3 +1,4 @@
+import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
@@ -5,7 +6,6 @@ import { storeMutedTags } from '$lib/stores/Author';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
-import { WebStorage } from '$lib/WebStorage';
 import { createListContentDecrypter, createListContentEncrypter } from '$lib/List';
 import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
 import type { Signer } from '$lib/nostr/signing/signer';
@@ -68,8 +68,7 @@ async function save(
 }
 
 async function publish(capabilities: MuteCapabilities, accountPubkey: string): Promise<void> {
-	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(kind);
+	const lastEvent = await accountAddressableEventCache.get(accountPubkey, kind);
 	let tags = lastEvent?.tags.concat() ?? [];
 	let privateTags: string[][] = [];
 	let legacy = lastEvent === undefined ? false : isLegacyEncryption(lastEvent.content);
@@ -143,7 +142,7 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		tags,
 		created_at: now()
 	});
-	storage.setReplaceableEvent(event, accountPubkey);
+	await cacheAccountEvent(event);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { cacheAccountEvent } from '$lib/cache/Events';
 	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import Cropper from 'svelte-easy-crop';
@@ -10,7 +11,6 @@
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 	import { sendEvent } from '$lib/RxNostrHelper';
 	import { storeMetadata } from '$lib/cache/Events';
-	import { WebStorage } from '$lib/WebStorage';
 	import { auth } from '$lib/auth.svelte';
 
 	//#region Cropper
@@ -156,8 +156,7 @@
 				$metadataEvent?.tags ?? []
 			);
 			storeMetadata(event);
-			const storage = new WebStorage(localStorage);
-			storage.setReplaceableEvent(event, accountPubkey);
+			await cacheAccountEvent(event);
 			await goto(`/${nip19.npubEncode(accountPubkey)}`);
 		} catch (error) {
 			console.error('[save metadata failed]', error);

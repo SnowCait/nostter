@@ -1,3 +1,4 @@
+import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { get } from 'svelte/store';
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
@@ -7,7 +8,6 @@ import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 import { updateFolloweesStore } from '$lib/Contacts';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
-import { WebStorage } from '$lib/WebStorage';
 import type { Signer } from '$lib/nostr/signing/signer';
 import { timeline as homeTimeline } from '$lib/timelines/HomeTimeline';
 import { auth } from '$lib/auth.svelte';
@@ -58,8 +58,7 @@ async function save(
 }
 
 async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
-	const storage = new WebStorage(localStorage);
-	const lastEvent = storage.getReplaceableEvent(kind);
+	const lastEvent = await accountAddressableEventCache.get(accountPubkey, kind);
 	let tags = lastEvent?.tags ?? [];
 
 	while (queue.length > 0) {
@@ -95,7 +94,7 @@ async function publish(signEvent: Signer['signEvent'], accountPubkey: string): P
 		tags,
 		created_at: now()
 	});
-	storage.setReplaceableEvent(event, accountPubkey);
+	await cacheAccountEvent(event);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
