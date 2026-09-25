@@ -1,4 +1,4 @@
-import { assertSignedEventPubkey } from '$lib/features/account/application/assert-signed-event-pubkey';
+import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
 import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { get } from 'svelte/store';
 import { now } from 'rx-nostr';
@@ -63,7 +63,7 @@ async function save(
 
 async function publish(signEvent: Signer['signEvent'], accountPubkey: string): Promise<void> {
 	const lastEvent = await accountAddressableEventCache.get(accountPubkey, kind);
-	let tags = lastEvent?.tags ?? [];
+	let tags = lastEvent?.tags.concat() ?? [];
 
 	while (queue.length > 0) {
 		const data = queue.dequeue();
@@ -84,8 +84,15 @@ async function publish(signEvent: Signer['signEvent'], accountPubkey: string): P
 		}
 	}
 
+	if (auth.pubkey === accountPubkey) {
+		updateFolloweesStore(tags);
+	}
+
 	// Lazy validation for UX
 	if (!(await validate(lastEvent, accountPubkey))) {
+		if (auth.pubkey === accountPubkey) {
+			updateFolloweesStore(lastEvent?.tags ?? []);
+		}
 		throw new Error('Cache is outdated.');
 	}
 
@@ -95,8 +102,14 @@ async function publish(signEvent: Signer['signEvent'], accountPubkey: string): P
 		tags,
 		created_at: now()
 	});
-	assertSignedEventPubkey(event, accountPubkey);
-	updateFolloweesStore(tags);
+	try {
+		assertSignedEventPubkey(event, accountPubkey);
+	} catch (error) {
+		if (auth.pubkey === accountPubkey) {
+			updateFolloweesStore(lastEvent?.tags ?? []);
+		}
+		throw error;
+	}
 	await cacheAccountEvent(event);
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 

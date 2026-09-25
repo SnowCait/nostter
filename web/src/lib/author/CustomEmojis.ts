@@ -1,4 +1,4 @@
-import { assertSignedEventPubkey } from '$lib/features/account/application/assert-signed-event-pubkey';
+import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
 import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Events';
 import { get, writable } from 'svelte/store';
 import { createRxBackwardReq, latestEach, now, uniq, type LazyFilter } from 'rx-nostr';

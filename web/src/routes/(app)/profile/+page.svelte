@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cacheAccountEvent } from '$lib/cache/Events';
-	import { assertSignedEventPubkey } from '$lib/features/account/application/assert-signed-event-pubkey';
+	import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
 	import { now } from 'rx-nostr';
 	import { filter, firstValueFrom } from 'rxjs';
 	import { kinds as Kind, nip19 } from 'nostr-tools';

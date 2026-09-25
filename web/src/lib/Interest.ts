@@ -5,7 +5,7 @@ import { rxNostr, tie } from './timelines/MainTimeline';
 import { accountAddressableEventCache } from './cache/Events';
 import type { Signer } from './nostr/signing/signer';
 import { auth } from './auth.svelte';
-import { assertSignedEventPubkey } from './features/account/application/assert-signed-event-pubkey';
+import { assertSignedEventPubkey } from './nostr/signing/assert-signed-event-pubkey';
 import { parseFollowingHashtags } from './nostr/protocol/interest-list';
 
 const interestKind = 10015;

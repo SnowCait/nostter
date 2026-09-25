@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { assertSignedEventPubkey } from '$lib/features/account/application/assert-signed-event-pubkey';
+	import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
 	import { cacheAccountEvent } from '$lib/cache/Events';
 	import { _ } from 'svelte-i18n';
 	import type * as Nostr from 'nostr-typedef';
