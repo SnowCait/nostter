@@ -327,6 +327,139 @@ describe('account-scoped mute state', () => {
 		expect(mute.state.byKind.get(7)?.event).toBe(fetchedSeven);
 	});
 
+	it.each([
+		{
+			name: 'newer snapshot timestamp',
+			pendingId: 'bb',
+			pendingAt: 2,
+			snapshotId: 'cc',
+			snapshotAt: 3,
+			winner: 'snapshot'
+		},
+		{
+			name: 'lower snapshot id at equal timestamp',
+			pendingId: 'bb',
+			pendingAt: 2,
+			snapshotId: 'aa',
+			snapshotAt: 2,
+			winner: 'snapshot'
+		},
+		{
+			name: 'newer pending timestamp',
+			pendingId: 'cc',
+			pendingAt: 3,
+			snapshotId: 'bb',
+			snapshotAt: 2,
+			winner: 'pending'
+		},
+		{
+			name: 'lower pending id at equal timestamp',
+			pendingId: 'aa',
+			pendingAt: 2,
+			snapshotId: 'bb',
+			snapshotAt: 2,
+			winner: 'pending'
+		}
+	])(
+		'resolves regular snapshot against an in-flight candidate: $name',
+		async ({ pendingId, pendingAt, snapshotId, snapshotAt, winner }) => {
+			const mute = new Mute();
+			activate(mute, accountA, snapshot(accountA, event(10000, 'current', 1)));
+			const live = event(10000, pendingId, pendingAt, [['p', 'live']]);
+			const fetched = event(10000, snapshotId, snapshotAt, [['p', 'snapshot']]);
+			const decrypt = Promise.withResolvers<[string[][], boolean]>();
+			const pending = mute.ingestRegularEvent(accountA, live, () => decrypt.promise);
+			const baseline = mute.captureInitializationBaseline();
+
+			mute.applySnapshot(accountA, snapshot(accountA, fetched), baseline);
+			expect(mute.state.regular.event).toBe(
+				winner === 'snapshot' ? fetched : baseline.regular.event
+			);
+			decrypt.resolve([[['p', 'private-live']], false]);
+			await pending;
+			expect(mute.state.regular.event).toBe(winner === 'snapshot' ? fetched : live);
+			expect(mute.state.regular.tags.pubkeys).toEqual(
+				winner === 'snapshot' ? ['snapshot'] : ['live', 'private-live']
+			);
+		}
+	);
+
+	it.each([
+		{
+			name: 'timestamps',
+			sixPending: ['aa', 3] as const,
+			sixSnapshot: ['bb', 2] as const,
+			sevenPending: ['bb', 2] as const,
+			sevenSnapshot: ['aa', 3] as const
+		},
+		{
+			name: 'event IDs at equal timestamps',
+			sixPending: ['aa', 2] as const,
+			sixSnapshot: ['bb', 2] as const,
+			sevenPending: ['bb', 2] as const,
+			sevenSnapshot: ['aa', 2] as const
+		}
+	])(
+		'merges kinds independently by $name while decrypts are pending',
+		async ({ sixPending, sixSnapshot, sevenPending, sevenSnapshot }) => {
+			const mute = new Mute();
+			const currentSix = event(30007, 'current-six', 1, [['d', '6']]);
+			const currentSeven = event(30007, 'current-seven', 1, [['d', '7']]);
+			activate(
+				mute,
+				accountA,
+				snapshot(accountA, undefined, [
+					[6, currentSix],
+					[7, currentSeven]
+				])
+			);
+			const liveSix = event(30007, sixPending[0], sixPending[1], [
+				['d', '6'],
+				['p', 'live-six']
+			]);
+			const liveSeven = event(30007, sevenPending[0], sevenPending[1], [
+				['d', '7'],
+				['p', 'live-seven']
+			]);
+			const fetchedSix = event(30007, sixSnapshot[0], sixSnapshot[1], [
+				['d', '6'],
+				['p', 'snapshot-six']
+			]);
+			const fetchedSeven = event(30007, sevenSnapshot[0], sevenSnapshot[1], [
+				['d', '7'],
+				['p', 'snapshot-seven']
+			]);
+			const decryptSix = Promise.withResolvers<[string[][], boolean]>();
+			const decryptSeven = Promise.withResolvers<[string[][], boolean]>();
+			const pendingSix = mute.ingestKindEvent(accountA, liveSix, () => decryptSix.promise);
+			const pendingSeven = mute.ingestKindEvent(
+				accountA,
+				liveSeven,
+				() => decryptSeven.promise
+			);
+			const baseline = mute.captureInitializationBaseline();
+
+			mute.applySnapshot(
+				accountA,
+				snapshot(accountA, undefined, [
+					[6, fetchedSix],
+					[7, fetchedSeven]
+				]),
+				baseline
+			);
+			expect(mute.state.byKind.get(6)?.event).toBe(currentSix);
+			expect(mute.state.byKind.get(7)?.event).toBe(fetchedSeven);
+			decryptSeven.resolve([[['p', 'private-seven']], false]);
+			await pendingSeven;
+			decryptSix.resolve([[['p', 'private-six']], false]);
+			await pendingSix;
+			expect(mute.state.byKind.get(6)?.event).toBe(liveSix);
+			expect(mute.state.byKind.get(6)?.pubkeys).toEqual(new Set(['live-six', 'private-six']));
+			expect(mute.state.byKind.get(7)?.event).toBe(fetchedSeven);
+			expect(mute.state.byKind.get(7)?.pubkeys).toEqual(new Set(['snapshot-seven']));
+		}
+	);
+
 	it('treats optimistic rollback and signed local publication as completed replacements', () => {
 		const mute = new Mute();
 		const source = event(10000, 'bb', 1, [['p', 'before']]);

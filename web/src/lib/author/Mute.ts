@@ -163,7 +163,9 @@ async function publish(
 		tags,
 		created_at: now()
 	});
-	storage.setReplaceableEvent(event, accountPubkey);
+	if (muteState.state.accountPubkey === accountPubkey) {
+		storage.setReplaceableEvent(event, accountPubkey);
+	}
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 	if (optimistic !== undefined) {
 		muteState.replaceRegularFromLocalEvent(accountPubkey, event, privateTags, optimistic);

@@ -91,27 +91,33 @@ export class Mute {
 		}
 
 		let regular = this.#state.regular;
+		const snapshotEvent = snapshot.regular.event;
+		const pendingRegular = this.#pendingRegular;
 		if (
 			regular === baseline.regular &&
-			this.#pendingRegular === undefined &&
-			snapshot.regular.event !== undefined &&
+			snapshotEvent !== undefined &&
 			(regular.event === undefined ||
-				shouldReplaceCurrentEvent(snapshot.regular.event, regular.event))
+				shouldReplaceCurrentEvent(snapshotEvent, regular.event)) &&
+			(pendingRegular === undefined ||
+				shouldReplaceCurrentEvent(snapshotEvent, pendingRegular))
 		) {
 			regular = snapshot.regular;
+			this.#pendingRegular = undefined;
 		}
 
 		const byKind = new Map(this.#state.byKind);
 		for (const [kind, candidate] of snapshot.byKind) {
 			const current = this.#state.byKind.get(kind);
+			const pending = this.#pendingByKind.get(kind);
 			if (
 				current !== baseline.byKind.get(kind) ||
-				this.#pendingByKind.has(kind) ||
+				(pending !== undefined && !shouldReplaceCurrentEvent(candidate.event, pending)) ||
 				(current !== undefined &&
 					!shouldReplaceCurrentEvent(candidate.event, current.event))
 			) {
 				continue;
 			}
+			this.#pendingByKind.delete(kind);
 			byKind.set(kind, candidate);
 		}
 		if (

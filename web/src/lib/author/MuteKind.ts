@@ -151,7 +151,9 @@ async function publish(
 		tags,
 		created_at: now()
 	});
-	storage.setParameterizedReplaceableEvent(event, accountPubkey);
+	if (muteState.state.accountPubkey === accountPubkey) {
+		storage.setParameterizedReplaceableEvent(event, accountPubkey);
+	}
 	muteState.replaceKind(accountPubkey, muteKind, prepareKindMuteState(event, privateTags));
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
