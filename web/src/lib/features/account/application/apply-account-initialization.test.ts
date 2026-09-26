@@ -15,6 +15,8 @@ import type { PreparedAccountInitialization } from './initialize-account';
 import type { User } from '../../../../routes/types';
 import { followingHashtags } from '$lib/Interest';
 import { kinds as Kind } from 'nostr-tools';
+import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
+import { regularMuteRevision } from '$lib/features/mute/application/regular-mute-runtime';
 
 const accountA = 'a'.repeat(64);
 const accountB = 'b'.repeat(64);
@@ -39,7 +41,8 @@ function emptyPrepared(): PreparedAccountInitialization {
 			parameterizedReplaceableEvents: new Map()
 		}),
 		muteState: {
-			mute: { type: 'unchanged' },
+			mute: prepareRegularMuteState(undefined, accountB),
+			baseline: regularMuteRevision(),
 			mutedPubkeysByKind: new Map()
 		}
 	};

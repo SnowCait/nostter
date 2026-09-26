@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { authorProfile, muteEvent, mutePubkeys } from '$lib/stores/Author';
+import { resetRegularMute } from '$lib/features/mute/application/regular-mute-runtime';
 import type { User } from '../../../../routes/types';
 
 const { fetchRelays, fetchEvents, loadMetadata, prune } = vi.hoisted(() => ({
@@ -36,6 +37,7 @@ const mute = {
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	resetRegularMute();
 	fetchRelays.mockResolvedValue(undefined);
 	loadMetadata.mockResolvedValue(undefined);
 	fetchEvents.mockResolvedValue({
@@ -46,8 +48,6 @@ beforeEach(() => {
 		parameterizedReplaceableEvents: new Map()
 	});
 	authorProfile.set({ name: 'existing' } as User);
-	muteEvent.set(undefined);
-	mutePubkeys.set(['existing-muted']);
 });
 
 describe('prepareAccountInitialization', () => {
@@ -85,18 +85,18 @@ describe('prepareAccountInitialization', () => {
 		await vi.waitFor(() => expect(decrypter).toHaveBeenCalledOnce());
 		expect(get(authorProfile)).toEqual({ name: 'existing' });
 		expect(get(muteEvent)).toBeUndefined();
-		expect(get(mutePubkeys)).toEqual(['existing-muted']);
+		expect(get(mutePubkeys)).toEqual([]);
 		expect(loadMetadata).not.toHaveBeenCalled();
 
 		decrypt.resolve([[['p', 'private-muted']], false]);
 		await vi.waitFor(() => expect(loadMetadata).toHaveBeenCalledWith([followee, me]));
 		expect(get(authorProfile)).toEqual({ name: 'existing' });
 		expect(get(muteEvent)).toBeUndefined();
-		expect(get(mutePubkeys)).toEqual(['existing-muted']);
+		expect(get(mutePubkeys)).toEqual([]);
 
 		const prepared = await preparation;
 		expect(prepared.followingPubkeys).toEqual([followee]);
-		expect(prepared.muteState.mute).toMatchObject({ type: 'apply', event: mute });
+		expect(prepared.muteState.mute).toMatchObject({ event: mute });
 		expect(prune).toHaveBeenCalledWith([followee, me]);
 	});
 
@@ -110,7 +110,7 @@ describe('prepareAccountInitialization', () => {
 
 		expect(get(authorProfile)).toEqual({ name: 'existing' });
 		expect(get(muteEvent)).toBeUndefined();
-		expect(get(mutePubkeys)).toEqual(['existing-muted']);
+		expect(get(mutePubkeys)).toEqual([]);
 		expect(loadMetadata).not.toHaveBeenCalled();
 	});
 });

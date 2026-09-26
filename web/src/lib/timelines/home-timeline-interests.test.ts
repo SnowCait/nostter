@@ -35,6 +35,13 @@ vi.mock('$lib/auth.svelte', () => ({
 
 import { HomeTimeline } from './HomeTimeline';
 import { followingHashtags } from '$lib/Interest';
+import {
+	applyRegularMuteInitialization,
+	mutePubkeys,
+	regularMuteRevision,
+	resetRegularMute
+} from '$lib/features/mute/application/regular-mute-runtime';
+import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
 
 function interests(tags: string[][]): Nostr.Event {
 	return {
@@ -72,5 +79,33 @@ describe('HomeTimeline InterestsList refresh', () => {
 		expect(get(followingHashtags)).toEqual(['nostr', 'bitcoin']);
 		const filters = mocks.emit.mock.calls[1]?.[0] as Array<{ '#t'?: string[] }>;
 		expect(filters).toContainEqual(expect.objectContaining({ '#t': ['nostr', 'bitcoin'] }));
+	});
+});
+
+describe('HomeTimeline regular mute refresh', () => {
+	it('forwards a cache accepted kind 10000 event to the mute runtime', async () => {
+		resetRegularMute();
+		applyRegularMuteInitialization(
+			'a'.repeat(64),
+			prepareRegularMuteState(undefined, 'a'.repeat(64)),
+			regularMuteRevision()
+		);
+		const packets = new Subject<{ event: Nostr.Event; from: string }>();
+		mocks.use.mockReturnValue(packets);
+		const write = Promise.withResolvers<boolean>();
+		mocks.cacheAccountEvent.mockReset().mockReturnValue(write.promise);
+		const timeline = new HomeTimeline();
+		timeline.subscribe();
+		const event = { ...interests([['p', 'muted']]), id: 'mute', kind: Kind.Mutelist };
+		packets.next({ event, from: 'relay.example' });
+		expect(get(mutePubkeys)).toEqual([]);
+		const updated = Promise.withResolvers<void>();
+		const unsubscribe = mutePubkeys.subscribe((pubkeys) => {
+			if (pubkeys.includes('muted')) updated.resolve();
+		});
+		write.resolve(true);
+		await updated.promise;
+		expect(get(mutePubkeys)).toEqual(['muted']);
+		unsubscribe();
 	});
 });
