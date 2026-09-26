@@ -93,7 +93,6 @@ export class RegularMuteRuntime {
 		if (current !== undefined && !shouldReplaceCurrentEvent(event, current)) return;
 		if (this.#pending !== undefined && !shouldReplaceCurrentEvent(event, this.#pending)) return;
 		const owner = this.#owner;
-		const revision = this.#revision;
 		this.#pending = event;
 		let prepared: RegularMuteState;
 		try {
@@ -106,8 +105,10 @@ export class RegularMuteRuntime {
 			if (this.#owner === owner && this.#pending === event) this.#pending = undefined;
 			throw error;
 		}
-		if (this.#owner !== owner || this.#pending !== event || this.#revision !== revision) return;
+		if (this.#owner !== owner || this.#pending !== event) return;
 		this.#pending = undefined;
+		const completed = this.#state.regular.event;
+		if (completed !== undefined && !shouldReplaceCurrentEvent(event, completed)) return;
 		this.#publish({ accountPubkey, regular: prepared });
 	}
 
@@ -124,7 +125,6 @@ export class RegularMuteRuntime {
 
 	restore(accountPubkey: string, previous: RegularMuteState, expected: RegularMuteState): void {
 		if (this.#state.accountPubkey !== accountPubkey || this.#state.regular !== expected) return;
-		this.#pending = undefined;
 		this.#publish({ accountPubkey, regular: previous });
 	}
 
@@ -135,7 +135,6 @@ export class RegularMuteRuntime {
 		expected: RegularMuteState
 	): void {
 		if (this.#state.accountPubkey !== accountPubkey || this.#state.regular !== expected) return;
-		this.#pending = undefined;
 		this.#publish({
 			accountPubkey,
 			regular: prepareRegularMuteState(event, accountPubkey, privateTags)

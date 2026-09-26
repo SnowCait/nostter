@@ -200,6 +200,23 @@ describe('mute publication', () => {
 		expect(mutedTags()).toEqual(originalTags);
 	});
 
+	it('keeps a remote decrypt started after the optimistic update when validation fails', async () => {
+		mocks.get.mockResolvedValue(cached);
+		const validation = pendingValidation();
+		const publication = mute(muteCapabilities(), 'p', target);
+		await validation.entered;
+		const remote = event(accountA, 10000, [['p', 'remote']], 3);
+		const decrypt = Promise.withResolvers<[string[][], boolean]>();
+		const pending = regularMute.ingestEvent(accountA, remote, () => decrypt.promise);
+		validation.resolve(event(accountA, 10000, [], 2));
+		await expect(publication).rejects.toThrow('Cache is outdated.');
+		expect(mutedTags()).toEqual(originalTags);
+		decrypt.resolve([[], false]);
+		await pending;
+		expect(regularMute.state.regular.event).toBe(remote);
+		expect(mutedTags()).toEqual([['p', 'remote']]);
+	});
+
 	it('does not roll back a newer local update after validation failure', async () => {
 		mocks.get.mockResolvedValue(cached);
 		const validation = pendingValidation();
@@ -260,6 +277,23 @@ describe('mute publication', () => {
 		expect(mocks.send).not.toHaveBeenCalled();
 	});
 
+	it('keeps a remote decrypt started after the optimistic update when signer ownership fails', async () => {
+		mocks.get.mockResolvedValue(cached);
+		const validation = pendingValidation();
+		const publication = mute(muteCapabilities(accountB), 'p', target);
+		await validation.entered;
+		const remote = event(accountA, 10000, [['p', 'remote']], 3);
+		const decrypt = Promise.withResolvers<[string[][], boolean]>();
+		const pending = regularMute.ingestEvent(accountA, remote, () => decrypt.promise);
+		validation.resolve(cached);
+		await expect(publication).rejects.toThrow('publication account');
+		expect(mutedTags()).toEqual(originalTags);
+		decrypt.resolve([[], false]);
+		await pending;
+		expect(regularMute.state.regular.event).toBe(remote);
+		expect(mutedTags()).toEqual([['p', 'remote']]);
+	});
+
 	it('does not roll back a newer update when signer ownership fails', async () => {
 		mocks.get.mockResolvedValue(cached);
 		const validation = pendingValidation();
@@ -291,5 +325,49 @@ describe('mute publication', () => {
 		expect(regularMute.state.regular.event?.id).toBe('signed');
 		expect(mutedTags()).toEqual(optimisticTags);
 		expect(decrypt).toHaveBeenCalledTimes(1);
+	});
+
+	it('does not complete a local event rejected by the account cache over a pending remote', async () => {
+		const remote = event(accountA, 10000, [['p', 'remote']], 3);
+		mocks.get.mockResolvedValueOnce(cached).mockResolvedValue(remote);
+		mocks.cacheAccountEvent.mockResolvedValue(false);
+		const validation = pendingValidation();
+		const capabilities = muteCapabilities();
+		capabilities.signEvent.mockImplementation(async (unsigned) => ({
+			...unsigned,
+			id: 'local',
+			created_at: 2,
+			pubkey: accountA,
+			sig: 'sig'
+		}));
+		const publication = mute(capabilities, 'p', target);
+		await validation.entered;
+		const decrypt = Promise.withResolvers<[string[][], boolean]>();
+		const pending = regularMute.ingestEvent(accountA, remote, () => decrypt.promise);
+		validation.resolve(cached);
+		await publication;
+		expect(regularMute.state.regular.event).toBe(cached);
+		decrypt.resolve([[], false]);
+		await pending;
+		expect(regularMute.state.regular.event).toBe(remote);
+		expect(mutedTags()).toEqual([['p', 'remote']]);
+		expect(mocks.send).toHaveBeenCalledOnce();
+	});
+
+	it('completes a local event already present in the account cache', async () => {
+		mocks.get.mockResolvedValueOnce(cached).mockResolvedValue(event(accountA, 10000, [], 2));
+		mocks.cacheAccountEvent.mockResolvedValue(false);
+		mocks.fetchLastEvent.mockResolvedValue(cached);
+		const capabilities = muteCapabilities();
+		capabilities.signEvent.mockImplementation(async (unsigned) => ({
+			...unsigned,
+			id: 'event-2',
+			created_at: 2,
+			pubkey: accountA,
+			sig: 'sig'
+		}));
+		await mute(capabilities, 'p', target);
+		expect(regularMute.state.regular.event?.id).toBe('event-2');
+		expect(mutedTags()).toEqual(optimisticTags);
 	});
 });

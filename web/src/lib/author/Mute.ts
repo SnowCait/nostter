@@ -156,9 +156,16 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		}
 		throw error;
 	}
-	await cacheAccountEvent(event);
+	const accepted = await cacheAccountEvent(event);
 	if (optimistic !== undefined) {
-		regularMute.completeLocalEvent(accountPubkey, event, privateTags, optimistic);
+		const cached = accepted
+			? event
+			: await accountAddressableEventCache.get(accountPubkey, kind);
+		if (cached?.id === event.id) {
+			regularMute.completeLocalEvent(accountPubkey, event, privateTags, optimistic);
+		} else if (previous !== undefined) {
+			regularMute.restore(accountPubkey, previous, optimistic);
+		}
 	}
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 

@@ -76,6 +76,41 @@ describe('regular mute runtime', () => {
 		expect(runtime.state.regular.tags.pubkeys).toEqual(['new']);
 	});
 
+	it('keeps a later remote candidate through rollback', async () => {
+		const runtime = new RegularMuteRuntime();
+		const previous = prepareRegularMuteState(event(accountA, 'previous', 1), accountA);
+		runtime.applySnapshot(accountA, previous, runtime.captureInitializationBaseline());
+		const optimistic = runtime.replaceTags(accountA, [['p', 'local']])!;
+		const remote = event(accountA, 'remote', 3);
+		const decrypt = Promise.withResolvers<[string[][], boolean]>();
+		const pending = runtime.ingestEvent(accountA, remote, () => decrypt.promise);
+		runtime.restore(accountA, previous, optimistic);
+		expect(runtime.state.regular).toBe(previous);
+		decrypt.resolve([[['p', 'remote']], false]);
+		await pending;
+		expect(runtime.state.regular.event).toBe(remote);
+		expect(runtime.state.regular.tags.pubkeys).toEqual(['remote']);
+	});
+
+	it.each([
+		{ remoteTime: 3, localTime: 2, winner: 'remote' },
+		{ remoteTime: 2, localTime: 3, winner: 'local' }
+	])('rechecks preference after local completion when $winner wins', async (scenario) => {
+		const runtime = new RegularMuteRuntime();
+		activate(runtime, accountA, event(accountA, 'previous', 1));
+		const optimistic = runtime.replaceTags(accountA, [['p', 'optimistic']])!;
+		const remote = event(accountA, 'remote', scenario.remoteTime);
+		const local = event(accountA, 'local', scenario.localTime);
+		const decrypt = Promise.withResolvers<[string[][], boolean]>();
+		const pending = runtime.ingestEvent(accountA, remote, () => decrypt.promise);
+		runtime.completeLocalEvent(accountA, local, [['p', 'local']], optimistic);
+		expect(runtime.state.regular.event).toBe(local);
+		decrypt.resolve([[['p', 'remote']], false]);
+		await pending;
+		expect(runtime.state.regular.event).toBe(scenario.winner === 'remote' ? remote : local);
+		expect(runtime.state.regular.tags.pubkeys).toEqual([scenario.winner]);
+	});
+
 	it('ignores old account and pre-optimistic decrypt completions', async () => {
 		const runtime = new RegularMuteRuntime();
 		activate(runtime, accountA);
