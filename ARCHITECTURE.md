@@ -63,6 +63,14 @@ Product behavior is organized by feature.
 
 State belongs to the feature or capability that owns its meaning. Being a Svelte store is not a reason to place state in a global store directory.
 
+### Reactive application state
+
+New feature-owned reactive application state should use Svelte runes in `.svelte.ts` modules by default. Do not choose a store solely because state is shared across components or modules.
+
+Use Svelte stores when the store contract itself is required, such as interoperability with store-based APIs, complex asynchronous data streams, or temporary compatibility with legacy consumers.
+
+When migrating legacy stores, keep store-based compatibility projections at the boundary instead of making them the source of truth for new application state.
+
 ### `embeds`
 
 Provider-specific semantics for embedding external services, such as recognizing and parsing supported URLs, normalizing provider-specific forms, generating embed URLs, and translating embed parameters.
