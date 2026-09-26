@@ -118,6 +118,44 @@ describe('regular mute runtime', () => {
 		expect(get(muteWords)).toEqual(['new']);
 	});
 
+	it('keeps canonical state after decrypt failure and allows the same event to be retried', async () => {
+		const remote = event('R', 2);
+		const first = deferredDecrypt();
+		const attempt = ingestRemoteMute(accountA, remote, first.decrypt);
+		const failure = new Error('temporary decrypt failure');
+		first.deferred.reject(failure);
+		await expect(attempt).rejects.toBe(failure);
+		expect(get(canonicalMuteState).event?.id).toBe('P');
+		expect(get(mutePubkeys)).toEqual(['public-P']);
+		expect(get(muteEventIds)).toEqual(['private-P']);
+
+		await ingestRemoteMute(accountA, remote, async () => [
+			[['word', 'retry succeeded']],
+			false
+		]);
+		expect(get(canonicalMuteState).event?.id).toBe('R');
+		expect(get(muteWords)).toEqual(['retry succeeded']);
+	});
+
+	it('does not clear a newer candidate or optimistic overlay when an older decrypt fails', async () => {
+		const r1 = deferredDecrypt();
+		const r2 = deferredDecrypt();
+		const first = ingestRemoteMute(accountA, event('R1', 2), r1.decrypt);
+		const second = ingestRemoteMute(accountA, event('R2', 3), r2.decrypt);
+		const token = startOptimisticMute(accountA, prepareMuteTags([['p', 'O']], accountA));
+		const failure = new Error('R1 decrypt failed');
+		r1.deferred.reject(failure);
+		await expect(first).rejects.toBe(failure);
+		expect(get(canonicalMuteState).event?.id).toBe('P');
+		expect(get(mutePubkeys)).toEqual(['O']);
+		r2.deferred.resolve([[['word', 'R2-private']], false]);
+		await second;
+		expect(get(canonicalMuteState).event?.id).toBe('R2');
+		expect(get(mutePubkeys)).toEqual(['O']);
+		clearOptimisticMute(accountA, token);
+		expect(get(mutePubkeys)).toEqual(['R2']);
+	});
+
 	it('clears only its own optimistic operation after a remote update', async () => {
 		const o1 = startOptimisticMute(accountA, prepareMuteTags([['p', 'O1']], accountA));
 		const remote = deferredDecrypt();
@@ -158,6 +196,28 @@ describe('regular mute runtime', () => {
 		next.deferred.resolve([[], false]);
 		await nextCompletion;
 		expect(get(muteEvent)).toBeUndefined();
+	});
+
+	it('does not clear another account candidate or reset state after an old decrypt fails', async () => {
+		const old = deferredDecrypt();
+		const first = ingestRemoteMute(accountA, event('R', 2), old.decrypt);
+		initialize(accountB);
+		const current = deferredDecrypt();
+		const second = ingestRemoteMute(accountB, event('B', 3, accountB), current.decrypt);
+		const failure = new Error('old account decrypt failed');
+		old.deferred.reject(failure);
+		await expect(first).rejects.toBe(failure);
+		current.deferred.resolve([[], false]);
+		await second;
+		expect(get(muteEvent)?.id).toBe('B');
+
+		const pending = deferredDecrypt();
+		const afterReset = ingestRemoteMute(accountB, event('B2', 4, accountB), pending.decrypt);
+		resetRegularMute();
+		pending.deferred.reject(failure);
+		await expect(afterReset).rejects.toBe(failure);
+		expect(get(muteEvent)).toBeUndefined();
+		expect(get(mutePubkeys)).toEqual([]);
 	});
 
 	it('does not replace live canonical with an older same-account initialization snapshot', async () => {

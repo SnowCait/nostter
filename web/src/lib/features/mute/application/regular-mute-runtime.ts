@@ -172,7 +172,16 @@ export async function ingestRemoteMute(
 		return;
 	const candidate = { event: copyEvent(event)!, identity: {} };
 	runtime.set({ ...current, candidate });
-	const prepared = await prepareRegularMuteStateFromEvent(event, owner, decrypt);
+	let prepared: RegularMuteState;
+	try {
+		prepared = await prepareRegularMuteStateFromEvent(event, owner, decrypt);
+	} catch (error) {
+		const latest = get(runtime);
+		if (latest.owner === owner && latest.candidate?.identity === candidate.identity) {
+			runtime.set({ ...latest, candidate: undefined });
+		}
+		throw error;
+	}
 	const latest = get(runtime);
 	if (
 		latest.owner !== owner ||
