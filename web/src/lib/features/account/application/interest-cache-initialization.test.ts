@@ -9,6 +9,8 @@ import { db } from '$lib/cache/db';
 import { accountAddressableEventCache } from '$lib/cache/Events';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { followingHashtags } from '$lib/Interest';
+import { regularMute } from '$lib/features/mute/application/regular-mute-state.svelte';
+import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
 import { prepareAccountState } from './prepare-account-state';
 import { applyAccountInitialization } from './apply-account-initialization';
 
@@ -31,11 +33,16 @@ function apply(pubkey: string, events: LoadedAccountEvents): void {
 	applyAccountInitialization(pubkey, {
 		followingPubkeys: [],
 		accountState: prepareAccountState(events),
-		muteState: { mute: { type: 'unchanged' }, mutedPubkeysByKind: new Map() }
+		muteState: {
+			mute: prepareRegularMuteState(undefined, pubkey),
+			baseline: regularMute.captureInitializationBaseline(),
+			mutedPubkeysByKind: new Map()
+		}
 	});
 }
 
 beforeEach(async () => {
+	regularMute.reset();
 	await accountAddressableEventCache.clear();
 	followingHashtags.set([]);
 });

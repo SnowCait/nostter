@@ -8,7 +8,6 @@ const target = 'c'.repeat(64);
 const mocks = vi.hoisted(() => ({
 	activeAccount: 'a'.repeat(64),
 	following: [] as string[],
-	mutedTags: [] as string[][],
 	get: vi.fn<(_pubkey: string, _kind: number) => Promise<Nostr.Event | undefined>>(
 		async () => undefined
 	),
@@ -16,9 +15,6 @@ const mocks = vi.hoisted(() => ({
 	send: vi.fn(() => of({ ok: true })),
 	updateFolloweesStore: vi.fn((tags: string[][]) => {
 		mocks.following = tags.filter(([name]) => name === 'p').map(([, pubkey]) => pubkey);
-	}),
-	storeMutedTags: vi.fn(async (tags: string[][]) => {
-		mocks.mutedTags = tags.map((tag) => [...tag]);
 	}),
 	fetchLastEvent: vi.fn<(_filter: unknown) => Promise<Nostr.Event | undefined>>(
 		async () => undefined
@@ -36,7 +32,6 @@ vi.mock('$lib/timelines/MainTimeline', () => ({
 }));
 vi.mock('$lib/timelines/HomeTimeline', () => ({ timeline: { subscribe: vi.fn() } }));
 vi.mock('$lib/Contacts', () => ({ updateFolloweesStore: mocks.updateFolloweesStore }));
-vi.mock('$lib/stores/Author', () => ({ storeMutedTags: mocks.storeMutedTags }));
 vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: mocks.fetchLastEvent }));
 vi.mock('$lib/auth.svelte', () => ({
 	auth: {
@@ -48,6 +43,8 @@ vi.mock('$lib/auth.svelte', () => ({
 
 import { follow } from './Follow';
 import { mute } from './Mute';
+import { regularMute } from '$lib/features/mute/application/regular-mute-state.svelte';
+import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
 
 function event(pubkey: string, kind: number, tags: string[][], createdAt = 1): Nostr.Event {
 	return {
@@ -94,7 +91,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	mocks.activeAccount = accountA;
 	mocks.following = [];
-	mocks.mutedTags = [];
+	regularMute.reset();
 	mocks.get.mockResolvedValue(undefined);
 	mocks.fetchLastEvent.mockResolvedValue(undefined);
 });
@@ -173,13 +170,21 @@ describe('mute publication', () => {
 		['p', 'private-old']
 	];
 	const optimisticTags = [...originalTags, ['p', target]];
+	const mutedTags = () => regularMute.state.regular.tags.pubkeys.map((pubkey) => ['p', pubkey]);
+	beforeEach(() => {
+		regularMute.applySnapshot(
+			accountA,
+			prepareRegularMuteState(cached, accountA, [['p', 'private-old']]),
+			regularMute.captureInitializationBaseline()
+		);
+	});
 
 	it('updates muted tags before relay validation completes', async () => {
 		mocks.get.mockResolvedValue(cached);
 		const validation = pendingValidation();
 		const publication = mute(muteCapabilities(), 'p', target);
 		await validation.entered;
-		expect(mocks.mutedTags).toEqual(optimisticTags);
+		expect(mutedTags()).toEqual(optimisticTags);
 		validation.resolve(cached);
 		await publication;
 	});
@@ -189,10 +194,38 @@ describe('mute publication', () => {
 		const validation = pendingValidation();
 		const publication = mute(muteCapabilities(), 'p', target);
 		await validation.entered;
-		expect(mocks.mutedTags).toEqual(optimisticTags);
+		expect(mutedTags()).toEqual(optimisticTags);
 		validation.resolve(event(accountA, 10000, [], 2));
 		await expect(publication).rejects.toThrow('Cache is outdated.');
-		expect(mocks.mutedTags).toEqual(originalTags);
+		expect(mutedTags()).toEqual(originalTags);
+	});
+
+	it('keeps a remote decrypt started after the optimistic update when validation fails', async () => {
+		mocks.get.mockResolvedValue(cached);
+		const validation = pendingValidation();
+		const publication = mute(muteCapabilities(), 'p', target);
+		await validation.entered;
+		const remote = event(accountA, 10000, [['p', 'remote']], 3);
+		const decrypt = Promise.withResolvers<[string[][], boolean]>();
+		const pending = regularMute.ingestEvent(accountA, remote, () => decrypt.promise);
+		validation.resolve(event(accountA, 10000, [], 2));
+		await expect(publication).rejects.toThrow('Cache is outdated.');
+		expect(mutedTags()).toEqual(originalTags);
+		decrypt.resolve([[], false]);
+		await pending;
+		expect(regularMute.state.regular.event).toBe(remote);
+		expect(mutedTags()).toEqual([['p', 'remote']]);
+	});
+
+	it('does not roll back a newer local update after validation failure', async () => {
+		mocks.get.mockResolvedValue(cached);
+		const validation = pendingValidation();
+		const publication = mute(muteCapabilities(), 'p', target);
+		await validation.entered;
+		regularMute.replaceTags(accountA, [['p', 'newer-local']]);
+		validation.resolve(event(accountA, 10000, [], 2));
+		await expect(publication).rejects.toThrow('Cache is outdated.');
+		expect(mutedTags()).toEqual([['p', 'newer-local']]);
 	});
 
 	it('does not roll back the next account after validation failure', async () => {
@@ -200,12 +233,16 @@ describe('mute publication', () => {
 		const validation = pendingValidation();
 		const publication = mute(muteCapabilities(), 'p', target);
 		await validation.entered;
-		expect(mocks.mutedTags).toEqual(optimisticTags);
+		expect(mutedTags()).toEqual(optimisticTags);
 		mocks.activeAccount = accountB;
-		mocks.mutedTags = [['p', 'b-own']];
+		regularMute.applySnapshot(
+			accountB,
+			prepareRegularMuteState(event(accountB, 10000, [['p', 'b-own']]), accountB),
+			regularMute.captureInitializationBaseline()
+		);
 		validation.resolve(event(accountA, 10000, [], 2));
 		await expect(publication).rejects.toThrow('Cache is outdated.');
-		expect(mocks.mutedTags).toEqual([['p', 'b-own']]);
+		expect(mutedTags()).toEqual([['p', 'b-own']]);
 	});
 
 	it('does not apply an old account update after cache loading', async () => {
@@ -214,13 +251,17 @@ describe('mute publication', () => {
 		const validation = pendingValidation();
 		const publication = mute(muteCapabilities(), 'p', target);
 		mocks.activeAccount = accountB;
-		mocks.mutedTags = [['p', 'b-own']];
+		regularMute.applySnapshot(
+			accountB,
+			prepareRegularMuteState(event(accountB, 10000, [['p', 'b-own']]), accountB),
+			regularMute.captureInitializationBaseline()
+		);
 		loaded.resolve(cached);
 		await validation.entered;
-		expect(mocks.mutedTags).toEqual([['p', 'b-own']]);
+		expect(mutedTags()).toEqual([['p', 'b-own']]);
 		validation.resolve(event(accountA, 10000, [], 2));
 		await expect(publication).rejects.toThrow('Cache is outdated.');
-		expect(mocks.mutedTags).toEqual([['p', 'b-own']]);
+		expect(mutedTags()).toEqual([['p', 'b-own']]);
 	});
 
 	it('rolls back a signer account mismatch without cache or relay writes', async () => {
@@ -228,11 +269,105 @@ describe('mute publication', () => {
 		const validation = pendingValidation();
 		const publication = mute(muteCapabilities(accountB), 'p', target);
 		await validation.entered;
-		expect(mocks.mutedTags).toEqual(optimisticTags);
+		expect(mutedTags()).toEqual(optimisticTags);
 		validation.resolve(cached);
 		await expect(publication).rejects.toThrow('publication account');
-		expect(mocks.mutedTags).toEqual(originalTags);
+		expect(mutedTags()).toEqual(originalTags);
 		expect(mocks.cacheAccountEvent).not.toHaveBeenCalled();
 		expect(mocks.send).not.toHaveBeenCalled();
+	});
+
+	it('keeps a remote decrypt started after the optimistic update when signer ownership fails', async () => {
+		mocks.get.mockResolvedValue(cached);
+		const validation = pendingValidation();
+		const publication = mute(muteCapabilities(accountB), 'p', target);
+		await validation.entered;
+		const remote = event(accountA, 10000, [['p', 'remote']], 3);
+		const decrypt = Promise.withResolvers<[string[][], boolean]>();
+		const pending = regularMute.ingestEvent(accountA, remote, () => decrypt.promise);
+		validation.resolve(cached);
+		await expect(publication).rejects.toThrow('publication account');
+		expect(mutedTags()).toEqual(originalTags);
+		decrypt.resolve([[], false]);
+		await pending;
+		expect(regularMute.state.regular.event).toBe(remote);
+		expect(mutedTags()).toEqual([['p', 'remote']]);
+	});
+
+	it('does not roll back a newer update when signer ownership fails', async () => {
+		mocks.get.mockResolvedValue(cached);
+		const validation = pendingValidation();
+		const signed = Promise.withResolvers<Nostr.Event>();
+		const signing = Promise.withResolvers<void>();
+		const capabilities = muteCapabilities();
+		capabilities.signEvent.mockImplementation(() => {
+			signing.resolve();
+			return signed.promise;
+		});
+		const publication = mute(capabilities, 'p', target);
+		await validation.entered;
+		validation.resolve(cached);
+		await signing.promise;
+		regularMute.replaceTags(accountA, [['p', 'newer-local']]);
+		signed.resolve(event(accountB, 10000, []));
+		await expect(publication).rejects.toThrow('publication account');
+		expect(mutedTags()).toEqual([['p', 'newer-local']]);
+		expect(mocks.cacheAccountEvent).not.toHaveBeenCalled();
+		expect(mocks.send).not.toHaveBeenCalled();
+	});
+
+	it('completes the signed event using available private tags without self-decryption', async () => {
+		mocks.get.mockResolvedValue(cached);
+		mocks.fetchLastEvent.mockResolvedValue(cached);
+		const capabilities = muteCapabilities();
+		const decrypt = vi.spyOn(capabilities.nip44, 'decrypt');
+		await mute(capabilities, 'p', target);
+		expect(regularMute.state.regular.event?.id).toBe('signed');
+		expect(mutedTags()).toEqual(optimisticTags);
+		expect(decrypt).toHaveBeenCalledTimes(1);
+	});
+
+	it('does not complete a local event rejected by the account cache over a pending remote', async () => {
+		const remote = event(accountA, 10000, [['p', 'remote']], 3);
+		mocks.get.mockResolvedValueOnce(cached).mockResolvedValue(remote);
+		mocks.cacheAccountEvent.mockResolvedValue(false);
+		const validation = pendingValidation();
+		const capabilities = muteCapabilities();
+		capabilities.signEvent.mockImplementation(async (unsigned) => ({
+			...unsigned,
+			id: 'local',
+			created_at: 2,
+			pubkey: accountA,
+			sig: 'sig'
+		}));
+		const publication = mute(capabilities, 'p', target);
+		await validation.entered;
+		const decrypt = Promise.withResolvers<[string[][], boolean]>();
+		const pending = regularMute.ingestEvent(accountA, remote, () => decrypt.promise);
+		validation.resolve(cached);
+		await publication;
+		expect(regularMute.state.regular.event).toBe(cached);
+		decrypt.resolve([[], false]);
+		await pending;
+		expect(regularMute.state.regular.event).toBe(remote);
+		expect(mutedTags()).toEqual([['p', 'remote']]);
+		expect(mocks.send).toHaveBeenCalledOnce();
+	});
+
+	it('completes a local event already present in the account cache', async () => {
+		mocks.get.mockResolvedValueOnce(cached).mockResolvedValue(event(accountA, 10000, [], 2));
+		mocks.cacheAccountEvent.mockResolvedValue(false);
+		mocks.fetchLastEvent.mockResolvedValue(cached);
+		const capabilities = muteCapabilities();
+		capabilities.signEvent.mockImplementation(async (unsigned) => ({
+			...unsigned,
+			id: 'event-2',
+			created_at: 2,
+			pubkey: accountA,
+			sig: 'sig'
+		}));
+		await mute(capabilities, 'p', target);
+		expect(regularMute.state.regular.event?.id).toBe('event-2');
+		expect(mutedTags()).toEqual(optimisticTags);
 	});
 });

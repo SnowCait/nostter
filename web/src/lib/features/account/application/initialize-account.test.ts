@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { authorProfile, muteEvent, mutePubkeys } from '$lib/stores/Author';
+import { regularMute } from '$lib/features/mute/application/regular-mute-state.svelte';
+import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
 import type { User } from '../../../../routes/types';
 
 const { fetchRelays, fetchEvents, loadMetadata, prune } = vi.hoisted(() => ({
@@ -46,8 +48,13 @@ beforeEach(() => {
 		parameterizedReplaceableEvents: new Map()
 	});
 	authorProfile.set({ name: 'existing' } as User);
-	muteEvent.set(undefined);
-	mutePubkeys.set(['existing-muted']);
+	regularMute.reset();
+	regularMute.applySnapshot(
+		me,
+		prepareRegularMuteState(undefined, me),
+		regularMute.captureInitializationBaseline()
+	);
+	regularMute.replaceTags(me, [['p', 'existing-muted']]);
 });
 
 describe('prepareAccountInitialization', () => {
@@ -96,7 +103,7 @@ describe('prepareAccountInitialization', () => {
 
 		const prepared = await preparation;
 		expect(prepared.followingPubkeys).toEqual([followee]);
-		expect(prepared.muteState.mute).toMatchObject({ type: 'apply', event: mute });
+		expect(prepared.muteState.mute).toMatchObject({ event: mute });
 		expect(prune).toHaveBeenCalledWith([followee, me]);
 	});
 
@@ -112,5 +119,23 @@ describe('prepareAccountInitialization', () => {
 		expect(get(muteEvent)).toBeUndefined();
 		expect(get(mutePubkeys)).toEqual(['existing-muted']);
 		expect(loadMetadata).not.toHaveBeenCalled();
+	});
+
+	it('captures the mute baseline before decrypt so a later local update survives the snapshot', async () => {
+		const entered = Promise.withResolvers<void>();
+		const decrypt = Promise.withResolvers<[string[][], boolean]>();
+		const preparation = (await import('./initialize-account')).prepareAccountInitialization(
+			me,
+			() => {
+				entered.resolve();
+				return decrypt.promise;
+			}
+		);
+		await entered.promise;
+		regularMute.replaceTags(me, [['p', 'local']]);
+		decrypt.resolve([[['p', 'remote']], false]);
+		const prepared = await preparation;
+		regularMute.applySnapshot(me, prepared.muteState.mute, prepared.muteState.baseline);
+		expect(regularMute.state.regular.tags.pubkeys).toEqual(['local']);
 	});
 });

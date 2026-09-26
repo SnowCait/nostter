@@ -1,4 +1,4 @@
-import { get, writable, type Writable } from 'svelte/store';
+import { get, writable, type Readable, type Writable } from 'svelte/store';
 import escapeStringRegexp from 'escape-string-regexp';
 import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
@@ -7,19 +7,28 @@ import { getZapSenderPubkey } from '$lib/nostr/protocol/nip57';
 import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 import type { ListContentDecrypter } from '$lib/List';
 import { auth } from '$lib/auth.svelte';
-import {
-	prepareRegularMuteStateFromEvent,
-	prepareKindMuteStates
-} from '$lib/features/mute/application/prepare-mute-state';
-import { prepareMuteTags, type PreparedMuteTags } from '$lib/features/mute/domain/mute-state';
+import { prepareKindMuteStates } from '$lib/features/mute/application/prepare-mute-state';
+import { regularMute } from '$lib/features/mute/application/regular-mute-state.svelte';
 
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
-export const muteEvent = writable<Event | undefined>();
-export const mutePubkeys: Writable<string[]> = writable([]);
+function projectRegularMute<T>(project: () => T): Readable<T> {
+	return {
+		subscribe(run) {
+			run(project());
+			return regularMute.subscribe(() => run(project()));
+		}
+	};
+}
+
+export const muteEvent = projectRegularMute(() => {
+	const event = regularMute.state.regular.event;
+	return event === undefined ? undefined : { ...event, tags: event.tags.map((tag) => [...tag]) };
+});
+export const mutePubkeys = projectRegularMute(() => [...regularMute.state.regular.tags.pubkeys]);
 export const mutedPubkeysByKindMap = writable(new Map<number, Set<string>>());
-export const muteEventIds: Writable<string[]> = writable([]);
-export const muteWords: Writable<string[]> = writable([]);
+export const muteEventIds = projectRegularMute(() => [...regularMute.state.regular.tags.eventIds]);
+export const muteWords = projectRegularMute(() => [...regularMute.state.regular.tags.words]);
 export const pinNotes: Writable<string[]> = writable([]);
 export const readRelays: Writable<string[]> = writable(
 	defaultRelays.filter((relay) => relay.read).map((relay) => relay.url)
@@ -27,10 +36,10 @@ export const readRelays: Writable<string[]> = writable(
 export const writeRelays: Writable<string[]> = writable(
 	defaultRelays.filter((relay) => relay.write).map((relay) => relay.url)
 );
-let mutePubkeysSetRef: string[] | undefined;
+let mutePubkeysSetRef: readonly string[] | undefined;
 let mutePubkeysSet = new Set<string>();
 const getMutePubkeysSet = (): Set<string> => {
-	const $mutePubkeys = get(mutePubkeys);
+	const $mutePubkeys = regularMute.state.regular.tags.pubkeys;
 	if ($mutePubkeys !== mutePubkeysSetRef) {
 		mutePubkeysSetRef = $mutePubkeys;
 		mutePubkeysSet = new Set($mutePubkeys);
@@ -38,10 +47,10 @@ const getMutePubkeysSet = (): Set<string> => {
 	return mutePubkeysSet;
 };
 
-let muteEventIdsSetRef: string[] | undefined;
+let muteEventIdsSetRef: readonly string[] | undefined;
 let muteEventIdsSet = new Set<string>();
 const getMuteEventIdsSet = (): Set<string> => {
-	const $muteEventIds = get(muteEventIds);
+	const $muteEventIds = regularMute.state.regular.tags.eventIds;
 	if ($muteEventIds !== muteEventIdsSetRef) {
 		muteEventIdsSetRef = $muteEventIds;
 		muteEventIdsSet = new Set($muteEventIds);
@@ -49,10 +58,10 @@ const getMuteEventIdsSet = (): Set<string> => {
 	return muteEventIdsSet;
 };
 
-let muteWordsRegExpRef: string[] | undefined;
+let muteWordsRegExpRef: readonly string[] | undefined;
 let muteWordsRegExp: RegExp | undefined;
 const getMuteWordsRegExp = (): RegExp | undefined => {
-	const $muteWords = get(muteWords);
+	const $muteWords = regularMute.state.regular.tags.words;
 	if ($muteWords !== muteWordsRegExpRef) {
 		muteWordsRegExpRef = $muteWords;
 		muteWordsRegExp =
@@ -115,43 +124,6 @@ export const updateRelays = (event: Event) => {
 	readRelays.set([...new Set(getReadRelays(entries))]);
 	writeRelays.set([...new Set(getWriteRelays(entries))]);
 	console.debug('[relays after]', get(readRelays), get(writeRelays));
-};
-
-export const storeMutedTagsByEvent = async (
-	event: Event,
-	accountPubkey: string,
-	decryptPrivateListContent?: ListContentDecrypter
-): Promise<void> => {
-	const $muteEvent = get(muteEvent);
-	if ($muteEvent !== undefined && event.created_at <= $muteEvent.created_at) {
-		return;
-	}
-	muteEvent.set(event);
-	const prepared = await prepareRegularMuteStateFromEvent(
-		event,
-		accountPubkey,
-		decryptPrivateListContent
-	);
-	applyMuteTags(prepared.tags);
-};
-
-export const storeMutedTags = async (tags: string[][], accountPubkey: string): Promise<void> => {
-	applyMuteTags(prepareMuteTags(tags, accountPubkey));
-};
-
-export const applyMuteTags = (state: PreparedMuteTags): void => {
-	mutePubkeys.set([...state.pubkeys]);
-	muteEventIds.set([...state.eventIds]);
-	muteWords.set([...state.words]);
-	console.log(
-		'[mute lists]',
-		'p',
-		get(mutePubkeys),
-		'e',
-		get(muteEventIds),
-		'word',
-		get(muteWords)
-	);
 };
 
 export const storeMutedPubkeysByKind = async (
