@@ -1,15 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { of } from 'rxjs';
-import { get } from 'svelte/store';
 import {
 	applyRegularMuteInitialization,
-	canonicalMuteState,
+	getCanonicalMuteState,
 	ingestRemoteMute,
-	muteEvent,
-	mutePubkeys,
+	getCanonicalMuteEvent,
+	getEffectiveMuteTags,
 	regularMuteRevision,
 	resetRegularMute
-} from '$lib/features/mute/application/regular-mute-runtime';
+} from '$lib/features/mute/application/regular-mute-runtime.svelte';
 import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
 import type * as Nostr from 'nostr-typedef';
 
@@ -185,8 +184,8 @@ describe('mute publication', () => {
 		const validation = pendingValidation();
 		const publication = mute(muteCapabilities(), 'p', target);
 		await validation.entered;
-		expect(get(mutePubkeys)).toEqual(['public-old', 'private-old', target]);
-		expect(get(canonicalMuteState)).toEqual(oldState);
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['public-old', 'private-old', target]);
+		expect(getCanonicalMuteState()).toEqual(oldState);
 		expect(mocks.cacheAccountEvent).not.toHaveBeenCalled();
 		validation.resolve(cached);
 		await publication;
@@ -199,11 +198,11 @@ describe('mute publication', () => {
 		await validation.entered;
 		const remote = event(accountA, 10000, [['p', 'remote']], 2);
 		await ingestRemoteMute(accountA, remote, async () => [[], false]);
-		expect(get(mutePubkeys)).toEqual(['public-old', 'private-old', target]);
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['public-old', 'private-old', target]);
 		validation.resolve(remote);
 		await expect(publication).rejects.toThrow('Cache is outdated.');
-		expect(get(mutePubkeys)).toEqual(['remote']);
-		expect(get(muteEvent)?.id).toBe(remote.id);
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['remote']);
+		expect(getCanonicalMuteEvent()?.id).toBe(remote.id);
 		expect(mocks.cacheAccountEvent).not.toHaveBeenCalled();
 	});
 
@@ -220,7 +219,7 @@ describe('mute publication', () => {
 		);
 		validation.resolve(event(accountA, 10000, [], 2));
 		await expect(publication).rejects.toThrow('Cache is outdated.');
-		expect(get(mutePubkeys)).toEqual([]);
+		expect(getEffectiveMuteTags().pubkeys).toEqual([]);
 	});
 
 	it('does not apply an old account update after cache loading', async () => {
@@ -236,7 +235,7 @@ describe('mute publication', () => {
 		);
 		loaded.resolve(cached);
 		await validation.entered;
-		expect(get(mutePubkeys)).toEqual([]);
+		expect(getEffectiveMuteTags().pubkeys).toEqual([]);
 		validation.resolve(event(accountA, 10000, [], 2));
 		await expect(publication).rejects.toThrow('Cache is outdated.');
 	});
@@ -248,7 +247,7 @@ describe('mute publication', () => {
 		await validation.entered;
 		validation.resolve(cached);
 		await expect(publication).rejects.toThrow('publication account');
-		expect(get(mutePubkeys)).toEqual(['public-old', 'private-old']);
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['public-old', 'private-old']);
 		expect(mocks.cacheAccountEvent).not.toHaveBeenCalled();
 		expect(mocks.send).not.toHaveBeenCalled();
 	});
@@ -257,9 +256,9 @@ describe('mute publication', () => {
 		mocks.get.mockResolvedValue(cached);
 		await mute(muteCapabilities(), 'p', target);
 		expect(mocks.cacheAccountEvent).toHaveBeenCalledOnce();
-		expect(get(muteEvent)?.id).toBe('signed');
-		expect(get(mutePubkeys)).toEqual(['public-old', 'private-old', target]);
-		expect(get(canonicalMuteState).tags.pubkeys).toEqual(['public-old', 'private-old', target]);
+		expect(getCanonicalMuteEvent()?.id).toBe('signed');
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['public-old', 'private-old', target]);
+		expect(getCanonicalMuteState().tags.pubkeys).toEqual(['public-old', 'private-old', target]);
 	});
 
 	it('does not complete a cache rejected signed event over a newer current event', async () => {
@@ -267,16 +266,16 @@ describe('mute publication', () => {
 		mocks.get.mockResolvedValueOnce(cached).mockResolvedValueOnce(newer);
 		mocks.cacheAccountEvent.mockResolvedValueOnce(false);
 		await mute(muteCapabilities(), 'p', target);
-		expect(get(muteEvent)?.id).toBe(cached.id);
-		expect(get(mutePubkeys)).toEqual(['public-old', 'private-old']);
+		expect(getCanonicalMuteEvent()?.id).toBe(cached.id);
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['public-old', 'private-old']);
 	});
 
 	it('completes a cache rejected signed event when it is already current', async () => {
 		mocks.get.mockResolvedValueOnce(cached).mockResolvedValueOnce({ ...cached, id: 'signed' });
 		mocks.cacheAccountEvent.mockResolvedValueOnce(false);
 		await mute(muteCapabilities(), 'p', target);
-		expect(get(muteEvent)?.id).toBe('signed');
-		expect(get(mutePubkeys)).toEqual(['public-old', 'private-old', target]);
+		expect(getCanonicalMuteEvent()?.id).toBe('signed');
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['public-old', 'private-old', target]);
 	});
 
 	it('preserves a pending remote candidate after a cache rejection', async () => {
@@ -286,9 +285,9 @@ describe('mute publication', () => {
 		mocks.get.mockResolvedValueOnce(cached).mockResolvedValueOnce(remote);
 		mocks.cacheAccountEvent.mockResolvedValueOnce(false);
 		await mute(muteCapabilities(), 'p', target);
-		expect(get(mutePubkeys)).toEqual(['public-old', 'private-old']);
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['public-old', 'private-old']);
 		decrypt.resolve([[], false]);
 		await completion;
-		expect(get(mutePubkeys)).toEqual(['remote']);
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['remote']);
 	});
 });

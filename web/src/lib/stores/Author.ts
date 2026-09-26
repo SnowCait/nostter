@@ -1,5 +1,4 @@
-import { get, writable, type Writable } from 'svelte/store';
-import escapeStringRegexp from 'escape-string-regexp';
+import { get, toStore, writable, type Writable } from 'svelte/store';
 import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
 import { defaultRelays } from '$lib/Constants';
@@ -9,13 +8,17 @@ import { auth } from '$lib/auth.svelte';
 import type { ListContentDecrypter } from '$lib/List';
 import { prepareKindMuteStates } from '$lib/features/mute/application/prepare-mute-state';
 import {
-	muteEvent,
-	mutePubkeys,
-	muteEventIds,
-	muteWords
-} from '$lib/features/mute/application/regular-mute-runtime';
+	getCanonicalMuteEvent,
+	getEffectiveMuteTags,
+	isRegularMutedEventId,
+	isRegularMutedPubkey,
+	isRegularMutedWord
+} from '$lib/features/mute/application/regular-mute-runtime.svelte';
 
-export { muteEvent, mutePubkeys, muteEventIds, muteWords };
+export const muteEvent = toStore(getCanonicalMuteEvent);
+export const mutePubkeys = toStore(() => [...getEffectiveMuteTags().pubkeys]);
+export const muteEventIds = toStore(() => [...getEffectiveMuteTags().eventIds]);
+export const muteWords = toStore(() => [...getEffectiveMuteTags().words]);
 
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
@@ -27,46 +30,7 @@ export const readRelays: Writable<string[]> = writable(
 export const writeRelays: Writable<string[]> = writable(
 	defaultRelays.filter((relay) => relay.write).map((relay) => relay.url)
 );
-let mutePubkeysSetRef: string[] | undefined;
-let mutePubkeysSet = new Set<string>();
-const getMutePubkeysSet = (): Set<string> => {
-	const $mutePubkeys = get(mutePubkeys);
-	if ($mutePubkeys !== mutePubkeysSetRef) {
-		mutePubkeysSetRef = $mutePubkeys;
-		mutePubkeysSet = new Set($mutePubkeys);
-	}
-	return mutePubkeysSet;
-};
-
-let muteEventIdsSetRef: string[] | undefined;
-let muteEventIdsSet = new Set<string>();
-const getMuteEventIdsSet = (): Set<string> => {
-	const $muteEventIds = get(muteEventIds);
-	if ($muteEventIds !== muteEventIdsSetRef) {
-		muteEventIdsSetRef = $muteEventIds;
-		muteEventIdsSet = new Set($muteEventIds);
-	}
-	return muteEventIdsSet;
-};
-
-let muteWordsRegExpRef: string[] | undefined;
-let muteWordsRegExp: RegExp | undefined;
-const getMuteWordsRegExp = (): RegExp | undefined => {
-	const $muteWords = get(muteWords);
-	if ($muteWords !== muteWordsRegExpRef) {
-		muteWordsRegExpRef = $muteWords;
-		muteWordsRegExp =
-			$muteWords.length > 0
-				? new RegExp(
-						`(${$muteWords.map((word) => escapeStringRegexp(word)).join('|')})`,
-						'i'
-					)
-				: undefined;
-	}
-	return muteWordsRegExp;
-};
-
-export const isMutePubkey = (pubkey: string) => getMutePubkeysSet().has(pubkey);
+export const isMutePubkey = (pubkey: string) => isRegularMutedPubkey(pubkey);
 export const isMuteEvent = (event: Event) => {
 	// Avoid being muted if content contains muted words
 	if (event.pubkey === auth.pubkey) {
@@ -100,13 +64,14 @@ export const isMuteEvent = (event: Event) => {
 		}
 	}
 
-	const muteWordsPattern = getMuteWordsRegExp();
-	if (muteWordsPattern !== undefined && muteWordsPattern.test(event.content)) {
+	if (isRegularMutedWord(event.content)) {
 		return true;
 	}
 
-	const ids = getMuteEventIdsSet();
-	return ids.has(event.id) || event.tags.some(([tagName, id]) => tagName === 'e' && ids.has(id));
+	return (
+		isRegularMutedEventId(event.id) ||
+		event.tags.some(([tagName, id]) => tagName === 'e' && isRegularMutedEventId(id))
+	);
 };
 
 export const updateRelays = (event: Event) => {

@@ -7,7 +7,7 @@ import {
 	clearOptimisticMute,
 	completeLocalMute,
 	startOptimisticMute
-} from '$lib/features/mute/application/regular-mute-runtime';
+} from '$lib/features/mute/application/regular-mute-runtime.svelte';
 import { prepareMuteTags } from '$lib/features/mute/domain/mute-state';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';

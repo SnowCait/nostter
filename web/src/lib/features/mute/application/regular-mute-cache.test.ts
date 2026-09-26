@@ -1,18 +1,17 @@
 import 'fake-indexeddb/auto';
 import { afterAll, beforeEach, expect, it } from 'vitest';
-import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
 import { accountAddressableEventCache } from '$lib/cache/Events';
 import { db } from '$lib/cache/db';
 import { prepareMuteTags, prepareRegularMuteState } from '../domain/mute-state';
 import {
 	applyRegularMuteInitialization,
-	canonicalMuteState,
-	mutePubkeys,
+	getCanonicalMuteState,
+	getEffectiveMuteTags,
 	regularMuteRevision,
 	resetRegularMute,
 	startOptimisticMute
-} from './regular-mute-runtime';
+} from './regular-mute-runtime.svelte';
 
 const owner = 'a'.repeat(64);
 const persisted = {
@@ -50,7 +49,7 @@ it('keeps optimistic mute only in memory while IndexedDB and canonical retain th
 			owner
 		)
 	);
-	expect(get(mutePubkeys)).toEqual(['persisted', 'optimistic']);
-	expect(get(canonicalMuteState).tags.pubkeys).toEqual(['persisted']);
+	expect(getEffectiveMuteTags().pubkeys).toEqual(['persisted', 'optimistic']);
+	expect(getCanonicalMuteState().tags.pubkeys).toEqual(['persisted']);
 	expect(await accountAddressableEventCache.get(owner, 10000)).toEqual(persisted);
 });

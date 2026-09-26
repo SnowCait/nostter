@@ -47,7 +47,7 @@ import {
 } from '$lib/Constants';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
 import { updateRelays, storeMutedPubkeysByKind } from '../stores/Author';
-import { ingestRemoteMute } from '$lib/features/mute/application/regular-mute-runtime';
+import { ingestRemoteMute } from '$lib/features/mute/application/regular-mute-runtime.svelte';
 import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { saveLastNote } from '../stores/LastNotes';
 import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';

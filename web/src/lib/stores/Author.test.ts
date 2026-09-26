@@ -1,11 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
-import { mutedPubkeysByKindMap, storeMutedPubkeysByKind } from './Author';
+import {
+	muteEvent,
+	muteEventIds,
+	mutePubkeys,
+	muteWords,
+	mutedPubkeysByKindMap,
+	storeMutedPubkeysByKind
+} from './Author';
 
 beforeEach(() => {
 	vi.resetAllMocks();
 	mutedPubkeysByKindMap.set(new Map());
+});
+
+describe('regular mute compatibility projections', () => {
+	it('exposes read-only Stores', () => {
+		for (const store of [muteEvent, mutePubkeys, muteEventIds, muteWords]) {
+			expect('set' in store).toBe(false);
+			expect('update' in store).toBe(false);
+		}
+	});
 });
 
 describe('kind mute state', () => {

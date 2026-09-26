@@ -1,5 +1,5 @@
 import { Author } from '$lib/Author';
-import { regularMuteRevision } from '$lib/features/mute/application/regular-mute-runtime';
+import { regularMuteRevision } from '$lib/features/mute/application/regular-mute-runtime.svelte';
 import {
 	prepareRegularMuteStateFromEvent,
 	prepareKindMuteStates

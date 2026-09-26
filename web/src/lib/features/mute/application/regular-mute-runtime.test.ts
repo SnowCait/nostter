@@ -1,22 +1,19 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
 import { prepareMuteTags, prepareRegularMuteState } from '../domain/mute-state';
 import { isMuteEvent } from '$lib/stores/Author';
 import {
 	applyRegularMuteInitialization,
-	canonicalMuteState,
+	getCanonicalMuteState,
 	clearOptimisticMute,
 	completeLocalMute,
 	ingestRemoteMute,
-	muteEvent,
-	muteEventIds,
-	mutePubkeys,
-	muteWords,
+	getCanonicalMuteEvent,
+	getEffectiveMuteTags,
 	regularMuteRevision,
 	resetRegularMute,
 	startOptimisticMute
-} from './regular-mute-runtime';
+} from './regular-mute-runtime.svelte';
 
 const accountA = 'a'.repeat(64);
 const accountB = 'b'.repeat(64);
@@ -57,20 +54,20 @@ describe('regular mute runtime', () => {
 				accountA
 			)
 		);
-		expect(get(canonicalMuteState).tags).toEqual({
+		expect(getCanonicalMuteState().tags).toEqual({
 			pubkeys: ['public-P'],
 			eventIds: ['private-P'],
 			words: []
 		});
-		expect(get(muteEvent)?.id).toBe('P');
-		expect(get(mutePubkeys)).toEqual(['O']);
-		expect(get(muteEventIds)).toEqual([]);
-		expect(get(muteWords)).toEqual(['O-word']);
-		get(mutePubkeys).push('mutated');
-		get(muteEvent)?.tags.push(['p', 'mutated']);
-		expect(get(canonicalMuteState).event?.tags).toEqual([['p', 'public-P']]);
+		expect(getCanonicalMuteEvent()?.id).toBe('P');
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['O']);
+		expect(getEffectiveMuteTags().eventIds).toEqual([]);
+		expect(getEffectiveMuteTags().words).toEqual(['O-word']);
+		(getEffectiveMuteTags().pubkeys as string[]).push('mutated');
+		getCanonicalMuteEvent()?.tags.push(['p', 'mutated']);
+		expect(getCanonicalMuteState().event?.tags).toEqual([['p', 'public-P']]);
 		clearOptimisticMute(accountA, token);
-		expect(get(mutePubkeys)).toEqual(['public-P']);
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['public-P']);
 	});
 
 	it('uses effective optimistic tags when checking whether an event is muted', () => {
@@ -96,11 +93,11 @@ describe('regular mute runtime', () => {
 				token ?? startOptimisticMute(accountA, prepareMuteTags([['p', 'O']], accountA));
 			deferred.resolve([[['e', 'R-private']], false]);
 			await completion;
-			expect(get(canonicalMuteState).event?.id).toBe('R');
-			expect(get(canonicalMuteState).tags.eventIds).toEqual(['R-private']);
-			expect(get(mutePubkeys)).toEqual(['O']);
+			expect(getCanonicalMuteState().event?.id).toBe('R');
+			expect(getCanonicalMuteState().tags.eventIds).toEqual(['R-private']);
+			expect(getEffectiveMuteTags().pubkeys).toEqual(['O']);
 			clearOptimisticMute(accountA, currentToken);
-			expect(get(mutePubkeys)).toEqual(['R']);
+			expect(getEffectiveMuteTags().pubkeys).toEqual(['R']);
 		}
 	);
 
@@ -111,11 +108,11 @@ describe('regular mute runtime', () => {
 		const p2 = ingestRemoteMute(accountA, event('R2', 3), r2.decrypt);
 		r1.deferred.resolve([[['word', 'old']], false]);
 		await p1;
-		expect(get(muteEvent)?.id).toBe('P');
+		expect(getCanonicalMuteEvent()?.id).toBe('P');
 		r2.deferred.resolve([[['word', 'new']], false]);
 		await p2;
-		expect(get(muteEvent)?.id).toBe('R2');
-		expect(get(muteWords)).toEqual(['new']);
+		expect(getCanonicalMuteEvent()?.id).toBe('R2');
+		expect(getEffectiveMuteTags().words).toEqual(['new']);
 	});
 
 	it('keeps canonical state after decrypt failure and allows the same event to be retried', async () => {
@@ -125,16 +122,16 @@ describe('regular mute runtime', () => {
 		const failure = new Error('temporary decrypt failure');
 		first.deferred.reject(failure);
 		await expect(attempt).rejects.toBe(failure);
-		expect(get(canonicalMuteState).event?.id).toBe('P');
-		expect(get(mutePubkeys)).toEqual(['public-P']);
-		expect(get(muteEventIds)).toEqual(['private-P']);
+		expect(getCanonicalMuteState().event?.id).toBe('P');
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['public-P']);
+		expect(getEffectiveMuteTags().eventIds).toEqual(['private-P']);
 
 		await ingestRemoteMute(accountA, remote, async () => [
 			[['word', 'retry succeeded']],
 			false
 		]);
-		expect(get(canonicalMuteState).event?.id).toBe('R');
-		expect(get(muteWords)).toEqual(['retry succeeded']);
+		expect(getCanonicalMuteState().event?.id).toBe('R');
+		expect(getEffectiveMuteTags().words).toEqual(['retry succeeded']);
 	});
 
 	it('does not clear a newer candidate or optimistic overlay when an older decrypt fails', async () => {
@@ -146,14 +143,14 @@ describe('regular mute runtime', () => {
 		const failure = new Error('R1 decrypt failed');
 		r1.deferred.reject(failure);
 		await expect(first).rejects.toBe(failure);
-		expect(get(canonicalMuteState).event?.id).toBe('P');
-		expect(get(mutePubkeys)).toEqual(['O']);
+		expect(getCanonicalMuteState().event?.id).toBe('P');
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['O']);
 		r2.deferred.resolve([[['word', 'R2-private']], false]);
 		await second;
-		expect(get(canonicalMuteState).event?.id).toBe('R2');
-		expect(get(mutePubkeys)).toEqual(['O']);
+		expect(getCanonicalMuteState().event?.id).toBe('R2');
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['O']);
 		clearOptimisticMute(accountA, token);
-		expect(get(mutePubkeys)).toEqual(['R2']);
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['R2']);
 	});
 
 	it('clears only its own optimistic operation after a remote update', async () => {
@@ -164,9 +161,9 @@ describe('regular mute runtime', () => {
 		remote.deferred.resolve([[], false]);
 		await completion;
 		clearOptimisticMute(accountA, o1);
-		expect(get(mutePubkeys)).toEqual(['O2']);
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['O2']);
 		clearOptimisticMute(accountA, o2);
-		expect(get(mutePubkeys)).toEqual(['R']);
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['R']);
 	});
 
 	it('completes a cache accepted local event without self decrypt', () => {
@@ -177,8 +174,8 @@ describe('regular mute runtime', () => {
 			[['p', 'private-L']],
 			token
 		);
-		expect(get(muteEvent)?.id).toBe('L');
-		expect(get(mutePubkeys)).toEqual(['public-L', 'private-L']);
+		expect(getCanonicalMuteEvent()?.id).toBe('L');
+		expect(getEffectiveMuteTags().pubkeys).toEqual(['public-L', 'private-L']);
 	});
 
 	it('does not revive an old decrypt after account switch or reset', async () => {
@@ -188,14 +185,14 @@ describe('regular mute runtime', () => {
 		initialize(accountB);
 		old.deferred.resolve([[], false]);
 		await completion;
-		expect(get(muteEvent)).toBeUndefined();
-		expect(get(mutePubkeys)).toEqual([]);
+		expect(getCanonicalMuteEvent()).toBeUndefined();
+		expect(getEffectiveMuteTags().pubkeys).toEqual([]);
 		const next = deferredDecrypt();
 		const nextCompletion = ingestRemoteMute(accountB, event('B', 3, accountB), next.decrypt);
 		resetRegularMute();
 		next.deferred.resolve([[], false]);
 		await nextCompletion;
-		expect(get(muteEvent)).toBeUndefined();
+		expect(getCanonicalMuteEvent()).toBeUndefined();
 	});
 
 	it('does not clear another account candidate or reset state after an old decrypt fails', async () => {
@@ -209,15 +206,15 @@ describe('regular mute runtime', () => {
 		await expect(first).rejects.toBe(failure);
 		current.deferred.resolve([[], false]);
 		await second;
-		expect(get(muteEvent)?.id).toBe('B');
+		expect(getCanonicalMuteEvent()?.id).toBe('B');
 
 		const pending = deferredDecrypt();
 		const afterReset = ingestRemoteMute(accountB, event('B2', 4, accountB), pending.decrypt);
 		resetRegularMute();
 		pending.deferred.reject(failure);
 		await expect(afterReset).rejects.toBe(failure);
-		expect(get(muteEvent)).toBeUndefined();
-		expect(get(mutePubkeys)).toEqual([]);
+		expect(getCanonicalMuteEvent()).toBeUndefined();
+		expect(getEffectiveMuteTags().pubkeys).toEqual([]);
 	});
 
 	it('does not replace live canonical with an older same-account initialization snapshot', async () => {
@@ -228,7 +225,7 @@ describe('regular mute runtime', () => {
 			prepareRegularMuteState(event('S', 2), accountA),
 			baseline
 		);
-		expect(get(muteEvent)?.id).toBe('R');
+		expect(getCanonicalMuteEvent()?.id).toBe('R');
 	});
 
 	it('keeps a newer remote candidate when an older initialization snapshot is applied', async () => {
@@ -239,9 +236,9 @@ describe('regular mute runtime', () => {
 			prepareRegularMuteState(event('S', 2), accountA),
 			regularMuteRevision()
 		);
-		expect(get(muteEvent)?.id).toBe('S');
+		expect(getCanonicalMuteEvent()?.id).toBe('S');
 		remote.deferred.resolve([[], false]);
 		await completion;
-		expect(get(muteEvent)?.id).toBe('R');
+		expect(getCanonicalMuteEvent()?.id).toBe('R');
 	});
 });

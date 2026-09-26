@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import { applyMutedPubkeysByKind, mutedPubkeysByKindMap } from '$lib/stores/Author';
-import { applyRegularMuteInitialization } from '$lib/features/mute/application/regular-mute-runtime';
+import { applyRegularMuteInitialization } from '$lib/features/mute/application/regular-mute-runtime.svelte';
 import { applyAccountChannels, applyAccountState } from './apply-account-state';
 import type { PreparedAccountInitialization } from './initialize-account';
 

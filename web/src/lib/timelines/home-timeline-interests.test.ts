@@ -7,7 +7,8 @@ import type * as Nostr from 'nostr-typedef';
 const mocks = vi.hoisted(() => ({
 	emit: vi.fn(),
 	use: vi.fn(),
-	cacheAccountEvent: vi.fn()
+	cacheAccountEvent: vi.fn(),
+	ingestRemoteMute: vi.fn()
 }));
 vi.mock('rx-nostr', async (importOriginal) => ({
 	...(await importOriginal<typeof import('rx-nostr')>()),
@@ -29,19 +30,18 @@ vi.mock('$lib/cache/Events', async (importOriginal) => ({
 	...(await importOriginal<typeof import('$lib/cache/Events')>()),
 	cacheAccountEvent: mocks.cacheAccountEvent
 }));
+vi.mock('$lib/features/mute/application/regular-mute-runtime.svelte', async (importOriginal) => ({
+	...(await importOriginal<
+		typeof import('$lib/features/mute/application/regular-mute-runtime.svelte')
+	>()),
+	ingestRemoteMute: mocks.ingestRemoteMute
+}));
 vi.mock('$lib/auth.svelte', () => ({
 	auth: { pubkey: 'a'.repeat(64), followees: ['a'.repeat(64)], signer: undefined }
 }));
 
 import { HomeTimeline } from './HomeTimeline';
 import { followingHashtags } from '$lib/Interest';
-import {
-	applyRegularMuteInitialization,
-	mutePubkeys,
-	regularMuteRevision,
-	resetRegularMute
-} from '$lib/features/mute/application/regular-mute-runtime';
-import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
 
 function interests(tags: string[][]): Nostr.Event {
 	return {
@@ -84,28 +84,19 @@ describe('HomeTimeline InterestsList refresh', () => {
 
 describe('HomeTimeline regular mute refresh', () => {
 	it('forwards a cache accepted kind 10000 event to the mute runtime', async () => {
-		resetRegularMute();
-		applyRegularMuteInitialization(
-			'a'.repeat(64),
-			prepareRegularMuteState(undefined, 'a'.repeat(64)),
-			regularMuteRevision()
-		);
 		const packets = new Subject<{ event: Nostr.Event; from: string }>();
 		mocks.use.mockReturnValue(packets);
 		const write = Promise.withResolvers<boolean>();
 		mocks.cacheAccountEvent.mockReset().mockReturnValue(write.promise);
+		const forwarded = Promise.withResolvers<void>();
+		mocks.ingestRemoteMute.mockReset().mockImplementationOnce(() => forwarded.resolve());
 		const timeline = new HomeTimeline();
 		timeline.subscribe();
 		const event = { ...interests([['p', 'muted']]), id: 'mute', kind: Kind.Mutelist };
 		packets.next({ event, from: 'relay.example' });
-		expect(get(mutePubkeys)).toEqual([]);
-		const updated = Promise.withResolvers<void>();
-		const unsubscribe = mutePubkeys.subscribe((pubkeys) => {
-			if (pubkeys.includes('muted')) updated.resolve();
-		});
+		expect(mocks.ingestRemoteMute).not.toHaveBeenCalled();
 		write.resolve(true);
-		await updated.promise;
-		expect(get(mutePubkeys)).toEqual(['muted']);
-		unsubscribe();
+		await forwarded.promise;
+		expect(mocks.ingestRemoteMute).toHaveBeenCalledWith('a'.repeat(64), event, undefined);
 	});
 });

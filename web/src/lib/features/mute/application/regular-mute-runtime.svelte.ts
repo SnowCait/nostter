@@ -1,5 +1,5 @@
-import { derived, get, writable } from 'svelte/store';
 import type { Event } from 'nostr-tools';
+import escapeStringRegexp from 'escape-string-regexp';
 import type { ListContentDecrypter } from '$lib/List';
 import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
 import { prepareRegularMuteStateFromEvent } from './prepare-mute-state';
@@ -20,13 +20,24 @@ type Runtime = {
 };
 
 const empty = (owner: string | undefined) => prepareRegularMuteState(undefined, owner ?? '');
-const runtime = writable<Runtime>({
+let runtime = $state.raw<Runtime>({
 	owner: undefined,
 	canonical: empty(undefined),
 	candidate: undefined,
 	optimistic: undefined,
 	revision: 0
 });
+const effectiveTags = $derived(runtime.optimistic?.tags ?? runtime.canonical.tags);
+const mutedPubkeys = $derived(new Set(effectiveTags.pubkeys));
+const mutedEventIds = $derived(new Set(effectiveTags.eventIds));
+const mutedWordsPattern = $derived(
+	effectiveTags.words.length > 0
+		? new RegExp(
+				`(${effectiveTags.words.map((word) => escapeStringRegexp(word)).join('|')})`,
+				'i'
+			)
+		: undefined
+);
 
 const copyTags = (tags: PreparedMuteTags): PreparedMuteTags => ({
 	pubkeys: [...tags.pubkeys],
@@ -45,20 +56,32 @@ const copyState = (state: RegularMuteState): RegularMuteState => ({
 	tags: copyTags(state.tags)
 });
 
-export const canonicalMuteState = derived(runtime, ({ canonical }) => copyState(canonical));
-export const muteEvent = derived(runtime, ({ canonical }) => copyEvent(canonical.event));
-export const mutePubkeys = derived(runtime, ({ canonical, optimistic }) => [
-	...(optimistic?.tags ?? canonical.tags).pubkeys
-]);
-export const muteEventIds = derived(runtime, ({ canonical, optimistic }) => [
-	...(optimistic?.tags ?? canonical.tags).eventIds
-]);
-export const muteWords = derived(runtime, ({ canonical, optimistic }) => [
-	...(optimistic?.tags ?? canonical.tags).words
-]);
+export function getCanonicalMuteState(): RegularMuteState {
+	return copyState(runtime.canonical);
+}
+
+export function getCanonicalMuteEvent(): Event | undefined {
+	return copyEvent(runtime.canonical.event);
+}
+
+export function getEffectiveMuteTags(): PreparedMuteTags {
+	return copyTags(effectiveTags);
+}
+
+export function isRegularMutedPubkey(pubkey: string): boolean {
+	return mutedPubkeys.has(pubkey);
+}
+
+export function isRegularMutedEventId(id: string): boolean {
+	return mutedEventIds.has(id);
+}
+
+export function isRegularMutedWord(content: string): boolean {
+	return mutedWordsPattern?.test(content) ?? false;
+}
 
 export function regularMuteRevision(): number {
-	return get(runtime).revision;
+	return runtime.revision;
 }
 
 export function applyRegularMuteInitialization(
@@ -66,15 +89,15 @@ export function applyRegularMuteInitialization(
 	snapshot: RegularMuteState,
 	baseline: number
 ): void {
-	const current = get(runtime);
+	const current = runtime;
 	if (current.owner !== owner) {
-		runtime.set({
+		runtime = {
 			owner,
 			canonical: copyState(snapshot),
 			candidate: undefined,
 			optimistic: undefined,
 			revision: current.revision + 1
-		});
+		};
 		return;
 	}
 	if (current.revision !== baseline && snapshot.event === undefined) return;
@@ -94,34 +117,34 @@ export function applyRegularMuteInitialization(
 		snapshot.event !== undefined &&
 		!shouldReplaceCurrentEvent(candidate.event, snapshot.event)
 	) {
-		runtime.set({
+		runtime = {
 			...current,
 			canonical: copyState(snapshot),
 			candidate: undefined,
 			revision: current.revision + 1
-		});
+		};
 	} else {
-		runtime.set({
+		runtime = {
 			...current,
 			canonical: copyState(snapshot),
 			candidate,
 			revision: current.revision + 1
-		});
+		};
 	}
 }
 
 export function startOptimisticMute(owner: string, tags: PreparedMuteTags): object | undefined {
-	const current = get(runtime);
+	const current = runtime;
 	if (current.owner !== owner) return undefined;
 	const token = {};
-	runtime.set({ ...current, optimistic: { token, tags: copyTags(tags) } });
+	runtime = { ...current, optimistic: { token, tags: copyTags(tags) } };
 	return token;
 }
 
 export function clearOptimisticMute(owner: string, token: object | undefined): void {
-	const current = get(runtime);
+	const current = runtime;
 	if (token !== undefined && current.owner === owner && current.optimistic?.token === token) {
-		runtime.set({ ...current, optimistic: undefined });
+		runtime = { ...current, optimistic: undefined };
 	}
 }
 
@@ -131,7 +154,7 @@ export function completeLocalMute(
 	privateTags: string[][],
 	token: object | undefined
 ): void {
-	const current = get(runtime);
+	const current = runtime;
 	if (current.owner !== owner) return;
 	const canonical =
 		current.canonical.event === undefined ||
@@ -144,13 +167,13 @@ export function completeLocalMute(
 		!shouldReplaceCurrentEvent(current.candidate.event, event)
 			? undefined
 			: current.candidate;
-	runtime.set({
+	runtime = {
 		...current,
 		canonical: copyState(canonical),
 		candidate,
 		optimistic: current.optimistic?.token === token ? undefined : current.optimistic,
 		revision: canonical === current.canonical ? current.revision : current.revision + 1
-	});
+	};
 }
 
 export async function ingestRemoteMute(
@@ -158,7 +181,7 @@ export async function ingestRemoteMute(
 	event: Event,
 	decrypt?: ListContentDecrypter
 ): Promise<void> {
-	const current = get(runtime);
+	const current = runtime;
 	if (current.owner !== owner || event.pubkey !== owner) return;
 	if (
 		current.canonical.event !== undefined &&
@@ -171,18 +194,18 @@ export async function ingestRemoteMute(
 	)
 		return;
 	const candidate = { event: copyEvent(event)!, identity: {} };
-	runtime.set({ ...current, candidate });
+	runtime = { ...current, candidate };
 	let prepared: RegularMuteState;
 	try {
 		prepared = await prepareRegularMuteStateFromEvent(event, owner, decrypt);
 	} catch (error) {
-		const latest = get(runtime);
+		const latest = runtime;
 		if (latest.owner === owner && latest.candidate?.identity === candidate.identity) {
-			runtime.set({ ...latest, candidate: undefined });
+			runtime = { ...latest, candidate: undefined };
 		}
 		throw error;
 	}
-	const latest = get(runtime);
+	const latest = runtime;
 	if (
 		latest.owner !== owner ||
 		latest.candidate?.identity !== candidate.identity ||
@@ -190,21 +213,21 @@ export async function ingestRemoteMute(
 			!shouldReplaceCurrentEvent(event, latest.canonical.event))
 	)
 		return;
-	runtime.set({
+	runtime = {
 		...latest,
 		canonical: copyState(prepared),
 		candidate: undefined,
 		revision: latest.revision + 1
-	});
+	};
 }
 
 export function resetRegularMute(): void {
-	const current = get(runtime);
-	runtime.set({
+	const current = runtime;
+	runtime = {
 		owner: undefined,
 		canonical: empty(undefined),
 		candidate: undefined,
 		optimistic: undefined,
 		revision: current.revision + 1
-	});
+	};
 }
