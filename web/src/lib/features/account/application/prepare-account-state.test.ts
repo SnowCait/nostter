@@ -32,6 +32,10 @@ function accountEvents(
 }
 
 describe('prepareAccountState', () => {
+	it('retains the fetched kind 10001 event for pinned notes initialization', () => {
+		const pins = event(10001, 'encrypted pins', [['e', 'note']]);
+		expect(prepareAccountState(accountEvents([pins])).pinnedNotesEvent).toBe(pins);
+	});
 	it('uses kind 10002 relays over legacy kind 3 relays and defaults', () => {
 		const state = prepareAccountState(
 			accountEvents([

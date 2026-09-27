@@ -14,6 +14,7 @@ import { prepareAccountInitialization } from './features/account/application/ini
 import { applyAccountInitialization } from './features/account/application/apply-account-initialization';
 import { resetRegularMute } from './features/mute/application/regular-mute-runtime.svelte';
 import { resetKindMute } from './features/mute/application/kind-mute-runtime.svelte';
+import { pinnedNotes } from './features/pinned-notes/application/pinned-notes-runtime.svelte';
 import { loadFolloweesOfFollowees } from './features/notifications/application/followees-of-followees';
 import { notificationVisibility } from './preferences/NotificationVisibility.svelte';
 import { createListContentDecrypter } from './List';
@@ -199,6 +200,7 @@ export async function resetLoginState(): Promise<void> {
 	auth.reset();
 	resetRegularMute();
 	resetKindMute();
+	pinnedNotes.reset();
 	rxNostr.setDefaultRelays(applicationRelays(get(locale)));
 	await disposingSigner;
 }

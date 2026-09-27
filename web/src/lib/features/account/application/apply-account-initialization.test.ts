@@ -8,6 +8,7 @@ import { customEmojiListEvent, customEmojiTags } from '$lib/author/CustomEmojis'
 import { lastReadAt } from '$lib/author/Notifications';
 import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark.svelte';
 import { profileBadgesEvent } from '$lib/author/ProfileBadges';
+import { pinnedNotes } from '$lib/features/pinned-notes/application/pinned-notes-runtime.svelte';
 import * as eventCache from '$lib/cache/Events';
 import { applyAccountInitialization } from './apply-account-initialization';
 import { prepareAccountState } from './prepare-account-state';
@@ -73,6 +74,19 @@ beforeEach(() => {
 });
 
 describe('applyAccountInitialization snapshot', () => {
+	it('loads the kind 10001 event and clears it when a new account has no pin list', () => {
+		const pins = { ...event(accountA, 3, 10001), tags: [['e', 'note']] };
+		const prepared = emptyPrepared();
+		prepared.accountState.pinnedNotesEvent = pins;
+		applyAccountInitialization(accountA, prepared);
+		expect(pinnedNotes.owner).toBe(accountA);
+		expect(pinnedNotes.canonical).toBe(pins);
+		expect(pinnedNotes.effectivePinnedEventIds).toEqual(['note']);
+		applyAccountInitialization(accountB, emptyPrepared());
+		expect(pinnedNotes.owner).toBe(accountB);
+		expect(pinnedNotes.canonical).toBeUndefined();
+		expect(pinnedNotes.effectivePinnedEventIds).toEqual([]);
+	});
 	it('replaces the previous account kind mute snapshot, including an empty snapshot', () => {
 		const preparedA = emptyPrepared();
 		const kindEvent = {
