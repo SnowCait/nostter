@@ -2,6 +2,7 @@
 	import { getListTitle } from '$lib/List';
 	import type * as Nostr from 'nostr-typedef';
 	import CustomEmojiMenuButton from '../actions/CustomEmojiMenuButton.svelte';
+	import CustomEmojiStarButton from '../actions/CustomEmojiStarButton.svelte';
 	import CustomEmoji from '../content/CustomEmoji.svelte';
 	import IconMoodSmile from '@tabler/icons-svelte-runes/icons/mood-smile';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
@@ -19,7 +20,10 @@
 	<h1>
 		<IconMoodSmile />
 		<div>{title}</div>
-		<div><CustomEmojiMenuButton {event} /></div>
+		<div class="actions">
+			<CustomEmojiStarButton {event} />
+			<CustomEmojiMenuButton {event} />
+		</div>
 	</h1>
 
 	<div>
@@ -43,8 +47,11 @@
 		align-items: center;
 	}
 
-	h1 div:last-child {
+	.actions {
 		margin-left: auto;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	ul {

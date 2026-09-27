@@ -3,23 +3,10 @@
 	import { nip19 } from 'nostr-tools';
 	import type * as Nostr from 'nostr-typedef';
 	import { findIdentifier } from '$lib/nostr/protocol/event-address';
-	import { getEventAddress } from '$lib/nostr/protocol/event-address';
-	import {
-		IconDots,
-		IconExternalLink,
-		IconLibraryMinus,
-		IconLibraryPlus
-	} from '@tabler/icons-svelte-runes';
+	import { IconDots, IconExternalLink } from '@tabler/icons-svelte-runes';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
-	import {
-		addToEmojiList,
-		customEmojiListEvent,
-		removeFromEmojiList
-	} from '$lib/author/CustomEmojis';
 	import { emojiEditorUrl } from '$lib/Constants';
-	import { auth } from '$lib/auth.svelte';
-	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
 		event: Nostr.Event;
@@ -47,7 +34,6 @@
 
 	let menuElement: HTMLElement | undefined;
 
-	let address = $derived(getEventAddress(event));
 	let naddr = $derived(
 		nip19.naddrEncode({
 			kind: event.kind,
@@ -57,31 +43,6 @@
 		})
 	);
 	let url = $derived(`${emojiEditorUrl}#/a/${naddr}`);
-
-	async function signEvent(template: Parameters<Signer['signEvent']>[0]) {
-		const signer = auth.signer;
-		if (signer === undefined) {
-			throw new Error('Cannot sign an event without a signing session');
-		}
-
-		return signer.signEvent(template);
-	}
-
-	async function add(): Promise<void> {
-		try {
-			await addToEmojiList(signEvent, address);
-		} catch {
-			alert($_('emoji.custom.failed'));
-		}
-	}
-
-	async function remove(): Promise<void> {
-		try {
-			await removeFromEmojiList(signEvent, address);
-		} catch {
-			alert($_('emoji.custom.failed'));
-		}
-	}
 </script>
 
 <button class="clear" use:melt={$trigger}>
@@ -89,22 +50,6 @@
 </button>
 <div use:melt={$overlay} class="overlay"></div>
 <div use:melt={$menu} class="menu" popover="auto" bind:this={menuElement}>
-	{#if !$customEmojiListEvent?.tags.some((tag) => tag[0] === 'a' && tag[1] === address)}
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div use:melt={$item} onclick={add} class="item">
-			<div class="icon"><IconLibraryPlus size={20} /></div>
-			<div>{$_('emoji.custom.add')}</div>
-		</div>
-	{/if}
-	{#if $customEmojiListEvent?.tags.some((tag) => tag[0] === 'a' && tag[1] === address)}
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div use:melt={$item} onclick={remove} class="item">
-			<div class="icon"><IconLibraryMinus size={20} /></div>
-			<div>{$_('emoji.custom.remove')}</div>
-		</div>
-	{/if}
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div use:melt={$item} onclick={() => window.open(url)} class="item">
