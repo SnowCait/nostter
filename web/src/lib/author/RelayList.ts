@@ -66,11 +66,12 @@ export class RelayList {
 		if (relayList.length > 0) {
 			rxNostr.setDefaultRelays(relayList);
 		} else if (kind3 !== undefined && kind3.content !== '') {
-			rxNostr.setDefaultRelays(
-				[...parseLegacyRelayList(kind3.content)].map(([url, { read, write }]) => {
-					return { url, read, write };
-				})
+			const legacyRelays = [...parseLegacyRelayList(kind3.content)].map(
+				([url, { read, write }]) => ({ url, read, write })
 			);
+			if (legacyRelays.length > 0) {
+				rxNostr.setDefaultRelays(legacyRelays);
+			}
 		}
 	}
 }

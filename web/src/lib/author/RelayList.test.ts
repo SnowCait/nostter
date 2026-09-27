@@ -143,6 +143,20 @@ describe('RelayList.apply', () => {
 			{ url: 'wss://legacy.example', read: false, write: true }
 		]);
 	});
+
+	it('keeps application relays when neither account relay list is usable', () => {
+		RelayList.apply(
+			new Map([
+				[10002, event(10002, [['r', 'not-a-relay-url']])],
+				[
+					3,
+					event(3, [], JSON.stringify({ 'not-a-relay-url': { read: true, write: true } }))
+				]
+			])
+		);
+
+		expect(setDefaultRelays).not.toHaveBeenCalled();
+	});
 });
 
 describe('RelayList.fetchEvents', () => {

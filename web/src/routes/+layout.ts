@@ -4,16 +4,15 @@ import { browser } from '$app/environment';
 import { initialize } from '$lib/i18n';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { appName } from '$lib/app';
-import { defaultRelays, localizedRelays } from '$lib/Constants';
+import { applicationRelays } from '$lib/nostr/relay/application-relays';
 import type { LayoutLoad } from './$types';
 import { readRelays, writeRelays } from '$lib/stores/Author';
 
 export const load: LayoutLoad = async ({ url }) => {
 	await initialize();
 	if (browser) {
-		rxNostr.setDefaultRelays(defaultRelays);
+		rxNostr.setDefaultRelays(applicationRelays(get(locale)));
 		if (get(locale)?.startsWith('ja')) {
-			rxNostr.addDefaultRelays(localizedRelays.ja);
 			readRelays.set(
 				Object.entries(rxNostr.getDefaultRelays())
 					.filter(([, relay]) => relay.read)
