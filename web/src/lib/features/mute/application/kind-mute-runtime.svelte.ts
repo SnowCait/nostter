@@ -38,12 +38,6 @@ export function getKindMuteState(muteKind: number): KindMuteState | undefined {
 	return state === undefined ? undefined : copyState(state);
 }
 
-export function getMutedPubkeysByKindMap(): Map<number, Set<string>> {
-	return new Map(
-		[...runtime.canonical].map(([muteKind, state]) => [muteKind, new Set(state.pubkeys)])
-	);
-}
-
 export function isKindMutedPubkey(muteKind: number, pubkey: string): boolean {
 	return runtime.canonical.get(muteKind)?.pubkeys.has(pubkey) ?? false;
 }
