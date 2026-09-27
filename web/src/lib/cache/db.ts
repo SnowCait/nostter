@@ -2,6 +2,7 @@ import Dexie, { type EntityTable, type Table } from 'dexie';
 import type * as Nostr from 'nostr-typedef';
 import { isAddressableKind, isReplaceableKind } from 'nostr-tools/kinds';
 import { getEventIdentifier } from '$lib/nostr/protocol/event-address';
+import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
 
 export type AccountAddressableEventCacheEntry = {
 	pubkey: string;
@@ -48,7 +49,7 @@ export class AccountAddressableEventCache {
 		const key: [string, number, string] = [event.pubkey, event.kind, identifier];
 		return this.db.transaction('rw', this.db.accountAddressableEvents, async () => {
 			const current = await this.db.accountAddressableEvents.get(key);
-			if (current !== undefined && current.event.created_at >= event.created_at) {
+			if (current !== undefined && !shouldReplaceCurrentEvent(event, current.event)) {
 				return false;
 			}
 			await this.db.accountAddressableEvents.put({
@@ -93,7 +94,7 @@ export class FolloweeReplaceableEventCache {
 	async put(event: Nostr.Event): Promise<void> {
 		await this.db.transaction('rw', [this.db.followeeReplaceableEvents], async () => {
 			const current = await this.db.followeeReplaceableEvents.get([event.kind, event.pubkey]);
-			if (current === undefined || current.created_at < event.created_at) {
+			if (current === undefined || shouldReplaceCurrentEvent(event, current)) {
 				await this.db.followeeReplaceableEvents.put(event);
 			}
 		});

@@ -182,6 +182,54 @@ describe('FolloweeReplaceableEventCache', () => {
 			const stored = await testDb.followeeReplaceableEvents.get([0, pubkey1]);
 			expect(stored?.created_at).toBe(2000);
 		});
+
+		it('should select the NIP-01 winner by timestamp and then ascending event ID', async () => {
+			const current = mockEvent({
+				id: 'b'.repeat(64),
+				kind: 0,
+				pubkey: pubkey1,
+				created_at: 2000
+			});
+			const older = mockEvent({
+				id: '0'.repeat(64),
+				kind: 0,
+				pubkey: pubkey1,
+				created_at: 1999
+			});
+			const sameTimestampWinner = mockEvent({
+				id: 'a'.repeat(64),
+				kind: 0,
+				pubkey: pubkey1,
+				created_at: 2000
+			});
+			const sameTimestampLoser = mockEvent({
+				id: 'c'.repeat(64),
+				kind: 0,
+				pubkey: pubkey1,
+				created_at: 2000
+			});
+			const newer = mockEvent({
+				id: 'f'.repeat(64),
+				kind: 0,
+				pubkey: pubkey1,
+				created_at: 2001
+			});
+
+			await cache.put(current);
+			await cache.put(older);
+			await cache.put(sameTimestampLoser);
+			expect((await testDb.followeeReplaceableEvents.get([0, pubkey1]))?.id).toBe(current.id);
+			await cache.put(sameTimestampWinner);
+			expect((await testDb.followeeReplaceableEvents.get([0, pubkey1]))?.id).toBe(
+				sameTimestampWinner.id
+			);
+			await cache.put(sameTimestampWinner);
+			expect((await testDb.followeeReplaceableEvents.get([0, pubkey1]))?.id).toBe(
+				sameTimestampWinner.id
+			);
+			await cache.put(newer);
+			expect((await testDb.followeeReplaceableEvents.get([0, pubkey1]))?.id).toBe(newer.id);
+		});
 	});
 
 	describe('getLatest', () => {
