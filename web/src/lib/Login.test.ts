@@ -26,6 +26,8 @@ const {
 	privateSignerInstances,
 	remoteSigner,
 	waitNostr,
+	setDefaultRelays,
+	relayRuntime,
 	calls
 } = vi.hoisted(() => {
 	function createStore<T>(initial: T) {
@@ -91,6 +93,8 @@ const {
 		privateSignerInstances,
 		remoteSigner,
 		waitNostr: vi.fn().mockResolvedValue({}),
+		setDefaultRelays: vi.fn(),
+		relayRuntime: { relays: [] as Array<{ url: string; read: boolean; write: boolean }> },
 		calls: [] as string[]
 	};
 });
@@ -165,7 +169,12 @@ vi.mock('./nostr/signing/private-key-signer', () => ({
 vi.mock('nip07-awaiter', () => ({ waitNostr }));
 
 vi.mock('./timelines/MainTimeline', () => ({
-	rxNostr: { getDefaultRelays: vi.fn().mockReturnValue({}), send: vi.fn(), use: vi.fn() }
+	rxNostr: {
+		getDefaultRelays: vi.fn().mockReturnValue({}),
+		setDefaultRelays,
+		send: vi.fn(),
+		use: vi.fn()
+	}
 }));
 
 vi.mock('./cache/Events', () => ({
@@ -331,37 +340,10 @@ describe('Login.withNpub', () => {
 		expect(applyAccountInitialization).toHaveBeenCalledOnce();
 	});
 
-	it('keeps the established session until replacement preparation completes', async () => {
-		const initialized = Promise.withResolvers<void>();
-		loadFolloweesMetadataCache.mockReturnValue(initialized.promise);
-		const { nip19 } = await import('nostr-tools');
-		const { auth } = await import('./auth.svelte');
-		const { Login } = await import('./Login');
-		const oldPubkey = 'b'.repeat(64);
-		auth.establish({ pubkey: oldPubkey, followingPubkeys: [followee], loginMethod: 'NIP-07' });
-
-		const replacing = new Login().withNpub(nip19.npubEncode(me));
-		await vi.waitFor(() => expect(loadFolloweesMetadataCache).toHaveBeenCalledOnce());
-
-		expect(auth.status).toBe('authenticated');
-		expect(auth.pubkey).toBe(oldPubkey);
-		expect(auth.followingPubkeys).toEqual([followee]);
-		expect(applyAccountInitialization).not.toHaveBeenCalled();
-
-		initialized.resolve();
-		await replacing;
-
-		expect(auth.status).toBe('authenticated');
-		expect(auth.pubkey).toBe(me);
-		expect(applyAccountInitialization).toHaveBeenCalledOnce();
-	});
-
 	it('does not commit or establish a new session when preparation fails', async () => {
 		const { nip19 } = await import('nostr-tools');
 		const { auth } = await import('./auth.svelte');
 		const { Login } = await import('./Login');
-		const oldPubkey = 'b'.repeat(64);
-		auth.establish({ pubkey: oldPubkey, followingPubkeys: [], loginMethod: 'npub' });
 		prepareAccountInitialization.mockRejectedValueOnce(new Error('mute decrypt failed'));
 
 		await expect(new Login().withNpub(nip19.npubEncode(me))).rejects.toThrow(
@@ -369,16 +351,14 @@ describe('Login.withNpub', () => {
 		);
 
 		expect(applyAccountInitialization).not.toHaveBeenCalled();
-		expect(auth.isAuthenticated).toBe(true);
-		expect(auth.pubkey).toBe(oldPubkey);
+		expect(auth.status).toBe('anonymous');
+		expect(auth.pubkey).toBeUndefined();
 	});
 
-	it('keeps the established session when required metadata initialization fails', async () => {
+	it('does not establish a session when required metadata initialization fails', async () => {
 		const { nip19 } = await import('nostr-tools');
 		const { auth } = await import('./auth.svelte');
 		const { Login } = await import('./Login');
-		const oldPubkey = 'b'.repeat(64);
-		auth.establish({ pubkey: oldPubkey, followingPubkeys: [], loginMethod: 'npub' });
 		loadFolloweesMetadataCache.mockRejectedValueOnce(new Error('metadata cache failed'));
 
 		await expect(new Login().withNpub(nip19.npubEncode(me))).rejects.toThrow(
@@ -386,8 +366,8 @@ describe('Login.withNpub', () => {
 		);
 
 		expect(applyAccountInitialization).not.toHaveBeenCalled();
-		expect(auth.isAuthenticated).toBe(true);
-		expect(auth.pubkey).toBe(oldPubkey);
+		expect(auth.status).toBe('anonymous');
+		expect(auth.pubkey).toBeUndefined();
 	});
 
 	it('does not start the remote signer for a read-only session', async () => {
@@ -422,23 +402,6 @@ describe('Login.withNpub', () => {
 		expect(browserSignerInstances).toHaveLength(0);
 		expect(privateSignerInstances).toHaveLength(0);
 		expect(establishBunkerConnection).not.toHaveBeenCalled();
-	});
-
-	it('replaces a signing session with a read-only session without retaining its signer', async () => {
-		const { nip19 } = await import('nostr-tools');
-		const { auth } = await import('./auth.svelte');
-		const { Login } = await import('./Login');
-		auth.establish({
-			pubkey: me,
-			followingPubkeys: [],
-			loginMethod: 'NIP-46',
-			signer: remoteSigner
-		});
-
-		await new Login().withNpub(nip19.npubEncode(me));
-
-		expect(auth.status).toBe('authenticated');
-		expect(auth.signer).toBeUndefined();
 	});
 });
 
@@ -805,6 +768,7 @@ describe('session teardown', () => {
 describe('tryLogin', () => {
 	beforeEach(async () => {
 		vi.clearAllMocks();
+		vi.restoreAllMocks();
 		const { auth } = await import('./auth.svelte');
 		auth.reset();
 	});
@@ -848,4 +812,88 @@ describe('tryLogin', () => {
 			}
 		}
 	});
+
+	it.each(['missing', 'unusable'] as const)(
+		'starts a retry from localized application relays when account relay data is %s',
+		async (relayData) => {
+			const { nip19 } = await import('nostr-tools');
+			const { locale } = await import('svelte-i18n');
+			const { defaultRelays, localizedRelays } = await import('./Constants');
+			const { RelayList } = await import('./author/RelayList');
+			const { auth } = await import('./auth.svelte');
+			const { tryLogin } = await import('./Login');
+			const { prepareAccountInitialization: actualPrepare } = await vi.importActual<
+				typeof import('./features/account/application/initialize-account')
+			>('./features/account/application/initialize-account');
+			const b = 'b'.repeat(64);
+			const c = 'c'.repeat(64);
+			const bRelays = [{ url: 'wss://account-b.example', read: true, write: false }];
+			const applicationDefaults = [...defaultRelays, ...localizedRelays.ja];
+			const event = (kind: number, tags: string[][] = [], content = '') => ({
+				id: '',
+				pubkey: '',
+				created_at: 0,
+				kind,
+				tags,
+				content,
+				sig: ''
+			});
+			const relaysSeenByEventFetch: (typeof applicationDefaults)[] = [];
+
+			locale.set('ja');
+			setDefaultRelays.mockImplementation((relays) => {
+				relayRuntime.relays = relays;
+			});
+			prepareAccountInitialization.mockImplementation(actualPrepare);
+			storageGet
+				.mockReturnValueOnce(nip19.npubEncode(b))
+				.mockReturnValueOnce(nip19.npubEncode(c));
+			fetchRelays
+				.mockImplementationOnce(async () => {
+					RelayList.apply(
+						new Map([[10002, event(10002, [['r', bRelays[0].url, 'read']])]])
+					);
+				})
+				.mockImplementationOnce(async () => {
+					RelayList.apply(
+						new Map(
+							relayData === 'missing'
+								? []
+								: [
+										[10002, event(10002, [['r', 'not-a-relay-url']])],
+										[
+											3,
+											event(
+												3,
+												[],
+												JSON.stringify({
+													'not-a-relay-url': { read: true, write: true }
+												})
+											)
+										]
+									]
+						)
+					);
+				});
+			fetchEvents.mockImplementation(async () => {
+				relaysSeenByEventFetch.push([...relayRuntime.relays]);
+				if (relaysSeenByEventFetch.length === 1) {
+					throw new Error('account B initialization failed');
+				}
+				return { replaceableEvents: new Map(), parameterizedReplaceableEvents: new Map() };
+			});
+
+			try {
+				await expect(tryLogin()).resolves.toBe(false);
+				expect(auth.status).toBe('anonymous');
+				expect(relayRuntime.relays).toEqual(applicationDefaults);
+				expect(relayRuntime.relays.map(({ url }) => url)).not.toContain(bRelays[0].url);
+				await expect(tryLogin()).resolves.toBe(true);
+				expect(relaysSeenByEventFetch).toEqual([bRelays, applicationDefaults]);
+				expect(auth.pubkey).toBe(c);
+			} finally {
+				locale.set('en');
+			}
+		}
+	);
 });

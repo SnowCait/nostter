@@ -1,4 +1,8 @@
 import { Author } from '$lib/Author';
+import { get } from 'svelte/store';
+import { locale } from 'svelte-i18n';
+import { rxNostr } from '$lib/timelines/MainTimeline';
+import { applicationRelays } from '$lib/nostr/relay/application-relays';
 import { regularMuteRevision } from '$lib/features/mute/application/regular-mute-runtime.svelte';
 import {
 	prepareRegularMuteStateFromEvent,
@@ -31,6 +35,7 @@ export async function prepareAccountInitialization(
 	const muteBaseline = regularMuteRevision();
 	const author = new Author(pubkey);
 
+	rxNostr.setDefaultRelays(applicationRelays(get(locale)));
 	await author.fetchRelays();
 
 	const events = await author.fetchEvents();
