@@ -204,7 +204,7 @@
 		align-self: start;
 		max-width: 220px;
 		width: 100%;
-		height: 100vh;
+		height: 100dvh;
 		box-sizing: border-box;
 		padding-top: 0.5rem;
 		z-index: 3;
