@@ -1,18 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
-import {
-	muteEvent,
-	muteEventIds,
-	mutePubkeys,
-	muteWords,
-	mutedPubkeysByKindMap,
-	storeMutedPubkeysByKind
-} from './Author';
+import { muteEvent, muteEventIds, mutePubkeys, muteWords } from './Author';
+import { resetKindMute } from '$lib/features/mute/application/kind-mute-runtime.svelte';
+import { prepareKindMuteState } from '$lib/features/mute/domain/mute-state';
 
 beforeEach(() => {
 	vi.resetAllMocks();
-	mutedPubkeysByKindMap.set(new Map());
+	resetKindMute();
 });
 
 describe('regular mute compatibility projections', () => {
@@ -25,12 +20,12 @@ describe('regular mute compatibility projections', () => {
 });
 
 describe('kind mute state', () => {
-	it('merges public and private tags only when a decrypter is provided', async () => {
+	it('exposes a read-only compatibility projection with defensive Map and Set copies', async () => {
 		const event = {
 			id: 'event-id',
 			kind: 30007,
 			pubkey: 'a'.repeat(64),
-			content: 'encrypted',
+			content: '',
 			tags: [
 				['d', '6'],
 				['p', 'b'.repeat(64)]
@@ -38,13 +33,20 @@ describe('kind mute state', () => {
 			created_at: 1,
 			sig: 'sig'
 		} as Event;
-		const decrypt = vi.fn().mockResolvedValue([[['p', 'd'.repeat(64)]], false]);
-		await storeMutedPubkeysByKind([event], decrypt);
-		expect(get(mutedPubkeysByKindMap).get(6)).toEqual(
-			new Set(['b'.repeat(64), 'd'.repeat(64)])
+		vi.resetModules();
+		const runtime = await import('$lib/features/mute/application/kind-mute-runtime.svelte');
+		runtime.applyKindMuteInitialization(
+			event.pubkey,
+			new Map([[6, prepareKindMuteState(event)]])
 		);
-		mutedPubkeysByKindMap.set(new Map());
-		await storeMutedPubkeysByKind([event]);
+		const { mutedPubkeysByKindMap, isMuteEvent } = await import('./Author');
+		expect('set' in mutedPubkeysByKindMap).toBe(false);
+		expect('update' in mutedPubkeysByKindMap).toBe(false);
 		expect(get(mutedPubkeysByKindMap).get(6)).toEqual(new Set(['b'.repeat(64)]));
+		const projection = get(mutedPubkeysByKindMap);
+		projection.get(6)?.add('mutated');
+		projection.set(7, new Set(['injected']));
+		expect(runtime.getKindMuteState(6)?.pubkeys).toEqual(new Set(['b'.repeat(64)]));
+		expect(isMuteEvent({ ...event, kind: 6, pubkey: 'b'.repeat(64) })).toBe(true);
 	});
 });

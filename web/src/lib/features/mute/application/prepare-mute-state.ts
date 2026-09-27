@@ -1,5 +1,6 @@
 import type { Event } from 'nostr-tools';
 import { findIdentifier } from '$lib/nostr/protocol/event-address';
+import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
 import type { ListContentDecrypter } from '$lib/List';
 import {
 	prepareKindMuteState,
@@ -30,19 +31,32 @@ export async function prepareKindMuteStates(
 	const updates = new Map<number, KindMuteState>();
 	for (const event of events) {
 		const kind = findIdentifier(event.tags);
-		if (!kind || isNaN(Number(kind))) {
+		if (kind === undefined || !/^\d+$/.test(kind) || !Number.isSafeInteger(Number(kind))) {
 			continue;
 		}
-		const privateTags: string[][] = [];
-		if (event.content !== '' && decryptPrivateListContent !== undefined) {
-			try {
-				const [tags] = await decryptPrivateListContent(event.pubkey, event.content);
-				privateTags.push(...tags);
-			} catch (error) {
-				console.warn('[kind 30007 content parse error]', event, error);
-			}
+		const muteKind = Number(kind);
+		const current = updates.get(muteKind);
+		if (current !== undefined && !shouldReplaceCurrentEvent(event, current.event)) continue;
+		try {
+			updates.set(
+				muteKind,
+				await prepareKindMuteStateFromEvent(event, decryptPrivateListContent)
+			);
+		} catch (error) {
+			console.warn('[kind 30007 content parse error]', event, error);
+			updates.set(muteKind, prepareKindMuteState(event));
 		}
-		updates.set(Number(kind), prepareKindMuteState(event, privateTags));
 	}
 	return updates;
+}
+
+export async function prepareKindMuteStateFromEvent(
+	event: Event,
+	decryptPrivateListContent?: ListContentDecrypter
+): Promise<KindMuteState> {
+	if (event.content === '' || decryptPrivateListContent === undefined) {
+		return prepareKindMuteState(event);
+	}
+	const [privateTags] = await decryptPrivateListContent(event.pubkey, event.content);
+	return prepareKindMuteState(event, privateTags);
 }

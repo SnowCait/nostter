@@ -3,7 +3,7 @@ import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Even
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
-import { storeMutedPubkeysByKind } from '$lib/stores/Author';
+import { completeLocalKindMute } from '$lib/features/mute/application/kind-mute-runtime.svelte';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
@@ -153,8 +153,17 @@ async function publish(
 		created_at: now()
 	});
 	assertSignedEventPubkey(event, accountPubkey);
-	await cacheAccountEvent(event);
-	storeMutedPubkeysByKind([event], decryptPrivateListContent);
+	const accepted = await cacheAccountEvent(event);
+	if (accepted) {
+		if (auth.pubkey === accountPubkey) {
+			completeLocalKindMute(accountPubkey, muteKind, event, privateTags);
+		}
+	} else {
+		const current = await accountAddressableEventCache.get(accountPubkey, kind, `${muteKind}`);
+		if (current?.id === event.id && auth.pubkey === accountPubkey) {
+			completeLocalKindMute(accountPubkey, muteKind, event, privateTags);
+		}
+	}
 	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {

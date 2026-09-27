@@ -15,8 +15,15 @@ import type { PreparedAccountInitialization } from './initialize-account';
 import type { User } from '../../../../routes/types';
 import { followingHashtags } from '$lib/Interest';
 import { kinds as Kind } from 'nostr-tools';
-import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
+import {
+	prepareKindMuteState,
+	prepareRegularMuteState
+} from '$lib/features/mute/domain/mute-state';
 import { regularMuteRevision } from '$lib/features/mute/application/regular-mute-runtime.svelte';
+import {
+	getMutedPubkeysByKindMap,
+	resetKindMute
+} from '$lib/features/mute/application/kind-mute-runtime.svelte';
 
 const accountA = 'a'.repeat(64);
 const accountB = 'b'.repeat(64);
@@ -49,6 +56,7 @@ function emptyPrepared(): PreparedAccountInitialization {
 }
 
 beforeEach(() => {
+	resetKindMute();
 	authorProfile.set({ name: 'account A' } as User);
 	metadataEvent.set(event(accountA, 20, 0));
 	readRelays.set(['wss://account-a-read.example']);
@@ -65,6 +73,22 @@ beforeEach(() => {
 });
 
 describe('applyAccountInitialization snapshot', () => {
+	it('replaces the previous account kind mute snapshot, including an empty snapshot', () => {
+		const preparedA = emptyPrepared();
+		const kindEvent = {
+			...event(accountA, 1, 30007),
+			tags: [
+				['d', '6'],
+				['p', 'old']
+			]
+		};
+		preparedA.muteState.mutedPubkeysByKind.set(6, prepareKindMuteState(kindEvent));
+		applyAccountInitialization(accountA, preparedA);
+		expect(getMutedPubkeysByKindMap().get(6)).toEqual(new Set(['old']));
+		applyAccountInitialization(accountB, emptyPrepared());
+		expect(getMutedPubkeysByKindMap().size).toBe(0);
+	});
+
 	it('replaces previous account event state with defaults for an empty account', () => {
 		applyAccountInitialization(accountB, emptyPrepared());
 

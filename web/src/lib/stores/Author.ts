@@ -5,8 +5,10 @@ import { defaultRelays } from '$lib/Constants';
 import { getZapSenderPubkey } from '$lib/nostr/protocol/nip57';
 import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 import { auth } from '$lib/auth.svelte';
-import type { ListContentDecrypter } from '$lib/List';
-import { prepareKindMuteStates } from '$lib/features/mute/application/prepare-mute-state';
+import {
+	getMutedPubkeysByKindMap,
+	isKindMutedPubkey
+} from '$lib/features/mute/application/kind-mute-runtime.svelte';
 import {
 	getCanonicalMuteEvent,
 	getEffectiveMuteTags,
@@ -22,7 +24,7 @@ export const muteWords = toStore(() => [...getEffectiveMuteTags().words]);
 
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
-export const mutedPubkeysByKindMap = writable(new Map<number, Set<string>>());
+export const mutedPubkeysByKindMap = toStore(getMutedPubkeysByKindMap);
 export const pinNotes: Writable<string[]> = writable([]);
 export const readRelays: Writable<string[]> = writable(
 	defaultRelays.filter((relay) => relay.read).map((relay) => relay.url)
@@ -51,17 +53,11 @@ export const isMuteEvent = (event: Event) => {
 		}
 	}
 
-	const $mutedPubkeysByKindMap = get(mutedPubkeysByKindMap);
-	const mutedPubkeysByKind = $mutedPubkeysByKindMap.get(event.kind);
-	if (mutedPubkeysByKind !== undefined) {
-		if (event.kind === 9735) {
-			const zapperPubkey = getZapSenderPubkey(event);
-			if (zapperPubkey !== undefined && mutedPubkeysByKind.has(zapperPubkey)) {
-				return true;
-			}
-		} else if (mutedPubkeysByKind.has(event.pubkey)) {
-			return true;
-		}
+	if (event.kind === 9735) {
+		const zapperPubkey = getZapSenderPubkey(event);
+		if (zapperPubkey !== undefined && isKindMutedPubkey(event.kind, zapperPubkey)) return true;
+	} else if (isKindMutedPubkey(event.kind, event.pubkey)) {
+		return true;
 	}
 
 	if (isRegularMutedWord(event.content)) {
@@ -80,27 +76,4 @@ export const updateRelays = (event: Event) => {
 	readRelays.set([...new Set(getReadRelays(entries))]);
 	writeRelays.set([...new Set(getWriteRelays(entries))]);
 	console.debug('[relays after]', get(readRelays), get(writeRelays));
-};
-
-export const storeMutedPubkeysByKind = async (
-	events: Event[],
-	decryptPrivateListContent?: ListContentDecrypter
-): Promise<void> => {
-	const $mutedPubkeysByKindMap = get(mutedPubkeysByKindMap);
-	const updates = await prepareKindMuteStates(events, decryptPrivateListContent);
-	applyMutedPubkeysByKind(
-		new Map([...updates].map(([kind, { pubkeys }]) => [kind, new Set(pubkeys)])),
-		$mutedPubkeysByKindMap
-	);
-};
-
-export const applyMutedPubkeysByKind = (
-	updates: Map<number, Set<string>>,
-	state: Map<number, Set<string>> = get(mutedPubkeysByKindMap)
-): void => {
-	for (const [kind, pubkeys] of updates) {
-		state.set(kind, pubkeys);
-	}
-	mutedPubkeysByKindMap.set(state);
-	console.log('[mute by kind]', state);
 };

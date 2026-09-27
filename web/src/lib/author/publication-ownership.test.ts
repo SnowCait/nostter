@@ -10,6 +10,13 @@ import {
 	resetRegularMute
 } from '$lib/features/mute/application/regular-mute-runtime.svelte';
 import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
+import {
+	applyKindMuteInitialization,
+	getKindMuteState,
+	ingestRemoteKindMute,
+	resetKindMute
+} from '$lib/features/mute/application/kind-mute-runtime.svelte';
+import { prepareKindMuteState } from '$lib/features/mute/domain/mute-state';
 import type * as Nostr from 'nostr-typedef';
 
 const accountA = 'a'.repeat(64);
@@ -53,6 +60,7 @@ vi.mock('$lib/auth.svelte', () => ({
 
 import { follow } from './Follow';
 import { mute } from './Mute';
+import { muteByKind } from './MuteKind';
 
 function event(pubkey: string, kind: number, tags: string[][], createdAt = 1): Nostr.Event {
 	return {
@@ -90,7 +98,7 @@ function muteCapabilities(pubkey = accountA) {
 		signEvent: signEvent(pubkey),
 		nip44: {
 			encrypt: async () => 'ciphertext',
-			decrypt: async () => JSON.stringify([['p', 'private-old']])
+			decrypt: vi.fn(async () => JSON.stringify([['p', 'private-old']]))
 		}
 	};
 }
@@ -289,5 +297,58 @@ describe('mute publication', () => {
 		decrypt.resolve([[], false]);
 		await completion;
 		expect(getEffectiveMuteTags().pubkeys).toEqual(['remote']);
+	});
+});
+
+describe('kind mute publication', () => {
+	const cached = {
+		...event(accountA, 30007, [
+			['d', '6'],
+			['p', 'public-old']
+		]),
+		content: 'ciphertext'
+	};
+	beforeEach(() => {
+		resetKindMute();
+		applyKindMuteInitialization(accountA, new Map([[6, prepareKindMuteState(cached)]]));
+		mocks.get.mockResolvedValue(cached);
+		mocks.fetchLastEvent.mockResolvedValue(cached);
+	});
+
+	it('completes an accepted event from local private tags without self decrypt', async () => {
+		const capabilities = muteCapabilities();
+		await muteByKind(capabilities, 6, target);
+		expect(mocks.cacheAccountEvent).toHaveBeenCalledOnce();
+		expect(capabilities.nip44.decrypt).toHaveBeenCalledOnce();
+		expect(getKindMuteState(6)?.event.id).toBe('signed');
+		expect(getKindMuteState(6)?.pubkeys).toEqual(
+			new Set(['public-old', 'private-old', target])
+		);
+	});
+
+	it('does not complete a stale cache rejected event', async () => {
+		const newer = { ...cached, id: 'newer', created_at: 9999999999 };
+		mocks.get.mockResolvedValueOnce(cached).mockResolvedValueOnce(newer);
+		mocks.cacheAccountEvent.mockResolvedValueOnce(false);
+		await muteByKind(muteCapabilities(), 6, target);
+		expect(getKindMuteState(6)?.event.id).toBe(cached.id);
+	});
+
+	it('completes a cache rejected event when it is already current', async () => {
+		mocks.get.mockResolvedValueOnce(cached).mockResolvedValueOnce({ ...cached, id: 'signed' });
+		mocks.cacheAccountEvent.mockResolvedValueOnce(false);
+		await muteByKind(muteCapabilities(), 6, target);
+		expect(getKindMuteState(6)?.event.id).toBe('signed');
+	});
+
+	it('keeps a preferred remote candidate after local completion', async () => {
+		const remote = { ...cached, id: 'remote', created_at: 9999999999 };
+		const decryption = Promise.withResolvers<[string[][], boolean]>();
+		const pending = ingestRemoteKindMute(accountA, remote, () => decryption.promise);
+		await muteByKind(muteCapabilities(), 6, target);
+		expect(getKindMuteState(6)?.event.id).toBe('signed');
+		decryption.resolve([[], false]);
+		await pending;
+		expect(getKindMuteState(6)?.event.id).toBe('remote');
 	});
 });
