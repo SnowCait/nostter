@@ -53,6 +53,7 @@
 <button
 	type="button"
 	class="clear"
+	class:registered
 	aria-label={$_(registered ? 'emoji.custom.remove' : 'emoji.custom.add')}
 	disabled={processing}
 	onclick={toggle}
@@ -67,5 +68,9 @@
 <style>
 	button {
 		color: var(--accent-gray);
+	}
+
+	button.registered {
+		color: var(--gold);
 	}
 </style>
