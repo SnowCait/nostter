@@ -1,32 +1,47 @@
 import { Pinlist } from 'nostr-tools/kinds';
 import type { Event } from 'nostr-tools';
-import { filter, firstValueFrom } from 'rxjs';
-import { accountAddressableEventCache, cacheAccountEvent } from '$lib/cache/Events';
+import { createRxOneshotReq, latest } from 'rx-nostr';
+import { EmptyError, filter, firstValueFrom, lastValueFrom } from 'rxjs';
+import { cacheAccountEvent } from '$lib/cache/Events';
+import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
 import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
 import type { Signer } from '$lib/nostr/signing/signer';
-import { rxNostr } from '$lib/timelines/MainTimeline';
+import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { applyPinOperations, pinnedEventIds, type PinOperation } from '../domain/pin-list';
 
 export type PinSaveFailure = {
-	stage: 'signing' | 'publishing' | 'caching' | 'reconciling';
+	stage: 'fetching' | 'signing' | 'publishing';
 	error: unknown;
 	revision: number;
 };
-type Phase = 'idle' | 'signing' | 'publishing' | 'caching' | 'reconciling';
+type Phase = 'idle' | 'fetching' | 'signing' | 'publishing';
 type Dependencies = {
+	fetchLatest(owner: string): Promise<Event | undefined>;
 	publish(event: Event): Promise<void>;
 	cache(event: Event): Promise<boolean>;
-	getCached(owner: string): Promise<Event | undefined>;
 	now(): number;
 	wait(milliseconds: number): Promise<void>;
 };
 
+export async function fetchLatestPinnedNotes(owner: string): Promise<Event | undefined> {
+	const req = createRxOneshotReq({
+		filters: [{ kinds: [Pinlist], authors: [owner], limit: 1 }]
+	});
+	try {
+		const { event } = await lastValueFrom(rxNostr.use(req).pipe(tie, latest()));
+		return event;
+	} catch (error) {
+		if (error instanceof EmptyError) return undefined;
+		throw error;
+	}
+}
+
 const defaultDependencies: Dependencies = {
+	fetchLatest: fetchLatestPinnedNotes,
 	publish: async (event) => {
 		await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 	},
 	cache: (event) => cacheAccountEvent(event),
-	getCached: (owner) => accountAddressableEventCache.get(owner, Pinlist),
 	now: () => Math.floor(Date.now() / 1000),
 	wait: (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))
 };
@@ -41,8 +56,6 @@ export class PinnedNotesRuntime {
 	#failureRevision = 0;
 	#generation = 0;
 	#lastSignedAt: number | undefined;
-	#accepted = $state<Event>();
-	#reconciliationRunning = false;
 
 	constructor(private readonly dependencies: Dependencies = defaultDependencies) {}
 
@@ -64,9 +77,6 @@ export class PinnedNotesRuntime {
 	get failure(): PinSaveFailure | undefined {
 		return this.#failure;
 	}
-	get acceptedEvent(): Event | undefined {
-		return this.#accepted;
-	}
 	get effectivePinnedEventIds(): string[] {
 		return pinnedEventIds(
 			applyPinOperations(this.#canonical?.tags ?? [], [...this.#inFlight, ...this.#pending])
@@ -85,8 +95,6 @@ export class PinnedNotesRuntime {
 		this.#phase = 'idle';
 		this.#failure = undefined;
 		this.#lastSignedAt = undefined;
-		this.#accepted = undefined;
-		this.#reconciliationRunning = false;
 	}
 
 	reset(): void {
@@ -98,8 +106,6 @@ export class PinnedNotesRuntime {
 		this.#phase = 'idle';
 		this.#failure = undefined;
 		this.#lastSignedAt = undefined;
-		this.#accepted = undefined;
-		this.#reconciliationRunning = false;
 	}
 
 	pin(eventId: string, signEvent: Signer['signEvent']): void {
@@ -110,63 +116,60 @@ export class PinnedNotesRuntime {
 		this.#enqueue({ type: 'unpin', eventId }, signEvent);
 	}
 
-	reconcile(signEvent: Signer['signEvent']): void {
-		if (
-			this.#phase !== 'reconciling' ||
-			this.#accepted === undefined ||
-			this.#owner === undefined ||
-			this.#reconciliationRunning
-		)
-			return;
-		this.#reconciliationRunning = true;
-		const owner = this.#owner;
-		const generation = this.#generation;
-		void (async () => {
-			const next = await this.#completePublished(this.#accepted!, owner, generation, false);
-			if (this.#owner !== owner || this.#generation !== generation) return;
-			this.#reconciliationRunning = false;
-			if (next !== 'stop') void this.#save(owner, generation, signEvent);
-		})();
-	}
-
 	#enqueue(operation: PinOperation, signEvent: Signer['signEvent']): void {
 		if (this.#owner === undefined) throw new Error('Pinned notes account is not initialized');
-		if (this.#phase !== 'reconciling') this.#failure = undefined;
+		this.#failure = undefined;
 		if (this.#phase !== 'idle') {
 			this.#pending = [...this.#pending, operation];
 			return;
 		}
 		this.#inFlight = [operation];
-		this.#phase = 'signing';
+		this.#phase = 'fetching';
 		void this.#save(this.#owner, this.#generation, signEvent);
 	}
 
 	async #save(owner: string, generation: number, signEvent: Signer['signEvent']): Promise<void> {
 		const current = () => this.#owner === owner && this.#generation === generation;
-		let retry = false;
-		let rebased = false;
+		let retriedPublish = false;
 		while (current()) {
+			let fetched: Event | undefined;
+			try {
+				fetched = await this.dependencies.fetchLatest(owner);
+			} catch (error) {
+				if (current()) this.#fail('fetching', error);
+				return;
+			}
+			if (!current()) return;
+			const base =
+				fetched !== undefined &&
+				(this.#canonical === undefined ||
+					shouldReplaceCurrentEvent(fetched, this.#canonical))
+					? fetched
+					: this.#canonical;
+			this.#canonical = base;
+			this.#phase = 'signing';
+
 			let event: Event;
 			try {
-				const canonicalAt = this.#canonical?.created_at;
 				while (current()) {
 					const now = this.dependencies.now();
-					if (canonicalAt !== undefined && canonicalAt > now)
+					if (base !== undefined && base.created_at > now)
 						throw new Error('Pinned notes canonical event is in the future');
-					if (now > Math.max(canonicalAt ?? -1, this.#lastSignedAt ?? -1)) break;
+					if (now > Math.max(base?.created_at ?? -1, this.#lastSignedAt ?? -1)) break;
 					await this.dependencies.wait(1000);
 				}
 				if (!current()) return;
 				const created_at = this.dependencies.now();
-				if (canonicalAt !== undefined && canonicalAt > created_at)
+				if (base !== undefined && base.created_at > created_at)
 					throw new Error('Pinned notes canonical event is in the future');
-				if (created_at <= Math.max(canonicalAt ?? -1, this.#lastSignedAt ?? -1)) continue;
+				if (created_at <= Math.max(base?.created_at ?? -1, this.#lastSignedAt ?? -1))
+					continue;
 				this.#lastSignedAt = created_at;
 				event = await signEvent({
 					kind: Pinlist,
 					created_at,
-					tags: applyPinOperations(this.#canonical?.tags ?? [], this.#inFlight),
-					content: this.#canonical?.content ?? ''
+					tags: applyPinOperations(base?.tags ?? [], this.#inFlight),
+					content: base?.content ?? ''
 				});
 				assertSignedEventPubkey(event, owner);
 			} catch (error) {
@@ -179,88 +182,37 @@ export class PinnedNotesRuntime {
 				await this.dependencies.publish(event);
 			} catch (error) {
 				if (!current()) return;
-				if (!retry && this.#pending.length > 0) {
+				if (!retriedPublish && this.#pending.length > 0) {
 					this.#inFlight = [...this.#inFlight, ...this.#pending];
 					this.#pending = [];
-					this.#phase = 'signing';
-					retry = true;
+					this.#phase = 'fetching';
+					retriedPublish = true;
 					continue;
 				}
 				this.#fail('publishing', error);
 				return;
 			}
 			if (!current()) return;
-			this.#accepted = event;
-			this.#phase = 'caching';
-			const next = await this.#completePublished(event, owner, generation, rebased);
-			if (next === 'stop') return;
-			rebased = next === 'rebase';
-			retry = false;
-		}
-	}
-
-	async #completePublished(
-		event: Event,
-		owner: string,
-		generation: number,
-		alreadyRebased: boolean
-	): Promise<'continue' | 'rebase' | 'stop'> {
-		const current = () => this.#owner === owner && this.#generation === generation;
-		let accepted: boolean;
-		try {
-			accepted = await this.dependencies.cache(event);
-		} catch (error) {
-			if (current()) this.#pauseReconciliation('caching', error);
-			return 'stop';
-		}
-		if (!current()) return 'stop';
-		let winner = event;
-		if (!accepted) {
-			try {
-				const cached = await this.dependencies.getCached(owner);
-				if (cached === undefined) throw new Error('Pinned notes cache winner is missing');
-				winner = cached;
-			} catch (error) {
-				if (current()) this.#pauseReconciliation('reconciling', error);
-				return 'stop';
-			}
-		}
-		if (!current()) return 'stop';
-		this.#canonical = winner;
-		if (winner.id !== event.id) {
-			// The relay accepted this snapshot, but the cache winner superseded it.
-			this.#inFlight = [...this.#inFlight, ...this.#pending];
+			this.#canonical = event;
+			this.#inFlight = this.#pending;
 			this.#pending = [];
-			if (alreadyRebased) {
-				this.#pauseReconciliation(
-					'reconciling',
-					new Error('Pinned notes cache winner changed again')
-				);
-				return 'stop';
-			}
-			this.#accepted = undefined;
-			this.#failure = undefined;
-			this.#phase = 'signing';
-			return 'rebase';
+			this.#phase = this.#inFlight.length === 0 ? 'idle' : 'fetching';
+			void (async () => {
+				try {
+					await this.dependencies.cache(event);
+				} catch (error) {
+					console.warn('[pinned notes cache update failed]', error);
+				}
+			})();
+			if (this.#phase === 'idle') return;
+			retriedPublish = false;
 		}
-		this.#accepted = undefined;
-		this.#failure = undefined;
-		this.#inFlight = this.#pending;
-		this.#pending = [];
-		this.#phase = this.#inFlight.length === 0 ? 'idle' : 'signing';
-		return this.#phase === 'idle' ? 'stop' : 'continue';
-	}
-
-	#pauseReconciliation(stage: 'caching' | 'reconciling', error: unknown): void {
-		this.#phase = 'reconciling';
-		this.#failure = { stage, error, revision: ++this.#failureRevision };
 	}
 
 	#fail(stage: PinSaveFailure['stage'], error: unknown): void {
 		this.#inFlight = [];
 		this.#pending = [];
 		this.#phase = 'idle';
-		this.#accepted = undefined;
 		this.#failure = { stage, error, revision: ++this.#failureRevision };
 	}
 }
