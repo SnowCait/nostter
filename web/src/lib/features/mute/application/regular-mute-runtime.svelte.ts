@@ -9,8 +9,10 @@ import {
 	type RegularMuteState
 } from '../domain/mute-state';
 
-type Candidate = { readonly event: Event; readonly identity: object };
-type OptimisticMuteState = { readonly token: object; readonly tags: PreparedMuteTags };
+// Tokens carry no data; only symbol identity is used to reject stale async operations.
+type IdentityToken = symbol;
+type Candidate = { readonly event: Event; readonly identity: IdentityToken };
+type OptimisticMuteState = { readonly token: IdentityToken; readonly tags: PreparedMuteTags };
 type Runtime = {
 	readonly owner: string | undefined;
 	readonly canonical: RegularMuteState;
@@ -133,15 +135,18 @@ export function applyRegularMuteInitialization(
 	}
 }
 
-export function startOptimisticMute(owner: string, tags: PreparedMuteTags): object | undefined {
+export function startOptimisticMute(
+	owner: string,
+	tags: PreparedMuteTags
+): IdentityToken | undefined {
 	const current = runtime;
 	if (current.owner !== owner) return undefined;
-	const token = {};
+	const token = Symbol();
 	runtime = { ...current, optimistic: { token, tags: copyTags(tags) } };
 	return token;
 }
 
-export function clearOptimisticMute(owner: string, token: object | undefined): void {
+export function clearOptimisticMute(owner: string, token: IdentityToken | undefined): void {
 	const current = runtime;
 	if (token !== undefined && current.owner === owner && current.optimistic?.token === token) {
 		runtime = { ...current, optimistic: undefined };
@@ -152,7 +157,7 @@ export function completeLocalMute(
 	owner: string,
 	event: Event,
 	privateTags: string[][],
-	token: object | undefined
+	token: IdentityToken | undefined
 ): void {
 	const current = runtime;
 	if (current.owner !== owner) return;
@@ -193,7 +198,7 @@ export async function ingestRemoteMute(
 		!shouldReplaceCurrentEvent(event, current.candidate.event)
 	)
 		return;
-	const candidate = { event: copyEvent(event)!, identity: {} };
+	const candidate = { event: copyEvent(event)!, identity: Symbol() };
 	runtime = { ...current, candidate };
 	let prepared: RegularMuteState;
 	try {
