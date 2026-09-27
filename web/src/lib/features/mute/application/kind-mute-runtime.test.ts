@@ -185,7 +185,7 @@ describe('kind mute runtime', () => {
 		expect(getMutedPubkeysByKindMap().size).toBe(0);
 	});
 
-	it('rejects stale async completion and failure after reset', async () => {
+	it('ignores stale async completion and failure after reset', async () => {
 		const success = deferredDecrypt();
 		const failure = deferredDecrypt();
 		const pendingSuccess = ingestRemoteKindMute(ownerA, event('success', 1), success.decrypt);
