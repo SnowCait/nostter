@@ -21,7 +21,7 @@ import {
 } from '$lib/features/mute/domain/mute-state';
 import { regularMuteRevision } from '$lib/features/mute/application/regular-mute-runtime.svelte';
 import {
-	getMutedPubkeysByKindMap,
+	getKindMuteState,
 	resetKindMute
 } from '$lib/features/mute/application/kind-mute-runtime.svelte';
 
@@ -84,9 +84,9 @@ describe('applyAccountInitialization snapshot', () => {
 		};
 		preparedA.muteState.mutedPubkeysByKind.set(6, prepareKindMuteState(kindEvent));
 		applyAccountInitialization(accountA, preparedA);
-		expect(getMutedPubkeysByKindMap().get(6)).toEqual(new Set(['old']));
+		expect(getKindMuteState(6)?.pubkeys).toEqual(new Set(['old']));
 		applyAccountInitialization(accountB, emptyPrepared());
-		expect(getMutedPubkeysByKindMap().size).toBe(0);
+		expect(getKindMuteState(6)).toBeUndefined();
 	});
 
 	it('replaces previous account event state with defaults for an empty account', () => {

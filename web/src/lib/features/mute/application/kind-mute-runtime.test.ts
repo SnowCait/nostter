@@ -5,7 +5,6 @@ import {
 	applyKindMuteInitialization,
 	completeLocalKindMute,
 	getKindMuteState,
-	getMutedPubkeysByKindMap,
 	ingestRemoteKindMute,
 	isKindMutedPubkey,
 	resetKindMute
@@ -51,14 +50,19 @@ describe('kind mute runtime', () => {
 		await ingestRemoteKindMute(ownerA, event('six', 1), async () => [[], false]);
 		await ingestRemoteKindMute(ownerA, event('seven', 1, 7), async () => [[], false]);
 		completeLocalKindMute(ownerA, 6, event('six-new', 2), [['p', 'six-private']]);
-		expect(getMutedPubkeysByKindMap()).toEqual(
-			new Map([
-				[6, new Set(['six-new-public', 'six-private'])],
-				[7, new Set(['seven-public'])]
-			])
-		);
+		expect(getKindMuteState(6)?.pubkeys).toEqual(new Set(['six-new-public', 'six-private']));
+		expect(getKindMuteState(7)?.pubkeys).toEqual(new Set(['seven-public']));
 		expect(isKindMutedPubkey(7, 'seven-public')).toBe(true);
 		expect(isKindMutedPubkey(6, 'seven-public')).toBe(false);
+	});
+
+	it('returns defensive copies of canonical state', () => {
+		initialize(ownerA, [event('six', 1)]);
+		const state = getKindMuteState(6);
+		(state?.pubkeys as Set<string> | undefined)?.add('mutated');
+		if (state !== undefined) state.event.tags[0]![1] = '7';
+		expect(getKindMuteState(6)?.pubkeys).toEqual(new Set(['six-public']));
+		expect(getKindMuteState(6)?.event.tags[0]?.[1]).toBe('6');
 	});
 
 	it('completes only the preferred overlapping candidate for one kind', async () => {
@@ -170,7 +174,7 @@ describe('kind mute runtime', () => {
 	it('does not accept invalid identifiers or events from another owner', async () => {
 		await ingestRemoteKindMute(ownerA, { ...event('bad', 1), tags: [['d', '6x']] });
 		await ingestRemoteKindMute(ownerA, event('other', 1, 6, ownerB));
-		expect(getMutedPubkeysByKindMap().size).toBe(0);
+		expect(getKindMuteState(6)).toBeUndefined();
 	});
 
 	it('replaces old account state and candidates when the owner changes', async () => {
@@ -180,9 +184,9 @@ describe('kind mute runtime', () => {
 		initialize(ownerB, [event('new', 1, 16, ownerB)]);
 		decrypt.result.resolve([[], false]);
 		await pending;
-		expect(getMutedPubkeysByKindMap()).toEqual(new Map([[16, new Set(['new-public'])]]));
+		expect(getKindMuteState(16)?.pubkeys).toEqual(new Set(['new-public']));
 		initialize(ownerA);
-		expect(getMutedPubkeysByKindMap().size).toBe(0);
+		expect(getKindMuteState(16)).toBeUndefined();
 	});
 
 	it('ignores stale async completion and failure after reset', async () => {
@@ -200,7 +204,8 @@ describe('kind mute runtime', () => {
 		failure.result.reject(new Error('old failure'));
 		await pendingSuccess;
 		await expect(pendingFailure).resolves.toBeUndefined();
-		expect(getMutedPubkeysByKindMap()).toEqual(new Map([[6, new Set(['current-public'])]]));
+		expect(getKindMuteState(6)?.pubkeys).toEqual(new Set(['current-public']));
+		expect(getKindMuteState(7)).toBeUndefined();
 	});
 
 	it('merges same owner initialization by event preference without dropping live kinds', async () => {

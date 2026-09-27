@@ -10,7 +10,8 @@
 	import { mute, unmute, type MuteCapabilities } from '$lib/author/Mute';
 	import { muteByKind, unmuteByKind, type MuteKindCapabilities } from '$lib/author/MuteKind';
 	import { metadataStore } from '$lib/cache/Events';
-	import { mutedPubkeysByKindMap, mutePubkeys } from '$lib/stores/Author';
+	import { isKindMutedPubkey } from '$lib/features/mute/application/kind-mute-runtime.svelte';
+	import { mutePubkeys } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import { copy } from '$lib/platform/browser/clipboard';
 	import { alternativeName } from '$lib/Items';
@@ -51,6 +52,9 @@
 	);
 
 	let listDialogOpen = $state(false);
+	let mutedReposts = $derived(isKindMutedPubkey(6, pubkey));
+	let mutedReactions = $derived(isKindMutedPubkey(7, pubkey));
+	let mutedZaps = $derived(isKindMutedPubkey(9735, pubkey));
 
 	function editLists(): void {
 		listDialogOpen = true;
@@ -296,7 +300,7 @@
 				<div>{$_('actions.mute.button')}</div>
 			</div>
 		{/if}
-		{#if $mutedPubkeysByKindMap.get(6)?.has(pubkey)}
+		{#if mutedReposts}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={unmuteReposts} class="item undo">
@@ -311,7 +315,7 @@
 				<div>{$_('actions.mute.reposts')}</div>
 			</div>
 		{/if}
-		{#if $mutedPubkeysByKindMap.get(7)?.has(pubkey)}
+		{#if mutedReactions}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={unmuteReactions} class="item undo">
@@ -326,7 +330,7 @@
 				<div>{$_('actions.mute.reactions')}</div>
 			</div>
 		{/if}
-		{#if $mutedPubkeysByKindMap.get(9735)?.has(pubkey)}
+		{#if mutedZaps}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div use:melt={$item} onclick={unmuteZaps} class="item undo">

@@ -5,10 +5,7 @@ import { defaultRelays } from '$lib/Constants';
 import { getZapSenderPubkey } from '$lib/nostr/protocol/nip57';
 import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 import { auth } from '$lib/auth.svelte';
-import {
-	getMutedPubkeysByKindMap,
-	isKindMutedPubkey
-} from '$lib/features/mute/application/kind-mute-runtime.svelte';
+import { isKindMutedPubkey } from '$lib/features/mute/application/kind-mute-runtime.svelte';
 import {
 	getCanonicalMuteEvent,
 	getEffectiveMuteTags,
@@ -24,7 +21,6 @@ export const muteWords = toStore(() => [...getEffectiveMuteTags().words]);
 
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
-export const mutedPubkeysByKindMap = toStore(getMutedPubkeysByKindMap);
 export const pinNotes: Writable<string[]> = writable([]);
 export const readRelays: Writable<string[]> = writable(
 	defaultRelays.filter((relay) => relay.read).map((relay) => relay.url)

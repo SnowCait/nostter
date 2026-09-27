@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NotificationVisibility } from './preferences/NotificationVisibility.svelte';
 import {
 	applyKindMuteInitialization,
-	getMutedPubkeysByKindMap
+	isKindMutedPubkey
 } from './features/mute/application/kind-mute-runtime.svelte';
 import { prepareKindMuteState } from './features/mute/domain/mute-state';
 
@@ -796,9 +796,9 @@ describe('session teardown', () => {
 			sig: 'sig'
 		};
 		applyKindMuteInitialization(me, new Map([[6, prepareKindMuteState(event)]]));
-		expect(getMutedPubkeysByKindMap().get(6)).toEqual(new Set(['muted']));
+		expect(isKindMutedPubkey(6, 'muted')).toBe(true);
 		await resetLoginState();
-		expect(getMutedPubkeysByKindMap().size).toBe(0);
+		expect(isKindMutedPubkey(6, 'muted')).toBe(false);
 	});
 });
 
