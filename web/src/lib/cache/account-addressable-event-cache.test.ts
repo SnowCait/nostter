@@ -91,6 +91,24 @@ describe('AccountAddressableEventCache', () => {
 		expect(await cache.get(a, 3)).toEqual(newer);
 	});
 
+	it('selects the NIP-01 winner by timestamp and then ascending event ID', async () => {
+		const current = { ...event(a, 3, 10), id: 'b'.repeat(64) };
+		const newer = { ...event(a, 3, 11), id: 'f'.repeat(64) };
+		const older = { ...event(a, 3, 9), id: '0'.repeat(64) };
+		const sameTimestampWinner = { ...event(a, 3, 10), id: 'a'.repeat(64) };
+		const sameTimestampLoser = { ...event(a, 3, 10), id: 'c'.repeat(64) };
+
+		expect(await cache.put(current)).toBe(true);
+		expect(await cache.put(older)).toBe(false);
+		expect(await cache.get(a, 3)).toEqual(current);
+		expect(await cache.put(sameTimestampLoser)).toBe(false);
+		expect(await cache.put(sameTimestampWinner)).toBe(true);
+		expect(await cache.get(a, 3)).toEqual(sameTimestampWinner);
+		expect(await cache.put(sameTimestampWinner)).toBe(false);
+		expect(await cache.put(newer)).toBe(true);
+		expect(await cache.get(a, 3)).toEqual(newer);
+	});
+
 	it('keeps B unchanged when a delayed A write completes after B', async () => {
 		const aEvent = event(a, 10000, 1);
 		const bEvent = event(b, 10000, 1);
