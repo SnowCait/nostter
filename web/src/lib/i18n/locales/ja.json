@@ -277,6 +277,11 @@
 			"picture": "画像 URL"
 		}
 	},
+	"channel_list": {
+		"add": "チャンネル一覧に追加",
+		"remove": "チャンネル一覧から削除",
+		"failed": "チャンネル一覧を更新できませんでした"
+	},
 	"actions": {
 		"bookmark": {
 			"button": "ブックマーク",
@@ -293,12 +298,6 @@
 		},
 		"quote": {
 			"button": "引用"
-		},
-		"pin": {
-			"button": "ピン留め"
-		},
-		"unpin": {
-			"button": "ピン留め解除"
 		},
 		"information": {
 			"button": "情報"

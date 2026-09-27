@@ -7,22 +7,19 @@
 		IconDots,
 		IconInfoCircle,
 		IconMessages,
-		IconPin,
-		IconPinnedFilled,
 		IconVolumeOff,
 		IconLink,
 		IconClipboard
 	} from '@tabler/icons-svelte-runes';
 	import type { ChannelMetadata } from '$lib/nostr/protocol/nip28';
 	import { muteEventIds } from '$lib/stores/Author';
-	import { authorChannelsEventStore } from '$lib/cache/Events';
 	import { auth } from '$lib/auth.svelte';
 	import { mute, unmute, type MuteCapabilities } from '$lib/author/Mute';
 	import { shareUrl } from '$lib/platform/browser/share';
 	import { copy } from '$lib/platform/browser/clipboard';
 	import Content from '$lib/components/Content.svelte';
 	import OnelineProfile from '$lib/components/profile/OnelineProfile.svelte';
-	import { pinChannel, unpinChannel } from './Pin';
+	import ChannelStarButton from './ChannelStarButton.svelte';
 
 	interface Props {
 		channelId: string;
@@ -45,11 +42,6 @@
 	let detailsDialog = $state<HTMLDialogElement>();
 	let brokenImage = $state(false);
 
-	let pinned = $derived(
-		$authorChannelsEventStore?.tags.some(
-			([tagName, id]) => tagName === 'e' && id === channelId
-		) ?? false
-	);
 	let muted = $derived($muteEventIds.includes(channelId));
 	let nevent = $derived(neventEncode({ id: channelId }));
 	let url = $derived(page.url.href);
@@ -72,22 +64,6 @@
 			nip04: signer.nip04,
 			nip44: signer.nip44
 		};
-	}
-
-	async function pin(): Promise<void> {
-		const signer = auth.signer;
-		if (signer === undefined) {
-			throw new Error('Cannot pin a channel without a signing session');
-		}
-		await pinChannel(channelId, (template) => signer.signEvent(template));
-	}
-
-	async function unpin(): Promise<void> {
-		const signer = auth.signer;
-		if (signer === undefined) {
-			throw new Error('Cannot unpin a channel without a signing session');
-		}
-		await unpinChannel(channelId, (template) => signer.signEvent(template));
 	}
 </script>
 
@@ -118,28 +94,14 @@
 			{/if}
 		</div>
 
+		{#if auth.signer !== undefined}
+			<ChannelStarButton {channelId} />
+		{/if}
 		<button class="clear menu-trigger" title={$_('channel.menu')} use:melt={$trigger}>
 			<IconDots />
 		</button>
 		<div use:melt={$overlay} class="overlay"></div>
 		<div use:melt={$menu} class="menu">
-			{#if auth.signer !== undefined}
-				{#if pinned}
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div use:melt={$item} onclick={unpin} class="item undo">
-						<div class="icon"><IconPinnedFilled size={18} /></div>
-						<div>{$_('actions.unpin.button')}</div>
-					</div>
-				{:else}
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div use:melt={$item} onclick={pin} class="item">
-						<div class="icon"><IconPin size={18} /></div>
-						<div>{$_('actions.pin.button')}</div>
-					</div>
-				{/if}
-			{/if}
 			{#if navigator.canShare !== undefined}
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
