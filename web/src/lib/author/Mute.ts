@@ -3,7 +3,12 @@ import { cacheAccountEvent, accountAddressableEventCache } from '$lib/cache/Even
 import { now } from 'rx-nostr';
 import { filter, firstValueFrom } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
-import { storeMutedTags } from '$lib/stores/Author';
+import {
+	clearOptimisticMute,
+	completeLocalMute,
+	startOptimisticMute
+} from '$lib/features/mute/application/regular-mute-runtime.svelte';
+import { prepareMuteTags } from '$lib/features/mute/domain/mute-state';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { fetchLastEvent } from '$lib/RxNostrHelper';
@@ -85,7 +90,6 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		privateTags = _privateTags;
 		legacy = _legacy;
 	}
-	const cachedPrivateTags = privateTags.map((tag) => [...tag]);
 
 	while (queue.length > 0) {
 		const data = queue.dequeue();
@@ -127,35 +131,42 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		}
 	}
 
-	if (auth.pubkey === accountPubkey) {
-		await storeMutedTags([...tags, ...privateTags], accountPubkey);
-	}
-
-	// Lazy validation for UX
-	if (!(await validate(lastEvent, accountPubkey))) {
-		if (auth.pubkey === accountPubkey) {
-			await storeMutedTags([...(lastEvent?.tags ?? []), ...cachedPrivateTags], accountPubkey);
-		}
-		throw new Error('Cache is outdated.');
-	}
-
-	const encryptPrivateListContent = createListContentEncrypter(capabilities);
-	const event = await capabilities.signEvent({
-		kind,
-		content: await encryptPrivateListContent(accountPubkey, privateTags, legacy),
-		tags,
-		created_at: now()
-	});
+	const token =
+		auth.pubkey === accountPubkey
+			? startOptimisticMute(
+					accountPubkey,
+					prepareMuteTags([...tags, ...privateTags], accountPubkey)
+				)
+			: undefined;
 	try {
-		assertSignedEventPubkey(event, accountPubkey);
-	} catch (error) {
-		if (auth.pubkey === accountPubkey) {
-			await storeMutedTags([...(lastEvent?.tags ?? []), ...cachedPrivateTags], accountPubkey);
+		// Lazy validation for UX
+		if (!(await validate(lastEvent, accountPubkey))) {
+			throw new Error('Cache is outdated.');
 		}
+		const encryptPrivateListContent = createListContentEncrypter(capabilities);
+		const event = await capabilities.signEvent({
+			kind,
+			content: await encryptPrivateListContent(accountPubkey, privateTags, legacy),
+			tags,
+			created_at: now()
+		});
+		assertSignedEventPubkey(event, accountPubkey);
+		const accepted = await cacheAccountEvent(event);
+		if (accepted) {
+			if (auth.pubkey === accountPubkey)
+				completeLocalMute(accountPubkey, event, privateTags, token);
+		} else {
+			const current = await accountAddressableEventCache.get(accountPubkey, kind);
+			if (current?.id === event.id && auth.pubkey === accountPubkey) {
+				completeLocalMute(accountPubkey, event, privateTags, token);
+			}
+		}
+		clearOptimisticMute(accountPubkey, token);
+		await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
+	} catch (error) {
+		clearOptimisticMute(accountPubkey, token);
 		throw error;
 	}
-	await cacheAccountEvent(event);
-	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
 
 	if (queue.length > 0) {
 		await publish(capabilities, accountPubkey);

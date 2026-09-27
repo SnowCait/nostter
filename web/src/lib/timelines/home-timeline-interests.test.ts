@@ -7,7 +7,8 @@ import type * as Nostr from 'nostr-typedef';
 const mocks = vi.hoisted(() => ({
 	emit: vi.fn(),
 	use: vi.fn(),
-	cacheAccountEvent: vi.fn()
+	cacheAccountEvent: vi.fn(),
+	ingestRemoteMute: vi.fn()
 }));
 vi.mock('rx-nostr', async (importOriginal) => ({
 	...(await importOriginal<typeof import('rx-nostr')>()),
@@ -28,6 +29,12 @@ vi.mock('$lib/author/Action', () => ({
 vi.mock('$lib/cache/Events', async (importOriginal) => ({
 	...(await importOriginal<typeof import('$lib/cache/Events')>()),
 	cacheAccountEvent: mocks.cacheAccountEvent
+}));
+vi.mock('$lib/features/mute/application/regular-mute-runtime.svelte', async (importOriginal) => ({
+	...(await importOriginal<
+		typeof import('$lib/features/mute/application/regular-mute-runtime.svelte')
+	>()),
+	ingestRemoteMute: mocks.ingestRemoteMute
 }));
 vi.mock('$lib/auth.svelte', () => ({
 	auth: { pubkey: 'a'.repeat(64), followees: ['a'.repeat(64)], signer: undefined }
@@ -72,5 +79,24 @@ describe('HomeTimeline InterestsList refresh', () => {
 		expect(get(followingHashtags)).toEqual(['nostr', 'bitcoin']);
 		const filters = mocks.emit.mock.calls[1]?.[0] as Array<{ '#t'?: string[] }>;
 		expect(filters).toContainEqual(expect.objectContaining({ '#t': ['nostr', 'bitcoin'] }));
+	});
+});
+
+describe('HomeTimeline regular mute refresh', () => {
+	it('forwards a cache accepted kind 10000 event to the mute runtime', async () => {
+		const packets = new Subject<{ event: Nostr.Event; from: string }>();
+		mocks.use.mockReturnValue(packets);
+		const write = Promise.withResolvers<boolean>();
+		mocks.cacheAccountEvent.mockReset().mockReturnValue(write.promise);
+		const forwarded = Promise.withResolvers<void>();
+		mocks.ingestRemoteMute.mockReset().mockImplementationOnce(() => forwarded.resolve());
+		const timeline = new HomeTimeline();
+		timeline.subscribe();
+		const event = { ...interests([['p', 'muted']]), id: 'mute', kind: Kind.Mutelist };
+		packets.next({ event, from: 'relay.example' });
+		expect(mocks.ingestRemoteMute).not.toHaveBeenCalled();
+		write.resolve(true);
+		await forwarded.promise;
+		expect(mocks.ingestRemoteMute).toHaveBeenCalledWith('a'.repeat(64), event, undefined);
 	});
 });

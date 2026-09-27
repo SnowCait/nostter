@@ -11,6 +11,8 @@ import { rxNostr } from '$lib/timelines/MainTimeline';
 import { followingHashtags } from '$lib/Interest';
 import { prepareAccountState } from './prepare-account-state';
 import { applyAccountInitialization } from './apply-account-initialization';
+import { prepareRegularMuteState } from '$lib/features/mute/domain/mute-state';
+import { regularMuteRevision } from '$lib/features/mute/application/regular-mute-runtime.svelte';
 
 const accountA = 'a'.repeat(64);
 const accountB = 'b'.repeat(64);
@@ -31,7 +33,11 @@ function apply(pubkey: string, events: LoadedAccountEvents): void {
 	applyAccountInitialization(pubkey, {
 		followingPubkeys: [],
 		accountState: prepareAccountState(events),
-		muteState: { mute: { type: 'unchanged' }, mutedPubkeysByKind: new Map() }
+		muteState: {
+			mute: prepareRegularMuteState(undefined, pubkey),
+			baseline: regularMuteRevision(),
+			mutedPubkeysByKind: new Map()
+		}
 	});
 }
 
