@@ -1,3 +1,5 @@
+import { unique } from '$lib/array';
+
 export type PinOperation = { type: 'pin' | 'unpin'; eventId: string };
 
 export function applyPinOperations(tags: string[][], operations: PinOperation[]): string[][] {
@@ -12,5 +14,5 @@ export function applyPinOperations(tags: string[][], operations: PinOperation[])
 }
 
 export function pinnedEventIds(tags: string[][]): string[] {
-	return [...new Set(tags.filter(([name, id]) => name === 'e' && id).map(([, id]) => id))];
+	return unique(tags.filter(([name, id]) => name === 'e' && id).map(([, id]) => id));
 }

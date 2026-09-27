@@ -39,6 +39,7 @@ function setup(initial?: Event) {
 	const publications: ReturnType<typeof deferred<void>>[] = [];
 	const templates: EventTemplate[] = [];
 	const cache = vi.fn(async () => true);
+	const getCached = vi.fn(async (): Promise<Event | undefined> => undefined);
 	const runtime = new PinnedNotesRuntime({
 		now: () => second,
 		wait: () => {
@@ -51,7 +52,8 @@ function setup(initial?: Event) {
 			publications.push(next);
 			return next.promise;
 		},
-		cache
+		cache,
+		getCached
 	});
 	const sign = vi.fn(async (template: EventTemplate) => {
 		templates.push(template);
@@ -62,6 +64,7 @@ function setup(initial?: Event) {
 		runtime,
 		sign,
 		cache,
+		getCached,
 		templates,
 		publications,
 		waits,
@@ -219,6 +222,158 @@ describe('pinned notes persistence', () => {
 			['e', 'b']
 		]);
 		expect(s.runtime.failure).toBeUndefined();
+	});
+
+	it('rebases an accepted event on a different cache winner without losing in-flight or pending intent', async () => {
+		const s = setup(event([['e', 'old']]));
+		const winner = { ...event([['e', 'remote']], 10), id: '0' };
+		s.cache.mockResolvedValueOnce(false);
+		s.getCached.mockResolvedValueOnce(winner);
+		s.runtime.pin('mine', s.sign);
+		await flush();
+		s.runtime.unpin('old', s.sign);
+		s.publications[0].resolve();
+		await flush();
+		expect(s.runtime.canonical).toBe(winner);
+		expect(s.runtime.effectivePinnedEventIds).toEqual(['remote', 'mine']);
+		expect(s.runtime.inFlight).toHaveLength(2);
+		expect(s.sign).toHaveBeenCalledTimes(1);
+		s.advance();
+		await s.resolveWait();
+		expect(s.templates[1].tags).toEqual([
+			['e', 'remote'],
+			['e', 'mine']
+		]);
+		expect(s.templates[1].created_at).toBe(11);
+		s.publications[1].resolve();
+		await flush();
+		expect(s.runtime.canonical?.tags).toEqual([
+			['e', 'remote'],
+			['e', 'mine']
+		]);
+		expect(s.runtime.failure).toBeUndefined();
+	});
+
+	it('stops automatic rebasing after a second concurrent cache winner while retaining intent', async () => {
+		const s = setup();
+		const firstWinner = { ...event([['e', 'remote-a']], 10), id: '0' };
+		const secondWinner = { ...event([['e', 'remote-b']], 11), id: '1' };
+		s.cache.mockResolvedValueOnce(false).mockResolvedValueOnce(false);
+		s.getCached.mockResolvedValueOnce(firstWinner).mockResolvedValueOnce(secondWinner);
+		s.runtime.pin('mine', s.sign);
+		await flush();
+		s.publications[0].resolve();
+		await flush();
+		s.advance();
+		await s.resolveWait();
+		s.publications[1].resolve();
+		await flush();
+		expect(s.runtime.canonical).toBe(secondWinner);
+		expect(s.runtime.effectivePinnedEventIds).toEqual(['remote-b', 'mine']);
+		expect(s.runtime.phase).toBe('reconciling');
+		expect(s.runtime.failure?.stage).toBe('reconciling');
+		expect(s.publications).toHaveLength(2);
+	});
+
+	it('keeps relay-accepted intent and reports a cache failure without republishing', async () => {
+		const s = setup(event([['e', 'old']]));
+		s.cache.mockRejectedValueOnce(new Error('IndexedDB unavailable'));
+		s.runtime.pin('mine', s.sign);
+		await flush();
+		s.publications[0].resolve();
+		await flush();
+		expect(s.runtime.phase).toBe('reconciling');
+		expect(s.runtime.failure?.stage).toBe('caching');
+		expect(s.runtime.canonical?.tags).toEqual([['e', 'old']]);
+		expect(s.runtime.acceptedEvent?.tags).toEqual([
+			['e', 'old'],
+			['e', 'mine']
+		]);
+		expect(s.runtime.effectivePinnedEventIds).toEqual(['old', 'mine']);
+		expect(s.publications).toHaveLength(1);
+		s.runtime.reconcile(s.sign);
+		await flush();
+		expect(s.runtime.canonical?.tags).toEqual([
+			['e', 'old'],
+			['e', 'mine']
+		]);
+		expect(s.runtime.phase).toBe('idle');
+		expect(s.runtime.failure).toBeUndefined();
+		expect(s.publications).toHaveLength(1);
+	});
+
+	it('preserves pending operations across cache recovery and saves their next snapshot', async () => {
+		const s = setup(event([['e', 'old']]));
+		s.cache.mockRejectedValueOnce(new Error('IndexedDB unavailable'));
+		s.runtime.pin('mine', s.sign);
+		await flush();
+		s.runtime.unpin('old', s.sign);
+		s.publications[0].resolve();
+		await flush();
+		expect(s.runtime.pending).toHaveLength(1);
+		expect(s.runtime.effectivePinnedEventIds).toEqual(['mine']);
+		s.runtime.reconcile(s.sign);
+		await flush();
+		expect(s.runtime.canonical?.tags).toEqual([
+			['e', 'old'],
+			['e', 'mine']
+		]);
+		expect(s.runtime.effectivePinnedEventIds).toEqual(['mine']);
+		expect(s.publications).toHaveLength(1);
+		s.advance();
+		await s.resolveWait();
+		expect(s.templates[1].tags).toEqual([['e', 'mine']]);
+		s.publications[1].resolve();
+		await flush();
+		expect(s.runtime.canonical?.tags).toEqual([['e', 'mine']]);
+	});
+
+	it('accepts an already cached copy of the published event without another publish', async () => {
+		const s = setup();
+		s.cache.mockResolvedValueOnce(false);
+		s.getCached.mockImplementationOnce(async () => s.runtime.acceptedEvent);
+		s.runtime.pin('mine', s.sign);
+		await flush();
+		s.publications[0].resolve();
+		await flush();
+		expect(s.runtime.canonical?.tags).toEqual([['e', 'mine']]);
+		expect(s.runtime.phase).toBe('idle');
+		expect(s.publications).toHaveLength(1);
+	});
+
+	it('does not let cache winner lookup completion cross an account switch or reset', async () => {
+		const s = setup();
+		const lookup = deferred<Event | undefined>();
+		s.cache.mockResolvedValueOnce(false);
+		s.getCached.mockImplementationOnce(() => lookup.promise);
+		s.runtime.pin('mine', s.sign);
+		await flush();
+		s.publications[0].resolve();
+		await flush();
+		expect(s.getCached).toHaveBeenCalledOnce();
+		const newAccount = event([['e', 'new-account']], 2, other);
+		s.runtime.initialize(other, newAccount);
+		lookup.resolve(event([['e', 'old-account']], 10));
+		await flush();
+		expect(s.runtime.owner).toBe(other);
+		expect(s.runtime.canonical).toBe(newAccount);
+		expect(s.runtime.failure).toBeUndefined();
+		expect(s.publications).toHaveLength(1);
+
+		const t = setup();
+		const resetLookup = deferred<Event | undefined>();
+		t.cache.mockResolvedValueOnce(false);
+		t.getCached.mockImplementationOnce(() => resetLookup.promise);
+		t.runtime.pin('mine', t.sign);
+		await flush();
+		t.publications[0].resolve();
+		await flush();
+		t.runtime.reset();
+		resetLookup.resolve(event([['e', 'old-account']], 10));
+		await flush();
+		expect(t.runtime.owner).toBeUndefined();
+		expect(t.runtime.canonical).toBeUndefined();
+		expect(t.runtime.failure).toBeUndefined();
 	});
 
 	it('rejects a future canonical timestamp and a wrong signing owner', async () => {
