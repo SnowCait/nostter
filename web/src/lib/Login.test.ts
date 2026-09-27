@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NotificationVisibility } from './preferences/NotificationVisibility.svelte';
+import {
+	applyKindMuteInitialization,
+	getMutedPubkeysByKindMap
+} from './features/mute/application/kind-mute-runtime.svelte';
+import { prepareKindMuteState } from './features/mute/domain/mute-state';
 
 const {
 	loadFolloweesOfFollowees,
@@ -774,6 +779,26 @@ describe('session teardown', () => {
 
 		expect(auth.status).toBe('anonymous');
 		expect(auth.signer).toBeUndefined();
+	});
+
+	it('clears kind mute state during account reset', async () => {
+		const { resetLoginState } = await import('./Login');
+		const event = {
+			id: 'kind-mute',
+			pubkey: me,
+			kind: 30007,
+			created_at: 1,
+			tags: [
+				['d', '6'],
+				['p', 'muted']
+			],
+			content: '',
+			sig: 'sig'
+		};
+		applyKindMuteInitialization(me, new Map([[6, prepareKindMuteState(event)]]));
+		expect(getMutedPubkeysByKindMap().get(6)).toEqual(new Set(['muted']));
+		await resetLoginState();
+		expect(getMutedPubkeysByKindMap().size).toBe(0);
 	});
 });
 

@@ -128,4 +128,31 @@ describe('mute state preparation', () => {
 		expect(consoleWarn).toHaveBeenCalledOnce();
 		consoleWarn.mockRestore();
 	});
+
+	it('keeps the preferred event when numeric identifiers map to the same mute kind', async () => {
+		const newer = {
+			...event(
+				[
+					['d', '6'],
+					['p', privatePubkey]
+				],
+				''
+			),
+			kind: 30007,
+			created_at: 2
+		};
+		const older = {
+			...event(
+				[
+					['d', '06'],
+					['p', publicPubkey]
+				],
+				''
+			),
+			kind: 30007,
+			created_at: 1
+		};
+		const updates = await prepareKindMuteStates([newer, older]);
+		expect(updates.get(6)?.event).toBe(newer);
+	});
 });

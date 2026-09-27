@@ -8,7 +8,8 @@ const mocks = vi.hoisted(() => ({
 	emit: vi.fn(),
 	use: vi.fn(),
 	cacheAccountEvent: vi.fn(),
-	ingestRemoteMute: vi.fn()
+	ingestRemoteMute: vi.fn(),
+	ingestRemoteKindMute: vi.fn()
 }));
 vi.mock('rx-nostr', async (importOriginal) => ({
 	...(await importOriginal<typeof import('rx-nostr')>()),
@@ -35,6 +36,12 @@ vi.mock('$lib/features/mute/application/regular-mute-runtime.svelte', async (imp
 		typeof import('$lib/features/mute/application/regular-mute-runtime.svelte')
 	>()),
 	ingestRemoteMute: mocks.ingestRemoteMute
+}));
+vi.mock('$lib/features/mute/application/kind-mute-runtime.svelte', async (importOriginal) => ({
+	...(await importOriginal<
+		typeof import('$lib/features/mute/application/kind-mute-runtime.svelte')
+	>()),
+	ingestRemoteKindMute: mocks.ingestRemoteKindMute
 }));
 vi.mock('$lib/auth.svelte', () => ({
 	auth: { pubkey: 'a'.repeat(64), followees: ['a'.repeat(64)], signer: undefined }
@@ -98,5 +105,24 @@ describe('HomeTimeline regular mute refresh', () => {
 		write.resolve(true);
 		await forwarded.promise;
 		expect(mocks.ingestRemoteMute).toHaveBeenCalledWith('a'.repeat(64), event, undefined);
+	});
+});
+
+describe('HomeTimeline kind mute refresh', () => {
+	it('forwards a kind 30007 event only after cache acceptance', async () => {
+		const packets = new Subject<{ event: Nostr.Event; from: string }>();
+		mocks.use.mockReturnValue(packets);
+		const write = Promise.withResolvers<boolean>();
+		mocks.cacheAccountEvent.mockReset().mockReturnValue(write.promise);
+		const forwarded = Promise.withResolvers<void>();
+		mocks.ingestRemoteKindMute.mockReset().mockImplementationOnce(() => forwarded.resolve());
+		const timeline = new HomeTimeline();
+		timeline.subscribe();
+		const event = { ...interests([['d', '6']]), id: 'kind-mute', kind: 30007 };
+		packets.next({ event, from: 'relay.example' });
+		expect(mocks.ingestRemoteKindMute).not.toHaveBeenCalled();
+		write.resolve(true);
+		await forwarded.promise;
+		expect(mocks.ingestRemoteKindMute).toHaveBeenCalledWith('a'.repeat(64), event, undefined);
 	});
 });

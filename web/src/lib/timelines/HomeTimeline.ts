@@ -46,8 +46,9 @@ import {
 	followeesFilterKinds
 } from '$lib/Constants';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
-import { updateRelays, storeMutedPubkeysByKind } from '../stores/Author';
+import { updateRelays } from '../stores/Author';
 import { ingestRemoteMute } from '$lib/features/mute/application/regular-mute-runtime.svelte';
+import { ingestRemoteKindMute } from '$lib/features/mute/application/kind-mute-runtime.svelte';
 import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { saveLastNote } from '../stores/LastNotes';
 import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';
@@ -163,11 +164,11 @@ export class HomeTimeline extends NewTimeline {
 				filter(({ event }) => findIdentifier(event.tags) === legacyBookmarkIdentifier)
 			)
 			.subscribe(({ event }) => legacyBookmarkEvent.set(event));
-		addressable$.pipe(filterByKind(30007)).subscribe(({ event }) => {
+		addressable$.pipe(filterByKind(30007)).subscribe(async ({ event }) => {
 			const signer = auth.signer;
 			const decryptPrivateListContent =
 				signer === undefined ? undefined : createListContentDecrypter(signer);
-			storeMutedPubkeysByKind([event], decryptPrivateListContent);
+			await ingestRemoteKindMute(accountPubkey, event, decryptPrivateListContent);
 		});
 		addressable$
 			.pipe(filter(({ event }) => isProfileBadgesEvent(event)))
