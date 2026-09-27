@@ -94,34 +94,67 @@ describe('kind mute runtime', () => {
 		const pendingSix = ingestRemoteKindMute(ownerA, event('six', 1), six.decrypt);
 		const pendingSeven = ingestRemoteKindMute(ownerA, event('seven', 1, 7), seven.decrypt);
 		six.result.reject(new Error('six failed'));
-		await expect(pendingSix).rejects.toThrow('six failed');
+		await expect(pendingSix).resolves.toBeUndefined();
 		seven.result.resolve([[], false]);
 		await pendingSeven;
-		expect(getKindMuteState(6)).toBeUndefined();
+		expect(getKindMuteState(6)?.pubkeys).toEqual(new Set(['six-public']));
 		expect(getKindMuteState(7)?.event.id).toBe('seven');
 	});
 
-	it('clears only the failing candidate and permits retry of the same event', async () => {
+	it('applies the failed event public tags without rejecting or retrying the same event', async () => {
+		initialize(ownerA, [event('original', 1)]);
+		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const failed = deferredDecrypt();
+		const remote = event('remote', 2);
+		const pending = ingestRemoteKindMute(ownerA, remote, failed.decrypt);
+		failed.result.reject(new Error('decrypt failed'));
+		await expect(pending).resolves.toBeUndefined();
+		expect(consoleWarn).toHaveBeenCalledOnce();
+		expect(getKindMuteState(6)?.event.id).toBe('remote');
+		expect(getKindMuteState(6)?.pubkeys).toEqual(new Set(['remote-public']));
+		const duplicate = vi.fn(async () => [[['p', 'private']], false] as [string[][], boolean]);
+		await ingestRemoteKindMute(ownerA, remote, duplicate);
+		expect(duplicate).not.toHaveBeenCalled();
+		expect(getKindMuteState(6)?.pubkeys).toEqual(new Set(['remote-public']));
+		consoleWarn.mockRestore();
+	});
+
+	it('ignores a stale decrypt failure while a preferred candidate completes', async () => {
 		const first = deferredDecrypt();
 		const second = deferredDecrypt();
 		const older = ingestRemoteKindMute(ownerA, event('older', 1), first.decrypt);
 		const newer = ingestRemoteKindMute(ownerA, event('newer', 2), second.decrypt);
 		first.result.reject(new Error('failed'));
-		await expect(older).rejects.toThrow('failed');
+		await expect(older).resolves.toBeUndefined();
+		expect(getKindMuteState(6)).toBeUndefined();
 		const duplicate = vi.fn(async () => [[], false] as [string[][], boolean]);
 		await ingestRemoteKindMute(ownerA, event('newer', 2), duplicate);
 		expect(duplicate).not.toHaveBeenCalled();
-		second.result.resolve([[], false]);
+		second.result.resolve([[['p', 'newer-private']], false]);
 		await newer;
 		expect(getKindMuteState(6)?.event.id).toBe('newer');
+		expect(getKindMuteState(6)?.pubkeys).toEqual(new Set(['newer-public', 'newer-private']));
+	});
 
+	it('does not roll back a newer canonical event after decrypt failure', async () => {
 		const failed = deferredDecrypt();
-		const retryEvent = event('retry', 3, 7);
-		const attempt = ingestRemoteKindMute(ownerA, retryEvent, failed.decrypt);
-		failed.result.reject(new Error('temporary'));
-		await expect(attempt).rejects.toThrow('temporary');
-		await ingestRemoteKindMute(ownerA, retryEvent, async () => [[], false]);
-		expect(getKindMuteState(7)?.event.id).toBe('retry');
+		const pending = ingestRemoteKindMute(ownerA, event('remote', 2), failed.decrypt);
+		completeLocalKindMute(ownerA, 6, event('local', 3), [['p', 'local-private']]);
+		failed.result.reject(new Error('decrypt failed'));
+		await expect(pending).resolves.toBeUndefined();
+		expect(getKindMuteState(6)?.event.id).toBe('local');
+		expect(getKindMuteState(6)?.pubkeys).toEqual(new Set(['local-public', 'local-private']));
+	});
+
+	it('preserves fully materialized private tags from the same event after decrypt failure', async () => {
+		const signed = event('signed', 2);
+		const failed = deferredDecrypt();
+		const pending = ingestRemoteKindMute(ownerA, signed, failed.decrypt);
+		completeLocalKindMute(ownerA, 6, signed, [['p', 'private']]);
+		failed.result.reject(new Error('decrypt failed'));
+		await expect(pending).resolves.toBeUndefined();
+		expect(getKindMuteState(6)?.event.id).toBe('signed');
+		expect(getKindMuteState(6)?.pubkeys).toEqual(new Set(['signed-public', 'private']));
 	});
 
 	it('preserves a preferred remote candidate during local completion', async () => {
@@ -166,7 +199,7 @@ describe('kind mute runtime', () => {
 		success.result.resolve([[], false]);
 		failure.result.reject(new Error('old failure'));
 		await pendingSuccess;
-		await expect(pendingFailure).rejects.toThrow('old failure');
+		await expect(pendingFailure).resolves.toBeUndefined();
 		expect(getMutedPubkeysByKindMap()).toEqual(new Map([[6, new Set(['current-public'])]]));
 	});
 

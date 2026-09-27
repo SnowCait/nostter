@@ -133,16 +133,27 @@ export async function ingestRemoteKindMute(
 	try {
 		prepared = await prepareKindMuteStateFromEvent(event, decrypt);
 	} catch (error) {
+		console.warn('[kind 30007 content parse error]', event, error);
 		const latest = runtime;
 		if (
-			latest.owner === owner &&
-			latest.candidates.get(muteKind)?.identity === candidate.identity
+			latest.owner !== owner ||
+			latest.candidates.get(muteKind)?.identity !== candidate.identity
+		)
+			return;
+		const remaining = new Map(latest.candidates);
+		remaining.delete(muteKind);
+		const previous = latest.canonical.get(muteKind);
+		if (
+			previous !== undefined &&
+			(previous.event.id === event.id || !shouldReplaceCurrentEvent(event, previous.event))
 		) {
-			const remaining = new Map(latest.candidates);
-			remaining.delete(muteKind);
 			runtime = { ...latest, candidates: remaining };
+			return;
 		}
-		throw error;
+		const updated = new Map(latest.canonical);
+		updated.set(muteKind, copyState(prepareKindMuteState(event)));
+		runtime = { ...latest, canonical: updated, candidates: remaining };
+		return;
 	}
 	const latest = runtime;
 	if (latest.owner !== owner || latest.candidates.get(muteKind)?.identity !== candidate.identity)
