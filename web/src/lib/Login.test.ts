@@ -886,6 +886,8 @@ describe('tryLogin', () => {
 			try {
 				await expect(tryLogin()).resolves.toBe(false);
 				expect(auth.status).toBe('anonymous');
+				expect(relayRuntime.relays).toEqual(applicationDefaults);
+				expect(relayRuntime.relays.map(({ url }) => url)).not.toContain(bRelays[0].url);
 				await expect(tryLogin()).resolves.toBe(true);
 				expect(relaysSeenByEventFetch).toEqual([bRelays, applicationDefaults]);
 				expect(auth.pubkey).toBe(c);

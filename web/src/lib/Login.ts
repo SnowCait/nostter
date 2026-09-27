@@ -1,4 +1,5 @@
 import { get } from 'svelte/store';
+import { locale } from 'svelte-i18n';
 import { authorProfile } from './stores/Author';
 import { nip19 } from 'nostr-tools';
 import { robohash } from './Items';
@@ -20,6 +21,7 @@ import { BrowserSigner } from './nostr/signing/browser-signer';
 import { PrivateKeySigner } from './nostr/signing/private-key-signer';
 import type { Signer as SigningSigner } from './nostr/signing/signer';
 import { establishBunkerConnection } from './nip46-connection';
+import { applicationRelays } from './nostr/relay/application-relays';
 
 type BasicInfoSigner = Pick<SigningSigner, 'getPublicKey' | 'signEvent'>;
 
@@ -197,6 +199,7 @@ export async function resetLoginState(): Promise<void> {
 	auth.reset();
 	resetRegularMute();
 	resetKindMute();
+	rxNostr.setDefaultRelays(applicationRelays(get(locale)));
 	await disposingSigner;
 }
 
