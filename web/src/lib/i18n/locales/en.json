@@ -278,6 +278,11 @@
 			"picture": "Picture URL"
 		}
 	},
+	"channel_list": {
+		"add": "Add to my channel list",
+		"remove": "Remove from my channel list",
+		"failed": "Failed to update my channel list"
+	},
 	"actions": {
 		"bookmark": {
 			"button": "Bookmark",
@@ -294,12 +299,6 @@
 		},
 		"quote": {
 			"button": "Quote"
-		},
-		"pin": {
-			"button": "Pin"
-		},
-		"unpin": {
-			"button": "Unpin"
 		},
 		"information": {
 			"button": "Information"
