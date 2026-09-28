@@ -219,9 +219,16 @@ export class PinnedNotesRuntime {
 		this.#inFlight = [];
 		this.#pending = [];
 		this.#phase = 'idle';
-		const failure: PinSaveFailure = { stage, error };
-		for (const listener of this.#saveFailureListeners) {
-			listener(failure);
+		this.#emitSaveFailure({ stage, error });
+	}
+
+	#emitSaveFailure(failure: PinSaveFailure): void {
+		for (const listener of [...this.#saveFailureListeners]) {
+			try {
+				listener(failure);
+			} catch (error) {
+				console.error('[pinned notes save failure listener failed]', error);
+			}
 		}
 	}
 }

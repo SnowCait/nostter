@@ -491,4 +491,30 @@ describe('pinned notes persistence', () => {
 		expect(listener).toHaveBeenCalledOnce();
 		expect(s.failures).toHaveLength(2);
 	});
+
+	it('keeps notifying other listeners and rolls back when a listener throws', async () => {
+		const s = setup();
+		const throwing = vi.fn(() => {
+			throw new Error('listener');
+		});
+		const following = vi.fn();
+		s.runtime.onSaveFailure(throwing);
+		s.runtime.onSaveFailure(following);
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+		try {
+			s.runtime.pin(note('a'));
+			await flush();
+			s.publications[0].reject(new Error('relay'));
+			await flush();
+			const failure = { stage: 'publishing', error: new Error('relay') };
+			expect(throwing).toHaveBeenCalledExactlyOnceWith(failure);
+			expect(following).toHaveBeenCalledExactlyOnceWith(failure);
+			expect(s.failures).toEqual([failure]);
+			expect(s.runtime.inFlight).toEqual([]);
+			expect(s.runtime.pending).toEqual([]);
+			expect(s.runtime.phase).toBe('idle');
+		} finally {
+			consoleError.mockRestore();
+		}
+	});
 });
