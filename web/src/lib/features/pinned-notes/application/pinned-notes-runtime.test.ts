@@ -46,8 +46,13 @@ function setup(initial?: Event) {
 		return next.promise;
 	});
 	const cache = vi.fn(async () => true);
+	const sign = vi.fn(async (template: EventTemplate) => {
+		templates.push(template);
+		return { ...event(template.tags, template.created_at), content: template.content };
+	});
 	const runtime = new PinnedNotesRuntime({
 		fetchLatest,
+		sign,
 		publish,
 		now: () => second,
 		wait: () => {
@@ -56,10 +61,6 @@ function setup(initial?: Event) {
 			return next.promise;
 		},
 		cache
-	});
-	const sign = vi.fn(async (template: EventTemplate) => {
-		templates.push(template);
-		return { ...event(template.tags, template.created_at), content: template.content };
 	});
 	runtime.initialize(owner, initial);
 	return {
@@ -84,6 +85,8 @@ function setup(initial?: Event) {
 describe('pinned notes persistence', () => {
 	it('starts fetching immediately and rebases a first pin on relay latest', async () => {
 		const s = setup();
+		expect(s.runtime.pin).toHaveLength(1);
+		expect(s.runtime.unpin).toHaveLength(1);
 		const latest = {
 			...event(
 				[
@@ -96,8 +99,9 @@ describe('pinned notes persistence', () => {
 		};
 		const fetching = deferred<Event | undefined>();
 		s.fetchLatest.mockImplementationOnce(() => fetching.promise);
-		s.runtime.pin('c', s.sign);
+		s.runtime.pin('c');
 		expect(s.runtime.phase).toBe('fetching');
+		expect(s.runtime.inFlight).toEqual([{ type: 'pin', eventId: 'c' }]);
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['c']);
 		expect(s.fetchLatest).toHaveBeenCalledWith(owner);
 		expect(s.sign).not.toHaveBeenCalled();
@@ -133,8 +137,8 @@ describe('pinned notes persistence', () => {
 		);
 		const fetching = deferred<Event | undefined>();
 		s.fetchLatest.mockImplementationOnce(() => fetching.promise);
-		s.runtime.pin('mine', s.sign);
-		s.runtime.unpin('local', s.sign);
+		s.runtime.pin('mine');
+		s.runtime.unpin('local');
 		expect(s.runtime.pending).toHaveLength(1);
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['mine']);
 		fetching.resolve(latest);
@@ -150,7 +154,7 @@ describe('pinned notes persistence', () => {
 		const local = event([['e', 'local']], 7);
 		const s = setup(local);
 		s.fetchLatest.mockResolvedValueOnce(event([['e', 'older']], 5));
-		s.runtime.pin('mine', s.sign);
+		s.runtime.pin('mine');
 		await flush();
 		expect(s.runtime.canonical).toBe(local);
 		expect(s.templates[0].tags).toEqual([
@@ -164,14 +168,14 @@ describe('pinned notes persistence', () => {
 
 	it('uses local canonical or an empty list when relays have no event', async () => {
 		const s = setup(event([['e', 'local']], 1));
-		s.runtime.pin('mine', s.sign);
+		s.runtime.pin('mine');
 		await flush();
 		expect(s.templates[0].tags).toEqual([
 			['e', 'local'],
 			['e', 'mine']
 		]);
 		const t = setup();
-		t.runtime.pin('mine', t.sign);
+		t.runtime.pin('mine');
 		await flush();
 		expect(t.templates[0].tags).toEqual([['e', 'mine']]);
 		expect(t.templates[0].content).toBe('');
@@ -181,8 +185,8 @@ describe('pinned notes persistence', () => {
 		const s = setup(event([['e', 'old']]));
 		const fetching = deferred<Event | undefined>();
 		s.fetchLatest.mockImplementationOnce(() => fetching.promise);
-		s.runtime.pin('mine', s.sign);
-		s.runtime.unpin('old', s.sign);
+		s.runtime.pin('mine');
+		s.runtime.unpin('old');
 		fetching.reject(new Error('offline'));
 		await flush();
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['old']);
@@ -198,13 +202,13 @@ describe('pinned notes persistence', () => {
 		const s = setup();
 		const signing = deferred<Event>();
 		s.sign.mockImplementationOnce(() => signing.promise);
-		s.runtime.pin('a', s.sign);
+		s.runtime.pin('a');
 		await flush();
-		s.runtime.pin('b', s.sign);
+		s.runtime.pin('b');
 		expect(s.runtime.pending).toHaveLength(1);
 		signing.resolve(event([['e', 'a']], 10));
 		await flush();
-		s.runtime.unpin('a', s.sign);
+		s.runtime.unpin('a');
 		expect(s.runtime.pending).toHaveLength(2);
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['b']);
 		s.publications[0].resolve();
@@ -214,6 +218,7 @@ describe('pinned notes persistence', () => {
 		expect(s.sign).toHaveBeenCalledTimes(1);
 		s.advance();
 		await s.resolveWait();
+		expect(s.sign).toHaveBeenCalledTimes(2);
 		expect(s.templates[0].tags).toEqual([['e', 'b']]);
 		expect(s.templates[0].created_at).toBe(11);
 		s.publications[1].resolve();
@@ -223,7 +228,7 @@ describe('pinned notes persistence', () => {
 
 	it('waits after fetching when base canonical or last signing attempt shares the current second', async () => {
 		const s = setup(event([['e', 'old']], 10));
-		s.runtime.pin('new', s.sign);
+		s.runtime.pin('new');
 		await flush();
 		expect(s.sign).not.toHaveBeenCalled();
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['old', 'new']);
@@ -232,11 +237,11 @@ describe('pinned notes persistence', () => {
 		expect(s.templates[0].created_at).toBe(11);
 
 		const t = setup();
-		t.runtime.pin('a', t.sign);
+		t.runtime.pin('a');
 		await flush();
 		t.publications[0].reject(new Error('relay'));
 		await flush();
-		t.runtime.pin('b', t.sign);
+		t.runtime.pin('b');
 		await flush();
 		expect(t.sign).toHaveBeenCalledTimes(1);
 		t.advance();
@@ -247,7 +252,7 @@ describe('pinned notes persistence', () => {
 	it('fails safely when the fetched base has a future timestamp', async () => {
 		const s = setup();
 		s.fetchLatest.mockResolvedValueOnce(event([['e', 'future']], 11));
-		s.runtime.pin('mine', s.sign);
+		s.runtime.pin('mine');
 		await flush();
 		expect(s.runtime.canonical?.tags).toEqual([['e', 'future']]);
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['future']);
@@ -259,17 +264,17 @@ describe('pinned notes persistence', () => {
 		const s = setup(event([['e', 'old']]));
 		const signing = deferred<Event>();
 		s.sign.mockImplementationOnce(() => signing.promise);
-		s.runtime.pin('new', s.sign);
+		s.runtime.pin('new');
 		await flush();
-		s.runtime.unpin('old', s.sign);
-		signing.reject(new Error('cancelled'));
+		s.runtime.unpin('old');
+		signing.reject(new Error('Signing is unavailable'));
 		await flush();
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['old']);
 		expect(s.runtime.pending).toEqual([]);
 		expect(s.runtime.failure?.stage).toBe('signing');
 		const t = setup();
 		t.sign.mockResolvedValueOnce(event([['e', 'a']], 10, other));
-		t.runtime.pin('a', t.sign);
+		t.runtime.pin('a');
 		await flush();
 		expect(t.publications).toHaveLength(0);
 		expect(t.cache).not.toHaveBeenCalled();
@@ -278,7 +283,7 @@ describe('pinned notes persistence', () => {
 
 	it('rolls back a publish failure with no pending operation', async () => {
 		const s = setup();
-		s.runtime.pin('a', s.sign);
+		s.runtime.pin('a');
 		await flush();
 		s.publications[0].reject(new Error('relay'));
 		await flush();
@@ -291,9 +296,9 @@ describe('pinned notes persistence', () => {
 		s.fetchLatest
 			.mockResolvedValueOnce(undefined)
 			.mockResolvedValueOnce(event([['e', 'remote']], 10));
-		s.runtime.pin('a', s.sign);
+		s.runtime.pin('a');
 		await flush();
-		s.runtime.pin('b', s.sign);
+		s.runtime.pin('b');
 		s.publications[0].reject(new Error('relay'));
 		await flush();
 		expect(s.runtime.failure).toBeUndefined();
@@ -306,6 +311,7 @@ describe('pinned notes persistence', () => {
 			['e', 'a'],
 			['e', 'b']
 		]);
+		expect(s.sign).toHaveBeenCalledTimes(2);
 		s.publications[1].resolve();
 		await flush();
 		expect(s.runtime.canonical?.tags).toEqual([
@@ -318,9 +324,9 @@ describe('pinned notes persistence', () => {
 
 	it('stops after the merged retry fails', async () => {
 		const s = setup();
-		s.runtime.pin('a', s.sign);
+		s.runtime.pin('a');
 		await flush();
-		s.runtime.pin('b', s.sign);
+		s.runtime.pin('b');
 		s.publications[0].reject(new Error('relay'));
 		await flush();
 		s.advance();
@@ -336,7 +342,7 @@ describe('pinned notes persistence', () => {
 	it('treats cache false or rejection as best effort after relay acceptance', async () => {
 		const s = setup();
 		s.cache.mockResolvedValueOnce(false);
-		s.runtime.pin('a', s.sign);
+		s.runtime.pin('a');
 		await flush();
 		s.publications[0].resolve();
 		await flush();
@@ -347,7 +353,7 @@ describe('pinned notes persistence', () => {
 		const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
 		try {
 			t.cache.mockRejectedValueOnce(new Error('cache unavailable'));
-			t.runtime.pin('a', t.sign);
+			t.runtime.pin('a');
 			await flush();
 			t.publications[0].resolve();
 			await flush();
@@ -365,9 +371,9 @@ describe('pinned notes persistence', () => {
 		const s = setup();
 		const cacheWrite = deferred<boolean>();
 		s.cache.mockImplementationOnce(() => cacheWrite.promise);
-		s.runtime.pin('a', s.sign);
+		s.runtime.pin('a');
 		await flush();
-		s.runtime.pin('b', s.sign);
+		s.runtime.pin('b');
 		s.publications[0].resolve();
 		await flush();
 		expect(s.fetchLatest).toHaveBeenCalledTimes(2);
@@ -388,7 +394,7 @@ describe('pinned notes persistence', () => {
 		const successfulFetch = setup();
 		const latest = deferred<Event | undefined>();
 		successfulFetch.fetchLatest.mockImplementationOnce(() => latest.promise);
-		successfulFetch.runtime.pin('a', successfulFetch.sign);
+		successfulFetch.runtime.pin('a');
 		const newAccount = event([['e', 'b']], 2, other);
 		successfulFetch.runtime.initialize(other, newAccount);
 		latest.resolve(event([['e', 'old-account']], 10));
@@ -399,7 +405,7 @@ describe('pinned notes persistence', () => {
 		const fetching = setup();
 		const request = deferred<Event | undefined>();
 		fetching.fetchLatest.mockImplementationOnce(() => request.promise);
-		fetching.runtime.pin('a', fetching.sign);
+		fetching.runtime.pin('a');
 		fetching.runtime.initialize(other, event([['e', 'b']], 2, other));
 		request.reject(new Error('old account offline'));
 		await flush();
@@ -411,7 +417,7 @@ describe('pinned notes persistence', () => {
 		const signing = setup();
 		const signature = deferred<Event>();
 		signing.sign.mockImplementationOnce(() => signature.promise);
-		signing.runtime.pin('a', signing.sign);
+		signing.runtime.pin('a');
 		await flush();
 		signing.runtime.initialize(other);
 		signature.resolve(event([['e', 'a']], 10));
@@ -420,7 +426,7 @@ describe('pinned notes persistence', () => {
 		expect(signing.runtime.owner).toBe(other);
 
 		const publishing = setup();
-		publishing.runtime.pin('a', publishing.sign);
+		publishing.runtime.pin('a');
 		await flush();
 		publishing.runtime.reset();
 		publishing.publications[0].resolve();
@@ -433,7 +439,7 @@ describe('pinned notes persistence', () => {
 
 	it('does not sign after account reset during the same-second wait', async () => {
 		const s = setup(event([['e', 'old']], 10));
-		s.runtime.pin('mine', s.sign);
+		s.runtime.pin('mine');
 		await flush();
 		expect(s.waits).toHaveLength(1);
 		s.runtime.reset();

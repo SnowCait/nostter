@@ -1,10 +1,11 @@
 import { Pinlist } from 'nostr-tools/kinds';
 import type { Event } from 'nostr-tools';
+import type { EventTemplate } from 'nostr-tools';
+import { auth } from '$lib/auth.svelte';
 import { cacheAccountEvent } from '$lib/cache/Events';
 import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
 import { fetchLatestReplaceableEvent, publishEvent } from '$lib/nostr/relay/event-operations';
 import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
-import type { Signer } from '$lib/nostr/signing/signer';
 import { applyPinOperations, pinnedEventIds, type PinOperation } from '../domain/pin-list';
 
 export type PinSaveFailure = {
@@ -15,6 +16,7 @@ export type PinSaveFailure = {
 type Phase = 'idle' | 'fetching' | 'signing' | 'publishing';
 type Dependencies = {
 	fetchLatest(owner: string): Promise<Event | undefined>;
+	sign(template: EventTemplate): Promise<Event>;
 	publish(event: Event): Promise<void>;
 	cache(event: Event): Promise<boolean>;
 	now(): number;
@@ -23,6 +25,11 @@ type Dependencies = {
 
 const defaultDependencies: Dependencies = {
 	fetchLatest: (owner) => fetchLatestReplaceableEvent(Pinlist, owner),
+	sign: (template) => {
+		const signer = auth.signer;
+		if (signer === undefined) throw new Error('Signing is unavailable');
+		return signer.signEvent(template);
+	},
 	publish: publishEvent,
 	cache: (event) => cacheAccountEvent(event),
 	now: () => Math.floor(Date.now() / 1000),
@@ -91,15 +98,15 @@ export class PinnedNotesRuntime {
 		this.#lastSignedAt = undefined;
 	}
 
-	pin(eventId: string, signEvent: Signer['signEvent']): void {
-		this.#enqueue({ type: 'pin', eventId }, signEvent);
+	pin(eventId: string): void {
+		this.#enqueue({ type: 'pin', eventId });
 	}
 
-	unpin(eventId: string, signEvent: Signer['signEvent']): void {
-		this.#enqueue({ type: 'unpin', eventId }, signEvent);
+	unpin(eventId: string): void {
+		this.#enqueue({ type: 'unpin', eventId });
 	}
 
-	#enqueue(operation: PinOperation, signEvent: Signer['signEvent']): void {
+	#enqueue(operation: PinOperation): void {
 		if (this.#owner === undefined) throw new Error('Pinned notes account is not initialized');
 		this.#failure = undefined;
 		if (this.#phase !== 'idle') {
@@ -108,10 +115,10 @@ export class PinnedNotesRuntime {
 		}
 		this.#inFlight = [operation];
 		this.#phase = 'fetching';
-		void this.#save(this.#owner, this.#generation, signEvent);
+		void this.#save(this.#owner, this.#generation);
 	}
 
-	async #save(owner: string, generation: number, signEvent: Signer['signEvent']): Promise<void> {
+	async #save(owner: string, generation: number): Promise<void> {
 		const current = () => this.#owner === owner && this.#generation === generation;
 		let retriedPublish = false;
 		while (current()) {
@@ -148,7 +155,7 @@ export class PinnedNotesRuntime {
 				if (created_at <= Math.max(base?.created_at ?? -1, this.#lastSignedAt ?? -1))
 					continue;
 				this.#lastSignedAt = created_at;
-				event = await signEvent({
+				event = await this.dependencies.sign({
 					kind: Pinlist,
 					created_at,
 					tags: applyPinOperations(base?.tags ?? [], this.#inFlight),
