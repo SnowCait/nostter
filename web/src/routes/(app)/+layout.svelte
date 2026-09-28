@@ -15,6 +15,7 @@
 	import { auth } from '$lib/auth.svelte';
 	import { observePageLifecycle } from '$lib/platform/browser/page-lifecycle';
 	import { composerFocus } from './channels/[nevent=note]/ComposerFocus.svelte';
+	import PinnedNotesFailureNotifier from '$lib/features/pinned-notes/presentation/PinnedNotesFailureNotifier.svelte';
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
@@ -178,6 +179,7 @@
 </div>
 
 <Gdpr />
+<PinnedNotesFailureNotifier />
 
 <style>
 	.app-shell {
