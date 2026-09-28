@@ -178,6 +178,7 @@
 	}
 
 	.content {
+		--applied-content-font-scale: var(--content-font-scale);
 		margin: 0.2rem 0 0 0;
 		min-width: 0;
 	}

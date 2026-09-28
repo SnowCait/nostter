@@ -870,6 +870,7 @@
 
 	.preview {
 		font-size: calc(1rem * var(--content-font-scale));
+		--applied-content-font-scale: var(--content-font-scale);
 		margin: 1rem;
 		max-height: 30rem;
 		overflow-y: auto;

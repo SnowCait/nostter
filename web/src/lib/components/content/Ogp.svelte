@@ -60,6 +60,11 @@
 		text-decoration: none;
 	}
 
+	blockquote {
+		/* The card is not scaled with the content text */
+		font-size: calc(1em / var(--applied-content-font-scale, 1));
+	}
+
 	img {
 		width: 100%;
 		max-height: 260px;

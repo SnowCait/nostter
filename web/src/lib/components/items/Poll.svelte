@@ -110,6 +110,10 @@
 		font-size: calc(15px * var(--content-font-scale));
 	}
 
+	.content {
+		--applied-content-font-scale: var(--content-font-scale);
+	}
+
 	form > div {
 		margin: 0.5rem;
 	}

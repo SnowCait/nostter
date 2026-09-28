@@ -145,6 +145,7 @@
 		min-width: 0;
 		flex: 1;
 		font-size: calc(1rem * var(--content-font-scale));
+		--applied-content-font-scale: var(--content-font-scale);
 	}
 
 	.head {

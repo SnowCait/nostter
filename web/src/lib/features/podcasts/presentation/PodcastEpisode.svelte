@@ -198,6 +198,7 @@
 	}
 
 	.content {
+		--applied-content-font-scale: var(--content-font-scale);
 		min-width: 0;
 		overflow-wrap: anywhere;
 	}

@@ -115,6 +115,8 @@
 	}
 
 	.popover {
+		/* Controls are not scaled with the content text */
+		font-size: calc(1em / var(--applied-content-font-scale, 1));
 		color: var(--surface-foreground);
 		background-color: var(--surface);
 		border: var(--default-border);

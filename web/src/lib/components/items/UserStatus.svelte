@@ -46,6 +46,7 @@
 <style>
 	section {
 		font-size: calc(15px * var(--content-font-scale));
+		--applied-content-font-scale: var(--content-font-scale);
 	}
 
 	a {

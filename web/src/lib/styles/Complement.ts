@@ -1,5 +1,5 @@
 import type { Action } from 'svelte/action';
-import { countLines } from './Textarea';
+import { countLines, getLineHeight } from './Textarea';
 
 export const complementPosition: Action<HTMLUListElement, HTMLTextAreaElement> = (ul, textarea) => {
 	console.debug('[complement position mount]', ul, textarea);
@@ -9,5 +9,5 @@ export const complementPosition: Action<HTMLUListElement, HTMLTextAreaElement> =
 
 	const rect = textarea.getBoundingClientRect();
 	console.debug('[complement position]', rect.top, textarea.scrollTop, linesCount);
-	ul.style.top = `calc(${rect.top - textarea.scrollTop}px + ${linesCount}rem)`;
+	ul.style.top = `${rect.top - textarea.scrollTop + linesCount * getLineHeight(textarea)}px`;
 };

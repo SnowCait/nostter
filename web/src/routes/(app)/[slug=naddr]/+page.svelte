@@ -99,4 +99,8 @@
 	section {
 		font-size: calc(1rem * var(--content-font-scale));
 	}
+
+	section {
+		--applied-content-font-scale: var(--content-font-scale);
+	}
 </style>

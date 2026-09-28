@@ -345,6 +345,10 @@ progress {
 	 * Scale for text users read and write. Multiply only absolute font sizes (px, rem) with it
 	 * at content boundaries; relative sizes (em, %) inside follow through inheritance, so the
 	 * scale is never applied twice.
+	 *
+	 * Boundaries that can contain media or controls (e.g. through Content.svelte) also set
+	 * --applied-content-font-scale to the scale included in their font size. Media and controls
+	 * divide 1em by it to size themselves by the unscaled font size.
 	 */
 	--content-font-scale: 1;
 }
@@ -407,6 +411,7 @@ article.timeline-item + article.timeline-item {
 /* Items embedded in content, such as quotes, follow the already scaled size of the content. */
 blockquote article.timeline-item {
 	font-size: inherit;
+	--applied-content-font-scale: inherit;
 }
 
 blockquote {
