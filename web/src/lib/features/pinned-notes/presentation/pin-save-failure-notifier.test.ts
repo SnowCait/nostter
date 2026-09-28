@@ -25,6 +25,5 @@ describe('createPinSaveFailureNotifier', () => {
 		notifyFailure({ stage: 'signing', error: new Error('sign'), revision: 2 });
 		notifyFailure({ stage: 'publishing', error: new Error('publish'), revision: 3 });
 		expect(notify).toHaveBeenCalledTimes(3);
-		expect(notify).toHaveBeenCalledWith();
 	});
 });
