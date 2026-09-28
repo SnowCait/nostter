@@ -292,6 +292,12 @@
 			"button": "Unookmark",
 			"failed": "Failed to unbookmark"
 		},
+		"pin": {
+			"button": "Pin to your profile"
+		},
+		"unpin": {
+			"button": "Unpin from your profile"
+		},
 		"repost": {
 			"button": "Repost",
 			"again": "Repost again",
