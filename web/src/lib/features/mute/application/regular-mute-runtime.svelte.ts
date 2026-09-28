@@ -105,7 +105,6 @@ export function applyRegularMuteInitialization(
 	if (current.revision !== baseline && snapshot.event === undefined) return;
 	if (
 		snapshot.event !== undefined &&
-		current.canonical.event !== undefined &&
 		!shouldReplaceCurrentEvent(snapshot.event, current.canonical.event)
 	)
 		return;
@@ -162,8 +161,7 @@ export function completeLocalMute(
 	const current = runtime;
 	if (current.owner !== owner) return;
 	const canonical =
-		current.canonical.event === undefined ||
-		current.canonical.event.id === event.id ||
+		current.canonical.event?.id === event.id ||
 		shouldReplaceCurrentEvent(event, current.canonical.event)
 			? prepareRegularMuteState(event, owner, privateTags)
 			: current.canonical;
@@ -188,11 +186,7 @@ export async function ingestRemoteMute(
 ): Promise<void> {
 	const current = runtime;
 	if (current.owner !== owner || event.pubkey !== owner) return;
-	if (
-		current.canonical.event !== undefined &&
-		!shouldReplaceCurrentEvent(event, current.canonical.event)
-	)
-		return;
+	if (!shouldReplaceCurrentEvent(event, current.canonical.event)) return;
 	if (
 		current.candidate !== undefined &&
 		!shouldReplaceCurrentEvent(event, current.candidate.event)
@@ -214,8 +208,7 @@ export async function ingestRemoteMute(
 	if (
 		latest.owner !== owner ||
 		latest.candidate?.identity !== candidate.identity ||
-		(latest.canonical.event !== undefined &&
-			!shouldReplaceCurrentEvent(event, latest.canonical.event))
+		!shouldReplaceCurrentEvent(event, latest.canonical.event)
 	)
 		return;
 	runtime = {

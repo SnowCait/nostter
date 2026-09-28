@@ -13,6 +13,10 @@ const current: Event = {
 };
 
 describe('replaceable event replacement', () => {
+	it('adopts the candidate when there is no current event', () => {
+		expect(shouldReplaceCurrentEvent(current, undefined)).toBe(true);
+	});
+
 	it('replaces the current event when the candidate sorts ahead of it', () => {
 		expect(shouldReplaceCurrentEvent({ ...current, created_at: 2, id: 'ff' }, current)).toBe(
 			true

@@ -36,7 +36,7 @@ export async function prepareKindMuteStates(
 		}
 		const muteKind = Number(kind);
 		const current = updates.get(muteKind);
-		if (current !== undefined && !shouldReplaceCurrentEvent(event, current.event)) continue;
+		if (!shouldReplaceCurrentEvent(event, current?.event)) continue;
 		try {
 			updates.set(
 				muteKind,

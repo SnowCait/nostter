@@ -129,9 +129,7 @@ export class PinnedNotesRuntime {
 			}
 			if (!current()) return;
 			const base =
-				fetched !== undefined &&
-				(this.#canonical === undefined ||
-					shouldReplaceCurrentEvent(fetched, this.#canonical))
+				fetched !== undefined && shouldReplaceCurrentEvent(fetched, this.#canonical)
 					? fetched
 					: this.#canonical;
 			this.#canonical = base;

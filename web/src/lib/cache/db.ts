@@ -49,7 +49,7 @@ export class AccountAddressableEventCache {
 		const key: [string, number, string] = [event.pubkey, event.kind, identifier];
 		return this.db.transaction('rw', this.db.accountAddressableEvents, async () => {
 			const current = await this.db.accountAddressableEvents.get(key);
-			if (current !== undefined && !shouldReplaceCurrentEvent(event, current.event)) {
+			if (!shouldReplaceCurrentEvent(event, current?.event)) {
 				return false;
 			}
 			await this.db.accountAddressableEvents.put({
@@ -94,7 +94,7 @@ export class FolloweeReplaceableEventCache {
 	async put(event: Nostr.Event): Promise<void> {
 		await this.db.transaction('rw', [this.db.followeeReplaceableEvents], async () => {
 			const current = await this.db.followeeReplaceableEvents.get([event.kind, event.pubkey]);
-			if (current === undefined || shouldReplaceCurrentEvent(event, current)) {
+			if (shouldReplaceCurrentEvent(event, current)) {
 				await this.db.followeeReplaceableEvents.put(event);
 			}
 		});
