@@ -38,7 +38,7 @@
 	import { mute, unmute } from '$lib/author/Mute';
 	import { extractThreadReferenceTags } from '$lib/nostr/protocol/nip10';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
-	import { addToast } from './Toaster.svelte';
+	import { toast } from './toast';
 	import { get } from 'svelte/store';
 	import { metadataStore } from '$lib/cache/Events';
 	import type { Signer } from '$lib/nostr/signing/signer';
@@ -141,11 +141,9 @@
 			`<nostr-note data='${JSON.stringify(event).replaceAll("'", '&#39;')}'></nostr-note>`
 		].join('');
 		copy(html);
-		addToast({
-			data: {
-				title: $_('actions.embed.copied.title'),
-				description: $_('actions.embed.copied.description')
-			}
+		toast.add({
+			title: $_('actions.embed.copied.title'),
+			description: $_('actions.embed.copied.description')
 		});
 	}
 
