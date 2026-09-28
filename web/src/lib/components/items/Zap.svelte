@@ -158,6 +158,10 @@
 {/if}
 
 <style>
+	article {
+		font-size: calc(1rem * var(--content-font-scale));
+	}
+
 	.user {
 		display: flex;
 		flex-direction: row;

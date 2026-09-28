@@ -106,6 +106,7 @@
 		flex-direction: row;
 		gap: 0.3rem;
 		min-width: 0;
+		font-size: calc(15px * var(--content-font-scale));
 	}
 
 	.display_name {
@@ -115,7 +116,6 @@
 
 	.name {
 		color: var(--accent-gray);
-		font-size: 15px;
 		flex-shrink: 2;
 	}
 

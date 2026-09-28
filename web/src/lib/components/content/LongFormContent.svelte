@@ -88,6 +88,7 @@
 		/* Workaround for unnecessary space */
 		display: flex;
 		flex-direction: column;
+		font-size: calc(1rem * var(--content-font-scale));
 	}
 
 	article.timeline-item {

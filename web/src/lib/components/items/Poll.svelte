@@ -65,7 +65,9 @@
 <EventMetadata {item} {createdAtFormat}>
 	{#snippet content()}
 		<section>
-			<Content content={item.event.content} tags={item.event.tags} />
+			<div class="content">
+				<Content content={item.event.content} tags={item.event.tags} />
+			</div>
 			<form onsubmit={onSubmit}>
 				<div>
 					{#each optionTags as [, id, label]}
@@ -103,6 +105,11 @@
 </EventMetadata>
 
 <style>
+	.content,
+	label {
+		font-size: calc(15px * var(--content-font-scale));
+	}
+
 	form > div {
 		margin: 0.5rem;
 	}

@@ -812,10 +812,11 @@
 	textarea {
 		width: 100%;
 		padding: 0.25rem 0.5rem;
-		font-size: 1rem;
-		min-height: 5.5rem;
-		max-height: 20.5rem;
-		line-height: 1rem;
+		font-size: calc(1rem * var(--content-font-scale));
+		line-height: 1;
+		/* 5 to 20 lines plus vertical padding */
+		min-height: calc(5em + 0.5rem);
+		max-height: calc(20em + 0.5rem);
 		resize: none;
 	}
 
@@ -868,6 +869,7 @@
 	}
 
 	.preview {
+		font-size: calc(1rem * var(--content-font-scale));
 		margin: 1rem;
 		max-height: 30rem;
 		overflow-y: auto;

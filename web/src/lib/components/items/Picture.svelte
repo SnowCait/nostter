@@ -22,10 +22,12 @@
 <EventMetadata {item} {createdAtFormat}>
 	{#snippet content()}
 		<section>
-			{#if title}
-				<h3>{title}</h3>
-			{/if}
-			<Content content={item.event.content} tags={item.event.tags} />
+			<div class="content">
+				{#if title}
+					<h3>{title}</h3>
+				{/if}
+				<Content content={item.event.content} tags={item.event.tags} />
+			</div>
 			{#each pictures as picture}
 				<Imeta tag={picture} />
 			{/each}
@@ -35,3 +37,9 @@
 		</section>
 	{/snippet}
 </EventMetadata>
+
+<style>
+	.content {
+		font-size: calc(15px * var(--content-font-scale));
+	}
+</style>

@@ -329,8 +329,8 @@
 		border-radius: var(--radius);
 		padding: 0.5rem;
 		font: inherit;
-		font-size: 16px;
-		max-height: 8rem;
+		font-size: calc(16px * var(--content-font-scale));
+		max-height: 8em;
 		field-sizing: content;
 	}
 

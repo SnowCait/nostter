@@ -128,6 +128,7 @@
 		flex-direction: column;
 		gap: 0.5rem;
 		margin: 0.2rem 0;
+		font-size: calc(15px * var(--content-font-scale));
 	}
 
 	blockquote {

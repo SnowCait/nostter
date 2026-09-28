@@ -167,8 +167,14 @@
 
 <style>
 	.reply {
-		font-size: 0.8em;
+		font-size: calc(12px * var(--content-font-scale));
 		color: gray;
+	}
+
+	.content,
+	.content-warning > div,
+	.channel {
+		font-size: calc(15px * var(--content-font-scale));
 	}
 
 	.content {

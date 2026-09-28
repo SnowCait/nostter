@@ -41,10 +41,10 @@
 <style>
 	span {
 		color: var(--accent-gray);
-		font-size: 0.7rem;
+		font-size: calc(0.7rem * var(--content-font-scale));
 	}
 
 	span.full {
-		font-size: 1rem;
+		font-size: calc(1rem * var(--content-font-scale));
 	}
 </style>

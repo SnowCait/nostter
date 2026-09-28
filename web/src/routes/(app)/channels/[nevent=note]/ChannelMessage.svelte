@@ -122,7 +122,8 @@
 	}
 
 	.left {
-		width: 40px;
+		/* Widen with the scaled compact timestamp so that it does not overlap the content */
+		width: max(40px, calc(40px * var(--content-font-scale)));
 		flex-shrink: 0;
 		display: flex;
 		justify-content: center;
@@ -130,7 +131,7 @@
 
 	.compact .timestamp {
 		visibility: hidden;
-		font-size: 0.6rem;
+		font-size: calc(0.6rem * var(--content-font-scale));
 		line-height: 1.4;
 		white-space: nowrap;
 	}
@@ -143,6 +144,7 @@
 	.body {
 		min-width: 0;
 		flex: 1;
+		font-size: calc(1rem * var(--content-font-scale));
 	}
 
 	.head {

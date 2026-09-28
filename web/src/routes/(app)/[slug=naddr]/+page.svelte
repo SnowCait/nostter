@@ -89,3 +89,14 @@
 		<Content content={event.content} tags={event.tags} />
 	</section>
 {/if}
+
+<style>
+	h1 {
+		font-size: calc(1.5rem * var(--content-font-scale));
+	}
+
+	header p,
+	section {
+		font-size: calc(1rem * var(--content-font-scale));
+	}
+</style>
