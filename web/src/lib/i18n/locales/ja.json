@@ -535,7 +535,11 @@
 	"pinned-notes": {
 		"title": "固定された投稿",
 		"profile": "固定",
-		"more": "もっと見る"
+		"more": "もっと見る",
+		"save-failed": {
+			"title": "プロフィールの固定を変更できませんでした",
+			"description": "変更は保存されていません。"
+		}
 	},
 	"via": {
 		"none": "なし",

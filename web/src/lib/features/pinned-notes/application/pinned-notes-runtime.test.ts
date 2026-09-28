@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Event, EventTemplate } from 'nostr-tools';
-import { PinnedNotesRuntime } from './pinned-notes-runtime.svelte';
+import { PinnedNotesRuntime, type PinSaveFailure } from './pinned-notes-runtime.svelte';
 
 const owner = 'a'.repeat(64);
 const other = 'b'.repeat(64);
@@ -68,8 +68,11 @@ function setup(initial?: Event) {
 		getRelayHint
 	});
 	runtime.initialize(owner, initial);
+	const failures: PinSaveFailure[] = [];
+	runtime.onSaveFailure((failure) => failures.push(failure));
 	return {
 		runtime,
+		failures,
 		sign,
 		fetchLatest,
 		publish,
@@ -178,7 +181,7 @@ describe('pinned notes persistence', () => {
 		expect(s.runtime.inFlight).toEqual([]);
 		expect(s.runtime.pending).toEqual([]);
 		expect(s.runtime.phase).toBe('idle');
-		expect(s.runtime.failure?.stage).toBe('fetching');
+		expect(s.failures).toEqual([{ stage: 'fetching', error: new Error('offline') }]);
 		expect(s.sign).not.toHaveBeenCalled();
 		expect(s.publications).toHaveLength(0);
 	});
@@ -224,11 +227,10 @@ describe('pinned notes persistence', () => {
 		await flush();
 		expect(s.runtime.canonical?.tags).toEqual([['e', 'future']]);
 		expect(s.templates[0].created_at).toBe(21);
-		expect(s.runtime.failure).toBeUndefined();
 		expect(s.publish).toHaveBeenCalledOnce();
 		s.publications[0].resolve();
 		await flush();
-		expect(s.runtime.failure).toBeUndefined();
+		expect(s.failures).toEqual([]);
 	});
 
 	it('treats relay rejection of a future-derived timestamp as a publish failure', async () => {
@@ -239,7 +241,7 @@ describe('pinned notes persistence', () => {
 		expect(s.templates[0].created_at).toBe(21);
 		s.publications[0].reject(new Error('timestamp rejected by relay'));
 		await flush();
-		expect(s.runtime.failure?.stage).toBe('publishing');
+		expect(s.failures.map(({ stage }) => stage)).toEqual(['publishing']);
 	});
 
 	it('rolls back signing failure and rejects a wrong signing owner', async () => {
@@ -253,7 +255,7 @@ describe('pinned notes persistence', () => {
 		await flush();
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['old']);
 		expect(s.runtime.pending).toEqual([]);
-		expect(s.runtime.failure?.stage).toBe('signing');
+		expect(s.failures.map(({ stage }) => stage)).toEqual(['signing']);
 		s.runtime.pin(note('again'));
 		await flush();
 		expect(s.sign.mock.calls.map(([template]) => template.created_at)).toEqual([10, 10]);
@@ -263,11 +265,12 @@ describe('pinned notes persistence', () => {
 		await flush();
 		expect(t.publications).toHaveLength(0);
 		expect(t.cache).not.toHaveBeenCalled();
-		expect(t.runtime.failure?.stage).toBe('signing');
+		expect(t.failures.map(({ stage }) => stage)).toEqual(['signing']);
 		t.runtime.pin(note('b'));
 		await flush();
 		expect(t.sign.mock.calls.map(([template]) => template.created_at)).toEqual([10, 10]);
 		expect(t.publications).toHaveLength(1);
+		expect(t.failures).toHaveLength(1);
 	});
 
 	it('rolls back a publish failure with no pending operation', async () => {
@@ -277,7 +280,7 @@ describe('pinned notes persistence', () => {
 		s.publications[0].reject(new Error('relay'));
 		await flush();
 		expect(s.runtime.effectivePinnedEventIds).toEqual([]);
-		expect(s.runtime.failure?.stage).toBe('publishing');
+		expect(s.failures).toEqual([{ stage: 'publishing', error: new Error('relay') }]);
 	});
 
 	it('refetches and retries one merged snapshot after a publish failure with pending', async () => {
@@ -290,7 +293,7 @@ describe('pinned notes persistence', () => {
 		s.runtime.pin(note('b'));
 		s.publications[0].reject(new Error('relay'));
 		await flush();
-		expect(s.runtime.failure).toBeUndefined();
+		expect(s.failures).toEqual([]);
 		expect(s.runtime.inFlight).toHaveLength(2);
 		expect(s.fetchLatest).toHaveBeenCalledTimes(2);
 		expect(s.templates[1].tags).toEqual([['e', 'remote'], pinTag('a'), pinTag('b')]);
@@ -300,7 +303,7 @@ describe('pinned notes persistence', () => {
 		s.publications[1].resolve();
 		await flush();
 		expect(s.runtime.canonical?.tags).toEqual([['e', 'remote'], pinTag('a'), pinTag('b')]);
-		expect(s.runtime.failure).toBeUndefined();
+		expect(s.failures).toEqual([]);
 	});
 
 	it('keeps author and relay hints of pins through pending, rebase, and merged retry', async () => {
@@ -342,10 +345,11 @@ describe('pinned notes persistence', () => {
 		s.runtime.pin(note('b'));
 		s.publications[0].reject(new Error('relay'));
 		await flush();
+		expect(s.failures).toEqual([]);
 		s.publications[1].reject(new Error('relay again'));
 		await flush();
 		expect(s.runtime.effectivePinnedEventIds).toEqual([]);
-		expect(s.runtime.failure?.stage).toBe('publishing');
+		expect(s.failures).toEqual([{ stage: 'publishing', error: new Error('relay again') }]);
 		expect(s.sign).toHaveBeenCalledTimes(2);
 		expect(s.fetchLatest).toHaveBeenCalledTimes(2);
 	});
@@ -359,7 +363,7 @@ describe('pinned notes persistence', () => {
 		await flush();
 		expect(s.runtime.canonical?.tags).toEqual([pinTag('a')]);
 		expect(s.runtime.phase).toBe('idle');
-		expect(s.runtime.failure).toBeUndefined();
+		expect(s.failures).toEqual([]);
 		const t = setup();
 		const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
 		try {
@@ -370,7 +374,7 @@ describe('pinned notes persistence', () => {
 			await flush();
 			expect(t.runtime.canonical?.tags).toEqual([pinTag('a')]);
 			expect(t.runtime.phase).toBe('idle');
-			expect(t.runtime.failure).toBeUndefined();
+			expect(t.failures).toEqual([]);
 			expect(t.publications).toHaveLength(1);
 			expect(warning).toHaveBeenCalledOnce();
 		} finally {
@@ -417,7 +421,7 @@ describe('pinned notes persistence', () => {
 		await flush();
 		expect(fetching.runtime.owner).toBe(other);
 		expect(fetching.runtime.effectivePinnedEventIds).toEqual(['b']);
-		expect(fetching.runtime.failure).toBeUndefined();
+		expect(fetching.failures).toEqual([]);
 		expect(fetching.sign).not.toHaveBeenCalled();
 
 		const signing = setup();
@@ -439,6 +443,16 @@ describe('pinned notes persistence', () => {
 		expect(signing.sign.mock.calls[1][0].created_at).toBe(10);
 		expect(signing.publications).toHaveLength(1);
 
+		const failedSigning = setup();
+		const failedSignature = deferred<Event>();
+		failedSigning.sign.mockImplementationOnce(() => failedSignature.promise);
+		failedSigning.runtime.pin(note('a'));
+		await flush();
+		failedSigning.runtime.initialize(other);
+		failedSignature.reject(new Error('old account signer'));
+		await flush();
+		expect(failedSigning.failures).toEqual([]);
+
 		const publishing = setup();
 		publishing.runtime.pin(note('a'));
 		await flush();
@@ -447,7 +461,60 @@ describe('pinned notes persistence', () => {
 		await flush();
 		expect(publishing.runtime.owner).toBeUndefined();
 		expect(publishing.runtime.canonical).toBeUndefined();
-		expect(publishing.runtime.failure).toBeUndefined();
+		expect(publishing.failures).toEqual([]);
 		expect(publishing.cache).not.toHaveBeenCalled();
+
+		const failedPublishing = setup();
+		failedPublishing.runtime.pin(note('a'));
+		await flush();
+		failedPublishing.runtime.reset();
+		failedPublishing.publications[0].reject(new Error('old account relay'));
+		await flush();
+		expect(failedPublishing.failures).toEqual([]);
+	});
+
+	it('delivers save failures to listeners until they unsubscribe', async () => {
+		const s = setup();
+		const listener = vi.fn();
+		const unsubscribe = s.runtime.onSaveFailure(listener);
+		s.fetchLatest.mockRejectedValueOnce(new Error('offline'));
+		s.runtime.pin(note('a'));
+		await flush();
+		expect(listener).toHaveBeenCalledExactlyOnceWith({
+			stage: 'fetching',
+			error: new Error('offline')
+		});
+		unsubscribe();
+		s.fetchLatest.mockRejectedValueOnce(new Error('offline again'));
+		s.runtime.pin(note('b'));
+		await flush();
+		expect(listener).toHaveBeenCalledOnce();
+		expect(s.failures).toHaveLength(2);
+	});
+
+	it('keeps notifying other listeners and rolls back when a listener throws', async () => {
+		const s = setup();
+		const throwing = vi.fn(() => {
+			throw new Error('listener');
+		});
+		const following = vi.fn();
+		s.runtime.onSaveFailure(throwing);
+		s.runtime.onSaveFailure(following);
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+		try {
+			s.runtime.pin(note('a'));
+			await flush();
+			s.publications[0].reject(new Error('relay'));
+			await flush();
+			const failure = { stage: 'publishing', error: new Error('relay') };
+			expect(throwing).toHaveBeenCalledExactlyOnceWith(failure);
+			expect(following).toHaveBeenCalledExactlyOnceWith(failure);
+			expect(s.failures).toEqual([failure]);
+			expect(s.runtime.inFlight).toEqual([]);
+			expect(s.runtime.pending).toEqual([]);
+			expect(s.runtime.phase).toBe('idle');
+		} finally {
+			consoleError.mockRestore();
+		}
 	});
 });

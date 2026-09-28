@@ -536,7 +536,11 @@
 	"pinned-notes": {
 		"title": "Pinned Notes",
 		"profile": "Pinned",
-		"more": "View more"
+		"more": "View more",
+		"save-failed": {
+			"title": "Failed to change your profile pins",
+			"description": "Your changes were not saved."
+		}
 	},
 	"via": {
 		"none": "None",

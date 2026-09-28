@@ -4,6 +4,7 @@
 	import '../app.css';
 	import Toaster from '$lib/components/Toaster.svelte';
 	import LoginStatus from '$lib/components/LoginStatus.svelte';
+	import PinnedNotesFailureNotifier from '$lib/features/pinned-notes/presentation/PinnedNotesFailureNotifier.svelte';
 	import { onMount } from 'svelte';
 	import { tryLogin } from '$lib/Login';
 	interface Props {
@@ -45,4 +46,5 @@
 
 <Toaster />
 <LoginStatus />
+<PinnedNotesFailureNotifier />
 {@render children?.()}
