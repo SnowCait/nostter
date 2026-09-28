@@ -8,9 +8,10 @@ import {
 } from '$lib/features/mute/application/regular-mute-runtime.svelte';
 import type { User } from '../../../../routes/types';
 
-const { fetchRelays, fetchEvents, loadMetadata, prune } = vi.hoisted(() => ({
+const { fetchRelays, fetchEvents, fetchDeletionRequests, loadMetadata, prune } = vi.hoisted(() => ({
 	fetchRelays: vi.fn().mockResolvedValue(undefined),
 	fetchEvents: vi.fn(),
+	fetchDeletionRequests: vi.fn().mockResolvedValue([]),
 	loadMetadata: vi.fn().mockResolvedValue(undefined),
 	prune: vi.fn()
 }));
@@ -20,6 +21,10 @@ vi.mock('$lib/Author', () => ({
 		fetchRelays = fetchRelays;
 		fetchEvents = fetchEvents;
 	}
+}));
+
+vi.mock('$lib/features/event-deletion/application/fetch-address-deletion-requests', () => ({
+	fetchAddressDeletionRequests: fetchDeletionRequests
 }));
 
 vi.mock('$lib/cache/Events', () => ({

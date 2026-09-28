@@ -13,6 +13,7 @@ import {
 } from '$lib/ProfileBadgesEvent';
 import type { LoadedAccountEvents } from '$lib/Author';
 import { parseFollowingHashtags } from '$lib/nostr/protocol/interest-list';
+import { AddressDeletions } from '$lib/features/event-deletion/domain/address-deletions';
 
 export type PreparedAccountState = {
 	contactsTags: string[][];
@@ -35,7 +36,10 @@ export type PreparedAccountState = {
 	channelsEvent: Event | undefined;
 };
 
-export function prepareAccountState(events: LoadedAccountEvents): PreparedAccountState {
+export function prepareAccountState(
+	events: LoadedAccountEvents,
+	deletionRequests: readonly Event[] = []
+): PreparedAccountState {
 	const { replaceableEvents, parameterizedReplaceableEvents } = events;
 
 	const metadataEvent = replaceableEvents.get(Kind.Metadata);
@@ -101,6 +105,15 @@ export function prepareAccountState(events: LoadedAccountEvents): PreparedAccoun
 				? legacyLastReadEvent.created_at
 				: 0;
 
+	const legacyBookmarkCandidate = parameterizedReplaceableEvents.get(
+		`${Kind.Genericlists}:${legacyBookmarkIdentifier}`
+	);
+	const legacyBookmarkEvent =
+		legacyBookmarkCandidate !== undefined &&
+		new AddressDeletions(deletionRequests).isDeleted(legacyBookmarkCandidate)
+			? undefined
+			: legacyBookmarkCandidate;
+
 	const currentProfileBadges = replaceableEvents.get(profileBadgesKind);
 	const legacyProfileBadges = parameterizedReplaceableEvents.get(
 		`${legacyProfileBadgesKind}:${legacyProfileBadgesIdentifier}`
@@ -117,9 +130,7 @@ export function prepareAccountState(events: LoadedAccountEvents): PreparedAccoun
 		customEmojiListEvent: replaceableEvents.get(Kind.UserEmojiList),
 		bookmarkEvent: replaceableEvents.get(Kind.BookmarkList),
 		pinnedNotesEvent: replaceableEvents.get(Kind.Pinlist),
-		legacyBookmarkEvent: parameterizedReplaceableEvents.get(
-			`${Kind.Genericlists}:${legacyBookmarkIdentifier}`
-		),
+		legacyBookmarkEvent,
 		profileBadgesEvent: selectProfileBadgesEvent(
 			currentProfileBadges !== undefined && isProfileBadgesEvent(currentProfileBadges)
 				? currentProfileBadges
