@@ -108,7 +108,9 @@
 	}
 
 	async function loginWithDemo() {
-		if (loginBusy) return;
+		if (loginBusy) {
+			return;
+		}
 		await goto('/public');
 	}
 

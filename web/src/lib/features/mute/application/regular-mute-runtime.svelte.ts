@@ -102,14 +102,21 @@ export function applyRegularMuteInitialization(
 		};
 		return;
 	}
-	if (current.revision !== baseline && snapshot.event === undefined) return;
+	if (current.revision !== baseline && snapshot.event === undefined) {
+		return;
+	}
 	if (
 		snapshot.event !== undefined &&
 		!shouldReplaceCurrentEvent(snapshot.event, current.canonical.event)
-	)
+	) {
 		return;
-	if (snapshot.event === undefined && current.canonical.event !== undefined) return;
-	if (snapshot.event?.id === current.canonical.event?.id) return;
+	}
+	if (snapshot.event === undefined && current.canonical.event !== undefined) {
+		return;
+	}
+	if (snapshot.event?.id === current.canonical.event?.id) {
+		return;
+	}
 	const candidate =
 		current.candidate?.event.id === snapshot.event?.id ? undefined : current.candidate;
 	// An initialization snapshot is already fully materialized.
@@ -139,7 +146,9 @@ export function startOptimisticMute(
 	tags: PreparedMuteTags
 ): IdentityToken | undefined {
 	const current = runtime;
-	if (current.owner !== owner) return undefined;
+	if (current.owner !== owner) {
+		return undefined;
+	}
 	const token = Symbol();
 	runtime = { ...current, optimistic: { token, tags: copyTags(tags) } };
 	return token;
@@ -159,7 +168,9 @@ export function completeLocalMute(
 	token: IdentityToken | undefined
 ): void {
 	const current = runtime;
-	if (current.owner !== owner) return;
+	if (current.owner !== owner) {
+		return;
+	}
 	const canonical =
 		current.canonical.event?.id === event.id ||
 		shouldReplaceCurrentEvent(event, current.canonical.event)
@@ -185,13 +196,18 @@ export async function ingestRemoteMute(
 	decrypt?: ListContentDecrypter
 ): Promise<void> {
 	const current = runtime;
-	if (current.owner !== owner || event.pubkey !== owner) return;
-	if (!shouldReplaceCurrentEvent(event, current.canonical.event)) return;
+	if (current.owner !== owner || event.pubkey !== owner) {
+		return;
+	}
+	if (!shouldReplaceCurrentEvent(event, current.canonical.event)) {
+		return;
+	}
 	if (
 		current.candidate !== undefined &&
 		!shouldReplaceCurrentEvent(event, current.candidate.event)
-	)
+	) {
 		return;
+	}
 	const candidate = { event: copyEvent(event)!, identity: Symbol() };
 	runtime = { ...current, candidate };
 	let prepared: RegularMuteState;
@@ -209,8 +225,9 @@ export async function ingestRemoteMute(
 		latest.owner !== owner ||
 		latest.candidate?.identity !== candidate.identity ||
 		!shouldReplaceCurrentEvent(event, latest.canonical.event)
-	)
+	) {
 		return;
+	}
 	runtime = {
 		...latest,
 		canonical: copyState(prepared),

@@ -69,7 +69,9 @@
 
 	function closeIfNotEmpty(e?: Event): void {
 		e?.preventDefault();
-		if (composerBusy) return;
+		if (composerBusy) {
+			return;
+		}
 		const composerHasAttachments = composer?.hasAttachments() ?? false;
 		if ((content === '' && !composerHasAttachments) || confirm($_('editor.close.confirm'))) {
 			dialog?.close();

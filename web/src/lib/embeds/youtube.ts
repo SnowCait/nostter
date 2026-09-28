@@ -38,7 +38,9 @@ function getYouTubeVideo(link: URL): YouTubeVideo {
 }
 
 function parseStartTime(value: string | null): number | undefined {
-	if (value === null) return undefined;
+	if (value === null) {
+		return undefined;
+	}
 
 	if (/^\d+$/u.test(value)) {
 		const seconds = Number(value);
@@ -46,7 +48,9 @@ function parseStartTime(value: string | null): number | undefined {
 	}
 
 	const match = value.match(/^(?:(?<hours>\d+)h)?(?:(?<minutes>\d+)m)?(?:(?<seconds>\d+)s)?$/u);
-	if (match === null || match[0] === '') return undefined;
+	if (match === null || match[0] === '') {
+		return undefined;
+	}
 
 	const hours = Number(match.groups?.hours ?? 0);
 	const minutes = Number(match.groups?.minutes ?? 0);
@@ -60,10 +64,14 @@ export function getYouTubeEmbed(
 	link: URL,
 	origin: string
 ): { src: URL; short: boolean } | undefined {
-	if (!isYouTubeUrl(link)) return undefined;
+	if (!isYouTubeUrl(link)) {
+		return undefined;
+	}
 
 	const video = getYouTubeVideo(link);
-	if (video.id === undefined || video.id === '') return undefined;
+	if (video.id === undefined || video.id === '') {
+		return undefined;
+	}
 
 	const host =
 		link.hostname === 'www.youtube-nocookie.com'

@@ -13,7 +13,9 @@ export async function fetchLatestReplaceableEvent(
 		const { event } = await lastValueFrom(rxNostr.use(req).pipe(tie, latest()));
 		return event;
 	} catch (error) {
-		if (error instanceof EmptyError) return undefined;
+		if (error instanceof EmptyError) {
+			return undefined;
+		}
 		throw error;
 	}
 }

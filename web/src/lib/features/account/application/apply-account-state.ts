@@ -16,7 +16,9 @@ import { followingHashtags } from '$lib/Interest';
 
 export function applyAccountState(pubkey: string, state: PreparedAccountState): void {
 	metadataEvent.set(state.metadataEvent);
-	if (state.metadataEvent !== undefined) storeMetadata(state.metadataEvent);
+	if (state.metadataEvent !== undefined) {
+		storeMetadata(state.metadataEvent);
+	}
 	if (state.invalidMetadata !== undefined) {
 		console.warn(
 			'[invalid metadata]',

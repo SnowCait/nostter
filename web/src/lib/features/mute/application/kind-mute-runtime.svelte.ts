@@ -28,7 +28,9 @@ function copyState(state: KindMuteState): KindMuteState {
 
 function muteKindOf(event: Event): number | undefined {
 	const identifier = findIdentifier(event.tags);
-	if (identifier === undefined || !/^\d+$/.test(identifier)) return undefined;
+	if (identifier === undefined || !/^\d+$/.test(identifier)) {
+		return undefined;
+	}
 	const muteKind = Number(identifier);
 	return Number.isSafeInteger(muteKind) ? muteKind : undefined;
 }
@@ -62,10 +64,13 @@ export function applyKindMuteInitialization(
 			state.event.pubkey !== owner ||
 			state.event.kind !== 30007 ||
 			muteKindOf(state.event) !== kind
-		)
+		) {
 			continue;
+		}
 		const previous = canonical.get(kind);
-		if (!shouldReplaceCurrentEvent(state.event, previous?.event)) continue;
+		if (!shouldReplaceCurrentEvent(state.event, previous?.event)) {
+			continue;
+		}
 		canonical.set(kind, copyState(state));
 		const candidate = candidates.get(kind);
 		if (candidate !== undefined && !shouldReplaceCurrentEvent(candidate.event, state.event)) {
@@ -87,11 +92,13 @@ export function completeLocalKindMute(
 		event.pubkey !== owner ||
 		event.kind !== 30007 ||
 		muteKindOf(event) !== muteKind
-	)
+	) {
 		return;
+	}
 	const previous = current.canonical.get(muteKind);
-	if (previous?.event.id !== event.id && !shouldReplaceCurrentEvent(event, previous?.event))
+	if (previous?.event.id !== event.id && !shouldReplaceCurrentEvent(event, previous?.event)) {
 		return;
+	}
 	const canonical = new Map(current.canonical);
 	canonical.set(muteKind, copyState(prepareKindMuteState(event, privateTags)));
 	const candidates = new Map(current.candidates);
@@ -109,11 +116,17 @@ export async function ingestRemoteKindMute(
 ): Promise<void> {
 	const muteKind = event.kind === 30007 ? muteKindOf(event) : undefined;
 	const current = runtime;
-	if (muteKind === undefined || current.owner !== owner || event.pubkey !== owner) return;
+	if (muteKind === undefined || current.owner !== owner || event.pubkey !== owner) {
+		return;
+	}
 	const canonical = current.canonical.get(muteKind);
-	if (!shouldReplaceCurrentEvent(event, canonical?.event)) return;
+	if (!shouldReplaceCurrentEvent(event, canonical?.event)) {
+		return;
+	}
 	const pending = current.candidates.get(muteKind);
-	if (!shouldReplaceCurrentEvent(event, pending?.event)) return;
+	if (!shouldReplaceCurrentEvent(event, pending?.event)) {
+		return;
+	}
 	const candidate: Candidate = { event: copyEvent(event), identity: Symbol() };
 	const candidates = new Map(current.candidates);
 	candidates.set(muteKind, candidate);
@@ -127,8 +140,9 @@ export async function ingestRemoteKindMute(
 		if (
 			latest.owner !== owner ||
 			latest.candidates.get(muteKind)?.identity !== candidate.identity
-		)
+		) {
 			return;
+		}
 		const remaining = new Map(latest.candidates);
 		remaining.delete(muteKind);
 		const previous = latest.canonical.get(muteKind);
@@ -142,8 +156,12 @@ export async function ingestRemoteKindMute(
 		return;
 	}
 	const latest = runtime;
-	if (latest.owner !== owner || latest.candidates.get(muteKind)?.identity !== candidate.identity)
+	if (
+		latest.owner !== owner ||
+		latest.candidates.get(muteKind)?.identity !== candidate.identity
+	) {
 		return;
+	}
 	const previous = latest.canonical.get(muteKind);
 	const remaining = new Map(latest.candidates);
 	remaining.delete(muteKind);

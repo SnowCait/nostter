@@ -21,15 +21,18 @@
 
 	onMount(async () => {
 		const shareId = page.url.searchParams.get('share');
-		if (shareId === null) return;
+		if (shareId === null) {
+			return;
+		}
 		try {
 			const share = await consumeSharedPost(shareId);
 			if (share === undefined) {
 				console.warn('[share target] Shared post was unavailable', shareId);
 				return;
 			}
-			if (contentParameter === null)
+			if (contentParameter === null) {
 				content = sharedContent(share.title, share.text, share.url);
+			}
 			await tick();
 			composer?.addAttachments(share.files);
 		} catch (error) {

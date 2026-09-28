@@ -24,7 +24,9 @@ function withBlossomServer(
 	preferences: AccountLocalPreferences,
 	server: URL
 ): AccountLocalPreferences {
-	if (preferences.mediaUploader?.type !== 'blossom') return preferences;
+	if (preferences.mediaUploader?.type !== 'blossom') {
+		return preferences;
+	}
 	return {
 		...preferences,
 		mediaUploader: { type: 'blossom', server: server.href }

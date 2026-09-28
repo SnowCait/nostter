@@ -47,7 +47,9 @@
 				};
 		console.debug('[preferences media uploader changed]', preference);
 		try {
-			if (preference.type === 'nip96') await fetchNip96(preference.server);
+			if (preference.type === 'nip96') {
+				await fetchNip96(preference.server);
+			}
 			setMediaUploaderPreference(accountLocalPreferences, preference);
 		} catch (error) {
 			console.error('[preferences media uploader not found]', preference, error);

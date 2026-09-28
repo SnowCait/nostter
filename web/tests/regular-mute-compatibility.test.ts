@@ -87,17 +87,22 @@ test('regular mute compatibility Stores follow Rune state without exposing it', 
 		const restoredSeen = Promise.withResolvers<void>();
 		const unsubscribe = author.mutePubkeys.subscribe((pubkeys) => {
 			observed.push([...pubkeys]);
-			if (pubkeys.includes('optimistic')) optimisticSeen.resolve(pubkeys);
+			if (pubkeys.includes('optimistic')) {
+				optimisticSeen.resolve(pubkeys);
+			}
 			if (
 				pubkeys.includes('public') &&
 				observed.some((value) => value.includes('optimistic'))
-			)
+			) {
 				restoredSeen.resolve();
+			}
 		});
 		const eventSeen =
 			Promise.withResolvers<NonNullable<ReturnType<typeof runtime.getCanonicalMuteEvent>>>();
 		const unsubscribeEvent = author.muteEvent.subscribe((value) => {
-			if (value?.id === event.id) eventSeen.resolve(value);
+			if (value?.id === event.id) {
+				eventSeen.resolve(value);
+			}
 		});
 		const token = runtime.startOptimisticMute(owner, {
 			pubkeys: ['optimistic'],

@@ -51,7 +51,9 @@ export const isMuteEvent = (event: Event) => {
 
 	if (event.kind === 9735) {
 		const zapperPubkey = getZapSenderPubkey(event);
-		if (zapperPubkey !== undefined && isKindMutedPubkey(event.kind, zapperPubkey)) return true;
+		if (zapperPubkey !== undefined && isKindMutedPubkey(event.kind, zapperPubkey)) {
+			return true;
+		}
 	} else if (isKindMutedPubkey(event.kind, event.pubkey)) {
 		return true;
 	}

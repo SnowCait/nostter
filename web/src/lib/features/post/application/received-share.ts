@@ -3,7 +3,9 @@ import type { SharedPost } from '$lib/platform/storage/shared-post';
 
 function stringField(form: FormData, name: string): string | null {
 	const value = form.get(name);
-	if (value === null || typeof value === 'string') return value;
+	if (value === null || typeof value === 'string') {
+		return value;
+	}
 	console.warn('[share target] Ignoring non-text field', name);
 	return null;
 }

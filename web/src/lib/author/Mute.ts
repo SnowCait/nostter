@@ -153,8 +153,9 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 		assertSignedEventPubkey(event, accountPubkey);
 		const accepted = await cacheAccountEvent(event);
 		if (accepted) {
-			if (auth.pubkey === accountPubkey)
+			if (auth.pubkey === accountPubkey) {
 				completeLocalMute(accountPubkey, event, privateTags, token);
+			}
 		} else {
 			const current = await accountAddressableEventCache.get(accountPubkey, kind);
 			if (current?.id === event.id && auth.pubkey === accountPubkey) {

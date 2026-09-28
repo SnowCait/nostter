@@ -15,12 +15,16 @@
 
 	function onclick(e: MouseEvent): void {
 		e.preventDefault();
-		if (disabled) return;
+		if (disabled) {
+			return;
+		}
 		input?.click();
 	}
 
 	function onchange(): void {
-		if (!disabled && files !== undefined) onPick?.(files);
+		if (!disabled && files !== undefined) {
+			onPick?.(files);
+		}
 		if (input !== undefined) {
 			input.value = '';
 		}

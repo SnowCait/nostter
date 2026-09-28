@@ -33,7 +33,9 @@
 	}
 
 	async function toggle(): Promise<void> {
-		if (processing) return;
+		if (processing) {
+			return;
+		}
 
 		processing = true;
 		try {
