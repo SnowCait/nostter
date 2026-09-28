@@ -20,7 +20,6 @@ type Dependencies = {
 	publish(event: Event): Promise<void>;
 	cache(event: Event): Promise<boolean>;
 	now(): number;
-	wait(milliseconds: number): Promise<void>;
 };
 
 const defaultDependencies: Dependencies = {
@@ -32,8 +31,7 @@ const defaultDependencies: Dependencies = {
 	},
 	publish: publishEvent,
 	cache: (event) => cacheAccountEvent(event),
-	now: () => Math.floor(Date.now() / 1000),
-	wait: (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))
+	now: () => Math.floor(Date.now() / 1000)
 };
 
 export class PinnedNotesRuntime {
@@ -141,19 +139,11 @@ export class PinnedNotesRuntime {
 
 			let event: Event;
 			try {
-				while (current()) {
-					const now = this.dependencies.now();
-					if (base !== undefined && base.created_at > now)
-						throw new Error('Pinned notes canonical event is in the future');
-					if (now > Math.max(base?.created_at ?? -1, this.#lastSignedAt ?? -1)) break;
-					await this.dependencies.wait(1000);
-				}
-				if (!current()) return;
-				const created_at = this.dependencies.now();
-				if (base !== undefined && base.created_at > created_at)
-					throw new Error('Pinned notes canonical event is in the future');
-				if (created_at <= Math.max(base?.created_at ?? -1, this.#lastSignedAt ?? -1))
-					continue;
+				const created_at = Math.max(
+					this.dependencies.now(),
+					(base?.created_at ?? -1) + 1,
+					(this.#lastSignedAt ?? -1) + 1
+				);
 				this.#lastSignedAt = created_at;
 				event = await this.dependencies.sign({
 					kind: Pinlist,

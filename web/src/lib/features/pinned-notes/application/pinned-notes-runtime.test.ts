@@ -35,8 +35,7 @@ async function flush() {
 }
 
 function setup(initial?: Event) {
-	let second = 10;
-	const waits: ReturnType<typeof deferred<void>>[] = [];
+	const second = 10;
 	const publications: ReturnType<typeof deferred<void>>[] = [];
 	const templates: EventTemplate[] = [];
 	const fetchLatest = vi.fn(async (): Promise<Event | undefined> => undefined);
@@ -55,11 +54,6 @@ function setup(initial?: Event) {
 		sign,
 		publish,
 		now: () => second,
-		wait: () => {
-			const next = deferred<void>();
-			waits.push(next);
-			return next.promise;
-		},
 		cache
 	});
 	runtime.initialize(owner, initial);
@@ -70,15 +64,7 @@ function setup(initial?: Event) {
 		publish,
 		cache,
 		templates,
-		publications,
-		waits,
-		advance: () => {
-			second++;
-		},
-		resolveWait: async () => {
-			waits.shift()!.resolve();
-			await flush();
-		}
+		publications
 	};
 }
 
@@ -106,6 +92,7 @@ describe('pinned notes persistence', () => {
 		fetching.resolve(latest);
 		await flush();
 		expect(s.runtime.canonical).toBe(latest);
+		expect(s.templates[0].created_at).toBe(10);
 		expect(s.templates[0]).toMatchObject({
 			kind: 10001,
 			content: 'remote encrypted pins',
@@ -213,9 +200,6 @@ describe('pinned notes persistence', () => {
 		await flush();
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['b']);
 		expect(s.fetchLatest).toHaveBeenCalledTimes(2);
-		expect(s.sign).toHaveBeenCalledTimes(1);
-		s.advance();
-		await s.resolveWait();
 		expect(s.sign).toHaveBeenCalledTimes(2);
 		expect(s.templates[0].tags).toEqual([['e', 'b']]);
 		expect(s.templates[0].created_at).toBe(11);
@@ -224,38 +208,38 @@ describe('pinned notes persistence', () => {
 		expect(s.runtime.canonical?.tags).toEqual([['e', 'b']]);
 	});
 
-	it('waits after fetching when base canonical or last signing attempt shares the current second', async () => {
+	it('increments the timestamp when the base matches local time', async () => {
 		const s = setup(event([['e', 'old']], 10));
 		s.runtime.pin('new');
 		await flush();
-		expect(s.sign).not.toHaveBeenCalled();
-		expect(s.runtime.effectivePinnedEventIds).toEqual(['old', 'new']);
-		s.advance();
-		await s.resolveWait();
 		expect(s.templates[0].created_at).toBe(11);
-
-		const t = setup();
-		t.runtime.pin('a');
-		await flush();
-		t.publications[0].reject(new Error('relay'));
-		await flush();
-		t.runtime.pin('b');
-		await flush();
-		expect(t.sign).toHaveBeenCalledTimes(1);
-		t.advance();
-		await t.resolveWait();
-		expect(t.templates[1].created_at).toBe(11);
+		expect(s.runtime.effectivePinnedEventIds).toEqual(['old', 'new']);
+		expect(s.sign).toHaveBeenCalledOnce();
 	});
 
-	it('fails safely when the fetched base has a future timestamp', async () => {
+	it('signs and publishes after a future fetched base', async () => {
 		const s = setup();
-		s.fetchLatest.mockResolvedValueOnce(event([['e', 'future']], 11));
+		s.fetchLatest.mockResolvedValueOnce(event([['e', 'future']], 20));
 		s.runtime.pin('mine');
 		await flush();
 		expect(s.runtime.canonical?.tags).toEqual([['e', 'future']]);
-		expect(s.runtime.effectivePinnedEventIds).toEqual(['future']);
-		expect(s.runtime.failure?.stage).toBe('signing');
-		expect(s.sign).not.toHaveBeenCalled();
+		expect(s.templates[0].created_at).toBe(21);
+		expect(s.runtime.failure).toBeUndefined();
+		expect(s.publish).toHaveBeenCalledOnce();
+		s.publications[0].resolve();
+		await flush();
+		expect(s.runtime.failure).toBeUndefined();
+	});
+
+	it('treats relay rejection of a future-derived timestamp as a publish failure', async () => {
+		const s = setup();
+		s.fetchLatest.mockResolvedValueOnce(event([['e', 'future']], 20));
+		s.runtime.pin('mine');
+		await flush();
+		expect(s.templates[0].created_at).toBe(21);
+		s.publications[0].reject(new Error('timestamp rejected by relay'));
+		await flush();
+		expect(s.runtime.failure?.stage).toBe('publishing');
 	});
 
 	it('rolls back signing failure and rejects a wrong signing owner', async () => {
@@ -293,7 +277,7 @@ describe('pinned notes persistence', () => {
 		const s = setup();
 		s.fetchLatest
 			.mockResolvedValueOnce(undefined)
-			.mockResolvedValueOnce(event([['e', 'remote']], 10));
+			.mockResolvedValueOnce(event([['e', 'remote']], 8));
 		s.runtime.pin('a');
 		await flush();
 		s.runtime.pin('b');
@@ -302,13 +286,13 @@ describe('pinned notes persistence', () => {
 		expect(s.runtime.failure).toBeUndefined();
 		expect(s.runtime.inFlight).toHaveLength(2);
 		expect(s.fetchLatest).toHaveBeenCalledTimes(2);
-		s.advance();
-		await s.resolveWait();
 		expect(s.templates[1].tags).toEqual([
 			['e', 'remote'],
 			['e', 'a'],
 			['e', 'b']
 		]);
+		expect(s.templates[0].created_at).toBe(10);
+		expect(s.templates[1].created_at).toBe(11);
 		expect(s.sign).toHaveBeenCalledTimes(2);
 		s.publications[1].resolve();
 		await flush();
@@ -327,8 +311,6 @@ describe('pinned notes persistence', () => {
 		s.runtime.pin('b');
 		s.publications[0].reject(new Error('relay'));
 		await flush();
-		s.advance();
-		await s.resolveWait();
 		s.publications[1].reject(new Error('relay again'));
 		await flush();
 		expect(s.runtime.effectivePinnedEventIds).toEqual([]);
@@ -376,8 +358,6 @@ describe('pinned notes persistence', () => {
 		await flush();
 		expect(s.fetchLatest).toHaveBeenCalledTimes(2);
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['a', 'b']);
-		s.advance();
-		await s.resolveWait();
 		expect(s.publications).toHaveLength(2);
 		cacheWrite.resolve(false);
 		s.publications[1].resolve();
@@ -433,18 +413,5 @@ describe('pinned notes persistence', () => {
 		expect(publishing.runtime.canonical).toBeUndefined();
 		expect(publishing.runtime.failure).toBeUndefined();
 		expect(publishing.cache).not.toHaveBeenCalled();
-	});
-
-	it('does not sign after account reset during the same-second wait', async () => {
-		const s = setup(event([['e', 'old']], 10));
-		s.runtime.pin('mine');
-		await flush();
-		expect(s.waits).toHaveLength(1);
-		s.runtime.reset();
-		s.advance();
-		await s.resolveWait();
-		expect(s.sign).not.toHaveBeenCalled();
-		expect(s.runtime.owner).toBeUndefined();
-		expect(s.runtime.failure).toBeUndefined();
 	});
 });
