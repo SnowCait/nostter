@@ -254,6 +254,9 @@ describe('pinned notes persistence', () => {
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['old']);
 		expect(s.runtime.pending).toEqual([]);
 		expect(s.runtime.failure?.stage).toBe('signing');
+		s.runtime.pin('again');
+		await flush();
+		expect(s.sign.mock.calls.map(([template]) => template.created_at)).toEqual([10, 10]);
 		const t = setup();
 		t.sign.mockResolvedValueOnce(event([['e', 'a']], 10, other));
 		t.runtime.pin('a');
@@ -261,6 +264,10 @@ describe('pinned notes persistence', () => {
 		expect(t.publications).toHaveLength(0);
 		expect(t.cache).not.toHaveBeenCalled();
 		expect(t.runtime.failure?.stage).toBe('signing');
+		t.runtime.pin('b');
+		await flush();
+		expect(t.sign.mock.calls.map(([template]) => template.created_at)).toEqual([10, 10]);
+		expect(t.publications).toHaveLength(1);
 	});
 
 	it('rolls back a publish failure with no pending operation', async () => {
@@ -402,6 +409,14 @@ describe('pinned notes persistence', () => {
 		await flush();
 		expect(signing.publications).toHaveLength(0);
 		expect(signing.runtime.owner).toBe(other);
+		signing.sign.mockImplementationOnce(async (template) => ({
+			...event(template.tags, template.created_at, other),
+			content: template.content
+		}));
+		signing.runtime.pin('b');
+		await flush();
+		expect(signing.sign.mock.calls[1][0].created_at).toBe(10);
+		expect(signing.publications).toHaveLength(1);
 
 		const publishing = setup();
 		publishing.runtime.pin('a');

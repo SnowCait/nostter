@@ -144,14 +144,15 @@ export class PinnedNotesRuntime {
 					(base?.created_at ?? -1) + 1,
 					(this.#lastSignedAt ?? -1) + 1
 				);
-				this.#lastSignedAt = created_at;
 				event = await this.dependencies.sign({
 					kind: Pinlist,
 					created_at,
 					tags: applyPinOperations(base?.tags ?? [], this.#inFlight),
 					content: base?.content ?? ''
 				});
+				if (!current()) return;
 				assertSignedEventPubkey(event, owner);
+				this.#lastSignedAt = event.created_at;
 			} catch (error) {
 				if (current()) this.#fail('signing', error);
 				return;
