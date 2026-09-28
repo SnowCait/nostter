@@ -731,6 +731,9 @@ describe('session teardown', () => {
 	it('tears down a session whose signer has no disposable resource', async () => {
 		const { auth } = await import('./auth.svelte');
 		const { resetLoginState } = await import('./Login');
+		const { pinnedNotes } =
+			await import('./features/pinned-notes/application/pinned-notes-runtime.svelte');
+		pinnedNotes.initialize(me);
 		auth.establish({
 			pubkey: me,
 			followingPubkeys: [],
@@ -742,6 +745,7 @@ describe('session teardown', () => {
 
 		expect(auth.status).toBe('anonymous');
 		expect(auth.signer).toBeUndefined();
+		expect(pinnedNotes.owner).toBeUndefined();
 	});
 
 	it('clears kind mute state during account reset', async () => {

@@ -24,6 +24,7 @@ export type PreparedAccountState = {
 	writeRelays: string[];
 	customEmojiListEvent: Event | undefined;
 	bookmarkEvent: Event | undefined;
+	pinnedNotesEvent: Event | undefined;
 	legacyBookmarkEvent: Event | undefined;
 	profileBadgesEvent: Event | undefined;
 	preferences: Preferences;
@@ -115,6 +116,7 @@ export function prepareAccountState(events: LoadedAccountEvents): PreparedAccoun
 		writeRelays,
 		customEmojiListEvent: replaceableEvents.get(Kind.UserEmojiList),
 		bookmarkEvent: replaceableEvents.get(Kind.BookmarkList),
+		pinnedNotesEvent: replaceableEvents.get(Kind.Pinlist),
 		legacyBookmarkEvent: parameterizedReplaceableEvents.get(
 			`${Kind.Genericlists}:${legacyBookmarkIdentifier}`
 		),
