@@ -60,7 +60,9 @@ describe('kind mute runtime', () => {
 		initialize(ownerA, [event('six', 1)]);
 		const state = getKindMuteState(6);
 		(state?.pubkeys as Set<string> | undefined)?.add('mutated');
-		if (state !== undefined) state.event.tags[0]![1] = '7';
+		if (state !== undefined) {
+			state.event.tags[0]![1] = '7';
+		}
 		expect(getKindMuteState(6)?.pubkeys).toEqual(new Set(['six-public']));
 		expect(getKindMuteState(6)?.event.tags[0]?.[1]).toBe('6');
 	});

@@ -14,7 +14,9 @@ function createMediaUploader(
 	preference: MediaUploaderPreference,
 	signEvent: Signer['signEvent']
 ): Media {
-	if (preference.type === 'nip96') return new FileStorageServer(preference.server, signEvent);
+	if (preference.type === 'nip96') {
+		return new FileStorageServer(preference.server, signEvent);
+	}
 	return new Blossom(new URL(preference.server), signEvent);
 }
 

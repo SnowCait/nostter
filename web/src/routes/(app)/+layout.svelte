@@ -90,7 +90,9 @@
 
 	function rotateLogo() {
 		const logoIconElem = document.getElementById('logo-icon');
-		if (!logoIconElem) return;
+		if (!logoIconElem) {
+			return;
+		}
 		logoIconElem.style.animation = '1.5s linear infinite rotation';
 		setTimeout(() => {
 			logoIconElem.style.animation = '';

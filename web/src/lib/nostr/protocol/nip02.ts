@@ -10,7 +10,9 @@ export interface FollowEntry {
 export function parseFollowList(tags: string[][]): FollowEntry[] {
 	return tags.flatMap((tag): FollowEntry[] => {
 		const [name, pubkey, relayUrl, petname] = tag;
-		if (name !== 'p' || !isValidPubkey(pubkey)) return [];
+		if (name !== 'p' || !isValidPubkey(pubkey)) {
+			return [];
+		}
 
 		return [
 			{

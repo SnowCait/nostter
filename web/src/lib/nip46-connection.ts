@@ -8,7 +8,9 @@ import { RemoteSignerClient } from './nostr/signing/remote-signer-client';
 
 export async function establishBunkerConnection(bunker: string): Promise<RemoteSignerClient> {
 	const bunkerPointer = await parseBunkerInput(bunker);
-	if (!bunkerPointer) throw new Error(`Failed to parse bunker URL`);
+	if (!bunkerPointer) {
+		throw new Error(`Failed to parse bunker URL`);
+	}
 
 	const storage = new WebStorage(localStorage);
 	const clientSecretKeyHex = storage.get('login:bunker:client-seckey');

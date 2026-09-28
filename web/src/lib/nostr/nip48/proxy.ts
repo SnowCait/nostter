@@ -16,7 +16,9 @@ function isDid(value: string): boolean {
 }
 
 function isHandle(value: string): boolean {
-	if (value.length > 253) return false;
+	if (value.length > 253) {
+		return false;
+	}
 
 	const labels = value.split('.');
 	return (
@@ -27,7 +29,9 @@ function isHandle(value: string): boolean {
 }
 
 function isNsid(value: string): boolean {
-	if (value.length > 317) return false;
+	if (value.length > 317) {
+		return false;
+	}
 
 	const segments = value.split('.');
 	const name = segments.pop();
@@ -47,10 +51,14 @@ function isRecordKey(value: string): boolean {
 }
 
 function parseAtUri(id: string): AtUri | undefined {
-	if (id.length > 8192) return undefined;
+	if (id.length > 8192) {
+		return undefined;
+	}
 
 	const match = /^at:\/\/([^/?#]+)\/([^/?#]+)\/([^/?#]+)$/.exec(id);
-	if (match === null) return undefined;
+	if (match === null) {
+		return undefined;
+	}
 
 	const [, authority, collection, rkey] = match;
 	if ((!isDid(authority) && !isHandle(authority)) || !isNsid(collection) || !isRecordKey(rkey)) {
@@ -64,11 +72,15 @@ export function resolveProxyUrl(
 	id: string | undefined,
 	protocol: string | undefined
 ): URL | undefined {
-	if (id === undefined) return undefined;
+	if (id === undefined) {
+		return undefined;
+	}
 
 	if (protocol === 'atproto') {
 		const uri = parseAtUri(id);
-		if (uri === undefined || uri.collection !== ATPROTO_POST_COLLECTION) return undefined;
+		if (uri === undefined || uri.collection !== ATPROTO_POST_COLLECTION) {
+			return undefined;
+		}
 
 		return new URL(`https://bsky.app/profile/${uri.authority}/post/${uri.rkey}`);
 	}

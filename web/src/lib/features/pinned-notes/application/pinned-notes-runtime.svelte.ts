@@ -28,7 +28,9 @@ const defaultDependencies: Dependencies = {
 	fetchLatest: (owner) => fetchLatestReplaceableEvent(Pinlist, owner),
 	sign: (template) => {
 		const signer = auth.signer;
-		if (signer === undefined) throw new Error('Signing is unavailable');
+		if (signer === undefined) {
+			throw new Error('Signing is unavailable');
+		}
 		return signer.signEvent(template);
 	},
 	publish: publishEvent,
@@ -113,7 +115,9 @@ export class PinnedNotesRuntime {
 	}
 
 	#enqueue(operation: PinOperation): void {
-		if (this.#owner === undefined) throw new Error('Pinned notes account is not initialized');
+		if (this.#owner === undefined) {
+			throw new Error('Pinned notes account is not initialized');
+		}
 		this.#failure = undefined;
 		if (this.#phase !== 'idle') {
 			this.#pending = [...this.#pending, operation];
@@ -132,10 +136,14 @@ export class PinnedNotesRuntime {
 			try {
 				fetched = await this.dependencies.fetchLatest(owner);
 			} catch (error) {
-				if (current()) this.#fail('fetching', error);
+				if (current()) {
+					this.#fail('fetching', error);
+				}
 				return;
 			}
-			if (!current()) return;
+			if (!current()) {
+				return;
+			}
 			const base =
 				fetched !== undefined && shouldReplaceCurrentEvent(fetched, this.#canonical)
 					? fetched
@@ -156,19 +164,27 @@ export class PinnedNotesRuntime {
 					tags: applyPinOperations(base?.tags ?? [], this.#inFlight),
 					content: base?.content ?? ''
 				});
-				if (!current()) return;
+				if (!current()) {
+					return;
+				}
 				assertSignedEventPubkey(event, owner);
 				this.#lastSignedAt = event.created_at;
 			} catch (error) {
-				if (current()) this.#fail('signing', error);
+				if (current()) {
+					this.#fail('signing', error);
+				}
 				return;
 			}
-			if (!current()) return;
+			if (!current()) {
+				return;
+			}
 			this.#phase = 'publishing';
 			try {
 				await this.dependencies.publish(event);
 			} catch (error) {
-				if (!current()) return;
+				if (!current()) {
+					return;
+				}
 				if (!retriedPublish && this.#pending.length > 0) {
 					this.#inFlight = [...this.#inFlight, ...this.#pending];
 					this.#pending = [];
@@ -179,7 +195,9 @@ export class PinnedNotesRuntime {
 				this.#fail('publishing', error);
 				return;
 			}
-			if (!current()) return;
+			if (!current()) {
+				return;
+			}
 			this.#canonical = event;
 			this.#inFlight = this.#pending;
 			this.#pending = [];
@@ -191,7 +209,9 @@ export class PinnedNotesRuntime {
 					console.warn('[pinned notes cache update failed]', error);
 				}
 			})();
-			if (this.#phase === 'idle') return;
+			if (this.#phase === 'idle') {
+				return;
+			}
 			retriedPublish = false;
 		}
 	}

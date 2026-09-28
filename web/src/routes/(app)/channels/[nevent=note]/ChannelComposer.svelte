@@ -108,7 +108,9 @@
 	}
 
 	function onKeydown(event: KeyboardEvent): void {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.isComposing) {
 			event.preventDefault();
 			send();
@@ -167,17 +169,23 @@
 	}
 
 	function addAttachments(files: FileList | File[]): void {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		localAttachments.add(files);
 	}
 
 	function removeAttachment(attachment: LocalAttachment): void {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		localAttachments.remove(attachment);
 	}
 
 	function clearReply(): void {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		replyTo = undefined;
 	}
 
@@ -189,14 +197,20 @@
 	}
 
 	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		await localAttachments.retry(attachment);
 	}
 
 	async function addAttachmentUrls(): Promise<void> {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		const uploadedUrls = await localAttachments.upload();
-		if (uploadedUrls === undefined) return;
+		if (uploadedUrls === undefined) {
+			return;
+		}
 		content = appendUrls(content, uploadedUrls);
 		localAttachments.clear();
 	}

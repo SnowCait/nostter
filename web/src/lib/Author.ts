@@ -40,9 +40,14 @@ export class Author {
 		const replaceableEvents = new Map<number, Event>();
 		const parameterizedReplaceableEvents = new Map<string, Event>();
 		for (const { kind, identifier, event } of cached) {
-			if (event === undefined) continue;
-			if (identifier === undefined) replaceableEvents.set(kind, event);
-			else parameterizedReplaceableEvents.set(`${kind}:${identifier}`, event);
+			if (event === undefined) {
+				continue;
+			}
+			if (identifier === undefined) {
+				replaceableEvents.set(kind, event);
+			} else {
+				parameterizedReplaceableEvents.set(`${kind}:${identifier}`, event);
+			}
 		}
 		if (replaceableEvents.size + parameterizedReplaceableEvents.size > 0) {
 			return { replaceableEvents, parameterizedReplaceableEvents };

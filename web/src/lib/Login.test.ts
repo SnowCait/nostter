@@ -807,7 +807,9 @@ describe('tryLogin', () => {
 		for (const [savedLogin, selectedFlow] of cases) {
 			auth.reset();
 			storageGet.mockReturnValue(savedLogin);
-			for (const flow of Object.values(flows)) flow.mockClear();
+			for (const flow of Object.values(flows)) {
+				flow.mockClear();
+			}
 
 			await expect(tryLogin()).resolves.toBe(true);
 

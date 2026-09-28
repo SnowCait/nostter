@@ -36,9 +36,13 @@ export async function saveSharedPost(share: Omit<SharedPost, 'id' | 'createdAt'>
 export async function consumeSharedPost(id: string): Promise<SharedPost | undefined> {
 	return db.transaction('rw', db.shares, async () => {
 		const share = await db.shares.get(id);
-		if (share === undefined) return undefined;
+		if (share === undefined) {
+			return undefined;
+		}
 		await db.shares.delete(id);
-		if (share.createdAt < Date.now() - sharedPostTtlMs) return undefined;
+		if (share.createdAt < Date.now() - sharedPostTtlMs) {
+			return undefined;
+		}
 		return share;
 	});
 }

@@ -9,11 +9,19 @@ export interface RelayEntry {
 export function parseRelayList(tags: string[][]): RelayEntry[] {
 	return tags.flatMap((tag): RelayEntry[] => {
 		const [name, url, marker] = tag;
-		if (name !== 'r' || !isRelayUrl(url)) return [];
+		if (name !== 'r' || !isRelayUrl(url)) {
+			return [];
+		}
 
-		if (marker === undefined) return [{ url, read: true, write: true }];
-		if (marker === 'read') return [{ url, read: true, write: false }];
-		if (marker === 'write') return [{ url, read: false, write: true }];
+		if (marker === undefined) {
+			return [{ url, read: true, write: true }];
+		}
+		if (marker === 'read') {
+			return [{ url, read: true, write: false }];
+		}
+		if (marker === 'write') {
+			return [{ url, read: false, write: true }];
+		}
 
 		return [];
 	});

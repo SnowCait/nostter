@@ -20,10 +20,14 @@
 	let processing = $state(false);
 
 	async function toggle(): Promise<void> {
-		if (processing) return;
+		if (processing) {
+			return;
+		}
 
 		const signer = auth.signer;
-		if (signer === undefined) return;
+		if (signer === undefined) {
+			return;
+		}
 
 		processing = true;
 		try {

@@ -33,12 +33,16 @@ export function createLocalAttachments(files: FileList | File[]): LocalAttachmen
 }
 
 export function appendUrls(content: string, urls: string[]): string {
-	if (urls.length === 0) return content;
+	if (urls.length === 0) {
+		return content;
+	}
 	return content + (content === '' ? '' : '\n') + urls.join('\n');
 }
 
 export function revokeAttachments(attachments: LocalAttachment[]): void {
-	for (const attachment of attachments) URL.revokeObjectURL(attachment.previewUrl);
+	for (const attachment of attachments) {
+		URL.revokeObjectURL(attachment.previewUrl);
+	}
 }
 
 export async function uploadLocalAttachments(
@@ -47,13 +51,17 @@ export async function uploadLocalAttachments(
 ): Promise<string[] | undefined> {
 	const candidates = attachments.filter(({ state }) => state === 'pending' || state === 'failed');
 	if (candidates.length > 0) {
-		for (const attachment of candidates) attachment.state = 'uploading';
+		for (const attachment of candidates) {
+			attachment.state = 'uploading';
+		}
 		let results: Awaited<ReturnType<typeof uploadFiles>>;
 		try {
 			results = await upload(candidates.map(({ file }) => file));
 		} catch (error) {
 			console.error('[media upload error]', error);
-			for (const attachment of candidates) attachment.state = 'failed';
+			for (const attachment of candidates) {
+				attachment.state = 'failed';
+			}
 			return undefined;
 		}
 		for (const attachment of candidates) {
@@ -65,7 +73,9 @@ export async function uploadLocalAttachments(
 
 	const urls: string[] = [];
 	for (const attachment of attachments) {
-		if (attachment.state !== 'uploaded' || attachment.url === undefined) return undefined;
+		if (attachment.state !== 'uploaded' || attachment.url === undefined) {
+			return undefined;
+		}
 		urls.push(attachment.url);
 	}
 	return urls;

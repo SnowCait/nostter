@@ -29,7 +29,9 @@ export class LocalAttachments {
 	}
 
 	async retry(attachment: LocalAttachment): Promise<void> {
-		if (attachment.state !== 'failed') return;
+		if (attachment.state !== 'failed') {
+			return;
+		}
 		await uploadLocalAttachments([attachment]);
 	}
 

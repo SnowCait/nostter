@@ -17,7 +17,9 @@ let processing = false;
 export const followingHashtags = writable<string[]>([]);
 
 export function updateFollowingHashtags(event: Nostr.Event): void {
-	if (event.pubkey !== auth.pubkey) return;
+	if (event.pubkey !== auth.pubkey) {
+		return;
+	}
 	followingHashtags.set(parseFollowingHashtags(event));
 }
 

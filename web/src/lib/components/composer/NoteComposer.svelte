@@ -51,7 +51,9 @@
 	import MediaAttachments from '../MediaAttachments.svelte';
 
 	export function clear(closed = false): void {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		clearComposer(closed);
 	}
 
@@ -313,7 +315,9 @@
 	}
 
 	async function onKeydown(e: KeyboardEvent) {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		console.debug(`[composer keydown]`, e.type, e.key, e.ctrlKey, e.metaKey);
 
 		// Submit
@@ -600,12 +604,16 @@
 	}
 
 	export function addAttachments(files: FileList | File[]): void {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		localAttachments.add(files);
 	}
 
 	function removeAttachment(attachment: LocalAttachment): void {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		localAttachments.remove(attachment);
 	}
 
@@ -614,14 +622,20 @@
 	}
 
 	async function retryAttachment(attachment: LocalAttachment): Promise<void> {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		await localAttachments.retry(attachment);
 	}
 
 	async function addAttachmentUrls(): Promise<void> {
-		if (composerLocked) return;
+		if (composerLocked) {
+			return;
+		}
 		const uploadedUrls = await localAttachments.upload();
-		if (uploadedUrls === undefined) return;
+		if (uploadedUrls === undefined) {
+			return;
+		}
 		content = appendUrls(content, uploadedUrls);
 		clearAttachments();
 	}
