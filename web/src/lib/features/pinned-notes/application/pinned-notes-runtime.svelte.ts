@@ -12,7 +12,6 @@ import { applyPinOperations, pinnedEventIds, type PinOperation } from '../domain
 export type PinSaveFailure = {
 	stage: 'fetching' | 'signing' | 'publishing';
 	error: unknown;
-	revision: number;
 };
 type Phase = 'idle' | 'fetching' | 'signing' | 'publishing';
 type Dependencies = {
@@ -45,8 +44,7 @@ export class PinnedNotesRuntime {
 	#inFlight = $state<PinOperation[]>([]);
 	#pending = $state<PinOperation[]>([]);
 	#phase = $state<Phase>('idle');
-	#failure = $state<PinSaveFailure>();
-	#failureRevision = 0;
+	#saveFailureListeners = new Set<(failure: PinSaveFailure) => void>();
 	#generation = 0;
 	#lastSignedAt: number | undefined;
 
@@ -67,9 +65,6 @@ export class PinnedNotesRuntime {
 	get phase(): Phase {
 		return this.#phase;
 	}
-	get failure(): PinSaveFailure | undefined {
-		return this.#failure;
-	}
 	get effectivePinnedEventIds(): string[] {
 		return pinnedEventIds(
 			applyPinOperations(this.#canonical?.tags ?? [], [...this.#inFlight, ...this.#pending])
@@ -86,7 +81,6 @@ export class PinnedNotesRuntime {
 		this.#inFlight = [];
 		this.#pending = [];
 		this.#phase = 'idle';
-		this.#failure = undefined;
 		this.#lastSignedAt = undefined;
 	}
 
@@ -97,8 +91,14 @@ export class PinnedNotesRuntime {
 		this.#inFlight = [];
 		this.#pending = [];
 		this.#phase = 'idle';
-		this.#failure = undefined;
 		this.#lastSignedAt = undefined;
+	}
+
+	onSaveFailure(listener: (failure: PinSaveFailure) => void): () => void {
+		this.#saveFailureListeners.add(listener);
+		return () => {
+			this.#saveFailureListeners.delete(listener);
+		};
 	}
 
 	pin(note: Pick<Event, 'id' | 'pubkey'>): void {
@@ -118,7 +118,6 @@ export class PinnedNotesRuntime {
 		if (this.#owner === undefined) {
 			throw new Error('Pinned notes account is not initialized');
 		}
-		this.#failure = undefined;
 		if (this.#phase !== 'idle') {
 			this.#pending = [...this.#pending, operation];
 			return;
@@ -220,7 +219,10 @@ export class PinnedNotesRuntime {
 		this.#inFlight = [];
 		this.#pending = [];
 		this.#phase = 'idle';
-		this.#failure = { stage, error, revision: ++this.#failureRevision };
+		const failure: PinSaveFailure = { stage, error };
+		for (const listener of this.#saveFailureListeners) {
+			listener(failure);
+		}
 	}
 }
 
