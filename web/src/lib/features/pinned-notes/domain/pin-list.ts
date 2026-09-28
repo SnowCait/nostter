@@ -1,13 +1,18 @@
 import { unique } from '$lib/array';
 
-export type PinOperation = { type: 'pin' | 'unpin'; eventId: string };
+export type PinOperation =
+	| { type: 'pin'; eventId: string; authorPubkey: string; relayHint: string | undefined }
+	| { type: 'unpin'; eventId: string };
 
 export function applyPinOperations(tags: string[][], operations: PinOperation[]): string[][] {
 	return operations.reduce((current, operation) => {
 		if (operation.type === 'pin') {
 			return current.some(([name, id]) => name === 'e' && id === operation.eventId)
 				? current
-				: [...current, ['e', operation.eventId]];
+				: [
+						...current,
+						['e', operation.eventId, operation.relayHint ?? '', operation.authorPubkey]
+					];
 		}
 		return current.filter(([name, id]) => name !== 'e' || id !== operation.eventId);
 	}, tags);

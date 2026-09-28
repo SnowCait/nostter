@@ -4,6 +4,15 @@ import { PinnedNotesRuntime } from './pinned-notes-runtime.svelte';
 
 const owner = 'a'.repeat(64);
 const other = 'b'.repeat(64);
+const author = 'c'.repeat(64);
+
+function note(id: string) {
+	return { id, pubkey: author };
+}
+
+function pinTag(id: string, relayHint = '') {
+	return ['e', id, relayHint, author];
+}
 
 function deferred<T>() {
 	let resolve!: (value: T) => void;
@@ -45,6 +54,7 @@ function setup(initial?: Event) {
 		return next.promise;
 	});
 	const cache = vi.fn(async () => true);
+	const getRelayHint = vi.fn<(eventId: string) => string | undefined>(() => undefined);
 	const sign = vi.fn(async (template: EventTemplate) => {
 		templates.push(template);
 		return { ...event(template.tags, template.created_at), content: template.content };
@@ -54,7 +64,8 @@ function setup(initial?: Event) {
 		sign,
 		publish,
 		now: () => second,
-		cache
+		cache,
+		getRelayHint
 	});
 	runtime.initialize(owner, initial);
 	return {
@@ -63,6 +74,7 @@ function setup(initial?: Event) {
 		fetchLatest,
 		publish,
 		cache,
+		getRelayHint,
 		templates,
 		publications
 	};
@@ -83,9 +95,11 @@ describe('pinned notes persistence', () => {
 		};
 		const fetching = deferred<Event | undefined>();
 		s.fetchLatest.mockImplementationOnce(() => fetching.promise);
-		s.runtime.pin('c');
+		s.runtime.pin(note('c'));
 		expect(s.runtime.phase).toBe('fetching');
-		expect(s.runtime.inFlight).toEqual([{ type: 'pin', eventId: 'c' }]);
+		expect(s.runtime.inFlight).toEqual([
+			{ type: 'pin', eventId: 'c', authorPubkey: author, relayHint: undefined }
+		]);
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['c']);
 		expect(s.fetchLatest).toHaveBeenCalledWith(owner);
 		expect(s.sign).not.toHaveBeenCalled();
@@ -96,19 +110,11 @@ describe('pinned notes persistence', () => {
 		expect(s.templates[0]).toMatchObject({
 			kind: 10001,
 			content: 'remote encrypted pins',
-			tags: [
-				['e', 'a'],
-				['e', 'b'],
-				['e', 'c']
-			]
+			tags: [['e', 'a'], ['e', 'b'], pinTag('c')]
 		});
 		s.publications[0].resolve();
 		await flush();
-		expect(s.runtime.canonical?.tags).toEqual([
-			['e', 'a'],
-			['e', 'b'],
-			['e', 'c']
-		]);
+		expect(s.runtime.canonical?.tags).toEqual([['e', 'a'], ['e', 'b'], pinTag('c')]);
 	});
 
 	it('uses newer relay state and keeps operations optimistic while fetch is pending', async () => {
@@ -122,7 +128,7 @@ describe('pinned notes persistence', () => {
 		);
 		const fetching = deferred<Event | undefined>();
 		s.fetchLatest.mockImplementationOnce(() => fetching.promise);
-		s.runtime.pin('mine');
+		s.runtime.pin(note('mine'));
 		s.runtime.unpin('local');
 		expect(s.runtime.pending).toHaveLength(1);
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['mine']);
@@ -139,13 +145,10 @@ describe('pinned notes persistence', () => {
 		const local = event([['e', 'local']], 7);
 		const s = setup(local);
 		s.fetchLatest.mockResolvedValueOnce(event([['e', 'older']], 5));
-		s.runtime.pin('mine');
+		s.runtime.pin(note('mine'));
 		await flush();
 		expect(s.runtime.canonical).toBe(local);
-		expect(s.templates[0].tags).toEqual([
-			['e', 'local'],
-			['e', 'mine']
-		]);
+		expect(s.templates[0].tags).toEqual([['e', 'local'], pinTag('mine')]);
 		s.publications[0].resolve();
 		await flush();
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['local', 'mine']);
@@ -153,16 +156,13 @@ describe('pinned notes persistence', () => {
 
 	it('uses local canonical or an empty list when relays have no event', async () => {
 		const s = setup(event([['e', 'local']], 1));
-		s.runtime.pin('mine');
+		s.runtime.pin(note('mine'));
 		await flush();
-		expect(s.templates[0].tags).toEqual([
-			['e', 'local'],
-			['e', 'mine']
-		]);
+		expect(s.templates[0].tags).toEqual([['e', 'local'], pinTag('mine')]);
 		const t = setup();
-		t.runtime.pin('mine');
+		t.runtime.pin(note('mine'));
 		await flush();
-		expect(t.templates[0].tags).toEqual([['e', 'mine']]);
+		expect(t.templates[0].tags).toEqual([pinTag('mine')]);
 		expect(t.templates[0].content).toBe('');
 	});
 
@@ -170,7 +170,7 @@ describe('pinned notes persistence', () => {
 		const s = setup(event([['e', 'old']]));
 		const fetching = deferred<Event | undefined>();
 		s.fetchLatest.mockImplementationOnce(() => fetching.promise);
-		s.runtime.pin('mine');
+		s.runtime.pin(note('mine'));
 		s.runtime.unpin('old');
 		fetching.reject(new Error('offline'));
 		await flush();
@@ -187,9 +187,9 @@ describe('pinned notes persistence', () => {
 		const s = setup();
 		const signing = deferred<Event>();
 		s.sign.mockImplementationOnce(() => signing.promise);
-		s.runtime.pin('a');
+		s.runtime.pin(note('a'));
 		await flush();
-		s.runtime.pin('b');
+		s.runtime.pin(note('b'));
 		expect(s.runtime.pending).toHaveLength(1);
 		signing.resolve(event([['e', 'a']], 10));
 		await flush();
@@ -201,16 +201,16 @@ describe('pinned notes persistence', () => {
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['b']);
 		expect(s.fetchLatest).toHaveBeenCalledTimes(2);
 		expect(s.sign).toHaveBeenCalledTimes(2);
-		expect(s.templates[0].tags).toEqual([['e', 'b']]);
+		expect(s.templates[0].tags).toEqual([pinTag('b')]);
 		expect(s.templates[0].created_at).toBe(11);
 		s.publications[1].resolve();
 		await flush();
-		expect(s.runtime.canonical?.tags).toEqual([['e', 'b']]);
+		expect(s.runtime.canonical?.tags).toEqual([pinTag('b')]);
 	});
 
 	it('increments the timestamp when the base matches local time', async () => {
 		const s = setup(event([['e', 'old']], 10));
-		s.runtime.pin('new');
+		s.runtime.pin(note('new'));
 		await flush();
 		expect(s.templates[0].created_at).toBe(11);
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['old', 'new']);
@@ -220,7 +220,7 @@ describe('pinned notes persistence', () => {
 	it('signs and publishes after a future fetched base', async () => {
 		const s = setup();
 		s.fetchLatest.mockResolvedValueOnce(event([['e', 'future']], 20));
-		s.runtime.pin('mine');
+		s.runtime.pin(note('mine'));
 		await flush();
 		expect(s.runtime.canonical?.tags).toEqual([['e', 'future']]);
 		expect(s.templates[0].created_at).toBe(21);
@@ -234,7 +234,7 @@ describe('pinned notes persistence', () => {
 	it('treats relay rejection of a future-derived timestamp as a publish failure', async () => {
 		const s = setup();
 		s.fetchLatest.mockResolvedValueOnce(event([['e', 'future']], 20));
-		s.runtime.pin('mine');
+		s.runtime.pin(note('mine'));
 		await flush();
 		expect(s.templates[0].created_at).toBe(21);
 		s.publications[0].reject(new Error('timestamp rejected by relay'));
@@ -246,7 +246,7 @@ describe('pinned notes persistence', () => {
 		const s = setup(event([['e', 'old']]));
 		const signing = deferred<Event>();
 		s.sign.mockImplementationOnce(() => signing.promise);
-		s.runtime.pin('new');
+		s.runtime.pin(note('new'));
 		await flush();
 		s.runtime.unpin('old');
 		signing.reject(new Error('Signing is unavailable'));
@@ -254,17 +254,17 @@ describe('pinned notes persistence', () => {
 		expect(s.runtime.effectivePinnedEventIds).toEqual(['old']);
 		expect(s.runtime.pending).toEqual([]);
 		expect(s.runtime.failure?.stage).toBe('signing');
-		s.runtime.pin('again');
+		s.runtime.pin(note('again'));
 		await flush();
 		expect(s.sign.mock.calls.map(([template]) => template.created_at)).toEqual([10, 10]);
 		const t = setup();
 		t.sign.mockResolvedValueOnce(event([['e', 'a']], 10, other));
-		t.runtime.pin('a');
+		t.runtime.pin(note('a'));
 		await flush();
 		expect(t.publications).toHaveLength(0);
 		expect(t.cache).not.toHaveBeenCalled();
 		expect(t.runtime.failure?.stage).toBe('signing');
-		t.runtime.pin('b');
+		t.runtime.pin(note('b'));
 		await flush();
 		expect(t.sign.mock.calls.map(([template]) => template.created_at)).toEqual([10, 10]);
 		expect(t.publications).toHaveLength(1);
@@ -272,7 +272,7 @@ describe('pinned notes persistence', () => {
 
 	it('rolls back a publish failure with no pending operation', async () => {
 		const s = setup();
-		s.runtime.pin('a');
+		s.runtime.pin(note('a'));
 		await flush();
 		s.publications[0].reject(new Error('relay'));
 		await flush();
@@ -285,37 +285,61 @@ describe('pinned notes persistence', () => {
 		s.fetchLatest
 			.mockResolvedValueOnce(undefined)
 			.mockResolvedValueOnce(event([['e', 'remote']], 8));
-		s.runtime.pin('a');
+		s.runtime.pin(note('a'));
 		await flush();
-		s.runtime.pin('b');
+		s.runtime.pin(note('b'));
 		s.publications[0].reject(new Error('relay'));
 		await flush();
 		expect(s.runtime.failure).toBeUndefined();
 		expect(s.runtime.inFlight).toHaveLength(2);
 		expect(s.fetchLatest).toHaveBeenCalledTimes(2);
-		expect(s.templates[1].tags).toEqual([
-			['e', 'remote'],
-			['e', 'a'],
-			['e', 'b']
-		]);
+		expect(s.templates[1].tags).toEqual([['e', 'remote'], pinTag('a'), pinTag('b')]);
 		expect(s.templates[0].created_at).toBe(10);
 		expect(s.templates[1].created_at).toBe(11);
 		expect(s.sign).toHaveBeenCalledTimes(2);
 		s.publications[1].resolve();
 		await flush();
-		expect(s.runtime.canonical?.tags).toEqual([
-			['e', 'remote'],
-			['e', 'a'],
-			['e', 'b']
-		]);
+		expect(s.runtime.canonical?.tags).toEqual([['e', 'remote'], pinTag('a'), pinTag('b')]);
 		expect(s.runtime.failure).toBeUndefined();
+	});
+
+	it('keeps author and relay hints of pins through pending, rebase, and merged retry', async () => {
+		const s = setup();
+		const hints: Record<string, string> = { a: 'wss://a.example', x: 'wss://x.example' };
+		s.getRelayHint.mockImplementation((id: string) => hints[id]);
+		s.fetchLatest.mockResolvedValueOnce(undefined).mockResolvedValueOnce(
+			event(
+				[
+					['e', 'x'],
+					['t', 'topic']
+				],
+				8
+			)
+		);
+		s.runtime.pin(note('a'));
+		await flush();
+		s.runtime.pin(note('b'));
+		s.runtime.unpin('x');
+		s.runtime.pin(note('x'));
+		s.publications[0].reject(new Error('relay'));
+		await flush();
+		const tags = [
+			['t', 'topic'],
+			pinTag('a', 'wss://a.example'),
+			pinTag('b'),
+			pinTag('x', 'wss://x.example')
+		];
+		expect(s.templates[1].tags).toEqual(tags);
+		s.publications[1].resolve();
+		await flush();
+		expect(s.runtime.canonical?.tags).toEqual(tags);
 	});
 
 	it('stops after the merged retry fails', async () => {
 		const s = setup();
-		s.runtime.pin('a');
+		s.runtime.pin(note('a'));
 		await flush();
-		s.runtime.pin('b');
+		s.runtime.pin(note('b'));
 		s.publications[0].reject(new Error('relay'));
 		await flush();
 		s.publications[1].reject(new Error('relay again'));
@@ -329,22 +353,22 @@ describe('pinned notes persistence', () => {
 	it('treats cache false or rejection as best effort after relay acceptance', async () => {
 		const s = setup();
 		s.cache.mockResolvedValueOnce(false);
-		s.runtime.pin('a');
+		s.runtime.pin(note('a'));
 		await flush();
 		s.publications[0].resolve();
 		await flush();
-		expect(s.runtime.canonical?.tags).toEqual([['e', 'a']]);
+		expect(s.runtime.canonical?.tags).toEqual([pinTag('a')]);
 		expect(s.runtime.phase).toBe('idle');
 		expect(s.runtime.failure).toBeUndefined();
 		const t = setup();
 		const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
 		try {
 			t.cache.mockRejectedValueOnce(new Error('cache unavailable'));
-			t.runtime.pin('a');
+			t.runtime.pin(note('a'));
 			await flush();
 			t.publications[0].resolve();
 			await flush();
-			expect(t.runtime.canonical?.tags).toEqual([['e', 'a']]);
+			expect(t.runtime.canonical?.tags).toEqual([pinTag('a')]);
 			expect(t.runtime.phase).toBe('idle');
 			expect(t.runtime.failure).toBeUndefined();
 			expect(t.publications).toHaveLength(1);
@@ -358,9 +382,9 @@ describe('pinned notes persistence', () => {
 		const s = setup();
 		const cacheWrite = deferred<boolean>();
 		s.cache.mockImplementationOnce(() => cacheWrite.promise);
-		s.runtime.pin('a');
+		s.runtime.pin(note('a'));
 		await flush();
-		s.runtime.pin('b');
+		s.runtime.pin(note('b'));
 		s.publications[0].resolve();
 		await flush();
 		expect(s.fetchLatest).toHaveBeenCalledTimes(2);
@@ -369,17 +393,14 @@ describe('pinned notes persistence', () => {
 		cacheWrite.resolve(false);
 		s.publications[1].resolve();
 		await flush();
-		expect(s.runtime.canonical?.tags).toEqual([
-			['e', 'a'],
-			['e', 'b']
-		]);
+		expect(s.runtime.canonical?.tags).toEqual([pinTag('a'), pinTag('b')]);
 	});
 
 	it('ignores stale fetch, sign, and publish completions after account switches or reset', async () => {
 		const successfulFetch = setup();
 		const latest = deferred<Event | undefined>();
 		successfulFetch.fetchLatest.mockImplementationOnce(() => latest.promise);
-		successfulFetch.runtime.pin('a');
+		successfulFetch.runtime.pin(note('a'));
 		const newAccount = event([['e', 'b']], 2, other);
 		successfulFetch.runtime.initialize(other, newAccount);
 		latest.resolve(event([['e', 'old-account']], 10));
@@ -390,7 +411,7 @@ describe('pinned notes persistence', () => {
 		const fetching = setup();
 		const request = deferred<Event | undefined>();
 		fetching.fetchLatest.mockImplementationOnce(() => request.promise);
-		fetching.runtime.pin('a');
+		fetching.runtime.pin(note('a'));
 		fetching.runtime.initialize(other, event([['e', 'b']], 2, other));
 		request.reject(new Error('old account offline'));
 		await flush();
@@ -402,7 +423,7 @@ describe('pinned notes persistence', () => {
 		const signing = setup();
 		const signature = deferred<Event>();
 		signing.sign.mockImplementationOnce(() => signature.promise);
-		signing.runtime.pin('a');
+		signing.runtime.pin(note('a'));
 		await flush();
 		signing.runtime.initialize(other);
 		signature.resolve(event([['e', 'a']], 10));
@@ -413,13 +434,13 @@ describe('pinned notes persistence', () => {
 			...event(template.tags, template.created_at, other),
 			content: template.content
 		}));
-		signing.runtime.pin('b');
+		signing.runtime.pin(note('b'));
 		await flush();
 		expect(signing.sign.mock.calls[1][0].created_at).toBe(10);
 		expect(signing.publications).toHaveLength(1);
 
 		const publishing = setup();
-		publishing.runtime.pin('a');
+		publishing.runtime.pin(note('a'));
 		await flush();
 		publishing.runtime.reset();
 		publishing.publications[0].resolve();
