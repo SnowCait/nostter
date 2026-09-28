@@ -28,9 +28,12 @@
 		IconExternalLink,
 		IconLanguage,
 		IconLink,
+		IconPinned,
+		IconPinnedFilled,
 		IconTrash,
 		IconVolumeOff
 	} from '@tabler/icons-svelte-runes';
+	import { pinnedNotes } from '$lib/features/pinned-notes/application/pinned-notes-runtime.svelte';
 	import { requestEventDeletion } from '$lib/features/event-deletion/application/request-event-deletion';
 	import { mute, unmute } from '$lib/author/Mute';
 	import { extractThreadReferenceTags } from '$lib/nostr/protocol/nip10';
@@ -63,6 +66,7 @@
 	} = createDropdownMenu({ preventScroll: false });
 
 	let bookmarked = $derived(isBookmarked(event));
+	let pinned = $derived(pinnedNotes.isPinned(event.id));
 	let nevent = $derived(
 		nip19.neventEncode({
 			id: event.id,
@@ -280,6 +284,21 @@
 			>
 				<div class="icon"><IconBookmark size={iconSize} /></div>
 				<div>{$_('actions.bookmark.button')}</div>
+			</div>
+		{/if}
+		{#if pinned}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div use:melt={$item} onclick={() => pinnedNotes.unpin(event.id)} class="item undo">
+				<div class="icon"><IconPinnedFilled size={iconSize} /></div>
+				<div>{$_('actions.unpin.button')}</div>
+			</div>
+		{:else}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div use:melt={$item} onclick={() => pinnedNotes.pin(event)} class="item">
+				<div class="icon"><IconPinned size={iconSize} /></div>
+				<div>{$_('actions.pin.button')}</div>
 			</div>
 		{/if}
 	{/if}
