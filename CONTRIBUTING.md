@@ -52,6 +52,12 @@ Playwright browser binaries are required to run the end-to-end tests locally. In
 npx playwright install
 ```
 
+To run the end-to-end tests, run a Nostr relay locally and pass its URL with `E2E_RELAY_URL` (default: `ws://127.0.0.1:8080/`):
+
+```
+E2E_RELAY_URL=ws://localhost:7000/ npm run test:e2e
+```
+
 ## Making changes
 
 See the [architecture guide](ARCHITECTURE.md) for module responsibilities and dependency rules, and the [coding guidelines](docs/coding-guidelines.md) for coding conventions.
