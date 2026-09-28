@@ -1,12 +1,10 @@
 import { Pinlist } from 'nostr-tools/kinds';
 import type { Event } from 'nostr-tools';
-import { createRxOneshotReq, latest } from 'rx-nostr';
-import { EmptyError, filter, firstValueFrom, lastValueFrom } from 'rxjs';
 import { cacheAccountEvent } from '$lib/cache/Events';
 import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
+import { fetchLatestReplaceableEvent, publishEvent } from '$lib/nostr/relay/event-operations';
 import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
 import type { Signer } from '$lib/nostr/signing/signer';
-import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { applyPinOperations, pinnedEventIds, type PinOperation } from '../domain/pin-list';
 
 export type PinSaveFailure = {
@@ -23,24 +21,9 @@ type Dependencies = {
 	wait(milliseconds: number): Promise<void>;
 };
 
-export async function fetchLatestPinnedNotes(owner: string): Promise<Event | undefined> {
-	const req = createRxOneshotReq({
-		filters: [{ kinds: [Pinlist], authors: [owner], limit: 1 }]
-	});
-	try {
-		const { event } = await lastValueFrom(rxNostr.use(req).pipe(tie, latest()));
-		return event;
-	} catch (error) {
-		if (error instanceof EmptyError) return undefined;
-		throw error;
-	}
-}
-
 const defaultDependencies: Dependencies = {
-	fetchLatest: fetchLatestPinnedNotes,
-	publish: async (event) => {
-		await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
-	},
+	fetchLatest: (owner) => fetchLatestReplaceableEvent(Pinlist, owner),
+	publish: publishEvent,
 	cache: (event) => cacheAccountEvent(event),
 	now: () => Math.floor(Date.now() / 1000),
 	wait: (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))

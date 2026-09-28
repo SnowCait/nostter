@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Event, EventTemplate } from 'nostr-tools';
-import { EMPTY, of, throwError } from 'rxjs';
-import { rxNostr } from '$lib/timelines/MainTimeline';
-import { fetchLatestPinnedNotes, PinnedNotesRuntime } from './pinned-notes-runtime.svelte';
+import { PinnedNotesRuntime } from './pinned-notes-runtime.svelte';
 
 const owner = 'a'.repeat(64);
 const other = 'b'.repeat(64);
@@ -42,18 +40,19 @@ function setup(initial?: Event) {
 	const publications: ReturnType<typeof deferred<void>>[] = [];
 	const templates: EventTemplate[] = [];
 	const fetchLatest = vi.fn(async (): Promise<Event | undefined> => undefined);
+	const publish = vi.fn(() => {
+		const next = deferred<void>();
+		publications.push(next);
+		return next.promise;
+	});
 	const cache = vi.fn(async () => true);
 	const runtime = new PinnedNotesRuntime({
 		fetchLatest,
+		publish,
 		now: () => second,
 		wait: () => {
 			const next = deferred<void>();
 			waits.push(next);
-			return next.promise;
-		},
-		publish: () => {
-			const next = deferred<void>();
-			publications.push(next);
 			return next.promise;
 		},
 		cache
@@ -67,6 +66,7 @@ function setup(initial?: Event) {
 		runtime,
 		sign,
 		fetchLatest,
+		publish,
 		cache,
 		templates,
 		publications,
@@ -80,38 +80,6 @@ function setup(initial?: Event) {
 		}
 	};
 }
-
-describe('latest pinned notes relay fetch', () => {
-	it('uses the latest packet when the oneshot request completes', async () => {
-		const older = event([['e', 'old']], 1);
-		const newer = event([['e', 'new']], 2);
-		const use = vi
-			.spyOn(rxNostr, 'use')
-			.mockReturnValue(
-				of(
-					{ event: older, from: 'wss://relay' },
-					{ event: newer, from: 'wss://relay' },
-					{ event: older, from: 'wss://relay' }
-				) as never
-			);
-		try {
-			await expect(fetchLatestPinnedNotes(owner)).resolves.toBe(newer);
-		} finally {
-			use.mockRestore();
-		}
-	});
-
-	it('distinguishes an empty response from a failed request', async () => {
-		const use = vi.spyOn(rxNostr, 'use').mockReturnValue(EMPTY as never);
-		try {
-			await expect(fetchLatestPinnedNotes(owner)).resolves.toBeUndefined();
-			use.mockReturnValue(throwError(() => new Error('offline')) as never);
-			await expect(fetchLatestPinnedNotes(owner)).rejects.toThrow('offline');
-		} finally {
-			use.mockRestore();
-		}
-	});
-});
 
 describe('pinned notes persistence', () => {
 	it('starts fetching immediately and rebases a first pin on relay latest', async () => {
