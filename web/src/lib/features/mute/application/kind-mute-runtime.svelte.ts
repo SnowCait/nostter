@@ -65,8 +65,7 @@ export function applyKindMuteInitialization(
 		)
 			continue;
 		const previous = canonical.get(kind);
-		if (previous !== undefined && !shouldReplaceCurrentEvent(state.event, previous.event))
-			continue;
+		if (!shouldReplaceCurrentEvent(state.event, previous?.event)) continue;
 		canonical.set(kind, copyState(state));
 		const candidate = candidates.get(kind);
 		if (candidate !== undefined && !shouldReplaceCurrentEvent(candidate.event, state.event)) {
@@ -91,11 +90,7 @@ export function completeLocalKindMute(
 	)
 		return;
 	const previous = current.canonical.get(muteKind);
-	if (
-		previous !== undefined &&
-		previous.event.id !== event.id &&
-		!shouldReplaceCurrentEvent(event, previous.event)
-	)
+	if (previous?.event.id !== event.id && !shouldReplaceCurrentEvent(event, previous?.event))
 		return;
 	const canonical = new Map(current.canonical);
 	canonical.set(muteKind, copyState(prepareKindMuteState(event, privateTags)));
@@ -116,9 +111,9 @@ export async function ingestRemoteKindMute(
 	const current = runtime;
 	if (muteKind === undefined || current.owner !== owner || event.pubkey !== owner) return;
 	const canonical = current.canonical.get(muteKind);
-	if (canonical !== undefined && !shouldReplaceCurrentEvent(event, canonical.event)) return;
+	if (!shouldReplaceCurrentEvent(event, canonical?.event)) return;
 	const pending = current.candidates.get(muteKind);
-	if (pending !== undefined && !shouldReplaceCurrentEvent(event, pending.event)) return;
+	if (!shouldReplaceCurrentEvent(event, pending?.event)) return;
 	const candidate: Candidate = { event: copyEvent(event), identity: Symbol() };
 	const candidates = new Map(current.candidates);
 	candidates.set(muteKind, candidate);
@@ -137,10 +132,7 @@ export async function ingestRemoteKindMute(
 		const remaining = new Map(latest.candidates);
 		remaining.delete(muteKind);
 		const previous = latest.canonical.get(muteKind);
-		if (
-			previous !== undefined &&
-			(previous.event.id === event.id || !shouldReplaceCurrentEvent(event, previous.event))
-		) {
+		if (previous?.event.id === event.id || !shouldReplaceCurrentEvent(event, previous?.event)) {
 			runtime = { ...latest, candidates: remaining };
 			return;
 		}
@@ -155,7 +147,7 @@ export async function ingestRemoteKindMute(
 	const previous = latest.canonical.get(muteKind);
 	const remaining = new Map(latest.candidates);
 	remaining.delete(muteKind);
-	if (previous !== undefined && !shouldReplaceCurrentEvent(event, previous.event)) {
+	if (!shouldReplaceCurrentEvent(event, previous?.event)) {
 		runtime = { ...latest, candidates: remaining };
 		return;
 	}

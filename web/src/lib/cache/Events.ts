@@ -26,7 +26,7 @@ export const cachedEvents = new Map<id, Nostr.Event>();
 export function storeMetadata(event: Nostr.Event): void {
 	const $metadataStore = get(metadataStore);
 	const cache = $metadataStore.get(event.pubkey);
-	if (cache === undefined || shouldReplaceCurrentEvent(event, cache.event)) {
+	if (shouldReplaceCurrentEvent(event, cache?.event)) {
 		const metadata = new Metadata(event);
 		$metadataStore.set(metadata.event.pubkey, metadata);
 		metadataStore.set($metadataStore);
@@ -71,7 +71,7 @@ export async function loadFolloweesMetadataCache(pubkeys: string[]): Promise<voi
 	const $metadataStore = get(metadataStore);
 	for (const [pubkey, event] of eventsMap) {
 		const cache = $metadataStore.get(pubkey);
-		if (cache === undefined || shouldReplaceCurrentEvent(event, cache.event)) {
+		if (shouldReplaceCurrentEvent(event, cache?.event)) {
 			$metadataStore.set(pubkey, new Metadata(event));
 		}
 	}
