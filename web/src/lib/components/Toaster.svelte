@@ -1,21 +1,12 @@
-<script lang="ts" module>
-	export type ToastData = {
-		title: string;
-		description: string;
-	};
+<script lang="ts">
+	import { melt } from '@melt-ui/svelte';
+	import { toaster } from './toast';
 
 	const {
 		elements: { content, title, description },
-		helpers,
 		states: { toasts },
 		actions: { portal }
-	} = createToaster<ToastData>();
-
-	export const addToast = helpers.addToast;
-</script>
-
-<script lang="ts">
-	import { createToaster, melt } from '@melt-ui/svelte';
+	} = toaster;
 </script>
 
 <div class="toast" use:portal>

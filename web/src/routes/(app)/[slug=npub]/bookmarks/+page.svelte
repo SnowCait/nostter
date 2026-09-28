@@ -25,7 +25,7 @@
 	} from './BookmarkListTabs';
 	import { BookmarkPageState } from './BookmarkPageState.svelte';
 	import { copyLegacyBookmarks } from '$lib/features/bookmarks/application/copy-legacy-bookmarks';
-	import { addToast } from '$lib/components/Toaster.svelte';
+	import { toast } from '$lib/components/toast';
 	import { deleteLegacyBookmarks } from '$lib/features/bookmarks/application/delete-legacy-bookmarks';
 	import { auth } from '$lib/auth.svelte';
 	import type { Signer } from '$lib/nostr/signing/signer';
@@ -102,27 +102,23 @@
 				throw new Error('No signer is available for the authenticated session.');
 			}
 			const event = await copyLegacyBookmarks(signer);
-			addToast({
-				data: {
-					title: $_(
-						event === undefined
-							? 'bookmarks.copy.no_changes.title'
-							: 'bookmarks.copy.success.title'
-					),
-					description: $_(
-						event === undefined
-							? 'bookmarks.copy.no_changes.description'
-							: 'bookmarks.copy.success.description'
-					)
-				}
+			toast.add({
+				title: $_(
+					event === undefined
+						? 'bookmarks.copy.no_changes.title'
+						: 'bookmarks.copy.success.title'
+				),
+				description: $_(
+					event === undefined
+						? 'bookmarks.copy.no_changes.description'
+						: 'bookmarks.copy.success.description'
+				)
 			});
 		} catch (error) {
 			console.error('[bookmark copy failed]', error);
-			addToast({
-				data: {
-					title: $_('bookmarks.copy.failed.title'),
-					description: $_('bookmarks.copy.failed.description')
-				}
+			toast.add({
+				title: $_('bookmarks.copy.failed.title'),
+				description: $_('bookmarks.copy.failed.description')
 			});
 		}
 	}
@@ -138,19 +134,15 @@
 		deletingLegacyBookmarks = true;
 		try {
 			await deleteLegacyBookmarks(signEvent);
-			addToast({
-				data: {
-					title: $_('bookmarks.delete.success.title'),
-					description: $_('bookmarks.delete.success.description')
-				}
+			toast.add({
+				title: $_('bookmarks.delete.success.title'),
+				description: $_('bookmarks.delete.success.description')
 			});
 		} catch (error) {
 			console.error('[legacy bookmark deletion failed]', error);
-			addToast({
-				data: {
-					title: $_('bookmarks.delete.failed.title'),
-					description: $_('bookmarks.delete.failed.description')
-				}
+			toast.add({
+				title: $_('bookmarks.delete.failed.title'),
+				description: $_('bookmarks.delete.failed.description')
 			});
 		} finally {
 			deletingLegacyBookmarks = false;
