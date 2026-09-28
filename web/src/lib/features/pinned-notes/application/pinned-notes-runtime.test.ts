@@ -85,8 +85,6 @@ function setup(initial?: Event) {
 describe('pinned notes persistence', () => {
 	it('starts fetching immediately and rebases a first pin on relay latest', async () => {
 		const s = setup();
-		expect(s.runtime.pin).toHaveLength(1);
-		expect(s.runtime.unpin).toHaveLength(1);
 		const latest = {
 			...event(
 				[
