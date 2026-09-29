@@ -34,6 +34,7 @@
 	import ImageOptimization from './ImageOptimization.svelte';
 	import Json from '$lib/components/Json.svelte';
 	import Language from './Language.svelte';
+	import ContentFontSizePreference from '$lib/features/content-font-size/presentation/ContentFontSizePreference.svelte';
 	import Backup from './Backup.svelte';
 	import WorkAsRemoteSigner from './WorkAsRemoteSigner.svelte';
 	import NotificationVisibility from './NotificationVisibility.svelte';
@@ -141,6 +142,7 @@
 	<h2>{$_('preferences.device')}</h2>
 	<div><Theme /></div>
 	<div><Language /></div>
+	<div><ContentFontSizePreference /></div>
 	<div><AutoRefresh /></div>
 	<div><EnablePreview /></div>
 	<div><GifAutoplay /></div>

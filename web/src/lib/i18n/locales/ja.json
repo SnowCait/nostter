@@ -157,6 +157,14 @@
 			"language": "言語",
 			"system": "システム"
 		},
+		"content_font_size": {
+			"content_font_size": "文字サイズ",
+			"small": "小",
+			"default": "標準",
+			"large": "大",
+			"extra_large": "特大",
+			"preview": "投稿はこのように表示されます。"
+		},
 		"emoji": {
 			"like": "いいねの絵文字",
 			"custom": "絵文字を追加"
