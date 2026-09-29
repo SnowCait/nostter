@@ -12,13 +12,17 @@ const diagnosticTypes = ['stylesheet-load-error', 'stylesheet-not-applied'] as c
 
 type CssDiagnostic = {
 	type: (typeof diagnosticTypes)[number];
-	pathname: string;
-	stylesheetPath?: string;
-	stylesheetPaths: string[];
-	unavailableStylesheetPaths: string[];
 	timestamp: number;
-	standalone: boolean;
-	serviceWorkerControlled: boolean;
+	pathname: string;
+	stylesheets: {
+		failed?: string;
+		all: string[];
+		unavailable: string[];
+	};
+	client: {
+		standalone: boolean;
+		serviceWorkerControlled: boolean;
+	};
 };
 
 // Only redacted page paths are accepted so that Nostr identifiers are never logged.
@@ -76,13 +80,17 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 	}
 	return {
 		type,
-		pathname,
-		stylesheetPath,
-		stylesheetPaths,
-		unavailableStylesheetPaths,
 		timestamp,
-		standalone,
-		serviceWorkerControlled
+		pathname,
+		stylesheets: {
+			failed: stylesheetPath,
+			all: stylesheetPaths,
+			unavailable: unavailableStylesheetPaths
+		},
+		client: {
+			standalone,
+			serviceWorkerControlled
+		}
 	};
 };
 
@@ -142,16 +150,15 @@ export const POST: RequestHandler = async ({ request, url }) => {
 
 	console.error({
 		message: 'client-css-diagnostic',
-		diagnosticType: diagnostic.type,
-		pathname: diagnostic.pathname,
-		stylesheetPath: diagnostic.stylesheetPath,
-		stylesheetPaths: diagnostic.stylesheetPaths,
-		unavailableStylesheetPaths: diagnostic.unavailableStylesheetPaths,
-		timestamp: diagnostic.timestamp,
-		standalone: diagnostic.standalone,
-		serviceWorkerControlled: diagnostic.serviceWorkerControlled,
-		serverGitSha: gitSha,
-		userAgent: request.headers.get('user-agent')?.slice(0, maxUserAgentLength)
+		diagnostic: {
+			...diagnostic,
+			client: {
+				...diagnostic.client,
+				userAgent: request.headers.get('user-agent')?.slice(0, maxUserAgentLength)
+			},
+			// The SHA of the Worker handling this request, not of the document that sent it.
+			server: { gitSha }
+		}
 	});
 
 	return new Response(null, { status: 204 });

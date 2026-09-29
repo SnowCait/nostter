@@ -32,16 +32,24 @@ const post = (
 
 const expectedLog = {
 	message: 'client-css-diagnostic',
-	diagnosticType: 'stylesheet-load-error',
-	pathname: '/[npub]/lists',
-	stylesheetPath: '/_app/immutable/assets/0.Bx3k2Lm.css',
-	stylesheetPaths: ['/_app/immutable/assets/0.Bx3k2Lm.css', '/_app/immutable/assets/2.C9dE.css'],
-	unavailableStylesheetPaths: ['/_app/immutable/assets/0.Bx3k2Lm.css'],
-	timestamp: 1790000000000,
-	standalone: true,
-	serviceWorkerControlled: false,
-	serverGitSha: expect.any(String),
-	userAgent: 'Mozilla/5.0'
+	diagnostic: {
+		type: 'stylesheet-load-error',
+		timestamp: 1790000000000,
+		pathname: '/[npub]/lists',
+		stylesheets: {
+			failed: '/_app/immutable/assets/0.Bx3k2Lm.css',
+			all: ['/_app/immutable/assets/0.Bx3k2Lm.css', '/_app/immutable/assets/2.C9dE.css'],
+			unavailable: ['/_app/immutable/assets/0.Bx3k2Lm.css']
+		},
+		client: {
+			standalone: true,
+			serviceWorkerControlled: false,
+			userAgent: 'Mozilla/5.0'
+		},
+		server: {
+			gitSha: expect.any(String)
+		}
+	}
 };
 
 const spyOnError = () => vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -77,13 +85,15 @@ describe('POST /api/diagnostics/client', () => {
 		);
 
 		expect(response.status).toBe(204);
-		expect(error).toHaveBeenCalledWith(
-			expect.objectContaining({
-				diagnosticType: 'stylesheet-not-applied',
+		expect(error).toHaveBeenCalledWith({
+			message: 'client-css-diagnostic',
+			diagnostic: expect.objectContaining({
+				type: 'stylesheet-not-applied',
 				pathname: '/',
-				stylesheetPath: undefined
+				stylesheets: expect.not.objectContaining({ failed: expect.anything() }),
+				client: expect.not.objectContaining({ userAgent: expect.anything() })
 			})
-		);
+		});
 	});
 
 	it('does not log fields that are not allowed', async () => {
@@ -92,7 +102,11 @@ describe('POST /api/diagnostics/client', () => {
 				...validPayload,
 				message: 'injected',
 				content: 'hello',
-				npub: 'npub1injected'
+				npub: 'npub1injected',
+				diagnostic: { type: 'injected' },
+				stylesheets: { injected: true },
+				client: { userAgent: 'injected' },
+				server: { gitSha: 'injected' }
 			})
 		);
 
