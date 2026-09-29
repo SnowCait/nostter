@@ -40,6 +40,21 @@
 						})
 						.join('/');
 
+				// Resource Timing entries or responseStatus may be unavailable depending on the browser.
+				const responseStatusOf = (href) => {
+					try {
+						const entries = performance
+							.getEntriesByName(href, 'resource')
+							.filter(({ initiatorType }) => initiatorType === 'link');
+						const entry = entries[entries.length - 1];
+						return typeof entry?.responseStatus === 'number'
+							? entry.responseStatus
+							: null;
+					} catch {
+						return null;
+					}
+				};
+
 				const send = (type, stylesheetPath) => {
 					if (sentTypes.has(type)) {
 						return;
@@ -52,6 +67,7 @@
 						]
 							.map((link) => ({
 								path: toSameOriginPath(link.href),
+								href: link.href,
 								sheet: link.sheet
 							}))
 							.filter(({ path }) => path !== undefined)
@@ -65,6 +81,9 @@
 								pathname: redactPathname(location.pathname),
 								stylesheetPath,
 								stylesheetPaths: stylesheets.map(({ path }) => path),
+								stylesheetResponseStatuses: stylesheets.map(({ href }) =>
+									responseStatusOf(href)
+								),
 								unavailableStylesheetPaths: stylesheets
 									.filter(({ sheet }) => sheet === null)
 									.map(({ path }) => path),
