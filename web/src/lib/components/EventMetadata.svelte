@@ -92,7 +92,7 @@
 	.note {
 		color: var(--foreground);
 		font-size: 15px;
-		/* Resets the scale inherited from embedding content along with the absolute font size */
+		/* The absolute font size above does not include the scale inherited from embedding content */
 		--applied-content-font-scale: 1;
 		font-weight: 400;
 		width: calc(100% - 60px);

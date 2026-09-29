@@ -133,6 +133,12 @@
 {/if}
 
 <style>
+	/* Only the date is content, and CreatedAt applies the scale by itself */
+	article,
+	.develop {
+		font-size: calc(1em / var(--applied-content-font-scale, 1));
+	}
+
 	header {
 		display: flex;
 		flex-direction: row;

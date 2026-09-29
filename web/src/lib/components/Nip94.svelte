@@ -29,7 +29,6 @@
 
 <style>
 	img {
-		/* Media is not scaled with the content text */
 		font-size: calc(1em / var(--applied-content-font-scale, 1));
 		max-width: 100%;
 		max-height: 20em;

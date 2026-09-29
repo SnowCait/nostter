@@ -342,17 +342,10 @@ progress {
 	--shadow: 0 0 0.25rem 0 rgba(0, 0, 0, 0.2);
 	--hover-background-color: rgba(0, 0, 0, 0.05);
 	/*
-	 * Scale for text users read and write, applied once at content boundaries. Relative sizes
-	 * (em, %) inside a boundary follow through inheritance.
-	 *
-	 * A boundary with an absolute font size (px, rem) multiplies it by the scale. A boundary
-	 * whose font size is inherited from its container, such as items that are also embedded in
-	 * content, keeps that size and scales it with
-	 * calc(1em * var(--content-font-scale) / var(--applied-content-font-scale, 1)).
-	 *
-	 * --applied-content-font-scale is the scale included in the font size. Boundaries that can
-	 * contain media or controls (e.g. through Content.svelte) set it, and media and controls
-	 * divide 1em by it to size themselves by the unscaled font size.
+	 * --content-font-scale is the user-facing scale for content text.
+	 * --applied-content-font-scale is the part of it already included in the inherited font size.
+	 * Boundaries with an inherited base size and unscaled media and controls divide by it, so
+	 * that nested content is scaled only once and media and controls are not scaled.
 	 */
 	--content-font-scale: 1;
 }

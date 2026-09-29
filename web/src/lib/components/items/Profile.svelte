@@ -57,7 +57,7 @@
 		flex-direction: row;
 		gap: 12px;
 		min-width: 0;
-		/* Only the about is content; the rest is not scaled even when embedded in scaled content */
+		/* Only the about is content */
 		font-size: calc(1em / var(--applied-content-font-scale, 1));
 	}
 
