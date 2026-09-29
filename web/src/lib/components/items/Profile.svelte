@@ -41,7 +41,9 @@
 			{/if}
 		</div>
 		{#if metadata.content?.about !== undefined}
-			<Content content={metadata.content.about} tags={metadata.event.tags} />
+			<div class="about">
+				<Content content={metadata.content.about} tags={metadata.event.tags} />
+			</div>
 		{/if}
 		{#if createdAt !== undefined}
 			<div>Last note: {new Date(createdAt * 1000).toLocaleString()}</div>
@@ -55,9 +57,12 @@
 		flex-direction: row;
 		gap: 12px;
 		min-width: 0;
+		/* Only the about is content */
+		font-size: calc(1em / var(--applied-content-font-scale, 1));
 	}
 
 	.text {
+		--applied-content-font-scale: 1;
 		width: calc(100% - 60px);
 		min-width: 0;
 	}
@@ -91,5 +96,10 @@
 	.follow {
 		margin-left: auto;
 		flex-shrink: 0;
+	}
+
+	.about {
+		font-size: calc(1em * var(--content-font-scale));
+		--applied-content-font-scale: var(--content-font-scale);
 	}
 </style>

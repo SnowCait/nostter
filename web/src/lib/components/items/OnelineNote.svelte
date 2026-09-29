@@ -34,6 +34,7 @@
 		display: flex;
 		justify-content: flex-start;
 		gap: 0.5rem;
+		font-size: calc(1em * var(--content-font-scale) / var(--applied-content-font-scale, 1));
 	}
 
 	.icon {

@@ -32,6 +32,7 @@
 
 <style>
 	.wrapper {
+		font-size: calc(1em / var(--applied-content-font-scale, 1));
 		position: relative;
 		display: inline-block;
 	}

@@ -92,6 +92,8 @@
 	.note {
 		color: var(--foreground);
 		font-size: 15px;
+		/* The absolute font size above does not include the scale inherited from embedding content */
+		--applied-content-font-scale: 1;
 		font-weight: 400;
 		width: calc(100% - 60px);
 		min-width: 0;
@@ -106,6 +108,7 @@
 		flex-direction: row;
 		gap: 0.3rem;
 		min-width: 0;
+		font-size: calc(15px * var(--content-font-scale));
 	}
 
 	.display_name {
@@ -115,7 +118,6 @@
 
 	.name {
 		color: var(--accent-gray);
-		font-size: 15px;
 		flex-shrink: 2;
 	}
 

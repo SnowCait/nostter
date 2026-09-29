@@ -29,6 +29,7 @@
 
 <style>
 	img {
+		font-size: calc(1em / var(--applied-content-font-scale, 1));
 		max-width: 100%;
 		max-height: 20em;
 		margin: 0.5em;

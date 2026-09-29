@@ -191,6 +191,10 @@
 {/if}
 
 <style>
+	button {
+		font-size: calc(1em / var(--applied-content-font-scale, 1));
+	}
+
 	.twitter-widget {
 		width: 100%;
 		max-width: 100%;

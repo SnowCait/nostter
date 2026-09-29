@@ -51,7 +51,7 @@
 
 	div {
 		color: var(--accent-gray);
-		font-size: 0.7rem;
+		font-size: calc(0.7rem * var(--content-font-scale));
 
 		text-overflow: ellipsis;
 		overflow: hidden;

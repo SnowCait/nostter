@@ -146,7 +146,7 @@
 	}
 
 	h2 {
-		font-size: 1.25rem;
+		font-size: calc(1.25rem * var(--content-font-scale));
 		line-height: 1.3;
 		overflow-wrap: anywhere;
 	}
@@ -165,7 +165,7 @@
 
 	.podcast-title {
 		color: var(--accent-gray);
-		font-size: 0.9rem;
+		font-size: calc(0.9rem * var(--content-font-scale));
 		font-weight: 600;
 		line-height: 1.4;
 		overflow-wrap: anywhere;
@@ -182,6 +182,11 @@
 		min-width: 0;
 	}
 
+	.description,
+	.content {
+		font-size: calc(15px * var(--content-font-scale));
+	}
+
 	.description {
 		white-space: pre-line;
 		overflow-wrap: anywhere;
@@ -193,6 +198,7 @@
 	}
 
 	.content {
+		--applied-content-font-scale: var(--content-font-scale);
 		min-width: 0;
 		overflow-wrap: anywhere;
 	}
@@ -211,7 +217,7 @@
 		flex-direction: column;
 		align-items: flex-start;
 		gap: 0.125rem;
-		font-size: 0.8rem;
+		font-size: calc(0.8rem * var(--content-font-scale));
 		line-height: 1.3;
 		max-width: 100%;
 		min-width: 0;
@@ -235,7 +241,7 @@
 		}
 
 		h2 {
-			font-size: 1.05rem;
+			font-size: calc(1.05rem * var(--content-font-scale));
 		}
 	}
 </style>

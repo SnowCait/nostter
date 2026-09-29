@@ -127,6 +127,7 @@
 	}
 
 	.img-wrapper {
+		font-size: calc(1em / var(--applied-content-font-scale, 1));
 		display: inline-grid;
 		place-items: center;
 		vertical-align: middle;

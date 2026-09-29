@@ -60,6 +60,10 @@
 		text-decoration: none;
 	}
 
+	blockquote {
+		font-size: calc(1em / var(--applied-content-font-scale, 1));
+	}
+
 	img {
 		width: 100%;
 		max-height: 260px;
