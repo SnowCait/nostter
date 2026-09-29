@@ -158,6 +158,13 @@
 			"language": "Language",
 			"system": "System"
 		},
+		"content_font_size": {
+			"content_font_size": "Content font size",
+			"small": "Small",
+			"default": "Default",
+			"large": "Large",
+			"extra_large": "Extra Large"
+		},
 		"emoji": {
 			"like": "Like emoji",
 			"custom": "Add emojis"

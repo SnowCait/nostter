@@ -350,6 +350,18 @@ progress {
 	--content-font-scale: 1;
 }
 
+:root[data-content-font-size='small'] {
+	--content-font-scale: 0.875;
+}
+
+:root[data-content-font-size='large'] {
+	--content-font-scale: 1.125;
+}
+
+:root[data-content-font-size='extra-large'] {
+	--content-font-scale: 1.25;
+}
+
 .dark {
 	color-scheme: dark;
 	--background: #232323;

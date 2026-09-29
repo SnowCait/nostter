@@ -26,6 +26,14 @@
 				if (themeColorMetaTag !== null) {
 					themeColorMetaTag.content = color;
 				}
+
+				// App modules cannot be imported here, so this mirrors contentFontSizes.
+				const contentFontSize = localStorage.getItem(
+					'nostter:preference:content-font-size'
+				);
+				if (['small', 'default', 'large', 'extra-large'].includes(contentFontSize)) {
+					document.documentElement.dataset.contentFontSize = contentFontSize;
+				}
 			})();
 		</script>
 	</head>
