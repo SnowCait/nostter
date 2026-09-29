@@ -1,8 +1,20 @@
-import type { Event } from 'nostr-tools';
-import { createRxOneshotReq, latest } from 'rx-nostr';
-import { EmptyError, filter, firstValueFrom, lastValueFrom } from 'rxjs';
+import type { Event, Filter } from 'nostr-tools';
+import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
+import { EmptyError, filter, firstValueFrom, lastValueFrom, map, toArray } from 'rxjs';
 import { rxNostr } from '$lib/relay-client';
 import { tie } from './relay-hints';
+
+export async function fetchEvents(filters: Filter[]): Promise<Event[]> {
+	const req = createRxOneshotReq({ filters });
+	return lastValueFrom(
+		rxNostr.use(req).pipe(
+			tie,
+			uniq(),
+			map(({ event }) => event),
+			toArray()
+		)
+	);
+}
 
 export async function fetchLatestReplaceableEvent(
 	kind: number,

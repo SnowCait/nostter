@@ -1,9 +1,9 @@
 import type { Event } from 'nostr-tools';
-import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
+import { compareEvents } from 'rx-nostr';
 import { RelayList } from './author/RelayList';
 import { findIdentifier } from './nostr/protocol/event-address';
+import { fetchEvents } from './nostr/relay/event-operations';
 import { accountAddressableEventCache, cacheAccountEvent } from './cache/Events';
-import { rxNostr, tie } from './timelines/MainTimeline';
 import {
 	authorReplaceableKinds,
 	parameterizedReplaceableKinds,
@@ -64,49 +64,31 @@ export class Author {
 	}
 
 	private async fetchAuthorEvents(pubkey: string) {
+		const events = await fetchEvents([
+			{
+				kinds: [...replaceableKinds, ...parameterizedReplaceableKinds],
+				authors: [pubkey]
+			}
+		]);
+		const latestEvents = new Map<string, Event>();
 		const replaceableEvents = new Map<number, Event>();
 		const parameterizedReplaceableEvents = new Map<string, Event>();
-		await new Promise<void>((resolve, reject) => {
-			const authorReq = createRxBackwardReq();
-			rxNostr
-				.use(authorReq)
-				.pipe(
-					tie,
-					uniq(),
-					latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`)
-				)
-				.subscribe({
-					next: (packet) => {
-						console.log('[rx-nostr author]', packet);
-						const { event } = packet;
-						if (replaceableKinds.includes(event.kind)) {
-							replaceableEvents.set(event.kind, event);
-						} else if (parameterizedReplaceableKinds.includes(event.kind)) {
-							parameterizedReplaceableEvents.set(
-								`${event.kind}:${findIdentifier(event.tags) ?? ''}`,
-								event
-							);
-						} else {
-							console.error('[rx-nostr author logic error]', packet);
-						}
-					},
-					complete: () => {
-						console.log('[rx-nostr author complete]');
-						resolve();
-					},
-					error: (error) => {
-						console.error('[rx-nostr author error]', error);
-						reject();
-					}
-				});
-			authorReq.emit([
-				{
-					kinds: [...replaceableKinds, ...parameterizedReplaceableKinds],
-					authors: [pubkey]
-				}
-			]);
-			authorReq.over();
-		});
+		for (const event of events) {
+			const key = `${event.kind}:${findIdentifier(event.tags) ?? ''}`;
+			const current = latestEvents.get(key);
+			// Keep rx-nostr latestEach() ordering, which prefers the higher id on created_at ties.
+			if (current !== undefined && compareEvents(current, event) >= 0) {
+				continue;
+			}
+			latestEvents.set(key, event);
+			if (replaceableKinds.includes(event.kind)) {
+				replaceableEvents.set(event.kind, event);
+			} else if (parameterizedReplaceableKinds.includes(event.kind)) {
+				parameterizedReplaceableEvents.set(key, event);
+			} else {
+				console.error('[author logic error]', event);
+			}
+		}
 		return { replaceableEvents, parameterizedReplaceableEvents };
 	}
 }
