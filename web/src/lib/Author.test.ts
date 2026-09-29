@@ -61,7 +61,7 @@ describe('Author.fetchEvents', () => {
 		expect(mocks.put).toHaveBeenCalledWith(bEvent);
 	});
 
-	it('keeps and caches only the latest event for each replaceable kind and address', async () => {
+	it('keeps and caches only the NIP-01 latest event for each replaceable kind and address', async () => {
 		const version = (
 			kind: number,
 			created_at: number,
@@ -73,18 +73,20 @@ describe('Author.fetchEvents', () => {
 			created_at,
 			tags: identifier === undefined ? [] : [['d', identifier]]
 		});
-		const olderContacts = version(3, 1, 'c');
-		const tiedContacts = version(3, 2, 'a');
+		const olderContacts = version(3, 1, 'a');
+		const tiedContacts = version(3, 2, 'c');
 		const contacts = version(3, 2, 'b');
+		const tiedMutedByKind6 = version(30007, 2, 'e', '6');
+		const olderMutedByKind6 = version(30007, 1, 'a', '6');
 		const mutedByKind6 = version(30007, 2, 'd', '6');
-		const olderMutedByKind6 = version(30007, 1, 'e', '6');
 		const mutedByKind7 = version(30007, 1, 'f', '7');
 		mocks.fetchEvents.mockResolvedValue([
 			olderContacts,
 			tiedContacts,
 			contacts,
-			mutedByKind6,
+			tiedMutedByKind6,
 			olderMutedByKind6,
+			mutedByKind6,
 			mutedByKind7
 		]);
 

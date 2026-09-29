@@ -1,7 +1,7 @@
 import type { Event } from 'nostr-tools';
-import { compareEvents } from 'rx-nostr';
 import { RelayList } from './author/RelayList';
 import { findIdentifier } from './nostr/protocol/event-address';
+import { shouldReplaceCurrentEvent } from './nostr/protocol/replaceable-event';
 import { fetchEvents } from './nostr/relay/event-operations';
 import { accountAddressableEventCache, cacheAccountEvent } from './cache/Events';
 import {
@@ -75,9 +75,7 @@ export class Author {
 		const parameterizedReplaceableEvents = new Map<string, Event>();
 		for (const event of events) {
 			const key = `${event.kind}:${findIdentifier(event.tags) ?? ''}`;
-			const current = latestEvents.get(key);
-			// Keep rx-nostr latestEach() ordering, which prefers the higher id on created_at ties.
-			if (current !== undefined && compareEvents(current, event) >= 0) {
+			if (!shouldReplaceCurrentEvent(event, latestEvents.get(key))) {
 				continue;
 			}
 			latestEvents.set(key, event);
