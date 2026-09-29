@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from 'nostr-tools';
-import { EMPTY, of, throwError } from 'rxjs';
+import { EMPTY, lastValueFrom, of, throwError, toArray } from 'rxjs';
 import { rxNostr } from '$lib/relay-client';
-import { fetchLatestReplaceableEvent, publishEvent } from './event-operations';
+import { fetchEvents, fetchLatestReplaceableEvent, publishEvent } from './event-operations';
 
 const pubkey = 'a'.repeat(64);
 
@@ -21,6 +21,31 @@ function event(created_at: number): Event {
 afterEach(() => vi.restoreAllMocks());
 
 describe('relay event operations', () => {
+	it('sends all filters in a single REQ and returns each received event once', async () => {
+		const filters = [
+			{ kinds: [10001], authors: [pubkey] },
+			{ ids: ['b'.repeat(64)], kinds: [1] }
+		];
+		const first = event(1);
+		const second = event(2);
+		const use = vi
+			.spyOn(rxNostr, 'use')
+			.mockReturnValue(
+				of(
+					{ event: first, from: 'wss://relay1' },
+					{ event: second, from: 'wss://relay1' },
+					{ event: first, from: 'wss://relay2' }
+				) as never
+			);
+
+		await expect(fetchEvents(filters)).resolves.toEqual([first, second]);
+		expect(use).toHaveBeenCalledOnce();
+		const [req] = use.mock.calls[0];
+		await expect(lastValueFrom(req.getReqPacketObservable().pipe(toArray()))).resolves.toEqual([
+			{ filters }
+		]);
+	});
+
 	it('returns the latest event after the oneshot request completes', async () => {
 		const older = event(1);
 		const latest = event(2);
