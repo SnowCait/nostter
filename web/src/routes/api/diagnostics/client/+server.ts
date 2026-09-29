@@ -49,7 +49,7 @@ const isStylesheetPath = (value: unknown): value is string =>
 const isStylesheetPaths = (value: unknown): value is string[] =>
 	Array.isArray(value) && value.length <= maxStylesheets && value.every(isStylesheetPath);
 
-// 0 is reported for network errors and responses without a visible status.
+// 0 is a valid responseStatus value; null means Resource Timing did not expose a status.
 const isResponseStatus = (value: unknown): value is number | null =>
 	value === null ||
 	(Number.isInteger(value) && (value as number) >= 0 && (value as number) <= 999);
