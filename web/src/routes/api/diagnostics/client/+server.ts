@@ -14,7 +14,10 @@ type CssDiagnostic = {
 	pathname: string;
 	stylesheets: {
 		failed?: string;
-		all: string[];
+		resources: {
+			path: string;
+			responseStatus: number | null;
+		}[];
 		unavailable: string[];
 	};
 	client: {
@@ -46,6 +49,19 @@ const isStylesheetPath = (value: unknown): value is string =>
 const isStylesheetPaths = (value: unknown): value is string[] =>
 	Array.isArray(value) && value.length <= maxStylesheets && value.every(isStylesheetPath);
 
+// 0 is reported for network errors and responses without a visible status.
+const isResponseStatus = (value: unknown): value is number | null =>
+	value === null ||
+	(Number.isInteger(value) && (value as number) >= 0 && (value as number) <= 999);
+
+const isStylesheetResponseStatuses = (
+	value: unknown,
+	stylesheetPaths: string[]
+): value is (number | null)[] =>
+	Array.isArray(value) &&
+	value.length === stylesheetPaths.length &&
+	value.every(isResponseStatus);
+
 const isTimestamp = (value: unknown): value is number =>
 	Number.isSafeInteger(value) && (value as number) > 0;
 
@@ -58,6 +74,7 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		pathname,
 		stylesheetPath,
 		stylesheetPaths,
+		stylesheetResponseStatuses,
 		unavailableStylesheetPaths,
 		timestamp,
 		standalone,
@@ -68,6 +85,7 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		!isRedactedPagePathname(pathname) ||
 		(stylesheetPath !== undefined && !isStylesheetPath(stylesheetPath)) ||
 		!isStylesheetPaths(stylesheetPaths) ||
+		!isStylesheetResponseStatuses(stylesheetResponseStatuses, stylesheetPaths) ||
 		!isStylesheetPaths(unavailableStylesheetPaths) ||
 		!isTimestamp(timestamp) ||
 		typeof standalone !== 'boolean' ||
@@ -81,7 +99,10 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		pathname,
 		stylesheets: {
 			failed: stylesheetPath,
-			all: stylesheetPaths,
+			resources: stylesheetPaths.map((path, i) => ({
+				path,
+				responseStatus: stylesheetResponseStatuses[i]
+			})),
 			unavailable: unavailableStylesheetPaths
 		},
 		client: {

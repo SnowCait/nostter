@@ -10,6 +10,7 @@ const validPayload = {
 	pathname: '/[npub]/lists',
 	stylesheetPath: '/_app/immutable/assets/0.Bx3k2Lm.css',
 	stylesheetPaths: ['/_app/immutable/assets/0.Bx3k2Lm.css', '/_app/immutable/assets/2.C9dE.css'],
+	stylesheetResponseStatuses: [503, 200],
 	unavailableStylesheetPaths: ['/_app/immutable/assets/0.Bx3k2Lm.css'],
 	timestamp: 1790000000000,
 	standalone: true,
@@ -38,7 +39,10 @@ const expectedLog = {
 		pathname: '/[npub]/lists',
 		stylesheets: {
 			failed: '/_app/immutable/assets/0.Bx3k2Lm.css',
-			all: ['/_app/immutable/assets/0.Bx3k2Lm.css', '/_app/immutable/assets/2.C9dE.css'],
+			resources: [
+				{ path: '/_app/immutable/assets/0.Bx3k2Lm.css', responseStatus: 503 },
+				{ path: '/_app/immutable/assets/2.C9dE.css', responseStatus: 200 }
+			],
 			unavailable: ['/_app/immutable/assets/0.Bx3k2Lm.css']
 		},
 		client: {
@@ -96,6 +100,25 @@ describe('POST /api/diagnostics/client', () => {
 		});
 	});
 
+	it('accepts unavailable response statuses', async () => {
+		const response = await post(
+			JSON.stringify({ ...validPayload, stylesheetResponseStatuses: [null, 0] })
+		);
+
+		expect(response.status).toBe(204);
+		expect(error).toHaveBeenCalledWith({
+			message: 'client-css-diagnostic',
+			diagnostic: expect.objectContaining({
+				stylesheets: expect.objectContaining({
+					resources: [
+						{ path: '/_app/immutable/assets/0.Bx3k2Lm.css', responseStatus: null },
+						{ path: '/_app/immutable/assets/2.C9dE.css', responseStatus: 0 }
+					]
+				})
+			})
+		});
+	});
+
 	it('does not log fields that are not allowed', async () => {
 		await post(
 			JSON.stringify({
@@ -138,6 +161,18 @@ describe('POST /api/diagnostics/client', () => {
 			{ ...validPayload, unavailableStylesheetPaths: ['/_app/example.css#fragment'] }
 		],
 		['too many stylesheets', { ...validPayload, stylesheetPaths: Array(33).fill('/a.css') }],
+		['missing response statuses', { ...validPayload, stylesheetResponseStatuses: undefined }],
+		['a string response status', { ...validPayload, stylesheetResponseStatuses: ['503', 200] }],
+		[
+			'a non-integer response status',
+			{ ...validPayload, stylesheetResponseStatuses: [503.5, 200] }
+		],
+		['a negative response status', { ...validPayload, stylesheetResponseStatuses: [-1, 200] }],
+		['too few response statuses', { ...validPayload, stylesheetResponseStatuses: [503] }],
+		[
+			'too many response statuses',
+			{ ...validPayload, stylesheetResponseStatuses: [503, 200, 200] }
+		],
 		['a missing field', { ...validPayload, standalone: undefined }],
 		['a non-integer timestamp', { ...validPayload, timestamp: 1.5 }],
 		['a non-object payload', [validPayload]]

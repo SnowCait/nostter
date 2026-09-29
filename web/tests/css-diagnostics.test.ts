@@ -92,3 +92,23 @@ test('sends stylesheet-not-applied when stylesheets load without applying', asyn
 	});
 	expect(body).not.toHaveProperty('stylesheetPath');
 });
+
+test('sends the response status of a stylesheet that failed with an HTTP error', async ({
+	page
+}) => {
+	await recordDiagnostics(page);
+	await page.route(stylesheetAssets, (route) => route.fulfill({ status: 503, body: '' }));
+	await page.goto('/about');
+
+	await expect
+		.poll(async () => (await sentDiagnostics(page)).map(({ body }) => body.type))
+		.toContain('stylesheet-load-error');
+
+	const { body } = (await sentDiagnostics(page)).find(
+		({ body }) => body.type === 'stylesheet-load-error'
+	)!;
+	const paths = body.stylesheetPaths as string[];
+	const statuses = body.stylesheetResponseStatuses as (number | null)[];
+	expect(statuses).toHaveLength(paths.length);
+	expect(statuses[paths.indexOf(body.stylesheetPath as string)]).toBe(503);
+});
