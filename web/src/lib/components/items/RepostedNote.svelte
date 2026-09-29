@@ -123,7 +123,7 @@
 		display: flex;
 		flex-direction: row;
 		gap: 0.2rem;
-		font-size: calc(1rem * var(--content-font-scale));
+		font-size: calc(1em * var(--content-font-scale) / var(--applied-content-font-scale, 1));
 	}
 
 	.json-button {

@@ -58,7 +58,10 @@
 </script>
 
 <article class="timeline-item">
-	<div class:heart={event.content === '+' || event.content === '' || event.content === '-'}>
+	<div
+		class="content"
+		class:heart={event.content === '+' || event.content === '' || event.content === '-'}
+	>
 		{#if event.content === '+' || event.content === ''}
 			<IconHeart size={18} />
 		{:else if event.content === '-'}
@@ -125,7 +128,10 @@
 		display: flex;
 		flex-direction: row;
 		gap: 0.2rem;
-		font-size: calc(1rem * var(--content-font-scale));
+		font-size: calc(1em * var(--content-font-scale) / var(--applied-content-font-scale, 1));
+	}
+
+	.content {
 		--applied-content-font-scale: var(--content-font-scale);
 	}
 

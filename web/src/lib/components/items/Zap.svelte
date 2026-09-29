@@ -159,7 +159,7 @@
 
 <style>
 	article {
-		font-size: calc(1rem * var(--content-font-scale));
+		font-size: calc(1em * var(--content-font-scale) / var(--applied-content-font-scale, 1));
 	}
 
 	.user {
