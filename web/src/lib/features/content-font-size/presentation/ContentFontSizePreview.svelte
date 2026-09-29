@@ -96,6 +96,7 @@
 
 	.user :global(.display_name),
 	.user :global(.name) {
+		text-overflow: ellipsis;
 		overflow: hidden;
 		white-space: nowrap;
 	}
