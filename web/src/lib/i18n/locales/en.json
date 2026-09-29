@@ -159,11 +159,12 @@
 			"system": "System"
 		},
 		"content_font_size": {
-			"content_font_size": "Content font size",
+			"content_font_size": "Font size",
 			"small": "Small",
 			"default": "Default",
 			"large": "Large",
-			"extra_large": "Extra Large"
+			"extra_large": "Extra Large",
+			"preview": "This is how a post will look."
 		},
 		"emoji": {
 			"like": "Like emoji",
