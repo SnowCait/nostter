@@ -4,7 +4,6 @@ type SentDiagnostic = { body: Record<string, unknown>; status?: number };
 
 const stylesheetAssets = /\/_app\/immutable\/assets\/[^/]+\.css$/;
 
-// Records diagnostics sent by the inline script in app.html while still delivering them to the endpoint.
 const recordDiagnostics = (page: Page) =>
 	page.addInitScript(() => {
 		const sent: SentDiagnostic[] = [];

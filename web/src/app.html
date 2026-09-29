@@ -8,8 +8,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<meta name="theme-color" content="#f9f5f1" />
 		<script>
-			// Temporary diagnostics for intermittent CSS failures.
-			// Registered before the SvelteKit head without app modules so that it works even when they fail to load.
+			// Register before the SvelteKit head so stylesheet failures can be observed before app modules load.
 			(() => {
 				const maxStylesheets = 32;
 				const sentTypes = new Set();
@@ -23,7 +22,6 @@
 					}
 				};
 
-				// Replace path parameters such as npub and event ids so that they are never sent.
 				const redactPathname = (pathname) =>
 					pathname
 						.split('/')
@@ -80,7 +78,7 @@
 							})
 						}).catch(() => {});
 					} catch {
-						// Diagnostics must never affect the app.
+						// Best-effort diagnostics must not affect app startup.
 					}
 				};
 

@@ -1,8 +1,6 @@
 import { gitSha } from '$lib/build';
 import type { RequestHandler } from './$types';
 
-// Temporary diagnostics for intermittent CSS failures, reported by the inline script in app.html.
-
 const maxBodyBytes = 4096;
 const maxPathLength = 256;
 const maxStylesheets = 32;
@@ -25,8 +23,7 @@ type CssDiagnostic = {
 	};
 };
 
-// Only redacted page paths are accepted so that Nostr identifiers are never logged.
-const pagePathSegmentPattern =
+const redactedPagePathSegmentPattern =
 	/^(?:|[a-z]{1,32}|\d{1,4}|\[(?:npub|nprofile|note|nevent|naddr|param)\])$/;
 // Printable ASCII without query or hash, since only pathnames are accepted.
 const stylesheetPathPattern = /^\/(?:(?![?#])[\x21-\x7e])*$/;
@@ -34,14 +31,14 @@ const stylesheetPathPattern = /^\/(?:(?![?#])[\x21-\x7e])*$/;
 const isDiagnosticType = (value: unknown): value is CssDiagnostic['type'] =>
 	diagnosticTypes.some((type) => type === value);
 
-const isPagePathname = (value: unknown): value is string =>
+const isRedactedPagePathname = (value: unknown): value is string =>
 	typeof value === 'string' &&
 	value.length <= maxPathLength &&
 	value.startsWith('/') &&
 	value
 		.slice(1)
 		.split('/')
-		.every((segment) => pagePathSegmentPattern.test(segment));
+		.every((segment) => redactedPagePathSegmentPattern.test(segment));
 
 const isStylesheetPath = (value: unknown): value is string =>
 	typeof value === 'string' && value.length <= maxPathLength && stylesheetPathPattern.test(value);
@@ -68,7 +65,7 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 	} = value as Record<string, unknown>;
 	if (
 		!isDiagnosticType(type) ||
-		!isPagePathname(pathname) ||
+		!isRedactedPagePathname(pathname) ||
 		(stylesheetPath !== undefined && !isStylesheetPath(stylesheetPath)) ||
 		!isStylesheetPaths(stylesheetPaths) ||
 		!isStylesheetPaths(unavailableStylesheetPaths) ||
@@ -156,7 +153,6 @@ export const POST: RequestHandler = async ({ request, url }) => {
 				...diagnostic.client,
 				userAgent: request.headers.get('user-agent')?.slice(0, maxUserAgentLength)
 			},
-			// The SHA of the Worker handling this request, not of the document that sent it.
 			server: { gitSha }
 		}
 	});
