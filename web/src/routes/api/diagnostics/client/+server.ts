@@ -1,0 +1,158 @@
+import { gitSha } from '$lib/build';
+import type { RequestHandler } from './$types';
+
+// Temporary diagnostics for intermittent CSS failures, reported by the inline script in app.html.
+
+const maxBodyBytes = 4096;
+const maxPathLength = 256;
+const maxStylesheets = 32;
+const maxUserAgentLength = 512;
+
+const diagnosticTypes = ['stylesheet-load-error', 'stylesheet-not-applied'] as const;
+
+type CssDiagnostic = {
+	type: (typeof diagnosticTypes)[number];
+	pathname: string;
+	stylesheetPath?: string;
+	stylesheetPaths: string[];
+	unavailableStylesheetPaths: string[];
+	timestamp: number;
+	standalone: boolean;
+	serviceWorkerControlled: boolean;
+};
+
+// Only redacted page paths are accepted so that Nostr identifiers are never logged.
+const pagePathSegmentPattern =
+	/^(?:|[a-z]{1,32}|\d{1,4}|\[(?:npub|nprofile|note|nevent|naddr|param)\])$/;
+// Printable ASCII without query or hash, since only pathnames are accepted.
+const stylesheetPathPattern = /^\/(?:(?![?#])[\x21-\x7e])*$/;
+
+const isDiagnosticType = (value: unknown): value is CssDiagnostic['type'] =>
+	diagnosticTypes.some((type) => type === value);
+
+const isPagePathname = (value: unknown): value is string =>
+	typeof value === 'string' &&
+	value.length <= maxPathLength &&
+	value.startsWith('/') &&
+	value
+		.slice(1)
+		.split('/')
+		.every((segment) => pagePathSegmentPattern.test(segment));
+
+const isStylesheetPath = (value: unknown): value is string =>
+	typeof value === 'string' && value.length <= maxPathLength && stylesheetPathPattern.test(value);
+
+const isStylesheetPaths = (value: unknown): value is string[] =>
+	Array.isArray(value) && value.length <= maxStylesheets && value.every(isStylesheetPath);
+
+const isTimestamp = (value: unknown): value is number =>
+	Number.isSafeInteger(value) && (value as number) > 0;
+
+const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+		return undefined;
+	}
+	const {
+		type,
+		pathname,
+		stylesheetPath,
+		stylesheetPaths,
+		unavailableStylesheetPaths,
+		timestamp,
+		standalone,
+		serviceWorkerControlled
+	} = value as Record<string, unknown>;
+	if (
+		!isDiagnosticType(type) ||
+		!isPagePathname(pathname) ||
+		(stylesheetPath !== undefined && !isStylesheetPath(stylesheetPath)) ||
+		!isStylesheetPaths(stylesheetPaths) ||
+		!isStylesheetPaths(unavailableStylesheetPaths) ||
+		!isTimestamp(timestamp) ||
+		typeof standalone !== 'boolean' ||
+		typeof serviceWorkerControlled !== 'boolean'
+	) {
+		return undefined;
+	}
+	return {
+		type,
+		pathname,
+		stylesheetPath,
+		stylesheetPaths,
+		unavailableStylesheetPaths,
+		timestamp,
+		standalone,
+		serviceWorkerControlled
+	};
+};
+
+const readLimitedText = async (request: Request): Promise<string | undefined> => {
+	if (request.body === null) {
+		return '';
+	}
+	const reader = request.body.getReader();
+	const decoder = new TextDecoder();
+	let size = 0;
+	let text = '';
+	for (;;) {
+		const { done, value } = await reader.read();
+		if (done) {
+			return text + decoder.decode();
+		}
+		size += value.byteLength;
+		if (size > maxBodyBytes) {
+			await reader.cancel();
+			return undefined;
+		}
+		text += decoder.decode(value, { stream: true });
+	}
+};
+
+const isJsonContentType = (contentType: string | null): boolean =>
+	contentType?.split(';')[0].trim().toLowerCase() === 'application/json';
+
+export const POST: RequestHandler = async ({ request, url }) => {
+	const origin = request.headers.get('origin');
+	if (origin !== null && origin !== url.origin) {
+		return new Response(null, { status: 403 });
+	}
+	if (!isJsonContentType(request.headers.get('content-type'))) {
+		return new Response(null, { status: 415 });
+	}
+	if (Number(request.headers.get('content-length')) > maxBodyBytes) {
+		return new Response(null, { status: 413 });
+	}
+
+	const body = await readLimitedText(request);
+	if (body === undefined) {
+		return new Response(null, { status: 413 });
+	}
+
+	let payload: unknown;
+	try {
+		payload = JSON.parse(body);
+	} catch {
+		return new Response(null, { status: 400 });
+	}
+
+	const diagnostic = parseDiagnostic(payload);
+	if (diagnostic === undefined) {
+		return new Response(null, { status: 400 });
+	}
+
+	console.error({
+		message: 'client-css-diagnostic',
+		diagnosticType: diagnostic.type,
+		pathname: diagnostic.pathname,
+		stylesheetPath: diagnostic.stylesheetPath,
+		stylesheetPaths: diagnostic.stylesheetPaths,
+		unavailableStylesheetPaths: diagnostic.unavailableStylesheetPaths,
+		timestamp: diagnostic.timestamp,
+		standalone: diagnostic.standalone,
+		serviceWorkerControlled: diagnostic.serviceWorkerControlled,
+		serverGitSha: gitSha,
+		userAgent: request.headers.get('user-agent')?.slice(0, maxUserAgentLength)
+	});
+
+	return new Response(null, { status: 204 });
+};

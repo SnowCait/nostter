@@ -7,6 +7,114 @@
 		<link rel="manifest" href="%sveltekit.assets%/manifest.webmanifest" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<meta name="theme-color" content="#f9f5f1" />
+		<script>
+			// Temporary diagnostics for intermittent CSS failures.
+			// Registered before the SvelteKit head without app modules so that it works even when they fail to load.
+			(() => {
+				const maxStylesheets = 32;
+				const sentTypes = new Set();
+
+				const toSameOriginPath = (href) => {
+					try {
+						const url = new URL(href, location.href);
+						return url.origin === location.origin ? url.pathname : undefined;
+					} catch {
+						return undefined;
+					}
+				};
+
+				// Replace path parameters such as npub and event ids so that they are never sent.
+				const redactPathname = (pathname) =>
+					pathname
+						.split('/')
+						.map((segment) => {
+							if (
+								segment === '' ||
+								/^[a-z]{1,32}$/.test(segment) ||
+								/^\d{1,4}$/.test(segment)
+							) {
+								return segment;
+							}
+							const entity = /^(?:nostr%3a)?(npub|nprofile|note|nevent|naddr)1/i.exec(
+								segment
+							);
+							return entity === null ? '[param]' : `[${entity[1].toLowerCase()}]`;
+						})
+						.join('/');
+
+				const send = (type, stylesheetPath) => {
+					if (sentTypes.has(type)) {
+						return;
+					}
+					sentTypes.add(type);
+
+					try {
+						const stylesheets = [
+							...document.querySelectorAll('link[rel~="stylesheet"]')
+						]
+							.map((link) => ({
+								path: toSameOriginPath(link.href),
+								sheet: link.sheet
+							}))
+							.filter(({ path }) => path !== undefined)
+							.slice(0, maxStylesheets);
+						fetch('/api/diagnostics/client', {
+							method: 'POST',
+							keepalive: true,
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								type,
+								pathname: redactPathname(location.pathname),
+								stylesheetPath,
+								stylesheetPaths: stylesheets.map(({ path }) => path),
+								unavailableStylesheetPaths: stylesheets
+									.filter(({ sheet }) => sheet === null)
+									.map(({ path }) => path),
+								timestamp: Date.now(),
+								standalone:
+									matchMedia('(display-mode: standalone)').matches ||
+									navigator.standalone === true,
+								serviceWorkerControlled: Boolean(
+									navigator.serviceWorker?.controller
+								)
+							})
+						}).catch(() => {});
+					} catch {
+						// Diagnostics must never affect the app.
+					}
+				};
+
+				addEventListener(
+					'error',
+					(event) => {
+						const target = event.target;
+						if (
+							target instanceof HTMLLinkElement &&
+							target.relList.contains('stylesheet')
+						) {
+							const path = toSameOriginPath(target.href);
+							if (path !== undefined) {
+								send('stylesheet-load-error', path);
+							}
+						}
+					},
+					true
+				);
+
+				addEventListener(
+					'load',
+					() => {
+						const background = getComputedStyle(document.documentElement)
+							.getPropertyValue('--background')
+							.trim();
+						if (background === '') {
+							send('stylesheet-not-applied');
+						}
+					},
+					{ once: true }
+				);
+			})();
+		</script>
 		%sveltekit.head%
 		<script>
 			(() => {
