@@ -34,6 +34,17 @@ jobs:
   e2e-test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    services:
+      relay:
+        image: scsibug/nostr-rs-relay:0.10.0@sha256:48d54c2d2781577cf3ed2951112f0953dc2c5e7c9d2ea20c64e8c0fa37d16e4d
+        ports:
+          - 8080:8080
+        # The image has no HEALTHCHECK, curl or wget, so check that 8080/TCP (1F90) is in the LISTEN (0A) state.
+        options: >-
+          --health-cmd "while read -r _ addr _ state _; do [ $state = 0A ] && [ ${addr##*:} = 1F90 ] && exit 0; done < /proc/net/tcp; exit 1"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -42,3 +53,5 @@ jobs:
       - run: npm ci
       - run: npx playwright install chromium --only-shell
       - run: npm run test:e2e
+        env:
+          E2E_RELAY_URL: ws://127.0.0.1:8080/
