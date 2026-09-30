@@ -396,6 +396,12 @@ body {
 	font-family: sans-serif;
 }
 
+@media not (display-mode: standalone) {
+	body {
+		overscroll-behavior-y: none;
+	}
+}
+
 article.timeline-item {
 	padding: 12px 16px;
 	font-family:

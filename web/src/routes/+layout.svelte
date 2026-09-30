@@ -28,19 +28,6 @@
 	<meta property="og:description" content={page.data.description} />
 	<meta property="og:site_name" content={appName} />
 	<meta name="twitter:card" content="summary" />
-	<style>
-		@media not (display-mode: standalone) {
-			body {
-				overscroll-behavior-y: none;
-			}
-		}
-
-		@media screen and (max-width: 600px) {
-			body {
-				margin: 0;
-			}
-		}
-	</style>
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-G1WMSV0PBP"></script>
 </svelte:head>
 
