@@ -5,6 +5,7 @@ const maxBodyBytes = 4096;
 const maxPathLength = 256;
 const maxStylesheets = 32;
 const maxUserAgentLength = 512;
+const maxTimingStringLength = 64;
 
 const diagnosticTypes = ['stylesheet-load-error', 'stylesheet-not-applied'] as const;
 
@@ -19,12 +20,34 @@ type CssDiagnostic = {
 			responseStatus: number | null;
 		}[];
 		unavailable: string[];
+		timing?: StylesheetTiming;
 	};
 	client: {
 		standalone: boolean;
 		serviceWorkerControlled: boolean;
 	};
 };
+
+const timingTimestampFields = [
+	'fetchStart',
+	'domainLookupStart',
+	'domainLookupEnd',
+	'connectStart',
+	'secureConnectionStart',
+	'connectEnd',
+	'requestStart',
+	'responseStart',
+	'responseEnd'
+] as const;
+const timingSizeFields = ['transferSize', 'encodedBodySize'] as const;
+const timingStringFields = ['nextHopProtocol', 'deliveryType'] as const;
+
+// null means the browser did not expose the property or no Resource Timing entry was found.
+type StylesheetTiming = { path: string } & Record<
+	(typeof timingTimestampFields)[number] | (typeof timingSizeFields)[number],
+	number | null
+> &
+	Record<(typeof timingStringFields)[number], string | null>;
 
 const redactedPagePathSegmentPattern =
 	/^(?:|[a-z]{1,32}|\d{1,4}|\[(?:npub|nprofile|note|nevent|naddr|param)\])$/;
@@ -62,6 +85,39 @@ const isStylesheetResponseStatuses = (
 	value.length === stylesheetPaths.length &&
 	value.every(isResponseStatus);
 
+const isTimingTimestamp = (value: unknown): value is number | null =>
+	value === null || (Number.isFinite(value) && (value as number) >= 0);
+
+const isTimingSize = (value: unknown): value is number | null =>
+	value === null || (Number.isSafeInteger(value) && (value as number) >= 0);
+
+// Empty strings are valid, e.g. an unknown protocol or a non-cache delivery.
+const isTimingString = (value: unknown): value is string | null =>
+	value === null ||
+	(typeof value === 'string' &&
+		value.length <= maxTimingStringLength &&
+		/^[\x20-\x7e]*$/.test(value));
+
+const parseStylesheetTiming = (value: unknown): StylesheetTiming | undefined => {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+		return undefined;
+	}
+	const fields = value as Record<string, unknown>;
+	if (
+		!isStylesheetPath(fields.path) ||
+		!timingTimestampFields.every((field) => isTimingTimestamp(fields[field])) ||
+		!timingSizeFields.every((field) => isTimingSize(fields[field])) ||
+		!timingStringFields.every((field) => isTimingString(fields[field]))
+	) {
+		return undefined;
+	}
+	return Object.fromEntries(
+		['path', ...timingTimestampFields, ...timingStringFields, ...timingSizeFields].map(
+			(field) => [field, fields[field]]
+		)
+	) as StylesheetTiming;
+};
+
 const isTimestamp = (value: unknown): value is number =>
 	Number.isSafeInteger(value) && (value as number) > 0;
 
@@ -76,6 +132,7 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		stylesheetPaths,
 		stylesheetResponseStatuses,
 		unavailableStylesheetPaths,
+		stylesheetTiming,
 		timestamp,
 		standalone,
 		serviceWorkerControlled
@@ -93,6 +150,11 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 	) {
 		return undefined;
 	}
+	const timing =
+		stylesheetTiming === undefined ? undefined : parseStylesheetTiming(stylesheetTiming);
+	if (stylesheetTiming !== undefined && timing === undefined) {
+		return undefined;
+	}
 	return {
 		type,
 		timestamp,
@@ -103,7 +165,8 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 				path,
 				responseStatus: stylesheetResponseStatuses[i]
 			})),
-			unavailable: unavailableStylesheetPaths
+			unavailable: unavailableStylesheetPaths,
+			timing
 		},
 		client: {
 			standalone,

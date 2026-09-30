@@ -111,4 +111,9 @@ test('sends the response status of a stylesheet that failed with an HTTP error',
 	const statuses = body.stylesheetResponseStatuses as (number | null)[];
 	expect(statuses).toHaveLength(paths.length);
 	expect(statuses[paths.indexOf(body.stylesheetPath as string)]).toBe(503);
+	expect(body.stylesheetTiming).toMatchObject({
+		path: body.stylesheetPath,
+		fetchStart: expect.any(Number),
+		responseEnd: expect.any(Number)
+	});
 });

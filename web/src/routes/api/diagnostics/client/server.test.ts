@@ -12,6 +12,22 @@ const validPayload = {
 	stylesheetPaths: ['/_app/immutable/assets/0.Bx3k2Lm.css', '/_app/immutable/assets/2.C9dE.css'],
 	stylesheetResponseStatuses: [503, 200],
 	unavailableStylesheetPaths: ['/_app/immutable/assets/0.Bx3k2Lm.css'],
+	stylesheetTiming: {
+		path: '/_app/immutable/assets/0.Bx3k2Lm.css',
+		fetchStart: 120.5,
+		domainLookupStart: 120.5,
+		domainLookupEnd: 120.5,
+		connectStart: 120.5,
+		secureConnectionStart: 121.2,
+		connectEnd: 135.8,
+		requestStart: 136.1,
+		responseStart: 180.4,
+		responseEnd: 181.9,
+		nextHopProtocol: 'h2',
+		deliveryType: '',
+		transferSize: 300,
+		encodedBodySize: 0
+	},
 	timestamp: 1790000000000,
 	standalone: true,
 	serviceWorkerControlled: false
@@ -43,7 +59,8 @@ const expectedLog = {
 				{ path: '/_app/immutable/assets/0.Bx3k2Lm.css', responseStatus: 503 },
 				{ path: '/_app/immutable/assets/2.C9dE.css', responseStatus: 200 }
 			],
-			unavailable: ['/_app/immutable/assets/0.Bx3k2Lm.css']
+			unavailable: ['/_app/immutable/assets/0.Bx3k2Lm.css'],
+			timing: validPayload.stylesheetTiming
 		},
 		client: {
 			standalone: true,
@@ -119,6 +136,34 @@ describe('POST /api/diagnostics/client', () => {
 		});
 	});
 
+	it('accepts zero and unavailable timing values', async () => {
+		const stylesheetTiming = {
+			path: '/_app/immutable/assets/0.Bx3k2Lm.css',
+			fetchStart: 0,
+			domainLookupStart: 0,
+			domainLookupEnd: 0,
+			connectStart: 0,
+			secureConnectionStart: 0,
+			connectEnd: 0,
+			requestStart: 0,
+			responseStart: 0,
+			responseEnd: 0,
+			nextHopProtocol: '',
+			deliveryType: null,
+			transferSize: 0,
+			encodedBodySize: null
+		};
+		const response = await post(JSON.stringify({ ...validPayload, stylesheetTiming }));
+
+		expect(response.status).toBe(204);
+		expect(error).toHaveBeenCalledWith({
+			message: 'client-css-diagnostic',
+			diagnostic: expect.objectContaining({
+				stylesheets: expect.objectContaining({ timing: stylesheetTiming })
+			})
+		});
+	});
+
 	it('does not log fields that are not allowed', async () => {
 		await post(
 			JSON.stringify({
@@ -128,6 +173,7 @@ describe('POST /api/diagnostics/client', () => {
 				npub: 'npub1injected',
 				diagnostic: { type: 'injected' },
 				stylesheets: { injected: true },
+				stylesheetTiming: { ...validPayload.stylesheetTiming, name: 'injected' },
 				client: { userAgent: 'injected' },
 				server: { gitSha: 'injected' }
 			})
@@ -173,11 +219,84 @@ describe('POST /api/diagnostics/client', () => {
 			'too many response statuses',
 			{ ...validPayload, stylesheetResponseStatuses: [503, 200, 200] }
 		],
+		[
+			'a timing without a path',
+			{
+				...validPayload,
+				stylesheetTiming: { ...validPayload.stylesheetTiming, path: undefined }
+			}
+		],
+		[
+			'a timing with a missing field',
+			{
+				...validPayload,
+				stylesheetTiming: { ...validPayload.stylesheetTiming, responseEnd: undefined }
+			}
+		],
+		[
+			'a negative timing value',
+			{
+				...validPayload,
+				stylesheetTiming: { ...validPayload.stylesheetTiming, fetchStart: -1 }
+			}
+		],
+		[
+			'a string timing value',
+			{
+				...validPayload,
+				stylesheetTiming: { ...validPayload.stylesheetTiming, requestStart: '136.1' }
+			}
+		],
+		[
+			'a non-integer size',
+			{
+				...validPayload,
+				stylesheetTiming: { ...validPayload.stylesheetTiming, transferSize: 300.5 }
+			}
+		],
+		[
+			'a non-string protocol',
+			{
+				...validPayload,
+				stylesheetTiming: { ...validPayload.stylesheetTiming, nextHopProtocol: 2 }
+			}
+		],
+		[
+			'a too long protocol',
+			{
+				...validPayload,
+				stylesheetTiming: {
+					...validPayload.stylesheetTiming,
+					nextHopProtocol: 'h'.repeat(65)
+				}
+			}
+		],
+		[
+			'a delivery type with a control character',
+			{
+				...validPayload,
+				stylesheetTiming: { ...validPayload.stylesheetTiming, deliveryType: 'cache\n' }
+			}
+		],
+		['a non-object timing', { ...validPayload, stylesheetTiming: [] }],
 		['a missing field', { ...validPayload, standalone: undefined }],
 		['a non-integer timestamp', { ...validPayload, timestamp: 1.5 }],
 		['a non-object payload', [validPayload]]
 	])('rejects %s', async (_, payload) => {
 		const response = await post(JSON.stringify(payload));
+
+		expect(response.status).toBe(400);
+		expect(error).not.toHaveBeenCalled();
+	});
+
+	// JSON cannot represent NaN or Infinity, but JSON.parse turns overflowing numbers into Infinity.
+	it.each([
+		['Infinity', '1e999'],
+		['-Infinity', '-1e999']
+	])('rejects %s timing values', async (_, value) => {
+		const response = await post(
+			JSON.stringify(validPayload).replace('"fetchStart":120.5', `"fetchStart":${value}`)
+		);
 
 		expect(response.status).toBe(400);
 		expect(error).not.toHaveBeenCalled();
