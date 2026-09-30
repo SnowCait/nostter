@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RequestEvent } from '@sveltejs/kit';
-import { notFound } from './hooks.server';
+import { handleError, httpStatusLogging } from './hooks.server';
 
-type Resolve = Parameters<typeof notFound>[0]['resolve'];
+vi.mock('$lib/build', () => ({ gitSha: '0123456789abcdef' }));
+
+type Resolve = Parameters<typeof httpStatusLogging>[0]['resolve'];
 
 const createEvent = ({
 	path = '/',
@@ -25,126 +27,132 @@ const createEvent = ({
 
 const createResolve = (response: Response): Resolve => vi.fn(async () => response);
 
-const spyOnInfo = () => vi.spyOn(console, 'info').mockImplementation(() => {});
+const sensitiveEvent = () =>
+	createEvent({
+		path: '/admin/login?redirect=%2Fsecret&token=s3cret',
+		method: 'POST',
+		routeId: '/(app)/[slug]',
+		headers: {
+			cookie: 'session=cookie-value',
+			authorization: 'Bearer token-value',
+			referer: 'https://evil.example.com/referer-value',
+			'cf-connecting-ip': '203.0.113.10',
+			'user-agent': 'curl/8.5.0'
+		}
+	});
 
-let info: ReturnType<typeof spyOnInfo>;
+const expectedRequest = {
+	method: 'POST',
+	path: '/admin/login',
+	routeId: '/(app)/[slug]',
+	userAgent: 'curl/8.5.0'
+};
+
+const sensitivePattern = /cookie-value|token-value|referer-value|redirect|s3cret|nostter\.app/;
+
+let info: ReturnType<typeof vi.spyOn>;
+let error: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
-	info = spyOnInfo();
+	info = vi.spyOn(console, 'info').mockImplementation(() => {});
+	error = vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {
 	vi.restoreAllMocks();
 });
 
-describe('404 request logging', () => {
-	it('logs a single structured entry for 404 responses', async () => {
-		const event = createEvent({
-			path: '/.env',
-			headers: {
-				'cf-connecting-ip': '203.0.113.10',
-				'cf-ray': '8f0a1b2c3d4e5f60-NRT',
-				'user-agent': 'curl/8.5.0'
-			}
+describe('httpStatusLogging', () => {
+	it('logs 404 responses with request metadata only', async () => {
+		await httpStatusLogging({
+			event: sensitiveEvent(),
+			resolve: createResolve(new Response(null, { status: 404 }))
 		});
-
-		await notFound({ event, resolve: createResolve(new Response(null, { status: 404 })) });
 
 		expect(info).toHaveBeenCalledTimes(1);
+		expect(error).not.toHaveBeenCalled();
+		const logged = info.mock.calls[0][0];
+		expect(logged).toStrictEqual({ message: 'http-not-found', request: expectedRequest });
+		expect(JSON.stringify(logged)).not.toMatch(sensitivePattern);
+		expect(JSON.stringify(logged)).not.toContain('203.0.113.10');
+	});
+
+	it('logs null user agent when the header is absent', async () => {
+		await httpStatusLogging({
+			event: createEvent({ path: '/graphql' }),
+			resolve: createResolve(new Response(null, { status: 404 }))
+		});
+
 		expect(info).toHaveBeenCalledWith({
-			event: 'http_not_found',
-			clientIp: '203.0.113.10',
-			method: 'GET',
-			path: '/.env',
-			routeId: null,
-			rayId: '8f0a1b2c3d4e5f60-NRT',
-			userAgent: 'curl/8.5.0'
+			message: 'http-not-found',
+			request: { method: 'GET', path: '/graphql', routeId: null, userAgent: null }
 		});
 	});
 
-	it('logs the matched route id when a route produced the 404', async () => {
-		const event = createEvent({ path: '/npub1nonexistent', routeId: '/(app)/[slug=npub]' });
+	it.each([500, 502, 503])('logs %i responses as server errors', async (status) => {
+		await httpStatusLogging({
+			event: sensitiveEvent(),
+			resolve: createResolve(new Response(null, { status }))
+		});
 
-		await notFound({ event, resolve: createResolve(new Response(null, { status: 404 })) });
-
-		expect(info.mock.calls[0][0]).toMatchObject({ routeId: '/(app)/[slug=npub]' });
+		expect(error).toHaveBeenCalledTimes(1);
+		expect(info).not.toHaveBeenCalled();
+		const logged = error.mock.calls[0][0];
+		expect(logged).toStrictEqual({
+			message: 'http-server-error',
+			request: expectedRequest,
+			response: { status },
+			server: { gitSha: '0123456789abcdef' }
+		});
+		expect(JSON.stringify(logged)).not.toMatch(sensitivePattern);
+		expect(JSON.stringify(logged)).not.toContain('203.0.113.10');
 	});
 
-	it('logs the request method', async () => {
-		const event = createEvent({ path: '/wp-login.php', method: 'POST' });
-
-		await notFound({ event, resolve: createResolve(new Response(null, { status: 404 })) });
-
-		expect(info.mock.calls[0][0]).toMatchObject({ method: 'POST' });
-	});
-
-	it.each([200, 204, 301, 403, 500])('does not log for %i responses', async (status) => {
-		const event = createEvent({ path: '/.env' });
-
-		await notFound({ event, resolve: createResolve(new Response(null, { status })) });
+	it.each([200, 204, 301, 304, 400, 403, 410])('does not log %i responses', async (status) => {
+		await httpStatusLogging({
+			event: createEvent({ path: '/' }),
+			resolve: createResolve(new Response(null, { status }))
+		});
 
 		expect(info).not.toHaveBeenCalled();
+		expect(error).not.toHaveBeenCalled();
 	});
 
-	it('logs null instead of throwing when Cloudflare headers are absent', async () => {
-		const event = createEvent({ path: '/graphql' });
-
-		await expect(
-			notFound({ event, resolve: createResolve(new Response(null, { status: 404 })) })
-		).resolves.toBeInstanceOf(Response);
-
-		expect(info).toHaveBeenCalledWith({
-			event: 'http_not_found',
-			clientIp: null,
-			method: 'GET',
-			path: '/graphql',
-			routeId: null,
-			rayId: null,
-			userAgent: null
-		});
-	});
-
-	it('logs only the pathname and omits sensitive request data', async () => {
-		const event = createEvent({
-			path: '/admin/login?redirect=%2Fsecret&token=s3cret',
-			headers: {
-				cookie: 'session=cookie-value',
-				authorization: 'Bearer token-value',
-				referer: 'https://evil.example.com/referer-value',
-				'cf-connecting-ip': '203.0.113.10'
-			}
-		});
-
-		await notFound({ event, resolve: createResolve(new Response(null, { status: 404 })) });
-
-		const logged = info.mock.calls[0][0] as Record<string, unknown>;
-		expect(Object.keys(logged).sort()).toStrictEqual([
-			'clientIp',
-			'event',
-			'method',
-			'path',
-			'rayId',
-			'routeId',
-			'userAgent'
-		]);
-		expect(logged.path).toBe('/admin/login');
-		expect(JSON.stringify(logged)).not.toMatch(
-			/cookie-value|token-value|referer-value|redirect|s3cret|nostter\.app/
-		);
-	});
-
-	it.each([200, 404])('returns the %i response of the inner hooks untouched', async (status) => {
+	it.each([200, 404, 500, 503])('returns the %i response untouched', async (status) => {
 		const resolved = new Response('<html lang="ja"></html>', {
 			status,
 			headers: { 'Content-Security-Policy': "default-src 'self'" }
 		});
-		const event = createEvent({ path: '/' });
 
-		const response = await notFound({ event, resolve: createResolve(resolved) });
+		const response = await httpStatusLogging({
+			event: createEvent({ path: '/' }),
+			resolve: createResolve(resolved)
+		});
 
 		expect(response).toBe(resolved);
 		expect(response.status).toBe(status);
 		expect(response.headers.get('Content-Security-Policy')).toBe("default-src 'self'");
 		expect(await response.text()).toBe('<html lang="ja"></html>');
+	});
+});
+
+describe('handleError', () => {
+	it('logs the error object with its status and returns only the message', async () => {
+		const thrown = new Error('database exploded');
+
+		const result = await handleError({
+			error: thrown,
+			event: sensitiveEvent(),
+			status: 500,
+			message: 'Internal Error'
+		});
+
+		expect(error).toHaveBeenCalledTimes(1);
+		expect(error).toHaveBeenCalledWith(
+			{ message: 'server-unexpected-error', response: { status: 500 } },
+			thrown
+		);
+		expect(error.mock.calls[0][1]).toBe(thrown);
+		expect(result).toStrictEqual({ message: 'Internal Error' });
 	});
 });

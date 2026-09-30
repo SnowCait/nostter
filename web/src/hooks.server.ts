@@ -1,7 +1,8 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { locale, waitLocale } from 'svelte-i18n';
 import { get } from 'svelte/store';
+import { gitSha } from '$lib/build';
 
 const i18n: Handle = async ({ event, resolve }) => {
 	const lang = event.request.headers.get('accept-language')?.split(',')[0];
@@ -63,20 +64,34 @@ const csp: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-export const notFound: Handle = async ({ event, resolve }) => {
+export const httpStatusLogging: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event);
+	if (response.status !== 404 && response.status < 500) {
+		return response;
+	}
+
+	const request = {
+		method: event.request.method,
+		path: event.url.pathname,
+		routeId: event.route.id,
+		userAgent: event.request.headers.get('user-agent')
+	};
 	if (response.status === 404) {
-		console.info({
-			event: 'http_not_found',
-			clientIp: event.request.headers.get('cf-connecting-ip'),
-			method: event.request.method,
-			path: event.url.pathname,
-			routeId: event.route.id,
-			rayId: event.request.headers.get('cf-ray'),
-			userAgent: event.request.headers.get('user-agent')
+		console.info({ message: 'http-not-found', request });
+	} else {
+		console.error({
+			message: 'http-server-error',
+			request,
+			response: { status: response.status },
+			server: { gitSha }
 		});
 	}
 	return response;
 };
 
-export const handle: Handle = sequence(notFound, i18n, lang, csp);
+export const handle: Handle = sequence(httpStatusLogging, i18n, lang, csp);
+
+export const handleError: HandleServerError = ({ error, status, message }) => {
+	console.error({ message: 'server-unexpected-error', response: { status } }, error);
+	return { message };
+};
