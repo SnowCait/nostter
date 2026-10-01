@@ -12,7 +12,15 @@
 		},
 		byKey: {}
 	});
-	const urls = $derived(Object.keys(snapshot.byKey).sort());
+	const urls = $derived(
+		Object.entries(snapshot.byKey)
+			.sort(
+				([a, x], [b, y]) =>
+					y.received.bytes + y.sent.bytes - (x.received.bytes + x.sent.bytes) ||
+					a.localeCompare(b)
+			)
+			.map(([url]) => url)
+	);
 
 	onMount(() => metrics?.subscribe((current) => (snapshot = current)));
 </script>
