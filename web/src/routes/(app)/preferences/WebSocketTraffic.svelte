@@ -72,7 +72,7 @@
 
 {#if relays.others.length > 0}
 	<details>
-		<summary>
+		<summary class="disclosure-summary">
 			{$_('preferences.websocket_traffic.other_relays', {
 				values: { count: relays.others.length }
 			})}
@@ -115,16 +115,5 @@
 
 	summary {
 		margin-top: 1rem;
-		padding: 0.5rem 0.75rem;
-		border-radius: var(--radius);
-		background-color: var(--accent-surface-low);
-		font-weight: bold;
-		cursor: pointer;
-	}
-
-	@media (hover: hover) {
-		summary:hover {
-			background-color: var(--accent-surface-high);
-		}
 	}
 </style>
