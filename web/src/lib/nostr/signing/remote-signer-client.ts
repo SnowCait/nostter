@@ -1,5 +1,5 @@
 import type { Event, EventTemplate } from 'nostr-tools';
-import { SimplePool, type AbstractPoolConstructorOptions } from 'nostr-tools/pool';
+import { SimplePool, useWebSocketImplementation } from 'nostr-tools/pool';
 import { MetricsWebSocket } from '$lib/platform/browser/websocket-metrics';
 import { BunkerSigner, type BunkerPointer } from 'nostr-tools/nip46';
 import type * as Nostr from 'nostr-typedef';
@@ -28,14 +28,12 @@ export class RemoteSignerClient implements Signer {
 		clientSecretKey: Uint8Array,
 		{ onAuth, timeoutMs }: ConnectOptions
 	): Promise<RemoteSignerClient> {
-		// SimplePool forwards these options at runtime, but its types omit websocketImplementation.
-		const poolOptions: Pick<
-			AbstractPoolConstructorOptions,
-			'websocketImplementation' | 'enablePing' | 'enableReconnect'
-		> = { websocketImplementation: MetricsWebSocket };
+		if (MetricsWebSocket !== undefined) {
+			useWebSocketImplementation(MetricsWebSocket);
+		}
 		let authRequested = false;
 		const connection = BunkerSigner.fromBunker(clientSecretKey, bunkerPointer, {
-			pool: new SimplePool(poolOptions),
+			pool: new SimplePool(),
 			onauth: (url) => {
 				authRequested = true;
 				onAuth(url);

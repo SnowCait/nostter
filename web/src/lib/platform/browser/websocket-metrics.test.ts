@@ -1,6 +1,6 @@
 import { createRxForwardReq } from 'rx-nostr';
 import { BunkerSigner } from 'nostr-tools/nip46';
-import { SimplePool } from 'nostr-tools/pool';
+import { SimplePool, useWebSocketImplementation } from 'nostr-tools/pool';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const environment = vi.hoisted(() => ({ browser: false }));
@@ -43,6 +43,7 @@ class NativeWebSocket extends EventTarget {
 
 afterEach(() => {
 	vi.unstubAllGlobals();
+	useWebSocketImplementation(globalThis.WebSocket);
 	vi.resetModules();
 	vi.clearAllMocks();
 	environment.browser = false;
@@ -55,6 +56,7 @@ describe('shared WebSocket metrics', () => {
 			vi.stubGlobal(api, undefined);
 		}
 		const { MetricsWebSocket, metrics } = await import('./websocket-metrics');
+		await import('$lib/nostr/signing/remote-signer-client');
 		expect(MetricsWebSocket).toBeUndefined();
 		expect(metrics).toBeUndefined();
 	});
@@ -85,6 +87,7 @@ describe('shared WebSocket metrics', () => {
 			expect(rxSocket).toBeInstanceOf(MetricsWebSocket!);
 			rxSocket.open();
 			await vi.waitFor(() => expect(metrics?.getSnapshot().total.sent.messages).toBe(1));
+			const defaults = new SimplePool();
 			await RemoteSignerClient.connect(
 				{ pubkey: 'remote', relays: [url], secret: null },
 				new Uint8Array(32),
@@ -92,7 +95,6 @@ describe('shared WebSocket metrics', () => {
 			);
 			pool = vi.mocked(BunkerSigner.fromBunker).mock.lastCall?.[2]?.pool;
 			expect(pool).toBeInstanceOf(SimplePool);
-			const defaults = new SimplePool();
 			for (const setting of [
 				'verifyEvent',
 				'maxWaitForConnection',
