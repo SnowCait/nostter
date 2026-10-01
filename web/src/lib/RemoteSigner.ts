@@ -1,3 +1,4 @@
+import { MetricsWebSocket } from '$lib/platform/browser/websocket-metrics';
 import { NostrConnect } from 'nostr-tools/kinds';
 import { toBunkerURL } from 'nostr-tools/nip46';
 import { createRxForwardReq, createRxNostr, now, uniq, type RxNostr } from 'rx-nostr';
@@ -22,7 +23,10 @@ class RemoteSigner {
 		this.#relays = relays.length > 0 ? relays : ['wss://ephemeral.snowflare.cc/'];
 		this.#secret = persistedStore<string>('remote-signer:secret', '');
 		this.#clientPubkey = persistedStore<string>('remote-signer:client-pubkey', '');
-		this.#rxNostr = createRxNostr({ verifier: verificationClient.verifier });
+		this.#rxNostr = createRxNostr({
+			websocketCtor: MetricsWebSocket,
+			verifier: verificationClient.verifier
+		});
 		this.#rxNostr.setDefaultRelays(this.#relays);
 	}
 

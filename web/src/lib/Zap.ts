@@ -1,3 +1,4 @@
+import { MetricsWebSocket } from '$lib/platform/browser/websocket-metrics';
 import { get } from 'svelte/store';
 import { _ } from 'svelte-i18n';
 import { nip04 } from 'nostr-tools';
@@ -19,6 +20,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 	console.debug('[NWC event]', event);
 
 	const nwcRxNostr = createRxNostr({
+		websocketCtor: MetricsWebSocket,
 		verifier: verificationClient.verifier,
 		signer: noopSigner(),
 		authenticator: {
