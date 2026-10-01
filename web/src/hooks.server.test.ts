@@ -155,4 +155,16 @@ describe('handleError', () => {
 		expect(error.mock.calls[0][1]).toBe(thrown);
 		expect(result).toStrictEqual({ message: 'Internal Error' });
 	});
+
+	it('does not log 404 errors and still returns the message', async () => {
+		const result = await handleError({
+			error: new Error('Not found: /.git/config'),
+			event: createEvent({ path: '/.git/config' }),
+			status: 404,
+			message: 'Not Found'
+		});
+
+		expect(error).not.toHaveBeenCalled();
+		expect(result).toStrictEqual({ message: 'Not Found' });
+	});
 });
