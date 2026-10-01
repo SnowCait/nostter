@@ -535,7 +535,8 @@
 	},
 	"relay": {
 		"connection": {
-			"states": "リレーステータス"
+			"states": "リレーステータス",
+			"other_relays": "その他のリレー {count, number} 件"
 		}
 	},
 	"remote-signer-service": {

@@ -585,6 +585,20 @@ code {
 	line-height: 1;
 }
 
+.disclosure-summary {
+	padding: 0.5rem 0.75rem;
+	border-radius: var(--radius);
+	background-color: var(--accent-surface-low);
+	font-weight: bold;
+	cursor: pointer;
+}
+
+@media (hover: hover) {
+	.disclosure-summary:hover {
+		background-color: var(--accent-surface-high);
+	}
+}
+
 .tabs {
 	display: flex;
 	margin-bottom: 0.5rem;

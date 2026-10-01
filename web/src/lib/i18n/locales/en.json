@@ -536,7 +536,8 @@
 	},
 	"relay": {
 		"connection": {
-			"states": "Relay states"
+			"states": "Relay states",
+			"other_relays": "Other relays ({count, number})"
 		}
 	},
 	"remote-signer-service": {
