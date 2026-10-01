@@ -1,12 +1,20 @@
 import { gitSha } from '$lib/build';
 import type { RequestHandler } from './$types';
 
-const maxBodyBytes = 4096;
+const maxBodyBytes = 8192;
 const maxPathLength = 256;
 const maxStylesheets = 32;
+const maxJavascriptResources = 16;
+const maxInitiatorTypeLength = 32;
 const maxUserAgentLength = 512;
 
 const diagnosticTypes = ['stylesheet-load-error', 'stylesheet-not-applied'] as const;
+
+type JavascriptResource = {
+	path: string;
+	initiatorType: string;
+	responseStatus: number | null;
+};
 
 type CssDiagnostic = {
 	type: (typeof diagnosticTypes)[number];
@@ -20,6 +28,9 @@ type CssDiagnostic = {
 		}[];
 		unavailable: string[];
 	};
+	javascript: {
+		resources: JavascriptResource[];
+	};
 	client: {
 		standalone: boolean;
 		serviceWorkerControlled: boolean;
@@ -30,6 +41,9 @@ const redactedPagePathSegmentPattern =
 	/^(?:|[a-z]{1,32}|\d{1,4}|\[(?:npub|nprofile|note|nevent|naddr|param)\])$/;
 // Printable ASCII without query or hash, since only pathnames are accepted.
 const stylesheetPathPattern = /^\/(?:(?![?#])[\x21-\x7e])*$/;
+const javascriptPathPattern = /^\/_app\/immutable\/(?:(?![?#])[\x21-\x7e])*\.js$/;
+// Lowercase words joined by hyphens, such as script, link, or early-hints.
+const initiatorTypePattern = /^[a-z]+(?:-[a-z]+)*$/;
 
 const isDiagnosticType = (value: unknown): value is CssDiagnostic['type'] =>
 	diagnosticTypes.some((type) => type === value);
@@ -62,6 +76,27 @@ const isStylesheetResponseStatuses = (
 	value.length === stylesheetPaths.length &&
 	value.every(isResponseStatus);
 
+const isJavascriptResource = (value: unknown): value is JavascriptResource => {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+		return false;
+	}
+	const { path, initiatorType, responseStatus } = value as Record<string, unknown>;
+	return (
+		typeof path === 'string' &&
+		path.length <= maxPathLength &&
+		javascriptPathPattern.test(path) &&
+		typeof initiatorType === 'string' &&
+		initiatorType.length <= maxInitiatorTypeLength &&
+		initiatorTypePattern.test(initiatorType) &&
+		isResponseStatus(responseStatus)
+	);
+};
+
+const isJavascriptResources = (value: unknown): value is JavascriptResource[] =>
+	Array.isArray(value) &&
+	value.length <= maxJavascriptResources &&
+	value.every(isJavascriptResource);
+
 const isTimestamp = (value: unknown): value is number =>
 	Number.isSafeInteger(value) && (value as number) > 0;
 
@@ -76,6 +111,7 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		stylesheetPaths,
 		stylesheetResponseStatuses,
 		unavailableStylesheetPaths,
+		javascriptResources,
 		timestamp,
 		standalone,
 		serviceWorkerControlled
@@ -87,6 +123,7 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		!isStylesheetPaths(stylesheetPaths) ||
 		!isStylesheetResponseStatuses(stylesheetResponseStatuses, stylesheetPaths) ||
 		!isStylesheetPaths(unavailableStylesheetPaths) ||
+		!isJavascriptResources(javascriptResources) ||
 		!isTimestamp(timestamp) ||
 		typeof standalone !== 'boolean' ||
 		typeof serviceWorkerControlled !== 'boolean'
@@ -104,6 +141,13 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 				responseStatus: stylesheetResponseStatuses[i]
 			})),
 			unavailable: unavailableStylesheetPaths
+		},
+		javascript: {
+			resources: javascriptResources.map(({ path, initiatorType, responseStatus }) => ({
+				path,
+				initiatorType,
+				responseStatus
+			}))
 		},
 		client: {
 			standalone,

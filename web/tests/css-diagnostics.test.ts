@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 type SentDiagnostic = { body: Record<string, unknown>; status?: number };
 
 const stylesheetAssets = /\/_app\/immutable\/assets\/[^/]+\.css$/;
+const javascriptAssets = /\/_app\/immutable\/.+\.js$/;
 
 const recordDiagnostics = (page: Page) =>
 	page.addInitScript(() => {
@@ -111,4 +112,32 @@ test('sends the response status of a stylesheet that failed with an HTTP error',
 	const statuses = body.stylesheetResponseStatuses as (number | null)[];
 	expect(statuses).toHaveLength(paths.length);
 	expect(statuses[paths.indexOf(body.stylesheetPath as string)]).toBe(503);
+});
+
+test('sends the response status of JavaScript assets that failed with stylesheets', async ({
+	page
+}) => {
+	await recordDiagnostics(page);
+	await page.route(stylesheetAssets, (route) =>
+		route.fulfill({ contentType: 'text/css', body: '' })
+	);
+	await page.route(javascriptAssets, (route) => route.fulfill({ status: 503, body: '' }));
+	await page.goto('/about');
+
+	await expect
+		.poll(async () => (await sentDiagnostics(page)).map(({ body }) => body.type))
+		.toEqual(['stylesheet-not-applied']);
+
+	const [{ body }] = await sentDiagnostics(page);
+	const resources = body.javascriptResources as Record<string, unknown>[];
+	expect(resources.length).toBeGreaterThan(0);
+	expect(resources.length).toBeLessThanOrEqual(16);
+	expect(new Set(resources.map(({ path }) => path)).size).toBe(resources.length);
+	for (const resource of resources) {
+		expect(resource).toEqual({
+			path: expect.stringMatching(/^\/_app\/immutable\/.+\.js$/),
+			initiatorType: expect.any(String),
+			responseStatus: 503
+		});
+	}
 });

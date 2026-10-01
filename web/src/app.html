@@ -11,6 +11,7 @@
 			// Register before the SvelteKit head so stylesheet failures can be observed before app modules load.
 			(() => {
 				const maxStylesheets = 32;
+				const maxJavascriptResources = 16;
 				const sentTypes = new Set();
 
 				const toSameOriginPath = (href) => {
@@ -55,6 +56,30 @@
 					}
 				};
 
+				// Snapshots already buffered entries to tell whether JavaScript assets failed alongside stylesheets.
+				// Selected by path because preloaded modules have an initiatorType other than script.
+				const javascriptResources = () => {
+					try {
+						const resources = new Map();
+						for (const entry of performance.getEntriesByType('resource')) {
+							const path = toSameOriginPath(entry.name);
+							if (path?.startsWith('/_app/immutable/') && path.endsWith('.js')) {
+								resources.set(path, {
+									path,
+									initiatorType: entry.initiatorType,
+									responseStatus:
+										typeof entry.responseStatus === 'number'
+											? entry.responseStatus
+											: null
+								});
+							}
+						}
+						return [...resources.values()].slice(0, maxJavascriptResources);
+					} catch {
+						return [];
+					}
+				};
+
 				const send = (type, stylesheetPath) => {
 					if (sentTypes.has(type)) {
 						return;
@@ -87,6 +112,7 @@
 								unavailableStylesheetPaths: stylesheets
 									.filter(({ sheet }) => sheet === null)
 									.map(({ path }) => path),
+								javascriptResources: javascriptResources(),
 								timestamp: Date.now(),
 								standalone:
 									matchMedia('(display-mode: standalone)').matches ||
