@@ -52,6 +52,11 @@
 	</dl>
 {/snippet}
 
+{#snippet relay(url: string)}
+	<h4 class="url">{url}</h4>
+	{@render counts(snapshot.byKey[url])}
+{/snippet}
+
 <h3>{$_('preferences.websocket_traffic.title')}</h3>
 <p>{$_('preferences.websocket_traffic.description')}</p>
 <h4>{$_('preferences.websocket_traffic.total')}</h4>
@@ -62,8 +67,7 @@
 {/if}
 
 {#each relays.subscribed as url (url)}
-	<h4 class="url">{url}</h4>
-	{@render counts(snapshot.byKey[url])}
+	{@render relay(url)}
 {/each}
 
 {#if relays.others.length > 0}
@@ -74,8 +78,7 @@
 			})}
 		</summary>
 		{#each relays.others as url (url)}
-			<h4 class="url">{url}</h4>
-			{@render counts(snapshot.byKey[url])}
+			{@render relay(url)}
 		{/each}
 	</details>
 {/if}
@@ -86,19 +89,39 @@
 	}
 
 	.url {
+		margin-top: 0.75rem;
+		padding-top: 0.75rem;
+		border-top: var(--default-border);
 		overflow-wrap: anywhere;
 		font-family: monospace;
+		font-size: 0.875rem;
 	}
 
 	dl {
 		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 0.25rem 1rem;
-		margin-top: 0.5rem;
+		grid-template-columns: auto minmax(0, 1fr);
+		gap: 0.125rem 1rem;
+		margin-top: 0.25rem;
+	}
+
+	dt {
+		color: var(--accent-gray);
 	}
 
 	dd {
 		margin: 0;
 		font-variant-numeric: tabular-nums;
+	}
+
+	summary {
+		margin: 1rem -0.25rem 0;
+		padding: 0.5rem 0.25rem;
+		border-radius: var(--radius);
+		font-weight: bold;
+		cursor: pointer;
+	}
+
+	summary:hover {
+		background-color: var(--hover-background-color);
 	}
 </style>
