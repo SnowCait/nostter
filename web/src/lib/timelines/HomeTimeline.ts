@@ -498,7 +498,29 @@ export class HomeTimeline extends NewTimeline {
 		return promise;
 	}
 
+	#insertNotifiedEvent(event: Nostr.Event, accountPubkey: string): void {
+		if (!isNotifiedEvent(event, accountPubkey)) {
+			return;
+		}
+		const $notifiedEventItems = get(notifiedEventItems);
+		if ($notifiedEventItems.some((item) => item.event.id === event.id)) {
+			return;
+		}
+		const item = new EventItem(event);
+		const index = $notifiedEventItems.findIndex((x) => x.event.created_at < event.created_at);
+		notifiedEventItems.set(
+			index < 0
+				? [...$notifiedEventItems, item]
+				: $notifiedEventItems.toSpliced(index, 0, item)
+		);
+	}
+
 	public retrieve(until: number, since: number): void {
+		const accountPubkey = auth.pubkey;
+		if (accountPubkey === undefined) {
+			throw new Error('Not authenticated');
+		}
+
 		const pubkeys = new Set<string>();
 		const req = createRxBackwardReq();
 		rxNostr
@@ -542,6 +564,7 @@ export class HomeTimeline extends NewTimeline {
 					if (this.latestId === undefined) {
 						this.latestId = event.id;
 					}
+					this.#insertNotifiedEvent(event, accountPubkey);
 				},
 				complete: async () => {
 					console.debug('[home timeline retrieve complete]');
