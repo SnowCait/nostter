@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isRelayUrl } from './relay-url';
+import { isRelayUrl, isSecureRelayUrl } from './relay-url';
 
 describe('isRelayUrl', () => {
 	it('accepts wss: URLs', () => {
@@ -20,5 +20,26 @@ describe('isRelayUrl', () => {
 
 	it('rejects non-string values', () => {
 		expect(isRelayUrl(undefined)).toBe(false);
+	});
+});
+
+describe('isSecureRelayUrl', () => {
+	it('accepts wss: URLs', () => {
+		expect(isSecureRelayUrl('wss://relay.example.com')).toBe(true);
+	});
+
+	it('rejects ws: URLs', () => {
+		expect(isSecureRelayUrl('ws://relay.example.com')).toBe(false);
+	});
+
+	it('rejects other schemes', () => {
+		expect(isSecureRelayUrl('https://relay.example.com')).toBe(false);
+		expect(isSecureRelayUrl('http://relay.example.com')).toBe(false);
+	});
+
+	it('rejects malformed URLs and non-string values', () => {
+		expect(isSecureRelayUrl('wss://')).toBe(false);
+		expect(isSecureRelayUrl('relay.example.com')).toBe(false);
+		expect(isSecureRelayUrl(undefined)).toBe(false);
 	});
 });

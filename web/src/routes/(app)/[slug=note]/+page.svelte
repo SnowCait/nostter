@@ -25,6 +25,10 @@
 	import EventComponent from '$lib/components/items/EventComponent.svelte';
 	import BackButton from '$lib/components/BackButton.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
+	import {
+		resolveClientLinks,
+		type ClientLinks
+	} from '$lib/features/client-links/application/resolve-client-links';
 
 	interface Props {
 		data: LayoutData;
@@ -47,6 +51,8 @@
 	let zapEventItemsMap = new SvelteMap<number | undefined, ZapEventItem[]>();
 
 	let customEmojiData = $state(new Map<string, { shortcode: string; address?: string }>());
+
+	let clientLinks = $state<ClientLinks>();
 
 	async function fetchReplies(
 		originalReplyId: string | undefined,
@@ -377,6 +383,19 @@
 			threadSubscription?.unsubscribe();
 		};
 	});
+	$effect(() => {
+		const targetItem = item;
+
+		clientLinks = undefined;
+		if (targetItem === undefined) {
+			return;
+		}
+
+		const subscription = resolveClientLinks(targetItem.event).subscribe((links) => {
+			clientLinks = links;
+		});
+		return () => subscription.unsubscribe();
+	});
 </script>
 
 <svelte:head>
@@ -410,7 +429,7 @@
 	{#if item === undefined}
 		<NotFound />
 	{:else}
-		<EventComponent {item} readonly={false} full={true} />
+		<EventComponent {item} readonly={false} full={true} {clientLinks} />
 	{/if}
 </div>
 

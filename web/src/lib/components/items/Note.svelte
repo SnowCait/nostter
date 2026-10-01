@@ -28,9 +28,16 @@
 		readonly: boolean;
 		createdAtFormat?: 'auto' | 'time';
 		full?: boolean;
+		clientLinks?: ReadonlyMap<string, URL>;
 	}
 
-	let { item, readonly = $bindable(), createdAtFormat = 'auto', full = false }: Props = $props();
+	let {
+		item,
+		readonly = $bindable(),
+		createdAtFormat = 'auto',
+		full = false,
+		clientLinks
+	}: Props = $props();
 
 	let eventItem = $derived(item as EventItem);
 
@@ -148,7 +155,7 @@
 					<CreatedAt createdAt={item.event.created_at} format="full" />
 					<div class="relay-info">
 						<SeenOnRelayIcons id={item.event.id} />
-						<div class="via"><Via tags={item.event.tags} /></div>
+						<div class="via"><Via tags={item.event.tags} {clientLinks} /></div>
 					</div>
 				</footer>
 			{:else if $seenOnRelayIcon || $showVia}
@@ -157,7 +164,7 @@
 						<SeenOnRelayIcons id={item.event.id} />
 					{/if}
 					{#if $showVia}
-						<div class="via"><Via tags={item.event.tags} /></div>
+						<div class="via"><Via tags={item.event.tags} {clientLinks} /></div>
 					{/if}
 				</footer>
 			{/if}
