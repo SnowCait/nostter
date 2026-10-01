@@ -37,7 +37,8 @@ function apply(pubkey: string, events: LoadedAccountEvents): void {
 			mute: prepareRegularMuteState(undefined, pubkey),
 			baseline: regularMuteRevision(),
 			mutedPubkeysByKind: new Map()
-		}
+		},
+		deletionRequests: []
 	});
 }
 

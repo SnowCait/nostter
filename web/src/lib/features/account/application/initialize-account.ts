@@ -1,3 +1,4 @@
+import type { Event } from 'nostr-tools';
 import { Author } from '$lib/Author';
 import { get } from 'svelte/store';
 import { locale } from 'svelte-i18n';
@@ -14,6 +15,8 @@ import { unique } from '$lib/array';
 import { parseFollowList } from '$lib/nostr/protocol/nip02';
 import { loadFolloweesMetadataCache, pruneFolloweeReplaceableEventsCache } from '$lib/cache/Events';
 import type { ListContentDecrypter } from '$lib/List';
+import { fetchAddressDeletionRequests } from '$lib/features/event-deletion/application/fetch-address-deletion-requests';
+import { getLegacyBookmarkAddress } from '$lib/features/bookmarks/domain/bookmark-migration';
 import { prepareAccountState, type PreparedAccountState } from './prepare-account-state';
 
 export type PreparedAccountMuteState = {
@@ -26,6 +29,7 @@ export type PreparedAccountInitialization = {
 	followingPubkeys: string[];
 	accountState: PreparedAccountState;
 	muteState: PreparedAccountMuteState;
+	deletionRequests: Event[];
 };
 
 export async function prepareAccountInitialization(
@@ -38,8 +42,11 @@ export async function prepareAccountInitialization(
 	rxNostr.setDefaultRelays(applicationRelays(get(locale)));
 	await author.fetchRelays();
 
-	const events = await author.fetchEvents();
-	const accountState = prepareAccountState(events);
+	const [events, deletionRequests] = await Promise.all([
+		author.fetchEvents(),
+		fetchAddressDeletionRequests(pubkey, [getLegacyBookmarkAddress(pubkey)])
+	]);
+	const accountState = prepareAccountState(events, deletionRequests);
 	const muteState = await prepareAccountMuteState(
 		pubkey,
 		events,
@@ -52,7 +59,7 @@ export async function prepareAccountInitialization(
 	await loadFolloweesMetadataCache(followees);
 	pruneFolloweeReplaceableEventsCache(followees);
 
-	return { followingPubkeys, accountState, muteState };
+	return { followingPubkeys, accountState, muteState, deletionRequests };
 }
 
 async function prepareAccountMuteState(

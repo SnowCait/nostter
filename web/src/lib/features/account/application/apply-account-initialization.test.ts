@@ -52,7 +52,8 @@ function emptyPrepared(): PreparedAccountInitialization {
 			mute: prepareRegularMuteState(undefined, accountB),
 			baseline: regularMuteRevision(),
 			mutedPubkeysByKind: new Map()
-		}
+		},
+		deletionRequests: []
 	};
 }
 

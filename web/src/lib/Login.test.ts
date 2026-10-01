@@ -107,6 +107,10 @@ vi.mock('./features/account/application/initialize-account', () => ({
 	prepareAccountInitialization
 }));
 
+vi.mock('./features/event-deletion/application/fetch-address-deletion-requests', () => ({
+	fetchAddressDeletionRequests: async () => []
+}));
+
 vi.mock('./features/account/application/apply-account-initialization', () => ({
 	applyAccountInitialization
 }));

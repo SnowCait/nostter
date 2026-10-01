@@ -10,6 +10,10 @@ export function isLegacyBookmarkEvent(event: BookmarkEvent): boolean {
 	);
 }
 
+export function getLegacyBookmarkAddress(pubkey: string): string {
+	return `${Kind.Genericlists}:${pubkey}:${legacyBookmarkIdentifier}`;
+}
+
 export function filterBookmarkReferences(tags: string[][]): string[][] {
 	return tags
 		.filter(
