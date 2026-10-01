@@ -182,6 +182,15 @@
 		},
 		"uri_scheme": "web+nostr: を nostter で開く",
 		"enable_uri_scheme": "有効化",
+		"websocket_traffic": {
+			"title": "WebSocket 通信量",
+			"description": "アプリを読み込んでからの累積通信量です。",
+			"total": "合計",
+			"sent": "送信",
+			"received": "受信",
+			"messages": "{count, number} メッセージ",
+			"empty": "まだ WebSocket 通信はありません。"
+		},
 		"developer_mode": "開発者モード",
 		"developer_mode_description": "（追加の機能を提供しますが Nostr の知識が必要です）",
 		"seen_on_relay_icon": "タイムラインに seen on リレーを表示",

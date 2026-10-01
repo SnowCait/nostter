@@ -25,6 +25,7 @@
 	import DeveloperMode from './DeveloperMode.svelte';
 	import WebStorage from './WebStorage.svelte';
 	import RelayStates from './RelayStates.svelte';
+	import WebSocketTraffic from './WebSocketTraffic.svelte';
 	import SeenOnRelayIcon from './SeenOnRelayIcon.svelte';
 	import ShowVia from './ShowVia.svelte';
 	import WalletConnect from './WalletConnect.svelte';
@@ -161,6 +162,7 @@
 		<div><WorkAsRemoteSigner canEnable={auth.signer?.nip44 !== undefined} /></div>
 
 		<div><RelayStates /></div>
+		<div><WebSocketTraffic /></div>
 		<div><WebStorage /></div>
 		<h3>{$_('preferences.trouble_shooting')}</h3>
 		<div><Reload /></div>

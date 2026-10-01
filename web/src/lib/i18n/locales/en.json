@@ -183,6 +183,15 @@
 		},
 		"uri_scheme": "Open web+nostr: in nostter",
 		"enable_uri_scheme": "Enable",
+		"websocket_traffic": {
+			"title": "WebSocket traffic",
+			"description": "Cumulative traffic since the app was loaded.",
+			"total": "Total",
+			"sent": "Sent",
+			"received": "Received",
+			"messages": "{count, plural, one {# message} other {# messages}}",
+			"empty": "No WebSocket traffic yet."
+		},
 		"developer_mode": "Developer mode",
 		"developer_mode_description": "(Provide additional features, but they require knowledge of Nostr)",
 		"seen_on_relay_icon": "Show seen-on relays on timeline",
