@@ -92,6 +92,8 @@ export const httpStatusLogging: Handle = async ({ event, resolve }) => {
 export const handle: Handle = sequence(httpStatusLogging, i18n, lang, csp);
 
 export const handleError: HandleServerError = ({ error, status, message }) => {
-	console.error({ message: 'server-unexpected-error', response: { status } }, error);
+	if (status >= 500) {
+		console.error({ message: 'server-unexpected-error', response: { status } }, error);
+	}
 	return { message };
 };
