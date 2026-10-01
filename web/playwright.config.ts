@@ -1,6 +1,5 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
-
-const relayUrl = new URL(process.env.E2E_RELAY_URL || 'ws://127.0.0.1:8080/');
+import { e2eRelayUrl } from './tests/e2e-relay-url';
 
 const config: PlaywrightTestConfig = {
 	webServer: {
@@ -8,8 +7,8 @@ const config: PlaywrightTestConfig = {
 		port: 4173,
 		timeout: 300000,
 		env: {
-			VITE_DEFAULT_RELAYS: relayUrl.href,
-			VITE_METADATA_RELAYS: relayUrl.href
+			VITE_DEFAULT_RELAYS: e2eRelayUrl,
+			VITE_METADATA_RELAYS: e2eRelayUrl
 		}
 	},
 	use: {
