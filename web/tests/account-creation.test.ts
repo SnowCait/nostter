@@ -29,40 +29,39 @@ test('creates an account and publishes its metadata and relay list', async ({ pa
 	// Account creation navigates without waiting for the relay to accept the events.
 	// A REQ returns the events already stored and stays open for the ones stored later.
 	const relay = await Relay.connect(e2eRelayUrl);
-	let deadline: ReturnType<typeof setTimeout> | undefined;
+	const { promise, resolve, reject } = Promise.withResolvers<{
+		metadata: NostrEvent;
+		relayList: NostrEvent;
+	}>();
+	let metadata: NostrEvent | undefined;
+	let relayList: NostrEvent | undefined;
+	const received = () =>
+		`kind 0: ${metadata !== undefined}, kind 10002: ${relayList !== undefined}`;
+	const deadline = setTimeout(
+		() => reject(new Error(`Timed out waiting for events (${received()})`)),
+		10_000
+	);
 	try {
-		const { metadata, relayList } = await new Promise<{
-			metadata: NostrEvent;
-			relayList: NostrEvent;
-		}>((resolve, reject) => {
-			let metadata: NostrEvent | undefined;
-			let relayList: NostrEvent | undefined;
-			const received = () =>
-				`kind 0: ${metadata !== undefined}, kind 10002: ${relayList !== undefined}`;
-			deadline = setTimeout(
-				() => reject(new Error(`Timed out waiting for events (${received()})`)),
-				10_000
-			);
-			relay.subscribe([{ kinds: [kinds.Metadata, kinds.RelayList], authors: [pubkey] }], {
-				onevent(event) {
-					if (event.kind === kinds.Metadata) {
-						metadata = event;
-					} else if (event.kind === kinds.RelayList) {
-						relayList = event;
-					}
-					if (metadata !== undefined && relayList !== undefined) {
-						resolve({ metadata, relayList });
-					}
-				},
-				onclose(reason) {
-					reject(new Error(`Subscription closed: ${reason} (${received()})`));
+		relay.subscribe([{ kinds: [kinds.Metadata, kinds.RelayList], authors: [pubkey] }], {
+			onevent(event) {
+				if (event.kind === kinds.Metadata) {
+					metadata = event;
+				} else if (event.kind === kinds.RelayList) {
+					relayList = event;
 				}
-			});
+				if (metadata !== undefined && relayList !== undefined) {
+					resolve({ metadata, relayList });
+				}
+			},
+			onclose(reason) {
+				reject(new Error(`Subscription closed: ${reason} (${received()})`));
+			}
 		});
 
-		expect(JSON.parse(metadata.content)).toMatchObject({ name, display_name: name });
+		const events = await promise;
+		expect(JSON.parse(events.metadata.content)).toMatchObject({ name, display_name: name });
 		// An r tag without a marker means the relay is used for both reading and writing.
-		expect(relayList.tags).toContainEqual(['r', e2eRelayUrl]);
+		expect(events.relayList.tags).toContainEqual(['r', e2eRelayUrl]);
 	} finally {
 		clearTimeout(deadline);
 		relay.close();
