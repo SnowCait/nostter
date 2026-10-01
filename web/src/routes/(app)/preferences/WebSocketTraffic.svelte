@@ -3,6 +3,7 @@
 	import { _, locale } from 'svelte-i18n';
 	import type { WebSocketMetricsSnapshot, WebSocketTrafficMetrics } from 'websocket-metrics';
 	import { metrics } from '$lib/platform/browser/websocket-metrics';
+	import { getDefaultReadRelays } from '$lib/RxNostrHelper';
 	import { formatBytes } from './format-bytes';
 
 	let snapshot = $state.raw<WebSocketMetricsSnapshot>({
@@ -12,7 +13,22 @@
 		},
 		byKey: {}
 	});
-	const urls = $derived(Object.keys(snapshot.byKey).sort());
+	const urls = $derived(
+		Object.entries(snapshot.byKey)
+			.sort(
+				([a, x], [b, y]) =>
+					y.received.bytes + y.sent.bytes - (x.received.bytes + x.sent.bytes) ||
+					a.localeCompare(b)
+			)
+			.map(([url]) => url)
+	);
+	const relays = $derived.by(() => {
+		const readRelays = new Set(getDefaultReadRelays());
+		return {
+			subscribed: urls.filter((url) => readRelays.has(url)),
+			others: urls.filter((url) => !readRelays.has(url))
+		};
+	});
 
 	onMount(() => metrics?.subscribe((current) => (snapshot = current)));
 </script>
@@ -36,17 +52,36 @@
 	</dl>
 {/snippet}
 
+{#snippet relay(url: string)}
+	<h4 class="url">{url}</h4>
+	{@render counts(snapshot.byKey[url])}
+{/snippet}
+
 <h3>{$_('preferences.websocket_traffic.title')}</h3>
 <p>{$_('preferences.websocket_traffic.description')}</p>
 <h4>{$_('preferences.websocket_traffic.total')}</h4>
 {@render counts(snapshot.total)}
 
-{#each urls as url (url)}
-	<h4 class="url">{url}</h4>
-	{@render counts(snapshot.byKey[url])}
-{:else}
+{#if urls.length === 0}
 	<p>{$_('preferences.websocket_traffic.empty')}</p>
+{/if}
+
+{#each relays.subscribed as url (url)}
+	{@render relay(url)}
 {/each}
+
+{#if relays.others.length > 0}
+	<details>
+		<summary>
+			{$_('preferences.websocket_traffic.other_relays', {
+				values: { count: relays.others.length }
+			})}
+		</summary>
+		{#each relays.others as url (url)}
+			{@render relay(url)}
+		{/each}
+	</details>
+{/if}
 
 <style>
 	h4 {
@@ -54,19 +89,42 @@
 	}
 
 	.url {
+		margin-top: 0.75rem;
+		padding-top: 0.75rem;
+		border-top: var(--default-border);
 		overflow-wrap: anywhere;
 		font-family: monospace;
+		font-size: 0.875rem;
 	}
 
 	dl {
 		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 0.25rem 1rem;
-		margin-top: 0.5rem;
+		grid-template-columns: auto minmax(0, 1fr);
+		gap: 0.125rem 1rem;
+		margin-top: 0.25rem;
+	}
+
+	dt {
+		color: var(--accent-gray);
 	}
 
 	dd {
 		margin: 0;
 		font-variant-numeric: tabular-nums;
+	}
+
+	summary {
+		margin-top: 1rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: var(--radius);
+		background-color: var(--accent-surface-low);
+		font-weight: bold;
+		cursor: pointer;
+	}
+
+	@media (hover: hover) {
+		summary:hover {
+			background-color: var(--accent-surface-high);
+		}
 	}
 </style>

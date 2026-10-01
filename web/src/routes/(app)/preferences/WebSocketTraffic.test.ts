@@ -1,11 +1,64 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'svelte/server';
 import { get } from 'svelte/store';
 import { _, addMessages, locale } from 'svelte-i18n';
 import en from '$lib/i18n/locales/en.json';
 import ja from '$lib/i18n/locales/ja.json';
 import { metrics } from '$lib/platform/browser/websocket-metrics';
+import type { WebSocketMetricsSnapshot } from 'websocket-metrics';
 import WebSocketTraffic from './WebSocketTraffic.svelte';
+
+const mocks = vi.hoisted(() => ({
+	snapshot: undefined as WebSocketMetricsSnapshot | undefined,
+	readRelays: [] as string[]
+}));
+
+// SSR never runs onMount, so run it during render to apply the mocked metrics subscription.
+vi.mock('svelte', async (importOriginal) => ({
+	...(await importOriginal<typeof import('svelte')>()),
+	onMount: (fn: () => void) => fn()
+}));
+
+vi.mock('$lib/platform/browser/websocket-metrics', () => ({
+	get metrics() {
+		const snapshot = mocks.snapshot;
+		return snapshot === undefined
+			? undefined
+			: {
+					subscribe: (listener: (s: WebSocketMetricsSnapshot) => void) =>
+						listener(snapshot)
+				};
+	}
+}));
+
+vi.mock('$lib/RxNostrHelper', () => ({
+	getDefaultReadRelays: () => mocks.readRelays
+}));
+
+beforeEach(() => {
+	mocks.snapshot = undefined;
+	mocks.readRelays = [];
+});
+
+function traffic(received: number, sent: number) {
+	return {
+		received: { bytes: received, messages: 1 },
+		sent: { bytes: sent, messages: 1 }
+	};
+}
+
+function renderWith(byKey: WebSocketMetricsSnapshot['byKey'], readRelays: string[]) {
+	mocks.snapshot = { total: traffic(0, 0), byKey };
+	mocks.readRelays = readRelays;
+	const body = render(WebSocketTraffic).body;
+	const detailsIndex = body.indexOf('<details');
+	const urls = [...body.matchAll(/<h4 class="url[^"]*">([^<]+)<\/h4>/g)];
+	return {
+		body,
+		subscribed: urls.filter((m) => detailsIndex < 0 || m.index < detailsIndex).map((m) => m[1]),
+		others: urls.filter((m) => detailsIndex >= 0 && m.index > detailsIndex).map((m) => m[1])
+	};
+}
 
 beforeAll(() => {
 	addMessages('en', en);
@@ -46,4 +99,55 @@ describe('WebSocket traffic SSR', () => {
 			expect(body).toContain(empty);
 		}
 	);
+});
+
+describe('WebSocket traffic relay groups', () => {
+	beforeEach(() => locale.set('en'));
+
+	it('shows subscription relays and collapses other relays, each sorted by total bytes', () => {
+		const { body, subscribed, others } = renderWith(
+			{
+				'wss://a.example/': traffic(10, 0),
+				'wss://b.example/': traffic(5, 25),
+				'wss://c.example/': traffic(20, 0),
+				'wss://x.example/': traffic(1, 1),
+				'wss://y.example/': traffic(0, 100),
+				'wss://z.example/': traffic(50, 0)
+			},
+			['wss://a.example/', 'wss://b.example/', 'wss://c.example/']
+		);
+		expect(subscribed).toEqual(['wss://b.example/', 'wss://c.example/', 'wss://a.example/']);
+		expect(others).toEqual(['wss://y.example/', 'wss://z.example/', 'wss://x.example/']);
+		expect(body).toContain('Other relays (3)');
+		expect(body).not.toMatch(/<details[^>]*open/);
+	});
+
+	it('orders relays with the same total bytes by URL', () => {
+		const { subscribed, others } = renderWith(
+			{
+				'wss://b.example/': traffic(10, 0),
+				'wss://a.example/': traffic(0, 10),
+				'wss://d.example/': traffic(3, 4),
+				'wss://c.example/': traffic(4, 3)
+			},
+			['wss://a.example/', 'wss://b.example/']
+		);
+		expect(subscribed).toEqual(['wss://a.example/', 'wss://b.example/']);
+		expect(others).toEqual(['wss://c.example/', 'wss://d.example/']);
+	});
+
+	it('omits the collapsed section when every relay is a subscription relay', () => {
+		const { body, subscribed } = renderWith({ 'wss://a.example/': traffic(1, 0) }, [
+			'wss://a.example/'
+		]);
+		expect(subscribed).toEqual(['wss://a.example/']);
+		expect(body).not.toContain('<details');
+	});
+
+	it('does not show the empty state when only other relays have traffic', () => {
+		const { body, subscribed, others } = renderWith({ 'wss://x.example/': traffic(1, 0) }, []);
+		expect(subscribed).toEqual([]);
+		expect(others).toEqual(['wss://x.example/']);
+		expect(body).not.toContain('No WebSocket traffic yet.');
+	});
 });
