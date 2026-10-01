@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
-import { kinds, nip19, SimplePool } from 'nostr-tools';
+import { kinds, nip19, Relay, type NostrEvent } from 'nostr-tools';
 import { e2eRelayUrl } from './e2e-relay-url';
 import { expectSigningSession } from './login-helpers';
 
@@ -27,29 +27,44 @@ test('creates an account and publishes its metadata and relay list', async ({ pa
 	const { pubkey } = profile.data;
 
 	// Account creation navigates without waiting for the relay to accept the events.
-	const pool = new SimplePool();
+	// A REQ returns the events already stored and stays open for the ones stored later.
+	const relay = await Relay.connect(e2eRelayUrl);
+	let deadline: ReturnType<typeof setTimeout> | undefined;
 	try {
-		await expect
-			.poll(async () => {
-				const event = await pool.get([e2eRelayUrl], {
-					kinds: [kinds.Metadata],
-					authors: [pubkey]
-				});
-				return event && JSON.parse(event.content);
-			})
-			.toMatchObject({ name, display_name: name });
+		const { metadata, relayList } = await new Promise<{
+			metadata: NostrEvent;
+			relayList: NostrEvent;
+		}>((resolve, reject) => {
+			let metadata: NostrEvent | undefined;
+			let relayList: NostrEvent | undefined;
+			const received = () =>
+				`kind 0: ${metadata !== undefined}, kind 10002: ${relayList !== undefined}`;
+			deadline = setTimeout(
+				() => reject(new Error(`Timed out waiting for events (${received()})`)),
+				10_000
+			);
+			relay.subscribe([{ kinds: [kinds.Metadata, kinds.RelayList], authors: [pubkey] }], {
+				onevent(event) {
+					if (event.kind === kinds.Metadata) {
+						metadata = event;
+					} else if (event.kind === kinds.RelayList) {
+						relayList = event;
+					}
+					if (metadata !== undefined && relayList !== undefined) {
+						resolve({ metadata, relayList });
+					}
+				},
+				onclose(reason) {
+					reject(new Error(`Subscription closed: ${reason} (${received()})`));
+				}
+			});
+		});
 
+		expect(JSON.parse(metadata.content)).toMatchObject({ name, display_name: name });
 		// An r tag without a marker means the relay is used for both reading and writing.
-		await expect
-			.poll(async () => {
-				const event = await pool.get([e2eRelayUrl], {
-					kinds: [kinds.RelayList],
-					authors: [pubkey]
-				});
-				return event?.tags;
-			})
-			.toContainEqual(['r', e2eRelayUrl]);
+		expect(relayList.tags).toContainEqual(['r', e2eRelayUrl]);
 	} finally {
-		pool.destroy();
+		clearTimeout(deadline);
+		relay.close();
 	}
 });
