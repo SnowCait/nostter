@@ -2,7 +2,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from 'nostr-tools';
 import { EMPTY, lastValueFrom, of, throwError, toArray } from 'rxjs';
 import { rxNostr } from '$lib/relay-client';
-import { fetchEvents, fetchLatestReplaceableEvent, publishEvent } from './event-operations';
+import {
+	fetchEvents,
+	fetchLatestReplaceableEvent,
+	publishEvent,
+	requestEvents
+} from './event-operations';
 
 const pubkey = 'a'.repeat(64);
 
@@ -44,6 +49,31 @@ describe('relay event operations', () => {
 		await expect(lastValueFrom(req.getReqPacketObservable().pipe(toArray()))).resolves.toEqual([
 			{ filters }
 		]);
+	});
+
+	it('emits all filters once to the given relays and completes the backward request', async () => {
+		const filters = [
+			{ kinds: [31990], authors: [pubkey], '#d': ['a'], limit: 1 },
+			{ kinds: [31990], authors: [pubkey], '#d': ['b'], limit: 1 }
+		];
+		const on = { relays: ['wss://hint'], defaultReadRelays: true };
+		const first = event(1);
+		let packets: Promise<unknown[]> | undefined;
+		const use = vi.spyOn(rxNostr, 'use').mockImplementation((req) => {
+			packets = lastValueFrom(req.getReqPacketObservable().pipe(toArray()));
+			return of(
+				{ event: first, from: 'wss://hint' },
+				{ event: first, from: 'wss://default' }
+			) as never;
+		});
+
+		await expect(lastValueFrom(requestEvents(filters, on).pipe(toArray()))).resolves.toEqual([
+			first
+		]);
+		expect(use).toHaveBeenCalledOnce();
+		expect(use.mock.calls[0][0].strategy).toBe('backward');
+		expect(use.mock.calls[0][1]).toEqual({ on });
+		await expect(packets).resolves.toEqual([{ filters }]);
 	});
 
 	it('returns the latest event after the oneshot request completes', async () => {
