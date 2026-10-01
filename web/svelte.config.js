@@ -9,7 +9,11 @@ const config = {
 	preprocess: sequence([vitePreprocess({}), preprocessMeltUI()]),
 
 	kit: {
-		adapter: adapter()
+		adapter: adapter({
+			platformProxy: {
+				persist: false
+			}
+		})
 	}
 };
 
