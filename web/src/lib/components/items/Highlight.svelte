@@ -15,9 +15,10 @@
 	interface Props {
 		item: Item;
 		createdAtFormat?: 'auto' | 'time';
+		full?: boolean;
 	}
 
-	let { item, createdAtFormat = 'auto' }: Props = $props();
+	let { item, createdAtFormat = 'auto', full = false }: Props = $props();
 
 	let event = $derived(item.event);
 
@@ -41,7 +42,7 @@
 	let comment = $derived(event.tags.find((tag) => tag[0] === 'comment' && tag[1])?.[1]);
 </script>
 
-<EventMetadata {item} {createdAtFormat}>
+<EventMetadata {item} {createdAtFormat} {full}>
 	{#snippet content()}
 		<section class="highlight">
 			{#if comment}

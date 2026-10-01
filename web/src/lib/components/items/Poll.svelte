@@ -10,9 +10,10 @@
 	interface Props {
 		item: Item;
 		createdAtFormat?: 'auto' | 'time';
+		full?: boolean;
 	}
 
-	let { item, createdAtFormat = 'auto' }: Props = $props();
+	let { item, createdAtFormat = 'auto', full = false }: Props = $props();
 
 	let optionTags = $derived(item.event.tags.filter(([tagName]) => tagName === 'option'));
 	let relays = $derived(
@@ -62,7 +63,7 @@
 	}
 </script>
 
-<EventMetadata {item} {createdAtFormat}>
+<EventMetadata {item} {createdAtFormat} {full}>
 	{#snippet content()}
 		<section>
 			<div class="content">

@@ -53,7 +53,7 @@
 	});
 </script>
 
-<EventMetadata {item} {createdAtFormat}>
+<EventMetadata {item} {createdAtFormat} {full}>
 	{#snippet content()}
 		<section class="podcast-episode">
 			{#if image !== undefined || episode.title !== undefined || podcastMetadata?.title !== undefined || websites.length > 0}

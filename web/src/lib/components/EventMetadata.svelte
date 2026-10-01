@@ -11,11 +11,12 @@
 	interface Props {
 		item: Item;
 		createdAtFormat?: 'auto' | 'time';
+		full?: boolean;
 		icon?: import('svelte').Snippet;
 		content?: import('svelte').Snippet;
 	}
 
-	let { item, createdAtFormat = 'auto', icon, content }: Props = $props();
+	let { item, createdAtFormat = 'auto', full = false, icon, content }: Props = $props();
 
 	let eventItem = $derived(item as EventItem);
 	let metadata = $derived($metadataStore.get(eventItem.event.pubkey));
@@ -51,7 +52,7 @@
 				<CreatedAt createdAt={item.event.created_at} format={createdAtFormat} />
 			</div>
 		</div>
-		{#if $showUserStatus}
+		{#if full || $showUserStatus}
 			<div>
 				<UserStatus pubkey={item.event.pubkey} />
 			</div>

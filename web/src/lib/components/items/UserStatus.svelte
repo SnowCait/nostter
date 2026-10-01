@@ -10,9 +10,10 @@
 	interface Props {
 		item: Item;
 		createdAtFormat?: 'auto' | 'time';
+		full?: boolean;
 	}
 
-	let { item, createdAtFormat = 'auto' }: Props = $props();
+	let { item, createdAtFormat = 'auto', full = false }: Props = $props();
 
 	let identifier = $derived(item.event.tags.find(([tagName]) => tagName === 'd')?.at(1) ?? '');
 	let link = $derived(
@@ -20,7 +21,7 @@
 	);
 </script>
 
-<EventMetadata {item} {createdAtFormat}>
+<EventMetadata {item} {createdAtFormat} {full}>
 	{#snippet icon()}
 		{#if identifier === 'general'}
 			<IconUser />
