@@ -11,6 +11,7 @@
 			// Register before the SvelteKit head so stylesheet failures can be observed before app modules load.
 			(() => {
 				const maxStylesheets = 32;
+				const maxJavascriptResources = 16;
 				const sentTypes = new Set();
 
 				const toSameOriginPath = (href) => {
@@ -55,6 +56,41 @@
 					}
 				};
 
+				// Snapshots already buffered entries to tell whether JavaScript assets failed alongside stylesheets.
+				// Selected by path because preloaded modules have an initiatorType other than script.
+				// Scans from the newest entry to keep the assets loaded closest to the failure.
+				const javascriptResources = () => {
+					try {
+						const entries = performance.getEntriesByType('resource');
+						const resources = new Map();
+						for (
+							let i = entries.length - 1;
+							i >= 0 && resources.size < maxJavascriptResources;
+							i--
+						) {
+							const entry = entries[i];
+							const path = toSameOriginPath(entry.name);
+							if (
+								path?.startsWith('/_app/immutable/') &&
+								path.endsWith('.js') &&
+								!resources.has(path)
+							) {
+								resources.set(path, {
+									path,
+									initiatorType: entry.initiatorType,
+									responseStatus:
+										typeof entry.responseStatus === 'number'
+											? entry.responseStatus
+											: null
+								});
+							}
+						}
+						return [...resources.values()].reverse();
+					} catch {
+						return [];
+					}
+				};
+
 				const send = (type, stylesheetPath) => {
 					if (sentTypes.has(type)) {
 						return;
@@ -87,6 +123,7 @@
 								unavailableStylesheetPaths: stylesheets
 									.filter(({ sheet }) => sheet === null)
 									.map(({ path }) => path),
+								javascriptResources: javascriptResources(),
 								timestamp: Date.now(),
 								standalone:
 									matchMedia('(display-mode: standalone)').matches ||

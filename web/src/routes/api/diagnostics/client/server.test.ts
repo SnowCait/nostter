@@ -12,10 +12,25 @@ const validPayload = {
 	stylesheetPaths: ['/_app/immutable/assets/0.Bx3k2Lm.css', '/_app/immutable/assets/2.C9dE.css'],
 	stylesheetResponseStatuses: [503, 200],
 	unavailableStylesheetPaths: ['/_app/immutable/assets/0.Bx3k2Lm.css'],
+	javascriptResources: [
+		{
+			path: '/_app/immutable/entry/start.D4kQ.js',
+			initiatorType: 'link',
+			responseStatus: 503
+		},
+		{ path: '/_app/immutable/chunks/Cx9a-b_1.js', initiatorType: 'script', responseStatus: 200 }
+	],
 	timestamp: 1790000000000,
 	standalone: true,
 	serviceWorkerControlled: false
 };
+
+const javascriptResource = (overrides: Record<string, unknown> = {}) => ({
+	path: '/_app/immutable/entry/app.js',
+	initiatorType: 'script',
+	responseStatus: 200,
+	...overrides
+});
 
 const post = (
 	body: string,
@@ -44,6 +59,20 @@ const expectedLog = {
 				{ path: '/_app/immutable/assets/2.C9dE.css', responseStatus: 200 }
 			],
 			unavailable: ['/_app/immutable/assets/0.Bx3k2Lm.css']
+		},
+		javascript: {
+			resources: [
+				{
+					path: '/_app/immutable/entry/start.D4kQ.js',
+					initiatorType: 'link',
+					responseStatus: 503
+				},
+				{
+					path: '/_app/immutable/chunks/Cx9a-b_1.js',
+					initiatorType: 'script',
+					responseStatus: 200
+				}
+			]
 		},
 		client: {
 			standalone: true,
@@ -102,7 +131,22 @@ describe('POST /api/diagnostics/client', () => {
 
 	it('accepts unavailable response statuses', async () => {
 		const response = await post(
-			JSON.stringify({ ...validPayload, stylesheetResponseStatuses: [null, 0] })
+			JSON.stringify({
+				...validPayload,
+				stylesheetResponseStatuses: [null, 0],
+				javascriptResources: [
+					{
+						path: '/_app/immutable/entry/app.js',
+						initiatorType: 'link',
+						responseStatus: 0
+					},
+					{
+						path: '/_app/immutable/nodes/0.js',
+						initiatorType: 'early-hints',
+						responseStatus: null
+					}
+				]
+			})
 		);
 
 		expect(response.status).toBe(204);
@@ -114,8 +158,38 @@ describe('POST /api/diagnostics/client', () => {
 						{ path: '/_app/immutable/assets/0.Bx3k2Lm.css', responseStatus: null },
 						{ path: '/_app/immutable/assets/2.C9dE.css', responseStatus: 0 }
 					]
-				})
+				}),
+				javascript: {
+					resources: [
+						{
+							path: '/_app/immutable/entry/app.js',
+							initiatorType: 'link',
+							responseStatus: 0
+						},
+						{
+							path: '/_app/immutable/nodes/0.js',
+							initiatorType: 'early-hints',
+							responseStatus: null
+						}
+					]
+				}
 			})
+		});
+	});
+
+	it('accepts up to 16 JavaScript resources', async () => {
+		const javascriptResources = Array.from({ length: 16 }, (_, i) => ({
+			path: `/_app/immutable/chunks/${i}.js`,
+			initiatorType: 'link',
+			responseStatus: 200
+		}));
+
+		const response = await post(JSON.stringify({ ...validPayload, javascriptResources }));
+
+		expect(response.status).toBe(204);
+		expect(error).toHaveBeenCalledWith({
+			message: 'client-css-diagnostic',
+			diagnostic: expect.objectContaining({ javascript: { resources: javascriptResources } })
 		});
 	});
 
@@ -128,6 +202,11 @@ describe('POST /api/diagnostics/client', () => {
 				npub: 'npub1injected',
 				diagnostic: { type: 'injected' },
 				stylesheets: { injected: true },
+				javascript: { injected: true },
+				javascriptResources: validPayload.javascriptResources.map((resource) => ({
+					...resource,
+					injected: true
+				})),
 				client: { userAgent: 'injected' },
 				server: { gitSha: 'injected' }
 			})
@@ -173,6 +252,90 @@ describe('POST /api/diagnostics/client', () => {
 			'too many response statuses',
 			{ ...validPayload, stylesheetResponseStatuses: [503, 200, 200] }
 		],
+		['missing JavaScript resources', { ...validPayload, javascriptResources: undefined }],
+		['non-array JavaScript resources', { ...validPayload, javascriptResources: {} }],
+		[
+			'too many JavaScript resources',
+			{ ...validPayload, javascriptResources: Array(17).fill(javascriptResource()) }
+		],
+		['a non-object JavaScript resource', { ...validPayload, javascriptResources: ['/a.js'] }],
+		[
+			'a JavaScript path outside immutable assets',
+			{
+				...validPayload,
+				javascriptResources: [javascriptResource({ path: '/_app/version.js' })]
+			}
+		],
+		[
+			'a non-JavaScript path',
+			{
+				...validPayload,
+				javascriptResources: [javascriptResource({ path: '/_app/immutable/assets/0.css' })]
+			}
+		],
+		[
+			'a JavaScript URL',
+			{
+				...validPayload,
+				javascriptResources: [
+					javascriptResource({ path: 'https://nostter.app/_app/immutable/entry/app.js' })
+				]
+			}
+		],
+		[
+			'a JavaScript path with a query',
+			{
+				...validPayload,
+				javascriptResources: [
+					javascriptResource({ path: '/_app/immutable/entry/app.js?value=secret' })
+				]
+			}
+		],
+		[
+			'a too long JavaScript path',
+			{
+				...validPayload,
+				javascriptResources: [
+					javascriptResource({ path: `/_app/immutable/${'a'.repeat(238)}.js` })
+				]
+			}
+		],
+		[
+			'a missing initiator type',
+			{
+				...validPayload,
+				javascriptResources: [javascriptResource({ initiatorType: undefined })]
+			}
+		],
+		[
+			'an empty initiator type',
+			{ ...validPayload, javascriptResources: [javascriptResource({ initiatorType: '' })] }
+		],
+		[
+			'an initiator type with invalid characters',
+			{
+				...validPayload,
+				javascriptResources: [javascriptResource({ initiatorType: 'Script<' })]
+			}
+		],
+		[
+			'a too long initiator type',
+			{
+				...validPayload,
+				javascriptResources: [javascriptResource({ initiatorType: 'a'.repeat(33) })]
+			}
+		],
+		[
+			'a string JavaScript response status',
+			{ ...validPayload, javascriptResources: [javascriptResource({ responseStatus: '0' })] }
+		],
+		[
+			'a missing JavaScript response status',
+			{
+				...validPayload,
+				javascriptResources: [javascriptResource({ responseStatus: undefined })]
+			}
+		],
 		['a missing field', { ...validPayload, standalone: undefined }],
 		['a non-integer timestamp', { ...validPayload, timestamp: 1.5 }],
 		['a non-object payload', [validPayload]]
@@ -190,8 +353,20 @@ describe('POST /api/diagnostics/client', () => {
 		expect(error).not.toHaveBeenCalled();
 	});
 
+	it('accepts a body up to 8192 bytes', async () => {
+		const body = JSON.stringify({ ...validPayload, padding: '' });
+		const response = await post(
+			JSON.stringify({ ...validPayload, padding: 'a'.repeat(8192 - body.length) })
+		);
+
+		expect(response.status).toBe(204);
+	});
+
 	it('rejects a too large body', async () => {
-		const response = await post(JSON.stringify({ ...validPayload, padding: 'a'.repeat(4096) }));
+		const body = JSON.stringify({ ...validPayload, padding: '' });
+		const response = await post(
+			JSON.stringify({ ...validPayload, padding: 'a'.repeat(8193 - body.length) })
+		);
 
 		expect(response.status).toBe(413);
 		expect(error).not.toHaveBeenCalled();
