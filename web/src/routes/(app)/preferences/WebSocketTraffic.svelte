@@ -3,6 +3,7 @@
 	import { _, locale } from 'svelte-i18n';
 	import type { WebSocketMetricsSnapshot, WebSocketTrafficMetrics } from 'websocket-metrics';
 	import { metrics } from '$lib/platform/browser/websocket-metrics';
+	import { getDefaultReadRelays } from '$lib/RxNostrHelper';
 	import { formatBytes } from './format-bytes';
 
 	let snapshot = $state.raw<WebSocketMetricsSnapshot>({
@@ -21,6 +22,13 @@
 			)
 			.map(([url]) => url)
 	);
+	const relays = $derived.by(() => {
+		const readRelays = new Set(getDefaultReadRelays());
+		return {
+			subscribed: urls.filter((url) => readRelays.has(url)),
+			others: urls.filter((url) => !readRelays.has(url))
+		};
+	});
 
 	onMount(() => metrics?.subscribe((current) => (snapshot = current)));
 </script>
@@ -49,12 +57,28 @@
 <h4>{$_('preferences.websocket_traffic.total')}</h4>
 {@render counts(snapshot.total)}
 
-{#each urls as url (url)}
+{#if urls.length === 0}
+	<p>{$_('preferences.websocket_traffic.empty')}</p>
+{/if}
+
+{#each relays.subscribed as url (url)}
 	<h4 class="url">{url}</h4>
 	{@render counts(snapshot.byKey[url])}
-{:else}
-	<p>{$_('preferences.websocket_traffic.empty')}</p>
 {/each}
+
+{#if relays.others.length > 0}
+	<details>
+		<summary>
+			{$_('preferences.websocket_traffic.other_relays', {
+				values: { count: relays.others.length }
+			})}
+		</summary>
+		{#each relays.others as url (url)}
+			<h4 class="url">{url}</h4>
+			{@render counts(snapshot.byKey[url])}
+		{/each}
+	</details>
+{/if}
 
 <style>
 	h4 {

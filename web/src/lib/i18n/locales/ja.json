@@ -189,7 +189,8 @@
 			"sent": "送信",
 			"received": "受信",
 			"messages": "{count, number} メッセージ",
-			"empty": "まだ WebSocket 通信はありません。"
+			"empty": "まだ WebSocket 通信はありません。",
+			"other_relays": "その他のリレー {count, number} 件"
 		},
 		"developer_mode": "開発者モード",
 		"developer_mode_description": "（追加の機能を提供しますが Nostr の知識が必要です）",

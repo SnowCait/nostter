@@ -190,7 +190,8 @@
 			"sent": "Sent",
 			"received": "Received",
 			"messages": "{count, plural, one {# message} other {# messages}}",
-			"empty": "No WebSocket traffic yet."
+			"empty": "No WebSocket traffic yet.",
+			"other_relays": "Other relays ({count, number})"
 		},
 		"developer_mode": "Developer mode",
 		"developer_mode_description": "(Provide additional features, but they require knowledge of Nostr)",
