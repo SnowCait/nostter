@@ -10,3 +10,7 @@ export function isRelayUrl(value: unknown): value is string {
 		return false;
 	}
 }
+
+export function isSecureRelayUrl(value: unknown): value is string {
+	return typeof value === 'string' && URL.parse(value)?.protocol === 'wss:';
+}

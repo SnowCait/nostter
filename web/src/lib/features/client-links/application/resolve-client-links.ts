@@ -1,7 +1,17 @@
 import type { Event } from 'nostr-tools';
 import * as nip19 from 'nostr-tools/nip19';
 import { get } from 'svelte/store';
-import { EMPTY, catchError, concat, defer, ignoreElements, of, tap, type Observable } from 'rxjs';
+import {
+	EMPTY,
+	catchError,
+	concat,
+	defer,
+	distinctUntilChanged,
+	filter,
+	map,
+	of,
+	type Observable
+} from 'rxjs';
 import { replaceableEventsStore } from '$lib/cache/Events';
 import { getEventAddress } from '$lib/nostr/protocol/event-address';
 import {
@@ -21,7 +31,38 @@ type ClientHandler = NonNullable<ClientTag['handler']>;
 
 type TargetEvent = Pick<Event, 'id' | 'pubkey' | 'kind' | 'tags'>;
 
-export function collectClientHandlers(clients: ClientTag[]): {
+export function resolveClientLinks(event: TargetEvent): Observable<ClientLinks> {
+	const { handlers, relays } = collectClientHandlers(parseClientTags(event.tags));
+	if (handlers.length === 0) {
+		return EMPTY;
+	}
+
+	const cachedLinks = defer(() => of(resolveFromCache(event, handlers)));
+	const cache = get(replaceableEventsStore);
+	const missingHandlers = handlers.filter(({ address }) => !cache.has(address));
+	if (missingHandlers.length === 0) {
+		return cachedLinks;
+	}
+
+	const missingAddresses = new Set(missingHandlers.map(({ address }) => address));
+	const fetchedLinks = requestEvents(
+		missingHandlers.map(({ pointer }) => createHandlerInformationFilter(pointer, event.kind)),
+		{ relays, defaultReadRelays: true }
+	).pipe(
+		filter(
+			(handler) =>
+				missingAddresses.has(getEventAddress(handler)) && storeHandlerInformation(handler)
+		),
+		map(() => resolveFromCache(event, handlers)),
+		catchError((error) => {
+			console.warn('[client handler fetch error]', error);
+			return EMPTY;
+		})
+	);
+	return concat(cachedLinks, fetchedLinks).pipe(distinctUntilChanged(equalLinks));
+}
+
+function collectClientHandlers(clients: ClientTag[]): {
 	handlers: ClientHandler[];
 	relays: string[];
 } {
@@ -41,45 +82,15 @@ export function collectClientHandlers(clients: ClientTag[]): {
 	return { handlers: [...handlers.values()], relays: [...relays] };
 }
 
-export function resolveClientLinks(event: TargetEvent): Observable<ClientLinks> {
-	const { handlers, relays } = collectClientHandlers(parseClientTags(event.tags));
-	if (handlers.length === 0) {
-		return EMPTY;
-	}
-
-	const cachedLinks = defer(() => of(resolveFromCache(event, handlers)));
-	const cache = get(replaceableEventsStore);
-	const missingHandlers = handlers.filter(({ address }) => !cache.has(address));
-	if (missingHandlers.length === 0) {
-		return cachedLinks;
-	}
-
-	const missingAddresses = new Set(missingHandlers.map(({ address }) => address));
-	const fetchHandlers = requestEvents(
-		missingHandlers.map(({ pointer }) => createHandlerInformationFilter(pointer)),
-		{ relays, defaultReadRelays: true }
-	).pipe(
-		tap((handler) => {
-			if (missingAddresses.has(getEventAddress(handler))) {
-				storeHandlerInformation(handler);
-			}
-		}),
-		ignoreElements(),
-		catchError((error) => {
-			console.warn('[client handler fetch error]', error);
-			return EMPTY;
-		})
-	);
-	return concat(cachedLinks, fetchHandlers, cachedLinks);
-}
-
-function storeHandlerInformation(handler: Event): void {
+function storeHandlerInformation(handler: Event): boolean {
 	const address = getEventAddress(handler);
 	const $replaceableEventsStore = get(replaceableEventsStore);
-	if (shouldReplaceCurrentEvent(handler, $replaceableEventsStore.get(address))) {
-		$replaceableEventsStore.set(address, handler);
-		replaceableEventsStore.set($replaceableEventsStore);
+	if (!shouldReplaceCurrentEvent(handler, $replaceableEventsStore.get(address))) {
+		return false;
 	}
+	$replaceableEventsStore.set(address, handler);
+	replaceableEventsStore.set($replaceableEventsStore);
+	return true;
 }
 
 function resolveFromCache(event: TargetEvent, handlers: ClientHandler[]): ClientLinks {
@@ -93,10 +104,19 @@ function resolveFromCache(event: TargetEvent, handlers: ClientHandler[]): Client
 	const links = new Map<string, URL>();
 	for (const { address } of handlers) {
 		const handler = cache.get(address);
-		const link = handler === undefined ? undefined : resolveHandlerLink(handler, nevent);
+		const link =
+			handler === undefined
+				? undefined
+				: resolveHandlerLink(handler, { kind: event.kind, nevent });
 		if (link !== undefined) {
 			links.set(address, link);
 		}
 	}
 	return links;
+}
+
+function equalLinks(a: ClientLinks, b: ClientLinks): boolean {
+	return (
+		a.size === b.size && [...a].every(([address, link]) => b.get(address)?.href === link.href)
+	);
 }

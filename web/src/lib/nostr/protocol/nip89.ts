@@ -1,10 +1,9 @@
 import type { Event, Filter } from 'nostr-tools';
+import { Handlerinformation } from 'nostr-tools/kinds';
 import type { AddressPointer } from 'nostr-tools/nip19';
 import { isHttpUrl } from '$lib/url';
 import { parseEventAddress } from './event-address';
-import { isRelayUrl } from './relay-url';
-
-export const handlerInformationKind = 31990;
+import { isSecureRelayUrl } from './relay-url';
 
 export interface ClientTag {
 	name: string;
@@ -24,7 +23,7 @@ export function parseClientTags(tags: string[][]): ClientTag[] {
 		.map(([, name, address, relay]) => {
 			// Requiring the exact kind prefix keeps the address identical to getEventAddress() of the handler.
 			const pointer =
-				typeof address === 'string' && address.startsWith(`${handlerInformationKind}:`)
+				typeof address === 'string' && address.startsWith(`${Handlerinformation}:`)
 					? parseEventAddress(address)
 					: undefined;
 			if (pointer === undefined) {
@@ -32,21 +31,32 @@ export function parseClientTags(tags: string[][]): ClientTag[] {
 			}
 			return {
 				name,
-				handler: { address, pointer, relay: isRelayUrl(relay) ? relay : undefined }
+				handler: { address, pointer, relay: isSecureRelayUrl(relay) ? relay : undefined }
 			};
 		});
 }
 
-export function createHandlerInformationFilter({ pubkey, identifier }: AddressPointer): Filter {
+export function createHandlerInformationFilter(
+	{ pubkey, identifier }: AddressPointer,
+	kind: number
+): Filter {
 	return {
-		kinds: [handlerInformationKind],
+		kinds: [Handlerinformation],
 		authors: [pubkey],
 		'#d': [identifier],
+		'#k': [String(kind)],
 		limit: 1
 	};
 }
 
-export function resolveHandlerLink(handler: Event, nevent: string): URL | undefined {
+export function resolveHandlerLink(
+	handler: Event,
+	target: { kind: number; nevent: string }
+): URL | undefined {
+	if (!handler.tags.some(([name, kind]) => name === 'k' && kind === String(target.kind))) {
+		return undefined;
+	}
+
 	const webTags = handler.tags.filter(
 		([name, template]) => name === 'web' && typeof template === 'string'
 	);
@@ -55,7 +65,7 @@ export function resolveHandlerLink(handler: Event, nevent: string): URL | undefi
 		...webTags.filter(([, , entity]) => entity === undefined || entity === '')
 	].map(([, template]) => template);
 	for (const template of templates) {
-		const url = applyHandlerUrlTemplate(template, nevent);
+		const url = applyHandlerUrlTemplate(template, target.nevent);
 		if (url !== undefined) {
 			return url;
 		}
@@ -63,14 +73,14 @@ export function resolveHandlerLink(handler: Event, nevent: string): URL | undefi
 	return parseHandlerWebsite(handler.content);
 }
 
-export function applyHandlerUrlTemplate(template: string, entity: string): URL | undefined {
+function applyHandlerUrlTemplate(template: string, entity: string): URL | undefined {
 	if (!template.includes('<bech32>')) {
 		return undefined;
 	}
 	return parseHttpUrl(template.replaceAll('<bech32>', entity));
 }
 
-export function parseHandlerWebsite(content: string): URL | undefined {
+function parseHandlerWebsite(content: string): URL | undefined {
 	let metadata: unknown;
 	try {
 		metadata = JSON.parse(content);

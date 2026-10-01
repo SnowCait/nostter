@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from 'nostr-tools';
+import { Handlerinformation, LongFormArticle, ShortTextNote } from 'nostr-tools/kinds';
 import * as nip19 from 'nostr-tools/nip19';
-import { writable } from 'svelte/store';
-import { NEVER, lastValueFrom, of, throwError, toArray } from 'rxjs';
+import { get, writable } from 'svelte/store';
+import { Subject, lastValueFrom, of, throwError, toArray } from 'rxjs';
 
 const mocks = vi.hoisted(() => ({
 	requestEvents: vi.fn(),
@@ -14,18 +15,17 @@ vi.mock('$lib/nostr/relay/event-operations', () => ({ requestEvents: mocks.reque
 vi.mock('$lib/nostr/relay/relay-hints', () => ({ getSeenOnRelays: mocks.getSeenOnRelays }));
 
 import { replaceableEventsStore } from '$lib/cache/Events';
-import { parseClientTags } from '$lib/nostr/protocol/nip89';
-import { collectClientHandlers, resolveClientLinks } from './resolve-client-links';
+import { resolveClientLinks, type ClientLinks } from './resolve-client-links';
 
 const appPubkey = 'a'.repeat(64);
-const fooAddress = `31990:${appPubkey}:foo`;
-const barAddress = `31990:${appPubkey}:bar`;
+const fooAddress = `${Handlerinformation}:${appPubkey}:foo`;
+const barAddress = `${Handlerinformation}:${appPubkey}:bar`;
 
 function note(tags: string[][]): Event {
 	return {
 		id: 'b'.repeat(64),
 		pubkey: 'c'.repeat(64),
-		kind: 1,
+		kind: ShortTextNote,
 		tags,
 		content: '',
 		created_at: 1,
@@ -36,20 +36,34 @@ function note(tags: string[][]): Event {
 function handler(
 	identifier: string,
 	tags: string[][],
-	{ content = '', created_at = 1 } = {}
+	{ content = '', created_at = 1, kinds = [ShortTextNote] } = {}
 ): Event {
 	return {
 		id: `${identifier}${created_at}`.padEnd(64, '0'),
 		pubkey: appPubkey,
-		kind: 31990,
-		tags: [['d', identifier], ...tags],
+		kind: Handlerinformation,
+		tags: [['d', identifier], ...kinds.map((kind) => ['k', String(kind)]), ...tags],
 		content,
 		created_at,
 		sig: 'e'.repeat(128)
 	};
 }
 
-function resolve(event: Event) {
+function handlerFilter(identifier: string) {
+	return {
+		kinds: [Handlerinformation],
+		authors: [appPubkey],
+		'#d': [identifier],
+		'#k': [String(ShortTextNote)],
+		limit: 1
+	};
+}
+
+function hrefs(links: ClientLinks | undefined): Record<string, string> {
+	return Object.fromEntries([...(links ?? [])].map(([address, url]) => [address, url.href]));
+}
+
+function resolve(event: Event): Promise<ClientLinks[]> {
 	return lastValueFrom(resolveClientLinks(event).pipe(toArray()));
 }
 
@@ -58,72 +72,83 @@ beforeEach(() => {
 	replaceableEventsStore.set(new Map());
 });
 
-describe('collectClientHandlers', () => {
-	it('deduplicates handler addresses and relay hints', () => {
-		const { handlers, relays } = collectClientHandlers(
-			parseClientTags([
-				['client', 'Foo', fooAddress, 'wss://relay1'],
-				['client', 'Foo', fooAddress, 'wss://relay2'],
-				['client', 'Bar', barAddress, 'wss://relay1'],
-				['client', 'Baz']
-			])
-		);
-		expect(handlers.map(({ address }) => address)).toEqual([fooAddress, barAddress]);
-		expect(relays).toEqual(['wss://relay1', 'wss://relay2']);
-	});
-});
-
 describe('resolveClientLinks', () => {
-	it('requests all handlers in a single REQ to relay hints and default read relays', async () => {
-		mocks.requestEvents.mockReturnValue(
-			of(
-				handler('foo', [], {
-					content: JSON.stringify({ website: 'https://foo.example/' })
-				}),
-				handler('bar', [])
-			)
-		);
+	it('requests deduplicated handlers in a single REQ to secure relay hints and default read relays', async () => {
+		mocks.requestEvents.mockReturnValue(of());
 
-		const links = await resolve(
+		await resolve(
 			note([
 				['client', 'Foo', fooAddress, 'wss://relay1'],
 				['client', 'Bar', barAddress, 'wss://relay2'],
-				['client', 'Foo', fooAddress, 'wss://relay1']
+				['client', 'Foo', fooAddress, 'wss://relay1'],
+				['client', 'Bar', barAddress, 'ws://insecure']
 			])
 		);
 
 		expect(mocks.requestEvents).toHaveBeenCalledOnce();
 		expect(mocks.requestEvents).toHaveBeenCalledWith(
-			[
-				{ kinds: [31990], authors: [appPubkey], '#d': ['foo'], limit: 1 },
-				{ kinds: [31990], authors: [appPubkey], '#d': ['bar'], limit: 1 }
-			],
+			[handlerFilter('foo'), handlerFilter('bar')],
 			{ relays: ['wss://relay1', 'wss://relay2'], defaultReadRelays: true }
 		);
-		expect(links.at(-1)).toEqual(new Map([[fooAddress, new URL('https://foo.example/')]]));
 	});
 
-	it('queries default read relays without relay hints', async () => {
+	it('queries default read relays without secure relay hints', async () => {
 		mocks.requestEvents.mockReturnValue(of());
 
-		await resolve(note([['client', 'Foo', fooAddress]]));
+		await resolve(note([['client', 'Foo', fooAddress, 'ws://insecure']]));
 
-		expect(mocks.requestEvents).toHaveBeenCalledWith(expect.any(Array), {
+		expect(mocks.requestEvents).toHaveBeenCalledWith([handlerFilter('foo')], {
 			relays: [],
 			defaultReadRelays: true
 		});
 	});
 
-	it('does not request kind 0 when the handler has no metadata', async () => {
-		mocks.requestEvents.mockReturnValue(of(handler('foo', [])));
+	it('emits a link as soon as a handler arrives without waiting for the REQ to complete', () => {
+		const events = new Subject<Event>();
+		mocks.requestEvents.mockReturnValue(events);
+		const emitted: ClientLinks[] = [];
 
-		const links = await resolve(note([['client', 'Foo', fooAddress]]));
+		const subscription = resolveClientLinks(
+			note([
+				['client', 'Foo', fooAddress],
+				['client', 'Bar', barAddress, 'wss://dead']
+			])
+		).subscribe((links) => emitted.push(links));
+		events.next(handler('foo', [['web', 'https://foo.example/<bech32>']]));
 
-		expect(mocks.requestEvents).toHaveBeenCalledOnce();
-		expect(mocks.requestEvents.mock.calls[0][0]).toEqual([
-			expect.objectContaining({ kinds: [31990] })
+		expect(emitted.map(hrefs)).toEqual([
+			{},
+			{ [fooAddress]: expect.stringMatching(/^https:\/\/foo\.example\/nevent1/) }
 		]);
-		expect(links.at(-1)).toEqual(new Map());
+		subscription.unsubscribe();
+		expect(events.observed).toBe(false);
+	});
+
+	it('updates the link only when a newer handler replaces the cache', () => {
+		const events = new Subject<Event>();
+		mocks.requestEvents.mockReturnValue(events);
+		const emitted: ClientLinks[] = [];
+		resolveClientLinks(note([['client', 'Foo', fooAddress]])).subscribe((links) =>
+			emitted.push(links)
+		);
+		const older = handler('foo', [['web', 'https://old.example/<bech32>']], {
+			created_at: 1
+		});
+		const newer = handler('foo', [['web', 'https://new.example/<bech32>']], {
+			created_at: 2
+		});
+
+		events.next(older);
+		events.next(newer);
+		events.next(older);
+		events.next(handler('foo', [['web', 'https://new.example/<bech32>']], { created_at: 3 }));
+
+		expect(emitted.map((links) => links.get(fooAddress)?.hostname)).toEqual([
+			undefined,
+			'old.example',
+			'new.example'
+		]);
+		expect(get(replaceableEventsStore).get(fooAddress)?.created_at).toBe(3);
 	});
 
 	it('links the nevent of the target event with known relay hints', async () => {
@@ -138,25 +163,43 @@ describe('resolveClientLinks', () => {
 		const nevent = links.at(-1)?.get(fooAddress)?.pathname.slice(1) ?? '';
 		expect(nip19.decode(nevent)).toEqual({
 			type: 'nevent',
-			data: { id: event.id, author: event.pubkey, kind: 1, relays: ['wss://seen'] }
+			data: {
+				id: event.id,
+				author: event.pubkey,
+				kind: ShortTextNote,
+				relays: ['wss://seen']
+			}
 		});
 	});
 
-	it('keeps the latest version of the handler in the cache', async () => {
-		const older = handler('foo', [['web', 'https://old.example/<bech32>']], {
-			created_at: 1
-		});
-		const latest = handler('foo', [['web', 'https://new.example/<bech32>']], {
-			created_at: 2
-		});
-		mocks.requestEvents.mockReturnValue(of(latest, older));
+	it('does not link a handler without a k tag for the target kind', async () => {
+		mocks.requestEvents.mockReturnValue(
+			of(
+				handler('foo', [['web', 'https://foo.example/<bech32>']], {
+					kinds: [LongFormArticle]
+				}),
+				handler('bar', [['web', 'https://bar.example/<bech32>']], { kinds: [] })
+			)
+		);
+
+		const links = await resolve(
+			note([
+				['client', 'Foo', fooAddress],
+				['client', 'Bar', barAddress]
+			])
+		);
+
+		expect(links.map(hrefs)).toEqual([{}]);
+	});
+
+	it('does not request kind 0 when the handler has no metadata', async () => {
+		mocks.requestEvents.mockReturnValue(of(handler('foo', [])));
 
 		const links = await resolve(note([['client', 'Foo', fooAddress]]));
 
-		expect(links.at(-1)?.get(fooAddress)?.hostname).toBe('new.example');
-		replaceableEventsStore.subscribe((events) => {
-			expect(events.get(fooAddress)).toBe(latest);
-		})();
+		expect(mocks.requestEvents).toHaveBeenCalledOnce();
+		expect(mocks.requestEvents.mock.calls[0][0]).toEqual([handlerFilter('foo')]);
+		expect(links.map(hrefs)).toEqual([{}]);
 	});
 
 	it('ignores events that were not requested', async () => {
@@ -166,23 +209,19 @@ describe('resolveClientLinks', () => {
 
 		const links = await resolve(note([['client', 'Foo', fooAddress]]));
 
-		expect(links.at(-1)).toEqual(new Map());
-		replaceableEventsStore.subscribe((events) => {
-			expect(events.size).toBe(0);
-		})();
+		expect(links.map(hrefs)).toEqual([{}]);
+		expect(get(replaceableEventsStore).size).toBe(0);
 	});
 
 	it('uses the cached handler without a REQ', async () => {
 		replaceableEventsStore.set(
 			new Map([[fooAddress, handler('foo', [['web', 'https://foo.example/<bech32>']])]])
 		);
-		mocks.requestEvents.mockReturnValue(NEVER);
 
 		const links = await resolve(note([['client', 'Foo', fooAddress]]));
 
 		expect(mocks.requestEvents).not.toHaveBeenCalled();
-		expect(links).toHaveLength(1);
-		expect(links[0].get(fooAddress)?.hostname).toBe('foo.example');
+		expect(links.map((links) => links.get(fooAddress)?.hostname)).toEqual(['foo.example']);
 	});
 
 	it('requests only handlers that are not cached', async () => {
@@ -196,17 +235,14 @@ describe('resolveClientLinks', () => {
 			])
 		);
 
-		expect(mocks.requestEvents).toHaveBeenCalledWith(
-			[{ kinds: [31990], authors: [appPubkey], '#d': ['bar'], limit: 1 }],
-			expect.anything()
-		);
+		expect(mocks.requestEvents).toHaveBeenCalledWith([handlerFilter('bar')], expect.anything());
 	});
 
 	it('does not request without valid client handlers', async () => {
 		const links = await resolve(
 			note([
 				['client', 'Foo'],
-				['client', 'Bar', `30023:${appPubkey}:bar`]
+				['client', 'Bar', `${LongFormArticle}:${appPubkey}:bar`]
 			])
 		);
 
@@ -214,12 +250,12 @@ describe('resolveClientLinks', () => {
 		expect(links).toEqual([]);
 	});
 
-	it('falls back to no links when the request fails', async () => {
+	it('keeps the links without an error when the request fails', async () => {
 		vi.spyOn(console, 'warn').mockImplementation(() => {});
 		mocks.requestEvents.mockReturnValue(throwError(() => new Error('relay unavailable')));
 
 		const links = await resolve(note([['client', 'Foo', fooAddress]]));
 
-		expect(links.at(-1)).toEqual(new Map());
+		expect(links.map(hrefs)).toEqual([{}]);
 	});
 });

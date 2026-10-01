@@ -52,7 +52,7 @@
 
 	let customEmojiData = $state(new Map<string, { shortcode: string; address?: string }>());
 
-	let clientLinks: ClientLinks | undefined = $state();
+	let clientLinks = $state<ClientLinks>();
 
 	async function fetchReplies(
 		originalReplyId: string | undefined,

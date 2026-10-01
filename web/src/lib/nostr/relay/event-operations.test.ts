@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from 'nostr-tools';
+import { Handlerinformation } from 'nostr-tools/kinds';
 import { EMPTY, lastValueFrom, of, throwError, toArray } from 'rxjs';
 import { rxNostr } from '$lib/relay-client';
 import {
@@ -53,8 +54,8 @@ describe('relay event operations', () => {
 
 	it('emits all filters once to the given relays and completes the backward request', async () => {
 		const filters = [
-			{ kinds: [31990], authors: [pubkey], '#d': ['a'], limit: 1 },
-			{ kinds: [31990], authors: [pubkey], '#d': ['b'], limit: 1 }
+			{ kinds: [Handlerinformation], authors: [pubkey], '#d': ['a'], limit: 1 },
+			{ kinds: [Handlerinformation], authors: [pubkey], '#d': ['b'], limit: 1 }
 		];
 		const on = { relays: ['wss://hint'], defaultReadRelays: true };
 		const first = event(1);
