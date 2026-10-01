@@ -114,14 +114,17 @@
 	}
 
 	summary {
-		margin: 1rem -0.25rem 0;
-		padding: 0.5rem 0.25rem;
+		margin-top: 1rem;
+		padding: 0.5rem 0.75rem;
 		border-radius: var(--radius);
+		background-color: var(--accent-surface-low);
 		font-weight: bold;
 		cursor: pointer;
 	}
 
-	summary:hover {
-		background-color: var(--hover-background-color);
+	@media (hover: hover) {
+		summary:hover {
+			background-color: var(--accent-surface-high);
+		}
 	}
 </style>
