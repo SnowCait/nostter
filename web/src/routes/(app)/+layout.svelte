@@ -6,7 +6,7 @@
 	import Header from './Header.svelte';
 	import NoteDialog from './NoteDialog.svelte';
 	import { setOpenNoteDialog, type OpenNoteDialog } from '$lib/NoteDialogContext';
-	import { fetchLastNotification } from '$lib/author/Notifications';
+	import { fetchLastNotification, notifiedEventItems } from '$lib/author/Notifications';
 	import { onMount } from 'svelte';
 	import Gdpr from '$lib/components/Gdpr.svelte';
 	import '$lib/styles/menu.css';
@@ -114,6 +114,8 @@
 				if (hiddenAt !== undefined) {
 					const visibleAt = now();
 					if (visibleAt - hiddenAt > fetchMinutes(auth.followees.length) * 60) {
+						notifiedEventItems.set([]);
+						void fetchLastNotification();
 						homeTimeline.clear();
 						homeTimeline.older();
 					} else if (visibleAt > hiddenAt) {
