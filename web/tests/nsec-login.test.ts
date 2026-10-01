@@ -1,6 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { test } from '@playwright/test';
 import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
-import { expectLoggedInHome, publishFollowList } from './login-helpers';
+import { expectLoggedInHome, expectSigningSession, publishFollowList } from './login-helpers';
 
 test('logs in with nsec and restores the signing session on startup', async ({ context, page }) => {
 	const secretKey = generateSecretKey();
@@ -9,13 +9,6 @@ test('logs in with nsec and restores the signing session on startup', async ({ c
 
 	// A non-empty follow list makes the app land on /home instead of /public.
 	await publishFollowList(secretKey, [getPublicKey(generateSecretKey())]);
-
-	// The header shows the Post button only while a signer is available, which npub login lacks.
-	const expectSigningSession = async (page: Page) => {
-		await expect(
-			page.getByRole('banner').getByRole('button', { name: 'Post', exact: true })
-		).toBeVisible();
-	};
 
 	await test.step('log in with nsec from the login dialog', async () => {
 		await page.goto('/');

@@ -27,3 +27,10 @@ export async function expectLoggedInHome(page: Page, pubkey: string): Promise<vo
 		page.getByRole('navigation').getByRole('link', { name: 'Profile' })
 	).toHaveAttribute('href', `/${nip19.nprofileEncode({ pubkey })}`);
 }
+
+// The header shows the Post button only while a signer is available.
+export async function expectSigningSession(page: Page): Promise<void> {
+	await expect(
+		page.getByRole('banner').getByRole('button', { name: 'Post', exact: true })
+	).toBeVisible();
+}
