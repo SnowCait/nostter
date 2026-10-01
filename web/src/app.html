@@ -58,12 +58,23 @@
 
 				// Snapshots already buffered entries to tell whether JavaScript assets failed alongside stylesheets.
 				// Selected by path because preloaded modules have an initiatorType other than script.
+				// Scans from the newest entry to keep the assets loaded closest to the failure.
 				const javascriptResources = () => {
 					try {
+						const entries = performance.getEntriesByType('resource');
 						const resources = new Map();
-						for (const entry of performance.getEntriesByType('resource')) {
+						for (
+							let i = entries.length - 1;
+							i >= 0 && resources.size < maxJavascriptResources;
+							i--
+						) {
+							const entry = entries[i];
 							const path = toSameOriginPath(entry.name);
-							if (path?.startsWith('/_app/immutable/') && path.endsWith('.js')) {
+							if (
+								path?.startsWith('/_app/immutable/') &&
+								path.endsWith('.js') &&
+								!resources.has(path)
+							) {
 								resources.set(path, {
 									path,
 									initiatorType: entry.initiatorType,
@@ -74,7 +85,7 @@
 								});
 							}
 						}
-						return [...resources.values()].slice(0, maxJavascriptResources);
+						return [...resources.values()].reverse();
 					} catch {
 						return [];
 					}

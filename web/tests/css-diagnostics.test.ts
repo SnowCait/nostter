@@ -141,3 +141,36 @@ test('sends the response status of JavaScript assets that failed with stylesheet
 		});
 	}
 });
+
+test('sends the newest unique JavaScript assets with their latest entries', async ({ page }) => {
+	await recordDiagnostics(page);
+	await page.route('**/_app/immutable/test/*.js?status=*', (route) =>
+		route.fulfill({
+			status: Number(new URL(route.request().url()).searchParams.get('status')),
+			contentType: 'text/javascript',
+			body: ''
+		})
+	);
+	await page.goto('/about', { waitUntil: 'networkidle' });
+	await page.evaluate(async () => {
+		for (let i = 0; i < 20; i++) {
+			await fetch(`/_app/immutable/test/${i}.js?status=200`);
+		}
+		await fetch('/_app/immutable/test/5.js?status=503');
+	});
+	await appendFailingStylesheet(page);
+
+	await expect
+		.poll(async () => (await sentDiagnostics(page)).map(({ body }) => body.type))
+		.toEqual(['stylesheet-load-error']);
+
+	const [{ body }] = await sentDiagnostics(page);
+	expect(body.javascriptResources).toEqual([
+		...[4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map((i) => ({
+			path: `/_app/immutable/test/${i}.js`,
+			initiatorType: 'fetch',
+			responseStatus: 200
+		})),
+		{ path: '/_app/immutable/test/5.js', initiatorType: 'fetch', responseStatus: 503 }
+	]);
+});
