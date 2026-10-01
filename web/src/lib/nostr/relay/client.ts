@@ -1,3 +1,4 @@
+import { MetricsWebSocket } from '$lib/platform/browser/websocket-metrics';
 import type * as Nostr from 'nostr-typedef';
 import { Nip11Registry, createRxNostr, now, type RxNostr } from 'rx-nostr';
 import { timeout } from '$lib/Constants';
@@ -14,6 +15,7 @@ type RelaySignerCapabilities = Pick<Signer, 'getPublicKey' | 'signEvent'>;
 
 export function createRelayClient(getSigner: () => RelaySignerCapabilities | undefined): RxNostr {
 	return createRxNostr({
+		websocketCtor: MetricsWebSocket,
 		verifier: verificationClient.verifier,
 		connectionStrategy: 'lazy-keep',
 		eoseTimeout: timeout,

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { MetricsWebSocket } from '$lib/platform/browser/websocket-metrics';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import { _, locale } from 'svelte-i18n';
@@ -11,7 +12,10 @@
 	onMount(() => {
 		console.log('[trend]', trendRelays);
 
-		const rxNostr = createRxNostr({ verifier: verificationClient.verifier });
+		const rxNostr = createRxNostr({
+			websocketCtor: MetricsWebSocket,
+			verifier: verificationClient.verifier
+		});
 		rxNostr.setDefaultRelays(trendRelays);
 
 		const lang = get(locale)?.startsWith('ja') ? 'ja' : 'en';

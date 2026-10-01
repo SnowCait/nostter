@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { MetricsWebSocket } from '$lib/platform/browser/websocket-metrics';
 	import { accountAddressableEventCache } from '$lib/cache/Events';
 	import { onDestroy } from 'svelte';
 	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
@@ -24,7 +25,10 @@
 
 	let items: EventItem[] = $state([]);
 
-	const rxNostr = createRxNostr({ verifier: verificationClient.verifier });
+	const rxNostr = createRxNostr({
+		websocketCtor: MetricsWebSocket,
+		verifier: verificationClient.verifier
+	});
 
 	afterNavigate(async () => {
 		const slug = $page.params.slug;
