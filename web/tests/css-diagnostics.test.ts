@@ -67,8 +67,10 @@ test('sends a stylesheet load error once per document', async ({ page }) => {
 		pathname: '/about',
 		stylesheetPath: expect.stringMatching(stylesheetAssets),
 		stylesheetPaths: expect.arrayContaining([expect.stringMatching(stylesheetAssets)]),
-		unavailableStylesheetPaths: expect.arrayContaining([body.stylesheetPath])
+		unavailableStylesheetPaths: expect.arrayContaining([body.stylesheetPath]),
+		gitSha: await page.locator('html').getAttribute('data-git-sha')
 	});
+	expect(body.gitSha).toMatch(/^(?:[0-9a-f]{40})?$/);
 	expect(JSON.stringify(body)).not.toMatch(/query|hash|localhost/);
 });
 

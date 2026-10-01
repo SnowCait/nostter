@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RequestEvent } from '@sveltejs/kit';
-import { handleError, httpStatusLogging } from './hooks.server';
+import { gitShaPlaceholder, handleError, httpStatusLogging } from './hooks.server';
 
 vi.mock('$lib/build', () => ({ gitSha: '0123456789abcdef' }));
 
@@ -133,6 +133,22 @@ describe('httpStatusLogging', () => {
 		expect(response.status).toBe(status);
 		expect(response.headers.get('Content-Security-Policy')).toBe("default-src 'self'");
 		expect(await response.text()).toBe('<html lang="ja"></html>');
+	});
+});
+
+describe('gitShaPlaceholder', () => {
+	it('embeds the build Git SHA into the page HTML', async () => {
+		const resolve: Resolve = vi.fn(async (_, options) => {
+			const html = await options?.transformPageChunk?.({
+				html: '<html lang="en" data-git-sha="%git-sha%">',
+				done: true
+			});
+			return new Response(html);
+		});
+
+		const response = await gitShaPlaceholder({ event: createEvent(), resolve });
+
+		expect(await response.text()).toBe('<html lang="en" data-git-sha="0123456789abcdef">');
 	});
 });
 

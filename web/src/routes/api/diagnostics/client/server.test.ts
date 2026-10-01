@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { POST } from './+server';
 
+const clientGitSha = '0123456789abcdef0123456789abcdef01234567';
+const serverGitSha = 'fedcba9876543210fedcba9876543210fedcba98';
+
+vi.mock('$lib/build', () => ({ gitSha: 'fedcba9876543210fedcba9876543210fedcba98' }));
+
 type Event = Parameters<typeof POST>[0];
 
 const endpoint = 'https://nostter.app/api/diagnostics/client';
@@ -22,7 +27,8 @@ const validPayload = {
 	],
 	timestamp: 1790000000000,
 	standalone: true,
-	serviceWorkerControlled: false
+	serviceWorkerControlled: false,
+	gitSha: clientGitSha
 };
 
 const javascriptResource = (overrides: Record<string, unknown> = {}) => ({
@@ -77,10 +83,11 @@ const expectedLog = {
 		client: {
 			standalone: true,
 			serviceWorkerControlled: false,
+			gitSha: clientGitSha,
 			userAgent: 'Mozilla/5.0'
 		},
 		server: {
-			gitSha: expect.any(String)
+			gitSha: serverGitSha
 		}
 	}
 };
@@ -104,6 +111,19 @@ describe('POST /api/diagnostics/client', () => {
 		expect(response.status).toBe(204);
 		expect(error).toHaveBeenCalledTimes(1);
 		expect(error).toHaveBeenCalledWith(expectedLog);
+	});
+
+	it('accepts an empty client Git SHA from a build without a commit SHA', async () => {
+		const response = await post(JSON.stringify({ ...validPayload, gitSha: '' }));
+
+		expect(response.status).toBe(204);
+		expect(error).toHaveBeenCalledWith({
+			message: 'client-css-diagnostic',
+			diagnostic: expect.objectContaining({
+				client: expect.objectContaining({ gitSha: '' }),
+				server: { gitSha: serverGitSha }
+			})
+		});
 	});
 
 	it('accepts a same-origin request without Origin and a charset parameter', async () => {
@@ -336,6 +356,13 @@ describe('POST /api/diagnostics/client', () => {
 				javascriptResources: [javascriptResource({ responseStatus: undefined })]
 			}
 		],
+		['a missing Git SHA', { ...validPayload, gitSha: undefined }],
+		['a non-string Git SHA', { ...validPayload, gitSha: 1234567 }],
+		['an abbreviated Git SHA', { ...validPayload, gitSha: clientGitSha.slice(0, 7) }],
+		['an uppercase Git SHA', { ...validPayload, gitSha: clientGitSha.toUpperCase() }],
+		['a too long Git SHA', { ...validPayload, gitSha: clientGitSha.repeat(2) }],
+		['an arbitrary Git SHA', { ...validPayload, gitSha: 'main' }],
+		['a Git SHA with whitespace', { ...validPayload, gitSha: ` ${clientGitSha}` }],
 		['a missing field', { ...validPayload, standalone: undefined }],
 		['a non-integer timestamp', { ...validPayload, timestamp: 1.5 }],
 		['a non-object payload', [validPayload]]

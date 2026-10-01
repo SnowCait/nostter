@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="%lang%">
+<html lang="%lang%" data-git-sha="%git-sha%">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="%sveltekit.assets%/favicon.svg" />
@@ -13,6 +13,8 @@
 				const maxStylesheets = 32;
 				const maxJavascriptResources = 16;
 				const sentTypes = new Set();
+				// Read once so the build that rendered this document is kept across SPA navigations.
+				const gitSha = document.documentElement.dataset.gitSha ?? '';
 
 				const toSameOriginPath = (href) => {
 					try {
@@ -130,7 +132,8 @@
 									navigator.standalone === true,
 								serviceWorkerControlled: Boolean(
 									navigator.serviceWorker?.controller
-								)
+								),
+								gitSha
 							})
 						}).catch(() => {});
 					} catch {

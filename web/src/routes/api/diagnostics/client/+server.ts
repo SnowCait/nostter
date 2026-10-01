@@ -34,6 +34,7 @@ type CssDiagnostic = {
 	client: {
 		standalone: boolean;
 		serviceWorkerControlled: boolean;
+		gitSha: string;
 	};
 };
 
@@ -44,6 +45,8 @@ const stylesheetPathPattern = /^\/(?:(?![?#])[\x21-\x7e])*$/;
 const javascriptPathPattern = /^\/_app\/immutable\/(?:(?![?#])[\x21-\x7e])*\.js$/;
 // Lowercase words joined by hyphens, such as script, link, or early-hints.
 const initiatorTypePattern = /^[a-z]+(?:-[a-z]+)*$/;
+// Full commit SHA from WORKERS_CI_COMMIT_SHA, or empty when built without it such as locally.
+const gitShaPattern = /^(?:[0-9a-f]{40})?$/;
 
 const isDiagnosticType = (value: unknown): value is CssDiagnostic['type'] =>
 	diagnosticTypes.some((type) => type === value);
@@ -97,6 +100,9 @@ const isJavascriptResources = (value: unknown): value is JavascriptResource[] =>
 	value.length <= maxJavascriptResources &&
 	value.every(isJavascriptResource);
 
+const isGitSha = (value: unknown): value is string =>
+	typeof value === 'string' && gitShaPattern.test(value);
+
 const isTimestamp = (value: unknown): value is number =>
 	Number.isSafeInteger(value) && (value as number) > 0;
 
@@ -114,7 +120,8 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		javascriptResources,
 		timestamp,
 		standalone,
-		serviceWorkerControlled
+		serviceWorkerControlled,
+		gitSha
 	} = value as Record<string, unknown>;
 	if (
 		!isDiagnosticType(type) ||
@@ -126,7 +133,8 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		!isJavascriptResources(javascriptResources) ||
 		!isTimestamp(timestamp) ||
 		typeof standalone !== 'boolean' ||
-		typeof serviceWorkerControlled !== 'boolean'
+		typeof serviceWorkerControlled !== 'boolean' ||
+		!isGitSha(gitSha)
 	) {
 		return undefined;
 	}
@@ -151,7 +159,8 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		},
 		client: {
 			standalone,
-			serviceWorkerControlled
+			serviceWorkerControlled,
+			gitSha
 		}
 	};
 };
