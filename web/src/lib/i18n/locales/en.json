@@ -173,7 +173,7 @@
 		"auto_refresh": "Auto refresh",
 		"media_preview": "Media preview",
 		"gif_autoplay": "GIF autoplay",
-		"user_status": "User status",
+		"user_status": "Show user status in timelines",
 		"image_optimization": "Image size reduction",
 		"image_optimization_none": "None",
 		"media_uploader": {

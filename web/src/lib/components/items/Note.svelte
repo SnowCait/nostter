@@ -77,7 +77,7 @@
 	{/if}
 {/if}
 
-<EventMetadata {item} {createdAtFormat}>
+<EventMetadata {item} {createdAtFormat} {full}>
 	{#snippet content()}
 		<section>
 			{#if isReply(item.event)}

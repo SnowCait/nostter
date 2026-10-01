@@ -49,15 +49,15 @@
 {:else if item.event.kind === Kind.BadgeAward}
 	<BadgeAward {item} {readonly} {createdAtFormat} />
 {:else if Number(item.event.kind) === 20}
-	<Picture {item} {readonly} {createdAtFormat} />
+	<Picture {item} {readonly} {createdAtFormat} {full} />
 {:else if Number(item.event.kind) === podcastEpisodeKind}
 	<PodcastEpisode {item} {readonly} {createdAtFormat} {full} />
 {:else if item.event.kind === Kind.ChannelCreation || item.event.kind === Kind.ChannelMetadata}
 	<Channel {item} />
 {:else if Number(item.event.kind) === pollKind}
-	<Poll {item} {createdAtFormat} />
+	<Poll {item} {createdAtFormat} {full} />
 {:else if item.event.kind === Kind.Highlights}
-	<Highlight {item} {createdAtFormat} />
+	<Highlight {item} {createdAtFormat} {full} />
 {:else if item.event.kind === Kind.LongFormArticle}
 	<LongFormContent event={item.event} />
 {:else if item.event.kind === Kind.Zap}
@@ -69,7 +69,7 @@
 {:else if Number(item.event.kind) === 30030}
 	<CustomEmojiList event={item.event} />
 {:else if Number(item.event.kind) === 30315}
-	<UserStatus {item} {createdAtFormat} />
+	<UserStatus {item} {createdAtFormat} {full} />
 {:else}
 	<Note {item} {readonly} {createdAtFormat} {full} {clientLinks} />
 {/if}

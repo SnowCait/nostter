@@ -10,16 +10,17 @@
 		item: Item;
 		readonly: boolean;
 		createdAtFormat?: 'auto' | 'time';
+		full?: boolean;
 	}
 
-	let { item, readonly, createdAtFormat = 'auto' }: Props = $props();
+	let { item, readonly, createdAtFormat = 'auto', full = false }: Props = $props();
 
 	let eventItem = $derived(item as EventItem);
 	let title = $derived(filterTags('title', item.event.tags).at(0));
 	let pictures = $derived(item.event.tags.filter(([tagName]) => tagName === 'imeta'));
 </script>
 
-<EventMetadata {item} {createdAtFormat}>
+<EventMetadata {item} {createdAtFormat} {full}>
 	{#snippet content()}
 		<section>
 			<div class="content">
