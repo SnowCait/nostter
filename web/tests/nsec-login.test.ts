@@ -1,23 +1,31 @@
-import { test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 import { expectLoggedInHome, publishFollowList } from './login-helpers';
 
-test('logs in with npub and restores the login on startup', async ({ context, page }) => {
+test('logs in with nsec and restores the signing session on startup', async ({ context, page }) => {
 	const secretKey = generateSecretKey();
 	const pubkey = getPublicKey(secretKey);
-	const npub = nip19.npubEncode(pubkey);
+	const nsec = nip19.nsecEncode(secretKey);
 
 	// A non-empty follow list makes the app land on /home instead of /public.
 	await publishFollowList(secretKey, [getPublicKey(generateSecretKey())]);
 
-	await test.step('log in with npub from the login dialog', async () => {
+	// The header shows the Post button only while a signer is available, which npub login lacks.
+	const expectSigningSession = async (page: Page) => {
+		await expect(
+			page.getByRole('banner').getByRole('button', { name: 'Post', exact: true })
+		).toBeVisible();
+	};
+
+	await test.step('log in with nsec from the login dialog', async () => {
 		await page.goto('/');
 		await page.getByRole('button', { name: 'Login', exact: true }).click();
 		const dialog = page.getByRole('dialog');
-		await dialog.getByPlaceholder('npub or nsec').fill(npub);
+		await dialog.getByPlaceholder('npub or nsec').fill(nsec);
 		await dialog.getByRole('button', { name: 'Login with key' }).click();
 
 		await expectLoggedInHome(page, pubkey);
+		await expectSigningSession(page);
 	});
 
 	await test.step('restore the saved login on startup', async () => {
@@ -26,5 +34,6 @@ test('logs in with npub and restores the login on startup', async ({ context, pa
 		await restartedPage.goto('/');
 
 		await expectLoggedInHome(restartedPage, pubkey);
+		await expectSigningSession(restartedPage);
 	});
 });
