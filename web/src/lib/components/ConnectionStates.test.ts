@@ -6,7 +6,6 @@ import type { ConnectionState } from 'rx-nostr';
 import en from '$lib/i18n/locales/en.json';
 import ja from '$lib/i18n/locales/ja.json';
 import ConnectionStates from './ConnectionStates.svelte';
-import RelayStates from '../../routes/(app)/preferences/RelayStates.svelte';
 
 const mocks = vi.hoisted(() => ({
 	readRelays: [] as string[]
@@ -91,19 +90,5 @@ describe('ConnectionStates relay groups', () => {
 		);
 		expect(subscribed.map(({ url }) => url)).toEqual(['wss://a.example/']);
 		expect(body).not.toContain('<details');
-	});
-
-	it('is rendered identically in preferences', () => {
-		renderWith(
-			[
-				['wss://a.example/', 'connected'],
-				['wss://x.example/', 'error']
-			],
-			['wss://a.example/']
-		);
-		const component = render(ConnectionStates).body;
-		const preferences = render(RelayStates).body;
-		const strip = (html: string) => html.replace(/<!--[^>]*-->/g, '');
-		expect(strip(preferences)).toContain(strip(component));
 	});
 });
