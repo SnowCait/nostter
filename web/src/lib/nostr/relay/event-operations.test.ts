@@ -7,7 +7,8 @@ import {
 	fetchEvents,
 	fetchLatestReplaceableEvent,
 	publishEvent,
-	requestEvents
+	requestEvents,
+	requestLatestReplaceableEvent
 } from './event-operations';
 
 const pubkey = 'a'.repeat(64);
@@ -77,7 +78,31 @@ describe('relay event operations', () => {
 		await expect(packets).resolves.toEqual([{ filters }]);
 	});
 
-	it('returns the latest event after the oneshot request completes', async () => {
+	it('emits each newer replaceable event from a completed backward request', async () => {
+		const older = event(1);
+		const latest = event(3);
+		const stale = event(2);
+		let packets: Promise<unknown[]> | undefined;
+		const use = vi.spyOn(rxNostr, 'use').mockImplementation((req) => {
+			packets = lastValueFrom(req.getReqPacketObservable().pipe(toArray()));
+			return of(
+				{ event: older, from: 'wss://relay1' },
+				{ event: latest, from: 'wss://relay2' },
+				{ event: stale, from: 'wss://relay3' }
+			) as never;
+		});
+
+		await expect(
+			lastValueFrom(requestLatestReplaceableEvent(10001, pubkey).pipe(toArray()))
+		).resolves.toEqual([older, latest]);
+		expect(use).toHaveBeenCalledOnce();
+		expect(use.mock.calls[0][0].strategy).toBe('backward');
+		await expect(packets).resolves.toEqual([
+			{ filters: [{ kinds: [10001], authors: [pubkey], limit: 1 }] }
+		]);
+	});
+
+	it('returns the latest event after the request completes', async () => {
 		const older = event(1);
 		const latest = event(2);
 		vi.spyOn(rxNostr, 'use').mockReturnValue(

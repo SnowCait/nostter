@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { nip19 } from 'nostr-tools';
-	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import { Contacts } from 'nostr-tools/kinds';
+	import { npubEncode } from 'nostr-tools/nip19';
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
-	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
+	import { unique } from '$lib/array';
+	import { requestLatestReplaceableEvent } from '$lib/nostr/relay/event-operations';
 	import { type Metadata, alternativeName } from '$lib/Items';
 	import { developerMode } from '$lib/stores/Preference';
 	import ZapButton from '$lib/components/ZapButton.svelte';
@@ -35,7 +36,6 @@
 
 	let { slug, pubkey, metadata, relays }: Props = $props();
 
-	let p: string | undefined;
 	let followees: string[] | undefined = $state();
 
 	let user = $derived(metadata?.content);
@@ -51,46 +51,36 @@
 	}
 
 	$effect(() => {
-		if (p === pubkey) {
-			return;
-		}
+		// Restart only when the pubkey changes; relay hints alone must not reset followees.
+		console.debug(
+			'[npub profile]',
+			npubEncode(pubkey),
+			untrack(() => relays)
+		);
 
-		console.debug('[npub profile]', nip19.npubEncode(pubkey), relays);
+		followees = undefined;
 
-		untrack(() => {
-			p = pubkey;
-			followees = undefined;
-		});
-
-		const contactsReq = createRxOneshotReq({
-			filters: [
-				{
-					kinds: [3],
-					authors: [pubkey],
-					limit: 1
+		const subscription = requestLatestReplaceableEvent(Contacts, pubkey).subscribe({
+			next: (event) => {
+				console.debug('[npub contacts]', event);
+				followees = unique(filterTags('p', event.tags));
+			},
+			complete: () => {
+				console.debug('[npub contacts complete]', $state.snapshot(followees));
+				if (followees === undefined) {
+					followees = [];
 				}
-			]
+			},
+			error: (error) => {
+				console.error('[npub contacts error]', error);
+			}
 		});
-		rxNostr
-			.use(contactsReq)
-			.pipe(tie, uniq(), latest())
-			.subscribe({
-				next: (packet) => {
-					console.debug('[npub contacts]', packet);
-					followees = [...new Set(filterTags('p', packet.event.tags))];
-				},
-				complete: () => {
-					console.debug('[npub contacts complete]', $state.snapshot(followees));
-					if (followees === undefined) {
-						followees = [];
-					}
-				},
-				error: (error) => {
-					console.error('[npub contacts error]', error);
-				}
-			});
 
 		userStatusReqEmit([pubkey]);
+
+		return () => {
+			subscription.unsubscribe();
+		};
 	});
 </script>
 
@@ -148,7 +138,7 @@
 				<p class="label">Follows you</p>
 			{/if}
 			{#if pubkey !== undefined}
-				<Nip21QrcodeButton identifier={nip19.npubEncode(pubkey)} />
+				<Nip21QrcodeButton identifier={npubEncode(pubkey)} />
 			{/if}
 		</div>
 

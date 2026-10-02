@@ -1,14 +1,16 @@
 <script lang="ts">
-	import { nip19 } from 'nostr-tools';
-	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import { Contacts } from 'nostr-tools/kinds';
+	import { npubEncode } from 'nostr-tools/nip19';
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
+	import { unique } from '$lib/array';
 	import TimelineView from '../../TimelineView.svelte';
 	import { auth } from '$lib/auth.svelte';
 	import { appName } from '$lib/app';
 	import { Metadata } from '$lib/Items';
 	import type { LayoutData } from '../$types';
-	import { metadataReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
+	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
+	import { requestLatestReplaceableEvent } from '$lib/nostr/relay/event-operations';
 	import { metadataStore } from '$lib/cache/Events';
 	import { lastNoteReqEmit } from '$lib/LastNotes';
 	import type { pubkey as Pubkey } from '$lib/Types';
@@ -30,30 +32,20 @@
 	$effect(() => {
 		const targetPubkey = data.pubkey;
 
-		console.log('[followees page]', nip19.npubEncode(targetPubkey));
+		console.log('[followees page]', npubEncode(targetPubkey));
 		pubkeys = [];
 
-		const contactsReq = createRxOneshotReq({
-			filters: [
-				{
-					kinds: [3],
-					authors: [targetPubkey],
-					limit: 1
-				}
-			]
-		});
-		const subscription = rxNostr
-			.use(contactsReq)
-			.pipe(tie, uniq(), latest())
-			.subscribe((packet) => {
-				console.log('[rx-nostr contacts]', packet);
-				pubkeys = [...new Set(filterTags('p', packet.event.tags).reverse())];
+		const subscription = requestLatestReplaceableEvent(Contacts, targetPubkey).subscribe(
+			(event) => {
+				console.log('[rx-nostr contacts]', event);
+				pubkeys = unique(filterTags('p', event.tags).reverse());
 				metadataReqEmit(pubkeys);
 				if (!auth.isAuthenticated) {
 					return;
 				}
 				lastNoteReqEmit(pubkeys);
-			});
+			}
+		);
 
 		return () => {
 			subscription.unsubscribe();
