@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { kinds as Kind, nip19 } from 'nostr-tools';
+	import { Contacts } from 'nostr-tools/kinds';
+	import { npubEncode } from 'nostr-tools/nip19';
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
 	import { unique } from '$lib/array';
@@ -53,13 +54,13 @@
 		// Restart only when the pubkey changes; relay hints alone must not reset followees.
 		console.debug(
 			'[npub profile]',
-			nip19.npubEncode(pubkey),
+			npubEncode(pubkey),
 			untrack(() => relays)
 		);
 
 		followees = undefined;
 
-		const subscription = requestLatestReplaceableEvent(Kind.Contacts, pubkey).subscribe({
+		const subscription = requestLatestReplaceableEvent(Contacts, pubkey).subscribe({
 			next: (event) => {
 				console.debug('[npub contacts]', event);
 				followees = unique(filterTags('p', event.tags));
@@ -137,7 +138,7 @@
 				<p class="label">Follows you</p>
 			{/if}
 			{#if pubkey !== undefined}
-				<Nip21QrcodeButton identifier={nip19.npubEncode(pubkey)} />
+				<Nip21QrcodeButton identifier={npubEncode(pubkey)} />
 			{/if}
 		</div>
 

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { kinds as Kind, nip19 } from 'nostr-tools';
+	import { Contacts } from 'nostr-tools/kinds';
+	import { npubEncode } from 'nostr-tools/nip19';
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
 	import { unique } from '$lib/array';
@@ -31,10 +32,10 @@
 	$effect(() => {
 		const targetPubkey = data.pubkey;
 
-		console.log('[followees page]', nip19.npubEncode(targetPubkey));
+		console.log('[followees page]', npubEncode(targetPubkey));
 		pubkeys = [];
 
-		const subscription = requestLatestReplaceableEvent(Kind.Contacts, targetPubkey).subscribe(
+		const subscription = requestLatestReplaceableEvent(Contacts, targetPubkey).subscribe(
 			(event) => {
 				console.log('[rx-nostr contacts]', event);
 				pubkeys = unique(filterTags('p', event.tags).reverse());
