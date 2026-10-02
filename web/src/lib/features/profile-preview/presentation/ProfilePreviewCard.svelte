@@ -1,13 +1,16 @@
 <script lang="ts">
+	import type { Event } from 'nostr-tools/core';
 	import { _ } from 'svelte-i18n';
 	import { auth } from '$lib/auth.svelte';
 	import { metadataStore } from '$lib/cache/Events';
+	import { alternativeName } from '$lib/Items';
+	import { includesFollow } from '$lib/nostr/protocol/nip02';
 	import EmojifiedContent from '$lib/components/EmojifiedContent.svelte';
 	import FollowButton from '$lib/components/FollowButton.svelte';
 	import NostrAddress from '$lib/components/NostrAddress.svelte';
 	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
 	import ProfileName from '$lib/components/profile/ProfileName.svelte';
-	import { isFollowing, observeFollowList } from '../application/follow-list';
+	import { observeFollowList } from '$lib/features/follow-list/application/observe-follow-list';
 
 	interface Props {
 		pubkey: string;
@@ -17,18 +20,23 @@
 
 	let metadata = $derived($metadataStore.get(pubkey));
 	let canFollow = $derived(auth.signer !== undefined && auth.pubkey !== pubkey);
-	let followsAccount = $state(false);
+	let observesFollowList = $derived(auth.pubkey !== undefined && auth.pubkey !== pubkey);
+	let followList = $state<Event>();
+	let followsAccount = $derived(
+		followList !== undefined &&
+			auth.pubkey !== undefined &&
+			includesFollow(followList.tags, auth.pubkey)
+	);
 
 	$effect(() => {
-		const accountPubkey = auth.pubkey;
-		followsAccount = false;
-		if (accountPubkey === undefined || accountPubkey === pubkey) {
+		followList = undefined;
+		if (!observesFollowList) {
 			return;
 		}
 
 		const subscription = observeFollowList(pubkey).subscribe({
 			next: (event) => {
-				followsAccount = isFollowing(event, accountPubkey);
+				followList = event;
 			},
 			error: (error) => {
 				console.error('[profile preview follow list error]', error);
@@ -52,19 +60,19 @@
 	<div class="display-name">
 		<ProfileName {pubkey} displayNameOnly />
 	</div>
-	{#if (metadata !== undefined && metadata.displayName !== metadata.name) || followsAccount}
-		<div class="name-line">
-			{#if metadata !== undefined && metadata.displayName !== metadata.name}
-				<span class="name">
-					<span>@</span>
-					<EmojifiedContent content={metadata.name} tags={metadata.event.tags} />
-				</span>
+	<div class="name-line">
+		<span class="name">
+			<span>@</span>
+			{#if metadata !== undefined}
+				<EmojifiedContent content={metadata.name} tags={metadata.event.tags} />
+			{:else}
+				<span>{alternativeName(pubkey)}</span>
 			{/if}
-			{#if followsAccount}
-				<span class="follows-account">{$_('follow.follows_you')}</span>
-			{/if}
-		</div>
-	{/if}
+		</span>
+		{#if followsAccount}
+			<span class="follows-account">{$_('follow.follows_you')}</span>
+		{/if}
+	</div>
 	{#if metadata !== undefined}
 		<div class="nip05">
 			<NostrAddress {metadata} />

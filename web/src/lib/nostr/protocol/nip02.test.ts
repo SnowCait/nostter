@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseFollowList } from './nip02';
+import { includesFollow, parseFollowList } from './nip02';
 
 const a = 'a'.repeat(64);
 const b = 'b'.repeat(64);
@@ -57,5 +57,16 @@ describe('parseFollowList', () => {
 			{ pubkey: a, relayUrl: 'wss://relay1.example.com', petname: undefined },
 			{ pubkey: a, relayUrl: 'wss://relay2.example.com', petname: undefined }
 		]);
+	});
+});
+
+describe('includesFollow', () => {
+	it('checks whether the follow list contains the pubkey', () => {
+		const tags = [
+			['e', b],
+			['p', a]
+		];
+		expect(includesFollow(tags, a)).toBe(true);
+		expect(includesFollow(tags, b)).toBe(false);
 	});
 });

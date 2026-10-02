@@ -26,7 +26,7 @@
 	<div>
 		<div class="picture">
 			<ProfileLink pubkey={item.event.pubkey}>
-				<ProfileIcon pubkey={item.event.pubkey} />
+				<ProfileIcon pubkey={item.event.pubkey} tooltip={false} />
 			</ProfileLink>
 		</div>
 		<div class="icon">

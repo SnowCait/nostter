@@ -23,3 +23,7 @@ export function parseFollowList(tags: string[][]): FollowEntry[] {
 		];
 	});
 }
+
+export function includesFollow(tags: string[][], pubkey: string): boolean {
+	return parseFollowList(tags).some((entry) => entry.pubkey === pubkey);
+}
