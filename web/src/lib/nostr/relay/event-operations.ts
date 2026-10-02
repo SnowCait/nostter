@@ -4,9 +4,11 @@ import {
 	createRxOneshotReq,
 	latest,
 	uniq,
-	type RxNostrOnParams
+	type EventPacket,
+	type RxNostrOnParams,
+	type RxNostrUseOptions
 } from 'rx-nostr';
-import { EmptyError, Observable, filter, firstValueFrom, lastValueFrom, map, toArray } from 'rxjs';
+import { Observable, filter, firstValueFrom, lastValueFrom, map, toArray } from 'rxjs';
 import { rxNostr } from '$lib/relay-client';
 import { tie } from './relay-hints';
 
@@ -23,36 +25,34 @@ export async function fetchEvents(filters: Filter[]): Promise<Event[]> {
 }
 
 export function requestEvents(filters: Filter[], on: RxNostrOnParams): Observable<Event> {
-	return new Observable((subscriber) => {
-		const req = createRxBackwardReq();
-		const subscription = rxNostr
-			.use(req, { on })
-			.pipe(
-				tie,
-				uniq(),
-				map(({ event }) => event)
-			)
-			.subscribe(subscriber);
-		req.emit(filters);
-		req.over();
-		return subscription;
-	});
+	return requestEventPackets(filters, { on }).pipe(map(({ event }) => event));
+}
+
+export function requestLatestReplaceableEvent(kind: number, pubkey: string): Observable<Event> {
+	return requestEventPackets([{ kinds: [kind], authors: [pubkey], limit: 1 }]).pipe(
+		latest(),
+		map(({ event }) => event)
+	);
 }
 
 export async function fetchLatestReplaceableEvent(
 	kind: number,
 	pubkey: string
 ): Promise<Event | undefined> {
-	const req = createRxOneshotReq({ filters: [{ kinds: [kind], authors: [pubkey], limit: 1 }] });
-	try {
-		const { event } = await lastValueFrom(rxNostr.use(req).pipe(tie, latest()));
-		return event;
-	} catch (error) {
-		if (error instanceof EmptyError) {
-			return undefined;
-		}
-		throw error;
-	}
+	return lastValueFrom(requestLatestReplaceableEvent(kind, pubkey), { defaultValue: undefined });
+}
+
+function requestEventPackets(
+	filters: Filter[],
+	options?: Partial<RxNostrUseOptions>
+): Observable<EventPacket> {
+	return new Observable((subscriber) => {
+		const req = createRxBackwardReq();
+		const subscription = rxNostr.use(req, options).pipe(tie, uniq()).subscribe(subscriber);
+		req.emit(filters);
+		req.over();
+		return subscription;
+	});
 }
 
 export async function publishEvent(event: Event): Promise<void> {
