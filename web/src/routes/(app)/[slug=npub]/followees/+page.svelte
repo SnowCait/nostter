@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { nip19 } from 'nostr-tools';
+	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
+	import { unique } from '$lib/array';
 	import TimelineView from '../../TimelineView.svelte';
 	import { auth } from '$lib/auth.svelte';
 	import { appName } from '$lib/app';
@@ -33,15 +34,17 @@
 		console.log('[followees page]', nip19.npubEncode(targetPubkey));
 		pubkeys = [];
 
-		const subscription = requestLatestReplaceableEvent(3, targetPubkey).subscribe((event) => {
-			console.log('[rx-nostr contacts]', event);
-			pubkeys = [...new Set(filterTags('p', event.tags).reverse())];
-			metadataReqEmit(pubkeys);
-			if (!auth.isAuthenticated) {
-				return;
+		const subscription = requestLatestReplaceableEvent(Kind.Contacts, targetPubkey).subscribe(
+			(event) => {
+				console.log('[rx-nostr contacts]', event);
+				pubkeys = unique(filterTags('p', event.tags).reverse());
+				metadataReqEmit(pubkeys);
+				if (!auth.isAuthenticated) {
+					return;
+				}
+				lastNoteReqEmit(pubkeys);
 			}
-			lastNoteReqEmit(pubkeys);
-		});
+		);
 
 		return () => {
 			subscription.unsubscribe();

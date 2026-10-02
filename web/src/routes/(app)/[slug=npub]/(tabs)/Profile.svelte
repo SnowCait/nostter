@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { nip19 } from 'nostr-tools';
+	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
+	import { unique } from '$lib/array';
 	import { requestLatestReplaceableEvent } from '$lib/nostr/relay/event-operations';
 	import { type Metadata, alternativeName } from '$lib/Items';
 	import { developerMode } from '$lib/stores/Preference';
@@ -58,10 +59,10 @@
 
 		followees = undefined;
 
-		const subscription = requestLatestReplaceableEvent(3, pubkey).subscribe({
+		const subscription = requestLatestReplaceableEvent(Kind.Contacts, pubkey).subscribe({
 			next: (event) => {
 				console.debug('[npub contacts]', event);
-				followees = [...new Set(filterTags('p', event.tags))];
+				followees = unique(filterTags('p', event.tags));
 			},
 			complete: () => {
 				console.debug('[npub contacts complete]', $state.snapshot(followees));
