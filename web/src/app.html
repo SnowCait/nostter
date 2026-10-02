@@ -14,7 +14,7 @@
 				const maxJavascriptResources = 16;
 				const sentTypes = new Set();
 				// Read once so the build that rendered this document is kept across SPA navigations.
-				const gitSha = document.documentElement.dataset.gitSha ?? '';
+				const gitSha = document.documentElement.dataset.gitSha;
 
 				const toSameOriginPath = (href) => {
 					try {
@@ -133,7 +133,8 @@
 								serviceWorkerControlled: Boolean(
 									navigator.serviceWorker?.controller
 								),
-								gitSha
+								// Omitted when the build has no commit SHA, which the server logs as unknown.
+								...(gitSha ? { gitSha } : {})
 							})
 						}).catch(() => {});
 					} catch {

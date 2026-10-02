@@ -34,7 +34,7 @@ type CssDiagnostic = {
 	client: {
 		standalone: boolean;
 		serviceWorkerControlled: boolean;
-		gitSha: string;
+		gitSha: string | null;
 	};
 };
 
@@ -45,8 +45,8 @@ const stylesheetPathPattern = /^\/(?:(?![?#])[\x21-\x7e])*$/;
 const javascriptPathPattern = /^\/_app\/immutable\/(?:(?![?#])[\x21-\x7e])*\.js$/;
 // Lowercase words joined by hyphens, such as script, link, or early-hints.
 const initiatorTypePattern = /^[a-z]+(?:-[a-z]+)*$/;
-// Full commit SHA from WORKERS_CI_COMMIT_SHA, or empty when built without it such as locally.
-const gitShaPattern = /^(?:[0-9a-f]{40})?$/;
+// Full commit SHA from WORKERS_CI_COMMIT_SHA.
+const gitShaPattern = /^[0-9a-f]{40}$/;
 
 const isDiagnosticType = (value: unknown): value is CssDiagnostic['type'] =>
 	diagnosticTypes.some((type) => type === value);
@@ -134,7 +134,7 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		!isTimestamp(timestamp) ||
 		typeof standalone !== 'boolean' ||
 		typeof serviceWorkerControlled !== 'boolean' ||
-		!isGitSha(gitSha)
+		(gitSha !== undefined && !isGitSha(gitSha))
 	) {
 		return undefined;
 	}
@@ -160,7 +160,7 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		client: {
 			standalone,
 			serviceWorkerControlled,
-			gitSha
+			gitSha: gitSha ?? null
 		}
 	};
 };

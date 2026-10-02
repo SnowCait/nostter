@@ -67,11 +67,45 @@ test('sends a stylesheet load error once per document', async ({ page }) => {
 		pathname: '/about',
 		stylesheetPath: expect.stringMatching(stylesheetAssets),
 		stylesheetPaths: expect.arrayContaining([expect.stringMatching(stylesheetAssets)]),
-		unavailableStylesheetPaths: expect.arrayContaining([body.stylesheetPath]),
-		gitSha: await page.locator('html').getAttribute('data-git-sha')
+		unavailableStylesheetPaths: expect.arrayContaining([body.stylesheetPath])
 	});
-	expect(body.gitSha).toMatch(/^(?:[0-9a-f]{40})?$/);
 	expect(JSON.stringify(body)).not.toMatch(/query|hash|localhost/);
+});
+
+test('omits the Git SHA when the build has none', async ({ page }) => {
+	await recordDiagnostics(page);
+	await page.goto('/about');
+	expect(await page.locator('html').getAttribute('data-git-sha')).toBe('');
+	await appendFailingStylesheet(page);
+
+	await expect
+		.poll(async () => (await sentDiagnostics(page)).map(({ status }) => status))
+		.toEqual([204]);
+
+	const [{ body }] = await sentDiagnostics(page);
+	expect(body).not.toHaveProperty('gitSha');
+});
+
+test('sends the Git SHA of the build that rendered the document', async ({ page }) => {
+	const gitSha = '0123456789abcdef0123456789abcdef01234567';
+	await recordDiagnostics(page);
+	await page.route('/about', async (route) => {
+		const response = await route.fetch();
+		const body = (await response.text()).replace(
+			/data-git-sha="[^"]*"/,
+			`data-git-sha="${gitSha}"`
+		);
+		await route.fulfill({ response, body });
+	});
+	await page.goto('/about');
+	await appendFailingStylesheet(page);
+
+	await expect
+		.poll(async () => (await sentDiagnostics(page)).map(({ status }) => status))
+		.toEqual([204]);
+
+	const [{ body }] = await sentDiagnostics(page);
+	expect(body.gitSha).toBe(gitSha);
 });
 
 test('sends stylesheet-not-applied when stylesheets load without applying', async ({ page }) => {

@@ -113,16 +113,16 @@ describe('POST /api/diagnostics/client', () => {
 		expect(error).toHaveBeenCalledWith(expectedLog);
 	});
 
-	it('accepts an empty client Git SHA from a build without a commit SHA', async () => {
-		const response = await post(JSON.stringify({ ...validPayload, gitSha: '' }));
+	it('logs a null client Git SHA when it is missing', async () => {
+		const response = await post(JSON.stringify({ ...validPayload, gitSha: undefined }));
 
 		expect(response.status).toBe(204);
 		expect(error).toHaveBeenCalledWith({
-			message: 'client-css-diagnostic',
-			diagnostic: expect.objectContaining({
-				client: expect.objectContaining({ gitSha: '' }),
-				server: { gitSha: serverGitSha }
-			})
+			...expectedLog,
+			diagnostic: {
+				...expectedLog.diagnostic,
+				client: { ...expectedLog.diagnostic.client, gitSha: null }
+			}
 		});
 	});
 
@@ -356,7 +356,8 @@ describe('POST /api/diagnostics/client', () => {
 				javascriptResources: [javascriptResource({ responseStatus: undefined })]
 			}
 		],
-		['a missing Git SHA', { ...validPayload, gitSha: undefined }],
+		['an empty Git SHA', { ...validPayload, gitSha: '' }],
+		['a null Git SHA', { ...validPayload, gitSha: null }],
 		['a non-string Git SHA', { ...validPayload, gitSha: 1234567 }],
 		['an abbreviated Git SHA', { ...validPayload, gitSha: clientGitSha.slice(0, 7) }],
 		['an uppercase Git SHA', { ...validPayload, gitSha: clientGitSha.toUpperCase() }],
