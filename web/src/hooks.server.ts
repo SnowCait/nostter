@@ -19,6 +19,12 @@ const lang: Handle = ({ event, resolve }) => {
 	});
 };
 
+export const gitShaPlaceholder: Handle = ({ event, resolve }) => {
+	return resolve(event, {
+		transformPageChunk: ({ html }) => html.replace('%git-sha%', gitSha)
+	});
+};
+
 const cspDirectives: Record<string, string[]> = {
 	'default-src': ["'self'"],
 	'script-src': [
@@ -89,7 +95,7 @@ export const httpStatusLogging: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-export const handle: Handle = sequence(httpStatusLogging, i18n, lang, csp);
+export const handle: Handle = sequence(httpStatusLogging, i18n, lang, gitShaPlaceholder, csp);
 
 export const handleError: HandleServerError = ({ error, status, message }) => {
 	if (status >= 500) {
