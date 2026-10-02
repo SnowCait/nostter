@@ -14,6 +14,14 @@ Framework- or tool-defined names are exempt and should follow their respective c
 
 Existing files and directories do not need to be renamed solely to comply with these conventions.
 
+## Imports
+
+Prefer public subpath exports over package-root imports when available.
+
+## Constants and utilities
+
+Prefer existing named constants and shared utilities over magic values or duplicate implementations.
+
 ## Formatting
 
 Formatting is defined by [Prettier](../web/.prettierrc) and [EditorConfig](../.editorconfig).
@@ -27,3 +35,11 @@ Linting rules are defined by [ESLint](../web/eslint.config.mjs).
 Do not add comments that merely restate what the code already makes clear.
 
 Use comments only to explain non-obvious reasons, constraints, or behavior.
+
+## Reactive cleanup
+
+Clean up subscriptions and asynchronous effects so stale work cannot update current state.
+
+## Tests
+
+Test meaningful behavior and regressions; avoid tests that only verify library behavior or implementation details.
