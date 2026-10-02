@@ -54,16 +54,17 @@ function relayStub() {
 	return { requests, request, unsubscribed };
 }
 
-function setup(cached?: Event) {
+function setup() {
 	const relay = relayStub();
-	const getCachedFolloweeEvent = vi.fn(async () => cached);
+	const cacheRead = Promise.withResolvers<Event | undefined>();
+	const getCachedFolloweeEvent = vi.fn(() => cacheRead.promise);
 	const cache = vi.fn();
 	const observe = createFollowListObserver({
 		getCachedFolloweeEvent,
 		request: relay.request,
 		cache
 	});
-	return { observe, cache, ...relay };
+	return { observe, cacheRead, cache, ...relay };
 }
 
 function collect(source: Observable<Event>) {
@@ -76,54 +77,77 @@ function collect(source: Observable<Event>) {
 	return Object.assign(result, { subscription });
 }
 
-async function startRequest(observe: (pubkey: string) => Observable<Event>, requests: unknown[]) {
-	const result = collect(observe(target));
-	await vi.waitFor(() => expect(requests).toHaveLength(1));
-	return result;
+async function settle(promise: Promise<unknown>) {
+	await promise.catch(() => {});
+	await new Promise((resolve) => setTimeout(resolve));
 }
 
 describe('createFollowListObserver', () => {
-	it('requests from relays on the first use in a session', async () => {
+	it('starts the relay request without waiting for the cache read', () => {
 		const { observe, requests, request, cache } = setup();
 
-		const { values } = await startRequest(observe, requests);
+		const { values } = collect(observe(target));
 		const event = followList(1);
 		requests[0].next(event);
 
-		expect(request).toHaveBeenCalledWith(target);
+		expect(request).toHaveBeenCalledExactlyOnceWith(target);
 		expect(values).toEqual([event]);
 		expect(cache).toHaveBeenCalledWith(event);
 	});
 
-	it('emits a cached followee event before the relay request and still requests', async () => {
+	it('emits a cached event that arrives first and still requests', async () => {
+		const { observe, cacheRead, requests } = setup();
+
+		const { values } = collect(observe(target));
 		const cached = followList(1);
-		const { observe, requests } = setup(cached);
+		cacheRead.resolve(cached);
+		await settle(cacheRead.promise);
+		const newer = followList(2);
+		requests[0].next(newer);
 
-		const { values } = await startRequest(observe, requests);
-
-		expect(values).toEqual([cached]);
 		expect(requests).toHaveLength(1);
+		expect(values).toEqual([cached, newer]);
 	});
 
-	it('replaces the cached event with a newer relay event without regressing', async () => {
-		const { observe, requests, cache } = setup(followList(2));
+	it('does not regress to an older cached event that arrives after the relay event', async () => {
+		const { observe, cacheRead, requests, cache } = setup();
 
-		const { values } = await startRequest(observe, requests);
+		const { values } = collect(observe(target));
+		const newer = followList(2);
+		requests[0].next(newer);
+		cacheRead.resolve(followList(1));
+		await settle(cacheRead.promise);
 		requests[0].next(followList(1));
-		requests[0].next(followList(3));
-		requests[0].next(followList(2));
 
-		expect(values).toEqual([followList(2), followList(3)]);
-		expect(cache).toHaveBeenCalledExactlyOnceWith(followList(3));
+		expect(values).toEqual([newer]);
+		expect(cache).toHaveBeenCalledExactlyOnceWith(newer);
 	});
 
-	it('does not request again after a completed request', async () => {
-		const { observe, requests, request } = setup();
+	it('keeps requesting when the cache read fails', async () => {
+		const { observe, cacheRead, requests } = setup();
+		vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-		await startRequest(observe, requests);
+		const result = collect(observe(target));
+		cacheRead.reject(new Error('read failed'));
+		await settle(cacheRead.promise);
 		const event = followList(1);
 		requests[0].next(event);
 		requests[0].complete();
+
+		expect(result.error).toBeUndefined();
+		expect(result.values).toEqual([event]);
+		expect(result.completed).toBe(true);
+	});
+
+	it('does not request again after the relay request completes', async () => {
+		const { observe, cacheRead, requests, request } = setup();
+
+		collect(observe(target));
+		const event = followList(1);
+		requests[0].next(event);
+		requests[0].complete();
+		cacheRead.resolve(undefined);
+		await settle(cacheRead.promise);
 
 		const second = collect(observe(target));
 
@@ -132,10 +156,10 @@ describe('createFollowListObserver', () => {
 		expect(request).toHaveBeenCalledOnce();
 	});
 
-	it('does not request again after a completed request without events', async () => {
+	it('does not request again after the relay request completes without events', () => {
 		const { observe, requests, request } = setup();
 
-		await startRequest(observe, requests);
+		collect(observe(target));
 		requests[0].complete();
 
 		const second = collect(observe(target));
@@ -145,10 +169,10 @@ describe('createFollowListObserver', () => {
 		expect(request).toHaveBeenCalledOnce();
 	});
 
-	it('shares a concurrent request and replays the latest event to late subscribers', async () => {
+	it('shares a concurrent request and replays the latest event to late subscribers', () => {
 		const { observe, requests, request } = setup();
 
-		const first = await startRequest(observe, requests);
+		const first = collect(observe(target));
 		const event = followList(1);
 		requests[0].next(event);
 		const late = collect(observe(target));
@@ -160,10 +184,10 @@ describe('createFollowListObserver', () => {
 		expect(late.values).toEqual([event, newer]);
 	});
 
-	it('requests again after the last subscriber cancels, keeping the received event', async () => {
+	it('requests again after the last subscriber cancels, keeping the received event', () => {
 		const { observe, requests, request, unsubscribed } = setup();
 
-		const first = await startRequest(observe, requests);
+		const first = collect(observe(target));
 		const event = followList(1);
 		requests[0].next(event);
 		first.subscription.unsubscribe();
@@ -171,23 +195,21 @@ describe('createFollowListObserver', () => {
 		expect(unsubscribed).toHaveBeenCalledOnce();
 
 		const second = collect(observe(target));
-		await vi.waitFor(() => expect(requests).toHaveLength(2));
 
 		expect(request).toHaveBeenCalledTimes(2);
 		expect(second.values).toEqual([event]);
 	});
 
-	it('requests again after an error', async () => {
+	it('requests again after a relay error', () => {
 		const { observe, requests, request } = setup();
 
-		const first = await startRequest(observe, requests);
+		const first = collect(observe(target));
 		const error = new Error('relay failed');
 		requests[0].error(error);
 
 		expect(first.error).toBe(error);
 
 		collect(observe(target));
-		await vi.waitFor(() => expect(requests).toHaveLength(2));
 
 		expect(request).toHaveBeenCalledTimes(2);
 	});
@@ -204,7 +226,7 @@ describe('observeFollowList', () => {
 		mocks.requestLatestReplaceableEvent.mockImplementation(() => relay.request());
 
 		const { values } = collect(observeFollowList(pubkey));
-		await vi.waitFor(() => expect(relay.requests).toHaveLength(1));
+		await vi.waitFor(() => expect(values).toEqual([cached]));
 		relay.requests[0].next(newer);
 
 		expect(mocks.getLatest).toHaveBeenCalledWith(Contacts, [pubkey]);
@@ -220,8 +242,9 @@ describe('observeFollowList', () => {
 		mocks.requestLatestReplaceableEvent.mockImplementation(() => relay.request());
 
 		collect(observeFollowList(pubkey));
-		await vi.waitFor(() => expect(relay.requests).toHaveLength(1));
+		await new Promise((resolve) => setTimeout(resolve));
 
+		expect(relay.requests).toHaveLength(1);
 		expect(mocks.getLatest).not.toHaveBeenCalled();
 	});
 });

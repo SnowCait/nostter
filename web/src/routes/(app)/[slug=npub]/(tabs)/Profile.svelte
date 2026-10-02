@@ -37,7 +37,6 @@
 
 	let { slug, pubkey, metadata, relays }: Props = $props();
 
-	// null when the follow list request completed without an event
 	let followList: Event | null | undefined = $state();
 	let followees = $derived(
 		followList === undefined

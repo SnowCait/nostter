@@ -4,12 +4,12 @@ import {
 	EMPTY,
 	Observable,
 	ReplaySubject,
-	concat,
+	catchError,
 	defer,
 	filter,
 	finalize,
 	from,
-	map,
+	merge,
 	of,
 	share,
 	tap
@@ -40,26 +40,34 @@ export function createFollowListObserver(
 		return true;
 	}
 
+	function remembered(pubkey: string): Observable<Event> {
+		const latest = latestByPubkey.get(pubkey);
+		return latest === undefined ? EMPTY : of(latest);
+	}
+
 	function refresh(pubkey: string): Observable<Event> {
-		const initial = defer(() => from(dependencies.getCachedFolloweeEvent(pubkey))).pipe(
-			map((cached) => {
-				if (cached !== undefined) {
-					remember(pubkey, cached);
-				}
-				return latestByPubkey.get(pubkey);
+		const cached = defer(() => from(dependencies.getCachedFolloweeEvent(pubkey))).pipe(
+			catchError((error) => {
+				console.warn('[follow list cache read failed]', error);
+				return of(undefined);
 			}),
-			filter((event) => event !== undefined)
+			filter((event) => event !== undefined),
+			filter((event) => remember(pubkey, event))
 		);
 		const relay = dependencies.request(pubkey).pipe(
 			filter((event) => remember(pubkey, event)),
-			tap((event) => dependencies.cache(event))
-		);
-		const shared = concat(initial, relay).pipe(
 			tap({
+				next: (event) => dependencies.cache(event),
 				complete: () => {
 					refreshedPubkeys.add(pubkey);
 				}
-			}),
+			})
+		);
+		const shared = merge(
+			defer(() => remembered(pubkey)),
+			cached,
+			relay
+		).pipe(
 			finalize(() => {
 				if (inFlightByPubkey.get(pubkey) === shared) {
 					inFlightByPubkey.delete(pubkey);
@@ -74,8 +82,7 @@ export function createFollowListObserver(
 	return (pubkey) =>
 		defer(() => {
 			if (refreshedPubkeys.has(pubkey)) {
-				const latest = latestByPubkey.get(pubkey);
-				return latest === undefined ? EMPTY : of(latest);
+				return remembered(pubkey);
 			}
 			return inFlightByPubkey.get(pubkey) ?? refresh(pubkey);
 		});
