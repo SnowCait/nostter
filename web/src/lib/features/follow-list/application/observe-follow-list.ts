@@ -7,8 +7,6 @@ import {
 	catchError,
 	defer,
 	filter,
-	finalize,
-	from,
 	merge,
 	of,
 	share,
@@ -28,64 +26,50 @@ type Dependencies = {
 export function createFollowListObserver(
 	dependencies: Dependencies
 ): (pubkey: string) => Observable<Event> {
-	const latestByPubkey = new Map<string, Event>();
-	const refreshedPubkeys = new Set<string>();
-	const inFlightByPubkey = new Map<string, Observable<Event>>();
+	const sessions = new Map<string, Observable<Event>>();
 
-	function remember(pubkey: string, event: Event): boolean {
-		if (!shouldReplaceCurrentEvent(event, latestByPubkey.get(pubkey))) {
-			return false;
-		}
-		latestByPubkey.set(pubkey, event);
-		return true;
-	}
-
-	function remembered(pubkey: string): Observable<Event> {
-		const latest = latestByPubkey.get(pubkey);
-		return latest === undefined ? EMPTY : of(latest);
-	}
-
-	function refresh(pubkey: string): Observable<Event> {
-		const cached = defer(() => from(dependencies.getCachedFolloweeEvent(pubkey))).pipe(
+	function createSession(pubkey: string): Observable<Event> {
+		let latest: Event | undefined;
+		const cached = defer(() => dependencies.getCachedFolloweeEvent(pubkey)).pipe(
 			catchError((error) => {
 				console.warn('[follow list cache read failed]', error);
 				return of(undefined);
 			}),
-			filter((event) => event !== undefined),
-			filter((event) => remember(pubkey, event))
+			filter((event) => event !== undefined)
 		);
-		const relay = dependencies.request(pubkey).pipe(
-			filter((event) => remember(pubkey, event)),
-			tap({
-				next: (event) => dependencies.cache(event),
-				complete: () => {
-					refreshedPubkeys.add(pubkey);
+		const relay = defer(() => dependencies.request(pubkey)).pipe(
+			tap((event) => dependencies.cache(event))
+		);
+		const newer = merge(cached, relay).pipe(
+			filter((event) => {
+				if (!shouldReplaceCurrentEvent(event, latest)) {
+					return false;
 				}
+				latest = event;
+				return true;
 			})
 		);
-		const shared = merge(
-			defer(() => remembered(pubkey)),
-			cached,
-			relay
-		).pipe(
-			finalize(() => {
-				if (inFlightByPubkey.get(pubkey) === shared) {
-					inFlightByPubkey.delete(pubkey);
-				}
-			}),
-			share({ connector: () => new ReplaySubject<Event>(1) })
+
+		// The request is finite, so it runs to completion without subscribers; only an error
+		// resets the session so that the next subscriber retries from the latest event.
+		return defer(() => merge(latest === undefined ? EMPTY : of(latest), newer)).pipe(
+			share({
+				connector: () => new ReplaySubject<Event>(1),
+				resetOnError: true,
+				resetOnComplete: false,
+				resetOnRefCountZero: false
+			})
 		);
-		inFlightByPubkey.set(pubkey, shared);
-		return shared;
 	}
 
-	return (pubkey) =>
-		defer(() => {
-			if (refreshedPubkeys.has(pubkey)) {
-				return remembered(pubkey);
-			}
-			return inFlightByPubkey.get(pubkey) ?? refresh(pubkey);
-		});
+	return (pubkey) => {
+		let session = sessions.get(pubkey);
+		if (session === undefined) {
+			session = createSession(pubkey);
+			sessions.set(pubkey, session);
+		}
+		return session;
+	};
 }
 
 export const observeFollowList = createFollowListObserver({
