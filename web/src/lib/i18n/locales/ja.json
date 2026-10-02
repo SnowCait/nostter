@@ -141,6 +141,7 @@
 	"follow": {
 		"follow": "フォロー",
 		"following": "フォロー中",
+		"follows_you": "フォローされています",
 		"organize": "フォロー整理"
 	},
 	"or": "または",

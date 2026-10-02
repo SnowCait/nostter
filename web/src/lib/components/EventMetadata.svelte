@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { nip19 } from 'nostr-tools';
 	import { type EventItem, type Item, alternativeName } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import { showUserStatus } from '$lib/preferences/UserStatus';
@@ -7,6 +6,7 @@
 	import CreatedAt from './CreatedAt.svelte';
 	import ProfileIcon from './profile/ProfileIcon.svelte';
 	import EmojifiedContent from './EmojifiedContent.svelte';
+	import ProfileLink from '$lib/features/profile-preview/presentation/ProfileLink.svelte';
 
 	interface Props {
 		item: Item;
@@ -25,9 +25,9 @@
 <article class="timeline-item">
 	<div>
 		<div class="picture">
-			<a href="/{nip19.npubEncode(item.event.pubkey)}">
+			<ProfileLink pubkey={item.event.pubkey}>
 				<ProfileIcon pubkey={item.event.pubkey} />
-			</a>
+			</ProfileLink>
 		</div>
 		<div class="icon">
 			{@render icon?.()}
@@ -79,6 +79,12 @@
 			width: 40px;
 			height: 40px;
 		}
+	}
+
+	/* The link preview is positioned against the link box, so it must cover the whole icon. */
+	.picture :global(a) {
+		display: block;
+		height: 100%;
 	}
 
 	.icon {
