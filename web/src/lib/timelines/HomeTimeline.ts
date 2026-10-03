@@ -63,6 +63,7 @@ import { auth } from '$lib/auth.svelte';
 import { isNotifiedEvent } from '$lib/features/notifications/application/is-notified-event';
 
 const maxTimelineLength = minTimelineLength * 2;
+const maxOlderInFlight = 2;
 
 export class HomeTimeline extends NewTimeline {
 	public filter = (event: Nostr.Event) =>
@@ -292,7 +293,7 @@ export class HomeTimeline extends NewTimeline {
 		return [...followeesFilter, notificationsFilter, ...authorFilters];
 	}
 
-	#createBackwardFilters(limit?: number): LazyFilter[] {
+	#createBackwardFilters(until: number, since?: number, limit?: number): LazyFilter[] {
 		const accountPubkey = auth.pubkey;
 		if (accountPubkey === undefined) {
 			throw new Error('Not authenticated');
@@ -301,15 +302,12 @@ export class HomeTimeline extends NewTimeline {
 		const followees = auth.followees;
 		const $followingHashtags = get(followingHashtags);
 
-		const until = this.eventsStore.at(-1)?.created_at ?? now();
-		const since = until - fetchMinutes(followees.length) * 60;
-
 		const followeesFilters = chunk(followees, filterLimitItems).map((chunkedAuthors) => {
 			return {
 				kinds: followeesFilterKinds,
 				authors: chunkedAuthors,
 				until,
-				since: limit ? undefined : since,
+				since,
 				limit
 			};
 		});
@@ -319,14 +317,14 @@ export class HomeTimeline extends NewTimeline {
 				kinds: notificationsFilterKinds,
 				'#p': [accountPubkey],
 				until,
-				since: limit ? undefined : since,
+				since,
 				limit
 			},
 			{
 				kinds: [Kind.Reaction],
 				authors: [accountPubkey],
 				until,
-				since: limit ? undefined : since,
+				since,
 				limit
 			}
 		];
@@ -336,7 +334,7 @@ export class HomeTimeline extends NewTimeline {
 				kinds: [Kind.ShortTextNote],
 				'#t': $followingHashtags,
 				until,
-				since: limit ? undefined : since,
+				since,
 				limit
 			});
 		}
@@ -362,12 +360,27 @@ export class HomeTimeline extends NewTimeline {
 
 	//#endregion
 
+	//#region Older
+
+	readonly #olderOperations = new Set<symbol>();
+	// `until` of the next bounded backward REQ
+	#olderCursor: number | undefined;
+
+	get loading(): boolean {
+		return this.#olderOperations.size >= maxOlderInFlight;
+	}
+
+	clear(): void {
+		super.clear();
+		this.#olderOperations.clear();
+		this.#olderCursor = undefined;
+	}
+
 	older(): void {
 		if (this._oldest) {
 			return;
 		}
 
-		this._loading = true;
 		let count = 0;
 
 		if (this.eventsForView.length > 0) {
@@ -379,11 +392,17 @@ export class HomeTimeline extends NewTimeline {
 			count += events.length;
 		}
 
-		if (count >= minTimelineLength) {
-			this._loading = false;
+		if (count >= minTimelineLength || this.loading) {
 			return;
 		}
 
+		// The boundary timestamp overlaps with the previous REQ because multiple events can share it
+		const until = this.#olderCursor ?? this.eventsStore.at(-1)?.created_at ?? now();
+		const since = until - fetchMinutes(auth.followees.length) * 60;
+		this.#olderCursor = since;
+
+		const operation = Symbol();
+		this.#olderOperations.add(operation);
 		const pubkeys = new Set<string>();
 		const req = createRxBackwardReq();
 		rxNostr
@@ -403,57 +422,39 @@ export class HomeTimeline extends NewTimeline {
 			)
 			.subscribe({
 				next: ({ event }) => {
-					const index = this.eventsStore.findIndex(
-						(e) => e.created_at < event.created_at
-					);
-					if (index < 0) {
-						this.pushEvents(event);
-						this.eventsForView = [...this.eventsForView, event];
-					} else {
-						this.insertEventAt(index, event);
-						const indexForView = this.eventsForView.findIndex(
-							(e) => e.created_at < event.created_at
-						);
-						if (indexForView < 0) {
-							console.warn('[home timeline logic error');
-						} else {
-							this.eventsForView = this.eventsForView.toSpliced(
-								indexForView,
-								0,
-								event
-							);
-						}
-					}
+					this.#insertEvent(event);
 					count++;
 					if (this.latestId === undefined) {
 						this.latestId = event.id;
 					}
 				},
 				complete: async () => {
+					this.#olderOperations.delete(operation);
 					console.debug('[home timeline older complete]', count);
 					userStatusReqEmit([...pubkeys]);
 					if (count < minTimelineLength) {
 						const events = await this.#fetchEnough(minTimelineLength - count);
-						this.pushEvents(...events);
-						this.eventsForView = [...this.eventsForView, ...events];
-						count += events.length;
+						for (const event of events) {
+							if (this.#insertEvent(event)) {
+								count++;
+							}
+						}
 						console.debug(
 							'[home timeline fetch enough complete]',
 							events.length,
 							count
 						);
 					}
-					this._loading = false;
 					if (count === 0) {
 						this._oldest = true;
 					}
 				},
 				error: (error) => {
 					console.error('[home timeline load older error]', error);
-					this._loading = false;
+					this.#olderOperations.delete(operation);
 				}
 			});
-		const filters = this.#createBackwardFilters();
+		const filters = this.#createBackwardFilters(until, since);
 		console.debug('[home timeline older REQ]', filters);
 		req.emit(filters);
 		req.over();
@@ -485,18 +486,51 @@ export class HomeTimeline extends NewTimeline {
 						.slice(0, limit * 2)
 						.filter((event) => !this.hasEvent(event.id))
 						.slice(0, limit);
+					const oldest = filteredEvents.at(-1);
+					if (oldest !== undefined && this.#olderCursor !== undefined) {
+						// Another operation may have already moved the cursor further back
+						this.#olderCursor = Math.min(this.#olderCursor, oldest.created_at);
+					}
 					const pubkeys = new Set<string>(filteredEvents.map((e) => e.pubkey));
 					userStatusReqEmit([...pubkeys]);
 					resolve(filteredEvents);
 				},
 				error: () => resolve([])
 			});
-		const filters = this.#createBackwardFilters(limit * 2);
+		const filters = this.#createBackwardFilters(
+			this.eventsStore.at(-1)?.created_at ?? now(),
+			undefined,
+			limit * 2
+		);
 		console.debug('[home timeline fetch enough REQ]', filters);
 		req.emit(filters);
 		req.over();
 		return promise;
 	}
+
+	#insertEvent(event: Nostr.Event): boolean {
+		if (this.hasEvent(event.id)) {
+			return false;
+		}
+		const index = this.eventsStore.findIndex((e) => e.created_at < event.created_at);
+		if (index < 0) {
+			this.pushEvents(event);
+			this.eventsForView = [...this.eventsForView, event];
+		} else {
+			this.insertEventAt(index, event);
+			const indexForView = this.eventsForView.findIndex(
+				(e) => e.created_at < event.created_at
+			);
+			if (indexForView < 0) {
+				console.warn('[home timeline logic error');
+			} else {
+				this.eventsForView = this.eventsForView.toSpliced(indexForView, 0, event);
+			}
+		}
+		return true;
+	}
+
+	//#endregion
 
 	#insertNotifiedEvent(event: Nostr.Event, accountPubkey: string): void {
 		if (!isNotifiedEvent(event, accountPubkey)) {
@@ -540,27 +574,7 @@ export class HomeTimeline extends NewTimeline {
 			)
 			.subscribe({
 				next: ({ event }) => {
-					const index = this.eventsStore.findIndex(
-						(e) => e.created_at < event.created_at
-					);
-					if (index < 0) {
-						this.pushEvents(event);
-						this.eventsForView = [...this.eventsForView, event];
-					} else {
-						this.insertEventAt(index, event);
-						const indexForView = this.eventsForView.findIndex(
-							(e) => e.created_at < event.created_at
-						);
-						if (indexForView < 0) {
-							console.warn('[home timeline logic error');
-						} else {
-							this.eventsForView = this.eventsForView.toSpliced(
-								indexForView,
-								0,
-								event
-							);
-						}
-					}
+					this.#insertEvent(event);
 					if (this.latestId === undefined) {
 						this.latestId = event.id;
 					}
@@ -574,11 +588,7 @@ export class HomeTimeline extends NewTimeline {
 					console.error('[home timeline load retrieve error]', error);
 				}
 			});
-		const filters = this.#createBackwardFilters();
-		for (const filter of filters) {
-			filter.until = until;
-			filter.since = since;
-		}
+		const filters = this.#createBackwardFilters(until, since);
 		console.debug('[home timeline retrieve REQ]', filters);
 		req.emit(filters);
 		req.over();

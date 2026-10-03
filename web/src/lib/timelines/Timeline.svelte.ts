@@ -70,6 +70,7 @@ export abstract class NewTimeline {
 
 	protected _loading = false;
 
+	// Whether older() cannot start another load now
 	get loading(): boolean {
 		return this._loading;
 	}
