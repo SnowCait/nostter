@@ -2,11 +2,11 @@
 	import { type EventItem, type Item, alternativeName } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import { showUserStatus } from '$lib/preferences/UserStatus';
-	import UserStatus from './UserStatus.svelte';
 	import CreatedAt from './CreatedAt.svelte';
 	import ProfileIcon from './profile/ProfileIcon.svelte';
 	import EmojifiedContent from './EmojifiedContent.svelte';
 	import ProfileLink from '$lib/features/profile-preview/presentation/ProfileLink.svelte';
+	import UserStatusInline from '$lib/features/user-status/presentation/UserStatusInline.svelte';
 
 	interface Props {
 		item: Item;
@@ -53,9 +53,7 @@
 			</div>
 		</div>
 		{#if full || $showUserStatus}
-			<div>
-				<UserStatus pubkey={item.event.pubkey} />
-			</div>
+			<UserStatusInline pubkey={item.event.pubkey} />
 		{/if}
 		{@render content?.()}
 	</div>

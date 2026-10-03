@@ -21,7 +21,9 @@ vi.mock('./MainTimeline', () => ({
 	referencesReqEmit: vi.fn(),
 	storeSeenOn: vi.fn()
 }));
-vi.mock('$lib/UserStatus', () => ({ updateUserStatus: vi.fn(), userStatusReqEmit: vi.fn() }));
+vi.mock('$lib/features/user-status/application/user-statuses.svelte', () => ({
+	userStatuses: { ingest: vi.fn() }
+}));
 vi.mock('$lib/author/Action', () => ({
 	authorActionReqEmit: vi.fn(),
 	updateReactionedEvents: vi.fn(),
