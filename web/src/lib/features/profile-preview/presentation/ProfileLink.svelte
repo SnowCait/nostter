@@ -24,7 +24,7 @@
 	</LinkPreview.Trigger>
 	<LinkPreview.Portal>
 		<LinkPreview.Content
-			class="profile-preview"
+			style="z-index: 20"
 			side="bottom"
 			align="start"
 			sideOffset={8}
@@ -34,10 +34,3 @@
 		</LinkPreview.Content>
 	</LinkPreview.Portal>
 </LinkPreview.Root>
-
-<style>
-	/* Bits UI copies this onto its positioned wrapper, so the card stays above fixed navigation. */
-	:global(.profile-preview) {
-		z-index: 20;
-	}
-</style>
