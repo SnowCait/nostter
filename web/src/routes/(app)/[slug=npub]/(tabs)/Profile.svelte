@@ -69,17 +69,17 @@
 	}
 
 	$effect(() => {
-		// Rerun only when the pubkey changes, not on relay hints.
+		userStatusReqEmit([pubkey]);
+	});
+
+	$effect(() => {
+		// Relay hints alone must not reset followees.
 		console.debug(
 			'[npub profile]',
 			npubEncode(pubkey),
 			untrack(() => relays)
 		);
 
-		userStatusReqEmit([pubkey]);
-	});
-
-	$effect(() => {
 		followList = undefined;
 		if (isOwnProfile) {
 			return;
