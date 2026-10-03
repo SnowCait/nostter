@@ -141,6 +141,7 @@
 	"follow": {
 		"follow": "Follow",
 		"following": "Following",
+		"follows_you": "Follows you",
 		"organize": "Organize followees"
 	},
 	"cancel": "Cancel",

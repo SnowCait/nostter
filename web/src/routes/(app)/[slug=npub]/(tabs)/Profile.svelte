@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { Contacts } from 'nostr-tools/kinds';
+	import type { Event } from 'nostr-tools/core';
 	import { npubEncode } from 'nostr-tools/nip19';
 	import { _ } from 'svelte-i18n';
 	import { filterTags } from '$lib/EventHelper';
 	import { unique } from '$lib/array';
-	import { requestLatestReplaceableEvent } from '$lib/nostr/relay/event-operations';
+	import { observeFollowList } from '$lib/features/follow-list/application/observe-follow-list';
+	import { includesFollow } from '$lib/nostr/protocol/nip02';
 	import { type Metadata, alternativeName } from '$lib/Items';
 	import { developerMode } from '$lib/stores/Preference';
 	import ZapButton from '$lib/components/ZapButton.svelte';
@@ -36,7 +37,24 @@
 
 	let { slug, pubkey, metadata, relays }: Props = $props();
 
-	let followees: string[] | undefined = $state();
+	let isOwnProfile = $derived(pubkey === auth.pubkey);
+	let followList: Event | null | undefined = $state();
+	let followees = $derived(
+		isOwnProfile
+			? auth.followingPubkeys
+			: followList === undefined
+				? undefined
+				: followList === null
+					? []
+					: unique(filterTags('p', followList.tags))
+	);
+	let followsAccount = $derived(
+		!isOwnProfile &&
+			followList !== undefined &&
+			followList !== null &&
+			auth.pubkey !== undefined &&
+			includesFollow(followList.tags, auth.pubkey)
+	);
 
 	let user = $derived(metadata?.content);
 	let url = $derived(user?.website ? URL.parse(user.website) : null);
@@ -51,32 +69,37 @@
 	}
 
 	$effect(() => {
-		// Restart only when the pubkey changes; relay hints alone must not reset followees.
+		userStatusReqEmit([pubkey]);
+	});
+
+	$effect(() => {
+		// Relay hints alone must not reset followees.
 		console.debug(
 			'[npub profile]',
 			npubEncode(pubkey),
 			untrack(() => relays)
 		);
 
-		followees = undefined;
+		followList = undefined;
+		if (isOwnProfile) {
+			return;
+		}
 
-		const subscription = requestLatestReplaceableEvent(Contacts, pubkey).subscribe({
+		const subscription = observeFollowList(pubkey).subscribe({
 			next: (event) => {
 				console.debug('[npub contacts]', event);
-				followees = unique(filterTags('p', event.tags));
+				followList = event;
 			},
 			complete: () => {
 				console.debug('[npub contacts complete]', $state.snapshot(followees));
-				if (followees === undefined) {
-					followees = [];
+				if (followList === undefined) {
+					followList = null;
 				}
 			},
 			error: (error) => {
 				console.error('[npub contacts error]', error);
 			}
 		});
-
-		userStatusReqEmit([pubkey]);
 
 		return () => {
 			subscription.unsubscribe();
@@ -134,8 +157,8 @@
 					<span>{alternativeName(pubkey)}</span>
 				{/if}
 			</h2>
-			{#if followees?.some((pubkey) => pubkey === auth.pubkey)}
-				<p class="label">Follows you</p>
+			{#if followsAccount}
+				<p class="label">{$_('follow.follows_you')}</p>
 			{/if}
 			{#if pubkey !== undefined}
 				<Nip21QrcodeButton identifier={npubEncode(pubkey)} />
