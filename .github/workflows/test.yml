@@ -3,10 +3,6 @@ name: Test
 on:
   pull_request:
 
-defaults:
-  run:
-    working-directory: web
-
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -17,8 +13,8 @@ jobs:
         with:
           node-version: "24.x"
       - run: npm ci
-      - run: npm run check
-      - run: npm run lint
+      - run: npm run check -w web
+      - run: npm run lint -w web
 
   unit-test:
     runs-on: ubuntu-latest
@@ -29,7 +25,7 @@ jobs:
         with:
           node-version: "24.x"
       - run: npm ci
-      - run: npm test
+      - run: npm test -w web
 
   e2e-test:
     runs-on: ubuntu-latest
@@ -51,7 +47,7 @@ jobs:
         with:
           node-version: "24.x"
       - run: npm ci
-      - run: npx playwright install chromium --only-shell
-      - run: npm run test:e2e
+      - run: npm exec -w web -- playwright install chromium --only-shell
+      - run: npm run test:e2e -w web
         env:
           E2E_RELAY_URL: ws://127.0.0.1:8080/

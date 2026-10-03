@@ -4,34 +4,33 @@ Contributions are welcome. You can contribute by reporting issues, suggesting im
 
 ## Getting started
 
-The web application is located in the `web` directory.
+This repository is an npm workspace. The web application is located in the `web` workspace.
 
 Requirements:
 
 - Node.js 24
 - npm 11.10.0 or later
 
-Install dependencies and start the development server:
+Install dependencies from the repository root and start the development server:
 
 ```
-cd web
 npm ci
-npm run dev
+npm run dev -w web
 ```
 
 ## Development
 
-Run commands from the `web` directory.
+Run commands from the repository root and select the `web` workspace with `-w web`.
 
 | Command | Description |
 | --- | --- |
-| `npm run dev` | Start the development server |
-| `npm run build` | Build the application |
-| `npm run check` | Run Svelte and TypeScript checks |
-| `npm run lint` | Run Prettier and ESLint checks |
-| `npm test` | Run unit tests |
-| `npm run test:e2e` | Run end-to-end tests |
-| `npm run format` | Format source files |
+| `npm run dev -w web` | Start the development server |
+| `npm run build -w web` | Build the application |
+| `npm run check -w web` | Run Svelte and TypeScript checks |
+| `npm run lint -w web` | Run Prettier and ESLint checks |
+| `npm test -w web` | Run unit tests |
+| `npm run test:e2e -w web` | Run end-to-end tests |
+| `npm run format -w web` | Format source files |
 
 The application has default relay settings and does not require an `.env` file for normal development. To override relay settings, see [`web/.env.example`](web/.env.example).
 
@@ -41,21 +40,21 @@ Run the checks relevant to your changes before submitting a pull request.
 
 Pull requests are automatically checked with:
 
-- `npm run check`
-- `npm run lint`
-- `npm test`
-- `npm run test:e2e`
+- `npm run check -w web`
+- `npm run lint -w web`
+- `npm test -w web`
+- `npm run test:e2e -w web`
 
 Playwright browser binaries are required to run the end-to-end tests locally. Install them with:
 
 ```
-npx playwright install
+npm exec -w web -- playwright install
 ```
 
 To run the end-to-end tests, run a Nostr relay locally and pass its URL with `E2E_RELAY_URL` (default: `ws://127.0.0.1:8080/`):
 
 ```
-E2E_RELAY_URL=ws://localhost:7000/ npm run test:e2e
+E2E_RELAY_URL=ws://localhost:7000/ npm run test:e2e -w web
 ```
 
 ## Making changes
