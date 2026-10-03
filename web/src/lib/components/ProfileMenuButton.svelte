@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { auth } from '$lib/auth.svelte';
 	import type { Signer } from '$lib/nostr/signing/signer';
 	import type { PeopleListCapabilities } from '$lib/author/PeopleLists';
@@ -48,7 +48,7 @@
 		})
 	);
 	let url = $derived(
-		`${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`
+		`${page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`
 	);
 
 	let listDialogOpen = $state(false);

@@ -7,7 +7,7 @@
 	import type * as Nostr from 'nostr-typedef';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import type { LayoutData } from '../$types';
 	import { appName } from '$lib/app';
 	import { EventItem } from '$lib/Items';
@@ -31,7 +31,7 @@
 	});
 
 	afterNavigate(async () => {
-		const slug = $page.params.slug;
+		const slug = page.params.slug;
 		console.debug('[pin page]', slug);
 
 		rxNostr.setDefaultRelays([...$readRelays, ...data.relays]);

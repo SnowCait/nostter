@@ -1,6 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { render } from 'svelte/server';
-import { readable } from 'svelte/store';
 import { addMessages, locale } from 'svelte-i18n';
 import { ShortTextNote } from 'nostr-tools/kinds';
 import type * as Nostr from 'nostr-typedef';
@@ -8,8 +7,8 @@ import { pinnedNotes } from '$lib/features/pinned-notes/application/pinned-notes
 import en from '$lib/i18n/locales/en.json';
 import MenuButton from './MenuButton.svelte';
 
-vi.mock('$app/stores', () => ({
-	page: readable({ url: new URL('https://nostter.app/') })
+vi.mock('$app/state', () => ({
+	page: { url: new URL('https://nostter.app/') }
 }));
 
 beforeAll(() => {

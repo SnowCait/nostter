@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { metadataStore } from '$lib/cache/Events';
 	import IconShare2 from '@tabler/icons-svelte-runes/icons/share-2';
 	import IconClipboard from '@tabler/icons-svelte-runes/icons/clipboard';
@@ -27,7 +27,7 @@
 		})
 	);
 	let url = $derived(
-		`${$page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`
+		`${page.url.origin}/${metadata?.normalizedNip05 ? metadata.normalizedNip05 : nprofile}`
 	);
 	let data = $derived({ url });
 </script>

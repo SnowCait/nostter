@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import type { LayoutData } from '../$types';
 	import { appName } from '$lib/app';
 	import { Api } from '$lib/Api';
@@ -36,7 +36,7 @@
 	let saveToKind3 = $state(false);
 
 	afterNavigate(async () => {
-		console.log('[relays page]', $page.params.slug);
+		console.log('[relays page]', page.params.slug);
 
 		if (metadata === undefined) {
 			metadataReqEmit([pubkey]);

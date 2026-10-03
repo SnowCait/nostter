@@ -6,7 +6,7 @@
 	import ExternalLink from '../ExternalLink.svelte';
 	import OnelineProfile from '../profile/OnelineProfile.svelte';
 	import { nip19 } from 'nostr-tools';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { metadataStore, replaceableEventsStore } from '$lib/cache/Events';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import { IconQuoteFilled } from '@tabler/icons-svelte-runes';
@@ -99,7 +99,7 @@
 										: undefined
 								})}
 								<div>
-									<ExternalLink link={new URL(`${$page.url.origin}/${naddr}`)} />
+									<ExternalLink link={new URL(`${page.url.origin}/${naddr}`)} />
 								</div>
 							{:else if sourceId}
 								{@const nevent = nip19.neventEncode({
@@ -107,7 +107,7 @@
 									relays: getSeenOnRelays(sourceId)
 								})}
 								<div>
-									<ExternalLink link={new URL(`${$page.url.origin}/${nevent}`)} />
+									<ExternalLink link={new URL(`${page.url.origin}/${nevent}`)} />
 								</div>
 							{/if}
 							{#if sourceUrl}

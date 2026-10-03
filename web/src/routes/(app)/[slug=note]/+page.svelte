@@ -4,7 +4,7 @@
 	import { createRxBackwardReq, createRxOneshotReq, filterByKind, uniq } from 'rx-nostr';
 	import { tap, merge, filter, Subscription } from 'rxjs';
 	import { _ } from 'svelte-i18n';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { authorActionReqEmit } from '$lib/author/Action';
 	import { rxNostr, referencesReqEmit, tie } from '$lib/timelines/MainTimeline';
 	import { insertIntoAscendingTimeline } from '$lib/timelines/TimelineHelper';
@@ -310,7 +310,7 @@
 	let metadata = $derived(item !== undefined ? $metadataStore.get(item.event.pubkey) : undefined);
 	let canonicalUrl = $derived(
 		item !== undefined
-			? `${$page.url.origin}/${nip19.neventEncode({
+			? `${page.url.origin}/${nip19.neventEncode({
 					id: item.event.id,
 					author: item.event.pubkey
 				})}`
@@ -503,11 +503,11 @@
 	{/if}
 	{#if repostEventItems.length > 0}
 		<div>
-			<a href="/{$page.params.slug}/reposts/after">{$_('thread.reposts.after.title')}</a>
+			<a href="/{page.params.slug}/reposts/after">{$_('thread.reposts.after.title')}</a>
 		</div>
 	{/if}
 	<div>
-		<a href="/{$page.params.slug}/quotes">{$_('thread.quotes.title')}</a>
+		<a href="/{page.params.slug}/quotes">{$_('thread.quotes.title')}</a>
 	</div>
 </nav>
 
