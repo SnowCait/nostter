@@ -1,11 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render } from 'svelte/server';
-import { readable } from 'svelte/store';
 import { Handlerinformation } from 'nostr-tools/kinds';
 import Via from './Via.svelte';
 
-vi.mock('$app/stores', () => ({
-	page: readable({ url: new URL('https://nostter.app/') })
+vi.mock('$app/state', () => ({
+	page: { url: new URL('https://nostter.app/') }
 }));
 
 const fooAddress = `${Handlerinformation}:${'a'.repeat(64)}:foo`;

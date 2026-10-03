@@ -4,7 +4,7 @@
 	import { nip19 } from 'nostr-tools';
 	import { ChannelMessage, ShortTextNote } from 'nostr-tools/kinds';
 	import type * as Nostr from 'nostr-typedef';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import {
 		bookmark,
 		unbookmark,
@@ -75,7 +75,7 @@
 			kind: event.kind
 		})
 	);
-	let url = $derived(`${$page.url.origin}/${nevent}`);
+	let url = $derived(`${page.url.origin}/${nevent}`);
 	let rootTag = $derived(extractThreadReferenceTags(event).root);
 	let rootId = $derived(rootTag?.at(1) ?? event.id);
 	let isChannelMuteTarget = $derived(
