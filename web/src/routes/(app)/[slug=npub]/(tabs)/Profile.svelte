@@ -37,16 +37,21 @@
 
 	let { slug, pubkey, metadata, relays }: Props = $props();
 
+	let isOwnProfile = $derived(pubkey === auth.pubkey);
 	let followList: Event | null | undefined = $state();
 	let followees = $derived(
-		followList === undefined
-			? undefined
-			: followList === null
-				? []
-				: unique(filterTags('p', followList.tags))
+		isOwnProfile
+			? auth.followingPubkeys
+			: followList === undefined
+				? undefined
+				: followList === null
+					? []
+					: unique(filterTags('p', followList.tags))
 	);
 	let followsAccount = $derived(
-		followList != null &&
+		!isOwnProfile &&
+			followList !== undefined &&
+			followList !== null &&
 			auth.pubkey !== undefined &&
 			includesFollow(followList.tags, auth.pubkey)
 	);
@@ -64,14 +69,21 @@
 	}
 
 	$effect(() => {
-		// Restart only when the pubkey changes; relay hints alone must not reset followees.
+		// Rerun only when the pubkey changes, not on relay hints.
 		console.debug(
 			'[npub profile]',
 			npubEncode(pubkey),
 			untrack(() => relays)
 		);
 
+		userStatusReqEmit([pubkey]);
+	});
+
+	$effect(() => {
 		followList = undefined;
+		if (isOwnProfile) {
+			return;
+		}
 
 		const subscription = observeFollowList(pubkey).subscribe({
 			next: (event) => {
@@ -88,8 +100,6 @@
 				console.error('[npub contacts error]', error);
 			}
 		});
-
-		userStatusReqEmit([pubkey]);
 
 		return () => {
 			subscription.unsubscribe();
