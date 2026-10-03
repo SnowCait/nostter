@@ -85,14 +85,18 @@
 			return;
 		}
 
+		// A completed session replays and completes synchronously during subscribe, so the
+		// callbacks must not read reactive state that this effect writes.
+		let received = false;
 		const subscription = observeFollowList(pubkey).subscribe({
 			next: (event) => {
 				console.debug('[npub contacts]', event);
+				received = true;
 				followList = event;
 			},
 			complete: () => {
-				console.debug('[npub contacts complete]', $state.snapshot(followees));
-				if (followList === undefined) {
+				console.debug('[npub contacts complete]', received);
+				if (!received) {
 					followList = null;
 				}
 			},
