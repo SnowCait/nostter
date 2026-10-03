@@ -41,12 +41,9 @@ export function createFollowListObserver(
 			tap((event) => dependencies.cache(event))
 		);
 		const newer = merge(cached, relay).pipe(
-			filter((event) => {
-				if (!shouldReplaceCurrentEvent(event, latest)) {
-					return false;
-				}
+			filter((event) => shouldReplaceCurrentEvent(event, latest)),
+			tap((event) => {
 				latest = event;
-				return true;
 			})
 		);
 
