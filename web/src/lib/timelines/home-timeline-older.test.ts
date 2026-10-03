@@ -277,4 +277,50 @@ describe('HomeTimeline older', () => {
 
 		expectRange(bounded()[2], current - fetchWindow, current);
 	});
+
+	it('ignores a bounded REQ started before clear', () => {
+		timeline.older();
+		const [stale] = bounded();
+
+		timeline.clear();
+		timeline.older();
+		const [, fresh] = bounded();
+		send(fresh, note('fresh', current - 10));
+
+		expect(stale.packets.observed).toBe(false);
+		send(stale, note('stale', current - 20));
+		stale.packets.complete();
+
+		expect(ids()).toEqual(['fresh']);
+		expect(fetchEnough()).toHaveLength(0);
+		expect(timeline.oldest).toBe(false);
+
+		timeline.older();
+
+		expect(timeline.loading).toBe(true);
+		expectRange(bounded()[2], current - fetchWindow * 2, current - fetchWindow);
+	});
+
+	it('ignores fetchEnough started before clear', () => {
+		timeline.older();
+		send(bounded()[0], note('stale', current - 10));
+		bounded()[0].packets.complete();
+		const [stale] = fetchEnough();
+
+		timeline.clear();
+		timeline.older();
+		const [, fresh] = bounded();
+		send(fresh, note('fresh', current - 20));
+
+		expect(stale.packets.observed).toBe(false);
+		send(stale, note('stale-fetch-enough', current - fetchWindow * 3));
+		stale.packets.complete();
+
+		expect(ids()).toEqual(['fresh']);
+		expect(timeline.oldest).toBe(false);
+
+		timeline.older();
+
+		expectRange(bounded()[2], current - fetchWindow * 2, current - fetchWindow);
+	});
 });

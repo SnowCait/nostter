@@ -9,7 +9,7 @@ import {
 	uniq,
 	type LazyFilter
 } from 'rx-nostr';
-import { filter, share, tap } from 'rxjs';
+import { filter, share, tap, type Subscription } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
 import { filterAndCacheNewerAccountEvents } from '$lib/cache/account-event-cache-stream';
@@ -362,7 +362,8 @@ export class HomeTimeline extends NewTimeline {
 
 	//#region Older
 
-	readonly #olderOperations = new Set<symbol>();
+	readonly #olderOperations = new Set<Subscription>();
+	readonly #fetchEnoughSubscriptions = new Set<Subscription>();
 	// `until` of the next bounded backward REQ
 	#olderCursor: number | undefined;
 
@@ -372,7 +373,11 @@ export class HomeTimeline extends NewTimeline {
 
 	clear(): void {
 		super.clear();
+		for (const subscription of [...this.#olderOperations, ...this.#fetchEnoughSubscriptions]) {
+			subscription.unsubscribe();
+		}
 		this.#olderOperations.clear();
+		this.#fetchEnoughSubscriptions.clear();
 		this.#olderCursor = undefined;
 	}
 
@@ -401,11 +406,9 @@ export class HomeTimeline extends NewTimeline {
 		const since = until - fetchMinutes(auth.followees.length) * 60;
 		this.#olderCursor = since;
 
-		const operation = Symbol();
-		this.#olderOperations.add(operation);
 		const pubkeys = new Set<string>();
 		const req = createRxBackwardReq();
-		rxNostr
+		const subscription = rxNostr
 			.use(req)
 			.pipe(
 				tie,
@@ -428,12 +431,14 @@ export class HomeTimeline extends NewTimeline {
 						this.latestId = event.id;
 					}
 				},
-				complete: async () => {
-					this.#olderOperations.delete(operation);
+				complete: () => {
+					this.#olderOperations.delete(subscription);
 					console.debug('[home timeline older complete]', count);
 					userStatusReqEmit([...pubkeys]);
-					if (count < minTimelineLength) {
-						const events = await this.#fetchEnough(minTimelineLength - count);
+					if (count >= minTimelineLength) {
+						return;
+					}
+					this.#fetchEnough(minTimelineLength - count, (events) => {
 						for (const event of events) {
 							if (this.#insertEvent(event)) {
 								count++;
@@ -444,27 +449,28 @@ export class HomeTimeline extends NewTimeline {
 							events.length,
 							count
 						);
-					}
-					if (count === 0) {
-						this._oldest = true;
-					}
+						if (count === 0) {
+							this._oldest = true;
+						}
+					});
 				},
 				error: (error) => {
 					console.error('[home timeline load older error]', error);
-					this.#olderOperations.delete(operation);
+					this.#olderOperations.delete(subscription);
 				}
 			});
+		this.#olderOperations.add(subscription);
 		const filters = this.#createBackwardFilters(until, since);
 		console.debug('[home timeline older REQ]', filters);
 		req.emit(filters);
 		req.over();
 	}
 
-	async #fetchEnough(limit: number): Promise<Nostr.Event[]> {
-		const { promise, resolve } = Promise.withResolvers<Nostr.Event[]>();
+	// The callback is not called once clear() unsubscribes, so stale results never reach the cleared timeline
+	#fetchEnough(limit: number, onComplete: (events: Nostr.Event[]) => void): void {
 		const req = createRxBackwardReq();
 		const events: Nostr.Event[] = [];
-		rxNostr
+		const subscription = rxNostr
 			.use(req)
 			.pipe(
 				// Don't filter before slice
@@ -481,6 +487,7 @@ export class HomeTimeline extends NewTimeline {
 			.subscribe({
 				next: ({ event }) => events.push(event),
 				complete: () => {
+					this.#fetchEnoughSubscriptions.delete(subscription);
 					const filteredEvents = events
 						.toSorted(reverseChronological)
 						.slice(0, limit * 2)
@@ -493,10 +500,14 @@ export class HomeTimeline extends NewTimeline {
 					}
 					const pubkeys = new Set<string>(filteredEvents.map((e) => e.pubkey));
 					userStatusReqEmit([...pubkeys]);
-					resolve(filteredEvents);
+					onComplete(filteredEvents);
 				},
-				error: () => resolve([])
+				error: () => {
+					this.#fetchEnoughSubscriptions.delete(subscription);
+					onComplete([]);
+				}
 			});
+		this.#fetchEnoughSubscriptions.add(subscription);
 		const filters = this.#createBackwardFilters(
 			this.eventsStore.at(-1)?.created_at ?? now(),
 			undefined,
@@ -505,7 +516,6 @@ export class HomeTimeline extends NewTimeline {
 		console.debug('[home timeline fetch enough REQ]', filters);
 		req.emit(filters);
 		req.over();
-		return promise;
 	}
 
 	#insertEvent(event: Nostr.Event): boolean {
