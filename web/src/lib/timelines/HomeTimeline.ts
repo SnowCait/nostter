@@ -45,7 +45,7 @@ import {
 	reverseChronological,
 	followeesFilterKinds
 } from '$lib/Constants';
-import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
+import { userStatuses } from '$lib/features/user-status/application/user-statuses.svelte';
 import { updateRelays } from '../stores/Author';
 import { ingestRemoteMute } from '$lib/features/mute/application/regular-mute-runtime.svelte';
 import { ingestRemoteKindMute } from '$lib/features/mute/application/kind-mute-runtime.svelte';
@@ -197,7 +197,7 @@ export class HomeTimeline extends NewTimeline {
 			.subscribe(({ event, from }) => storeSeenOn(event.id, from)); // TODO: Migrate to tie
 		observable$
 			.pipe(filterByKind(Kind.UserStatuses))
-			.subscribe(({ event }) => updateUserStatus(event));
+			.subscribe(({ event }) => userStatuses.ingest(event));
 		const timeline$ = observable$.pipe(
 			filterByKinds(
 				[
@@ -237,10 +237,7 @@ export class HomeTimeline extends NewTimeline {
 				toast.notify(event);
 			});
 		timeline$
-			.pipe(
-				filterByKind(Kind.ShortTextNote),
-				tap(({ event }) => userStatusReqEmit([event.pubkey]))
-			)
+			.pipe(filterByKind(Kind.ShortTextNote))
 			.subscribe(({ event }) => saveLastNote(event));
 	}
 
@@ -384,7 +381,6 @@ export class HomeTimeline extends NewTimeline {
 			return;
 		}
 
-		const pubkeys = new Set<string>();
 		const req = createRxBackwardReq();
 		rxNostr
 			.use(req)
@@ -395,7 +391,6 @@ export class HomeTimeline extends NewTimeline {
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
-					pubkeys.add(event.pubkey);
 					if (event.kind === Kind.ShortTextNote) {
 						saveLastNote(event);
 					}
@@ -431,7 +426,6 @@ export class HomeTimeline extends NewTimeline {
 				},
 				complete: async () => {
 					console.debug('[home timeline older complete]', count);
-					userStatusReqEmit([...pubkeys]);
 					if (count < minTimelineLength) {
 						const events = await this.#fetchEnough(minTimelineLength - count);
 						this.pushEvents(...events);
@@ -485,8 +479,6 @@ export class HomeTimeline extends NewTimeline {
 						.slice(0, limit * 2)
 						.filter((event) => !this.hasEvent(event.id))
 						.slice(0, limit);
-					const pubkeys = new Set<string>(filteredEvents.map((e) => e.pubkey));
-					userStatusReqEmit([...pubkeys]);
 					resolve(filteredEvents);
 				},
 				error: () => resolve([])
@@ -521,7 +513,6 @@ export class HomeTimeline extends NewTimeline {
 			throw new Error('Not authenticated');
 		}
 
-		const pubkeys = new Set<string>();
 		const req = createRxBackwardReq();
 		rxNostr
 			.use(req)
@@ -532,7 +523,6 @@ export class HomeTimeline extends NewTimeline {
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
-					pubkeys.add(event.pubkey);
 					if (event.kind === Kind.ShortTextNote) {
 						saveLastNote(event);
 					}
@@ -568,7 +558,6 @@ export class HomeTimeline extends NewTimeline {
 				},
 				complete: async () => {
 					console.debug('[home timeline retrieve complete]');
-					userStatusReqEmit([...pubkeys]);
 				},
 				error: (error) => {
 					console.error('[home timeline load retrieve error]', error);

@@ -14,19 +14,18 @@
 	import ExternalLink from '$lib/components/ExternalLink.svelte';
 	import FollowButton from '$lib/components/FollowButton.svelte';
 	import NostrAddress from '$lib/components/NostrAddress.svelte';
-	import UserStatusEditor from '$lib/components/UserStatusFull.svelte';
 	import ReplaceableEventsJson from '$lib/components/ReplaceableEventsJson.svelte';
 	import Content from '$lib/components/Content.svelte';
 	import IconLink from '@tabler/icons-svelte-runes/icons/link';
 	import ProfileMenuButton from '$lib/components/ProfileMenuButton.svelte';
 	import ShareButton from '$lib/components/ShareButton.svelte';
 	import EmojifiedContent from '$lib/components/EmojifiedContent.svelte';
-	import { userStatusReqEmit } from '$lib/UserStatus';
 	import { untrack } from 'svelte';
 	import Foldable from '$lib/components/shared/Foldable.svelte';
 	import ProfileIconThumbnail from '$lib/components/profile/ProfileIconThumbnail.svelte';
 	import { auth } from '$lib/auth.svelte';
 	import type { Signer } from '$lib/nostr/signing/signer';
+	import ProfileUserStatus from '$lib/features/user-status/presentation/ProfileUserStatus.svelte';
 
 	interface Props {
 		slug: string;
@@ -67,10 +66,6 @@
 
 		return signer.signEvent(template);
 	}
-
-	$effect(() => {
-		userStatusReqEmit([pubkey]);
-	});
 
 	$effect(() => {
 		// Relay hints alone must not reset followees.
@@ -202,7 +197,7 @@
 	</div>
 
 	{#if pubkey !== undefined}
-		<UserStatusEditor {pubkey} />
+		<ProfileUserStatus {pubkey} />
 	{/if}
 
 	{#key pubkey}

@@ -24,8 +24,10 @@ export async function fetchEvents(filters: Filter[]): Promise<Event[]> {
 	);
 }
 
-export function requestEvents(filters: Filter[], on: RxNostrOnParams): Observable<Event> {
-	return requestEventPackets(filters, { on }).pipe(map(({ event }) => event));
+export function requestEvents(filters: Filter[], on?: RxNostrOnParams): Observable<Event> {
+	return requestEventPackets(filters, on === undefined ? undefined : { on }).pipe(
+		map(({ event }) => event)
+	);
 }
 
 export function requestLatestReplaceableEvent(kind: number, pubkey: string): Observable<Event> {
