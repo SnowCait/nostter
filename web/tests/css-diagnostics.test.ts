@@ -123,11 +123,44 @@ test('sends stylesheet-not-applied when stylesheets load without applying', asyn
 
 	const [{ body }] = await sentDiagnostics(page);
 	expect(body).toMatchObject({
+		trigger: 'load',
 		pathname: '/unknown/[npub]',
 		stylesheetPaths: expect.arrayContaining([expect.stringMatching(stylesheetAssets)]),
 		unavailableStylesheetPaths: []
 	});
 	expect(body).not.toHaveProperty('stylesheetPath');
+});
+
+test('sends stylesheet-not-applied detected on returning to the foreground', async ({ page }) => {
+	await recordDiagnostics(page);
+	await page.goto('/about');
+	await page.evaluate(() => {
+		for (const sheet of document.styleSheets) {
+			sheet.disabled = true;
+		}
+	});
+
+	const changeVisibility = (visibilityState: DocumentVisibilityState) =>
+		page.evaluate((visibilityState) => {
+			Object.defineProperty(document, 'visibilityState', {
+				configurable: true,
+				get: () => visibilityState
+			});
+			document.dispatchEvent(new Event('visibilitychange'));
+		}, visibilityState);
+
+	await changeVisibility('hidden');
+	expect(await sentDiagnostics(page)).toEqual([]);
+
+	await changeVisibility('visible');
+	await expect
+		.poll(async () =>
+			(await sentDiagnostics(page)).map(({ body, status }) => [body.type, status])
+		)
+		.toEqual([['stylesheet-not-applied', 204]]);
+
+	const [{ body }] = await sentDiagnostics(page);
+	expect(body.trigger).toBe('visibilitychange');
 });
 
 test('sends the response status of a stylesheet that failed with an HTTP error', async ({

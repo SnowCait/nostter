@@ -131,6 +131,7 @@ describe('POST /api/diagnostics/client', () => {
 			JSON.stringify({
 				...validPayload,
 				type: 'stylesheet-not-applied',
+				trigger: 'visibilitychange',
 				pathname: '/',
 				stylesheetPath: undefined
 			}),
@@ -142,6 +143,7 @@ describe('POST /api/diagnostics/client', () => {
 			message: 'client-css-diagnostic',
 			diagnostic: expect.objectContaining({
 				type: 'stylesheet-not-applied',
+				trigger: 'visibilitychange',
 				pathname: '/',
 				stylesheets: expect.not.objectContaining({ failed: expect.anything() }),
 				client: expect.not.objectContaining({ userAgent: expect.anything() })
@@ -238,6 +240,15 @@ describe('POST /api/diagnostics/client', () => {
 
 	it.each([
 		['an unknown type', { ...validPayload, type: 'script-load-error' }],
+		['a stylesheet load error with a trigger', { ...validPayload, trigger: 'load' }],
+		[
+			'stylesheet-not-applied without a trigger',
+			{ ...validPayload, type: 'stylesheet-not-applied' }
+		],
+		[
+			'stylesheet-not-applied with an unknown trigger',
+			{ ...validPayload, type: 'stylesheet-not-applied', trigger: 'pageshow' }
+		],
 		['a pathname with a Nostr identifier', { ...validPayload, pathname: '/npub1abcdefgh' }],
 		['a pathname with a query', { ...validPayload, pathname: '/search?q=nostr' }],
 		['a too long pathname', { ...validPayload, pathname: `/${'a/'.repeat(128)}` }],
