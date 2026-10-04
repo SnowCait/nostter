@@ -93,7 +93,7 @@
 					}
 				};
 
-				const send = (type, stylesheetPath) => {
+				const send = (type, details) => {
 					if (sentTypes.has(type)) {
 						return;
 					}
@@ -116,8 +116,8 @@
 							headers: { 'Content-Type': 'application/json' },
 							body: JSON.stringify({
 								type,
+								...details,
 								pathname: redactPathname(location.pathname),
-								stylesheetPath,
 								stylesheetPaths: stylesheets.map(({ path }) => path),
 								stylesheetResponseStatuses: stylesheets.map(({ href }) =>
 									responseStatusOf(href)
@@ -152,22 +152,32 @@
 						) {
 							const path = toSameOriginPath(target.href);
 							if (path !== undefined) {
-								send('stylesheet-load-error', path);
+								send('stylesheet-load-error', { stylesheetPath: path });
 							}
 						}
 					},
 					true
 				);
 
+				const checkStylesheetApplied = (trigger) => {
+					const background = getComputedStyle(document.documentElement)
+						.getPropertyValue('--background')
+						.trim();
+					if (background === '') {
+						send('stylesheet-not-applied', { trigger });
+					}
+				};
+
 				addEventListener(
 					'load',
 					() => {
-						const background = getComputedStyle(document.documentElement)
-							.getPropertyValue('--background')
-							.trim();
-						if (background === '') {
-							send('stylesheet-not-applied');
-						}
+						checkStylesheetApplied('load');
+						// Registered after load so stylesheets still loading are not reported.
+						document.addEventListener('visibilitychange', () => {
+							if (document.visibilityState === 'visible') {
+								checkStylesheetApplied('visibilitychange');
+							}
+						});
 					},
 					{ once: true }
 				);

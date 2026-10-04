@@ -8,7 +8,9 @@ const maxJavascriptResources = 16;
 const maxInitiatorTypeLength = 32;
 const maxUserAgentLength = 512;
 
-const diagnosticTypes = ['stylesheet-load-error', 'stylesheet-not-applied'] as const;
+const stylesheetCheckTriggers = ['load', 'visibilitychange'] as const;
+
+type StylesheetCheckTrigger = (typeof stylesheetCheckTriggers)[number];
 
 type JavascriptResource = {
 	path: string;
@@ -16,8 +18,11 @@ type JavascriptResource = {
 	responseStatus: number | null;
 };
 
-type CssDiagnostic = {
-	type: (typeof diagnosticTypes)[number];
+type Detection =
+	| { type: 'stylesheet-load-error' }
+	| { type: 'stylesheet-not-applied'; trigger: StylesheetCheckTrigger };
+
+type CssDiagnostic = Detection & {
 	timestamp: number;
 	pathname: string;
 	stylesheets: {
@@ -48,8 +53,18 @@ const initiatorTypePattern = /^[a-z]+(?:-[a-z]+)*$/;
 // Full commit SHA from WORKERS_CI_COMMIT_SHA.
 const gitShaPattern = /^[0-9a-f]{40}$/;
 
-const isDiagnosticType = (value: unknown): value is CssDiagnostic['type'] =>
-	diagnosticTypes.some((type) => type === value);
+const isStylesheetCheckTrigger = (value: unknown): value is StylesheetCheckTrigger =>
+	stylesheetCheckTriggers.some((trigger) => trigger === value);
+
+const parseDetection = (type: unknown, trigger: unknown): Detection | undefined => {
+	if (type === 'stylesheet-load-error' && trigger === undefined) {
+		return { type };
+	}
+	if (type === 'stylesheet-not-applied' && isStylesheetCheckTrigger(trigger)) {
+		return { type, trigger };
+	}
+	return undefined;
+};
 
 const isRedactedPagePathname = (value: unknown): value is string =>
 	typeof value === 'string' &&
@@ -112,6 +127,7 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 	}
 	const {
 		type,
+		trigger,
 		pathname,
 		stylesheetPath,
 		stylesheetPaths,
@@ -123,8 +139,9 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		serviceWorkerControlled,
 		gitSha
 	} = value as Record<string, unknown>;
+	const detection = parseDetection(type, trigger);
 	if (
-		!isDiagnosticType(type) ||
+		detection === undefined ||
 		!isRedactedPagePathname(pathname) ||
 		(stylesheetPath !== undefined && !isStylesheetPath(stylesheetPath)) ||
 		!isStylesheetPaths(stylesheetPaths) ||
@@ -139,7 +156,7 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		return undefined;
 	}
 	return {
-		type,
+		...detection,
 		timestamp,
 		pathname,
 		stylesheets: {
