@@ -18,11 +18,24 @@ type JavascriptResource = {
 	responseStatus: number | null;
 };
 
-type Detection =
+type StylesheetDetection =
 	| { type: 'stylesheet-load-error' }
 	| { type: 'stylesheet-not-applied'; trigger: StylesheetCheckTrigger };
 
-type CssDiagnostic = Detection & {
+type Client = {
+	standalone: boolean;
+	serviceWorkerControlled: boolean;
+	gitSha: string | null;
+};
+
+type DiagnosticContext = {
+	timestamp: number;
+	pathname: string;
+	javascriptResources: JavascriptResource[];
+	client: Client;
+};
+
+type CssDiagnostic = StylesheetDetection & {
 	timestamp: number;
 	pathname: string;
 	stylesheets: {
@@ -36,12 +49,27 @@ type CssDiagnostic = Detection & {
 	javascript: {
 		resources: JavascriptResource[];
 	};
-	client: {
-		standalone: boolean;
-		serviceWorkerControlled: boolean;
-		gitSha: string | null;
-	};
+	client: Client;
 };
+
+type JavascriptDiagnostic = {
+	type: 'javascript-load-error';
+	trigger: 'modulepreload';
+	timestamp: number;
+	pathname: string;
+	javascript: {
+		failed: {
+			path: string;
+			responseStatus: number | null;
+		};
+		resources: JavascriptResource[];
+	};
+	client: Client;
+};
+
+type ParsedDiagnostic =
+	| { message: 'client-css-diagnostic'; diagnostic: CssDiagnostic }
+	| { message: 'client-javascript-diagnostic'; diagnostic: JavascriptDiagnostic };
 
 const redactedPagePathSegmentPattern =
 	/^(?:|[a-z]{1,32}|\d{1,4}|\[(?:npub|nprofile|note|nevent|naddr|param)\])$/;
@@ -56,7 +84,10 @@ const gitShaPattern = /^[0-9a-f]{40}$/;
 const isStylesheetCheckTrigger = (value: unknown): value is StylesheetCheckTrigger =>
 	stylesheetCheckTriggers.some((trigger) => trigger === value);
 
-const parseDetection = (type: unknown, trigger: unknown): Detection | undefined => {
+const parseStylesheetDetection = (
+	type: unknown,
+	trigger: unknown
+): StylesheetDetection | undefined => {
 	if (type === 'stylesheet-load-error' && trigger === undefined) {
 		return { type };
 	}
@@ -94,15 +125,16 @@ const isStylesheetResponseStatuses = (
 	value.length === stylesheetPaths.length &&
 	value.every(isResponseStatus);
 
+const isJavascriptPath = (value: unknown): value is string =>
+	typeof value === 'string' && value.length <= maxPathLength && javascriptPathPattern.test(value);
+
 const isJavascriptResource = (value: unknown): value is JavascriptResource => {
 	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
 		return false;
 	}
 	const { path, initiatorType, responseStatus } = value as Record<string, unknown>;
 	return (
-		typeof path === 'string' &&
-		path.length <= maxPathLength &&
-		javascriptPathPattern.test(path) &&
+		isJavascriptPath(path) &&
 		typeof initiatorType === 'string' &&
 		initiatorType.length <= maxInitiatorTypeLength &&
 		initiatorTypePattern.test(initiatorType) &&
@@ -121,37 +153,58 @@ const isGitSha = (value: unknown): value is string =>
 const isTimestamp = (value: unknown): value is number =>
 	Number.isSafeInteger(value) && (value as number) > 0;
 
-const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
-	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-		return undefined;
-	}
-	const {
-		type,
-		trigger,
-		pathname,
-		stylesheetPath,
-		stylesheetPaths,
-		stylesheetResponseStatuses,
-		unavailableStylesheetPaths,
-		javascriptResources,
-		timestamp,
-		standalone,
-		serviceWorkerControlled,
-		gitSha
-	} = value as Record<string, unknown>;
-	const detection = parseDetection(type, trigger);
+const parseContext = ({
+	pathname,
+	javascriptResources,
+	timestamp,
+	standalone,
+	serviceWorkerControlled,
+	gitSha
+}: Record<string, unknown>): DiagnosticContext | undefined => {
 	if (
-		detection === undefined ||
 		!isRedactedPagePathname(pathname) ||
-		(stylesheetPath !== undefined && !isStylesheetPath(stylesheetPath)) ||
-		!isStylesheetPaths(stylesheetPaths) ||
-		!isStylesheetResponseStatuses(stylesheetResponseStatuses, stylesheetPaths) ||
-		!isStylesheetPaths(unavailableStylesheetPaths) ||
 		!isJavascriptResources(javascriptResources) ||
 		!isTimestamp(timestamp) ||
 		typeof standalone !== 'boolean' ||
 		typeof serviceWorkerControlled !== 'boolean' ||
 		(gitSha !== undefined && !isGitSha(gitSha))
+	) {
+		return undefined;
+	}
+	return {
+		timestamp,
+		pathname,
+		javascriptResources: javascriptResources.map(({ path, initiatorType, responseStatus }) => ({
+			path,
+			initiatorType,
+			responseStatus
+		})),
+		client: {
+			standalone,
+			serviceWorkerControlled,
+			gitSha: gitSha ?? null
+		}
+	};
+};
+
+const parseCssDiagnostic = (
+	{
+		type,
+		trigger,
+		stylesheetPath,
+		stylesheetPaths,
+		stylesheetResponseStatuses,
+		unavailableStylesheetPaths
+	}: Record<string, unknown>,
+	{ timestamp, pathname, javascriptResources, client }: DiagnosticContext
+): CssDiagnostic | undefined => {
+	const detection = parseStylesheetDetection(type, trigger);
+	if (
+		detection === undefined ||
+		(stylesheetPath !== undefined && !isStylesheetPath(stylesheetPath)) ||
+		!isStylesheetPaths(stylesheetPaths) ||
+		!isStylesheetResponseStatuses(stylesheetResponseStatuses, stylesheetPaths) ||
+		!isStylesheetPaths(unavailableStylesheetPaths)
 	) {
 		return undefined;
 	}
@@ -168,18 +221,54 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 			unavailable: unavailableStylesheetPaths
 		},
 		javascript: {
-			resources: javascriptResources.map(({ path, initiatorType, responseStatus }) => ({
-				path,
-				initiatorType,
-				responseStatus
-			}))
+			resources: javascriptResources
 		},
-		client: {
-			standalone,
-			serviceWorkerControlled,
-			gitSha: gitSha ?? null
-		}
+		client
 	};
+};
+
+const parseJavascriptDiagnostic = (
+	{ trigger, javascriptPath, javascriptResponseStatus }: Record<string, unknown>,
+	{ timestamp, pathname, javascriptResources, client }: DiagnosticContext
+): JavascriptDiagnostic | undefined => {
+	if (
+		trigger !== 'modulepreload' ||
+		!isJavascriptPath(javascriptPath) ||
+		!isResponseStatus(javascriptResponseStatus)
+	) {
+		return undefined;
+	}
+	return {
+		type: 'javascript-load-error',
+		trigger,
+		timestamp,
+		pathname,
+		javascript: {
+			failed: {
+				path: javascriptPath,
+				responseStatus: javascriptResponseStatus
+			},
+			resources: javascriptResources
+		},
+		client
+	};
+};
+
+const parseDiagnostic = (value: unknown): ParsedDiagnostic | undefined => {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+		return undefined;
+	}
+	const fields = value as Record<string, unknown>;
+	const context = parseContext(fields);
+	if (context === undefined) {
+		return undefined;
+	}
+	if (fields.type === 'javascript-load-error') {
+		const diagnostic = parseJavascriptDiagnostic(fields, context);
+		return diagnostic && { message: 'client-javascript-diagnostic', diagnostic };
+	}
+	const diagnostic = parseCssDiagnostic(fields, context);
+	return diagnostic && { message: 'client-css-diagnostic', diagnostic };
 };
 
 const readLimitedText = async (request: Request): Promise<string | undefined> => {
@@ -231,13 +320,14 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		return new Response(null, { status: 400 });
 	}
 
-	const diagnostic = parseDiagnostic(payload);
-	if (diagnostic === undefined) {
+	const parsed = parseDiagnostic(payload);
+	if (parsed === undefined) {
 		return new Response(null, { status: 400 });
 	}
 
+	const { message, diagnostic } = parsed;
 	console.error({
-		message: 'client-css-diagnostic',
+		message,
 		diagnostic: {
 			...diagnostic,
 			client: {
