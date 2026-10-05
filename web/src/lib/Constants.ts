@@ -139,8 +139,6 @@ const searchRelayUrls = import.meta.env.VITE_SEARCH_RELAYS
 
 export const searchRelays = searchRelayUrls.map((url) => url.trim());
 
-export const trendRelays = ['wss://nostrbuzzs-relay.fly.dev/'];
-
 // Spam-free relays with limited writes and free reads
 export const publicRelays = ['wss://nostr.wine/', 'wss://wot.utxo.one/', 'wss://nostrelites.org/'];
 

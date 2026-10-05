@@ -261,7 +261,6 @@
 		"options": "Search options",
 		"notes": "Notes",
 		"users": "Users",
-		"trending": "Trending",
 		"fields": {
 			"from": "From (author)",
 			"to": "To (mention)",
