@@ -11,7 +11,6 @@
 	import { EventItem } from '$lib/Items';
 	import TimelineView from '../TimelineView.svelte';
 	import SearchForm from './SearchForm.svelte';
-	import Trending from './Trending.svelte';
 	import FollowHashtagButton from '$lib/components/FollowHashtagButton.svelte';
 	import UnfollowHashtagButton from '$lib/components/UnfollowHashtagButton.svelte';
 	import { unique } from '$lib/array';
@@ -300,11 +299,7 @@
 	</section>
 {/if}
 
-{#if query === ''}
-	<section>
-		<Trending />
-	</section>
-{:else}
+{#if query !== ''}
 	<div use:melt={$root}>
 		<div use:melt={$list} class="tabs">
 			{#each triggers as triggerItem}
