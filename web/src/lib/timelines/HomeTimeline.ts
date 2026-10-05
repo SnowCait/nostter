@@ -15,7 +15,7 @@ import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
 import { filterAndCacheNewerAccountEvents } from '$lib/cache/account-event-cache-stream';
 import { kinds as Kind } from 'nostr-tools';
 import { get } from 'svelte/store';
-import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark.svelte';
+import { bookmarkEvent } from '$lib/author/Bookmark.svelte';
 import {
 	authorActionReqEmit,
 	updateReactionedEvents,
@@ -53,6 +53,11 @@ import { lastReadAt, notifiedEventItems } from '../author/Notifications';
 import { saveLastNote } from '../stores/LastNotes';
 import { isPeopleList, storePeopleList } from '$lib/author/PeopleLists';
 import { markEventsDeleted } from '$lib/features/event-deletion/application/deletion-state';
+import {
+	applyLegacyBookmarkEvent,
+	clearDeletedLegacyBookmark,
+	isDeletedLegacyBookmark
+} from '$lib/features/bookmarks/application/legacy-bookmark-state';
 import { NewTimeline } from './Timeline.svelte';
 import { excludeKinds } from '$lib/TimelineFilter';
 import { fetchMinutes } from '$lib/Helper';
@@ -145,6 +150,7 @@ export class HomeTimeline extends NewTimeline {
 		const addressable$ = author$.pipe(
 			filterByKinds(parameterizedReplaceableKinds),
 			latestEach(({ event }) => `${event.kind}:${findIdentifier(event.tags) ?? ''}`),
+			filter(({ event }) => !isDeletedLegacyBookmark(event)),
 			filterAndCacheNewerAccountEvents(),
 			tap(({ event }) =>
 				console.debug('[author event]', event.kind, findIdentifier(event.tags), event)
@@ -164,7 +170,7 @@ export class HomeTimeline extends NewTimeline {
 				filterByKind(Kind.Genericlists),
 				filter(({ event }) => findIdentifier(event.tags) === legacyBookmarkIdentifier)
 			)
-			.subscribe(({ event }) => legacyBookmarkEvent.set(event));
+			.subscribe(({ event }) => applyLegacyBookmarkEvent(event));
 		addressable$.pipe(filterByKind(30007)).subscribe(async ({ event }) => {
 			const signer = auth.signer;
 			const decryptPrivateListContent =
@@ -190,9 +196,10 @@ export class HomeTimeline extends NewTimeline {
 				latestEach(({ event }) => event.pubkey)
 			)
 			.subscribe(({ event }) => storeMetadata(event));
-		observable$
-			.pipe(filterByKind(Kind.EventDeletion))
-			.subscribe(({ event }) => markEventsDeleted(event));
+		observable$.pipe(filterByKind(Kind.EventDeletion)).subscribe(({ event }) => {
+			markEventsDeleted(event);
+			clearDeletedLegacyBookmark();
+		});
 		observable$
 			.pipe(filterByKind(Kind.BadgeAward))
 			.subscribe(({ event, from }) => storeSeenOn(event.id, from)); // TODO: Migrate to tie
