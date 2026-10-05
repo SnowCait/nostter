@@ -366,6 +366,8 @@ export class HomeTimeline extends NewTimeline {
 	readonly #fetchEnoughSubscriptions = new Set<Subscription>();
 	// `until` of the next bounded backward REQ
 	#olderCursor: number | undefined;
+	// Number of bounded backward REQs started since the last clear
+	#olderStartedCount = 0;
 
 	get loading(): boolean {
 		return this.#olderOperations.size >= maxOlderInFlight;
@@ -379,6 +381,7 @@ export class HomeTimeline extends NewTimeline {
 		this.#olderOperations.clear();
 		this.#fetchEnoughSubscriptions.clear();
 		this.#olderCursor = undefined;
+		this.#olderStartedCount = 0;
 	}
 
 	older(): void {
@@ -405,6 +408,7 @@ export class HomeTimeline extends NewTimeline {
 		const until = this.#olderCursor ?? this.eventsStore.at(-1)?.created_at ?? now();
 		const since = until - fetchMinutes(auth.followees.length) * 60;
 		this.#olderCursor = since;
+		this.#olderStartedCount++;
 
 		const pubkeys = new Set<string>();
 		const req = createRxBackwardReq();
@@ -435,6 +439,14 @@ export class HomeTimeline extends NewTimeline {
 					this.#olderOperations.delete(subscription);
 					console.debug('[home timeline older complete]', count);
 					userStatusReqEmit([...pubkeys]);
+					// After a sparse first load the sentinel may stay intersecting, so the UI won't request the second one.
+					// The count is still 1 only if this is the first REQ and the second one hasn't started.
+					if (
+						this.#olderStartedCount === 1 &&
+						this.eventsForView.length < minTimelineLength / 2
+					) {
+						this.older();
+					}
 					if (count >= minTimelineLength) {
 						return;
 					}

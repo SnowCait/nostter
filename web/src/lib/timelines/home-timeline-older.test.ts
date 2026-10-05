@@ -214,9 +214,9 @@ describe('HomeTimeline older', () => {
 
 		timeline.older();
 
-		expect(bounded()).toHaveLength(2);
+		expect(bounded()).toHaveLength(3);
 		const until = older[limit - 1].created_at;
-		expectRange(bounded()[1], until - fetchWindow, until);
+		expectRange(bounded()[2], until - fetchWindow, until);
 	});
 
 	it('keeps the cursor when fetchEnough returns no events', async () => {
@@ -228,7 +228,7 @@ describe('HomeTimeline older', () => {
 
 		timeline.older();
 
-		expectRange(bounded()[1], current - fetchWindow * 2, current - fetchWindow);
+		expectRange(bounded()[2], current - fetchWindow * 3, current - fetchWindow * 2);
 	});
 
 	it('merges fetchEnough results in reverse chronological order with parallel results', async () => {
@@ -309,7 +309,7 @@ describe('HomeTimeline older', () => {
 
 		timeline.clear();
 		timeline.older();
-		const [, fresh] = bounded();
+		const [, , fresh] = bounded();
 		send(fresh, note('fresh', current - 20));
 
 		expect(stale.packets.observed).toBe(false);
@@ -321,6 +321,77 @@ describe('HomeTimeline older', () => {
 
 		timeline.older();
 
-		expectRange(bounded()[2], current - fetchWindow * 2, current - fetchWindow);
+		expectRange(bounded()[3], current - fetchWindow * 2, current - fetchWindow);
+	});
+
+	describe('automatic second bounded REQ', () => {
+		const sparse = (prefix: string, length: number) =>
+			Array.from({ length }, (_, i) => note(`${prefix}-${i}`, current - 10 - i));
+		const sparseLength = Math.ceil(minTimelineLength / 2) - 1;
+
+		it('starts with fetchEnough when the first bounded REQ completes with less than half', () => {
+			timeline.older();
+			send(bounded()[0], ...sparse('a', sparseLength));
+			bounded()[0].packets.complete();
+
+			expect(bounded()).toHaveLength(2);
+			expectRange(bounded()[1], current - fetchWindow * 2, current - fetchWindow);
+			expect(fetchEnough()).toHaveLength(1);
+			expect(fetchEnough()[0].filters[0]).toMatchObject({
+				limit: (minTimelineLength - sparseLength) * 2
+			});
+			expect(bounded()[1].packets.observed).toBe(true);
+			expect(fetchEnough()[0].packets.observed).toBe(true);
+		});
+
+		it('does not start when the first bounded REQ completes with half or more', () => {
+			timeline.older();
+			send(bounded()[0], ...sparse('a', sparseLength + 1));
+			bounded()[0].packets.complete();
+
+			expect(bounded()).toHaveLength(1);
+			expect(fetchEnough()).toHaveLength(1);
+		});
+
+		it('does not start a third one when the second one has already started', () => {
+			timeline.older();
+			timeline.older();
+			bounded()[0].packets.complete();
+
+			expect(bounded()).toHaveLength(2);
+			expect(fetchEnough()).toHaveLength(1);
+		});
+
+		it('does not start a third one when the second one completes with less than half', () => {
+			timeline.older();
+			bounded()[0].packets.complete();
+			bounded()[1].packets.complete();
+
+			expect(bounded()).toHaveLength(2);
+			expect(fetchEnough()).toHaveLength(2);
+		});
+
+		it('judges the first bounded REQ after clear regardless of REQs started before clear', () => {
+			timeline.older();
+			timeline.older();
+			const stale = bounded();
+
+			timeline.clear();
+			timeline.older();
+			const [, , fresh] = bounded();
+
+			for (const operation of stale) {
+				operation.packets.complete();
+			}
+			expect(bounded()).toHaveLength(3);
+			expect(fetchEnough()).toHaveLength(0);
+
+			send(fresh, ...sparse('fresh', sparseLength));
+			fresh.packets.complete();
+
+			expect(bounded()).toHaveLength(4);
+			expectRange(bounded()[3], current - fetchWindow * 2, current - fetchWindow);
+			expect(fetchEnough()).toHaveLength(1);
+		});
 	});
 });
