@@ -31,6 +31,25 @@ const validPayload = {
 	gitSha: clientGitSha
 };
 
+const validJavascriptPayload = {
+	type: 'javascript-load-error',
+	trigger: 'modulepreload',
+	javascriptPath: '/_app/immutable/nodes/3.DvUCudzt.js',
+	javascriptResponseStatus: 404,
+	pathname: '/[npub]/lists',
+	javascriptResources: [
+		{
+			path: '/_app/immutable/nodes/3.DvUCudzt.js',
+			initiatorType: 'script',
+			responseStatus: 404
+		}
+	],
+	timestamp: 1790000000000,
+	standalone: false,
+	serviceWorkerControlled: true,
+	gitSha: clientGitSha
+};
+
 const javascriptResource = (overrides: Record<string, unknown> = {}) => ({
 	path: '/_app/immutable/entry/app.js',
 	initiatorType: 'script',
@@ -215,6 +234,62 @@ describe('POST /api/diagnostics/client', () => {
 		});
 	});
 
+	it('logs a JavaScript load error separately without stylesheet fields', async () => {
+		const response = await post(
+			JSON.stringify({
+				...validJavascriptPayload,
+				stylesheetPath: '/_app/immutable/assets/0.Bx3k2Lm.css',
+				stylesheetPaths: validPayload.stylesheetPaths
+			})
+		);
+
+		expect(response.status).toBe(204);
+		expect(error).toHaveBeenCalledTimes(1);
+		expect(error).toHaveBeenCalledWith({
+			message: 'client-javascript-diagnostic',
+			diagnostic: {
+				type: 'javascript-load-error',
+				trigger: 'modulepreload',
+				timestamp: 1790000000000,
+				pathname: '/[npub]/lists',
+				javascript: {
+					failed: { path: '/_app/immutable/nodes/3.DvUCudzt.js', responseStatus: 404 },
+					resources: validJavascriptPayload.javascriptResources
+				},
+				client: {
+					standalone: false,
+					serviceWorkerControlled: true,
+					gitSha: clientGitSha,
+					userAgent: 'Mozilla/5.0'
+				},
+				server: {
+					gitSha: serverGitSha
+				}
+			}
+		});
+	});
+
+	it('accepts a JavaScript load error without a response status or resources', async () => {
+		const response = await post(
+			JSON.stringify({
+				...validJavascriptPayload,
+				javascriptResponseStatus: null,
+				javascriptResources: []
+			})
+		);
+
+		expect(response.status).toBe(204);
+		expect(error).toHaveBeenCalledWith({
+			message: 'client-javascript-diagnostic',
+			diagnostic: expect.objectContaining({
+				javascript: {
+					failed: { path: '/_app/immutable/nodes/3.DvUCudzt.js', responseStatus: null },
+					resources: []
+				}
+			})
+		});
+	});
+
 	it('does not log fields that are not allowed', async () => {
 		await post(
 			JSON.stringify({
@@ -248,6 +323,49 @@ describe('POST /api/diagnostics/client', () => {
 		[
 			'stylesheet-not-applied with an unknown trigger',
 			{ ...validPayload, type: 'stylesheet-not-applied', trigger: 'pageshow' }
+		],
+		[
+			'a JavaScript load error without a trigger',
+			{ ...validJavascriptPayload, trigger: undefined }
+		],
+		[
+			'a JavaScript load error with an unknown trigger',
+			{ ...validJavascriptPayload, trigger: 'script' }
+		],
+		[
+			'a stylesheet load error with the modulepreload trigger',
+			{ ...validPayload, trigger: 'modulepreload' }
+		],
+		[
+			'a JavaScript load error without a failed path',
+			{ ...validJavascriptPayload, javascriptPath: undefined }
+		],
+		[
+			'a failed JavaScript path outside immutable assets',
+			{ ...validJavascriptPayload, javascriptPath: '/_app/version.js' }
+		],
+		[
+			'a failed JavaScript URL',
+			{
+				...validJavascriptPayload,
+				javascriptPath: 'https://nostter.app/_app/immutable/nodes/3.js'
+			}
+		],
+		[
+			'a failed JavaScript path with a query',
+			{ ...validJavascriptPayload, javascriptPath: '/_app/immutable/nodes/3.js?v=1' }
+		],
+		[
+			'a JavaScript load error without a response status',
+			{ ...validJavascriptPayload, javascriptResponseStatus: undefined }
+		],
+		[
+			'a string failed JavaScript response status',
+			{ ...validJavascriptPayload, javascriptResponseStatus: '404' }
+		],
+		[
+			'a JavaScript load error without JavaScript resources',
+			{ ...validJavascriptPayload, javascriptResources: undefined }
 		],
 		['a pathname with a Nostr identifier', { ...validPayload, pathname: '/npub1abcdefgh' }],
 		['a pathname with a query', { ...validPayload, pathname: '/search?q=nostr' }],
