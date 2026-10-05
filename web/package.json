@@ -53,7 +53,7 @@
 		"@emoji-mart/data": "^1.2.1",
 		"@floating-ui/dom": "^1.8.0",
 		"@rust-nostr/nostr-sdk": "^0.44.0",
-		"@tabler/icons-svelte-runes": "^3.46.0",
+		"@tabler/icons-svelte-runes": "^3.47.0",
 		"async-lock": "^1.4.1",
 		"bits-ui": "^2.19.2",
 		"blossom-client-sdk": "^5.1.0",
