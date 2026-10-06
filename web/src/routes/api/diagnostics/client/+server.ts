@@ -7,10 +7,19 @@ const maxStylesheets = 32;
 const maxJavascriptResources = 16;
 const maxInitiatorTypeLength = 32;
 const maxUserAgentLength = 512;
+const maxSourcePosition = 2 ** 31 - 1;
 
 const stylesheetCheckTriggers = ['load', 'visibilitychange'] as const;
 
 type StylesheetCheckTrigger = (typeof stylesheetCheckTriggers)[number];
+
+const unexpectedErrorTypes = [
+	'window-error',
+	'unhandled-rejection',
+	'sveltekit-handle-error'
+] as const;
+
+type UnexpectedErrorType = (typeof unexpectedErrorTypes)[number];
 
 type JavascriptResource = {
 	path: string;
@@ -21,6 +30,12 @@ type JavascriptResource = {
 type Detection =
 	| { type: 'stylesheet-load-error' }
 	| { type: 'stylesheet-not-applied'; trigger: StylesheetCheckTrigger };
+
+type ClientContext = {
+	standalone: boolean;
+	serviceWorkerControlled: boolean;
+	gitSha: string | null;
+};
 
 type CssDiagnostic = Detection & {
 	timestamp: number;
@@ -36,22 +51,36 @@ type CssDiagnostic = Detection & {
 	javascript: {
 		resources: JavascriptResource[];
 	};
-	client: {
-		standalone: boolean;
-		serviceWorkerControlled: boolean;
-		gitSha: string | null;
-	};
+	client: ClientContext;
 };
+
+type UnexpectedErrorDiagnostic = {
+	type: UnexpectedErrorType;
+	timestamp: number;
+	pathname: string;
+	source?: {
+		filename?: string;
+		line?: number;
+		column?: number;
+	};
+	client: ClientContext;
+};
+
+type ClientDiagnostic = CssDiagnostic | UnexpectedErrorDiagnostic;
 
 const redactedPagePathSegmentPattern =
 	/^(?:|[a-z]{1,32}|\d{1,4}|\[(?:npub|nprofile|note|nevent|naddr|param)\])$/;
 // Printable ASCII without query or hash, since only pathnames are accepted.
 const stylesheetPathPattern = /^\/(?:(?![?#])[\x21-\x7e])*$/;
 const javascriptPathPattern = /^\/_app\/immutable\/(?:(?![?#])[\x21-\x7e])*\.js$/;
+const immutableAssetPathPattern = /^\/_app\/immutable\/(?:(?![?#])[\x21-\x7e])*$/;
 // Lowercase words joined by hyphens, such as script, link, or early-hints.
 const initiatorTypePattern = /^[a-z]+(?:-[a-z]+)*$/;
 // Full commit SHA from WORKERS_CI_COMMIT_SHA.
 const gitShaPattern = /^[0-9a-f]{40}$/;
+
+const isUnexpectedErrorType = (value: unknown): value is UnexpectedErrorType =>
+	unexpectedErrorTypes.some((type) => type === value);
 
 const isStylesheetCheckTrigger = (value: unknown): value is StylesheetCheckTrigger =>
 	stylesheetCheckTriggers.some((trigger) => trigger === value);
@@ -121,10 +150,16 @@ const isGitSha = (value: unknown): value is string =>
 const isTimestamp = (value: unknown): value is number =>
 	Number.isSafeInteger(value) && (value as number) > 0;
 
-const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
-	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-		return undefined;
-	}
+// Inline scripts are reported with the page path, which the client redacts like the page pathname.
+const isSourcePath = (value: unknown): value is string =>
+	typeof value === 'string' &&
+	value.length <= maxPathLength &&
+	(immutableAssetPathPattern.test(value) || isRedactedPagePathname(value));
+
+const isSourcePosition = (value: unknown): value is number =>
+	Number.isSafeInteger(value) && (value as number) > 0 && (value as number) <= maxSourcePosition;
+
+const parseCssDiagnostic = (value: Record<string, unknown>): CssDiagnostic | undefined => {
 	const {
 		type,
 		trigger,
@@ -138,7 +173,7 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 		standalone,
 		serviceWorkerControlled,
 		gitSha
-	} = value as Record<string, unknown>;
+	} = value;
 	const detection = parseDetection(type, trigger);
 	if (
 		detection === undefined ||
@@ -180,6 +215,57 @@ const parseDiagnostic = (value: unknown): CssDiagnostic | undefined => {
 			gitSha: gitSha ?? null
 		}
 	};
+};
+
+const parseUnexpectedErrorDiagnostic = (
+	value: Record<string, unknown>
+): UnexpectedErrorDiagnostic | undefined => {
+	const {
+		type,
+		pathname,
+		filename,
+		line,
+		column,
+		timestamp,
+		standalone,
+		serviceWorkerControlled,
+		gitSha
+	} = value;
+	if (
+		!isUnexpectedErrorType(type) ||
+		!isRedactedPagePathname(pathname) ||
+		!isTimestamp(timestamp) ||
+		typeof standalone !== 'boolean' ||
+		typeof serviceWorkerControlled !== 'boolean' ||
+		(gitSha !== undefined && !isGitSha(gitSha))
+	) {
+		return undefined;
+	}
+	const client = { standalone, serviceWorkerControlled, gitSha: gitSha ?? null };
+	if (type !== 'window-error') {
+		if (filename !== undefined || line !== undefined || column !== undefined) {
+			return undefined;
+		}
+		return { type, timestamp, pathname, client };
+	}
+	if (
+		(filename !== undefined && !isSourcePath(filename)) ||
+		(line !== undefined && !isSourcePosition(line)) ||
+		(column !== undefined && !isSourcePosition(column))
+	) {
+		return undefined;
+	}
+	return { type, timestamp, pathname, source: { filename, line, column }, client };
+};
+
+const parseDiagnostic = (value: unknown): ClientDiagnostic | undefined => {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+		return undefined;
+	}
+	const record = value as Record<string, unknown>;
+	return isUnexpectedErrorType(record.type)
+		? parseUnexpectedErrorDiagnostic(record)
+		: parseCssDiagnostic(record);
 };
 
 const readLimitedText = async (request: Request): Promise<string | undefined> => {
@@ -237,7 +323,9 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	}
 
 	console.error({
-		message: 'client-css-diagnostic',
+		message: isUnexpectedErrorType(diagnostic.type)
+			? 'client-unexpected-error'
+			: 'client-css-diagnostic',
 		diagnostic: {
 			...diagnostic,
 			client: {

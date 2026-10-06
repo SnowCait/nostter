@@ -431,3 +431,194 @@ describe('POST /api/diagnostics/client', () => {
 		expect(error).not.toHaveBeenCalled();
 	});
 });
+
+describe('POST /api/diagnostics/client with an unexpected error', () => {
+	const errorPayload = {
+		type: 'window-error',
+		pathname: '/[npub]',
+		filename: '/_app/immutable/chunks/Cx9a-b_1.js',
+		line: 1,
+		column: 2345,
+		timestamp: 1790000000000,
+		standalone: false,
+		serviceWorkerControlled: true,
+		gitSha: clientGitSha
+	};
+
+	const withoutSource = {
+		...errorPayload,
+		filename: undefined,
+		line: undefined,
+		column: undefined
+	};
+
+	const client = {
+		standalone: false,
+		serviceWorkerControlled: true,
+		gitSha: clientGitSha,
+		userAgent: 'Mozilla/5.0'
+	};
+
+	const expectedErrorLog = {
+		message: 'client-unexpected-error',
+		diagnostic: {
+			type: 'window-error',
+			timestamp: 1790000000000,
+			pathname: '/[npub]',
+			source: {
+				filename: '/_app/immutable/chunks/Cx9a-b_1.js',
+				line: 1,
+				column: 2345
+			},
+			client,
+			server: {
+				gitSha: serverGitSha
+			}
+		}
+	};
+
+	it('logs a window error with its source location', async () => {
+		const response = await post(JSON.stringify(errorPayload));
+
+		expect(response.status).toBe(204);
+		expect(error).toHaveBeenCalledTimes(1);
+		expect(error).toHaveBeenCalledWith(expectedErrorLog);
+	});
+
+	it('logs a window error without a source location or client Git SHA', async () => {
+		const response = await post(JSON.stringify({ ...withoutSource, gitSha: undefined }));
+
+		expect(response.status).toBe(204);
+		expect(error).toHaveBeenCalledWith({
+			message: 'client-unexpected-error',
+			diagnostic: {
+				...expectedErrorLog.diagnostic,
+				source: {},
+				client: { ...client, gitSha: null }
+			}
+		});
+	});
+
+	it('logs an inline script filename redacted like the page pathname', async () => {
+		const response = await post(JSON.stringify({ ...errorPayload, filename: '/[nevent]' }));
+
+		expect(response.status).toBe(204);
+		expect(error).toHaveBeenCalledWith({
+			message: 'client-unexpected-error',
+			diagnostic: expect.objectContaining({
+				source: { filename: '/[nevent]', line: 1, column: 2345 }
+			})
+		});
+	});
+
+	it.each(['unhandled-rejection', 'sveltekit-handle-error'])('logs %s', async (type) => {
+		const response = await post(JSON.stringify({ ...withoutSource, type }));
+
+		expect(response.status).toBe(204);
+		expect(error).toHaveBeenCalledTimes(1);
+		expect(error.mock.calls[0][0]).toStrictEqual({
+			message: 'client-unexpected-error',
+			diagnostic: {
+				type,
+				timestamp: 1790000000000,
+				pathname: '/[npub]',
+				client,
+				server: { gitSha: serverGitSha }
+			}
+		});
+	});
+
+	it.each(['window-error', 'unhandled-rejection', 'sveltekit-handle-error'])(
+		'does not log error details or fields that are not allowed for %s',
+		async (type) => {
+			const payload = type === 'window-error' ? errorPayload : withoutSource;
+			await post(
+				JSON.stringify({
+					...payload,
+					type,
+					name: 'TypeError',
+					message: 'secret message',
+					stack: 'secret stack',
+					reason: 'secret reason',
+					error: { message: 'secret error' },
+					source: { injected: true },
+					userAgent: 'injected',
+					npub: 'npub1injected',
+					stylesheetPath: '/_app/immutable/assets/0.css',
+					trigger: 'load',
+					client: { userAgent: 'injected' },
+					server: { gitSha: 'injected' }
+				})
+			);
+
+			expect(error).toHaveBeenCalledTimes(1);
+			const log = JSON.stringify(error.mock.calls[0][0]);
+			expect(log).not.toMatch(/secret|injected|TypeError|stylesheet|trigger/);
+			expect(error).toHaveBeenCalledWith({
+				message: 'client-unexpected-error',
+				diagnostic: expect.objectContaining({ type, client })
+			});
+		}
+	);
+
+	it('logs the User-Agent from the request header only', async () => {
+		await post(JSON.stringify({ ...errorPayload, userAgent: 'injected' }), {
+			'content-type': 'application/json'
+		});
+
+		expect(error).toHaveBeenCalledWith({
+			message: 'client-unexpected-error',
+			diagnostic: expect.objectContaining({
+				client: { standalone: false, serviceWorkerControlled: true, gitSha: clientGitSha }
+			})
+		});
+	});
+
+	it.each([
+		['a pathname with a Nostr identifier', { ...errorPayload, pathname: '/npub1abcdefgh' }],
+		['a pathname with a query', { ...errorPayload, pathname: '/search?q=nostr' }],
+		['a pathname with a hash', { ...errorPayload, pathname: '/settings#account' }],
+		[
+			'a filename URL',
+			{ ...errorPayload, filename: 'https://nostter.app/_app/immutable/a.js' }
+		],
+		[
+			'a filename with a query',
+			{ ...errorPayload, filename: '/_app/immutable/chunks/a.js?value=secret' }
+		],
+		['a filename with a hash', { ...errorPayload, filename: '/_app/immutable/chunks/a.js#x' }],
+		['an unredacted page filename', { ...errorPayload, filename: '/npub1abcdefgh' }],
+		[
+			'a too long filename',
+			{ ...errorPayload, filename: `/_app/immutable/${'a'.repeat(241)}` }
+		],
+		['a zero line', { ...errorPayload, line: 0 }],
+		['a negative column', { ...errorPayload, column: -1 }],
+		['a non-integer line', { ...errorPayload, line: 1.5 }],
+		['a string column', { ...errorPayload, column: '10' }],
+		['a too large line', { ...errorPayload, line: 2 ** 31 }],
+		[
+			'a source location for an unhandled rejection',
+			{ ...errorPayload, type: 'unhandled-rejection' }
+		],
+		[
+			'a filename for a SvelteKit error',
+			{ ...withoutSource, type: 'sveltekit-handle-error', filename: '/_app/immutable/a.js' }
+		],
+		[
+			'a line for a SvelteKit error',
+			{ ...withoutSource, type: 'sveltekit-handle-error', line: 1 }
+		],
+		['an abbreviated Git SHA', { ...errorPayload, gitSha: clientGitSha.slice(0, 7) }],
+		['an uppercase Git SHA', { ...errorPayload, gitSha: clientGitSha.toUpperCase() }],
+		['an arbitrary Git SHA', { ...errorPayload, gitSha: 'main' }],
+		['a missing timestamp', { ...errorPayload, timestamp: undefined }],
+		['a missing standalone flag', { ...errorPayload, standalone: undefined }],
+		['an ambiguous type', { ...errorPayload, type: 'sveltekit' }]
+	])('rejects %s', async (_, payload) => {
+		const response = await post(JSON.stringify(payload));
+
+		expect(response.status).toBe(400);
+		expect(error).not.toHaveBeenCalled();
+	});
+});
