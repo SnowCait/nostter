@@ -59,7 +59,7 @@
 
 		const signer = auth.signer;
 		if (signer === undefined) {
-			throw new Error('Cannot update notification read state without a signing session');
+			return;
 		}
 
 		const event = await signer.signEvent({
