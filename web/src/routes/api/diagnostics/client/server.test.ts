@@ -436,9 +436,6 @@ describe('POST /api/diagnostics/client with an unexpected error', () => {
 	const errorPayload = {
 		type: 'window-error',
 		pathname: '/[npub]',
-		name: 'TypeError',
-		message: "Cannot read properties of undefined (reading 'id')",
-		stack: "TypeError: Cannot read properties of undefined (reading 'id')\n    at f (https://nostter.app/_app/immutable/chunks/Cx9a-b_1.js:1:2345)",
 		filename: '/_app/immutable/chunks/Cx9a-b_1.js',
 		line: 1,
 		column: 2345,
@@ -448,34 +445,6 @@ describe('POST /api/diagnostics/client with an unexpected error', () => {
 		gitSha: clientGitSha
 	};
 
-	const expectedErrorLog = {
-		message: 'client-unexpected-error',
-		diagnostic: {
-			type: 'window-error',
-			timestamp: 1790000000000,
-			pathname: '/[npub]',
-			error: {
-				name: 'TypeError',
-				message: errorPayload.message,
-				stack: errorPayload.stack
-			},
-			source: {
-				filename: '/_app/immutable/chunks/Cx9a-b_1.js',
-				line: 1,
-				column: 2345
-			},
-			client: {
-				standalone: false,
-				serviceWorkerControlled: true,
-				gitSha: clientGitSha,
-				userAgent: 'Mozilla/5.0'
-			},
-			server: {
-				gitSha: serverGitSha
-			}
-		}
-	};
-
 	const withoutSource = {
 		...errorPayload,
 		filename: undefined,
@@ -483,7 +452,32 @@ describe('POST /api/diagnostics/client with an unexpected error', () => {
 		column: undefined
 	};
 
-	it('logs a window error', async () => {
+	const client = {
+		standalone: false,
+		serviceWorkerControlled: true,
+		gitSha: clientGitSha,
+		userAgent: 'Mozilla/5.0'
+	};
+
+	const expectedErrorLog = {
+		message: 'client-unexpected-error',
+		diagnostic: {
+			type: 'window-error',
+			timestamp: 1790000000000,
+			pathname: '/[npub]',
+			source: {
+				filename: '/_app/immutable/chunks/Cx9a-b_1.js',
+				line: 1,
+				column: 2345
+			},
+			client,
+			server: {
+				gitSha: serverGitSha
+			}
+		}
+	};
+
+	it('logs a window error with its source location', async () => {
 		const response = await post(JSON.stringify(errorPayload));
 
 		expect(response.status).toBe(204);
@@ -491,25 +485,16 @@ describe('POST /api/diagnostics/client with an unexpected error', () => {
 		expect(error).toHaveBeenCalledWith(expectedErrorLog);
 	});
 
-	it('logs a window error without an error object or source location', async () => {
-		const response = await post(
-			JSON.stringify({
-				...withoutSource,
-				name: undefined,
-				message: 'Script error.',
-				stack: undefined,
-				gitSha: undefined
-			})
-		);
+	it('logs a window error without a source location or client Git SHA', async () => {
+		const response = await post(JSON.stringify({ ...withoutSource, gitSha: undefined }));
 
 		expect(response.status).toBe(204);
 		expect(error).toHaveBeenCalledWith({
 			message: 'client-unexpected-error',
 			diagnostic: {
 				...expectedErrorLog.diagnostic,
-				error: { message: 'Script error.' },
 				source: {},
-				client: { ...expectedErrorLog.diagnostic.client, gitSha: null }
+				client: { ...client, gitSha: null }
 			}
 		});
 	});
@@ -526,54 +511,55 @@ describe('POST /api/diagnostics/client with an unexpected error', () => {
 		});
 	});
 
-	it.each(['unhandled-rejection', 'sveltekit-handle-error'])(
-		'logs %s without a source location',
-		async (type) => {
-			const response = await post(JSON.stringify({ ...withoutSource, type }));
-
-			expect(response.status).toBe(204);
-			expect(error).toHaveBeenCalledWith({
-				message: 'client-unexpected-error',
-				diagnostic: { ...expectedErrorLog.diagnostic, type, source: undefined }
-			});
-			expect(error.mock.calls[0][0].diagnostic).not.toHaveProperty('source');
-		}
-	);
-
-	it('accepts a message and stack at their length limits', async () => {
-		const message = 'm'.repeat(1024);
-		const stack = 's'.repeat(4096);
-
-		const response = await post(JSON.stringify({ ...errorPayload, message, stack }));
+	it.each(['unhandled-rejection', 'sveltekit-handle-error'])('logs %s', async (type) => {
+		const response = await post(JSON.stringify({ ...withoutSource, type }));
 
 		expect(response.status).toBe(204);
-		expect(error).toHaveBeenCalledWith({
+		expect(error).toHaveBeenCalledTimes(1);
+		expect(error.mock.calls[0][0]).toStrictEqual({
 			message: 'client-unexpected-error',
-			diagnostic: expect.objectContaining({
-				error: { name: 'TypeError', message, stack }
-			})
+			diagnostic: {
+				type,
+				timestamp: 1790000000000,
+				pathname: '/[npub]',
+				client,
+				server: { gitSha: serverGitSha }
+			}
 		});
 	});
 
-	it('does not log fields that are not allowed', async () => {
-		await post(
-			JSON.stringify({
-				...errorPayload,
-				userAgent: 'injected',
-				content: 'hello',
-				npub: 'npub1injected',
-				error: { injected: true },
-				source: { injected: true },
-				stylesheetPath: '/_app/immutable/assets/0.css',
-				trigger: 'load',
-				client: { userAgent: 'injected' },
-				server: { gitSha: 'injected' }
-			})
-		);
+	it.each(['window-error', 'unhandled-rejection', 'sveltekit-handle-error'])(
+		'does not log error details or fields that are not allowed for %s',
+		async (type) => {
+			const payload = type === 'window-error' ? errorPayload : withoutSource;
+			await post(
+				JSON.stringify({
+					...payload,
+					type,
+					name: 'TypeError',
+					message: 'secret message',
+					stack: 'secret stack',
+					reason: 'secret reason',
+					error: { message: 'secret error' },
+					source: { injected: true },
+					userAgent: 'injected',
+					npub: 'npub1injected',
+					stylesheetPath: '/_app/immutable/assets/0.css',
+					trigger: 'load',
+					client: { userAgent: 'injected' },
+					server: { gitSha: 'injected' }
+				})
+			);
 
-		expect(error).toHaveBeenCalledTimes(1);
-		expect(error).toHaveBeenCalledWith(expectedErrorLog);
-	});
+			expect(error).toHaveBeenCalledTimes(1);
+			const log = JSON.stringify(error.mock.calls[0][0]);
+			expect(log).not.toMatch(/secret|injected|TypeError|stylesheet|trigger/);
+			expect(error).toHaveBeenCalledWith({
+				message: 'client-unexpected-error',
+				diagnostic: expect.objectContaining({ type, client })
+			});
+		}
+	);
 
 	it('logs the User-Agent from the request header only', async () => {
 		await post(JSON.stringify({ ...errorPayload, userAgent: 'injected' }), {
@@ -589,13 +575,6 @@ describe('POST /api/diagnostics/client with an unexpected error', () => {
 	});
 
 	it.each([
-		['a missing message', { ...errorPayload, message: undefined }],
-		['a non-string message', { ...errorPayload, message: { text: 'object' } }],
-		['a too long message', { ...errorPayload, message: 'm'.repeat(1025) }],
-		['a too long stack', { ...errorPayload, stack: 's'.repeat(4097) }],
-		['a non-string stack', { ...errorPayload, stack: ['frame'] }],
-		['a too long name', { ...errorPayload, name: 'E'.repeat(129) }],
-		['a non-string name', { ...errorPayload, name: null }],
 		['a pathname with a Nostr identifier', { ...errorPayload, pathname: '/npub1abcdefgh' }],
 		['a pathname with a query', { ...errorPayload, pathname: '/search?q=nostr' }],
 		['a pathname with a hash', { ...errorPayload, pathname: '/settings#account' }],
@@ -626,7 +605,12 @@ describe('POST /api/diagnostics/client with an unexpected error', () => {
 			'a filename for a SvelteKit error',
 			{ ...withoutSource, type: 'sveltekit-handle-error', filename: '/_app/immutable/a.js' }
 		],
+		[
+			'a line for a SvelteKit error',
+			{ ...withoutSource, type: 'sveltekit-handle-error', line: 1 }
+		],
 		['an abbreviated Git SHA', { ...errorPayload, gitSha: clientGitSha.slice(0, 7) }],
+		['an uppercase Git SHA', { ...errorPayload, gitSha: clientGitSha.toUpperCase() }],
 		['an arbitrary Git SHA', { ...errorPayload, gitSha: 'main' }],
 		['a missing timestamp', { ...errorPayload, timestamp: undefined }],
 		['a missing standalone flag', { ...errorPayload, standalone: undefined }],

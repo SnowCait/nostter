@@ -7,9 +7,6 @@ const maxStylesheets = 32;
 const maxJavascriptResources = 16;
 const maxInitiatorTypeLength = 32;
 const maxUserAgentLength = 512;
-const maxErrorNameLength = 128;
-const maxErrorMessageLength = 1024;
-const maxErrorStackLength = 4096;
 const maxSourcePosition = 2 ** 31 - 1;
 
 const stylesheetCheckTriggers = ['load', 'visibilitychange'] as const;
@@ -61,11 +58,6 @@ type UnexpectedErrorDiagnostic = {
 	type: UnexpectedErrorType;
 	timestamp: number;
 	pathname: string;
-	error: {
-		name?: string;
-		message: string;
-		stack?: string;
-	};
 	source?: {
 		filename?: string;
 		line?: number;
@@ -158,9 +150,6 @@ const isGitSha = (value: unknown): value is string =>
 const isTimestamp = (value: unknown): value is number =>
 	Number.isSafeInteger(value) && (value as number) > 0;
 
-const isOptionalString = (value: unknown, maxLength: number): value is string | undefined =>
-	value === undefined || (typeof value === 'string' && value.length <= maxLength);
-
 // Inline scripts are reported with the page path, which the client redacts like the page pathname.
 const isSourcePath = (value: unknown): value is string =>
 	typeof value === 'string' &&
@@ -234,9 +223,6 @@ const parseUnexpectedErrorDiagnostic = (
 	const {
 		type,
 		pathname,
-		name,
-		message,
-		stack,
 		filename,
 		line,
 		column,
@@ -248,10 +234,6 @@ const parseUnexpectedErrorDiagnostic = (
 	if (
 		!isUnexpectedErrorType(type) ||
 		!isRedactedPagePathname(pathname) ||
-		!isOptionalString(name, maxErrorNameLength) ||
-		typeof message !== 'string' ||
-		message.length > maxErrorMessageLength ||
-		!isOptionalString(stack, maxErrorStackLength) ||
 		!isTimestamp(timestamp) ||
 		typeof standalone !== 'boolean' ||
 		typeof serviceWorkerControlled !== 'boolean' ||
@@ -260,12 +242,11 @@ const parseUnexpectedErrorDiagnostic = (
 		return undefined;
 	}
 	const client = { standalone, serviceWorkerControlled, gitSha: gitSha ?? null };
-	const error = { name, message, stack };
 	if (type !== 'window-error') {
 		if (filename !== undefined || line !== undefined || column !== undefined) {
 			return undefined;
 		}
-		return { type, timestamp, pathname, error, client };
+		return { type, timestamp, pathname, client };
 	}
 	if (
 		(filename !== undefined && !isSourcePath(filename)) ||
@@ -274,7 +255,7 @@ const parseUnexpectedErrorDiagnostic = (
 	) {
 		return undefined;
 	}
-	return { type, timestamp, pathname, error, source: { filename, line, column }, client };
+	return { type, timestamp, pathname, source: { filename, line, column }, client };
 };
 
 const parseDiagnostic = (value: unknown): ClientDiagnostic | undefined => {
