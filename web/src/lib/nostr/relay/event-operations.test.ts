@@ -4,6 +4,7 @@ import { Handlerinformation } from 'nostr-tools/kinds';
 import { EMPTY, lastValueFrom, of, throwError, toArray } from 'rxjs';
 import { rxNostr } from '$lib/relay-client';
 import {
+	fetchEventById,
 	fetchEvents,
 	fetchLatestReplaceableEvent,
 	publishEvent,
@@ -124,6 +125,32 @@ describe('relay event operations', () => {
 		await expect(fetchLatestReplaceableEvent(10001, pubkey)).rejects.toThrow(
 			'relay unavailable'
 		);
+	});
+
+	it('fetches an event by ID only from the given relays', async () => {
+		const expected = event(1);
+		const other = event(2);
+		let packets: Promise<unknown[]> | undefined;
+		const use = vi.spyOn(rxNostr, 'use').mockImplementation((req) => {
+			packets = lastValueFrom(req.getReqPacketObservable().pipe(toArray()));
+			return of(
+				{ event: other, from: 'wss://relay1' },
+				{ event: expected, from: 'wss://relay2' }
+			) as never;
+		});
+
+		await expect(fetchEventById(expected.id, ['wss://relay1', 'wss://relay2'])).resolves.toBe(
+			expected
+		);
+		expect(use.mock.calls[0][1]).toEqual({ on: { relays: ['wss://relay1', 'wss://relay2'] } });
+		await expect(packets).resolves.toEqual([{ filters: [{ ids: [expected.id], limit: 1 }] }]);
+	});
+
+	it('does not request an event by ID without relays', async () => {
+		const use = vi.spyOn(rxNostr, 'use');
+
+		await expect(fetchEventById(event(1).id, [])).resolves.toBeUndefined();
+		expect(use).not.toHaveBeenCalled();
 	});
 
 	it('resolves only after a relay accepts the event', async () => {
