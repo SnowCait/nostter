@@ -3,6 +3,7 @@
 	import IconMessageCircle from '@tabler/icons-svelte-runes/icons/message-circle';
 	import OnelineContent from '../OnelineContent.svelte';
 	import ProfileIcon from '../profile/ProfileIcon.svelte';
+	import { getContentWarning } from '$lib/nostr/protocol/nip36';
 
 	interface Props {
 		item: EventItem;
@@ -10,17 +11,15 @@
 
 	let { item }: Props = $props();
 
-	let contentWarningTag = $derived(
-		item.event.tags.find(([tagName]) => tagName === 'content-warning')
-	);
+	let contentWarning = $derived(getContentWarning(item.event.tags));
 </script>
 
 <article class="timeline-item">
 	<div class="icon"><IconMessageCircle /></div>
 	<div class="picture"><ProfileIcon pubkey={item.event.pubkey} /></div>
-	{#if contentWarningTag !== undefined}
+	{#if contentWarning !== undefined}
 		<div class="content-warning">
-			<div>{contentWarningTag?.at(1) ?? ''}</div>
+			<div>{contentWarning.reason ?? ''}</div>
 		</div>
 	{:else}
 		<div class="content">
