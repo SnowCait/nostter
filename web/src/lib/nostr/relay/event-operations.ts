@@ -42,6 +42,18 @@ export async function fetchLatestReplaceableEvent(
 	return lastValueFrom(requestLatestReplaceableEvent(kind, pubkey), { defaultValue: undefined });
 }
 
+export async function fetchEventById(id: string, relays: string[]): Promise<Event | undefined> {
+	if (relays.length === 0) {
+		return undefined;
+	}
+	return firstValueFrom(
+		requestEvents([{ ids: [id], limit: 1 }], { relays }).pipe(
+			filter((event) => event.id === id)
+		),
+		{ defaultValue: undefined }
+	);
+}
+
 function requestEventPackets(
 	filters: Filter[],
 	options?: Partial<RxNostrUseOptions>
