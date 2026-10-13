@@ -59,6 +59,12 @@ describe('parseClientTags', () => {
 		]);
 	});
 
+	it('ignores non-public relay hints without losing the handler reference', () => {
+		expect(parseClientTags([['client', 'Foo', address, 'wss://127.0.0.1/']])).toEqual([
+			{ name: 'Foo', handler: { address, pointer, relay: undefined } }
+		]);
+	});
+
 	it('ignores non-client tags and client tags without a name', () => {
 		expect(
 			parseClientTags([['p', pubkey], ['client'], ['client', '', address], ['client', 'Foo']])

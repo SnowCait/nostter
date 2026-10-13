@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
@@ -62,6 +63,9 @@
 			if (pubkey === auth.pubkey) {
 				relays = Object.entries(rxNostr.getDefaultRelays()).map(([, config]) => config);
 			}
+		}
+		if (pubkey !== auth.pubkey) {
+			relays = relays.filter(({ url }) => isPublicRelayUrl(url));
 		}
 	});
 

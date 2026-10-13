@@ -5,11 +5,18 @@ import { bytesToHex, hexToBytes } from 'nostr-tools/utils';
 import { WebStorage } from './WebStorage';
 import { nip46ConnectTimeout } from './Constants';
 import { RemoteSignerClient } from './nostr/signing/remote-signer-client';
+import { isPublicRelayUrl } from './nostr/protocol/relay-url';
 
 export async function establishBunkerConnection(bunker: string): Promise<RemoteSignerClient> {
-	const bunkerPointer = await parseBunkerInput(bunker);
+	let bunkerPointer = await parseBunkerInput(bunker);
 	if (!bunkerPointer) {
 		throw new Error(`Failed to parse bunker URL`);
+	}
+	if (!bunker.startsWith('bunker://')) {
+		bunkerPointer = {
+			...bunkerPointer,
+			relays: bunkerPointer.relays.filter(isPublicRelayUrl)
+		};
 	}
 
 	const storage = new WebStorage(localStorage);

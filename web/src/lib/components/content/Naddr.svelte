@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
 	import { onMount } from 'svelte';
 	import { nip19, type Event, kinds as Kind } from 'nostr-tools';
 	import LongFormContent from './LongFormContent.svelte';
@@ -39,7 +40,7 @@
 				authors: [pubkey],
 				'#d': [identifier]
 			},
-			{ defaultReadRelays: true, relays }
+			{ defaultReadRelays: true, relays: relays?.filter(isPublicRelayUrl) }
 		);
 		console.log('[event]', event);
 	});

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
 	import data from '@emoji-mart/data';
 	import { onDestroy, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';
@@ -558,7 +559,12 @@
 
 			const readRelays = [...relayListEventsMap]
 				.flatMap(([, relayListEvent]) => getReadRelays(parseRelayList(relayListEvent.tags)))
-				.filter((url) => url.startsWith('wss://') && !sendToRelays.includes(url));
+				.filter(
+					(url) =>
+						url.startsWith('wss://') &&
+						isPublicRelayUrl(url) &&
+						!sendToRelays.includes(url)
+				);
 			console.log('[rx-nostr send addition]', readRelays, relayListEventsMap);
 			if (readRelays.length === 0) {
 				return;

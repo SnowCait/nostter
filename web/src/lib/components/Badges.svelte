@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
 	import { _ } from 'svelte-i18n';
 	import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 	import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
@@ -44,7 +45,7 @@
 
 	$effect(() => {
 		const targetPubkey = pubkey;
-		const targetRelays = relays;
+		const targetRelays = relays.filter(isPublicRelayUrl);
 		const isAuthor = targetPubkey === auth.pubkey;
 
 		untrack(() => {
@@ -105,7 +106,7 @@
 
 					const awardRelays = awardTags
 						.map(([, , relay]) => relay)
-						.filter((relay) => relay !== undefined && URL.canParse(relay));
+						.filter(isPublicRelayUrl);
 
 					const awardsReq = createRxBackwardReq();
 					awardsSubscription = rxNostr
@@ -147,7 +148,7 @@
 					);
 					const definitionRelays = definitionTags
 						.map(([, , relay]) => relay)
-						.filter((relay) => relay !== undefined && URL.canParse(relay));
+						.filter(isPublicRelayUrl);
 
 					const definitionsReq = createRxBackwardReq();
 					definitionsSubscription = rxNostr

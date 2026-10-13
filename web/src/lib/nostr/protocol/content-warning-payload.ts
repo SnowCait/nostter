@@ -1,7 +1,7 @@
 import type { Event } from 'nostr-tools';
 import { isValidEventId } from './event-id';
 import { getContentWarning } from './nip36';
-import { isSecureRelayUrl } from './relay-url';
+import { isPublicRelayUrl, isSecureRelayUrl } from './relay-url';
 
 // Experimental format: https://github.com/Lokuyow/ehagaki/blob/42884debf95bb03aaf94449aa25cc3040c4cca8c/docs/SENSITIVE_CONTENT_PAYLOAD_DESIGN.md
 export const contentWarningPayloadKind = 36;
@@ -35,7 +35,7 @@ export function getContentWarningPayloadReference(
 		return undefined;
 	}
 
-	return { id, relay: isSecureRelayUrl(relay) ? relay : undefined };
+	return { id, relay: isSecureRelayUrl(relay) && isPublicRelayUrl(relay) ? relay : undefined };
 }
 
 export function getContentWarningContentSource(event: StructureEvent): ContentWarningContentSource {

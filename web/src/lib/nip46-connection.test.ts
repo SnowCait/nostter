@@ -36,6 +36,38 @@ function stubStorage(storedClientSecretKey: string | null) {
 }
 
 describe('NIP-46 connection', () => {
+	it('excludes non-public relays discovered through NIP-05', async () => {
+		stubStorage('01'.repeat(32));
+		vi.mocked(parseBunkerInput).mockResolvedValue({
+			...bunkerPointer,
+			relays: ['wss://127.0.0.1/', 'wss://relay.example.com']
+		});
+		vi.mocked(RemoteSignerClient.connect).mockResolvedValue({} as RemoteSignerClient);
+
+		await establishBunkerConnection('signer@example.com');
+
+		expect(RemoteSignerClient.connect).toHaveBeenCalledWith(
+			bunkerPointer,
+			expect.any(Uint8Array),
+			expect.any(Object)
+		);
+	});
+
+	it('retains local relays explicitly configured in a bunker URL', async () => {
+		stubStorage('01'.repeat(32));
+		const pointer = { ...bunkerPointer, relays: ['ws://127.0.0.1:8080/'] };
+		vi.mocked(parseBunkerInput).mockResolvedValue(pointer);
+		vi.mocked(RemoteSignerClient.connect).mockResolvedValue({} as RemoteSignerClient);
+
+		await establishBunkerConnection('bunker://remote?relay=ws://127.0.0.1:8080/');
+
+		expect(RemoteSignerClient.connect).toHaveBeenCalledWith(
+			pointer,
+			expect.any(Uint8Array),
+			expect.any(Object)
+		);
+	});
+
 	it('returns the connected client using the parsed bunker pointer and persisted client key', async () => {
 		const storage = stubStorage('01'.repeat(32));
 		const open = vi.fn();

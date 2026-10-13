@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { filterLimitItems } from '$lib/Constants';
 import { Metadata } from '$lib/Items';
 
@@ -64,7 +64,8 @@ vi.mock('../cache/Events', async () => {
 });
 
 import { metadataStore } from '../cache/Events';
-import { metadataReqEmit } from './MainTimeline';
+import { metadataReqEmit, referencesReqEmit } from './MainTimeline';
+import { RelayList } from '$lib/RelayList';
 
 function event(pubkey: string, createdAt = 0): Event {
 	return {
@@ -125,5 +126,82 @@ describe('metadataReqEmit', () => {
 			pubkeys.slice(0, filterLimitItems)
 		);
 		expect(metadataReq.emit.mock.calls[1][0].authors).toEqual(pubkeys.slice(filterLimitItems));
+	});
+});
+
+describe('external relay discovery', () => {
+	const references = testState.requests[1];
+	const replaceable = testState.requests[2];
+	const id = 'b'.repeat(64);
+	const author = 'a'.repeat(64);
+	const publicRelay = 'wss://relay.example.com/';
+	beforeEach(() => {
+		vi.useFakeTimers();
+		references.emit.mockClear();
+		replaceable.emit.mockClear();
+	});
+	afterEach(() => vi.useRealTimers());
+
+	it('excludes non-public e and q relay hints before issuing relay-scoped requests', async () => {
+		referencesReqEmit({
+			...event(author),
+			kind: 42,
+			tags: [
+				['e', id, 'wss://127.0.0.1/'],
+				['q', id, 'wss://[::ffff:127.0.0.1]/'],
+				['q', id, publicRelay]
+			]
+		});
+		await vi.runAllTimersAsync();
+		expect(references.emit.mock.calls.filter(([, scope]) => scope)).toEqual([
+			[{ ids: [id] }, { relays: [publicRelay] }]
+		]);
+	});
+
+	it('excludes non-public a and address q hints before issuing relay-scoped requests', () => {
+		const address = `30023:${author}:article`;
+		referencesReqEmit({
+			...event(author),
+			tags: [
+				['a', address, 'wss://192.168.1.1/'],
+				['q', address, 'wss://localhost/'],
+				['a', address, publicRelay]
+			]
+		});
+		expect(
+			replaceable.emit.mock.calls.filter(([, scope]) => scope).map(([, scope]) => scope)
+		).toEqual([{ relays: [publicRelay] }]);
+	});
+
+	it('excludes non-public relays advertised by other users kind 10002', async () => {
+		const replyAuthor = 'd'.repeat(64);
+		vi.mocked(RelayList.fetchEvents).mockResolvedValue(
+			new Map([
+				[
+					author,
+					{
+						...event(author),
+						kind: 10002,
+						tags: [
+							['r', 'wss://10.0.0.1/'],
+							['r', publicRelay]
+						]
+					}
+				],
+				[
+					replyAuthor,
+					{ ...event(replyAuthor), kind: 10002, tags: [['r', 'wss://[fd00::1]/']] }
+				]
+			])
+		);
+		referencesReqEmit({
+			...event(replyAuthor),
+			kind: 1,
+			tags: [['e', id, '', 'root', author]]
+		});
+		await vi.runAllTimersAsync();
+		expect(references.emit.mock.calls.filter(([, scope]) => scope)).toEqual([
+			[{ ids: [id] }, { relays: [publicRelay] }]
+		]);
 	});
 });

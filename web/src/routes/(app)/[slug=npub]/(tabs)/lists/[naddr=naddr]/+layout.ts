@@ -1,3 +1,4 @@
+import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
 import { nip19 } from 'nostr-tools';
 import { error } from '@sveltejs/kit';
 import type { LayoutLoad } from './$types';
@@ -22,7 +23,7 @@ export const load: LayoutLoad<{
 			kind: pointer.kind,
 			pubkey: pointer.pubkey,
 			identifier: pointer.identifier,
-			relays: pointer.relays ?? []
+			relays: (pointer.relays ?? []).filter(isPublicRelayUrl)
 		};
 	} catch {
 		error(404, 'Not Found');

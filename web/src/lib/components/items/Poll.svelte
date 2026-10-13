@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
 	import type { Item } from '$lib/Items';
 	import { _ } from 'svelte-i18n';
 	import Content from '../Content.svelte';
@@ -20,6 +21,7 @@
 		item.event.tags
 			.filter(([tagName]) => tagName === 'relay')
 			.map(([, tagContent]) => tagContent)
+			.filter(isPublicRelayUrl)
 	);
 	let type = $derived(
 		item.event.tags

@@ -118,3 +118,28 @@ describe('prepareAccountState', () => {
 		expect(state.invalidMetadata?.error).toBeInstanceOf(SyntaxError);
 	});
 });
+
+describe('configured local relays', () => {
+	it('retains local relays from the account kind 10002', () => {
+		const relays = ['ws://127.0.0.1/', 'wss://[::1]/', 'ws://relay.local/'];
+		const state = prepareAccountState(
+			accountEvents([
+				event(
+					10002,
+					'',
+					relays.map((url) => ['r', url])
+				)
+			])
+		);
+		expect(state.readRelays).toEqual(relays);
+		expect(state.writeRelays).toEqual(relays);
+	});
+	it('retains local relays from the account legacy settings', () => {
+		const relay = 'ws://localhost:8080/';
+		const state = prepareAccountState(
+			accountEvents([event(3, JSON.stringify({ [relay]: { read: true, write: true } }))])
+		);
+		expect(state.readRelays).toEqual([relay]);
+		expect(state.writeRelays).toEqual([relay]);
+	});
+});
