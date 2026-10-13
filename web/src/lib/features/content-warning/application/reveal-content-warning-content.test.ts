@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Event } from 'nostr-tools';
+import type { fetchEventById as FetchEventById } from '$lib/nostr/relay/event-operations';
 import { createContentWarningContentRevealer } from './reveal-content-warning-content';
 
 const author = 'a'.repeat(64);
@@ -36,7 +37,7 @@ function payload(overrides: Partial<Event> = {}): Event {
 }
 
 function setup(fetched: Event | undefined) {
-	const fetchEventById = vi.fn(async (): Promise<Event | undefined> => fetched);
+	const fetchEventById = vi.fn<typeof FetchEventById>(async () => fetched);
 	const getSeenOnRelays = vi.fn((): string[] | undefined => [
 		'wss://hint.example.com',
 		'wss://seen-a.example.com',
@@ -82,11 +83,14 @@ describe('createContentWarningContentRevealer', () => {
 		await reveal(structure());
 
 		expect(getSeenOnRelays).toHaveBeenCalledWith(structureId);
-		expect(fetchEventById).toHaveBeenCalledWith(payloadId, [
-			'wss://hint.example.com/',
-			'wss://seen-a.example.com/',
-			'wss://seen-b.example.com/'
-		]);
+		expect(fetchEventById).toHaveBeenCalledWith(payloadId, {
+			relays: [
+				'wss://hint.example.com/',
+				'wss://seen-a.example.com/',
+				'wss://seen-b.example.com/'
+			]
+		});
+		expect(fetchEventById.mock.calls[0][1]).not.toHaveProperty('defaultReadRelays');
 	});
 
 	it('fetches without a relay hint from seen-on relays only', async () => {
@@ -102,7 +106,27 @@ describe('createContentWarningContentRevealer', () => {
 			})
 		);
 
-		expect(fetchEventById).toHaveBeenCalledWith(payloadId, ['wss://seen.example.com/']);
+		expect(fetchEventById).toHaveBeenCalledWith(payloadId, {
+			relays: ['wss://seen.example.com/']
+		});
+	});
+
+	it('keeps an empty payload relay scope explicit', async () => {
+		const { reveal, fetchEventById, getSeenOnRelays } = setup(undefined);
+		getSeenOnRelays.mockReturnValue([]);
+
+		await expect(
+			reveal(
+				structure({
+					tags: [
+						['content-warning', 'reason'],
+						['c', payloadId]
+					]
+				})
+			)
+		).resolves.toBeUndefined();
+		expect(fetchEventById).toHaveBeenCalledWith(payloadId, { relays: [] });
+		expect(fetchEventById.mock.calls[0][1]).not.toHaveProperty('defaultReadRelays');
 	});
 
 	it.each([42, 1111])('resolves a payload for structure kind %i', async (kind) => {

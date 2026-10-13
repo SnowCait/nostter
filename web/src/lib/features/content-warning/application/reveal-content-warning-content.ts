@@ -9,7 +9,7 @@ import { fetchEventById } from '$lib/nostr/relay/event-operations';
 import { getSeenOnRelays } from '$lib/nostr/relay/relay-hints';
 
 interface Dependencies {
-	fetchEventById(id: string, relays: string[]): Promise<Event | undefined>;
+	fetchEventById: typeof fetchEventById;
 	getSeenOnRelays(eventId: string): string[] | undefined;
 }
 
@@ -51,7 +51,9 @@ export function createContentWarningContentRevealer(
 		}
 
 		const payload = dependencies
-			.fetchEventById(reference.id, getPayloadRelays(structure, reference))
+			.fetchEventById(reference.id, {
+				relays: getPayloadRelays(structure, reference)
+			})
 			.catch((error) => {
 				console.warn('[content warning payload fetch failed]', reference.id, error);
 				return undefined;

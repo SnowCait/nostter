@@ -139,18 +139,50 @@ describe('relay event operations', () => {
 			) as never;
 		});
 
-		await expect(fetchEventById(expected.id, ['wss://relay1', 'wss://relay2'])).resolves.toBe(
-			expected
-		);
+		await expect(
+			fetchEventById(expected.id, { relays: ['wss://relay1', 'wss://relay2'] })
+		).resolves.toBe(expected);
 		expect(use.mock.calls[0][1]).toEqual({ on: { relays: ['wss://relay1', 'wss://relay2'] } });
 		await expect(packets).resolves.toEqual([{ filters: [{ ids: [expected.id], limit: 1 }] }]);
 	});
 
-	it('does not request an event by ID without relays', async () => {
+	it('uses the default relay behavior when no scope is specified', async () => {
+		const expected = event(1);
+		const use = vi
+			.spyOn(rxNostr, 'use')
+			.mockReturnValue(of({ event: expected, from: 'wss://default' }) as never);
+
+		await expect(fetchEventById(expected.id)).resolves.toBe(expected);
+		expect(use).toHaveBeenCalledOnce();
+		expect(use.mock.calls[0]).toHaveLength(1);
+	});
+
+	it('passes default read relays and additional relays through the lookup scope', async () => {
+		const expected = event(1);
+		const on = { defaultReadRelays: true, relays: ['wss://hint.example.com'] };
+		const use = vi
+			.spyOn(rxNostr, 'use')
+			.mockReturnValue(of({ event: expected, from: 'wss://hint.example.com' }) as never);
+
+		await expect(fetchEventById(expected.id, on)).resolves.toBe(expected);
+		expect(use.mock.calls[0][1]).toEqual({ on });
+	});
+
+	it('does not use default relays for an explicit empty relay scope', async () => {
 		const use = vi.spyOn(rxNostr, 'use');
 
-		await expect(fetchEventById(event(1).id, [])).resolves.toBeUndefined();
+		await expect(fetchEventById(event(1).id, { relays: [] })).resolves.toBeUndefined();
 		expect(use).not.toHaveBeenCalled();
+	});
+
+	it('does not return an event whose ID differs from the requested ID', async () => {
+		const requestedId = event(1).id;
+		const other = event(2);
+		vi.spyOn(rxNostr, 'use').mockReturnValue(
+			of({ event: other, from: 'wss://relay' }) as never
+		);
+
+		await expect(fetchEventById(requestedId)).resolves.toBeUndefined();
 	});
 
 	it('resolves only after a relay accepts the event', async () => {
