@@ -154,7 +154,7 @@ describe('relay event operations', () => {
 
 		await expect(fetchEventById(expected.id)).resolves.toBe(expected);
 		expect(use).toHaveBeenCalledOnce();
-		expect(use.mock.calls[0]).toHaveLength(1);
+		expect(use.mock.calls[0][1]).toEqual({ on: undefined });
 	});
 
 	it('passes default read relays and additional relays through the lookup scope', async () => {
@@ -166,13 +166,6 @@ describe('relay event operations', () => {
 
 		await expect(fetchEventById(expected.id, on)).resolves.toBe(expected);
 		expect(use.mock.calls[0][1]).toEqual({ on });
-	});
-
-	it('does not use default relays for an explicit empty relay scope', async () => {
-		const use = vi.spyOn(rxNostr, 'use');
-
-		await expect(fetchEventById(event(1).id, { relays: [] })).resolves.toBeUndefined();
-		expect(use).not.toHaveBeenCalled();
 	});
 
 	it('does not return an event whose ID differs from the requested ID', async () => {

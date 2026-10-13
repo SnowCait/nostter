@@ -25,9 +25,7 @@ export async function fetchEvents(filters: Filter[]): Promise<Event[]> {
 }
 
 export function requestEvents(filters: Filter[], on?: RxNostrOnParams): Observable<Event> {
-	return requestEventPackets(filters, on === undefined ? undefined : { on }).pipe(
-		map(({ event }) => event)
-	);
+	return requestEventPackets(filters, { on }).pipe(map(({ event }) => event));
 }
 
 export function requestLatestReplaceableEvent(kind: number, pubkey: string): Observable<Event> {
@@ -45,9 +43,6 @@ export async function fetchLatestReplaceableEvent(
 }
 
 export async function fetchEventById(id: string, on?: RxNostrOnParams): Promise<Event | undefined> {
-	if (on?.relays?.length === 0 && !on.defaultReadRelays) {
-		return undefined;
-	}
 	return firstValueFrom(
 		requestEvents([{ ids: [id], limit: 1 }], on).pipe(filter((event) => event.id === id)),
 		{ defaultValue: undefined }
@@ -60,8 +55,7 @@ function requestEventPackets(
 ): Observable<EventPacket> {
 	return new Observable((subscriber) => {
 		const req = createRxBackwardReq();
-		const packets = options === undefined ? rxNostr.use(req) : rxNostr.use(req, options);
-		const subscription = packets.pipe(tie, uniq()).subscribe(subscriber);
+		const subscription = rxNostr.use(req, options).pipe(tie, uniq()).subscribe(subscriber);
 		req.emit(filters);
 		req.over();
 		return subscription;

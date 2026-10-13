@@ -84,13 +84,13 @@ describe('createContentWarningContentRevealer', () => {
 
 		expect(getSeenOnRelays).toHaveBeenCalledWith(structureId);
 		expect(fetchEventById).toHaveBeenCalledWith(payloadId, {
+			defaultReadRelays: true,
 			relays: [
 				'wss://hint.example.com/',
 				'wss://seen-a.example.com/',
 				'wss://seen-b.example.com/'
 			]
 		});
-		expect(fetchEventById.mock.calls[0][1]).not.toHaveProperty('defaultReadRelays');
 	});
 
 	it('fetches without a relay hint from seen-on relays only', async () => {
@@ -107,12 +107,13 @@ describe('createContentWarningContentRevealer', () => {
 		);
 
 		expect(fetchEventById).toHaveBeenCalledWith(payloadId, {
+			defaultReadRelays: true,
 			relays: ['wss://seen.example.com/']
 		});
 	});
 
-	it('keeps an empty payload relay scope explicit', async () => {
-		const { reveal, fetchEventById, getSeenOnRelays } = setup(undefined);
+	it('includes default read relays when no hint or seen-on relays are available', async () => {
+		const { reveal, fetchEventById, getSeenOnRelays } = setup(payload());
 		getSeenOnRelays.mockReturnValue([]);
 
 		await expect(
@@ -124,9 +125,11 @@ describe('createContentWarningContentRevealer', () => {
 					]
 				})
 			)
-		).resolves.toBeUndefined();
-		expect(fetchEventById).toHaveBeenCalledWith(payloadId, { relays: [] });
-		expect(fetchEventById.mock.calls[0][1]).not.toHaveProperty('defaultReadRelays');
+		).resolves.toBe('warned content');
+		expect(fetchEventById).toHaveBeenCalledWith(payloadId, {
+			defaultReadRelays: true,
+			relays: []
+		});
 	});
 
 	it.each([42, 1111])('resolves a payload for structure kind %i', async (kind) => {

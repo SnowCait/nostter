@@ -52,6 +52,7 @@ export function createContentWarningContentRevealer(
 
 		const payload = dependencies
 			.fetchEventById(reference.id, {
+				defaultReadRelays: true,
 				relays: getPayloadRelays(structure, reference)
 			})
 			.catch((error) => {
