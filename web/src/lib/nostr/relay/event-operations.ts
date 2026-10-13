@@ -24,7 +24,7 @@ export async function fetchEvents(filters: Filter[]): Promise<Event[]> {
 	);
 }
 
-export function requestEvents(filters: Filter[], on: RxNostrOnParams): Observable<Event> {
+export function requestEvents(filters: Filter[], on?: RxNostrOnParams): Observable<Event> {
 	return requestEventPackets(filters, { on }).pipe(map(({ event }) => event));
 }
 
@@ -40,6 +40,13 @@ export async function fetchLatestReplaceableEvent(
 	pubkey: string
 ): Promise<Event | undefined> {
 	return lastValueFrom(requestLatestReplaceableEvent(kind, pubkey), { defaultValue: undefined });
+}
+
+export async function fetchEventById(id: string, on?: RxNostrOnParams): Promise<Event | undefined> {
+	return firstValueFrom(
+		requestEvents([{ ids: [id], limit: 1 }], on).pipe(filter((event) => event.id === id)),
+		{ defaultValue: undefined }
+	);
 }
 
 function requestEventPackets(

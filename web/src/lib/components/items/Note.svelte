@@ -22,6 +22,8 @@
 	import SeenOnRelayIcons from '../SeenOnRelayIcons.svelte';
 	import { seenOnRelayIcon } from '$lib/SeenOnRelayIcon';
 	import { showVia } from '$lib/ShowVia';
+	import { getContentWarning } from '$lib/nostr/protocol/nip36';
+	import { revealContentWarningContent } from '$lib/features/content-warning/application/reveal-content-warning-content';
 
 	interface Props {
 		item: Item;
@@ -44,12 +46,24 @@
 	let channelId: string | undefined = $state();
 	let channelName: string | undefined = $state();
 
-	let contentWarningTag = $derived(
-		item.event.tags.find(([tagName]) => tagName === 'content-warning')
-	);
-	let showContent = $state(false);
-	const showWarningContent = () => {
-		showContent = true;
+	let contentWarning = $derived(getContentWarning(item.event.tags));
+	let eventId = $derived(item.event.id);
+	// Writable $derived: reassigned on reveal, reset when the event changes
+	let warningContent:
+		{ status: 'hidden' | 'loading' | 'unavailable' } | { status: 'shown'; content: string } =
+		$derived.by(() => {
+			void eventId;
+			return { status: 'hidden' };
+		});
+	const showWarningContent = async () => {
+		const revealingEventId = eventId;
+		warningContent = { status: 'loading' };
+		const content = await revealContentWarningContent(item.event);
+		if (revealingEventId !== eventId) {
+			return;
+		}
+		warningContent =
+			content === undefined ? { status: 'unavailable' } : { status: 'shown', content };
 	};
 
 	onMount(async () => {
@@ -113,10 +127,19 @@
 					{/if}
 				</div>
 			{/if}
-			{#if contentWarningTag !== undefined && !showContent}
+			{#if contentWarning !== undefined && warningContent.status !== 'shown'}
 				<div class="content-warning">
-					<div>{contentWarningTag?.at(1) ?? ''}</div>
-					<button onclick={showWarningContent}>{$_('content.show')}</button>
+					<div>{contentWarning.reason ?? ''}</div>
+					{#if warningContent.status === 'unavailable'}
+						<div>{$_('content.not_found')}</div>
+					{:else}
+						<button
+							onclick={showWarningContent}
+							disabled={warningContent.status === 'loading'}
+						>
+							{$_('content.show')}
+						</button>
+					{/if}
 				</div>
 			{:else}
 				<Foldable maxHeightRem={30} enabled={!full}>
@@ -124,7 +147,12 @@
 						{#if Number(item.event.kind) === 1063}
 							<Nip94 event={item.event} />
 						{:else}
-							<Content content={item.event.content} tags={item.event.tags} />
+							<Content
+								content={warningContent.status === 'shown'
+									? warningContent.content
+									: item.event.content}
+								tags={item.event.tags}
+							/>
 						{/if}
 					</div>
 				</Foldable>

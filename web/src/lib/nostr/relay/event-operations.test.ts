@@ -4,6 +4,7 @@ import { Handlerinformation } from 'nostr-tools/kinds';
 import { EMPTY, lastValueFrom, of, throwError, toArray } from 'rxjs';
 import { rxNostr } from '$lib/relay-client';
 import {
+	fetchEventById,
 	fetchEvents,
 	fetchLatestReplaceableEvent,
 	publishEvent,
@@ -124,6 +125,57 @@ describe('relay event operations', () => {
 		await expect(fetchLatestReplaceableEvent(10001, pubkey)).rejects.toThrow(
 			'relay unavailable'
 		);
+	});
+
+	it('fetches an event by ID only from the given relays', async () => {
+		const expected = event(1);
+		const other = event(2);
+		let packets: Promise<unknown[]> | undefined;
+		const use = vi.spyOn(rxNostr, 'use').mockImplementation((req) => {
+			packets = lastValueFrom(req.getReqPacketObservable().pipe(toArray()));
+			return of(
+				{ event: other, from: 'wss://relay1' },
+				{ event: expected, from: 'wss://relay2' }
+			) as never;
+		});
+
+		await expect(
+			fetchEventById(expected.id, { relays: ['wss://relay1', 'wss://relay2'] })
+		).resolves.toBe(expected);
+		expect(use.mock.calls[0][1]).toEqual({ on: { relays: ['wss://relay1', 'wss://relay2'] } });
+		await expect(packets).resolves.toEqual([{ filters: [{ ids: [expected.id], limit: 1 }] }]);
+	});
+
+	it('uses the default relay behavior when no scope is specified', async () => {
+		const expected = event(1);
+		const use = vi
+			.spyOn(rxNostr, 'use')
+			.mockReturnValue(of({ event: expected, from: 'wss://default' }) as never);
+
+		await expect(fetchEventById(expected.id)).resolves.toBe(expected);
+		expect(use).toHaveBeenCalledOnce();
+		expect(use.mock.calls[0][1]).toEqual({ on: undefined });
+	});
+
+	it('passes default read relays and additional relays through the lookup scope', async () => {
+		const expected = event(1);
+		const on = { defaultReadRelays: true, relays: ['wss://hint.example.com'] };
+		const use = vi
+			.spyOn(rxNostr, 'use')
+			.mockReturnValue(of({ event: expected, from: 'wss://hint.example.com' }) as never);
+
+		await expect(fetchEventById(expected.id, on)).resolves.toBe(expected);
+		expect(use.mock.calls[0][1]).toEqual({ on });
+	});
+
+	it('does not return an event whose ID differs from the requested ID', async () => {
+		const requestedId = event(1).id;
+		const other = event(2);
+		vi.spyOn(rxNostr, 'use').mockReturnValue(
+			of({ event: other, from: 'wss://relay' }) as never
+		);
+
+		await expect(fetchEventById(requestedId)).resolves.toBeUndefined();
 	});
 
 	it('resolves only after a relay accepts the event', async () => {
