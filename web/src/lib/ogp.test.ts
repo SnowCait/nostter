@@ -6,7 +6,7 @@ beforeEach(() => {
 		'DOMParser',
 		class {
 			parseFromString(value: string) {
-				return { body: { textContent: value } };
+				return { head: { children: [] }, body: { textContent: value }, title: '' };
 			}
 		}
 	);
@@ -20,6 +20,15 @@ function jsonResponse(body: Record<string, string>, init?: { ok?: boolean; conte
 		json: async () => body,
 		text: async () => JSON.stringify(body)
 	} as unknown as Response;
+}
+
+function failedBodyResponse(contentType: string): Response {
+	const body = new ReadableStream<Uint8Array>({
+		start(controller) {
+			controller.error(new TypeError('Failed to read response body'));
+		}
+	});
+	return new Response(body, { headers: { 'Content-Type': contentType } });
 }
 
 afterEach(() => {
@@ -84,6 +93,14 @@ describe('fetchOgpViaProxy', () => {
 		);
 		expect(await fetchOgpViaProxy(new URL('https://example.com'))).toBeUndefined();
 	});
+
+	it('returns undefined when an OGP field has an invalid type', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => jsonResponse({ 'og:title': 1 } as unknown as Record<string, string>))
+		);
+		expect(await fetchOgpViaProxy(new URL('https://example.com'))).toBeUndefined();
+	});
 });
 
 describe('fetchOgp', () => {
@@ -112,5 +129,115 @@ describe('fetchOgp', () => {
 			image: undefined
 		});
 		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+
+	it('does not fetch directly when the proxy returns an empty JSON object', async () => {
+		const fetchMock = vi.fn(async () => jsonResponse({}));
+		vi.stubGlobal('fetch', fetchMock);
+
+		expect(await fetchOgp(new URL('https://example.com'))).toStrictEqual({
+			title: undefined,
+			image: undefined
+		});
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+
+	it('falls back to direct fetch when proxy JSON decoding fails', async () => {
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValueOnce(
+				new Response('{', { headers: { 'Content-Type': 'application/json' } })
+			)
+			.mockResolvedValueOnce(
+				new Response('<html></html>', {
+					headers: { 'Content-Type': 'text/html; charset=utf-8' }
+				})
+			);
+		vi.stubGlobal('fetch', fetchMock);
+
+		expect(await fetchOgp(new URL('https://example.com'))).toStrictEqual({
+			title: '',
+			image: undefined
+		});
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+	});
+
+	it('falls back to direct fetch when reading the proxy response body fails', async () => {
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValueOnce(failedBodyResponse('application/json'))
+			.mockResolvedValueOnce(
+				new Response('<html></html>', {
+					headers: { 'Content-Type': 'text/html; charset=utf-8' }
+				})
+			);
+		vi.stubGlobal('fetch', fetchMock);
+
+		expect(await fetchOgp(new URL('https://example.com'))).toStrictEqual({
+			title: '',
+			image: undefined
+		});
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+	});
+
+	it.each(['null', '[]', '{"og:title":1}', '{"title":false}', '{"og:image":null}'])(
+		'falls back to direct fetch for invalid proxy JSON %s',
+		async (body) => {
+			const fetchMock = vi
+				.fn()
+				.mockResolvedValueOnce(
+					new Response(body, { headers: { 'Content-Type': 'application/json' } })
+				)
+				.mockResolvedValueOnce(
+					new Response('not html', { headers: { 'Content-Type': 'text/plain' } })
+				);
+			vi.stubGlobal('fetch', fetchMock);
+
+			expect(await fetchOgp(new URL('https://example.com'))).toBeUndefined();
+			expect(fetchMock).toHaveBeenCalledTimes(2);
+		}
+	);
+
+	it('returns undefined when direct response body reading fails', async () => {
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValueOnce(jsonResponse({}, { ok: false }))
+			.mockResolvedValueOnce(failedBodyResponse('text/html; charset=utf-8'));
+		vi.stubGlobal('fetch', fetchMock);
+
+		expect(await fetchOgp(new URL('https://example.com'))).toBeUndefined();
+	});
+
+	it('returns undefined when direct HTML parsing fails', async () => {
+		vi.stubGlobal(
+			'DOMParser',
+			class {
+				parseFromString() {
+					throw new TypeError('HTML parse failed');
+				}
+			}
+		);
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValueOnce(jsonResponse({}, { ok: false }))
+			.mockResolvedValueOnce(
+				new Response('<html></html>', {
+					headers: { 'Content-Type': 'text/html; charset=utf-8' }
+				})
+			);
+		vi.stubGlobal('fetch', fetchMock);
+
+		expect(await fetchOgp(new URL('https://example.com'))).toBeUndefined();
+	});
+
+	it('returns undefined when both proxy and direct fetch fail', async () => {
+		const fetchMock = vi
+			.fn()
+			.mockRejectedValueOnce(new TypeError('Proxy failed'))
+			.mockRejectedValueOnce(new TypeError('Direct fetch failed'));
+		vi.stubGlobal('fetch', fetchMock);
+
+		expect(await fetchOgp(new URL('https://example.com'))).toBeUndefined();
+		expect(fetchMock).toHaveBeenCalledTimes(2);
 	});
 });

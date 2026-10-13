@@ -17,58 +17,68 @@ export async function fetchOgp(url: URL): Promise<Ogp | undefined> {
 export async function fetchOgpViaProxy(url: URL): Promise<Ogp | undefined> {
 	console.debug('[ogp proxy]', url.href);
 
-	let response: Response;
 	try {
-		response = await fetch(`${httpProxy}/?url=${encodeURIComponent(url.href)}`, {
+		const response = await fetch(`${httpProxy}/?url=${encodeURIComponent(url.href)}`, {
 			headers: { Accept: 'application/json' }
 		});
+		const contentType = response.headers.get('Content-Type');
+		if (!response.ok || !contentType?.includes('application/json')) {
+			console.debug('[ogp proxy error]', url.href, response.status, contentType);
+			return undefined;
+		}
+
+		const result: unknown = await response.json();
+		if (result === null || typeof result !== 'object' || Array.isArray(result)) {
+			return undefined;
+		}
+
+		const ogp = result as Record<string, unknown>;
+		if (
+			['og:title', 'title', 'og:image'].some(
+				(key) => ogp[key] !== undefined && typeof ogp[key] !== 'string'
+			)
+		) {
+			return undefined;
+		}
+
+		console.debug('[ogp proxy]', url.href, ogp);
+		const title =
+			(ogp['og:title'] as string | undefined) ?? (ogp['title'] as string | undefined);
+		return {
+			title: title === undefined ? undefined : decodeHtml(title),
+			image: ogp['og:image'] as string | undefined
+		};
 	} catch (error) {
 		console.debug('[ogp proxy error]', url.href, error);
 		return undefined;
 	}
-
-	const contentType = response.headers.get('Content-Type');
-	if (!response.ok || !contentType?.includes('application/json')) {
-		console.debug('[ogp proxy error]', url.href, response.status, contentType);
-		return undefined;
-	}
-
-	const ogp: Record<string, string> = await response.json();
-	console.debug('[ogp proxy]', url.href, ogp);
-	const title = ogp['og:title'] ?? ogp['title'];
-	return {
-		title: title === undefined ? undefined : decodeHtml(title),
-		image: ogp['og:image']
-	};
 }
 
 export async function fetchOgpDirect(url: URL): Promise<Ogp | undefined> {
 	console.debug('[ogp direct]', url.href);
 
-	let response: Response;
 	try {
-		response = await fetch(url);
+		const response = await fetch(url);
+		const contentType = response.headers.get('Content-Type');
+		if (!response.ok || !contentType?.includes('text/html')) {
+			console.debug('[ogp direct error]', url.href, response.status, contentType);
+			return undefined;
+		}
+
+		const html = await response.text();
+
+		// Workaround for Chromium bug
+		// <meta name="text-scale" content="scale" /> cause STATUS_ACCESS_VIOLATION
+		if (html.includes('text-scale')) {
+			console.debug('[ogp direct workaround]', url.href);
+			return undefined;
+		}
+
+		return parseOgp(html, contentType);
 	} catch (error) {
 		console.debug('[ogp direct error]', url.href, error);
 		return undefined;
 	}
-
-	const contentType = response.headers.get('Content-Type');
-	if (!response.ok || !contentType?.includes('text/html')) {
-		console.debug('[ogp direct error]', url.href, response.status, contentType);
-		return undefined;
-	}
-
-	const html = await response.text();
-
-	// Workaround for Chromium bug
-	// <meta name="text-scale" content="scale" /> cause STATUS_ACCESS_VIOLATION
-	if (html.includes('text-scale')) {
-		console.debug('[ogp direct workaround]', url.href);
-		return undefined;
-	}
-
-	return parseOgp(html, contentType);
 }
 
 export function parseOgp(html: string, contentType: string): Ogp | undefined {
