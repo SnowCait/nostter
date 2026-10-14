@@ -16,20 +16,17 @@ function parseOgpProxyData(value: unknown): Ogp | undefined {
 	}
 
 	const data = value as Record<string, unknown>;
-	const ogTitleValue: unknown = data['og:title'];
-	const titleValue: unknown = data.title;
-	const imageValue: unknown = data['og:image'];
+	const ogTitle: unknown = data['og:title'];
+	const title: unknown = data.title;
+	const image: unknown = data['og:image'];
 	if (
-		[ogTitleValue, titleValue, imageValue].some(
-			(field) => field !== undefined && typeof field !== 'string'
-		)
+		(ogTitle !== undefined && typeof ogTitle !== 'string') ||
+		(title !== undefined && typeof title !== 'string') ||
+		(image !== undefined && typeof image !== 'string')
 	) {
 		return undefined;
 	}
 
-	const ogTitle = typeof ogTitleValue === 'string' ? ogTitleValue : undefined;
-	const title = typeof titleValue === 'string' ? titleValue : undefined;
-	const image = typeof imageValue === 'string' ? imageValue : undefined;
 	const resolvedTitle = ogTitle ?? title;
 	return {
 		title: resolvedTitle === undefined ? undefined : decodeHtml(resolvedTitle),
