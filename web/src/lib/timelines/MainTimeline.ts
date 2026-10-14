@@ -167,7 +167,6 @@ function requestEventReferences(event: Nostr.Event, content: string): void {
 			['e', 'q'].includes(tagName) &&
 			typeof id === 'string' &&
 			hexRegexp.test(id) &&
-			typeof relay === 'string' &&
 			isPublicRelayUrl(relay)
 	);
 	if (referenceTags.length > 0 || event.kind === ShortTextNote) {
@@ -267,7 +266,6 @@ function requestReplaceableReferences(event: Nostr.Event): void {
 			.map(([, , relayUrl]) => relayUrl)
 			.filter(
 				(relayUrl) =>
-					typeof relayUrl === 'string' &&
 					isPublicRelayUrl(relayUrl) &&
 					!Object.entries(rxNostr.getDefaultRelays()).some(([url]) => url === relayUrl)
 			);

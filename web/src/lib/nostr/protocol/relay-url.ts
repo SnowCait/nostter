@@ -76,9 +76,6 @@ function isPublicIpv4(address: ipaddr.IPv4): boolean {
 }
 
 export function isPublicRelayUrl(value: unknown): value is string {
-	if (typeof value !== 'string') {
-		return false;
-	}
 	try {
 		const url = parseRelayUrl(value);
 		if (!url || url.protocol !== 'wss:' || url.username || url.password) {
