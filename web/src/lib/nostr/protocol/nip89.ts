@@ -3,7 +3,7 @@ import { Handlerinformation } from 'nostr-tools/kinds';
 import type { AddressPointer } from 'nostr-tools/nip19';
 import { isHttpUrl } from '$lib/url';
 import { parseEventAddress } from './event-address';
-import { isSecureRelayUrl } from './relay-url';
+import { isPublicRelayUrl } from './relay-url';
 
 export interface ClientTag {
 	name: string;
@@ -31,7 +31,11 @@ export function parseClientTags(tags: string[][]): ClientTag[] {
 			}
 			return {
 				name,
-				handler: { address, pointer, relay: isSecureRelayUrl(relay) ? relay : undefined }
+				handler: {
+					address,
+					pointer,
+					relay: isPublicRelayUrl(relay) ? relay : undefined
+				}
 			};
 		});
 }

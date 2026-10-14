@@ -1,3 +1,4 @@
+import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
 import type { Event } from 'nostr-tools';
 import {
 	ChannelCreation,
@@ -67,7 +68,7 @@ export class ChannelChat {
 				defaultReadRelays: true,
 				relays: unique(
 					[...relays, ...contentRelays(kind40), ...contentRelays(kind41)].filter(
-						(relay) => relay.startsWith('wss://')
+						isPublicRelayUrl
 					)
 				)
 			}

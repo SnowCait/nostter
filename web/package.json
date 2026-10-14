@@ -60,6 +60,7 @@
 		"dexie": "^4.4.6",
 		"emoji-kitchen-mart": "^6.0.5",
 		"escape-string-regexp": "^5.0.0",
+		"ipaddr.js": "^2.5.0",
 		"light-bolt11-decoder": "^3.1.1",
 		"melt": "^0.44.0",
 		"nip07-awaiter": "^1.0.0",

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { nip19 } from 'nostr-tools';
 import { User } from './User';
 
 const pubkey = '28d37e1b489437c78d64ccdbf1f44c20e3f013dba3f4c2573b25599ba6308c22';
@@ -79,6 +80,28 @@ describe('decode test', () => {
 				pubkey: undefined,
 				relays: []
 			});
+		});
+	});
+});
+
+describe('external profile relay hints', () => {
+	const relays = [
+		'wss://127.0.0.1/',
+		'ws://[::1]/',
+		'wss://relay.local/',
+		'wss://relay.example.com/'
+	];
+	it('excludes local relay hints from nprofile pointers', async () => {
+		expect(await User.decode(nip19.nprofileEncode({ pubkey, relays }))).toEqual({
+			pubkey,
+			relays: ['wss://relay.example.com/']
+		});
+	});
+	it('excludes local relay hints from NIP-05 responses', async () => {
+		stubNip05({ names: { test: pubkey }, relays: { [pubkey]: relays } });
+		expect(await User.decode('test@example.com')).toEqual({
+			pubkey,
+			relays: ['wss://relay.example.com/']
 		});
 	});
 });

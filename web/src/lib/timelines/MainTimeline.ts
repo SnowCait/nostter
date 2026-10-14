@@ -1,3 +1,4 @@
+import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
 import { get, writable } from 'svelte/store';
 import type * as Nostr from 'nostr-typedef';
 import { ShortTextNote } from 'nostr-tools/kinds';
@@ -166,9 +167,7 @@ function requestEventReferences(event: Nostr.Event, content: string): void {
 			['e', 'q'].includes(tagName) &&
 			typeof id === 'string' &&
 			hexRegexp.test(id) &&
-			typeof relay === 'string' &&
-			relay.startsWith('wss://') &&
-			URL.canParse(relay)
+			isPublicRelayUrl(relay)
 	);
 	if (referenceTags.length > 0 || event.kind === ShortTextNote) {
 		// If not found, try relay hints, referenced authors' write relays, and the replying author's read relays.
@@ -218,14 +217,12 @@ async function requestNip10References(
 		}
 		requestReference(
 			reference.id,
-			getWriteRelays(parseRelayList(relayList.tags)).filter((url) => url.startsWith('wss://'))
+			getWriteRelays(parseRelayList(relayList.tags)).filter(isPublicRelayUrl)
 		);
 	}
 	const relayList = relayLists.get(event.pubkey);
 	if (relayList !== undefined) {
-		const relays = getReadRelays(parseRelayList(relayList.tags)).filter((url) =>
-			url.startsWith('wss://')
-		);
+		const relays = getReadRelays(parseRelayList(relayList.tags)).filter(isPublicRelayUrl);
 		const ids = unique(references.map((reference) => reference.id));
 		for (const id of ids) {
 			requestReference(id, relays);
@@ -269,9 +266,7 @@ function requestReplaceableReferences(event: Nostr.Event): void {
 			.map(([, , relayUrl]) => relayUrl)
 			.filter(
 				(relayUrl) =>
-					typeof relayUrl === 'string' &&
-					relayUrl.startsWith('wss://') &&
-					URL.canParse(relayUrl) &&
+					isPublicRelayUrl(relayUrl) &&
 					!Object.entries(rxNostr.getDefaultRelays()).some(([url]) => url === relayUrl)
 			);
 		if (relays.length > 0) {

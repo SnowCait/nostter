@@ -1,3 +1,4 @@
+import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
 import { nip19 } from 'nostr-tools';
 import { LongFormArticle } from 'nostr-tools/kinds';
 import type * as Nostr from 'nostr-typedef';
@@ -28,7 +29,7 @@ export const load: LayoutServerLoad<{
 			case 'nevent': {
 				id = data.id;
 				if (data.relays !== undefined) {
-					relays = data.relays;
+					relays = data.relays.filter(isPublicRelayUrl);
 				}
 				break;
 			}

@@ -192,3 +192,24 @@ describe('createContentWarningContentRevealer', () => {
 		expect(fetchEventById).toHaveBeenCalledTimes(2);
 	});
 });
+
+describe('external payload relay hints', () => {
+	it('does not add a non-public c hint to the lookup scope', async () => {
+		const { reveal, fetchEventById, getSeenOnRelays } = setup(payload());
+		getSeenOnRelays.mockReturnValue(['wss://seen.example.com/']);
+		await expect(
+			reveal(
+				structure({
+					tags: [
+						['content-warning', 'reason'],
+						['c', payloadId, 'wss://127.0.0.1/']
+					]
+				})
+			)
+		).resolves.toBe('warned content');
+		expect(fetchEventById).toHaveBeenCalledWith(payloadId, {
+			defaultReadRelays: true,
+			relays: ['wss://seen.example.com/']
+		});
+	});
+});

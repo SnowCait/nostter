@@ -1,3 +1,4 @@
+import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
 import { nip19 } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
 
@@ -49,7 +50,7 @@ export class User {
 
 		return {
 			pubkey,
-			relays
+			relays: (Array.isArray(relays) ? relays : []).filter(isPublicRelayUrl)
 		};
 	}
 }
