@@ -19,8 +19,13 @@ jobs:
       - run: npm run build -w web
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: client-build-${{ github.sha }}
-          path: web/.svelte-kit/output/client/_app/immutable/
+          name: web-build-${{ github.sha }}
+          path: |
+            web/.svelte-kit/output/client/_app/immutable/
+            web/.svelte-kit/output/server/**/*.js
+            web/.svelte-kit/output/server/**/*.map
+            web/.svelte-kit/cloudflare/_worker.js
+            web/.svelte-kit/cloudflare-tmp/manifest.js
       - working-directory: web
         run: |
           echo "# Bundle Report" >> $GITHUB_STEP_SUMMARY
