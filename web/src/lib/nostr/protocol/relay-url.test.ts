@@ -4,10 +4,13 @@ import { isPublicRelayUrl, isRelayUrl, isSecureRelayUrl } from './relay-url';
 describe('relay URL format validation', () => {
 	it.each([
 		['wss://relay.example.com/', true, true, true],
+		['ws://relay.example.com/', true, false, false],
+		['wss://8.8.8.8/', true, true, true],
+		['ws://1.1.1.1:8080/', true, false, false],
+		['ws://127.0.0.1/', true, false, false],
+		['wss://127.0.0.1/', true, true, false],
 		['wss://relay.example.com/#', false, false, false],
-		['wss://relay.example.com/#fragment', false, false, false],
-		['ws://localhost:8080/', true, false, false],
-		['ws://localhost:8080/#', false, false, false]
+		['wss://relay.example.com/#fragment', false, false, false]
 	])('%s', (url, relay, secure, publicRelay) => {
 		expect(isRelayUrl(url)).toBe(relay);
 		expect(isSecureRelayUrl(url)).toBe(secure);
@@ -61,7 +64,6 @@ describe('isSecureRelayUrl', () => {
 describe('isPublicRelayUrl', () => {
 	it.each([
 		'wss://8.8.8.8/',
-		'ws://1.1.1.1:8080/',
 		'wss://[2606:4700:4700::1111]/',
 		'wss://relay.example.com/',
 		'wss://LOCALHOST.example.com/',
@@ -89,6 +91,7 @@ describe('isPublicRelayUrl', () => {
 	});
 
 	it.each([
+		'ws://1.1.1.1:8080/',
 		'wss://10.0.0.1/',
 		'wss://172.16.0.1/',
 		'wss://172.31.255.255/',

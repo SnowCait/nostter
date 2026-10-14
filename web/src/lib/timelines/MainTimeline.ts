@@ -168,7 +168,6 @@ function requestEventReferences(event: Nostr.Event, content: string): void {
 			typeof id === 'string' &&
 			hexRegexp.test(id) &&
 			typeof relay === 'string' &&
-			relay.startsWith('wss://') &&
 			isPublicRelayUrl(relay)
 	);
 	if (referenceTags.length > 0 || event.kind === ShortTextNote) {
@@ -219,16 +218,12 @@ async function requestNip10References(
 		}
 		requestReference(
 			reference.id,
-			getWriteRelays(parseRelayList(relayList.tags)).filter(
-				(url) => url.startsWith('wss://') && isPublicRelayUrl(url)
-			)
+			getWriteRelays(parseRelayList(relayList.tags)).filter(isPublicRelayUrl)
 		);
 	}
 	const relayList = relayLists.get(event.pubkey);
 	if (relayList !== undefined) {
-		const relays = getReadRelays(parseRelayList(relayList.tags)).filter(
-			(url) => url.startsWith('wss://') && isPublicRelayUrl(url)
-		);
+		const relays = getReadRelays(parseRelayList(relayList.tags)).filter(isPublicRelayUrl);
 		const ids = unique(references.map((reference) => reference.id));
 		for (const id of ids) {
 			requestReference(id, relays);
@@ -273,7 +268,6 @@ function requestReplaceableReferences(event: Nostr.Event): void {
 			.filter(
 				(relayUrl) =>
 					typeof relayUrl === 'string' &&
-					relayUrl.startsWith('wss://') &&
 					isPublicRelayUrl(relayUrl) &&
 					!Object.entries(rxNostr.getDefaultRelays()).some(([url]) => url === relayUrl)
 			);

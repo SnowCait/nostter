@@ -81,7 +81,7 @@ export function isPublicRelayUrl(value: unknown): value is string {
 	}
 	try {
 		const url = parseRelayUrl(value);
-		if (!url || url.username || url.password) {
+		if (!url || url.protocol !== 'wss:' || url.username || url.password) {
 			return false;
 		}
 		const hostname = url.hostname.toLowerCase().replace(/\.+$/, '');

@@ -68,7 +68,7 @@ export class ChannelChat {
 				defaultReadRelays: true,
 				relays: unique(
 					[...relays, ...contentRelays(kind40), ...contentRelays(kind41)].filter(
-						(relay) => relay.startsWith('wss://') && isPublicRelayUrl(relay)
+						isPublicRelayUrl
 					)
 				)
 			}

@@ -559,12 +559,7 @@
 
 			const readRelays = [...relayListEventsMap]
 				.flatMap(([, relayListEvent]) => getReadRelays(parseRelayList(relayListEvent.tags)))
-				.filter(
-					(url) =>
-						url.startsWith('wss://') &&
-						isPublicRelayUrl(url) &&
-						!sendToRelays.includes(url)
-				);
+				.filter((url) => isPublicRelayUrl(url) && !sendToRelays.includes(url));
 			console.log('[rx-nostr send addition]', readRelays, relayListEventsMap);
 			if (readRelays.length === 0) {
 				return;
