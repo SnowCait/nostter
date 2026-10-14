@@ -10,6 +10,33 @@ function decodeHtml(value: string): string {
 	return dom.body.textContent ?? value;
 }
 
+function parseOgpProxyData(value: unknown): Ogp | undefined {
+	if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+		return undefined;
+	}
+
+	const data = value as Record<string, unknown>;
+	const ogTitleValue: unknown = data['og:title'];
+	const titleValue: unknown = data.title;
+	const imageValue: unknown = data['og:image'];
+	if (
+		[ogTitleValue, titleValue, imageValue].some(
+			(field) => field !== undefined && typeof field !== 'string'
+		)
+	) {
+		return undefined;
+	}
+
+	const ogTitle = typeof ogTitleValue === 'string' ? ogTitleValue : undefined;
+	const title = typeof titleValue === 'string' ? titleValue : undefined;
+	const image = typeof imageValue === 'string' ? imageValue : undefined;
+	const resolvedTitle = ogTitle ?? title;
+	return {
+		title: resolvedTitle === undefined ? undefined : decodeHtml(resolvedTitle),
+		image
+	};
+}
+
 export async function fetchOgp(url: URL): Promise<Ogp | undefined> {
 	return (await fetchOgpViaProxy(url)) ?? (await fetchOgpDirect(url));
 }
@@ -27,27 +54,12 @@ export async function fetchOgpViaProxy(url: URL): Promise<Ogp | undefined> {
 			return undefined;
 		}
 
-		const result: unknown = await response.json();
-		if (result === null || typeof result !== 'object' || Array.isArray(result)) {
-			return undefined;
+		const value: unknown = await response.json();
+		const ogp = parseOgpProxyData(value);
+		if (ogp !== undefined) {
+			console.debug('[ogp proxy]', url.href, value);
 		}
-
-		const ogp = result as Record<string, unknown>;
-		if (
-			['og:title', 'title', 'og:image'].some(
-				(key) => ogp[key] !== undefined && typeof ogp[key] !== 'string'
-			)
-		) {
-			return undefined;
-		}
-
-		console.debug('[ogp proxy]', url.href, ogp);
-		const title =
-			(ogp['og:title'] as string | undefined) ?? (ogp['title'] as string | undefined);
-		return {
-			title: title === undefined ? undefined : decodeHtml(title),
-			image: ogp['og:image'] as string | undefined
-		};
+		return ogp;
 	} catch (error) {
 		console.debug('[ogp proxy error]', url.href, error);
 		return undefined;
