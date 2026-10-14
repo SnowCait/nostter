@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { isPublicRelayUrl, isRelayUrl, isSecureRelayUrl } from './relay-url';
 
+describe('relay URL format validation', () => {
+	it.each([
+		['wss://relay.example.com/', true, true, true],
+		['wss://relay.example.com/#', false, false, false],
+		['wss://relay.example.com/#fragment', false, false, false],
+		['ws://localhost:8080/', true, false, false],
+		['ws://localhost:8080/#', false, false, false]
+	])('%s', (url, relay, secure, publicRelay) => {
+		expect(isRelayUrl(url)).toBe(relay);
+		expect(isSecureRelayUrl(url)).toBe(secure);
+		expect(isPublicRelayUrl(url)).toBe(publicRelay);
+	});
+});
+
 describe('isRelayUrl', () => {
 	it('accepts wss: URLs', () => {
 		expect(isRelayUrl('wss://relay.example.com')).toBe(true);

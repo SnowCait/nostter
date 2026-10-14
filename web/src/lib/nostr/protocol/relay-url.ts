@@ -1,20 +1,27 @@
 import ipaddr from 'ipaddr.js';
 
-export function isRelayUrl(value: unknown): value is string {
+function parseRelayUrl(value: unknown): URL | undefined {
 	if (typeof value !== 'string') {
-		return false;
+		return undefined;
 	}
 
 	try {
-		const { protocol } = new URL(value);
-		return protocol === 'ws:' || protocol === 'wss:';
+		const url = new URL(value);
+		if ((url.protocol !== 'ws:' && url.protocol !== 'wss:') || url.href.includes('#')) {
+			return undefined;
+		}
+		return url;
 	} catch {
-		return false;
+		return undefined;
 	}
 }
 
+export function isRelayUrl(value: unknown): value is string {
+	return parseRelayUrl(value) !== undefined;
+}
+
 export function isSecureRelayUrl(value: unknown): value is string {
-	return typeof value === 'string' && URL.parse(value)?.protocol === 'wss:';
+	return parseRelayUrl(value)?.protocol === 'wss:';
 }
 
 // IANA Special-Purpose Address Registries: globally reachable exceptions take precedence.
@@ -73,13 +80,8 @@ export function isPublicRelayUrl(value: unknown): value is string {
 		return false;
 	}
 	try {
-		const url = new URL(value);
-		if (
-			(url.protocol !== 'ws:' && url.protocol !== 'wss:') ||
-			url.username ||
-			url.password ||
-			url.hash
-		) {
+		const url = parseRelayUrl(value);
+		if (!url || url.username || url.password) {
 			return false;
 		}
 		const hostname = url.hostname.toLowerCase().replace(/\.+$/, '');
