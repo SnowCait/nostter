@@ -1,4 +1,4 @@
-import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
+import { isPublicRelayUrl } from '@nostter/nostr-kit';
 import { nip19 } from 'nostr-tools';
 import { LongFormArticle } from 'nostr-tools/kinds';
 import type * as Nostr from 'nostr-typedef';

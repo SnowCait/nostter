@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
+	import { isPublicRelayUrl } from '@nostter/nostr-kit';
 	import data from '@emoji-mart/data';
 	import { onDestroy, tick, untrack } from 'svelte';
 	import { _ } from 'svelte-i18n';

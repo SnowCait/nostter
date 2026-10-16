@@ -1,7 +1,7 @@
 import type { Event } from 'nostr-tools';
 import { isValidEventId } from './event-id';
 import { getContentWarning } from './nip36';
-import { isPublicRelayUrl } from './relay-url';
+import { isPublicRelayUrl } from '@nostter/nostr-kit';
 
 // Experimental format: https://github.com/Lokuyow/ehagaki/blob/42884debf95bb03aaf94449aa25cc3040c4cca8c/docs/SENSITIVE_CONTENT_PAYLOAD_DESIGN.md
 export const contentWarningPayloadKind = 36;

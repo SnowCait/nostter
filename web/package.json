@@ -11,7 +11,8 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "vitest --silent=passed-only",
 		"lint": "prettier --check . && eslint .",
-		"format": "prettier --write ."
+		"format": "prettier --write .",
+		"pretest": "npm test -w @nostter/nostr-kit"
 	},
 	"devDependencies": {
 		"@beyonk/gdpr-cookie-consent-banner": "^16.0.2",
@@ -52,6 +53,7 @@
 	"dependencies": {
 		"@emoji-mart/data": "^1.2.1",
 		"@floating-ui/dom": "^1.8.0",
+		"@nostter/nostr-kit": "^0.1.0",
 		"@rust-nostr/nostr-sdk": "^0.44.0",
 		"@tabler/icons-svelte-runes": "^3.46.0",
 		"async-lock": "^1.4.1",
@@ -60,7 +62,6 @@
 		"dexie": "^4.4.6",
 		"emoji-kitchen-mart": "^6.0.5",
 		"escape-string-regexp": "^5.0.0",
-		"ipaddr.js": "^2.5.0",
 		"light-bolt11-decoder": "^3.1.1",
 		"melt": "^0.44.0",
 		"nip07-awaiter": "^1.0.0",

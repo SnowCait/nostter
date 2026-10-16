@@ -3,7 +3,7 @@ import { Handlerinformation } from 'nostr-tools/kinds';
 import type { AddressPointer } from 'nostr-tools/nip19';
 import { isHttpUrl } from '$lib/url';
 import { parseEventAddress } from './event-address';
-import { isPublicRelayUrl } from './relay-url';
+import { isPublicRelayUrl } from '@nostter/nostr-kit';
 
 export interface ClientTag {
 	name: string;

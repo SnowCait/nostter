@@ -1,0 +1,38 @@
+{
+	"name": "@nostter/nostr-kit",
+	"version": "0.1.0",
+	"description": "Application-independent utilities shared by Nostr clients",
+	"type": "module",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/SnowCait/nostter.git",
+		"directory": "packages/nostr-kit"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"test": "vitest run",
+		"prepare": "npm run build"
+	},
+	"dependencies": {
+		"ipaddr.js": "^2.5.0"
+	},
+	"devDependencies": {
+		"typescript": "^6.0.3",
+		"vitest": "^5.0.1"
+	}
+}

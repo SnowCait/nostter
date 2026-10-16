@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
+	import { isPublicRelayUrl } from '@nostter/nostr-kit';
 	import { onMount } from 'svelte';
 	import { nip19, type Event, kinds as Kind } from 'nostr-tools';
 	import LongFormContent from './LongFormContent.svelte';

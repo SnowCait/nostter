@@ -75,6 +75,10 @@ function isPublicIpv4(address: ipaddr.IPv4): boolean {
 	);
 }
 
+/**
+ * Filters externally supplied relay candidates; this is client policy, not a Nostr requirement.
+ * Checks URL syntax and literal hosts without DNS resolution or reachability checks.
+ */
 export function isPublicRelayUrl(value: unknown): value is string {
 	try {
 		const url = parseRelayUrl(value);

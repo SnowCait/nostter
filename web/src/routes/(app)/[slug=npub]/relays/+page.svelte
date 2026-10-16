@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
+	import { isPublicRelayUrl } from '@nostter/nostr-kit';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
