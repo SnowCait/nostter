@@ -26,7 +26,8 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.json",
 		"test": "vitest run",
-		"prepare": "npm run build"
+		"prepare": "npm run build",
+		"lint": "prettier --config ../../web/.prettierrc --ignore-path .gitignore --check . && eslint --config ../../web/eslint.config.mjs src"
 	},
 	"dependencies": {
 		"ipaddr.js": "^2.5.0"
