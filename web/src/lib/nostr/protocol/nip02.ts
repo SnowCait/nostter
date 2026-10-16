@@ -1,5 +1,5 @@
 import { isValidPubkey } from './pubkey';
-import { isRelayUrl } from './relay-url';
+import { isRelayUrl } from '@nostter/nostr-kit';
 
 export interface FollowEntry {
 	pubkey: string;

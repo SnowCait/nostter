@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isPublicRelayUrl, isRelayUrl, isSecureRelayUrl } from './relay-url';
+import { isPublicRelayUrl, isRelayUrl, isSecureRelayUrl } from './url.js';
 
 describe('relay URL format validation', () => {
 	it.each([

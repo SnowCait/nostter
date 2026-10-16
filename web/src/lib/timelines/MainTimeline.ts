@@ -1,4 +1,4 @@
-import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
+import { isPublicRelayUrl } from '@nostter/nostr-kit';
 import { get, writable } from 'svelte/store';
 import type * as Nostr from 'nostr-typedef';
 import { ShortTextNote } from 'nostr-tools/kinds';

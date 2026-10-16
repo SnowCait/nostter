@@ -1,4 +1,4 @@
-import { isPublicRelayUrl } from '$lib/nostr/protocol/relay-url';
+import { isPublicRelayUrl } from '@nostter/nostr-kit';
 import type { Event } from 'nostr-tools';
 import {
 	ChannelCreation,

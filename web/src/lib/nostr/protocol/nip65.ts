@@ -1,4 +1,4 @@
-import { isRelayUrl } from './relay-url';
+import { isRelayUrl } from '@nostter/nostr-kit';
 
 export interface RelayEntry {
 	url: string;
