@@ -1,6 +1,6 @@
 import type { Event } from 'nostr-tools';
 import { findIdentifier } from '$lib/nostr/protocol/event-address';
-import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
+import { shouldReplaceCurrentEvent } from '@nostter/nostr-protocol';
 import type { ListContentDecrypter } from '$lib/List';
 import {
 	prepareKindMuteState,

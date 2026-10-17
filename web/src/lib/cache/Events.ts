@@ -8,7 +8,7 @@ import { replaceableKinds } from '$lib/Constants';
 import { auth } from '$lib/auth.svelte';
 import { db, EventCache, FolloweeReplaceableEventCache, AccountAddressableEventCache } from './db';
 import { isReplaceableKind } from 'nostr-tools/kinds';
-import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
+import { shouldReplaceCurrentEvent } from '@nostter/nostr-protocol';
 
 export const metadataStore = writable(new Map<pubkey, Metadata>());
 export const eventItemStore = writable(new Map<id, EventItem>());

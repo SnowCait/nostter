@@ -20,7 +20,7 @@ import {
 	resolveHandlerLink,
 	type ClientTag
 } from '$lib/nostr/protocol/nip89';
-import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
+import { shouldReplaceCurrentEvent } from '@nostter/nostr-protocol';
 import { requestEvents } from '$lib/nostr/relay/event-operations';
 import { getSeenOnRelays } from '$lib/nostr/relay/relay-hints';
 

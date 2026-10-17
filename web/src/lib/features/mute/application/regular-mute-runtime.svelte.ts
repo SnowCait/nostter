@@ -1,7 +1,7 @@
 import type { Event } from 'nostr-tools';
 import escapeStringRegexp from 'escape-string-regexp';
 import type { ListContentDecrypter } from '$lib/List';
-import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
+import { shouldReplaceCurrentEvent } from '@nostter/nostr-protocol';
 import { prepareRegularMuteStateFromEvent } from './prepare-mute-state';
 import {
 	prepareRegularMuteState,

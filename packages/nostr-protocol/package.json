@@ -1,0 +1,39 @@
+{
+	"name": "@nostter/nostr-protocol",
+	"version": "0.1.0",
+	"description": "NIP-based protocol logic shared by Nostr clients",
+	"type": "module",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/SnowCait/nostter.git",
+		"directory": "packages/nostr-protocol"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"test": "vitest run",
+		"prepare": "npm run build",
+		"lint": "prettier --ignore-path .gitignore --check . && eslint src"
+	},
+	"dependencies": {
+		"nostr-tools": "^2.25.2"
+	},
+	"devDependencies": {
+		"typescript": "^6.0.3",
+		"vitest": "^5.0.1"
+	}
+}

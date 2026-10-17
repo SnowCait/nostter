@@ -3,7 +3,7 @@ import type { Event } from 'nostr-tools';
 import type { EventTemplate } from 'nostr-tools';
 import { auth } from '$lib/auth.svelte';
 import { cacheAccountEvent } from '$lib/cache/Events';
-import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
+import { shouldReplaceCurrentEvent } from '@nostter/nostr-protocol';
 import { fetchLatestReplaceableEvent, publishEvent } from '$lib/nostr/relay/event-operations';
 import { getRelayHint } from '$lib/nostr/relay/relay-hints';
 import { assertSignedEventPubkey } from '$lib/nostr/signing/assert-signed-event-pubkey';
