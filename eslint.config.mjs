@@ -1,8 +1,7 @@
 import path from 'node:path';
-import { includeIgnoreFile } from '@eslint/compat';
 import js from '@eslint/js';
 import { importX } from 'eslint-plugin-import-x';
-import { defineConfig } from 'eslint/config';
+import { defineConfig, includeIgnoreFile } from 'eslint/config';
 import globals from 'globals';
 import ts from 'typescript-eslint';
 
@@ -10,7 +9,9 @@ export { defineConfig, includeIgnoreFile };
 export const typescriptParser = ts.parser;
 
 export default defineConfig([
-	includeIgnoreFile(path.resolve(import.meta.dirname, '.gitignore')),
+	includeIgnoreFile(path.resolve(import.meta.dirname, '.gitignore'), {
+		gitignoreResolution: true
+	}),
 	js.configs.recommended,
 	ts.configs.recommended,
 	{
