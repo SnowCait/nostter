@@ -9,6 +9,9 @@
 		"node": "24.x",
 		"npm": ">= 11.10.0"
 	},
+	"scripts": {
+		"lint": "prettier --check eslint.config.mjs prettier.config.mjs package.json && eslint eslint.config.mjs prettier.config.mjs"
+	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"eslint": "^10.10.0",
