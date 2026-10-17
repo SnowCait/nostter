@@ -17,10 +17,14 @@ export default defineConfig([
 	{
 		languageOptions: { globals: { ...globals.browser, ...globals.node } },
 		rules: {
-			// TypeScript handles undefined names; preserve the existing rule for JavaScript too.
 			'no-undef': 'off',
 			curly: 'error'
 		}
+	},
+	{
+		files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
+		ignores: ['**/*.svelte.js'],
+		rules: { 'no-undef': 'error' }
 	},
 	{
 		plugins: { 'import-x': importX },
