@@ -17,10 +17,16 @@ export default defineConfig([
 	{
 		languageOptions: { globals: { ...globals.browser, ...globals.node } },
 		rules: {
-			// TypeScript handles undefined names; preserve the existing rule for JavaScript too.
+			// typescript-eslint recommends disabling no-undef for TypeScript; the JavaScript override below enables it there.
+			// See: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
 			'no-undef': 'off',
 			curly: 'error'
 		}
+	},
+	{
+		files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
+		ignores: ['**/*.svelte.js'],
+		rules: { 'no-undef': 'error' }
 	},
 	{
 		plugins: { 'import-x': importX },
