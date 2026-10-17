@@ -1,6 +1,7 @@
 import { isPublicRelayUrl } from '@nostter/nostr-kit';
 import { nip19 } from 'nostr-tools';
 import type * as Nostr from 'nostr-typedef';
+import { isValidPubkey } from './nostr/protocol/pubkey';
 
 export class User {
 	static async decode(slug: string): Promise<{ pubkey: string | undefined; relays: string[] }> {
@@ -37,10 +38,11 @@ export class User {
 					throw new Error('fetch failed');
 				}
 				const data = (await response.json()) as Nostr.Nip05.NostrAddress;
-				pubkey = Object.entries(data.names).find(
+				const resolvedPubkey = Object.entries(data.names).find(
 					([key]) => key.toLowerCase() === name.toLowerCase()
 				)?.[1];
-				if (pubkey !== undefined) {
+				if (isValidPubkey(resolvedPubkey)) {
+					pubkey = resolvedPubkey;
 					relays = data.relays?.[pubkey] ?? [];
 				}
 			}

@@ -67,6 +67,13 @@ describe('decode test', () => {
 				'https://example.com/.well-known/nostr.json?name=_'
 			);
 		});
+		it('rejects an invalid public key', async () => {
+			stubNip05({ names: { test: 'invalid-pubkey' } });
+			expect(await User.decode('test@example.com')).toStrictEqual({
+				pubkey: undefined,
+				relays: []
+			});
+		});
 		it('relays', async () => {
 			stubNip05({ names: { test: pubkey }, relays: { [pubkey]: ['wss://example.com'] } });
 			expect(await User.decode('test@example.com')).toStrictEqual({
