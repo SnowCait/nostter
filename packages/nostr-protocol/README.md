@@ -1,7 +1,9 @@
 # @nostter/nostr-protocol
 
-NIP-based protocol logic shared by Nostr clients. This ESM package supports Node.js and browsers and includes JavaScript and TypeScript declarations.
-Client utilities and connection policies belong in `@nostter/nostr-kit`.
+NIP-based protocol logic for Nostr clients.  
+This ESM package supports Node.js and browsers and includes TypeScript declarations.
+
+For application-independent utilities, see [@nostter/nostr-kit](https://github.com/SnowCait/nostter/blob/main/packages/nostr-kit/README.md).
 
 ## Installation
 

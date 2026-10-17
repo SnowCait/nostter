@@ -1,7 +1,9 @@
 # @nostter/nostr-kit
 
-Application-independent utilities shared by Nostr clients.
-The package currently provides relay URL validation. It is an ESM package for Node.js and browsers, with JavaScript and TypeScript declarations included.
+Application-independent utilities for Nostr clients.  
+This ESM package supports Node.js and browsers and includes TypeScript declarations.
+
+For NIP-based protocol logic, see [@nostter/nostr-protocol](https://github.com/SnowCait/nostter/blob/main/packages/nostr-protocol/README.md).
 
 ## Installation
 

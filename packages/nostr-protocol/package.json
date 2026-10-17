@@ -1,7 +1,14 @@
 {
 	"name": "@nostter/nostr-protocol",
 	"version": "0.1.0",
-	"description": "NIP-based protocol logic shared by Nostr clients",
+	"description": "NIP-based protocol logic for Nostr clients",
+	"keywords": [
+		"nostr"
+	],
+	"homepage": "https://github.com/SnowCait/nostter/blob/main/packages/nostr-protocol/README.md",
+	"bugs": {
+		"url": "https://github.com/SnowCait/nostter/issues"
+	},
 	"type": "module",
 	"license": "MIT",
 	"repository": {
