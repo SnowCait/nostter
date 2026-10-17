@@ -1,7 +1,7 @@
 import type { Event } from 'nostr-tools';
 import { RelayList } from './author/RelayList';
 import { findIdentifier } from './nostr/protocol/event-address';
-import { shouldReplaceCurrentEvent } from './nostr/protocol/replaceable-event';
+import { shouldReplaceCurrentEvent } from '@nostter/nostr-protocol';
 import { fetchEvents } from './nostr/relay/event-operations';
 import { accountAddressableEventCache, cacheAccountEvent } from './cache/Events';
 import {

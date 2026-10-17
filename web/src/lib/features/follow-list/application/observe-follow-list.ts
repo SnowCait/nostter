@@ -14,7 +14,7 @@ import {
 } from 'rxjs';
 import { auth } from '$lib/auth.svelte';
 import { cacheFolloweeReplaceableEvent, followeeEventCache } from '$lib/cache/Events';
-import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
+import { shouldReplaceCurrentEvent } from '@nostter/nostr-protocol';
 import { requestLatestReplaceableEvent } from '$lib/nostr/relay/event-operations';
 
 type Dependencies = {

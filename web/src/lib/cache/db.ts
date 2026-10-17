@@ -2,7 +2,7 @@ import Dexie, { type EntityTable, type Table } from 'dexie';
 import type * as Nostr from 'nostr-typedef';
 import { isAddressableKind, isReplaceableKind } from 'nostr-tools/kinds';
 import { getEventIdentifier } from '$lib/nostr/protocol/event-address';
-import { shouldReplaceCurrentEvent } from '$lib/nostr/protocol/replaceable-event';
+import { shouldReplaceCurrentEvent } from '@nostter/nostr-protocol';
 
 export type AccountAddressableEventCacheEntry = {
 	pubkey: string;
