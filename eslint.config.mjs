@@ -9,7 +9,9 @@ export { defineConfig, includeIgnoreFile };
 export const typescriptParser = ts.parser;
 
 export default defineConfig([
-	includeIgnoreFile(path.resolve(import.meta.dirname, '.gitignore')),
+	includeIgnoreFile(path.resolve(import.meta.dirname, '.gitignore'), {
+		gitignoreResolution: true
+	}),
 	js.configs.recommended,
 	ts.configs.recommended,
 	{

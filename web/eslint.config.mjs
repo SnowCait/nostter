@@ -8,7 +8,9 @@ import commonConfig, {
 import svelteConfig from './svelte.config.js';
 
 export default defineConfig([
-	includeIgnoreFile(path.resolve(import.meta.dirname, '.gitignore')),
+	includeIgnoreFile(path.resolve(import.meta.dirname, '.gitignore'), {
+		gitignoreResolution: true
+	}),
 	commonConfig,
 	svelte.configs.recommended,
 	{
