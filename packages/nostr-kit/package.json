@@ -1,7 +1,14 @@
 {
 	"name": "@nostter/nostr-kit",
 	"version": "0.1.0",
-	"description": "Application-independent utilities shared by Nostr clients",
+	"description": "Application-independent utilities for Nostr clients",
+	"keywords": [
+		"nostr"
+	],
+	"homepage": "https://github.com/SnowCait/nostter/blob/main/packages/nostr-kit/README.md",
+	"bugs": {
+		"url": "https://github.com/SnowCait/nostter/issues"
+	},
 	"type": "module",
 	"license": "MIT",
 	"repository": {
