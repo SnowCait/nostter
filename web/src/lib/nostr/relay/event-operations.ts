@@ -12,10 +12,10 @@ import { Observable, filter, firstValueFrom, lastValueFrom, map, toArray } from 
 import { rxNostr } from '$lib/relay-client';
 import { tie } from './relay-hints';
 
-export async function fetchEvents(filters: Filter[]): Promise<Event[]> {
+export async function fetchEvents(filters: Filter[], on?: RxNostrOnParams): Promise<Event[]> {
 	const req = createRxOneshotReq({ filters });
 	return lastValueFrom(
-		rxNostr.use(req).pipe(
+		rxNostr.use(req, { on }).pipe(
 			tie,
 			uniq(),
 			map(({ event }) => event),

@@ -5,18 +5,19 @@ import { channelMetadataEventsStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { chronological, reverseChronological } from './Constants';
 import { fetchEvents, fetchLastEvent } from './RxNostrHelper';
+import { fetchEvents as fetchRelayEventList } from './nostr/relay/event-operations';
 import type { RxNostrOnParams } from 'rx-nostr';
 
 export class Api {
 	public async fetchRelayEvents(pubkey: string, relays: string[]): Promise<Map<number, Event>> {
-		const events = await fetchEvents(
+		const events = await fetchRelayEventList(
 			[
 				{
 					kinds: [Kind.Contacts, Kind.RelayList],
 					authors: [pubkey]
 				}
 			],
-			relays
+			relays.length > 0 ? { relays } : undefined
 		);
 		events.sort(chronological); // Latest event is effective
 		console.debug('[relay events all]', events);
