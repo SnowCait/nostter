@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { nip19 } from 'nostr-tools';
+import { useFetchImplementation } from 'nostr-tools/nip05';
 import { User } from './User';
 
 const pubkey = '28d37e1b489437c78d64ccdbf1f44c20e3f013dba3f4c2573b25599ba6308c22';
@@ -8,12 +9,12 @@ function stubNip05(body: object | null, ok = true): ReturnType<typeof vi.fn> {
 	const fetchMock = vi.fn(async () =>
 		ok ? Response.json(body) : new Response('Not Found', { status: 404 })
 	);
-	vi.stubGlobal('fetch', fetchMock);
+	useFetchImplementation(fetchMock);
 	return fetchMock;
 }
 
 afterEach(() => {
-	vi.unstubAllGlobals();
+	useFetchImplementation(fetch);
 });
 
 describe('decode test', () => {
@@ -44,17 +45,19 @@ describe('decode test', () => {
 				relays: []
 			});
 			expect(fetchMock).toHaveBeenCalledWith(
-				'https://example.com/.well-known/nostr.json?name=test'
+				'https://example.com/.well-known/nostr.json?name=test',
+				expect.any(Object)
 			);
 		});
-		it('case-insensitive', async () => {
+		it('normalizes mixed-case identifiers before resolving', async () => {
 			const fetchMock = stubNip05({ names: { test: pubkey } });
-			expect(await User.decode('TEST@example.com')).toStrictEqual({
+			expect(await User.decode('TeSt@ExAmPlE.CoM')).toStrictEqual({
 				pubkey,
 				relays: []
 			});
 			expect(fetchMock).toHaveBeenCalledWith(
-				'https://example.com/.well-known/nostr.json?name=TEST'
+				'https://example.com/.well-known/nostr.json?name=test',
+				expect.any(Object)
 			);
 		});
 		it('domain only falls back to _', async () => {
@@ -64,7 +67,8 @@ describe('decode test', () => {
 				relays: []
 			});
 			expect(fetchMock).toHaveBeenCalledWith(
-				'https://example.com/.well-known/nostr.json?name=_'
+				'https://example.com/.well-known/nostr.json?name=_',
+				expect.any(Object)
 			);
 		});
 		it('rejects an invalid public key', async () => {
@@ -93,18 +97,20 @@ describe('decode test', () => {
 
 describe('external profile relay hints', () => {
 	const relays = [
+		'invalid-relay',
+		'https://relay.example.com/',
 		'wss://127.0.0.1/',
 		'ws://[::1]/',
 		'wss://relay.local/',
 		'wss://relay.example.com/'
 	];
-	it('excludes local relay hints from nprofile pointers', async () => {
+	it('excludes invalid and non-public relay hints from nprofile pointers', async () => {
 		expect(await User.decode(nip19.nprofileEncode({ pubkey, relays }))).toEqual({
 			pubkey,
 			relays: ['wss://relay.example.com/']
 		});
 	});
-	it('excludes local relay hints from NIP-05 responses', async () => {
+	it('excludes invalid and non-public relay hints from NIP-05 responses', async () => {
 		stubNip05({ names: { test: pubkey }, relays: { [pubkey]: relays } });
 		expect(await User.decode('test@example.com')).toEqual({
 			pubkey,

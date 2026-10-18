@@ -1,6 +1,6 @@
 import { isPublicRelayUrl } from '@nostter/nostr-kit';
 import { nip19 } from 'nostr-tools';
-import type * as Nostr from 'nostr-typedef';
+import { queryProfile } from 'nostr-tools/nip05';
 import { isValidPubkey } from './nostr/protocol/pubkey';
 
 export class User {
@@ -27,23 +27,10 @@ export class User {
 					}
 				}
 			} else {
-				const match = slug.match(/^(?:([\w-.]+)@)?([\w-.]+)$/);
-				if (match === null) {
-					throw new Error(`${slug} doesn't match NIP-05`);
-				}
-				const [, name = '_', domain] = match;
-				const url = `https://${domain}/.well-known/nostr.json?name=${name}`;
-				const response = await fetch(url);
-				if (!response.ok) {
-					throw new Error('fetch failed');
-				}
-				const data = (await response.json()) as Nostr.Nip05.NostrAddress;
-				const resolvedPubkey = Object.entries(data.names).find(
-					([key]) => key.toLowerCase() === name.toLowerCase()
-				)?.[1];
-				if (isValidPubkey(resolvedPubkey)) {
-					pubkey = resolvedPubkey;
-					relays = data.relays?.[pubkey] ?? [];
+				const profile = await queryProfile(slug.toLowerCase());
+				if (isValidPubkey(profile?.pubkey)) {
+					pubkey = profile.pubkey;
+					relays = profile.relays ?? [];
 				}
 			}
 		} catch {
