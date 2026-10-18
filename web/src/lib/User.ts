@@ -27,7 +27,7 @@ export class User {
 					}
 				}
 			} else {
-				const profile = await queryProfile(slug.toLowerCase());
+				const profile = await queryProfile(slug);
 				if (isValidPubkey(profile?.pubkey)) {
 					pubkey = profile.pubkey;
 					relays = profile.relays ?? [];

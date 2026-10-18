@@ -158,7 +158,7 @@ export class Metadata implements Item {
 			return '';
 		}
 
-		return this.content.nip05.replace(/^_@/, '').toLowerCase();
+		return this.content.nip05.replace(/^_@/, '');
 	}
 
 	get about(): string {
