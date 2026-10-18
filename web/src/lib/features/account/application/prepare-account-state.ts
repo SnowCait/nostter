@@ -1,9 +1,7 @@
 import { kinds as Kind, type Event } from 'nostr-tools';
 import type { User } from '../../../../routes/types';
-import { defaultRelays, legacyBookmarkIdentifier } from '$lib/Constants';
+import { legacyBookmarkIdentifier } from '$lib/Constants';
 import { Preferences } from '$lib/Preferences';
-import { parseLegacyRelayList } from '$lib/nostr/protocol/nip24';
-import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 import {
 	legacyProfileBadgesIdentifier,
 	legacyProfileBadgesKind,
@@ -20,8 +18,6 @@ export type PreparedAccountState = {
 	metadataEvent: Event | undefined;
 	authorProfile: User;
 	invalidMetadata: { event: Event; error: unknown } | undefined;
-	readRelays: string[];
-	writeRelays: string[];
 	customEmojiListEvent: Event | undefined;
 	bookmarkEvent: Event | undefined;
 	pinnedNotesEvent: Event | undefined;
@@ -53,24 +49,6 @@ export function prepareAccountState(events: LoadedAccountEvents): PreparedAccoun
 	}
 
 	const contactsEvent = replaceableEvents.get(Kind.Contacts);
-	let readRelays = defaultRelays.filter(({ read }) => read).map(({ url }) => url);
-	let writeRelays = defaultRelays.filter(({ write }) => write).map(({ url }) => url);
-	if (contactsEvent !== undefined && contactsEvent.content !== '') {
-		const validRelays = [...parseLegacyRelayList(contactsEvent.content)];
-		readRelays = [
-			...new Set(validRelays.filter(([, { read }]) => read).map(([relay]) => relay))
-		];
-		writeRelays = [
-			...new Set(validRelays.filter(([, { write }]) => write).map(([relay]) => relay))
-		];
-	}
-
-	const relayListEvent = replaceableEvents.get(Kind.RelayList);
-	if (relayListEvent !== undefined) {
-		const entries = parseRelayList(relayListEvent.tags);
-		readRelays = [...new Set(getReadRelays(entries))];
-		writeRelays = [...new Set(getWriteRelays(entries))];
-	}
 
 	const legacyReactionEmojiCandidate = parameterizedReplaceableEvents.get(
 		`${30078}:nostter-reaction-emoji`
@@ -112,8 +90,6 @@ export function prepareAccountState(events: LoadedAccountEvents): PreparedAccoun
 		metadataEvent,
 		authorProfile,
 		invalidMetadata,
-		readRelays,
-		writeRelays,
 		customEmojiListEvent: replaceableEvents.get(Kind.UserEmojiList),
 		bookmarkEvent: replaceableEvents.get(Kind.BookmarkList),
 		pinnedNotesEvent: replaceableEvents.get(Kind.Pinlist),

@@ -1,9 +1,7 @@
-import { get, toStore, writable, type Writable } from 'svelte/store';
+import { toStore, writable, type Writable } from 'svelte/store';
 import type { User } from '../../routes/types';
 import type { Event } from 'nostr-tools';
-import { defaultRelays } from '$lib/Constants';
 import { getZapSenderPubkey } from '$lib/nostr/protocol/nip57';
-import { getReadRelays, getWriteRelays, parseRelayList } from '$lib/nostr/protocol/nip65';
 import { auth } from '$lib/auth.svelte';
 import { isKindMutedPubkey } from '$lib/features/mute/application/kind-mute-runtime.svelte';
 import {
@@ -22,12 +20,6 @@ export const muteWords = toStore(() => [...getEffectiveMuteTags().words]);
 export const authorProfile: Writable<User> = writable();
 export const metadataEvent: Writable<Event | undefined> = writable();
 export const pinNotes: Writable<string[]> = writable([]);
-export const readRelays: Writable<string[]> = writable(
-	defaultRelays.filter((relay) => relay.read).map((relay) => relay.url)
-);
-export const writeRelays: Writable<string[]> = writable(
-	defaultRelays.filter((relay) => relay.write).map((relay) => relay.url)
-);
 export const isMutePubkey = (pubkey: string) => isRegularMutedPubkey(pubkey);
 export const isMuteEvent = (event: Event) => {
 	// Avoid being muted if content contains muted words
@@ -66,12 +58,4 @@ export const isMuteEvent = (event: Event) => {
 		isRegularMutedEventId(event.id) ||
 		event.tags.some(([tagName, id]) => tagName === 'e' && isRegularMutedEventId(id))
 	);
-};
-
-export const updateRelays = (event: Event) => {
-	console.debug('[relays before]', get(readRelays), get(writeRelays));
-	const entries = parseRelayList(event.tags);
-	readRelays.set([...new Set(getReadRelays(entries))]);
-	writeRelays.set([...new Set(getWriteRelays(entries))]);
-	console.debug('[relays after]', get(readRelays), get(writeRelays));
 };

@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import { readRelays, writeRelays, authorProfile, metadataEvent } from '$lib/stores/Author';
+import { authorProfile, metadataEvent } from '$lib/stores/Author';
 import { applyCustomEmojiListSnapshot } from '$lib/author/CustomEmojis';
 import { lastReadAt } from '$lib/author/Notifications';
 import { preferencesStore } from '$lib/Preferences';
@@ -29,8 +29,6 @@ export function applyAccountState(pubkey: string, state: PreparedAccountState): 
 	authorProfile.set(state.authorProfile);
 	console.log('[profile]', get(authorProfile));
 
-	readRelays.set(state.readRelays);
-	writeRelays.set(state.writeRelays);
 	followingHashtags.set(state.followingHashtags);
 
 	applyCustomEmojiListSnapshot(state.customEmojiListEvent);
@@ -55,5 +53,4 @@ export function applyAccountState(pubkey: string, state: PreparedAccountState): 
 
 export function applyAccountChannels(state: PreparedAccountState): void {
 	authorChannelsEventStore.set(state.channelsEvent);
-	console.log('[relays]', get(readRelays), get(writeRelays));
 }

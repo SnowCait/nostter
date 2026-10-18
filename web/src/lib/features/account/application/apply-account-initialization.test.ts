@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
-import { defaultRelays } from '$lib/Constants';
 import { Preferences, preferencesStore } from '$lib/Preferences';
-import { authorProfile, metadataEvent, readRelays, writeRelays } from '$lib/stores/Author';
+import { authorProfile, metadataEvent } from '$lib/stores/Author';
 import { customEmojiListEvent, customEmojiTags } from '$lib/author/CustomEmojis';
 import { lastReadAt } from '$lib/author/Notifications';
 import { bookmarkEvent, legacyBookmarkEvent } from '$lib/author/Bookmark.svelte';
@@ -60,8 +59,6 @@ beforeEach(() => {
 	resetKindMute();
 	authorProfile.set({ name: 'account A' } as User);
 	metadataEvent.set(event(accountA, 20, 0));
-	readRelays.set(['wss://account-a-read.example']);
-	writeRelays.set(['wss://account-a-write.example']);
 	preferencesStore.set(Object.assign(new Preferences('{}'), { reactionEmoji: { content: 'A' } }));
 	lastReadAt.set(123);
 	customEmojiListEvent.set(event(accountA, 21, 10030));
@@ -108,12 +105,6 @@ describe('applyAccountInitialization snapshot', () => {
 
 		expect(get(metadataEvent)).toBeUndefined();
 		expect(get(authorProfile)).toEqual({});
-		expect(get(readRelays)).toEqual(
-			defaultRelays.filter(({ read }) => read).map(({ url }) => url)
-		);
-		expect(get(writeRelays)).toEqual(
-			defaultRelays.filter(({ write }) => write).map(({ url }) => url)
-		);
 		expect(get(preferencesStore)).toEqual(new Preferences('{}'));
 		expect(get(lastReadAt)).toBe(0);
 		expect(get(customEmojiListEvent)).toBeUndefined();

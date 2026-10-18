@@ -1,6 +1,5 @@
 import type { Event } from 'nostr-tools';
 import { describe, expect, it } from 'vitest';
-import { defaultRelays } from '$lib/Constants';
 import { Preferences } from '$lib/Preferences';
 import { prepareAccountState } from './prepare-account-state';
 
@@ -36,44 +35,9 @@ describe('prepareAccountState', () => {
 		const pins = event(10001, 'encrypted pins', [['e', 'note']]);
 		expect(prepareAccountState(accountEvents([pins])).pinnedNotesEvent).toBe(pins);
 	});
-	it('uses kind 10002 relays over legacy kind 3 relays and defaults', () => {
-		const state = prepareAccountState(
-			accountEvents([
-				event(3, JSON.stringify({ 'wss://legacy.example': { read: true, write: false } }), [
-					['p', 'followee']
-				]),
-				event(10002, '', [['r', 'wss://current.example', 'write']])
-			])
-		);
-
+	it('retains kind 3 contact tags', () => {
+		const state = prepareAccountState(accountEvents([event(3, '', [['p', 'followee']])]));
 		expect(state.contactsTags).toEqual([['p', 'followee']]);
-		expect(state.readRelays).toEqual([]);
-		expect(state.writeRelays).toEqual(['wss://current.example']);
-	});
-
-	it('uses non-empty kind 3 relays when kind 10002 is missing', () => {
-		const state = prepareAccountState(
-			accountEvents([
-				event(3, JSON.stringify({ 'wss://legacy.example': { read: true, write: false } }))
-			])
-		);
-
-		expect(state.readRelays).toEqual(['wss://legacy.example']);
-		expect(state.writeRelays).toEqual([]);
-	});
-
-	it('uses default relays when relay events are missing or kind 3 is empty', () => {
-		const defaultsRead = defaultRelays.filter(({ read }) => read).map(({ url }) => url);
-		const defaultsWrite = defaultRelays.filter(({ write }) => write).map(({ url }) => url);
-		const missing = prepareAccountState(accountEvents());
-		expect(missing.readRelays).toEqual(defaultsRead);
-		expect(missing.writeRelays).toEqual(defaultsWrite);
-
-		const emptyContacts = prepareAccountState(
-			accountEvents([event(3, '', [['p', 'followee']])])
-		);
-		expect(emptyContacts.readRelays).toEqual(defaultsRead);
-		expect(emptyContacts.writeRelays).toEqual(defaultsWrite);
 	});
 
 	it('uses default preferences when current and legacy events are missing', () => {
@@ -116,30 +80,5 @@ describe('prepareAccountState', () => {
 		expect(state.authorProfile).toEqual({});
 		expect(state.invalidMetadata?.event).toBe(invalid);
 		expect(state.invalidMetadata?.error).toBeInstanceOf(SyntaxError);
-	});
-});
-
-describe('configured local relays', () => {
-	it('retains local relays from the account kind 10002', () => {
-		const relays = ['ws://127.0.0.1/', 'wss://[::1]/', 'ws://relay.local/'];
-		const state = prepareAccountState(
-			accountEvents([
-				event(
-					10002,
-					'',
-					relays.map((url) => ['r', url])
-				)
-			])
-		);
-		expect(state.readRelays).toEqual(relays);
-		expect(state.writeRelays).toEqual(relays);
-	});
-	it('retains local relays from the account legacy settings', () => {
-		const relay = 'ws://localhost:8080/';
-		const state = prepareAccountState(
-			accountEvents([event(3, JSON.stringify({ [relay]: { read: true, write: true } }))])
-		);
-		expect(state.readRelays).toEqual([relay]);
-		expect(state.writeRelays).toEqual([relay]);
 	});
 });
