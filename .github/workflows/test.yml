@@ -42,7 +42,6 @@ jobs:
           node-version: "24.x"
       - run: npm ci
       - run: npm run lint
-      - run: node --test .github/scripts/package-release.test.mjs
       - run: npm run check -w web
       - run: npm run lint -w web
 

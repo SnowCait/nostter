@@ -14,9 +14,12 @@ on:
         options: [patch, minor, major]
         required: true
 
+defaults:
+  run:
+    shell: bash
+
 permissions:
   contents: read
-  actions: read
 
 concurrency:
   group: prepare-package-release
@@ -27,11 +30,21 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      PACKAGE: ${{ inputs.package }}
+      BUMP: ${{ inputs.bump }}
     steps:
-      - name: Require main
+      - name: Require a new release request on main
         env:
           REF: ${{ github.ref }}
-        run: test "$REF" = refs/heads/main
+        run: |
+          test "$REF" = refs/heads/main
+          if [ "$GITHUB_RUN_ATTEMPT" != 1 ]; then
+            echo 'Inspect the previous attempt before starting a new release request.' >&2
+            exit 1
+          fi
+          case "$PACKAGE" in nostr-kit|nostr-protocol) ;; *) exit 1 ;; esac
+          case "$BUMP" in patch|minor|major) ;; *) exit 1 ;; esac
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
@@ -41,23 +54,71 @@ jobs:
         with:
           node-version: '24.x'
           package-manager-cache: false
-      - run: npm install --global npm@11.19.0
-      - name: Select or resume the release
-        run: node .github/scripts/package-release.mjs prepare
+      - run: npm install --global npm@11.19.0 semver@7.7.4
+      - name: Update the package and workspace dependency range
+        id: version
         env:
-          PACKAGE: ${{ inputs.package }}
-          BUMP: ${{ inputs.bump }}
           GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch origin main --tags
+          git checkout --detach origin/main
+          workspace="@nostter/$PACKAGE"
+          current=$(jq -r .version "packages/$PACKAGE/package.json")
+          # An unfinished release must be resolved before another version is prepared.
+          test "$(gh release view "$PACKAGE/v$current" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = false
+          npm view "$workspace@$current" version > /dev/null
+          npm version "$BUMP" -w "$workspace" --no-git-tag-version --ignore-scripts --workspaces-update=false
+          version=$(jq -r .version "packages/$PACKAGE/package.json")
+          range=$(jq -er --arg name "$workspace" '.dependencies[$name]' web/package.json)
+          if semver "$version" --range "$range" > /dev/null; then
+            echo 'web_changed=false' >> "$GITHUB_OUTPUT"
+          else
+            npm pkg set "dependencies.$workspace=^$version" -w web
+            echo 'web_changed=true' >> "$GITHUB_OUTPUT"
+          fi
+          npm install --package-lock-only --ignore-scripts
+          echo "version=$version" >> "$GITHUB_OUTPUT"
       - run: npm ci
-      - run: node .github/scripts/package-release.mjs validate
+      - run: npm ls -w web "@nostter/$PACKAGE"
+      - run: npm run build -w "@nostter/$PACKAGE"
+      - run: npm test -w "@nostter/$PACKAGE"
+      - run: npm run lint -w "@nostter/$PACKAGE"
+      - run: npm pack -w "@nostter/$PACKAGE" --dry-run
+      - if: steps.version.outputs.web_changed == 'true'
+        run: npm run check -w web
+      - name: Reject an existing version or tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git fetch origin main --tags
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          if git show-ref --verify --quiet "refs/tags/$PACKAGE/v$VERSION"; then
+            echo 'Release tag already exists.' >&2
+            exit 1
+          fi
+          if npm view "@nostter/$PACKAGE@$VERSION" version --json > "$RUNNER_TEMP/npm-version.json"; then
+            echo 'npm version already exists.' >&2
+            exit 1
+          fi
+          jq -e '.error.code == "E404"' "$RUNNER_TEMP/npm-version.json"
       - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         id: app
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           permission-contents: write
-      - name: Push the release commit and tag
-        run: node .github/scripts/package-release.mjs push
+      - name: Push the release commit and tag atomically
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
-          RELEASE_APP_SLUG: ${{ steps.app.outputs.app-slug }}
+          APP_SLUG: ${{ steps.app.outputs.app-slug }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh auth setup-git
+          bot="$APP_SLUG[bot]"
+          user_id=$(gh api "users/$bot" --jq .id)
+          git config user.name "$bot"
+          git config user.email "$user_id+$bot@users.noreply.github.com"
+          git add "packages/$PACKAGE/package.json" web/package.json package-lock.json
+          git commit -m "Release @nostter/$PACKAGE v$VERSION"
+          git tag -a "$PACKAGE/v$VERSION" -m "@nostter/$PACKAGE v$VERSION"
+          git push --atomic origin HEAD:refs/heads/main "refs/tags/$PACKAGE/v$VERSION"

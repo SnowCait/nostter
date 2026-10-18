@@ -1,15 +1,17 @@
 name: Publish package
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - nostr-kit/v*
       - nostr-protocol/v*
 
+defaults:
+  run:
+    shell: bash
+
 permissions:
   contents: read
-  actions: read
 
 concurrency:
   group: publish-package-${{ startsWith(github.ref_name, 'nostr-kit/') && 'nostr-kit' || 'nostr-protocol' }}
@@ -22,29 +24,61 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
-      actions: read
       id-token: write
+    outputs:
+      package: ${{ steps.package.outputs.package }}
+      version: ${{ steps.package.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Verify the protected tag and main ancestry
+        id: package
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          test "$GITHUB_REF_TYPE" = tag
+          test "$GITHUB_REF_PROTECTED" = true
+          [[ "$TAG" =~ ^(nostr-kit|nostr-protocol)/v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+          package=${TAG%%/*}
+          version=${TAG#*/v}
+          test "$(jq -r .name "packages/$package/package.json")" = "@nostter/$package"
+          test "$(jq -r .version "packages/$package/package.json")" = "$version"
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main
+          echo "package=$package" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "PACKAGE=$package" >> "$GITHUB_ENV"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24.x'
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
       - run: npm install --global npm@11.19.0
-      - name: Verify the tag and release preparation
-        run: node .github/scripts/package-release.mjs inspect
+      - name: Require an unpublished version and no existing Release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if npm view "@nostter/$PACKAGE@$VERSION" version --json > "$RUNNER_TEMP/npm-version.json"; then
+            echo 'Version is already published. Stop and inspect the publication; do not republish.' >&2
+            exit 1
+          fi
+          jq -e '.error.code == "E404"' "$RUNNER_TEMP/npm-version.json"
+          if gh api --include "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" > "$RUNNER_TEMP/release-response"; then
+            echo 'GitHub Release already exists.' >&2
+            exit 1
+          fi
+          grep -qE '^HTTP/[0-9.]+ 404' "$RUNNER_TEMP/release-response"
       - run: npm ci
-      - run: node .github/scripts/package-release.mjs validate
-      - name: Publish or verify the existing publication
-        run: node .github/scripts/package-release.mjs publish
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - run: npm run build -w "@nostter/$PACKAGE"
+      - run: npm test -w "@nostter/$PACKAGE"
+      - run: npm run lint -w "@nostter/$PACKAGE"
+      - run: npm pack -w "@nostter/$PACKAGE" --dry-run
+      - name: Publish with OIDC
+        run: npm publish -w "@nostter/$PACKAGE" --access public
 
   release:
     needs: publish
@@ -57,11 +91,23 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: '24.x'
-          package-manager-cache: false
       - name: Create the package GitHub Release
-        run: node .github/scripts/package-release.mjs release
         env:
           GH_TOKEN: ${{ github.token }}
+          PACKAGE: ${{ needs.publish.outputs.package }}
+          VERSION: ${{ needs.publish.outputs.version }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh api --include "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" > "$RUNNER_TEMP/release-response"; then
+            echo 'GitHub Release already exists; leaving it unchanged.'
+            exit 0
+          fi
+          grep -qE '^HTTP/[0-9.]+ 404' "$RUNNER_TEMP/release-response"
+          previous=$(git tag --merged HEAD --list "$PACKAGE/v*" --sort=-version:refname | grep -vxF "$TAG" | sed -n '1p')
+          test -n "$previous"
+          git log --no-merges --format='- %s (%h)' "$previous..HEAD" -- "packages/$PACKAGE" > "$RUNNER_TEMP/package-commits"
+          grep -vF -- "- Release @nostter/$PACKAGE v" "$RUNNER_TEMP/package-commits" > "$RUNNER_TEMP/release-notes.md" || test "$?" = 1
+          if [ ! -s "$RUNNER_TEMP/release-notes.md" ]; then
+            echo 'No package changes since the previous release.' > "$RUNNER_TEMP/release-notes.md"
+          fi
+          gh release create "$TAG" --verify-tag --title "@nostter/$PACKAGE v$VERSION" --notes-file "$RUNNER_TEMP/release-notes.md" --latest=false
