@@ -502,7 +502,21 @@
 		"nip05": {
 			"title": "Nostr アドレス",
 			"unknown": "不明",
-			"impersonation": "なりすまし"
+			"impersonation": "なりすまし",
+			"diagnostics": {
+				"queryUrl": "問い合わせ URL",
+				"result": "診断結果",
+				"invalidAddress": "Nostr アドレスの形式が不正です",
+				"loading": "確認中…",
+				"success": "正常",
+				"httpError": "HTTP エラー: {status}",
+				"jsonError": "JSON 解析エラー",
+				"responseError": "レスポンス形式エラー",
+				"nameNotFound": "ユーザー名が見つからない",
+				"pubkeyError": "公開鍵の形式エラー",
+				"redirect": "リダイレクトは許可されていません",
+				"networkError": "CORS またはネットワークエラー"
+			}
 		},
 		"lud16": "ライトニングアドレス",
 		"about": "自己紹介",
