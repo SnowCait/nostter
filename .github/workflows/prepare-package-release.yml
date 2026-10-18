@@ -1,0 +1,63 @@
+name: Prepare package release
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to release
+        type: choice
+        options: [nostr-kit, nostr-protocol]
+        required: true
+      bump:
+        description: Version increment
+        type: choice
+        options: [patch, minor, major]
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: prepare-package-release
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Require main
+        env:
+          REF: ${{ github.ref }}
+        run: test "$REF" = refs/heads/main
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.x'
+          package-manager-cache: false
+      - run: npm install --global npm@11.19.0
+      - name: Select or resume the release
+        run: node .github/scripts/package-release.mjs prepare
+        env:
+          PACKAGE: ${{ inputs.package }}
+          BUMP: ${{ inputs.bump }}
+          GH_TOKEN: ${{ github.token }}
+      - run: npm ci
+      - run: node .github/scripts/package-release.mjs validate
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - name: Push the release commit and tag
+        run: node .github/scripts/package-release.mjs push
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          RELEASE_APP_SLUG: ${{ steps.app.outputs.app-slug }}
