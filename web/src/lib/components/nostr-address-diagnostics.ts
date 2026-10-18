@@ -14,6 +14,7 @@ export type NostrAddressDiagnosis =
 				| 'responseError'
 				| 'nameNotFound'
 				| 'pubkeyError'
+				| 'pubkeyMismatch'
 				| 'networkError'
 				| 'redirect';
 	  }
@@ -34,6 +35,7 @@ export function getNostrAddressQuery(address: string): NostrAddressQuery | undef
 
 export async function diagnoseNostrAddress(
 	query: NostrAddressQuery,
+	profilePubkey: string,
 	signal: AbortSignal
 ): Promise<NostrAddressDiagnosis> {
 	try {
@@ -69,7 +71,10 @@ export async function diagnoseNostrAddress(
 			return { status: 'nameNotFound' };
 		}
 		const pubkey = (json.names as Record<string, unknown>)[query.name];
-		return { status: isValidPubkey(pubkey) ? 'success' : 'pubkeyError' };
+		if (!isValidPubkey(pubkey)) {
+			return { status: 'pubkeyError' };
+		}
+		return { status: pubkey === profilePubkey ? 'success' : 'pubkeyMismatch' };
 	} catch {
 		return { status: 'networkError' };
 	}

@@ -14,7 +14,7 @@ function diagnose(response: Response | Error) {
 		fetchMock.mockResolvedValue(response);
 	}
 	vi.stubGlobal('fetch', fetchMock);
-	return diagnoseNostrAddress(query, new AbortController().signal);
+	return diagnoseNostrAddress(query, pubkey, new AbortController().signal);
 }
 
 describe('Nostr Address diagnostics', () => {
@@ -30,7 +30,7 @@ describe('Nostr Address diagnostics', () => {
 		const signal = new AbortController().signal;
 		const fetchMock = vi.fn().mockResolvedValue(Response.json({ names: { alice: pubkey } }));
 		vi.stubGlobal('fetch', fetchMock);
-		expect(await diagnoseNostrAddress(query, signal)).toEqual({ status: 'success' });
+		expect(await diagnoseNostrAddress(query, pubkey, signal)).toEqual({ status: 'success' });
 		expect(fetchMock).toHaveBeenCalledExactlyOnceWith(query.url, {
 			redirect: 'manual',
 			signal
@@ -59,12 +59,15 @@ describe('Nostr Address diagnostics', () => {
 		}
 	);
 
-	it('distinguishes a missing exact name from an invalid public key', async () => {
+	it('distinguishes missing names, invalid public keys, and public key mismatches', async () => {
 		expect(await diagnose(Response.json({ names: { Alice: pubkey } }))).toEqual({
 			status: 'nameNotFound'
 		});
 		expect(await diagnose(Response.json({ names: { alice: 'invalid-pubkey' } }))).toEqual({
 			status: 'pubkeyError'
+		});
+		expect(await diagnose(Response.json({ names: { alice: 'b'.repeat(64) } }))).toEqual({
+			status: 'pubkeyMismatch'
 		});
 	});
 

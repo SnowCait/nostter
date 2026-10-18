@@ -510,6 +510,7 @@
 				"invalidAddress": "Invalid Nostr Address",
 				"loading": "Checking…",
 				"success": "OK",
+				"pubkeyMismatch": "Public key does not match",
 				"httpError": "HTTP error: {status}",
 				"jsonError": "JSON parsing error",
 				"responseError": "Invalid response format",
