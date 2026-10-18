@@ -12,6 +12,7 @@
 	import { sendReaction } from '$lib/author/Reaction';
 	import type * as Nostr from 'nostr-typedef';
 	import { notesKinds } from '$lib/Constants';
+	import { writeRelays } from '$lib/stores/Author';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import { auth } from '$lib/auth.svelte';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
@@ -35,6 +36,21 @@
 
 	let metadata = $derived($metadataStore.get(item.event.pubkey));
 	let canSign = $derived(auth.signer !== undefined);
+	let zapDebuggerUrl = $derived.by(() => {
+		const lud16 = metadata?.content?.lud16;
+		if (typeof lud16 !== 'string' || lud16.length === 0) {
+			return undefined;
+		}
+
+		const url = new URL('https://snowcait.github.io/zap-debugger/');
+		url.searchParams.set('lud16', lud16);
+		url.searchParams.set('npub', nip19.npubEncode(item.event.pubkey));
+		const relays = $writeRelays;
+		if (relays.length > 0) {
+			url.searchParams.set('relays', relays.join('\n'));
+		}
+		return url.href;
+	});
 	let nevent = $derived(
 		nip19.neventEncode({
 			id: item.event.id,
@@ -146,6 +162,13 @@
 				nostr-post-checker
 			</a>
 		</div>
+		{#if zapDebuggerUrl}
+			<div>
+				Open in <a href={zapDebuggerUrl} target="_blank" rel="noopener noreferrer"
+					>zap-debugger</a
+				>
+			</div>
+		{/if}
 	</div>
 {/if}
 
