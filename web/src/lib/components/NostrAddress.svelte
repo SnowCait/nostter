@@ -25,13 +25,14 @@
 	$effect(() => {
 		const target = metadata;
 		const request = query;
+		const profilePubkey = metadata.event.pubkey;
 		diagnosis = undefined;
 		if (!popover.open || !request) {
 			return;
 		}
 
 		const controller = new AbortController();
-		diagnoseNostrAddress(request, controller.signal).then((result) => {
+		diagnoseNostrAddress(request, profilePubkey, controller.signal).then((result) => {
 			if (!controller.signal.aborted && metadata === target) {
 				diagnosis = result;
 			}

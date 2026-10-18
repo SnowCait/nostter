@@ -509,6 +509,7 @@
 				"invalidAddress": "Nostr アドレスの形式が不正です",
 				"loading": "確認中…",
 				"success": "正常",
+				"pubkeyMismatch": "公開鍵が一致しません",
 				"httpError": "HTTP エラー: {status}",
 				"jsonError": "JSON 解析エラー",
 				"responseError": "レスポンス形式エラー",
