@@ -13,6 +13,8 @@ npm install @nostter/nostr-protocol
 
 ## Public API
 
+### Event replacement
+
 ```ts
 import { shouldReplaceCurrentEvent } from '@nostter/nostr-protocol';
 import type { Event } from 'nostr-tools';
@@ -34,6 +36,28 @@ The function works for both replaceable and addressable events. Callers must com
 - Addressable events: `pubkey` + `kind` + `d` tag value.
 
 Grouping events by key is the caller's responsibility. The function does not validate keys, kinds, tags, signatures, or events.
+
+### NIP-05 identifiers
+
+```ts
+import {
+	parseNip05Identifier,
+	buildNip05QueryUrl,
+	type Nip05Identifier
+} from '@nostter/nostr-protocol';
+
+const identifier: Nip05Identifier | undefined = parseNip05Identifier('Alice@Example.com');
+if (identifier) {
+	const url = buildNip05QueryUrl(identifier);
+	// https://example.com/.well-known/nostr.json?name=Alice
+}
+```
+
+`parseNip05Identifier(value: string): Nip05Identifier | undefined` parses a [NIP-05](https://github.com/nostr-protocol/nips/blob/master/05.md) identifier using `nostr-tools`' `NIP05_REGEX`. It preserves casing and uses `_` as the local-part for domain-only identifiers. Unparseable input returns `undefined`; parsing does not add stricter format validation.
+
+`Nip05Identifier` contains `localPart: string` and `domain: string`. `buildNip05QueryUrl(identifier: Nip05Identifier): string` builds an HTTPS URL for `/.well-known/nostr.json`, encoding the local-part as the `name` parameter. The standard `URL` API normalizes the hostname; local-part casing is preserved. Invalid URLs throw.
+
+Both functions are pure and do not make HTTP requests.
 
 ## Development and distribution
 
