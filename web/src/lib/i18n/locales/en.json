@@ -503,7 +503,20 @@
 		"nip05": {
 			"title": "Nostr Address",
 			"unknown": "Unknown",
-			"impersonation": "Impersonation"
+			"impersonation": "Impersonation",
+			"diagnostics": {
+				"queryUrl": "Query URL",
+				"result": "Diagnostic result",
+				"invalidAddress": "Invalid Nostr Address",
+				"loading": "Checking…",
+				"success": "OK",
+				"httpError": "HTTP error: {status}",
+				"jsonError": "JSON parsing error",
+				"responseError": "Invalid response format",
+				"nameNotFound": "Username not found",
+				"pubkeyError": "Invalid public key format",
+				"networkError": "CORS or network error"
+			}
 		},
 		"lud16": "Lightning Address",
 		"about": "About Me",
