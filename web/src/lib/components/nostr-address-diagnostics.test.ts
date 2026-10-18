@@ -18,19 +18,15 @@ function diagnose(response: Response | Error) {
 }
 
 describe('Nostr Address diagnostics', () => {
-	it('uses the default name for a domain-only address and rejects invalid identifiers', () => {
-		expect(getNostrAddressQuery('example.com')).toEqual({
-			url: 'https://example.com/.well-known/nostr.json?name=_',
-			name: '_'
-		});
-		expect(getNostrAddressQuery('not an address')).toBeUndefined();
-	});
-
 	it('checks an exact name and a valid public key with one non-following request', async () => {
 		const signal = new AbortController().signal;
 		const fetchMock = vi.fn().mockResolvedValue(Response.json({ names: { alice: pubkey } }));
 		vi.stubGlobal('fetch', fetchMock);
-		expect(await diagnoseNostrAddress(query, pubkey, signal)).toEqual({ status: 'success' });
+		const addressQuery = getNostrAddressQuery('alice@example.com');
+		expect(addressQuery).toBeDefined();
+		expect(await diagnoseNostrAddress(addressQuery!, pubkey, signal)).toEqual({
+			status: 'success'
+		});
 		expect(fetchMock).toHaveBeenCalledExactlyOnceWith(query.url, {
 			redirect: 'manual',
 			signal

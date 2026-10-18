@@ -1,4 +1,4 @@
-import { NIP05_REGEX } from 'nostr-tools/nip05';
+import { parseNip05Identifier, buildNip05QueryUrl } from '@nostter/nostr-protocol';
 import { isValidPubkey } from '$lib/nostr/protocol/pubkey';
 
 export interface NostrAddressQuery {
@@ -21,13 +21,12 @@ export type NostrAddressDiagnosis =
 	| { status: 'httpError'; code: number };
 
 export function getNostrAddressQuery(address: string): NostrAddressQuery | undefined {
-	const match = address.match(NIP05_REGEX);
-	if (!match) {
+	const identifier = parseNip05Identifier(address);
+	if (!identifier) {
 		return undefined;
 	}
-	const [, name = '_', domain] = match;
 	try {
-		return { url: new URL(`https://${domain}/.well-known/nostr.json?name=${name}`).href, name };
+		return { url: buildNip05QueryUrl(identifier), name: identifier.localPart };
 	} catch {
 		return undefined;
 	}
