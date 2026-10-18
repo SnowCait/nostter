@@ -44,7 +44,7 @@ describe('decode test', () => {
 	});
 
 	describe('NIP-05', () => {
-		it('resolves a normalized identifier', async () => {
+		it('resolves an identifier without changing its casing', async () => {
 			queryProfileMock.mockResolvedValue({ pubkey });
 			expect(await User.decode('test@example.com')).toStrictEqual({
 				pubkey,
@@ -52,13 +52,13 @@ describe('decode test', () => {
 			});
 			expect(queryProfileMock).toHaveBeenCalledWith('test@example.com');
 		});
-		it('normalizes mixed-case identifiers before resolving', async () => {
+		it('passes mixed-case identifiers to queryProfile unchanged', async () => {
 			queryProfileMock.mockResolvedValue({ pubkey });
 			expect(await User.decode('TeSt@ExAmPlE.CoM')).toStrictEqual({
 				pubkey,
 				relays: []
 			});
-			expect(queryProfileMock).toHaveBeenCalledWith('test@example.com');
+			expect(queryProfileMock).toHaveBeenCalledWith('TeSt@ExAmPlE.CoM');
 		});
 		it('rejects an invalid public key', async () => {
 			queryProfileMock.mockResolvedValue({ pubkey: 'invalid-pubkey' });
