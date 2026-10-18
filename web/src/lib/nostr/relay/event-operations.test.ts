@@ -34,6 +34,7 @@ describe('relay event operations', () => {
 			{ kinds: [10001], authors: [pubkey] },
 			{ ids: ['b'.repeat(64)], kinds: [1] }
 		];
+		const on = { relays: ['wss://relay1'], defaultReadRelays: true };
 		const first = event(1);
 		const second = event(2);
 		const use = vi
@@ -46,8 +47,9 @@ describe('relay event operations', () => {
 				) as never
 			);
 
-		await expect(fetchEvents(filters)).resolves.toEqual([first, second]);
+		await expect(fetchEvents(filters, on)).resolves.toEqual([first, second]);
 		expect(use).toHaveBeenCalledOnce();
+		expect(use.mock.calls[0][1]).toEqual({ on });
 		const [req] = use.mock.calls[0];
 		await expect(lastValueFrom(req.getReqPacketObservable().pipe(toArray()))).resolves.toEqual([
 			{ filters }
