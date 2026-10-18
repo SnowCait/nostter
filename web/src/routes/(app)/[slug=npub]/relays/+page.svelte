@@ -17,8 +17,7 @@
 	import IconPencil from '@tabler/icons-svelte-runes/icons/pencil';
 	import IconDeviceFloppy from '@tabler/icons-svelte-runes/icons/device-floppy';
 	import Loading from '$lib/components/Loading.svelte';
-	import { getDefaultReadRelays, sendEvent } from '$lib/RxNostrHelper';
-	import { unique } from '$lib/array';
+	import { sendEvent } from '$lib/RxNostrHelper';
 	import { auth } from '$lib/auth.svelte';
 
 	interface Props {
@@ -44,15 +43,11 @@
 
 		const api = new Api();
 
-		const events = await api.fetchRelayEvents(
-			pubkey,
-			unique([
-				...data.relays,
-				...(pubkey === auth.pubkey
-					? Object.keys(rxNostr.getDefaultRelays({ filter: 'write-all' }))
-					: getDefaultReadRelays())
-			])
-		);
+		const events = await api.fetchRelayEvents(pubkey, {
+			relays: data.relays,
+			defaultWriteRelays: pubkey === auth.pubkey,
+			defaultReadRelays: pubkey !== auth.pubkey
+		});
 		console.log('[relay events]', events);
 		const kind10002 = events.get(Kind.RelayList);
 		const kind3 = events.get(Kind.Contacts);

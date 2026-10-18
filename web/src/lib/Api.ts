@@ -9,7 +9,10 @@ import { fetchEvents as fetchRelayEventList } from './nostr/relay/event-operatio
 import type { RxNostrOnParams } from 'rx-nostr';
 
 export class Api {
-	public async fetchRelayEvents(pubkey: string, relays: string[]): Promise<Map<number, Event>> {
+	public async fetchRelayEvents(
+		pubkey: string,
+		on: RxNostrOnParams
+	): Promise<Map<number, Event>> {
 		const events = await fetchRelayEventList(
 			[
 				{
@@ -17,7 +20,7 @@ export class Api {
 					authors: [pubkey]
 				}
 			],
-			relays.length > 0 ? { relays } : undefined
+			on
 		);
 		events.sort(chronological); // Latest event is effective
 		console.debug('[relay events all]', events);

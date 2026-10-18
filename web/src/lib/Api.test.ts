@@ -23,14 +23,15 @@ function event(kind: number, created_at: number): Event {
 afterEach(() => vi.restoreAllMocks());
 
 describe('Api.fetchRelayEvents', () => {
-	it('queries only the specified relays and keeps the latest event per kind after completion', async () => {
+	it('passes the relay scope through and keeps the latest event per kind after completion', async () => {
 		const packets = new Subject<EventPacket>();
 		const use = vi.spyOn(rxNostr, 'use').mockReturnValue(packets);
 		const relays = ['wss://relay.example.com'];
+		const on = { relays, defaultReadRelays: true, defaultWriteRelays: false };
 		const latestContacts = event(Contacts, 3);
 		const latestRelayList = event(RelayList, 4);
 		const resolved = vi.fn();
-		const result = new Api().fetchRelayEvents(pubkey, relays).then((events) => {
+		const result = new Api().fetchRelayEvents(pubkey, on).then((events) => {
 			resolved();
 			return events;
 		});
@@ -38,7 +39,7 @@ describe('Api.fetchRelayEvents', () => {
 		expect(use).toHaveBeenCalledOnce();
 		const [req, options] = use.mock.calls[0];
 		expect(req.strategy).toBe('backward');
-		expect(options).toEqual({ on: { relays } });
+		expect(options).toEqual({ on });
 		await expect(lastValueFrom(req.getReqPacketObservable().pipe(toArray()))).resolves.toEqual([
 			{ filters: [{ kinds: [Contacts, RelayList], authors: [pubkey] }] }
 		]);
@@ -63,17 +64,20 @@ describe('Api.fetchRelayEvents', () => {
 		);
 	});
 
-	it('uses default read relays for an empty relay list and returns an empty Map on completion', async () => {
+	it('passes a default write scope with no additional relays and returns an empty Map on completion', async () => {
 		const use = vi.spyOn(rxNostr, 'use').mockReturnValue(EMPTY);
+		const on = { relays: [], defaultWriteRelays: true, defaultReadRelays: false };
 
-		await expect(new Api().fetchRelayEvents(pubkey, [])).resolves.toEqual(new Map());
-		expect(use.mock.calls[0][1]).toEqual({ on: undefined });
+		await expect(new Api().fetchRelayEvents(pubkey, on)).resolves.toEqual(new Map());
+		expect(use.mock.calls[0][1]).toEqual({ on });
 	});
 
 	it('propagates unexpected request errors', async () => {
 		const error = new Error('Unexpected request failure');
 		vi.spyOn(rxNostr, 'use').mockReturnValue(throwError(() => error));
 
-		await expect(new Api().fetchRelayEvents(pubkey, [])).rejects.toBe(error);
+		await expect(new Api().fetchRelayEvents(pubkey, { defaultReadRelays: true })).rejects.toBe(
+			error
+		);
 	});
 });
