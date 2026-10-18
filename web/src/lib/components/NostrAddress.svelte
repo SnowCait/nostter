@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { nip05 } from 'nostr-tools';
-	import { Popover } from 'melt/builders';
+	import { Popover } from 'bits-ui';
 	import {
 		diagnoseNostrAddress,
 		getNostrAddressQuery,
@@ -18,7 +18,7 @@
 	let { metadata }: Props = $props();
 
 	let normalizedNip05 = $derived(metadata.normalizedNip05);
-	const popover = new Popover();
+	let open = $state(false);
 	let query = $derived(getNostrAddressQuery(normalizedNip05));
 	let diagnosis = $state<NostrAddressDiagnosis>();
 
@@ -27,7 +27,7 @@
 		const request = query;
 		const profilePubkey = metadata.event.pubkey;
 		diagnosis = undefined;
-		if (!popover.open || !request) {
+		if (!open || !request) {
 			return;
 		}
 
@@ -42,69 +42,79 @@
 </script>
 
 {#if normalizedNip05}
-	<div class="nip05">
-		<button
-			class="clear address"
-			{...popover.trigger}
-			aria-haspopup="dialog"
-			aria-expanded={popover.open}
-			aria-controls={popover.ids.content}>{normalizedNip05}</button
-		>
-		{#await nip05.queryProfile(normalizedNip05) then pointer}
-			{#if pointer === null}
-				<span class="status">
-					<IconAlertTriangle color="orange" />
-					<span class="label">{$_('profile.nip05.unknown')}</span>
-				</span>
-			{:else if pointer.pubkey === metadata.event.pubkey}
-				<span class="status">
-					<IconRosetteDiscountCheck color="skyblue" />
-				</span>
-			{:else}
-				<span class="status">
-					<IconAlertTriangle color="red" />
-					<span class="label">{$_('profile.nip05.impersonation')}</span>
-				</span>
-			{/if}
-		{/await}
-		<div
-			{...popover.content}
-			class="diagnostics"
-			role="dialog"
-			aria-label={$_('profile.nip05.title')}
-		>
-			{#if popover.open}
-				<dl>
-					<dt>{$_('profile.nip05.title')}</dt>
-					<dd>{metadata.content?.nip05}</dd>
-					<dt>{$_('profile.nip05.diagnostics.queryUrl')}</dt>
-					<dd>
-						{#if query}
-							<a href={query.url} target="_blank" rel="noopener noreferrer"
-								>{query.url}</a
-							>
-						{:else}
-							{$_('profile.nip05.diagnostics.invalidAddress')}
-						{/if}
-					</dd>
-					<dt>{$_('profile.nip05.diagnostics.result')}</dt>
-					<dd aria-live="polite" role="status">
-						{#if !query}
-							{$_('profile.nip05.diagnostics.invalidAddress')}
-						{:else if !diagnosis}
-							{$_('profile.nip05.diagnostics.loading')}
-						{:else if diagnosis.status === 'httpError'}
-							{$_('profile.nip05.diagnostics.httpError', {
-								values: { status: diagnosis.code }
-							})}
-						{:else}
-							{$_(`profile.nip05.diagnostics.${diagnosis.status}`)}
-						{/if}
-					</dd>
-				</dl>
-			{/if}
+	<Popover.Root bind:open>
+		<div class="nip05">
+			<Popover.Trigger>
+				{#snippet child({ props })}
+					<button class="clear address" {...props}>{normalizedNip05}</button>
+				{/snippet}
+			</Popover.Trigger>
+			{#await nip05.queryProfile(normalizedNip05) then pointer}
+				{#if pointer === null}
+					<span class="status">
+						<IconAlertTriangle color="orange" />
+						<span class="label">{$_('profile.nip05.unknown')}</span>
+					</span>
+				{:else if pointer.pubkey === metadata.event.pubkey}
+					<span class="status">
+						<IconRosetteDiscountCheck color="skyblue" />
+					</span>
+				{:else}
+					<span class="status">
+						<IconAlertTriangle color="red" />
+						<span class="label">{$_('profile.nip05.impersonation')}</span>
+					</span>
+				{/if}
+			{/await}
+			<Popover.Portal>
+				<Popover.Content
+					sideOffset={8}
+					collisionPadding={8}
+					trapFocus={false}
+					style="z-index: 30"
+					role="dialog"
+					aria-label={$_('profile.nip05.title')}
+				>
+					{#snippet child({ props, wrapperProps })}
+						<div {...wrapperProps}>
+							<div {...props} class="diagnostics">
+								<dl>
+									<dt>{$_('profile.nip05.title')}</dt>
+									<dd>{metadata.content?.nip05}</dd>
+									<dt>{$_('profile.nip05.diagnostics.queryUrl')}</dt>
+									<dd>
+										{#if query}
+											<a
+												href={query.url}
+												target="_blank"
+												rel="noopener noreferrer">{query.url}</a
+											>
+										{:else}
+											{$_('profile.nip05.diagnostics.invalidAddress')}
+										{/if}
+									</dd>
+									<dt>{$_('profile.nip05.diagnostics.result')}</dt>
+									<dd aria-live="polite" role="status">
+										{#if !query}
+											{$_('profile.nip05.diagnostics.invalidAddress')}
+										{:else if !diagnosis}
+											{$_('profile.nip05.diagnostics.loading')}
+										{:else if diagnosis.status === 'httpError'}
+											{$_('profile.nip05.diagnostics.httpError', {
+												values: { status: diagnosis.code }
+											})}
+										{:else}
+											{$_(`profile.nip05.diagnostics.${diagnosis.status}`)}
+										{/if}
+									</dd>
+								</dl>
+							</div>
+						</div>
+					{/snippet}
+				</Popover.Content>
+			</Popover.Portal>
 		</div>
-	</div>
+	</Popover.Root>
 {/if}
 
 <style>
