@@ -514,6 +514,7 @@
 				"responseError": "レスポンス形式エラー",
 				"nameNotFound": "ユーザー名が見つからない",
 				"pubkeyError": "公開鍵の形式エラー",
+				"redirect": "リダイレクトは許可されていません",
 				"networkError": "CORS またはネットワークエラー"
 			}
 		},

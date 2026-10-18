@@ -37,6 +37,13 @@ describe('Nostr Address diagnostics', () => {
 		});
 	});
 
+	it('classifies opaque redirects without following them', async () => {
+		const response = Response.error();
+		Object.defineProperty(response, 'type', { value: 'opaqueredirect' });
+		expect(await diagnose(response)).toEqual({ status: 'redirect' });
+		expect(fetch).toHaveBeenCalledTimes(1);
+	});
+
 	it('reports HTTP errors separately from invalid JSON', async () => {
 		expect(await diagnose(new Response('Unavailable', { status: 503 }))).toEqual({
 			status: 'httpError',
@@ -62,6 +69,7 @@ describe('Nostr Address diagnostics', () => {
 	});
 
 	it('does not claim to distinguish CORS from network failures', async () => {
+		expect(await diagnose(Response.error())).toEqual({ status: 'networkError' });
 		expect(await diagnose(new TypeError('Failed to fetch'))).toEqual({
 			status: 'networkError'
 		});

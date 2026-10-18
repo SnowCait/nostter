@@ -14,7 +14,8 @@ export type NostrAddressDiagnosis =
 				| 'responseError'
 				| 'nameNotFound'
 				| 'pubkeyError'
-				| 'networkError';
+				| 'networkError'
+				| 'redirect';
 	  }
 	| { status: 'httpError'; code: number };
 
@@ -38,6 +39,9 @@ export async function diagnoseNostrAddress(
 	try {
 		const response = await fetch(query.url, { redirect: 'manual', signal });
 		// Cross-origin redirects hide their status and body from browser JavaScript.
+		if (response.type === 'opaqueredirect') {
+			return { status: 'redirect' };
+		}
 		if (response.status === 0) {
 			return { status: 'networkError' };
 		}
