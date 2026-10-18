@@ -8,7 +8,6 @@
 	import { Api } from '$lib/Api';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { writeRelays } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import { kinds as Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
@@ -49,7 +48,9 @@
 			pubkey,
 			unique([
 				...data.relays,
-				...(pubkey === auth.pubkey ? $writeRelays : getDefaultReadRelays())
+				...(pubkey === auth.pubkey
+					? Object.keys(rxNostr.getDefaultRelays({ filter: 'write-all' }))
+					: getDefaultReadRelays())
 			])
 		);
 		console.log('[relay events]', events);

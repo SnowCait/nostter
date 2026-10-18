@@ -12,7 +12,7 @@
 	import { sendReaction } from '$lib/author/Reaction';
 	import type * as Nostr from 'nostr-typedef';
 	import { notesKinds } from '$lib/Constants';
-	import { writeRelays } from '$lib/stores/Author';
+	import { rxNostr } from '$lib/relay-client';
 	import { getOpenNoteDialog } from '$lib/NoteDialogContext';
 	import { auth } from '$lib/auth.svelte';
 	import SeenOnRelays from '../SeenOnRelays.svelte';
@@ -38,14 +38,14 @@
 	let canSign = $derived(auth.signer !== undefined);
 	let zapDebuggerUrl = $derived.by(() => {
 		const lud16 = metadata?.content?.lud16;
-		if (typeof lud16 !== 'string' || lud16.length === 0) {
+		if (!jsonDisplay || typeof lud16 !== 'string' || lud16.length === 0) {
 			return undefined;
 		}
 
 		const url = new URL('https://snowcait.github.io/zap-debugger/');
 		url.searchParams.set('lud16', lud16);
 		url.searchParams.set('npub', nip19.npubEncode(item.event.pubkey));
-		const relays = $writeRelays;
+		const relays = Object.keys(rxNostr.getDefaultRelays({ filter: 'write-all' }));
 		if (relays.length > 0) {
 			url.searchParams.set('relays', relays.join('\n'));
 		}

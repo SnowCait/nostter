@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { nip57 } from 'nostr-tools';
 	import QRCode from 'qrcode';
-	import { writeRelays } from '$lib/stores/Author';
+	import { rxNostr } from '$lib/relay-client';
 	import { persistedStore } from '$lib/platform/storage/persisted-store';
 	import { WebStorage } from '$lib/WebStorage';
 	import type { Signer } from '$lib/nostr/signing/signer';
@@ -53,7 +53,7 @@
 		sending = true;
 
 		const amount = sats * 1000;
-		const relays = $writeRelays;
+		const relays = Object.keys(rxNostr.getDefaultRelays({ filter: 'write-all' }));
 		const zapRequest = nip57.makeZapRequest(
 			item === undefined
 				? { pubkey, amount, comment, relays }
