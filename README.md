@@ -39,7 +39,7 @@ javascript:window.open(`https://nostter.app/post?content=${document.title}%20${l
 | Frameworks | Svelte, SvelteKit, Vite |
 | Languages | TypeScript, Node.js |
 | Tests | Vitest, Playwright |
-| UI | [Tabler Icons for Svelte](https://tabler.io/docs/icons/svelte), [emoji-kitchen-mart](https://www.npmjs.com/package/emoji-kitchen-mart) |
+| UI | [Bits UI](https://bits-ui.com/), [Tabler Icons for Svelte](https://tabler.io/docs/icons/svelte), [emoji-kitchen-mart](https://www.npmjs.com/package/emoji-kitchen-mart) |
 
 See full list at [package.json](web/package.json)
 

@@ -18,6 +18,10 @@ Existing files and directories do not need to be renamed solely to comply with t
 
 Prefer public subpath exports over package-root imports when available.
 
+## UI components
+
+Prefer Bits UI for new interactive UI components when it meets the requirements. Existing Melt implementations do not need to be migrated solely to follow this guideline. Use another library when Bits UI cannot adequately meet the requirements.
+
 ## Constants and utilities
 
 Prefer existing named constants and shared utilities over magic values or duplicate implementations.
