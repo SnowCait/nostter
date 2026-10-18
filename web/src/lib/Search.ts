@@ -1,11 +1,9 @@
 import { nip19, type Filter } from 'nostr-tools';
-import { get } from 'svelte/store';
 import { authorActionReqEmit } from './author/Action';
 import { hashtagsRegexp, reverseChronological, searchRelays } from './Constants';
 import { EventItem } from './Items';
-import { readRelays } from './stores/Author';
 import { referencesReqEmit } from './timelines/MainTimeline';
-import { fetchEvents } from './RxNostrHelper';
+import { fetchEvents, getDefaultReadRelays } from './RxNostrHelper';
 import { auth } from './auth.svelte';
 
 export const searchScopes = ['all', 'nostr', 'following', 'mine'] as const;
@@ -189,7 +187,7 @@ export class Search {
 		);
 		const events = await fetchEvents(
 			[filter],
-			filter.search !== undefined ? searchRelays : get(readRelays)
+			filter.search !== undefined ? searchRelays : getDefaultReadRelays()
 		);
 		console.debug('[search events]', events);
 		for (const event of events) {

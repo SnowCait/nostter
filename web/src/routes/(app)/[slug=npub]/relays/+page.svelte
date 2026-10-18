@@ -8,7 +8,7 @@
 	import { Api } from '$lib/Api';
 	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
-	import { readRelays, writeRelays } from '$lib/stores/Author';
+	import { writeRelays } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import { kinds as Kind } from 'nostr-tools';
 	import Relay from './Relay.svelte';
@@ -18,7 +18,7 @@
 	import IconPencil from '@tabler/icons-svelte-runes/icons/pencil';
 	import IconDeviceFloppy from '@tabler/icons-svelte-runes/icons/device-floppy';
 	import Loading from '$lib/components/Loading.svelte';
-	import { sendEvent } from '$lib/RxNostrHelper';
+	import { getDefaultReadRelays, sendEvent } from '$lib/RxNostrHelper';
 	import { unique } from '$lib/array';
 	import { auth } from '$lib/auth.svelte';
 
@@ -47,7 +47,10 @@
 
 		const events = await api.fetchRelayEvents(
 			pubkey,
-			unique([...data.relays, ...(pubkey === auth.pubkey ? $writeRelays : $readRelays)])
+			unique([
+				...data.relays,
+				...(pubkey === auth.pubkey ? $writeRelays : getDefaultReadRelays())
+			])
 		);
 		console.log('[relay events]', events);
 		const kind10002 = events.get(Kind.RelayList);

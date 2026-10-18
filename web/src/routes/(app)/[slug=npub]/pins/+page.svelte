@@ -12,7 +12,7 @@
 	import { appName } from '$lib/app';
 	import { EventItem } from '$lib/Items';
 	import { filterTags } from '$lib/EventHelper';
-	import { readRelays } from '$lib/stores/Author';
+	import { getDefaultReadRelays } from '$lib/RxNostrHelper';
 	import { auth } from '$lib/auth.svelte';
 	import { tie, verificationClient } from '$lib/timelines/MainTimeline';
 	import TimelineView from '../../TimelineView.svelte';
@@ -34,7 +34,7 @@
 		const slug = page.params.slug;
 		console.debug('[pin page]', slug);
 
-		rxNostr.setDefaultRelays([...$readRelays, ...data.relays]);
+		rxNostr.setDefaultRelays([...getDefaultReadRelays(), ...data.relays]);
 
 		let event: Nostr.Event | undefined;
 		if (data.pubkey === auth.pubkey) {
