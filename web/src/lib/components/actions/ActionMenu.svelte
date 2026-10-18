@@ -161,12 +161,14 @@
 			>
 				nostr-post-checker
 			</a>
-			{#if zapDebuggerUrl}
-				and <a href={zapDebuggerUrl} target="_blank" rel="noopener noreferrer"
+		</div>
+		{#if zapDebuggerUrl}
+			<div>
+				Open in <a href={zapDebuggerUrl} target="_blank" rel="noopener noreferrer"
 					>zap-debugger</a
 				>
-			{/if}
-		</div>
+			</div>
+		{/if}
 	</div>
 {/if}
 
