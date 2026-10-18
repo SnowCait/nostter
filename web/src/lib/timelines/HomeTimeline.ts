@@ -46,7 +46,6 @@ import {
 	followeesFilterKinds
 } from '$lib/Constants';
 import { updateUserStatus, userStatusReqEmit } from '$lib/UserStatus';
-import { updateRelays } from '../stores/Author';
 import { ingestRemoteMute } from '$lib/features/mute/application/regular-mute-runtime.svelte';
 import { ingestRemoteKindMute } from '$lib/features/mute/application/kind-mute-runtime.svelte';
 import { lastReadAt, notifiedEventItems } from '../author/Notifications';
@@ -122,9 +121,6 @@ export class HomeTimeline extends NewTimeline {
 		replaceable$
 			.pipe(filterByKind(Kind.PublicChatsList))
 			.subscribe(({ event }) => authorChannelsEventStore.set(event));
-		replaceable$
-			.pipe(filterByKind(Kind.RelayList))
-			.subscribe(({ event }) => updateRelays(event)); // TODO: Update subscription
 		replaceable$.pipe(filterByKind(Kind.InterestsList)).subscribe(({ event }) => {
 			updateFollowingHashtags(event);
 			this.subscribe();
