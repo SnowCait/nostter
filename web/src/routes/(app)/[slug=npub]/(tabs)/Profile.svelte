@@ -170,7 +170,7 @@
 		</div>
 
 		{#if metadata !== undefined}
-			<NostrAddress {metadata} />
+			<NostrAddress {metadata} diagnostics />
 		{/if}
 
 		{#if user?.about}

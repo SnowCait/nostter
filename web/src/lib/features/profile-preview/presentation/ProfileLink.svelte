@@ -11,19 +11,9 @@
 	}
 
 	let { pubkey, href, children }: Props = $props();
-	let open = $state(false);
-	let content = $state<HTMLElement | null>(null);
-
-	function setOpen(value: boolean): void {
-		// Keep the preview mounted while its portalled popover is being used.
-		if (!value && content?.querySelector('[data-popover-trigger][data-state="open"]')) {
-			return;
-		}
-		open = value;
-	}
 </script>
 
-<LinkPreview.Root bind:open={() => open, setOpen} openDelay={300} closeDelay={200}>
+<LinkPreview.Root openDelay={300} closeDelay={200}>
 	<LinkPreview.Trigger href={href ?? `/${npubEncode(pubkey)}`}>
 		{#snippet child({ props })}
 			<!-- Bits UI marks the trigger as a button; keep the implicit link role. -->
@@ -34,7 +24,6 @@
 	</LinkPreview.Trigger>
 	<LinkPreview.Portal>
 		<LinkPreview.Content
-			bind:ref={content}
 			style="z-index: 20"
 			side="bottom"
 			align="start"
