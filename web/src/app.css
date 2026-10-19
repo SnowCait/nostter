@@ -472,6 +472,28 @@ button:disabled {
 	opacity: 0.5 !important;
 }
 
+input:not(
+	[type='checkbox'],
+	[type='radio'],
+	[type='range'],
+	[type='color'],
+	[type='file'],
+	[type='hidden'],
+	[type='button'],
+	[type='submit'],
+	[type='reset']
+),
+select,
+textarea {
+	font-size: max(var(--input-min-font-size, 0px), var(--input-font-size, 1em));
+}
+
+@media (hover: none) and (pointer: coarse) {
+	:root {
+		--input-min-font-size: 16px;
+	}
+}
+
 input[type='text'],
 input[type='email'],
 input[type='number'],
