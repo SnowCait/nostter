@@ -1,4 +1,5 @@
 import { nip19, type Event, kinds as Kind } from 'nostr-tools';
+import { shouldReplaceCurrentEvent } from '@nostter/nostr-protocol';
 import { get } from 'svelte/store';
 import { saveMetadataEvent, userEvents } from './stores/UserEvents';
 import { channelMetadataEventsStore } from './cache/Events';
@@ -115,7 +116,7 @@ export class Api {
 		console.debug('[channel metadata events]', events);
 		let event: Event | undefined;
 		for (const candidate of events) {
-			if (event === undefined || event.created_at < candidate.created_at) {
+			if (shouldReplaceCurrentEvent(candidate, event)) {
 				event = candidate;
 			}
 		}

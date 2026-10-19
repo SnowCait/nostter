@@ -121,15 +121,16 @@ describe('Api.fetchChannelMetadataEvent', () => {
 	it.each([ChannelCreation, ChannelMetadata])(
 		'selects the latest event and caches kind %i',
 		async (kind) => {
-			const latest = event(kind, 3);
+			const latest = { ...event(kind, 3), id: '1'.repeat(64) };
+			const sameTimestamp = { ...event(kind, 3), id: '2'.repeat(64) };
 			const creation = kind === ChannelCreation ? latest : event(ChannelCreation, 1);
 			const id = creation.id;
 			const fetchEvents = vi
 				.spyOn(eventOperations, 'fetchEvents')
 				.mockResolvedValue(
 					kind === ChannelCreation
-						? [event(ChannelMetadata, 2), latest, event(ChannelMetadata, 1)]
-						: [event(ChannelMetadata, 2), latest, creation]
+						? [event(ChannelMetadata, 2), sameTimestamp, latest]
+						: [event(ChannelMetadata, 2), sameTimestamp, latest, creation]
 				);
 
 			expect(await new Api().fetchChannelMetadataEvent(id)).toBe(latest);
