@@ -1,4 +1,4 @@
-import { createRxBackwardReq, evalFilters, uniq, type LazyFilter } from 'rx-nostr';
+import { createRxBackwardReq, uniq, type LazyFilter } from 'rx-nostr';
 import { filter, tap } from 'rxjs';
 import { authorActionReqEmit } from '$lib/author/Action';
 import { minTimelineLength, reverseChronological, searchRelays } from '$lib/Constants';
@@ -71,7 +71,7 @@ export class SearchTimeline implements Timeline {
 		if (length < minTimelineLength) {
 			const limit = minTimelineLength - length;
 			const events = await fetchEvents(
-				evalFilters([{ ...filterBase, until: oldestCreatedAt(this.items), limit }]),
+				[{ ...filterBase, until: oldestCreatedAt(this.items), limit }],
 				{ relays: searchRelays }
 			);
 			for (const event of events) {
