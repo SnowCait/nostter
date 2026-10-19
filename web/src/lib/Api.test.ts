@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from 'nostr-tools';
-import { Contacts, Metadata, RelayList } from 'nostr-tools/kinds';
+import { ChannelCreation, ChannelMetadata, Contacts, Metadata, RelayList } from 'nostr-tools/kinds';
+import { get } from 'svelte/store';
+import { cachedEvents, channelMetadataEventsStore } from './cache/Events';
 import type { UserEvent } from '../routes/types';
 import * as eventOperations from './nostr/relay/event-operations';
 import * as userEventStores from './stores/UserEvents';
@@ -23,6 +25,8 @@ function event(kind: number, created_at: number): Event {
 afterEach(() => {
 	vi.restoreAllMocks();
 	userEventStores.userEvents.set(new Map());
+	cachedEvents.clear();
+	channelMetadataEventsStore.set(new Map());
 });
 
 describe('Api.fetchRelayEvents', () => {
@@ -93,5 +97,45 @@ describe('Api.fetchMetadataEventsMap', () => {
 			firstLatest,
 			secondLatest
 		]);
+	});
+});
+
+describe('Api.fetchChannelMetadataEvent', () => {
+	it('selects and caches the kind 40 event when it is latest', async () => {
+		const creation = event(ChannelCreation, 3);
+		const id = creation.id;
+		const metadata = { ...event(ChannelMetadata, 2), tags: [['e', id]] };
+		const fetchEvents = vi
+			.spyOn(eventOperations, 'fetchEvents')
+			.mockResolvedValue([metadata, creation]);
+
+		expect(await new Api().fetchChannelMetadataEvent(id)).toBe(creation);
+		expect(fetchEvents).toHaveBeenCalledWith([
+			{ kinds: [ChannelCreation], ids: [id], limit: 1 },
+			{ kinds: [ChannelMetadata], '#e': [id], limit: 1 }
+		]);
+		expect(cachedEvents.get(id)).toBe(creation);
+	});
+
+	it('selects and caches the kind 41 event when latest, preferring the smaller ID on a tie', async () => {
+		const id = event(ChannelCreation, 1).id;
+		const creation = event(ChannelCreation, 1);
+		const sameTimestamp = {
+			...event(ChannelMetadata, 3),
+			id: '2'.repeat(64),
+			tags: [['e', id]]
+		};
+		const latest = { ...event(ChannelMetadata, 3), id: '1'.repeat(64), tags: [['e', id]] };
+		const olderMetadata = { ...event(ChannelMetadata, 2), tags: [['e', id]] };
+		const fetchEvents = vi
+			.spyOn(eventOperations, 'fetchEvents')
+			.mockResolvedValue([sameTimestamp, creation, latest, olderMetadata]);
+
+		expect(await new Api().fetchChannelMetadataEvent(id)).toBe(latest);
+		expect(fetchEvents).toHaveBeenCalledWith([
+			{ kinds: [ChannelCreation], ids: [id], limit: 1 },
+			{ kinds: [ChannelMetadata], '#e': [id], limit: 1 }
+		]);
+		expect(get(channelMetadataEventsStore).get(id)).toBe(latest);
 	});
 });
