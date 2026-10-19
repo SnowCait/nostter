@@ -46,7 +46,7 @@ export class Api {
 			return eventsMap;
 		}
 
-		const events = await fetchEvents([
+		const events = await fetchRelayEventList([
 			{
 				kinds: [Kind.Metadata],
 				authors: pubkeys.filter((pubkey) => !eventsMap.has(pubkey))
