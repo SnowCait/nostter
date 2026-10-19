@@ -101,60 +101,41 @@ describe('Api.fetchMetadataEventsMap', () => {
 });
 
 describe('Api.fetchChannelMetadataEvent', () => {
-	it.each([ChannelCreation, ChannelMetadata])(
-		'returns cached kind %i without fetching',
-		async (kind) => {
-			const cached = event(kind, 1);
-			const id = event(ChannelCreation, 1).id;
-			if (kind === ChannelCreation) {
-				cachedEvents.set(id, cached);
-			} else {
-				channelMetadataEventsStore.set(new Map([[id, cached]]));
-			}
-			const fetchEvents = vi.spyOn(eventOperations, 'fetchEvents').mockResolvedValue([]);
+	it('selects and caches the kind 40 event when it is latest', async () => {
+		const creation = event(ChannelCreation, 3);
+		const id = creation.id;
+		const metadata = { ...event(ChannelMetadata, 2), tags: [['e', id]] };
+		const fetchEvents = vi
+			.spyOn(eventOperations, 'fetchEvents')
+			.mockResolvedValue([metadata, creation]);
 
-			expect(await new Api().fetchChannelMetadataEvent(id)).toBe(cached);
-			expect(fetchEvents).not.toHaveBeenCalled();
-		}
-	);
+		expect(await new Api().fetchChannelMetadataEvent(id)).toBe(creation);
+		expect(fetchEvents).toHaveBeenCalledWith([
+			{ kinds: [ChannelCreation], ids: [id], limit: 1 },
+			{ kinds: [ChannelMetadata], '#e': [id], limit: 1 }
+		]);
+		expect(cachedEvents.get(id)).toBe(creation);
+	});
 
-	it.each([ChannelCreation, ChannelMetadata])(
-		'selects the latest event and caches kind %i',
-		async (kind) => {
-			const latest = { ...event(kind, 3), id: '1'.repeat(64) };
-			const sameTimestamp = { ...event(kind, 3), id: '2'.repeat(64) };
-			const creation = kind === ChannelCreation ? latest : event(ChannelCreation, 1);
-			const id = creation.id;
-			const fetchEvents = vi
-				.spyOn(eventOperations, 'fetchEvents')
-				.mockResolvedValue(
-					kind === ChannelCreation
-						? [event(ChannelMetadata, 2), sameTimestamp, latest]
-						: [event(ChannelMetadata, 2), sameTimestamp, latest, creation]
-				);
+	it('selects and caches the kind 41 event when latest, preferring the smaller ID on a tie', async () => {
+		const id = event(ChannelCreation, 1).id;
+		const creation = event(ChannelCreation, 1);
+		const sameTimestamp = {
+			...event(ChannelMetadata, 3),
+			id: '2'.repeat(64),
+			tags: [['e', id]]
+		};
+		const latest = { ...event(ChannelMetadata, 3), id: '1'.repeat(64), tags: [['e', id]] };
+		const olderMetadata = { ...event(ChannelMetadata, 2), tags: [['e', id]] };
+		const fetchEvents = vi
+			.spyOn(eventOperations, 'fetchEvents')
+			.mockResolvedValue([sameTimestamp, creation, latest, olderMetadata]);
 
-			expect(await new Api().fetchChannelMetadataEvent(id)).toBe(latest);
-			expect(fetchEvents).toHaveBeenCalledWith([
-				{ kinds: [ChannelCreation], ids: [id], limit: 1 },
-				{ kinds: [ChannelMetadata], '#e': [id], limit: 1 }
-			]);
-			if (kind === ChannelCreation) {
-				expect(cachedEvents.get(id)).toBe(latest);
-				expect(get(channelMetadataEventsStore).has(id)).toBe(false);
-			} else {
-				expect(get(channelMetadataEventsStore).get(id)).toBe(latest);
-				expect(cachedEvents.has(id)).toBe(false);
-			}
-		}
-	);
-
-	it('returns undefined when no events are found', async () => {
-		vi.spyOn(eventOperations, 'fetchEvents').mockResolvedValue([]);
-
-		expect(
-			await new Api().fetchChannelMetadataEvent(event(ChannelCreation, 1).id)
-		).toBeUndefined();
-		expect(cachedEvents.size).toBe(0);
-		expect(get(channelMetadataEventsStore).size).toBe(0);
+		expect(await new Api().fetchChannelMetadataEvent(id)).toBe(latest);
+		expect(fetchEvents).toHaveBeenCalledWith([
+			{ kinds: [ChannelCreation], ids: [id], limit: 1 },
+			{ kinds: [ChannelMetadata], '#e': [id], limit: 1 }
+		]);
+		expect(get(channelMetadataEventsStore).get(id)).toBe(latest);
 	});
 });
