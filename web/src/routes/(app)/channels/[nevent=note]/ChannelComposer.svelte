@@ -328,8 +328,7 @@
 		border: var(--default-border);
 		border-radius: var(--radius);
 		padding: 0.5rem;
-		font: inherit;
-		font-size: calc(16px * var(--content-font-scale));
+		--input-font-size: calc(16px * var(--content-font-scale));
 		max-height: 8em;
 		field-sizing: content;
 	}

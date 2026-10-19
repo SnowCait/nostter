@@ -813,7 +813,7 @@
 	textarea {
 		width: 100%;
 		padding: 0.25rem 0.5rem;
-		font-size: calc(1rem * var(--content-font-scale));
+		--input-font-size: calc(1rem * var(--content-font-scale));
 		line-height: 1;
 		/* 5 to 20 lines plus vertical padding */
 		min-height: calc(5em + 0.5rem);
