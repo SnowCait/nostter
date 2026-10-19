@@ -1,9 +1,9 @@
-import { createRxBackwardReq, uniq, type LazyFilter } from 'rx-nostr';
+import { createRxBackwardReq, evalFilters, uniq, type LazyFilter } from 'rx-nostr';
 import { filter, tap } from 'rxjs';
 import { authorActionReqEmit } from '$lib/author/Action';
-import { minTimelineLength, searchRelays } from '$lib/Constants';
+import { minTimelineLength, reverseChronological, searchRelays } from '$lib/Constants';
 import { EventItem } from '$lib/Items';
-import { fetchEvents } from '$lib/RxNostrHelper';
+import { fetchEvents } from '$lib/nostr/relay/event-operations';
 import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
 import { TimelineSubscriber, type Timeline } from './Timeline.svelte';
 import { oldestCreatedAt } from './TimelineHelper';
@@ -71,9 +71,13 @@ export class SearchTimeline implements Timeline {
 		if (length < minTimelineLength) {
 			const limit = minTimelineLength - length;
 			const events = await fetchEvents(
-				[{ ...filterBase, until: oldestCreatedAt(this.items), limit }],
-				searchRelays
+				evalFilters([{ ...filterBase, until: oldestCreatedAt(this.items), limit }]),
+				{ relays: searchRelays }
 			);
+			for (const event of events) {
+				referencesReqEmit(event);
+			}
+			events.sort(reverseChronological);
 			const _items = events
 				.filter((event) => !this.items.some((item) => item.event.id === event.id))
 				.splice(0, limit)
