@@ -237,8 +237,11 @@
 		}
 
 		showUsersLoading = true;
-		await usersSearch.load();
-		showUsersLoading = false;
+		try {
+			await usersSearch.load();
+		} finally {
+			showUsersLoading = false;
+		}
 	}
 
 	async function tabChanged(key: string): Promise<void> {

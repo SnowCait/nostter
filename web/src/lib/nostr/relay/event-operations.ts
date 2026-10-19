@@ -5,6 +5,7 @@ import {
 	latest,
 	uniq,
 	type EventPacket,
+	type LazyFilter,
 	type RxNostrOnParams,
 	type RxNostrUseOptions
 } from 'rx-nostr';
@@ -12,7 +13,7 @@ import { Observable, filter, firstValueFrom, lastValueFrom, map, toArray } from 
 import { rxNostr } from '$lib/relay-client';
 import { tie } from './relay-hints';
 
-export async function fetchEvents(filters: Filter[], on?: RxNostrOnParams): Promise<Event[]> {
+export async function fetchEvents(filters: LazyFilter[], on?: RxNostrOnParams): Promise<Event[]> {
 	const req = createRxOneshotReq({ filters });
 	return lastValueFrom(
 		rxNostr.use(req, { on }).pipe(
