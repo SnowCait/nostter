@@ -185,9 +185,10 @@ export class Search {
 			new Date((filter.until ?? 0) * 1000),
 			new Date((filter.since ?? 0) * 1000)
 		);
-		const on =
-			filter.search !== undefined ? { relays: searchRelays } : { defaultReadRelays: true };
-		const events = await fetchEvents([filter], on);
+		const events = await fetchEvents(
+			[filter],
+			filter.search !== undefined ? { relays: searchRelays } : { defaultReadRelays: true }
+		);
 		console.debug('[search events]', events);
 		for (const event of events) {
 			referencesReqEmit(event);
