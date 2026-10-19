@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from 'nostr-tools';
-import { Contacts, Metadata, RelayList } from 'nostr-tools/kinds';
+import { ChannelCreation, ChannelMetadata, Contacts, Metadata, RelayList } from 'nostr-tools/kinds';
+import { get } from 'svelte/store';
+import { cachedEvents, channelMetadataEventsStore } from './cache/Events';
 import type { UserEvent } from '../routes/types';
 import * as eventOperations from './nostr/relay/event-operations';
 import * as userEventStores from './stores/UserEvents';
@@ -23,6 +25,8 @@ function event(kind: number, created_at: number): Event {
 afterEach(() => {
 	vi.restoreAllMocks();
 	userEventStores.userEvents.set(new Map());
+	cachedEvents.clear();
+	channelMetadataEventsStore.set(new Map());
 });
 
 describe('Api.fetchRelayEvents', () => {
@@ -93,5 +97,63 @@ describe('Api.fetchMetadataEventsMap', () => {
 			firstLatest,
 			secondLatest
 		]);
+	});
+});
+
+describe('Api.fetchChannelMetadataEvent', () => {
+	it.each([ChannelCreation, ChannelMetadata])(
+		'returns cached kind %i without fetching',
+		async (kind) => {
+			const cached = event(kind, 1);
+			const id = event(ChannelCreation, 1).id;
+			if (kind === ChannelCreation) {
+				cachedEvents.set(id, cached);
+			} else {
+				channelMetadataEventsStore.set(new Map([[id, cached]]));
+			}
+			const fetchEvents = vi.spyOn(eventOperations, 'fetchEvents').mockResolvedValue([]);
+
+			expect(await new Api().fetchChannelMetadataEvent(id)).toBe(cached);
+			expect(fetchEvents).not.toHaveBeenCalled();
+		}
+	);
+
+	it.each([ChannelCreation, ChannelMetadata])(
+		'selects the latest event and caches kind %i',
+		async (kind) => {
+			const latest = event(kind, 3);
+			const creation = kind === ChannelCreation ? latest : event(ChannelCreation, 1);
+			const id = creation.id;
+			const fetchEvents = vi
+				.spyOn(eventOperations, 'fetchEvents')
+				.mockResolvedValue(
+					kind === ChannelCreation
+						? [event(ChannelMetadata, 2), latest, event(ChannelMetadata, 1)]
+						: [event(ChannelMetadata, 2), latest, creation]
+				);
+
+			expect(await new Api().fetchChannelMetadataEvent(id)).toBe(latest);
+			expect(fetchEvents).toHaveBeenCalledWith([
+				{ kinds: [ChannelCreation], ids: [id], limit: 1 },
+				{ kinds: [ChannelMetadata], '#e': [id], limit: 1 }
+			]);
+			if (kind === ChannelCreation) {
+				expect(cachedEvents.get(id)).toBe(latest);
+				expect(get(channelMetadataEventsStore).has(id)).toBe(false);
+			} else {
+				expect(get(channelMetadataEventsStore).get(id)).toBe(latest);
+				expect(cachedEvents.has(id)).toBe(false);
+			}
+		}
+	);
+
+	it('returns undefined when no events are found', async () => {
+		vi.spyOn(eventOperations, 'fetchEvents').mockResolvedValue([]);
+
+		expect(
+			await new Api().fetchChannelMetadataEvent(event(ChannelCreation, 1).id)
+		).toBeUndefined();
+		expect(cachedEvents.size).toBe(0);
+		expect(get(channelMetadataEventsStore).size).toBe(0);
 	});
 });

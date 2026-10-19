@@ -3,9 +3,9 @@ import { get } from 'svelte/store';
 import { saveMetadataEvent, userEvents } from './stores/UserEvents';
 import { channelMetadataEventsStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
-import { chronological, reverseChronological } from './Constants';
-import { fetchEvents, fetchLastEvent } from './RxNostrHelper';
-import { fetchEvents as fetchRelayEventList } from './nostr/relay/event-operations';
+import { chronological } from './Constants';
+import { fetchLastEvent } from './RxNostrHelper';
+import { fetchEvents } from './nostr/relay/event-operations';
 import type { RxNostrOnParams } from 'rx-nostr';
 
 export class Api {
@@ -13,7 +13,7 @@ export class Api {
 		pubkey: string,
 		on: RxNostrOnParams
 	): Promise<Map<number, Event>> {
-		const events = await fetchRelayEventList(
+		const events = await fetchEvents(
 			[
 				{
 					kinds: [Kind.Contacts, Kind.RelayList],
@@ -46,7 +46,7 @@ export class Api {
 			return eventsMap;
 		}
 
-		const events = await fetchRelayEventList([
+		const events = await fetchEvents([
 			{
 				kinds: [Kind.Metadata],
 				authors: pubkeys.filter((pubkey) => !eventsMap.has(pubkey))
@@ -112,9 +112,13 @@ export class Api {
 				limit: 1
 			}
 		]);
-		events.sort(reverseChronological);
 		console.debug('[channel metadata events]', events);
-		const event = events.at(0);
+		let event: Event | undefined;
+		for (const candidate of events) {
+			if (event === undefined || event.created_at < candidate.created_at) {
+				event = candidate;
+			}
+		}
 		if (event !== undefined) {
 			if (event.kind === Kind.ChannelCreation) {
 				newCachedEvents.set(id, event);
