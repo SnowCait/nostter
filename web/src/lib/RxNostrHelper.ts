@@ -1,4 +1,4 @@
-import { referencesReqEmit, rxNostr, tie } from '$lib/timelines/MainTimeline';
+import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import type * as Nostr from 'nostr-typedef';
 import {
 	createRxBackwardReq,
@@ -8,8 +8,7 @@ import {
 	type RxNostrOnParams,
 	uniq
 } from 'rx-nostr';
-import { filter, firstValueFrom, tap } from 'rxjs';
-import { reverseChronological } from '$lib/Constants';
+import { filter, firstValueFrom } from 'rxjs';
 import type { Signer } from './nostr/signing/signer';
 
 export async function fetchFirstEvent(filter: LazyFilter): Promise<Nostr.Event | undefined> {
@@ -53,43 +52,6 @@ export async function fetchLastEvent(
 		req.emit([filter]);
 		req.over();
 	});
-}
-
-export async function fetchEvents(
-	filters: LazyFilter[],
-	relays: string[] | undefined = undefined
-): Promise<Nostr.Event[]> {
-	const { promise, resolve } = Promise.withResolvers<Nostr.Event[]>();
-	const events: Nostr.Event[] = [];
-	const req = createRxBackwardReq();
-	rxNostr
-		.use(req)
-		.pipe(
-			tie,
-			uniq(),
-			tap(({ event }) => referencesReqEmit(event))
-		)
-		.subscribe({
-			next: ({ from, event }) => {
-				console.debug('[rx-nostr fetch next]', from, event);
-				events.push(event);
-			},
-			complete: () => {
-				console.debug('[rx-nostr fetch complete]', events.length);
-				resolve(events.toSorted(reverseChronological));
-			},
-			error: (error) => {
-				console.warn('[rx-nostr fetch error]', error);
-				resolve(events);
-			}
-		});
-	if (relays !== undefined && relays.length > 0) {
-		req.emit(filters, { relays });
-	} else {
-		req.emit(filters);
-	}
-	req.over();
-	return await promise;
 }
 
 export async function sendEvent(
