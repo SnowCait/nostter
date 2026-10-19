@@ -1,4 +1,5 @@
 import type { Event, Filter } from 'nostr-tools';
+import { sortEvents } from 'nostr-tools/core';
 import {
 	createRxBackwardReq,
 	createRxOneshotReq,
@@ -20,7 +21,8 @@ export async function fetchEvents(filters: LazyFilter[], on?: RxNostrOnParams): 
 			tie,
 			uniq(),
 			map(({ event }) => event),
-			toArray()
+			toArray(),
+			map(sortEvents)
 		)
 	);
 }

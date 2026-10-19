@@ -1,6 +1,6 @@
 import { nip19, type Filter } from 'nostr-tools';
 import { authorActionReqEmit } from './author/Action';
-import { hashtagsRegexp, reverseChronological, searchRelays } from './Constants';
+import { hashtagsRegexp, searchRelays } from './Constants';
 import { EventItem } from './Items';
 import { referencesReqEmit } from './timelines/MainTimeline';
 import { fetchEvents } from './nostr/relay/event-operations';
@@ -194,7 +194,6 @@ export class Search {
 			referencesReqEmit(event);
 			authorActionReqEmit(event);
 		}
-		events.sort(reverseChronological);
 		return events.map((event) => new EventItem(event));
 	}
 }
