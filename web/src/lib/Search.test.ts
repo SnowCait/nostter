@@ -8,12 +8,11 @@ import {
 	Search
 } from './Search';
 import { searchRelays } from './Constants';
-import { fetchEvents, getDefaultReadRelays } from './RxNostrHelper';
+import { fetchEvents } from './nostr/relay/event-operations';
 
-vi.mock('./RxNostrHelper', async (importOriginal) => ({
-	...(await importOriginal<typeof import('./RxNostrHelper')>()),
-	fetchEvents: vi.fn(),
-	getDefaultReadRelays: vi.fn()
+vi.mock('./nostr/relay/event-operations', async (importOriginal) => ({
+	...(await importOriginal<typeof import('./nostr/relay/event-operations')>()),
+	fetchEvents: vi.fn()
 }));
 
 const hex = '3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d';
@@ -23,26 +22,18 @@ const nprofile = nip19.nprofileEncode({ pubkey: hex, relays: ['wss://relay.examp
 describe('Search.fetch relay selection', () => {
 	beforeEach(() => {
 		vi.mocked(fetchEvents).mockReset().mockResolvedValue([]);
-		vi.mocked(getDefaultReadRelays).mockReset();
 	});
 
-	it('uses the current default read relays for each ordinary search', async () => {
-		const search = new Search();
+	it('uses default read relays for ordinary searches', async () => {
 		const filter = { kinds: [1] };
-		vi.mocked(getDefaultReadRelays).mockReturnValue(['wss://first.example/']);
-		await search.fetch(filter);
-		expect(fetchEvents).toHaveBeenLastCalledWith([filter], ['wss://first.example/']);
-
-		vi.mocked(getDefaultReadRelays).mockReturnValue(['wss://second.example/']);
-		await search.fetch(filter);
-		expect(fetchEvents).toHaveBeenLastCalledWith([filter], ['wss://second.example/']);
+		await new Search().fetch(filter);
+		expect(fetchEvents).toHaveBeenCalledExactlyOnceWith([filter], { defaultReadRelays: true });
 	});
 
 	it('keeps keyword searches on the search relays', async () => {
 		const filter = { search: 'hello' };
 		await new Search().fetch(filter);
-		expect(fetchEvents).toHaveBeenCalledExactlyOnceWith([filter], searchRelays);
-		expect(getDefaultReadRelays).not.toHaveBeenCalled();
+		expect(fetchEvents).toHaveBeenCalledExactlyOnceWith([filter], { relays: searchRelays });
 	});
 });
 

@@ -3,7 +3,7 @@ import { authorActionReqEmit } from './author/Action';
 import { hashtagsRegexp, reverseChronological, searchRelays } from './Constants';
 import { EventItem } from './Items';
 import { referencesReqEmit } from './timelines/MainTimeline';
-import { fetchEvents, getDefaultReadRelays } from './RxNostrHelper';
+import { fetchEvents } from './nostr/relay/event-operations';
 import { auth } from './auth.svelte';
 
 export const searchScopes = ['all', 'nostr', 'following', 'mine'] as const;
@@ -185,10 +185,9 @@ export class Search {
 			new Date((filter.until ?? 0) * 1000),
 			new Date((filter.since ?? 0) * 1000)
 		);
-		const events = await fetchEvents(
-			[filter],
-			filter.search !== undefined ? searchRelays : getDefaultReadRelays()
-		);
+		const on =
+			filter.search !== undefined ? { relays: searchRelays } : { defaultReadRelays: true };
+		const events = await fetchEvents([filter], on);
 		console.debug('[search events]', events);
 		for (const event of events) {
 			referencesReqEmit(event);
