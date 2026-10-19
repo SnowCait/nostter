@@ -1,7 +1,7 @@
 import { createRxBackwardReq, uniq, type LazyFilter } from 'rx-nostr';
 import { filter, tap } from 'rxjs';
 import { authorActionReqEmit } from '$lib/author/Action';
-import { minTimelineLength, reverseChronological, searchRelays } from '$lib/Constants';
+import { minTimelineLength, searchRelays } from '$lib/Constants';
 import { EventItem } from '$lib/Items';
 import { fetchEvents } from '$lib/nostr/relay/event-operations';
 import { referencesReqEmit, rxNostr, tie } from './MainTimeline';
@@ -77,7 +77,6 @@ export class SearchTimeline implements Timeline {
 			for (const event of events) {
 				referencesReqEmit(event);
 			}
-			events.sort(reverseChronological);
 			const _items = events
 				.filter((event) => !this.items.some((item) => item.event.id === event.id))
 				.splice(0, limit)

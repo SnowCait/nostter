@@ -41,10 +41,11 @@ describe('Api.fetchRelayEvents', () => {
 		const fetchEvents = vi
 			.spyOn(eventOperations, 'fetchEvents')
 			.mockResolvedValue([
-				latestContacts,
 				latestRelayList,
-				event(Contacts, 1),
-				event(RelayList, 2)
+				latestContacts,
+				{ ...latestContacts, id: 'f'.repeat(64) },
+				event(RelayList, 2),
+				event(Contacts, 1)
 			]);
 
 		const result = await new Api().fetchRelayEvents(pubkey, on);
@@ -56,8 +57,8 @@ describe('Api.fetchRelayEvents', () => {
 		expect(fetchEvents.mock.calls[0][1]).toBe(on);
 		expect(result).toEqual(
 			new Map([
-				[Contacts, latestContacts],
-				[RelayList, latestRelayList]
+				[RelayList, latestRelayList],
+				[Contacts, latestContacts]
 			])
 		);
 	});

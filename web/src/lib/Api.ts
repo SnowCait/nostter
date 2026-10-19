@@ -4,7 +4,6 @@ import { get } from 'svelte/store';
 import { saveMetadataEvent, userEvents } from './stores/UserEvents';
 import { channelMetadataEventsStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
-import { chronological } from './Constants';
 import { fetchLastEvent } from './RxNostrHelper';
 import { fetchEvents } from './nostr/relay/event-operations';
 import type { RxNostrOnParams } from 'rx-nostr';
@@ -23,9 +22,14 @@ export class Api {
 			],
 			on
 		);
-		events.sort(chronological); // Latest event is effective
 		console.debug('[relay events all]', events);
-		return new Map<number, Event>(events.map((e) => [e.kind, e]));
+		const relayEvents = new Map<number, Event>();
+		for (const event of events) {
+			if (!relayEvents.has(event.kind)) {
+				relayEvents.set(event.kind, event);
+			}
+		}
+		return relayEvents;
 	}
 
 	async fetchMetadataEventsMap(pubkeys: string[]): Promise<Map<string, Event>> {

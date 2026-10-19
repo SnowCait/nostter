@@ -29,25 +29,27 @@ function event(created_at: number): Event {
 afterEach(() => vi.restoreAllMocks());
 
 describe('relay event operations', () => {
-	it('sends all filters in a single REQ and returns each received event once', async () => {
+	it('sends all filters in a single REQ and returns unique events newest-first with IDs breaking ties', async () => {
 		const filters = [
 			{ kinds: [10001], authors: [pubkey] },
 			{ ids: ['b'.repeat(64)], kinds: [1] }
 		];
 		const on = { relays: ['wss://relay1'], defaultReadRelays: true };
 		const first = event(1);
-		const second = event(2);
+		const second = { ...event(2), id: 'b'.repeat(64) };
+		const tied = { ...event(2), id: 'a'.repeat(64) };
 		const use = vi
 			.spyOn(rxNostr, 'use')
 			.mockReturnValue(
 				of(
 					{ event: first, from: 'wss://relay1' },
 					{ event: second, from: 'wss://relay1' },
+					{ event: tied, from: 'wss://relay1' },
 					{ event: first, from: 'wss://relay2' }
 				) as never
 			);
 
-		await expect(fetchEvents(filters, on)).resolves.toEqual([first, second]);
+		await expect(fetchEvents(filters, on)).resolves.toEqual([tied, second, first]);
 		expect(use).toHaveBeenCalledOnce();
 		expect(use.mock.calls[0][1]).toEqual({ on });
 		const [req] = use.mock.calls[0];
