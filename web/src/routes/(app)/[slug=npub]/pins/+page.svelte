@@ -1,20 +1,15 @@
 <script lang="ts">
-	import { MetricsWebSocket } from '$lib/platform/browser/websocket-metrics';
 	import { accountAddressableEventCache } from '$lib/cache/Events';
-	import { onDestroy } from 'svelte';
-	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
-	import { firstValueFrom, EmptyError } from 'rxjs';
-	import type * as Nostr from 'nostr-typedef';
+	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import { EMPTY, from, map, switchMap, take } from 'rxjs';
 	import { _ } from 'svelte-i18n';
-	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/state';
 	import type { LayoutData } from '../$types';
 	import { appName } from '$lib/app';
 	import { EventItem } from '$lib/Items';
 	import { filterTags } from '$lib/EventHelper';
-	import { getDefaultReadRelays } from '$lib/RxNostrHelper';
 	import { auth } from '$lib/auth.svelte';
-	import { tie, verificationClient } from '$lib/timelines/MainTimeline';
+	import { tie } from '$lib/timelines/MainTimeline';
+	import { rxNostr } from '$lib/relay-client';
 	import TimelineView from '../../TimelineView.svelte';
 
 	interface Props {
@@ -25,60 +20,49 @@
 
 	let items: EventItem[] = $state([]);
 
-	const rxNostr = createRxNostr({
-		websocketCtor: MetricsWebSocket,
-		verifier: verificationClient.verifier
-	});
+	$effect(() => {
+		const pubkey = data.pubkey;
+		const on = { defaultReadRelays: true, relays: data.relays };
+		const pinEvents =
+			pubkey === auth.pubkey
+				? from(accountAddressableEventCache.get(pubkey, 10001))
+				: rxNostr
+						.use(
+							createRxOneshotReq({
+								filters: { kinds: [10001], authors: [pubkey], limit: 1 }
+							}),
+							{ on }
+						)
+						.pipe(
+							tie,
+							latest(),
+							take(1),
+							map(({ event }) => event)
+						);
 
-	afterNavigate(async () => {
-		const slug = page.params.slug;
-		console.debug('[pin page]', slug);
-
-		rxNostr.setDefaultRelays([...getDefaultReadRelays(), ...data.relays]);
-
-		let event: Nostr.Event | undefined;
-		if (data.pubkey === auth.pubkey) {
-			event = await accountAddressableEventCache.get(data.pubkey, 10001);
-			console.debug('[pin event (author)]', event);
-		} else {
-			try {
-				const pinReq = createRxOneshotReq({
-					filters: { kinds: [10001], authors: [data.pubkey], limit: 1 }
-				});
-				const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(tie, latest()));
-				console.debug('[pin event]', packet);
-				event = packet.event;
-			} catch (error) {
-				if (!(error instanceof EmptyError)) {
-					throw error;
-				}
-			}
-		}
-
-		if (event === undefined) {
-			console.debug('[pin no event]');
-			return;
-		}
-
-		const ids = filterTags('e', event.tags);
-		if (ids.length === 0) {
-			console.debug('[pin no tags]');
-			return;
-		}
-
-		const referenceReq = createRxOneshotReq({ filters: { ids } });
-		rxNostr
-			.use(referenceReq)
-			.pipe(tie, uniq())
+		items = [];
+		const loadedItems: EventItem[] = [];
+		const subscription = pinEvents
+			.pipe(
+				switchMap((event) => {
+					if (event === undefined) {
+						return EMPTY;
+					}
+					const ids = filterTags('e', event.tags);
+					if (ids.length === 0) {
+						return EMPTY;
+					}
+					const referenceReq = createRxOneshotReq({ filters: { ids } });
+					return rxNostr.use(referenceReq, { on }).pipe(tie, uniq());
+				})
+			)
 			.subscribe((packet) => {
 				console.debug('[pin e tag]', packet);
-				items.push(new EventItem(packet.event));
-				items = items;
+				loadedItems.push(new EventItem(packet.event));
+				items = [...loadedItems];
 			});
-	});
 
-	onDestroy(() => {
-		rxNostr.dispose();
+		return () => subscription.unsubscribe();
 	});
 </script>
 
