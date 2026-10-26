@@ -1,29 +1,8 @@
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import type * as Nostr from 'nostr-typedef';
-import {
-	createRxBackwardReq,
-	latest,
-	type LazyFilter,
-	now,
-	type RxNostrOnParams,
-	uniq
-} from 'rx-nostr';
-import { filter, firstValueFrom } from 'rxjs';
+import { createRxBackwardReq, latest, type LazyFilter, now, type RxNostrOnParams } from 'rx-nostr';
+import { filter } from 'rxjs';
 import type { Signer } from './nostr/signing/signer';
-
-export async function fetchFirstEvent(filter: LazyFilter): Promise<Nostr.Event | undefined> {
-	try {
-		const req = createRxBackwardReq();
-		const promise = firstValueFrom(rxNostr.use(req).pipe(tie, uniq()));
-		req.emit([filter]);
-		req.over();
-		const { event } = await promise;
-		return event;
-	} catch (error) {
-		console.debug('[event not found]', filter, error);
-		return undefined;
-	}
-}
 
 export async function fetchLastEvent(
 	filter: LazyFilter,
