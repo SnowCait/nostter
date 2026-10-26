@@ -1,4 +1,4 @@
-import { startVerificationServiceHost, type EventVerifier } from 'rx-nostr-crypto';
+import { startVerificationServiceHost, type EventVerifier } from '@rx-nostr/crypto';
 import { Event as EventWrapper, loadWasmSync } from '@rust-nostr/nostr-sdk';
 import type * as Nostr from 'nostr-typedef';
 
