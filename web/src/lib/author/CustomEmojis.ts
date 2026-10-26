@@ -16,7 +16,7 @@ import { filterEmojiTags } from '$lib/nostr/protocol/nip30';
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
 import { Emojisets, UserEmojiList } from 'nostr-tools/kinds';
-import { fetchLastEvent } from '$lib/RxNostrHelper';
+import { fetchLatestReplaceableEvent } from '$lib/nostr/relay/event-operations';
 import type { Signer } from '$lib/nostr/signing/signer';
 import { auth } from '$lib/auth.svelte';
 
@@ -214,11 +214,7 @@ async function publish(signEvent: Signer['signEvent'], accountPubkey: string): P
 }
 
 async function validate(event: Nostr.Event | undefined, accountPubkey: string): Promise<boolean> {
-	const lastEvent = await fetchLastEvent({
-		kinds: [UserEmojiList],
-		authors: [accountPubkey],
-		limit: 1
-	});
+	const lastEvent = await fetchLatestReplaceableEvent(UserEmojiList, accountPubkey);
 
 	if (event === undefined) {
 		if (lastEvent !== undefined) {

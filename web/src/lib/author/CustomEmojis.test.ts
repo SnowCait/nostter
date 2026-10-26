@@ -41,7 +41,7 @@ vi.mock('$lib/timelines/MainTimeline', () => ({
 }));
 
 vi.mock('$lib/WebStorage', () => ({ WebStorage: class {} }));
-vi.mock('$lib/RxNostrHelper', () => ({ fetchLastEvent: vi.fn() }));
+vi.mock('$lib/nostr/relay/event-operations', () => ({ fetchLatestReplaceableEvent: vi.fn() }));
 
 const pubkey = 'a'.repeat(64);
 
