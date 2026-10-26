@@ -3,7 +3,7 @@
 	import { _, locale } from 'svelte-i18n';
 	import type { WebSocketMetricsSnapshot, WebSocketTrafficMetrics } from 'websocket-metrics';
 	import { metrics } from '$lib/platform/browser/websocket-metrics';
-	import { getDefaultReadRelays } from '$lib/RxNostrHelper';
+	import { rxNostr } from '$lib/relay-client';
 	import { formatBytes } from './format-bytes';
 
 	let snapshot = $state.raw<WebSocketMetricsSnapshot>({
@@ -23,7 +23,11 @@
 			.map(([url]) => url)
 	);
 	const relays = $derived.by(() => {
-		const readRelays = new Set(getDefaultReadRelays());
+		const readRelays = new Set(
+			Object.keys(rxNostr.getDefaultRelays({ filter: 'read-all' })).map(
+				(url) => new URL(url).href
+			)
+		);
 		return {
 			subscribed: urls.filter((url) => readRelays.has(url)),
 			others: urls.filter((url) => !readRelays.has(url))
