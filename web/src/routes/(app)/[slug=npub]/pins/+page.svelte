@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { MetricsWebSocket } from '$lib/platform/browser/websocket-metrics';
 	import { accountAddressableEventCache } from '$lib/cache/Events';
 	import { onDestroy } from 'svelte';
-	import { createRxNostr, createRxOneshotReq, latest, uniq } from 'rx-nostr';
-	import { firstValueFrom, EmptyError } from 'rxjs';
+	import { createRxOneshotReq, latest, uniq } from 'rx-nostr';
+	import { firstValueFrom, EmptyError, Subject, takeUntil } from 'rxjs';
 	import type * as Nostr from 'nostr-typedef';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
@@ -12,9 +11,9 @@
 	import { appName } from '$lib/app';
 	import { EventItem } from '$lib/Items';
 	import { filterTags } from '$lib/EventHelper';
-	import { getDefaultReadRelays } from '$lib/RxNostrHelper';
 	import { auth } from '$lib/auth.svelte';
-	import { tie, verificationClient } from '$lib/timelines/MainTimeline';
+	import { tie } from '$lib/timelines/MainTimeline';
+	import { rxNostr } from '$lib/relay-client';
 	import TimelineView from '../../TimelineView.svelte';
 
 	interface Props {
@@ -25,16 +24,23 @@
 
 	let items: EventItem[] = $state([]);
 
-	const rxNostr = createRxNostr({
-		websocketCtor: MetricsWebSocket,
-		verifier: verificationClient.verifier
-	});
+	let cancelLoad = () => {};
 
 	afterNavigate(async () => {
+		cancelLoad();
+		const cancelled = new Subject<void>();
+		let active = true;
+		cancelLoad = () => {
+			active = false;
+			cancelled.next();
+			cancelled.complete();
+		};
+		items = [];
+
 		const slug = page.params.slug;
 		console.debug('[pin page]', slug);
 
-		rxNostr.setDefaultRelays([...getDefaultReadRelays(), ...data.relays]);
+		const on = { defaultReadRelays: true, relays: data.relays };
 
 		let event: Nostr.Event | undefined;
 		if (data.pubkey === auth.pubkey) {
@@ -45,7 +51,9 @@
 				const pinReq = createRxOneshotReq({
 					filters: { kinds: [10001], authors: [data.pubkey], limit: 1 }
 				});
-				const packet = await firstValueFrom(rxNostr.use(pinReq).pipe(tie, latest()));
+				const packet = await firstValueFrom(
+					rxNostr.use(pinReq, { on }).pipe(tie, latest(), takeUntil(cancelled))
+				);
 				console.debug('[pin event]', packet);
 				event = packet.event;
 			} catch (error) {
@@ -53,6 +61,10 @@
 					throw error;
 				}
 			}
+		}
+
+		if (!active) {
+			return;
 		}
 
 		if (event === undefined) {
@@ -68,8 +80,8 @@
 
 		const referenceReq = createRxOneshotReq({ filters: { ids } });
 		rxNostr
-			.use(referenceReq)
-			.pipe(tie, uniq())
+			.use(referenceReq, { on })
+			.pipe(tie, uniq(), takeUntil(cancelled))
 			.subscribe((packet) => {
 				console.debug('[pin e tag]', packet);
 				items.push(new EventItem(packet.event));
@@ -78,7 +90,7 @@
 	});
 
 	onDestroy(() => {
-		rxNostr.dispose();
+		cancelLoad();
 	});
 </script>
 
