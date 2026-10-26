@@ -1,6 +1,7 @@
 {
 	"name": "nostter-workspace",
 	"private": true,
+	"packageManager": "npm@11.21.1",
 	"workspaces": [
 		"web",
 		"packages/*"
