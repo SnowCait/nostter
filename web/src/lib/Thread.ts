@@ -1,6 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { eventItemStore, storeEventItem } from './cache/Events';
-import { fetchFirstEvent } from './RxNostrHelper';
+import { fetchEventById } from './nostr/relay/event-operations';
 import { EventItem } from './Items';
 import { events } from './stores/Events';
 import { authorActionReqEmit } from './author/Action';
@@ -20,7 +20,7 @@ export async function fetchEvent(id: string): Promise<EventItem | undefined> {
 		return item;
 	}
 
-	const event = await fetchFirstEvent({ ids: [id] });
+	const event = await fetchEventById(id);
 	if (event !== undefined) {
 		referencesReqEmit(event);
 		authorActionReqEmit(event);

@@ -375,7 +375,9 @@
 		console.debug('[thread item]', targetItem);
 		const { root, reply } = extractThreadReferenceTags(targetItem.event);
 		const rootId = root?.at(1);
-		void fetchReplies(reply?.at(1), rootId, () => active);
+		void fetchReplies(reply?.at(1), rootId, () => active).catch((error) => {
+			console.error('[thread replies]', error);
+		});
 		const threadSubscription = fetchThreads(rootId, targetItem.event);
 
 		return () => {
