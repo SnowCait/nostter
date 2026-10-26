@@ -59,7 +59,7 @@
 		"nip07-awaiter": "^1.0.0",
 		"nostr-tools": "^2.25.2",
 		"qrcode": "^1.5.4",
-		"rx-nostr": "^3.7.6",
+		"rx-nostr": "^3.7.8",
 		"@rx-nostr/crypto": "^3.1.6",
 		"rxjs": "^7.8.1",
 		"svelte-easy-crop": "^5.0.1",
