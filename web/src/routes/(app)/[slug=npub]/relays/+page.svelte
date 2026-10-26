@@ -10,6 +10,7 @@
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { developerMode } from '$lib/stores/Preference';
 	import { kinds as Kind } from 'nostr-tools';
+	import { now } from 'rx-nostr';
 	import Relay from './Relay.svelte';
 	import { parseLegacyRelayList } from '$lib/nostr/protocol/nip24';
 	import { parseRelayList } from '$lib/nostr/protocol/nip65';
@@ -17,7 +18,7 @@
 	import IconPencil from '@tabler/icons-svelte-runes/icons/pencil';
 	import IconDeviceFloppy from '@tabler/icons-svelte-runes/icons/device-floppy';
 	import Loading from '$lib/components/Loading.svelte';
-	import { sendEvent } from '$lib/RxNostrHelper';
+	import { publishEvent } from '$lib/nostr/relay/event-operations';
 	import { auth } from '$lib/auth.svelte';
 
 	interface Props {
@@ -106,11 +107,10 @@
 			const signEvent = (template: Parameters<typeof signer.signEvent>[0]) =>
 				signer.signEvent(template);
 			// kind 10002
-			await sendEvent(
-				signEvent,
-				Kind.RelayList,
-				'',
-				relays
+			const event = await signEvent({
+				kind: Kind.RelayList,
+				content: '',
+				tags: relays
 					.map(({ url, read, write }) => {
 						if (read && write) {
 							return ['r', url];
@@ -122,8 +122,10 @@
 							return [];
 						}
 					})
-					.filter((x) => x.length > 0)
-			);
+					.filter((x) => x.length > 0),
+				created_at: now()
+			});
+			await publishEvent(event);
 
 			if (saveToKind3) {
 				const contacts = new Contacts(accountPubkey);

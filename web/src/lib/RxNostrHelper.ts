@@ -1,8 +1,6 @@
 import { rxNostr, tie } from '$lib/timelines/MainTimeline';
 import type * as Nostr from 'nostr-typedef';
-import { createRxBackwardReq, latest, type LazyFilter, now, type RxNostrOnParams } from 'rx-nostr';
-import { filter } from 'rxjs';
-import type { Signer } from './nostr/signing/signer';
+import { createRxBackwardReq, latest, type LazyFilter, type RxNostrOnParams } from 'rx-nostr';
 
 export async function fetchLastEvent(
 	filter: LazyFilter,
@@ -31,20 +29,4 @@ export async function fetchLastEvent(
 		req.emit([filter]);
 		req.over();
 	});
-}
-
-export async function sendEvent(
-	signEvent: Signer['signEvent'],
-	kind: number,
-	content: string,
-	tags: string[][]
-): Promise<Nostr.Event> {
-	const { promise, resolve, reject } = Promise.withResolvers<void>();
-	const event = await signEvent({ kind, content, tags, created_at: now() });
-	rxNostr
-		.send(event)
-		.pipe(filter(({ ok }) => ok))
-		.subscribe({ next: () => resolve(), complete: () => reject() });
-	await promise;
-	return event;
 }
