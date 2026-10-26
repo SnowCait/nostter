@@ -10,7 +10,7 @@ import {
 	type RxNostrOnParams,
 	type RxNostrUseOptions
 } from 'rx-nostr';
-import { Observable, filter, firstValueFrom, lastValueFrom, map, toArray } from 'rxjs';
+import { Observable, filter, firstValueFrom, lastValueFrom, map, tap, toArray } from 'rxjs';
 import { rxNostr } from '$lib/relay-client';
 import { tie } from './relay-hints';
 
@@ -66,5 +66,14 @@ function requestEventPackets(
 }
 
 export async function publishEvent(event: Event): Promise<void> {
-	await firstValueFrom(rxNostr.send(event).pipe(filter(({ ok }) => ok)));
+	await firstValueFrom(
+		rxNostr.send(event).pipe(
+			tap(({ from, notice, ok }) => {
+				if (!ok) {
+					console.debug('[relay rejected event]', from, notice);
+				}
+			}),
+			filter(({ ok }) => ok)
+		)
+	);
 }

@@ -182,13 +182,24 @@ describe('relay event operations', () => {
 		await expect(fetchEventById(requestedId)).resolves.toBeUndefined();
 	});
 
-	it('resolves only after a relay accepts the event', async () => {
+	it('logs relay rejections and resolves when a relay accepts the event', async () => {
 		const send = vi
 			.spyOn(rxNostr, 'send')
-			.mockReturnValue(of({ ok: false }, { ok: true }) as never);
+			.mockReturnValue(
+				of(
+					{ from: 'wss://relay1', ok: false, notice: 'blocked: rejected by policy' },
+					{ from: 'wss://relay2', ok: true }
+				) as never
+			);
+		const debug = vi.spyOn(console, 'debug').mockImplementation(() => {});
 
 		await expect(publishEvent(event(1))).resolves.toBeUndefined();
 		expect(send).toHaveBeenCalledOnce();
+		expect(debug).toHaveBeenCalledWith(
+			'[relay rejected event]',
+			'wss://relay1',
+			'blocked: rejected by policy'
+		);
 	});
 
 	it('rejects when no relay accepts the event or the publish stream errors', async () => {
