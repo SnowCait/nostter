@@ -11,7 +11,7 @@ import {
 import { prepareMuteTags } from '$lib/features/mute/domain/mute-state';
 import { rxNostr } from '$lib/timelines/MainTimeline';
 import { Queue } from '$lib/Queue';
-import { fetchLastEvent } from '$lib/RxNostrHelper';
+import { fetchLatestReplaceableEvent } from '$lib/nostr/relay/event-operations';
 import { createListContentDecrypter, createListContentEncrypter } from '$lib/List';
 import { isLegacyEncryption } from '$lib/nostr/protocol/nip04';
 import type { Signer } from '$lib/nostr/signing/signer';
@@ -175,7 +175,7 @@ async function publish(capabilities: MuteCapabilities, accountPubkey: string): P
 }
 
 async function validate(event: Nostr.Event | undefined, accountPubkey: string): Promise<boolean> {
-	const lastEvent = await fetchLastEvent({ kinds: [kind], authors: [accountPubkey], limit: 1 });
+	const lastEvent = await fetchLatestReplaceableEvent(kind, accountPubkey);
 
 	if (event === undefined) {
 		if (lastEvent !== undefined) {
