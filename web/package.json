@@ -60,7 +60,7 @@
 		"nostr-tools": "^2.25.2",
 		"qrcode": "^1.5.4",
 		"rx-nostr": "^3.7.6",
-		"rx-nostr-crypto": "^3.1.1",
+		"@rx-nostr/crypto": "^3.1.6",
 		"rxjs": "^7.8.1",
 		"svelte-easy-crop": "^5.0.1",
 		"svelte-i18n": "^4.0.0",

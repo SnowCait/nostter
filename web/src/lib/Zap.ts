@@ -3,7 +3,7 @@ import { get } from 'svelte/store';
 import { _ } from 'svelte-i18n';
 import { nip04 } from 'nostr-tools';
 import { createRxForwardReq, createRxNostr, noopSigner } from 'rx-nostr';
-import { seckeySigner } from 'rx-nostr-crypto';
+import { seckeySigner } from '@rx-nostr/crypto';
 import type * as Nostr from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
 import { verificationClient } from './timelines/MainTimeline';

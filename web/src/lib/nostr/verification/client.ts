@@ -1,4 +1,4 @@
-import { createNoopClient, createVerificationServiceClient } from 'rx-nostr-crypto';
+import { createNoopClient, createVerificationServiceClient } from '@rx-nostr/crypto';
 import { browser } from '$app/environment';
 import workerUrl from '$lib/nostr/verification/worker?worker&url';
 

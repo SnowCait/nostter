@@ -54,7 +54,7 @@ updates:
           - "patch"
         patterns:
           - "rx-nostr"
-          - "rx-nostr-crypto"
+          - "@rx-nostr/crypto"
           - "rxjs"
           - "nostr-typedef"
       async-lock:
