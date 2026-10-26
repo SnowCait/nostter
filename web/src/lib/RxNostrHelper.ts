@@ -69,9 +69,3 @@ export async function sendEvent(
 	await promise;
 	return event;
 }
-
-export function getDefaultReadRelays(): string[] {
-	return Object.values(rxNostr.getDefaultRelays())
-		.filter(({ read }) => read)
-		.map(({ url }) => new URL(url).href);
-}

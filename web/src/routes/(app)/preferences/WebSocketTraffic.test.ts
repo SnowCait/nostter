@@ -31,8 +31,15 @@ vi.mock('$lib/platform/browser/websocket-metrics', () => ({
 	}
 }));
 
-vi.mock('$lib/RxNostrHelper', () => ({
-	getDefaultReadRelays: () => mocks.readRelays
+vi.mock('$lib/relay-client', () => ({
+	rxNostr: {
+		getDefaultRelays: ({ filter }: { filter: string }) =>
+			filter === 'read-all'
+				? Object.fromEntries(
+						mocks.readRelays.map((url) => [url, { url, read: true, write: true }])
+					)
+				: {}
+	}
 }));
 
 beforeEach(() => {
@@ -114,7 +121,7 @@ describe('WebSocket traffic relay groups', () => {
 				'wss://y.example/': traffic(0, 100),
 				'wss://z.example/': traffic(50, 0)
 			},
-			['wss://a.example/', 'wss://b.example/', 'wss://c.example/']
+			['wss://a.example', 'wss://b.example', 'wss://c.example']
 		);
 		expect(subscribed).toEqual(['wss://b.example/', 'wss://c.example/', 'wss://a.example/']);
 		expect(others).toEqual(['wss://y.example/', 'wss://z.example/', 'wss://x.example/']);

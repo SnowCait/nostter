@@ -19,8 +19,15 @@ vi.mock('$lib/timelines/MainTimeline', () => ({
 	}
 }));
 
-vi.mock('$lib/RxNostrHelper', () => ({
-	getDefaultReadRelays: () => mocks.readRelays
+vi.mock('$lib/relay-client', () => ({
+	rxNostr: {
+		getDefaultRelays: ({ filter }: { filter: string }) =>
+			filter === 'read-all'
+				? Object.fromEntries(
+						mocks.readRelays.map((url) => [url, { url, read: true, write: true }])
+					)
+				: {}
+	}
 }));
 
 beforeAll(() => {
@@ -62,7 +69,7 @@ describe('ConnectionStates relay groups', () => {
 				['wss://a.example', 'retrying'],
 				['wss://x.example', 'connected']
 			],
-			['wss://a.example/', 'wss://b.example/', 'wss://z.example/']
+			['wss://a.example', 'wss://b.example', 'wss://z.example']
 		);
 		expect(subscribed).toEqual([
 			{ url: 'wss://z.example/', state: 'error', group: 'error' },

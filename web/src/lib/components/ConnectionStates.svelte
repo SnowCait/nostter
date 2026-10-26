@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { connectionStates } from '$lib/timelines/MainTimeline';
-	import { getDefaultReadRelays } from '$lib/RxNostrHelper';
+	import { rxNostr } from '$lib/relay-client';
 	import type { ConnectionState } from 'rx-nostr';
 
 	const connectionStatesGroup = {
@@ -17,7 +17,11 @@
 	} satisfies { [key in ConnectionState]: 'pending' | 'success' | 'error' };
 
 	const relays = $derived.by(() => {
-		const readRelays = new Set(getDefaultReadRelays());
+		const readRelays = new Set(
+			Object.keys(rxNostr.getDefaultRelays({ filter: 'read-all' })).map(
+				(url) => new URL(url).href
+			)
+		);
 		const states = [...$connectionStates].map(([relay, state]) => ({
 			url: new URL(relay).href,
 			state
