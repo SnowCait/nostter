@@ -2,9 +2,10 @@ import { kinds as Kind } from 'nostr-tools';
 import { Api } from './Api';
 import { auth } from './auth.svelte';
 import { parseFollowList } from './nostr/protocol/nip02';
+import { publishEvent } from './nostr/relay/event-operations';
 import type { Signer } from './nostr/signing/signer';
-import { sendEvent } from './RxNostrHelper';
 import { pruneFolloweeReplaceableEventsCache } from './cache/Events';
+import { now } from 'rx-nostr';
 
 export class Contacts {
 	private readonly api: Api;
@@ -34,7 +35,13 @@ export class Contacts {
 			return;
 		}
 
-		await sendEvent(signEvent, Kind.Contacts, content, contacts.tags);
+		const event = await signEvent({
+			kind: Kind.Contacts,
+			content,
+			tags: contacts.tags,
+			created_at: now()
+		});
+		await publishEvent(event);
 	}
 }
 
