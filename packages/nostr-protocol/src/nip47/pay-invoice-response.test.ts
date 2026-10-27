@@ -18,6 +18,17 @@ describe('parsePayInvoiceResponse', () => {
 		).toEqual({ status: 'success' });
 	});
 
+	it('accepts a noncompliant success response without error for compatibility with the NIP-47 example', () => {
+		expect(
+			parsePayInvoiceResponse(
+				json({
+					result_type: 'pay_invoice',
+					result: { preimage: 'a'.repeat(64) }
+				})
+			)
+		).toEqual({ status: 'success' });
+	});
+
 	it('returns a valid NIP-47 payment error message', () => {
 		expect(
 			parsePayInvoiceResponse(
@@ -46,10 +57,10 @@ describe('parsePayInvoiceResponse', () => {
 		expect(parsePayInvoiceResponse('{invalid json')).toEqual({ status: 'invalid' });
 	});
 
-	it('rejects a noncompliant successful response without error', () => {
+	it('rejects a success response without error when the preimage is invalid', () => {
 		expect(
 			parsePayInvoiceResponse(
-				json({ result_type: 'pay_invoice', result: { preimage: 'a'.repeat(64) } })
+				json({ result_type: 'pay_invoice', result: { preimage: 'not-hex' } })
 			)
 		).toEqual({ status: 'invalid' });
 	});

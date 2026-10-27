@@ -31,7 +31,7 @@ export function parsePayInvoiceResponse(json: string): PayInvoiceResponse {
 	}
 
 	if (
-		value.error === null &&
+		(value.error === null || value.error === undefined) &&
 		isObject(value.result) &&
 		typeof value.result.preimage === 'string' &&
 		/^[0-9a-f]{64}$/i.test(value.result.preimage)
