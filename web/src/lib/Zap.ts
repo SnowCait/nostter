@@ -8,6 +8,7 @@ import type * as Nostr from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
 import { verificationClient } from './timelines/MainTimeline';
 import { hexToBytes } from 'nostr-tools/utils';
+import { parsePayInvoiceResponse } from '$lib/nostr/protocol/nip47';
 
 export async function zapWithWalletConnect(uri: string, invoice: string): Promise<boolean> {
 	const {
@@ -77,16 +78,16 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 
 		const json = await nip04.decrypt(walletSeckey, walletPubkey, walletEvent.content);
 
-		// Error example: {"error":{"code":"EXPIRED","message":"This app has expired"},"result_type":"pay_invoice"}
-		const payInvoice = JSON.parse(json);
-		if (payInvoice.error === undefined) {
-			console.log('[NWC pay invoice]', payInvoice);
+		const response = parsePayInvoiceResponse(JSON.parse(json));
+		if (response.status === 'success') {
+			console.log('[NWC pay invoice]', response);
 			return true;
-		} else {
-			console.error('[NWC error]', payInvoice);
-			alert(payInvoice.error.message);
-			return false;
 		}
+		if (response.status === 'failed') {
+			console.error('[NWC payment failed]', response);
+			alert(response.message);
+		}
+		return false;
 	} catch (error) {
 		console.error('[NWC failed]', error);
 		return false;
