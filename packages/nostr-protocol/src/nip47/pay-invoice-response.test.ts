@@ -30,8 +30,34 @@ describe('parsePayInvoiceResponse', () => {
 		).toEqual({ status: 'failed', message: 'Payment failed' });
 	});
 
+	it('accepts a noncompliant error response without result for compatibility', () => {
+		// Some wallets omit result from errors even though NIP-47 shows result: null.
+		expect(
+			parsePayInvoiceResponse(
+				json({
+					result_type: 'pay_invoice',
+					error: { code: 'PAYMENT_FAILED', message: 'Payment failed' }
+				})
+			)
+		).toEqual({ status: 'failed', message: 'Payment failed' });
+	});
+
 	it('returns invalid for malformed JSON', () => {
 		expect(parsePayInvoiceResponse('{invalid json')).toEqual({ status: 'invalid' });
+	});
+
+	it('rejects a noncompliant successful response without error', () => {
+		expect(
+			parsePayInvoiceResponse(
+				json({ result_type: 'pay_invoice', result: { preimage: 'a'.repeat(64) } })
+			)
+		).toEqual({ status: 'invalid' });
+	});
+
+	it('rejects a noncompliant response without error or result', () => {
+		expect(parsePayInvoiceResponse(json({ result_type: 'pay_invoice' }))).toEqual({
+			status: 'invalid'
+		});
 	});
 
 	it.each([
@@ -39,7 +65,6 @@ describe('parsePayInvoiceResponse', () => {
 		[],
 		{},
 		{ result_type: 'get_balance', error: null, result: { preimage: 'a'.repeat(64) } },
-		{ result_type: 'pay_invoice', result: { preimage: 'a'.repeat(64) } },
 		{ result_type: 'pay_invoice', error: false, result: { preimage: 'a'.repeat(64) } },
 		{ result_type: 'pay_invoice', error: null, result: null },
 		{ result_type: 'pay_invoice', error: null, result: {} },
