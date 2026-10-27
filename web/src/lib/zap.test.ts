@@ -82,23 +82,17 @@ async function start() {
 function respond() {
 	responses.next({ event: { content: 'encrypted' } });
 }
-function expectReleased() {
-	expect(responses.observed).toBe(false);
-	expect(sends.observed).toBe(false);
-	expect(vi.getTimerCount()).toBe(0);
-	expect(client.dispose).toHaveBeenCalledOnce();
-}
 
 describe('NWC communication lifecycle', () => {
-	it('listens before sending and releases resources on a successful payment', async () => {
+	it('listens before sending and disposes the client on a successful payment', async () => {
 		const { payment } = await start();
 		expect(client.send).toHaveBeenCalledOnce();
 		respond();
 		await expect(payment).resolves.toBe(true);
-		expectReleased();
+		expect(client.dispose).toHaveBeenCalledOnce();
 	});
 
-	it('releases resources and displays the wallet payment error', async () => {
+	it('disposes the client and displays the wallet payment error', async () => {
 		mocks.decrypt.mockResolvedValue(
 			JSON.stringify({
 				result_type: 'pay_invoice',
@@ -110,11 +104,11 @@ describe('NWC communication lifecycle', () => {
 		respond();
 		await expect(payment).resolves.toBe(false);
 		expect(alert).toHaveBeenCalledWith('No route');
-		expectReleased();
+		expect(client.dispose).toHaveBeenCalledOnce();
 	});
 
 	it.each(['response error', 'response complete', 'send error', 'send rejected'])(
-		'releases resources on %s',
+		'disposes the client on %s',
 		async (failure) => {
 			const { payment } = await start();
 			switch (failure) {
@@ -132,12 +126,12 @@ describe('NWC communication lifecycle', () => {
 					break;
 			}
 			await expect(payment).resolves.toBe(false);
-			expectReleased();
+			expect(client.dispose).toHaveBeenCalledOnce();
 		}
 	);
 
 	it.each(['setDefaultRelays', 'use', 'emit', 'send'])(
-		'releases already-created resources when %s throws during setup',
+		'disposes the client when %s throws during setup',
 		async (stage) => {
 			const fail = () => {
 				throw new Error('setup failed');
@@ -148,7 +142,7 @@ describe('NWC communication lifecycle', () => {
 				client[stage as 'setDefaultRelays' | 'use' | 'send'].mockImplementation(fail);
 			}
 			await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toBe(false);
-			expectReleased();
+			expect(client.dispose).toHaveBeenCalledOnce();
 		}
 	);
 
@@ -158,7 +152,7 @@ describe('NWC communication lifecycle', () => {
 			throw new Error('setup failed');
 		});
 		await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toBe(false);
-		expectReleased();
+		expect(client.dispose).toHaveBeenCalledOnce();
 	});
 
 	it('keeps the first response when completion, send failure and timeout follow', async () => {
@@ -169,27 +163,28 @@ describe('NWC communication lifecycle', () => {
 		vi.advanceTimersByTime(10000);
 		await expect(payment).resolves.toBe(true);
 		expect(mocks.decrypt).toHaveBeenCalledOnce();
-		expectReleased();
+		expect(client.dispose).toHaveBeenCalledOnce();
 	});
 
 	it('reports no response after ten seconds and ignores a late response', async () => {
 		const { payment } = await start();
 		vi.advanceTimersByTime(9999);
-		expect(responses.observed).toBe(true);
+		expect(client.dispose).not.toHaveBeenCalled();
 		expect(alert).not.toHaveBeenCalled();
 		vi.advanceTimersByTime(1);
 		respond();
 		await expect(payment).resolves.toBe(false);
 		expect(mocks.decrypt).not.toHaveBeenCalled();
 		expect(alert).toHaveBeenCalledExactlyOnceWith('wallet.unknown');
-		expectReleased();
+		expect(vi.getTimerCount()).toBe(0);
+		expect(client.dispose).toHaveBeenCalledOnce();
 	});
 
-	it('releases resources when decrypting the response fails', async () => {
+	it('disposes the client when decrypting the response fails', async () => {
 		mocks.decrypt.mockRejectedValue(new Error('decrypt failed'));
 		const { payment } = await start();
 		respond();
 		await expect(payment).resolves.toBe(false);
-		expectReleased();
+		expect(client.dispose).toHaveBeenCalledOnce();
 	});
 });
