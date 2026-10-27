@@ -32,38 +32,33 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 
 	try {
 		const { promise, resolve, reject } = Promise.withResolvers<Nostr.Event | null>();
-		try {
-			nwcRxNostr.setDefaultRelays([walletRelay]);
+		nwcRxNostr.setDefaultRelays([walletRelay]);
 
-			const nwcRxReq = createRxForwardReq();
-			nwcRxNostr
-				.use(nwcRxReq)
-				.pipe(take(1), timeout({ first: 10_000, with: () => EMPTY }))
-				.subscribe({
-					next: (packet) => {
-						console.log('[NWC success]', packet);
-						resolve(packet.event);
-					},
-					complete: () => resolve(null),
-					error: (error) => {
-						console.error('[NWC error]', error);
-						reject(error);
-					}
-				});
-			nwcRxReq.emit([{ kinds: [23195], authors: [walletPubkey], '#e': [event.id] }]);
-			nwcRxNostr.send(event).subscribe({
+		const nwcRxReq = createRxForwardReq();
+		nwcRxNostr
+			.use(nwcRxReq)
+			.pipe(take(1), timeout({ first: 10_000, with: () => EMPTY }))
+			.subscribe({
 				next: (packet) => {
-					console.log('[NWC send]', packet);
-					if (!packet.ok) {
-						reject(new Error('NWC request rejected'));
-					}
+					console.log('[NWC success]', packet);
+					resolve(packet.event);
 				},
-				error: (error) => reject(error)
+				complete: () => resolve(null),
+				error: (error) => {
+					console.error('[NWC error]', error);
+					reject(error);
+				}
 			});
-		} catch (error) {
-			// Always consume the promise, even if a synchronous callback rejected it before setup threw.
-			reject(error);
-		}
+		nwcRxReq.emit([{ kinds: [23195], authors: [walletPubkey], '#e': [event.id] }]);
+		nwcRxNostr.send(event).subscribe({
+			next: (packet) => {
+				console.log('[NWC send]', packet);
+				if (!packet.ok) {
+					reject(new Error('NWC request rejected'));
+				}
+			},
+			error: (error) => reject(error)
+		});
 		const walletEvent = await promise;
 		if (walletEvent === null) {
 			console.warn('[NWC no response]');

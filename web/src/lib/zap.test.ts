@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Subject, throwError } from 'rxjs';
+import { Subject } from 'rxjs';
 import { zapWithWalletConnect } from './Zap';
 
 const mocks = vi.hoisted(() => ({
@@ -145,15 +145,6 @@ describe('NWC communication lifecycle', () => {
 			expect(client.dispose).toHaveBeenCalledOnce();
 		}
 	);
-
-	it('handles synchronous subscription rejection followed by a setup exception', async () => {
-		client.use.mockReturnValue(throwError(() => new Error('subscription failed')));
-		mocks.emit.mockImplementation(() => {
-			throw new Error('setup failed');
-		});
-		await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toBe(false);
-		expect(client.dispose).toHaveBeenCalledOnce();
-	});
 
 	it('keeps the first response when completion, send failure and timeout follow', async () => {
 		const { payment } = await start();
