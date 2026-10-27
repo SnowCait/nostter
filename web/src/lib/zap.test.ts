@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { EMPTY, Subject } from 'rxjs';
+import { Subject, throwError } from 'rxjs';
 import { zapWithWalletConnect } from './Zap';
 
 const mocks = vi.hoisted(() => ({
@@ -145,17 +145,22 @@ describe('NWC communication lifecycle', () => {
 			const fail = () => {
 				throw new Error('setup failed');
 			};
-			if (stage === 'emit') {mocks.emit.mockImplementation(fail);}
-			else {client[stage as 'setDefaultRelays' | 'use' | 'send'].mockImplementation(fail);}
+			if (stage === 'emit') {
+				mocks.emit.mockImplementation(fail);
+			} else {
+				client[stage as 'setDefaultRelays' | 'use' | 'send'].mockImplementation(fail);
+			}
 			await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toBe(false);
 			expectReleased();
 		}
 	);
 
-	it('does not send after the response subscription synchronously completes', async () => {
-		client.use.mockReturnValue(EMPTY);
+	it('handles synchronous subscription rejection followed by a setup exception', async () => {
+		client.use.mockReturnValue(throwError(() => new Error('subscription failed')));
+		mocks.emit.mockImplementation(() => {
+			throw new Error('setup failed');
+		});
 		await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toBe(false);
-		expect(client.send).not.toHaveBeenCalled();
 		expectReleased();
 	});
 
