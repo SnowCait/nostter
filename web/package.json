@@ -35,7 +35,7 @@
 		"rollup-plugin-visualizer": "^7.1.1",
 		"svelte": "^5.57.0",
 		"svelte-check": "^4.7.6",
-		"typescript": "^6.0.3",
+		"typescript": "^7.0.2",
 		"vite": "^8.3.0",
 		"vitest": "^5.0.4",
 		"wrangler": "^4.134.0"
