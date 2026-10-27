@@ -1,0 +1,189 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { EMPTY, Subject } from 'rxjs';
+import { zapWithWalletConnect } from './Zap';
+
+const mocks = vi.hoisted(() => ({
+	create: vi.fn(),
+	request: vi.fn(),
+	emit: vi.fn(),
+	decrypt: vi.fn()
+}));
+vi.mock('rx-nostr', () => ({
+	createRxNostr: mocks.create,
+	createRxForwardReq: () => ({ emit: mocks.emit }),
+	noopSigner: vi.fn()
+}));
+vi.mock('@rx-nostr/crypto', () => ({ seckeySigner: vi.fn() }));
+vi.mock('nostr-tools', () => ({ nip04: { decrypt: mocks.decrypt } }));
+vi.mock('$lib/nostr-tools/nip47', () => ({
+	parseConnectionString: () => ({
+		pubkey: 'wallet',
+		relay: 'wss://relay',
+		secret: 'ab'.repeat(32)
+	}),
+	makeNwcRequestEvent: mocks.request
+}));
+vi.mock('./timelines/MainTimeline', () => ({ verificationClient: { verifier: vi.fn() } }));
+vi.mock('$lib/platform/browser/websocket-metrics', () => ({ MetricsWebSocket: vi.fn() }));
+vi.mock('svelte-i18n', () => ({
+	_: {
+		subscribe: (run: (value: () => string) => void) => {
+			run(() => 'Unknown wallet state');
+			return () => {};
+		}
+	}
+}));
+
+let responses: Subject<{ event: { content: string } }>;
+let sends: Subject<{ ok: boolean }>;
+let client: {
+	setDefaultRelays: ReturnType<typeof vi.fn>;
+	use: ReturnType<typeof vi.fn>;
+	send: ReturnType<typeof vi.fn>;
+	dispose: ReturnType<typeof vi.fn>;
+};
+
+beforeEach(() => {
+	vi.useFakeTimers();
+	vi.resetAllMocks();
+	vi.stubGlobal('alert', vi.fn());
+	responses = new Subject();
+	sends = new Subject();
+	client = {
+		setDefaultRelays: vi.fn(),
+		use: vi.fn(() => responses),
+		send: vi.fn(() => {
+			expect(responses.observed).toBe(true);
+			expect(mocks.emit).toHaveBeenCalledOnce();
+			return sends;
+		}),
+		dispose: vi.fn()
+	};
+	mocks.create.mockReturnValue(client);
+	mocks.request.mockResolvedValue({ id: 'request-id' });
+	mocks.decrypt.mockResolvedValue(
+		JSON.stringify({
+			result_type: 'pay_invoice',
+			error: null,
+			result: { preimage: 'a'.repeat(64) }
+		})
+	);
+});
+afterEach(() => {
+	vi.useRealTimers();
+	vi.unstubAllGlobals();
+});
+
+async function start() {
+	const payment = zapWithWalletConnect('uri', 'invoice');
+	await vi.advanceTimersByTimeAsync(0);
+	return { payment };
+}
+function respond() {
+	responses.next({ event: { content: 'encrypted' } });
+}
+function expectReleased() {
+	expect(responses.observed).toBe(false);
+	expect(sends.observed).toBe(false);
+	expect(vi.getTimerCount()).toBe(0);
+	expect(client.dispose).toHaveBeenCalledOnce();
+}
+
+describe('NWC communication lifecycle', () => {
+	it('listens before sending and releases resources on a successful payment', async () => {
+		const { payment } = await start();
+		expect(client.send).toHaveBeenCalledOnce();
+		respond();
+		await expect(payment).resolves.toBe(true);
+		expectReleased();
+	});
+
+	it('releases resources and displays the wallet payment error', async () => {
+		mocks.decrypt.mockResolvedValue(
+			JSON.stringify({
+				result_type: 'pay_invoice',
+				result: null,
+				error: { code: 'PAYMENT_FAILED', message: 'No route' }
+			})
+		);
+		const { payment } = await start();
+		respond();
+		await expect(payment).resolves.toBe(false);
+		expect(alert).toHaveBeenCalledWith('No route');
+		expectReleased();
+	});
+
+	it.each(['response error', 'response complete', 'send error', 'send rejected', 'timeout'])(
+		'releases resources on %s',
+		async (failure) => {
+			const { payment } = await start();
+			switch (failure) {
+				case 'response error':
+					responses.error(new Error('disconnected'));
+					break;
+				case 'response complete':
+					responses.complete();
+					break;
+				case 'send error':
+					sends.error(new Error('disconnected'));
+					break;
+				case 'send rejected':
+					sends.next({ ok: false });
+					break;
+				case 'timeout':
+					vi.advanceTimersByTime(10000);
+					break;
+			}
+			await expect(payment).resolves.toBe(false);
+			expectReleased();
+		}
+	);
+
+	it.each(['setDefaultRelays', 'use', 'emit', 'send'])(
+		'releases already-created resources when %s throws during setup',
+		async (stage) => {
+			const fail = () => {
+				throw new Error('setup failed');
+			};
+			if (stage === 'emit') {mocks.emit.mockImplementation(fail);}
+			else {client[stage as 'setDefaultRelays' | 'use' | 'send'].mockImplementation(fail);}
+			await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toBe(false);
+			expectReleased();
+		}
+	);
+
+	it('does not send after the response subscription synchronously completes', async () => {
+		client.use.mockReturnValue(EMPTY);
+		await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toBe(false);
+		expect(client.send).not.toHaveBeenCalled();
+		expectReleased();
+	});
+
+	it('keeps the first response when completion, send failure and timeout follow', async () => {
+		const { payment } = await start();
+		respond();
+		responses.complete();
+		sends.next({ ok: false });
+		vi.advanceTimersByTime(10000);
+		await expect(payment).resolves.toBe(true);
+		expect(mocks.decrypt).toHaveBeenCalledOnce();
+		expectReleased();
+	});
+
+	it('does not accept a response arriving after timeout', async () => {
+		const { payment } = await start();
+		vi.advanceTimersByTime(10000);
+		respond();
+		await expect(payment).resolves.toBe(false);
+		expect(mocks.decrypt).not.toHaveBeenCalled();
+		expectReleased();
+	});
+
+	it('releases resources when decrypting the response fails', async () => {
+		mocks.decrypt.mockRejectedValue(new Error('decrypt failed'));
+		const { payment } = await start();
+		respond();
+		await expect(payment).resolves.toBe(false);
+		expectReleased();
+	});
+});

@@ -3,6 +3,7 @@ import { get } from 'svelte/store';
 import { _ } from 'svelte-i18n';
 import { nip04 } from 'nostr-tools';
 import { createRxForwardReq, createRxNostr, noopSigner } from 'rx-nostr';
+import { Subscription } from 'rxjs';
 import { seckeySigner } from '@rx-nostr/crypto';
 import type * as Nostr from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
@@ -28,48 +29,63 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 			signer: seckeySigner(walletSeckey)
 		}
 	});
-	nwcRxNostr.setDefaultRelays([walletRelay]);
-
-	const { promise, resolve, reject } = Promise.withResolvers<Nostr.Event | null>();
-
-	const timeout = setTimeout(() => {
-		console.debug('[NWC timeout]');
-		reject();
-	}, 10000);
+	const subscriptions = new Subscription();
+	let timeout: ReturnType<typeof setTimeout> | undefined;
 
 	try {
+		nwcRxNostr.setDefaultRelays([walletRelay]);
+		type Outcome = { event: Nostr.Event | null } | { error: unknown };
+		const { promise, resolve } = Promise.withResolvers<Outcome>();
+		let settled = false;
+		const finish = (outcome: Outcome) => {
+			if (settled) {
+				return;
+			}
+			settled = true;
+			resolve(outcome);
+		};
+		timeout = setTimeout(() => {
+			console.debug('[NWC timeout]');
+			finish({ error: new Error('NWC response timed out') });
+		}, 10000);
+
 		const nwcRxReq = createRxForwardReq();
-		nwcRxNostr.use(nwcRxReq).subscribe({
-			next: (packet) => {
-				console.log('[NWC success]', packet);
-				resolve(packet.event);
-			},
-			complete: () => {
-				resolve(null);
-			},
-			error: (error) => {
-				console.error('[NWC error]', error);
-				reject();
-			}
-		});
-
-		nwcRxReq.emit([{ kinds: [23195], authors: [walletPubkey], '#e': [event.id] }]);
-
-		nwcRxNostr.send(event).subscribe({
-			next: (packet) => {
-				console.log('[NWC send]', packet);
-				if (!packet.ok) {
-					reject();
+		subscriptions.add(
+			nwcRxNostr.use(nwcRxReq).subscribe({
+				next: (packet) => {
+					console.log('[NWC success]', packet);
+					finish({ event: packet.event });
+				},
+				complete: () => finish({ event: null }),
+				error: (error) => {
+					console.error('[NWC error]', error);
+					finish({ error });
 				}
-			},
-			error: () => {
-				reject();
-			}
-		});
+			})
+		);
 
-		const walletEvent = await promise;
-		clearTimeout(timeout);
+		if (!settled) {
+			nwcRxReq.emit([{ kinds: [23195], authors: [walletPubkey], '#e': [event.id] }]);
+		}
+		if (!settled) {
+			subscriptions.add(
+				nwcRxNostr.send(event).subscribe({
+					next: (packet) => {
+						console.log('[NWC send]', packet);
+						if (!packet.ok) {
+							finish({ error: new Error('NWC request rejected') });
+						}
+					},
+					error: (error) => finish({ error })
+				})
+			);
+		}
 
+		const outcome = await promise;
+		if ('error' in outcome) {
+			throw outcome.error;
+		}
+		const walletEvent = outcome.event;
 		if (walletEvent === null) {
 			console.warn('[NWC no response]');
 			alert(get(_)('wallet.unknown'));
@@ -92,6 +108,11 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 		console.error('[NWC failed]', error);
 		return false;
 	} finally {
-		nwcRxNostr.dispose();
+		clearTimeout(timeout);
+		try {
+			subscriptions.unsubscribe();
+		} finally {
+			nwcRxNostr.dispose();
+		}
 	}
 }
