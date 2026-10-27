@@ -37,6 +37,29 @@ The function works for both replaceable and addressable events. Callers must com
 
 Grouping events by key is the caller's responsibility. The function does not validate keys, kinds, tags, signatures, or events.
 
+### NIP-47 pay_invoice responses
+
+```ts
+import { parsePayInvoiceResponse } from '@nostter/nostr-protocol';
+
+const decryptedJson = JSON.stringify({
+	result_type: 'pay_invoice',
+	error: null,
+	result: { preimage: 'a'.repeat(64) }
+});
+const response = parsePayInvoiceResponse(decryptedJson);
+
+if (response.status === 'success') {
+	console.log('Payment succeeded');
+} else if (response.status === 'failed') {
+	console.error(response.message);
+} else {
+	console.error('Invalid response');
+}
+```
+
+`parsePayInvoiceResponse(json: string): PayInvoiceResponse` accepts a JSON string and parses and validates a NIP-47 `pay_invoice` response. It returns `{ status: 'success' }` for a successful payment, `{ status: 'failed', message: string }` for a wallet-reported failure, or `{ status: 'invalid' }` when the JSON or response structure is invalid or unexpected.
+
 ### NIP-05 identifiers
 
 ```ts
