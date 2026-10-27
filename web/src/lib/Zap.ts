@@ -3,7 +3,7 @@ import { get } from 'svelte/store';
 import { _ } from 'svelte-i18n';
 import { nip04 } from 'nostr-tools';
 import { createRxForwardReq, createRxNostr, noopSigner } from 'rx-nostr';
-import { Subscription } from 'rxjs';
+import { EMPTY, Subscription, take, timeout } from 'rxjs';
 import { seckeySigner } from '@rx-nostr/crypto';
 import type * as Nostr from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
@@ -30,30 +30,28 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 		}
 	});
 	const subscriptions = new Subscription();
-	let timeout: ReturnType<typeof setTimeout> | undefined;
 
 	try {
 		const { promise, resolve, reject } = Promise.withResolvers<Nostr.Event | null>();
 		try {
 			nwcRxNostr.setDefaultRelays([walletRelay]);
-			timeout = setTimeout(() => {
-				console.debug('[NWC timeout]');
-				reject(new Error('NWC response timed out'));
-			}, 10000);
 
 			const nwcRxReq = createRxForwardReq();
 			subscriptions.add(
-				nwcRxNostr.use(nwcRxReq).subscribe({
-					next: (packet) => {
-						console.log('[NWC success]', packet);
-						resolve(packet.event);
-					},
-					complete: () => resolve(null),
-					error: (error) => {
-						console.error('[NWC error]', error);
-						reject(error);
-					}
-				})
+				nwcRxNostr
+					.use(nwcRxReq)
+					.pipe(take(1), timeout({ first: 10_000, with: () => EMPTY }))
+					.subscribe({
+						next: (packet) => {
+							console.log('[NWC success]', packet);
+							resolve(packet.event);
+						},
+						complete: () => resolve(null),
+						error: (error) => {
+							console.error('[NWC error]', error);
+							reject(error);
+						}
+					})
 			);
 			nwcRxReq.emit([{ kinds: [23195], authors: [walletPubkey], '#e': [event.id] }]);
 			subscriptions.add(
@@ -94,7 +92,6 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 		console.error('[NWC failed]', error);
 		return false;
 	} finally {
-		clearTimeout(timeout);
 		try {
 			subscriptions.unsubscribe();
 		} finally {

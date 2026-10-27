@@ -27,8 +27,8 @@ vi.mock('./timelines/MainTimeline', () => ({ verificationClient: { verifier: vi.
 vi.mock('$lib/platform/browser/websocket-metrics', () => ({ MetricsWebSocket: vi.fn() }));
 vi.mock('svelte-i18n', () => ({
 	_: {
-		subscribe: (run: (value: () => string) => void) => {
-			run(() => 'Unknown wallet state');
+		subscribe: (run: (value: (key: string) => string) => void) => {
+			run((key) => key);
 			return () => {};
 		}
 	}
@@ -113,7 +113,7 @@ describe('NWC communication lifecycle', () => {
 		expectReleased();
 	});
 
-	it.each(['response error', 'response complete', 'send error', 'send rejected', 'timeout'])(
+	it.each(['response error', 'response complete', 'send error', 'send rejected'])(
 		'releases resources on %s',
 		async (failure) => {
 			const { payment } = await start();
@@ -129,9 +129,6 @@ describe('NWC communication lifecycle', () => {
 					break;
 				case 'send rejected':
 					sends.next({ ok: false });
-					break;
-				case 'timeout':
-					vi.advanceTimersByTime(10000);
 					break;
 			}
 			await expect(payment).resolves.toBe(false);
@@ -175,12 +172,16 @@ describe('NWC communication lifecycle', () => {
 		expectReleased();
 	});
 
-	it('does not accept a response arriving after timeout', async () => {
+	it('reports no response after ten seconds and ignores a late response', async () => {
 		const { payment } = await start();
-		vi.advanceTimersByTime(10000);
+		vi.advanceTimersByTime(9999);
+		expect(responses.observed).toBe(true);
+		expect(alert).not.toHaveBeenCalled();
+		vi.advanceTimersByTime(1);
 		respond();
 		await expect(payment).resolves.toBe(false);
 		expect(mocks.decrypt).not.toHaveBeenCalled();
+		expect(alert).toHaveBeenCalledExactlyOnceWith('wallet.unknown');
 		expectReleased();
 	});
 
