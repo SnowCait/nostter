@@ -8,7 +8,7 @@ import type * as Nostr from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
 import { verificationClient } from './timelines/MainTimeline';
 import { hexToBytes } from 'nostr-tools/utils';
-import { parsePayInvoiceResponse } from '$lib/nostr/protocol/nip47';
+import { parsePayInvoiceResponse } from '@nostter/nostr-protocol';
 
 export async function zapWithWalletConnect(uri: string, invoice: string): Promise<boolean> {
 	const {
@@ -78,7 +78,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 
 		const json = await nip04.decrypt(walletSeckey, walletPubkey, walletEvent.content);
 
-		const response = parsePayInvoiceResponse(JSON.parse(json));
+		const response = parsePayInvoiceResponse(json);
 		if (response.status === 'success') {
 			console.log('[NWC pay invoice]', response);
 			return true;

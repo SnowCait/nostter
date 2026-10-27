@@ -1,29 +1,40 @@
 import { describe, expect, it } from 'vitest';
-import { parsePayInvoiceResponse } from './nip47';
+import { parsePayInvoiceResponse } from './pay-invoice-response.js';
+
+function json(value: unknown): string {
+	return JSON.stringify(value) || '';
+}
 
 describe('parsePayInvoiceResponse', () => {
 	it('accepts the NIP-47 successful pay_invoice response', () => {
 		expect(
-			parsePayInvoiceResponse({
-				result_type: 'pay_invoice',
-				error: null,
-				result: { preimage: 'a'.repeat(64) }
-			})
+			parsePayInvoiceResponse(
+				json({
+					result_type: 'pay_invoice',
+					error: null,
+					result: { preimage: 'a'.repeat(64) }
+				})
+			)
 		).toEqual({ status: 'success' });
 	});
 
 	it('returns a valid NIP-47 payment error message', () => {
 		expect(
-			parsePayInvoiceResponse({
-				result_type: 'pay_invoice',
-				error: { code: 'PAYMENT_FAILED', message: 'Payment failed' },
-				result: null
-			})
+			parsePayInvoiceResponse(
+				json({
+					result_type: 'pay_invoice',
+					error: { code: 'PAYMENT_FAILED', message: 'Payment failed' },
+					result: null
+				})
+			)
 		).toEqual({ status: 'failed', message: 'Payment failed' });
 	});
 
+	it('returns invalid for malformed JSON', () => {
+		expect(parsePayInvoiceResponse('{invalid json')).toEqual({ status: 'invalid' });
+	});
+
 	it.each([
-		undefined,
 		null,
 		[],
 		{},
@@ -35,7 +46,7 @@ describe('parsePayInvoiceResponse', () => {
 		{ result_type: 'pay_invoice', error: null, result: { preimage: 'not-hex' } },
 		{ result_type: 'pay_invoice', error: { code: '', message: 'Failed' } },
 		{ result_type: 'pay_invoice', error: { code: 'FAILED', message: '' } }
-	])('rejects malformed response %j', (response) => {
-		expect(parsePayInvoiceResponse(response)).toEqual({ status: 'invalid' });
+	])('rejects malformed response %j', (value) => {
+		expect(parsePayInvoiceResponse(json(value))).toEqual({ status: 'invalid' });
 	});
 });

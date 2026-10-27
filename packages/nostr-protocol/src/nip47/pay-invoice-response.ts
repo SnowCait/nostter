@@ -5,7 +5,14 @@ function isObject(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export function parsePayInvoiceResponse(value: unknown): PayInvoiceResponse {
+export function parsePayInvoiceResponse(json: string): PayInvoiceResponse {
+	let value: unknown;
+	try {
+		value = JSON.parse(json);
+	} catch {
+		return { status: 'invalid' };
+	}
+
 	if (!isObject(value) || value.result_type !== 'pay_invoice') {
 		return { status: 'invalid' };
 	}
