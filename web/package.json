@@ -20,7 +20,7 @@
 		"@melt-ui/svelte": "^0.86.6",
 		"@playwright/test": "^1.64.0",
 		"@sveltejs/adapter-cloudflare": "^7.2.9",
-		"@sveltejs/kit": "^2.70.3",
+		"@sveltejs/kit": "^3.0.1",
 		"@sveltejs/vite-plugin-svelte": "^7.3.0",
 		"@types/async-lock": "^1.4.2",
 		"@types/beyonk__gdpr-cookie-consent-banner": "^9.0.4",
