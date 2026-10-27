@@ -18,7 +18,7 @@
 		"@cloudflare/workers-types": "^5.20261012.1",
 		"@melt-ui/pp": "^0.3.2",
 		"@melt-ui/svelte": "^0.86.6",
-		"@playwright/test": "^1.63.0",
+		"@playwright/test": "^1.64.0",
 		"@sveltejs/adapter-cloudflare": "^7.2.9",
 		"@sveltejs/kit": "^2.70.3",
 		"@sveltejs/vite-plugin-svelte": "^7.3.0",
