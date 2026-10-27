@@ -535,7 +535,13 @@
 	"zap": {
 		"title": "Zap",
 		"message": "メッセージ（オプション）",
-		"send": "Zap"
+		"send": "Zap",
+		"failed": "Zap を送信できませんでした。再試行してください。",
+		"url_not_found": "Zap の支払い URL を取得できませんでした。",
+		"invoice_failed": "支払い Invoice を取得できませんでした。再試行してください。",
+		"invalid_response": "ウォレットからの支払い応答が不正です。",
+		"confirm_unpaid": "ウォレットで未送金であることを確認しました",
+		"payment_unknown": "支払い状況が不明です。二重送金を防ぐため、再度支払う前にウォレットを確認してください。"
 	},
 	"timeline": {
 		"update": "新しい投稿を表示"

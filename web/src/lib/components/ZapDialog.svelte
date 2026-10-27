@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { nip57 } from 'nostr-tools';
+	import { onDestroy } from 'svelte';
+	import { ZapSubmission } from '$lib/features/zap/application/zap-submission.svelte';
 	import QRCode from 'qrcode';
 	import { rxNostr } from '$lib/relay-client';
 	import { persistedStore } from '$lib/platform/storage/persisted-store';
@@ -26,7 +28,8 @@
 	let metadata = $derived($metadataStore.get(pubkey));
 
 	export function openZapDialog() {
-		console.debug('[zap open]');
+		submission.reset();
+		comment = '';
 		open = true;
 	}
 
@@ -35,9 +38,11 @@
 	let sats = $state($history.at(0) ?? 1);
 	let satsList: number[] = $state([]);
 	let comment = $state('');
-	let invoice = $state('');
+	const submission = new ZapSubmission();
+	let invoice = $derived(submission.invoice);
+	onDestroy(() => submission.reset());
 	let open = $state(false);
-	let sending = $state(false);
+	let sending = $derived(submission.sending);
 
 	$effect(() => {
 		const counts = new Map<number, number>();
@@ -49,67 +54,84 @@
 
 	async function zap(e: SubmitEvent) {
 		e.preventDefault();
-
-		sending = true;
-
+		if (sending || submission.unknown) {
+			return;
+		}
 		const amount = sats * 1000;
-		const relays = Object.keys(rxNostr.getDefaultRelays({ filter: 'write-all' }));
-		const zapRequest = nip57.makeZapRequest(
-			item === undefined
-				? { pubkey, amount, comment, relays }
-				: { event: item.event, amount, comment, relays }
-		);
-		const zapRequestEvent = await signEvent(zapRequest);
-		console.debug('[zap request]', zapRequestEvent, metadata?.content);
-		const encoded = encodeURI(JSON.stringify(zapRequestEvent));
-
-		const zapUrl = (await metadata?.zapUrl()) ?? null;
-		if (zapUrl === null) {
-			console.error('[zap url not found]', metadata?.content?.lud16);
+		const zapSats = sats;
+		const zapComment = comment;
+		const zapMetadata = metadata;
+		const zapItem = item;
+		const zapPubkey = pubkey;
+		let walletConnectUri: string | null;
+		try {
+			const storage = new WebStorage(localStorage);
+			walletConnectUri = storage.get('nostr-wallet-connect');
+		} catch {
+			submission.error = $_('zap.failed');
 			return;
 		}
-		const url = `${zapUrl.href}?amount=${amount}&nostr=${encoded}`;
-		console.debug('[zap url]', url);
-
-		const response = await fetch(url);
-		if (!response.ok) {
-			console.error('[zap failed]', await response.text());
-			return;
-		}
-		const payment = await response.json();
-		const { pr: zapInvoice } = payment;
-		console.debug('[zap invoice]', zapInvoice);
-
-		if (zapInvoice === undefined) {
-			console.error('[zap failed]', payment);
-			return;
-		}
-
-		$history = [sats, ...$history].slice(0, 100);
-
-		const storage = new WebStorage(localStorage);
-		const walletConnectUri = storage.get('nostr-wallet-connect');
-		if (walletConnectUri !== null && walletConnectUri !== '') {
-			try {
-				const success = await zapWithWalletConnect(walletConnectUri, zapInvoice);
-				if (success) {
-					open = false;
-					onZapped?.();
-					return;
+		await submission.submit({
+			isOpen: () => open,
+			failureMessage: $_('zap.failed'),
+			prepareInvoice: async () => {
+				const relays = Object.keys(rxNostr.getDefaultRelays({ filter: 'write-all' }));
+				const zapRequest = nip57.makeZapRequest(
+					zapItem === undefined
+						? { pubkey: zapPubkey, amount, comment: zapComment, relays }
+						: { event: zapItem.event, amount, comment: zapComment, relays }
+				);
+				const zapRequestEvent = await signEvent(zapRequest);
+				const zapUrl = await zapMetadata?.zapUrl();
+				if (!zapUrl) {
+					throw new Error($_('zap.url_not_found'));
 				}
-			} catch (error) {
-				console.error('[NWC error]', error);
+				const url = new URL(zapUrl);
+				url.searchParams.set('amount', String(amount));
+				url.searchParams.set('nostr', JSON.stringify(zapRequestEvent));
+				const response = await fetch(url);
+				if (!response.ok) {
+					throw new Error($_('zap.invoice_failed'));
+				}
+				const payment = await response.json();
+				if (typeof payment?.pr !== 'string' || payment.pr.trim() === '') {
+					throw new Error(
+						typeof payment?.reason === 'string'
+							? payment.reason
+							: $_('zap.invoice_failed')
+					);
+				}
+				$history = [zapSats, ...$history].slice(0, 100);
+				return payment.pr;
+			},
+			pay: walletConnectUri
+				? (invoice) => zapWithWalletConnect(walletConnectUri, invoice)
+				: undefined,
+			onPaid: () => {
+				open = false;
+				onZapped?.();
 			}
-		}
-
-		invoice = zapInvoice;
-		onZapped?.();
+		});
 	}
 </script>
 
-<ModalDialog bind:open>
+<ModalDialog bind:open onclose={() => submission.reset()}>
 	<article>
 		<h1>{$_('zap.title')}</h1>
+		{#if submission.unknown && !sending}
+			<p role="alert">
+				{#if submission.unknown.reason === 'invalid-response'}
+					{$_('zap.invalid_response')}
+				{/if}
+				{$_('zap.payment_unknown')}
+			</p>
+			<button type="button" onclick={() => submission.confirmUnpaid()}>
+				{$_('zap.confirm_unpaid')}
+			</button>
+		{/if}
+		{#if submission.error}
+			<p role="alert">{submission.error}</p>
+		{/if}
 		{#if invoice === ''}
 			<blockquote>
 				{#if item}
@@ -140,7 +162,11 @@
 				<div>
 					<textarea placeholder={$_('zap.message')} bind:value={comment}></textarea>
 				</div>
-				<input type="submit" value={$_('zap.send')} disabled={sending} />
+				<input
+					type="submit"
+					value={$_('zap.send')}
+					disabled={sending || !!submission.unknown}
+				/>
 			</form>
 		{:else}
 			{@const url = `lightning:${invoice}`}

@@ -536,7 +536,13 @@
 	"zap": {
 		"title": "Zap",
 		"message": "Message (optional)",
-		"send": "Zap"
+		"send": "Zap",
+		"failed": "Could not send Zap. Please try again.",
+		"url_not_found": "Could not find a Zap payment URL.",
+		"invoice_failed": "Could not get a payment invoice. Please try again.",
+		"invalid_response": "The wallet returned an invalid payment response.",
+		"confirm_unpaid": "I checked my wallet: this payment was not sent",
+		"payment_unknown": "Payment status is unknown. Check your wallet before making another payment to avoid paying twice."
 	},
 	"timeline": {
 		"update": "Show new posts"
