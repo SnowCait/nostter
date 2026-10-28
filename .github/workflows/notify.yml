@@ -12,7 +12,7 @@ on:
 
 jobs:
   notify-issue:
-    if: ${{ github.event_name == 'issues' }}
+    if: ${{ github.event_name == 'issues' && github.event.issue.user.login != 'SnowCait' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -23,9 +23,8 @@ jobs:
           private-key: ${{ secrets.NOSTR_PRIVATE_KEY }}
           content: |
             Issue by @${{ github.event.sender.login }}: ${{ github.event.issue.title }}
-            ${{ github.event.issue.html_url }} #nostter
+            ${{ github.event.issue.html_url }}
           tags: |
-            - ["t", "nostter"]
             - ["proxy", "${{ github.event.issue.html_url }}", "web"]
       - name: Post published event to proxy
         run: |
