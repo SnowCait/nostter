@@ -9,7 +9,8 @@ import { verificationClient } from './timelines/MainTimeline';
 import { hexToBytes } from 'nostr-tools/utils';
 import { parsePayInvoiceResponse } from '@nostter/nostr-protocol';
 
-export type NwcPaymentResult = 'success' | 'failed' | 'unknown';
+export type NwcPaymentResult =
+	{ status: 'success' } | { status: 'failed'; message?: string } | { status: 'unknown' };
 
 export async function zapWithWalletConnect(
 	uri: string,
@@ -67,7 +68,7 @@ export async function zapWithWalletConnect(
 		const walletEvent = await promise;
 		if (walletEvent === null) {
 			console.warn('[NWC no response]');
-			return 'unknown';
+			return { status: 'unknown' };
 		}
 
 		const json = await nip04.decrypt(walletSeckey, walletPubkey, walletEvent.content);
@@ -75,17 +76,16 @@ export async function zapWithWalletConnect(
 		const response = parsePayInvoiceResponse(json);
 		if (response.status === 'success') {
 			console.log('[NWC pay invoice]', response);
-			return 'success';
+			return { status: 'success' };
 		}
 		if (response.status === 'failed') {
 			console.error('[NWC payment failed]', response);
-			alert(response.message);
-			return 'failed';
+			return { status: 'failed', message: response.message };
 		}
-		return 'unknown';
+		return { status: 'unknown' };
 	} catch (error) {
 		console.error('[NWC failed]', error);
-		return !submitted || error === requestRejected ? 'failed' : 'unknown';
+		return { status: !submitted || error === requestRejected ? 'failed' : 'unknown' };
 	} finally {
 		nwcRxNostr?.dispose();
 	}

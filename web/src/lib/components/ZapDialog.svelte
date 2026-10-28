@@ -5,7 +5,7 @@
 	import { persistedStore } from '$lib/platform/storage/persisted-store';
 	import { WebStorage } from '$lib/WebStorage';
 	import type { Signer } from '$lib/nostr/signing/signer';
-	import { zapWithWalletConnect } from '$lib/Zap';
+	import { zapWithWalletConnect, type NwcPaymentResult } from '$lib/Zap';
 	import { metadataStore } from '$lib/cache/Events';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 	import { EventItem } from '$lib/Items';
@@ -30,7 +30,7 @@
 		if (!sending) {
 			invoice = '';
 			invoiceError = undefined;
-			paymentUnknown = false;
+			paymentResult = undefined;
 			comment = '';
 			sats = $history.at(0) ?? 1;
 		}
@@ -45,7 +45,7 @@
 	let invoice = $state('');
 	let open = $state(false);
 	let sending = $state(false);
-	let paymentUnknown = $state(false);
+	let paymentResult = $state<NwcPaymentResult>();
 	type InvoiceError = 'signing' | 'url' | 'network' | 'http' | 'json' | 'invalid';
 	let invoiceError = $state<InvoiceError>();
 
@@ -64,7 +64,7 @@
 			return;
 		}
 		sending = true;
-		paymentUnknown = false;
+		paymentResult = undefined;
 		invoiceError = undefined;
 		try {
 			let zapInvoice: string;
@@ -129,15 +129,15 @@
 			if (walletConnectUri !== null && walletConnectUri !== '') {
 				try {
 					const result = await zapWithWalletConnect(walletConnectUri, zapInvoice);
-					if (result === 'success') {
+					if (result.status === 'success') {
 						open = false;
 						onZapped?.();
 						return;
 					}
-					paymentUnknown = result === 'unknown';
+					paymentResult = result;
 				} catch (error) {
 					console.error('[NWC error]', error);
-					paymentUnknown = true;
+					paymentResult = { status: 'unknown' };
 				}
 			}
 			invoice = zapInvoice;
@@ -189,8 +189,10 @@
 		{:else}
 			{@const url = `lightning:${invoice}`}
 			<section class="lnbc">
-				{#if paymentUnknown}
+				{#if paymentResult?.status === 'unknown'}
 					<p role="alert">{$_('zap.paymentUnknown')}</p>
+				{:else if paymentResult?.status === 'failed' && paymentResult.message}
+					<p role="alert">{paymentResult.message}</p>
 				{/if}
 				<div>
 					{#await QRCode.toDataURL(url) then dataUrl}
@@ -200,7 +202,7 @@
 					{/await}
 				</div>
 				<div class="text">{invoice}</div>
-				{#if !paymentUnknown}
+				{#if paymentResult?.status !== 'unknown'}
 					<iframe src={url} title="Lightning" width="0" height="0"></iframe>
 				{/if}
 			</section>
