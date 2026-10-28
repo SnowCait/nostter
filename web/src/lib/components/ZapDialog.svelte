@@ -191,8 +191,12 @@
 			<section class="lnbc">
 				{#if paymentResult?.status === 'unknown'}
 					<p role="alert">{$_('zap.paymentUnknown')}</p>
-				{:else if paymentResult?.status === 'failed' && paymentResult.message}
-					<p role="alert">{paymentResult.message}</p>
+				{:else if paymentResult?.status === 'failed'}
+					<p role="alert">
+						{paymentResult.message?.trim()
+							? paymentResult.message
+							: $_('zap.paymentFailed')}
+					</p>
 				{/if}
 				<div>
 					{#await QRCode.toDataURL(url) then dataUrl}
