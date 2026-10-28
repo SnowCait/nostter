@@ -3,6 +3,7 @@ import { get } from 'svelte/store';
 import { _ } from 'svelte-i18n';
 import { nip04 } from 'nostr-tools';
 import { createRxForwardReq, createRxNostr, noopSigner } from 'rx-nostr';
+import { EMPTY, take, timeout } from 'rxjs';
 import { seckeySigner } from '@rx-nostr/crypto';
 import type * as Nostr from 'nostr-typedef';
 import { makeNwcRequestEvent, parseConnectionString } from '$lib/nostr-tools/nip47';
@@ -28,48 +29,34 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 			signer: seckeySigner(walletSeckey)
 		}
 	});
-	nwcRxNostr.setDefaultRelays([walletRelay]);
-
-	const { promise, resolve, reject } = Promise.withResolvers<Nostr.Event | null>();
-
-	const timeout = setTimeout(() => {
-		console.debug('[NWC timeout]');
-		reject();
-	}, 10000);
 
 	try {
+		const { promise, resolve, reject } = Promise.withResolvers<Nostr.Event | null>();
+		nwcRxNostr.setDefaultRelays([walletRelay]);
+
 		const nwcRxReq = createRxForwardReq();
-		nwcRxNostr.use(nwcRxReq).subscribe({
-			next: (packet) => {
-				console.log('[NWC success]', packet);
-				resolve(packet.event);
-			},
-			complete: () => {
-				resolve(null);
-			},
-			error: (error) => {
-				console.error('[NWC error]', error);
-				reject();
-			}
-		});
-
+		nwcRxNostr
+			.use(nwcRxReq)
+			.pipe(take(1), timeout({ first: 10_000, with: () => EMPTY }))
+			.subscribe({
+				next: (packet) => {
+					console.log('[NWC success]', packet);
+					resolve(packet.event);
+				},
+				complete: () => resolve(null),
+				error: reject
+			});
 		nwcRxReq.emit([{ kinds: [23195], authors: [walletPubkey], '#e': [event.id] }]);
-
 		nwcRxNostr.send(event).subscribe({
 			next: (packet) => {
 				console.log('[NWC send]', packet);
 				if (!packet.ok) {
-					reject();
+					reject(new Error('NWC request rejected'));
 				}
 			},
-			error: () => {
-				reject();
-			}
+			error: reject
 		});
-
 		const walletEvent = await promise;
-		clearTimeout(timeout);
-
 		if (walletEvent === null) {
 			console.warn('[NWC no response]');
 			alert(get(_)('wallet.unknown'));
