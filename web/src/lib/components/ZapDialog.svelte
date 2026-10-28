@@ -72,21 +72,34 @@
 				const zapRequestEvent = await signEvent(zapRequest);
 				const encoded = encodeURI(JSON.stringify(zapRequestEvent));
 				stage = 'url';
+				detail = {
+					pubkey,
+					lud16: metadata?.content?.lud16,
+					lud06: metadata?.content?.lud06
+				};
 				const zapUrl = await metadata?.zapUrl();
 				if (!zapUrl) {
 					throw new Error('Zap URL not found');
 				}
+				const endpoint = new URL(zapUrl);
+				endpoint.search = '';
+				endpoint.hash = '';
+				detail = endpoint.href;
 				stage = 'network';
 				const response = await fetch(`${zapUrl.href}?amount=${amount}&nostr=${encoded}`);
 				stage = 'http';
 				if (!response.ok) {
-					detail = { status: response.status, body: await response.text() };
+					detail = {
+						endpoint: detail,
+						status: response.status,
+						body: await response.text()
+					};
 					throw new Error('Invoice endpoint returned an HTTP error');
 				}
 				stage = 'json';
 				const payment = await response.json();
 				stage = 'invalid';
-				detail = payment;
+				detail = { endpoint: detail, response: payment };
 				if (typeof payment?.pr !== 'string' || payment.pr.trim() === '') {
 					throw new Error('Invoice response has no non-empty pr');
 				}
