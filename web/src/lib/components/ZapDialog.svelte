@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { nip57 } from 'nostr-tools';
 	import QRCode from 'qrcode';
+	import IconBolt from '@tabler/icons-svelte-runes/icons/bolt';
+	import IconInfoCircle from '@tabler/icons-svelte-runes/icons/info-circle';
 	import IconQuestionMark from '@tabler/icons-svelte-runes/icons/question-mark';
 	import { rxNostr } from '$lib/relay-client';
 	import { persistedStore } from '$lib/platform/storage/persisted-store';
@@ -154,6 +156,7 @@
 <ModalDialog bind:open>
 	<article>
 		<div class="title">
+			<span aria-hidden="true"><IconBolt size={20} /></span>
 			<h1>{$_('zap.title')}</h1>
 			<button
 				type="button"
@@ -167,7 +170,10 @@
 		</div>
 		{#if helpOpen}
 			<aside class="help">
-				<h2>{$_('zap.help.title')}</h2>
+				<h2>
+					<span aria-hidden="true"><IconInfoCircle size={18} /></span>
+					{$_('zap.help.title')}
+				</h2>
 				<p>{$_('zap.help.description')}</p>
 				<p>{$_('zap.help.support')}</p>
 			</aside>
@@ -265,6 +271,9 @@
 
 	.help h2 {
 		font-size: 1.1rem;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
 	}
 
 	.lnbc .text {
