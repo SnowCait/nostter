@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { InvoiceRequest } from '$lib/features/zap/application/invoice-request.svelte';
 	import { nip57 } from 'nostr-tools';
 	import QRCode from 'qrcode';
 	import { rxNostr } from '$lib/relay-client';
@@ -38,7 +37,9 @@
 	let comment = $state('');
 	let invoice = $state('');
 	let open = $state(false);
-	const request = new InvoiceRequest();
+	let sending = $state(false);
+	type InvoiceError = 'signing' | 'url' | 'network' | 'http' | 'json' | 'invalid';
+	let invoiceError = $state<InvoiceError>();
 
 	$effect(() => {
 		const counts = new Map<number, number>();
@@ -51,9 +52,16 @@
 	async function zap(e: SubmitEvent) {
 		e.preventDefault();
 
-		await request.send({
-			amount: sats * 1000,
-			createRequest: async () => {
+		if (sending) {
+			return;
+		}
+		sending = true;
+		invoiceError = undefined;
+		try {
+			let zapInvoice: string;
+			let stage: InvoiceError = 'signing';
+			let detail: unknown;
+			try {
 				const amount = sats * 1000;
 				const relays = Object.keys(rxNostr.getDefaultRelays({ filter: 'write-all' }));
 				const zapRequest = nip57.makeZapRequest(
@@ -61,31 +69,54 @@
 						? { pubkey, amount, comment, relays }
 						: { event: item.event, amount, comment, relays }
 				);
-				return await signEvent(zapRequest);
-			},
-			getZapUrl: async () => await metadata?.zapUrl(),
-			onInvoice: async (zapInvoice) => {
-				$history = [sats, ...$history].slice(0, 100);
-
-				const storage = new WebStorage(localStorage);
-				const walletConnectUri = storage.get('nostr-wallet-connect');
-				if (walletConnectUri !== null && walletConnectUri !== '') {
-					try {
-						const success = await zapWithWalletConnect(walletConnectUri, zapInvoice);
-						if (success) {
-							open = false;
-							onZapped?.();
-							return;
-						}
-					} catch (error) {
-						console.error('[NWC error]', error);
-					}
+				const zapRequestEvent = await signEvent(zapRequest);
+				const encoded = encodeURI(JSON.stringify(zapRequestEvent));
+				stage = 'url';
+				const zapUrl = await metadata?.zapUrl();
+				if (!zapUrl) {
+					throw new Error('Zap URL not found');
 				}
-
-				invoice = zapInvoice;
-				onZapped?.();
+				stage = 'network';
+				const response = await fetch(`${zapUrl.href}?amount=${amount}&nostr=${encoded}`);
+				stage = 'http';
+				if (!response.ok) {
+					detail = { status: response.status, body: await response.text() };
+					throw new Error('Invoice endpoint returned an HTTP error');
+				}
+				stage = 'json';
+				const payment = await response.json();
+				stage = 'invalid';
+				detail = payment;
+				if (typeof payment?.pr !== 'string' || payment.pr.trim() === '') {
+					throw new Error('Invoice response has no non-empty pr');
+				}
+				zapInvoice = payment.pr;
+			} catch (error) {
+				console.error('[zap invoice failed]', stage, error, detail);
+				invoiceError = stage;
+				return;
 			}
-		});
+
+			$history = [sats, ...$history].slice(0, 100);
+			const storage = new WebStorage(localStorage);
+			const walletConnectUri = storage.get('nostr-wallet-connect');
+			if (walletConnectUri !== null && walletConnectUri !== '') {
+				try {
+					const success = await zapWithWalletConnect(walletConnectUri, zapInvoice);
+					if (success) {
+						open = false;
+						onZapped?.();
+						return;
+					}
+				} catch (error) {
+					console.error('[NWC error]', error);
+				}
+			}
+			invoice = zapInvoice;
+			onZapped?.();
+		} finally {
+			sending = false;
+		}
 	}
 </script>
 
@@ -107,9 +138,9 @@
 					</article>
 				{/if}
 			</blockquote>
-			<form onsubmit={zap} aria-busy={request.sending}>
-				{#if request.error}
-					<p role="alert">{$_(`zap.errors.${request.error}`)}</p>
+			<form onsubmit={zap} aria-busy={sending}>
+				{#if invoiceError}
+					<p role="alert">{$_(`zap.errors.${invoiceError}`)}</p>
 				{/if}
 				<div class="sats-input">
 					{#each satsList.slice(0, 5) as value}
@@ -125,7 +156,7 @@
 				<div>
 					<textarea placeholder={$_('zap.message')} bind:value={comment}></textarea>
 				</div>
-				<input type="submit" value={$_('zap.send')} disabled={request.sending} />
+				<input type="submit" value={$_('zap.send')} disabled={sending} />
 			</form>
 		{:else}
 			{@const url = `lightning:${invoice}`}
