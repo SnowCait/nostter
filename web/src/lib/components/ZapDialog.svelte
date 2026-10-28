@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { nip57 } from 'nostr-tools';
 	import QRCode from 'qrcode';
+	import IconBolt from '@tabler/icons-svelte-runes/icons/bolt';
+	import IconInfoCircle from '@tabler/icons-svelte-runes/icons/info-circle';
+	import IconQuestionMark from '@tabler/icons-svelte-runes/icons/question-mark';
 	import { rxNostr } from '$lib/relay-client';
 	import { persistedStore } from '$lib/platform/storage/persisted-store';
 	import { WebStorage } from '$lib/WebStorage';
@@ -27,6 +30,7 @@
 
 	export function openZapDialog() {
 		console.debug('[zap open]');
+		helpOpen = false;
 		if (!sending) {
 			invoice = '';
 			invoiceError = undefined;
@@ -45,6 +49,7 @@
 	let invoice = $state('');
 	let open = $state(false);
 	let sending = $state(false);
+	let helpOpen = $state(false);
 	let paymentResult = $state<NwcPaymentResult>();
 	type InvoiceError = 'signing' | 'url' | 'network' | 'http' | 'json' | 'invalid';
 	let invoiceError = $state<InvoiceError>();
@@ -150,7 +155,29 @@
 
 <ModalDialog bind:open>
 	<article>
-		<h1>{$_('zap.title')}</h1>
+		<div class="title">
+			<span aria-hidden="true"><IconBolt size={20} /></span>
+			<h1>{$_('zap.title')}</h1>
+			<button
+				type="button"
+				class="help-toggle"
+				aria-label={$_('zap.help.toggle')}
+				aria-expanded={helpOpen}
+				onclick={() => (helpOpen = !helpOpen)}
+			>
+				<IconQuestionMark size={20} />
+			</button>
+		</div>
+		{#if helpOpen}
+			<aside class="help">
+				<h2>
+					<span aria-hidden="true"><IconInfoCircle size={18} /></span>
+					{$_('zap.help.title')}
+				</h2>
+				<p>{$_('zap.help.description')}</p>
+				<p>{$_('zap.help.support')}</p>
+			</aside>
+		{/if}
 		{#if invoice === ''}
 			<blockquote>
 				{#if item}
@@ -221,6 +248,32 @@
 
 	h1 {
 		font-size: 1.5rem;
+	}
+
+	.title {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.title h1 {
+		margin: 0;
+	}
+
+	.help-toggle {
+		width: 44px;
+		height: 44px;
+		padding: 0;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.help h2 {
+		font-size: 1.1rem;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
 	}
 
 	.lnbc .text {

@@ -543,6 +543,12 @@
 			"http": "The invoice service returned an error. Please try again later.",
 			"json": "The invoice service returned an unreadable response. Please try again.",
 			"invalid": "The invoice service did not return a valid invoice. Please try again."
+		},
+		"help": {
+			"title": "What is Zap?",
+			"description": "Zap lets you send small amounts of Bitcoin (sats) to posts and people using the Lightning Network.",
+			"support": "It's a way to say thanks or show your support for something you like.",
+			"toggle": "Show or hide Zap information"
 		}
 	},
 	"timeline": {
