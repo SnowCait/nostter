@@ -253,9 +253,6 @@
 			"player": "Spotify player"
 		}
 	},
-	"wallet": {
-		"unknown": "Unknown wallet state. Please check your wallet."
-	},
 	"search": {
 		"search": "Search",
 		"options": "Search options",
@@ -534,6 +531,8 @@
 		"result": "View result"
 	},
 	"zap": {
+		"paymentFailed": "The wallet payment failed.",
+		"paymentUnknown": "The wallet payment result could not be confirmed. Your payment may already be complete. Check your wallet history before paying with the QR code.",
 		"title": "Zap",
 		"message": "Message (optional)",
 		"send": "Zap",

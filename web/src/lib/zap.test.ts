@@ -25,14 +25,6 @@ vi.mock('$lib/nostr-tools/nip47', () => ({
 }));
 vi.mock('./timelines/MainTimeline', () => ({ verificationClient: { verifier: vi.fn() } }));
 vi.mock('$lib/platform/browser/websocket-metrics', () => ({ MetricsWebSocket: vi.fn() }));
-vi.mock('svelte-i18n', () => ({
-	_: {
-		subscribe: (run: (value: (key: string) => string) => void) => {
-			run((key) => key);
-			return () => {};
-		}
-	}
-}));
 
 let responses: Subject<{ event: { content: string } }>;
 let sends: Subject<{ ok: boolean }>;
@@ -46,7 +38,6 @@ let client: {
 beforeEach(() => {
 	vi.useFakeTimers();
 	vi.resetAllMocks();
-	vi.stubGlobal('alert', vi.fn());
 	responses = new Subject();
 	sends = new Subject();
 	client = {
@@ -71,7 +62,6 @@ beforeEach(() => {
 });
 afterEach(() => {
 	vi.useRealTimers();
-	vi.unstubAllGlobals();
 });
 
 async function start() {
@@ -88,11 +78,11 @@ describe('NWC communication lifecycle', () => {
 		const { payment } = await start();
 		expect(client.send).toHaveBeenCalledOnce();
 		respond();
-		await expect(payment).resolves.toBe(true);
+		await expect(payment).resolves.toEqual({ status: 'success' });
 		expect(client.dispose).toHaveBeenCalledOnce();
 	});
 
-	it('disposes the client and displays the wallet payment error', async () => {
+	it('disposes the client and returns the wallet payment error', async () => {
 		mocks.decrypt.mockResolvedValue(
 			JSON.stringify({
 				result_type: 'pay_invoice',
@@ -102,8 +92,7 @@ describe('NWC communication lifecycle', () => {
 		);
 		const { payment } = await start();
 		respond();
-		await expect(payment).resolves.toBe(false);
-		expect(alert).toHaveBeenCalledWith('No route');
+		await expect(payment).resolves.toEqual({ status: 'failed', message: 'No route' });
 		expect(client.dispose).toHaveBeenCalledOnce();
 	});
 
@@ -125,7 +114,9 @@ describe('NWC communication lifecycle', () => {
 					sends.next({ ok: false });
 					break;
 			}
-			await expect(payment).resolves.toBe(false);
+			await expect(payment).resolves.toEqual({
+				status: failure === 'send rejected' ? 'failed' : 'unknown'
+			});
 			expect(client.dispose).toHaveBeenCalledOnce();
 		}
 	);
@@ -141,7 +132,9 @@ describe('NWC communication lifecycle', () => {
 			} else {
 				client[stage as 'setDefaultRelays' | 'use' | 'send'].mockImplementation(fail);
 			}
-			await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toBe(false);
+			await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toEqual({
+				status: 'failed'
+			});
 			expect(client.dispose).toHaveBeenCalledOnce();
 		}
 	);
@@ -152,7 +145,7 @@ describe('NWC communication lifecycle', () => {
 		responses.complete();
 		sends.next({ ok: false });
 		vi.advanceTimersByTime(10000);
-		await expect(payment).resolves.toBe(true);
+		await expect(payment).resolves.toEqual({ status: 'success' });
 		expect(mocks.decrypt).toHaveBeenCalledOnce();
 		expect(client.dispose).toHaveBeenCalledOnce();
 	});
@@ -161,12 +154,10 @@ describe('NWC communication lifecycle', () => {
 		const { payment } = await start();
 		vi.advanceTimersByTime(9999);
 		expect(client.dispose).not.toHaveBeenCalled();
-		expect(alert).not.toHaveBeenCalled();
 		vi.advanceTimersByTime(1);
 		respond();
-		await expect(payment).resolves.toBe(false);
+		await expect(payment).resolves.toEqual({ status: 'unknown' });
 		expect(mocks.decrypt).not.toHaveBeenCalled();
-		expect(alert).toHaveBeenCalledExactlyOnceWith('wallet.unknown');
 		expect(vi.getTimerCount()).toBe(0);
 		expect(client.dispose).toHaveBeenCalledOnce();
 	});
@@ -175,7 +166,23 @@ describe('NWC communication lifecycle', () => {
 		mocks.decrypt.mockRejectedValue(new Error('decrypt failed'));
 		const { payment } = await start();
 		respond();
-		await expect(payment).resolves.toBe(false);
+		await expect(payment).resolves.toEqual({ status: 'unknown' });
 		expect(client.dispose).toHaveBeenCalledOnce();
 	});
 });
+
+it('classifies request creation failure before sending as failed', async () => {
+	mocks.request.mockRejectedValue(new Error('cannot encrypt'));
+	await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toEqual({ status: 'failed' });
+	expect(client.send).not.toHaveBeenCalled();
+});
+it.each(['not JSON', JSON.stringify({ result_type: 'pay_invoice', error: null, result: {} })])(
+	'treats an invalid wallet response as unknown: %s',
+	async (json) => {
+		mocks.decrypt.mockResolvedValue(json);
+		const { payment } = await start();
+		respond();
+		await expect(payment).resolves.toEqual({ status: 'unknown' });
+		expect(client.dispose).toHaveBeenCalledOnce();
+	}
+);

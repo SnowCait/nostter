@@ -5,7 +5,7 @@
 	import { persistedStore } from '$lib/platform/storage/persisted-store';
 	import { WebStorage } from '$lib/WebStorage';
 	import type { Signer } from '$lib/nostr/signing/signer';
-	import { zapWithWalletConnect } from '$lib/Zap';
+	import { zapWithWalletConnect, type NwcPaymentResult } from '$lib/Zap';
 	import { metadataStore } from '$lib/cache/Events';
 	import ModalDialog from '$lib/components/ModalDialog.svelte';
 	import { EventItem } from '$lib/Items';
@@ -30,6 +30,7 @@
 		if (!sending) {
 			invoice = '';
 			invoiceError = undefined;
+			paymentResult = undefined;
 			comment = '';
 			sats = $history.at(0) ?? 1;
 		}
@@ -44,6 +45,7 @@
 	let invoice = $state('');
 	let open = $state(false);
 	let sending = $state(false);
+	let paymentResult = $state<NwcPaymentResult>();
 	type InvoiceError = 'signing' | 'url' | 'network' | 'http' | 'json' | 'invalid';
 	let invoiceError = $state<InvoiceError>();
 
@@ -62,6 +64,7 @@
 			return;
 		}
 		sending = true;
+		paymentResult = undefined;
 		invoiceError = undefined;
 		try {
 			let zapInvoice: string;
@@ -125,14 +128,16 @@
 			const walletConnectUri = storage.get('nostr-wallet-connect');
 			if (walletConnectUri !== null && walletConnectUri !== '') {
 				try {
-					const success = await zapWithWalletConnect(walletConnectUri, zapInvoice);
-					if (success) {
+					const result = await zapWithWalletConnect(walletConnectUri, zapInvoice);
+					if (result.status === 'success') {
 						open = false;
 						onZapped?.();
 						return;
 					}
+					paymentResult = result;
 				} catch (error) {
 					console.error('[NWC error]', error);
+					paymentResult = { status: 'unknown' };
 				}
 			}
 			invoice = zapInvoice;
@@ -184,6 +189,15 @@
 		{:else}
 			{@const url = `lightning:${invoice}`}
 			<section class="lnbc">
+				{#if paymentResult?.status === 'unknown'}
+					<p role="alert">{$_('zap.paymentUnknown')}</p>
+				{:else if paymentResult?.status === 'failed'}
+					<p role="alert">
+						{paymentResult.message?.trim()
+							? paymentResult.message
+							: $_('zap.paymentFailed')}
+					</p>
+				{/if}
 				<div>
 					{#await QRCode.toDataURL(url) then dataUrl}
 						<a href={url} target="_blank" rel="noopener noreferrer">
@@ -192,7 +206,9 @@
 					{/await}
 				</div>
 				<div class="text">{invoice}</div>
-				<iframe src={url} title="Lightning" width="0" height="0"></iframe>
+				{#if paymentResult?.status !== 'unknown'}
+					<iframe src={url} title="Lightning" width="0" height="0"></iframe>
+				{/if}
 			</section>
 		{/if}
 	</article>
