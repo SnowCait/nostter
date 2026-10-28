@@ -27,6 +27,11 @@
 
 	export function openZapDialog() {
 		console.debug('[zap open]');
+		displayId += 1;
+		invoice = '';
+		invoiceError = undefined;
+		comment = '';
+		sats = $history.at(0) ?? 1;
 		open = true;
 	}
 
@@ -38,6 +43,7 @@
 	let invoice = $state('');
 	let open = $state(false);
 	let sending = $state(false);
+	let displayId = 0;
 	type InvoiceError = 'signing' | 'url' | 'network' | 'http' | 'json' | 'invalid';
 	let invoiceError = $state<InvoiceError>();
 
@@ -56,13 +62,15 @@
 			return;
 		}
 		sending = true;
+		const requestDisplayId = displayId;
+		const requestedSats = sats;
 		invoiceError = undefined;
 		try {
 			let zapInvoice: string;
 			let stage: InvoiceError = 'signing';
 			let detail: unknown;
 			try {
-				const amount = sats * 1000;
+				const amount = requestedSats * 1000;
 				const relays = Object.keys(rxNostr.getDefaultRelays({ filter: 'write-all' }));
 				const zapRequest = nip57.makeZapRequest(
 					item === undefined
@@ -70,6 +78,9 @@
 						: { event: item.event, amount, comment, relays }
 				);
 				const zapRequestEvent = await signEvent(zapRequest);
+				if (requestDisplayId !== displayId || !open) {
+					return;
+				}
 				const encoded = encodeURI(JSON.stringify(zapRequestEvent));
 				stage = 'url';
 				detail = {
@@ -78,6 +89,9 @@
 					lud06: metadata?.content?.lud06
 				};
 				const zapUrl = await metadata?.zapUrl();
+				if (requestDisplayId !== displayId || !open) {
+					return;
+				}
 				if (!zapUrl) {
 					throw new Error('Zap URL not found');
 				}
@@ -106,24 +120,35 @@
 				zapInvoice = payment.pr;
 			} catch (error) {
 				console.error('[zap invoice failed]', stage, error, detail);
-				invoiceError = stage;
+				if (requestDisplayId === displayId && open) {
+					invoiceError = stage;
+				}
 				return;
 			}
 
-			$history = [sats, ...$history].slice(0, 100);
+			if (requestDisplayId !== displayId || !open) {
+				return;
+			}
+
+			$history = [requestedSats, ...$history].slice(0, 100);
 			const storage = new WebStorage(localStorage);
 			const walletConnectUri = storage.get('nostr-wallet-connect');
 			if (walletConnectUri !== null && walletConnectUri !== '') {
 				try {
 					const success = await zapWithWalletConnect(walletConnectUri, zapInvoice);
 					if (success) {
-						open = false;
+						if (requestDisplayId === displayId && open) {
+							open = false;
+						}
 						onZapped?.();
 						return;
 					}
 				} catch (error) {
 					console.error('[NWC error]', error);
 				}
+			}
+			if (requestDisplayId !== displayId || !open) {
+				return;
 			}
 			invoice = zapInvoice;
 			onZapped?.();

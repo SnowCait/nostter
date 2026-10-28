@@ -1,5 +1,5 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 // SvelteKit overrides build.cssMinify in its pre config hook, so reapply it afterward.
@@ -22,6 +22,20 @@ export default defineConfig({
 		visualizer({ emitFile: true, template: 'markdown' })
 	],
 	test: {
-		include: ['src/**/*.{test,spec}.{js,ts}']
+		projects: [
+			{
+				extends: true,
+				test: {
+					name: 'node',
+					include: ['src/**/*.{test,spec}.{js,ts}'],
+					exclude: [...configDefaults.exclude, 'src/**/*.dom.test.ts']
+				}
+			},
+			{
+				extends: true,
+				resolve: { conditions: ['browser'] },
+				test: { name: 'dom', environment: 'happy-dom', include: ['src/**/*.dom.test.ts'] }
+			}
+		]
 	}
 });
