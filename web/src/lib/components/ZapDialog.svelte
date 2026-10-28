@@ -281,7 +281,7 @@
 	}
 
 	.help-toggle:hover {
-		background: var(--hover-background-color);
+		background: transparent;
 		color: var(--foreground);
 		opacity: 1;
 	}
