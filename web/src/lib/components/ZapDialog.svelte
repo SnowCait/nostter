@@ -126,7 +126,6 @@
 				}
 			}
 			invoice = zapInvoice;
-			onZapped?.();
 		} finally {
 			sending = false;
 		}

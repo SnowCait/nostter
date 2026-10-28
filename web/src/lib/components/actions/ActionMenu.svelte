@@ -114,8 +114,8 @@
 		</span>
 		<button
 			class="zap"
+			class:zapped
 			class:hidden={!metadata?.canZap}
-			disabled={zapped}
 			onclick={() => zapDialogComponent?.openZapDialog()}
 		>
 			<IconBolt size={iconSize} />
@@ -210,7 +210,7 @@
 		visibility: hidden;
 	}
 
-	.zap:disabled {
+	.zap.zapped {
 		color: #f59f00;
 	}
 </style>
