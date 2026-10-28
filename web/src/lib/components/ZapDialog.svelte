@@ -3,7 +3,7 @@
 	import QRCode from 'qrcode';
 	import IconBolt from '@tabler/icons-svelte-runes/icons/bolt';
 	import IconInfoCircle from '@tabler/icons-svelte-runes/icons/info-circle';
-	import IconQuestionMark from '@tabler/icons-svelte-runes/icons/question-mark';
+	import IconHelpCircle from '@tabler/icons-svelte-runes/icons/help-circle';
 	import { rxNostr } from '$lib/relay-client';
 	import { persistedStore } from '$lib/platform/storage/persisted-store';
 	import { WebStorage } from '$lib/WebStorage';
@@ -165,7 +165,7 @@
 				aria-expanded={helpOpen}
 				onclick={() => (helpOpen = !helpOpen)}
 			>
-				<IconQuestionMark size={20} />
+				<IconHelpCircle size={22} />
 			</button>
 		</div>
 		{#if helpOpen}
@@ -269,6 +269,8 @@
 	.help-toggle {
 		width: 44px;
 		height: 44px;
+		margin-left: auto;
+		flex-shrink: 0;
 		padding: 0;
 		display: inline-flex;
 		align-items: center;
@@ -279,7 +281,7 @@
 	}
 
 	.help-toggle:hover {
-		background: var(--hover-background-color);
+		background: transparent;
 		color: var(--foreground);
 		opacity: 1;
 	}
