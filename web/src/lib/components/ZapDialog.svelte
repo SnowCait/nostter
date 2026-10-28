@@ -27,6 +27,12 @@
 
 	export function openZapDialog() {
 		console.debug('[zap open]');
+		if (!sending) {
+			invoice = '';
+			invoiceError = undefined;
+			comment = '';
+			sats = $history.at(0) ?? 1;
+		}
 		open = true;
 	}
 
@@ -107,6 +113,10 @@
 			} catch (error) {
 				console.error('[zap invoice failed]', stage, error, detail);
 				invoiceError = stage;
+				return;
+			}
+
+			if (!open) {
 				return;
 			}
 
