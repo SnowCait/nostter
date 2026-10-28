@@ -44,10 +44,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 					resolve(packet.event);
 				},
 				complete: () => resolve(null),
-				error: (error) => {
-					console.error('[NWC error]', error);
-					reject(error);
-				}
+				error: reject
 			});
 		nwcRxReq.emit([{ kinds: [23195], authors: [walletPubkey], '#e': [event.id] }]);
 		nwcRxNostr.send(event).subscribe({
