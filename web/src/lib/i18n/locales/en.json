@@ -536,7 +536,15 @@
 	"zap": {
 		"title": "Zap",
 		"message": "Message (optional)",
-		"send": "Zap"
+		"send": "Zap",
+		"errors": {
+			"signing": "Could not create or sign the Zap request. Please try again.",
+			"url": "Could not get the recipient’s Zap payment URL. Please try again.",
+			"network": "Could not connect to the invoice service. Check your connection and try again.",
+			"http": "The invoice service returned an error. Please try again later.",
+			"json": "The invoice service returned an unreadable response. Please try again.",
+			"invalid": "The invoice service did not return a valid invoice. Please try again."
+		}
 	},
 	"timeline": {
 		"update": "Show new posts"

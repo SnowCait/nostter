@@ -38,6 +38,8 @@
 	let invoice = $state('');
 	let open = $state(false);
 	let sending = $state(false);
+	type InvoiceError = 'signing' | 'url' | 'network' | 'http' | 'json' | 'invalid';
+	let invoiceError = $state<InvoiceError>();
 
 	$effect(() => {
 		const counts = new Map<number, number>();
@@ -50,60 +52,84 @@
 	async function zap(e: SubmitEvent) {
 		e.preventDefault();
 
+		if (sending) {
+			return;
+		}
 		sending = true;
-
-		const amount = sats * 1000;
-		const relays = Object.keys(rxNostr.getDefaultRelays({ filter: 'write-all' }));
-		const zapRequest = nip57.makeZapRequest(
-			item === undefined
-				? { pubkey, amount, comment, relays }
-				: { event: item.event, amount, comment, relays }
-		);
-		const zapRequestEvent = await signEvent(zapRequest);
-		console.debug('[zap request]', zapRequestEvent, metadata?.content);
-		const encoded = encodeURI(JSON.stringify(zapRequestEvent));
-
-		const zapUrl = (await metadata?.zapUrl()) ?? null;
-		if (zapUrl === null) {
-			console.error('[zap url not found]', metadata?.content?.lud16);
-			return;
-		}
-		const url = `${zapUrl.href}?amount=${amount}&nostr=${encoded}`;
-		console.debug('[zap url]', url);
-
-		const response = await fetch(url);
-		if (!response.ok) {
-			console.error('[zap failed]', await response.text());
-			return;
-		}
-		const payment = await response.json();
-		const { pr: zapInvoice } = payment;
-		console.debug('[zap invoice]', zapInvoice);
-
-		if (zapInvoice === undefined) {
-			console.error('[zap failed]', payment);
-			return;
-		}
-
-		$history = [sats, ...$history].slice(0, 100);
-
-		const storage = new WebStorage(localStorage);
-		const walletConnectUri = storage.get('nostr-wallet-connect');
-		if (walletConnectUri !== null && walletConnectUri !== '') {
+		invoiceError = undefined;
+		try {
+			let zapInvoice: string;
+			let stage: InvoiceError = 'signing';
+			let detail: unknown;
 			try {
-				const success = await zapWithWalletConnect(walletConnectUri, zapInvoice);
-				if (success) {
-					open = false;
-					onZapped?.();
-					return;
+				const amount = sats * 1000;
+				const relays = Object.keys(rxNostr.getDefaultRelays({ filter: 'write-all' }));
+				const zapRequest = nip57.makeZapRequest(
+					item === undefined
+						? { pubkey, amount, comment, relays }
+						: { event: item.event, amount, comment, relays }
+				);
+				const zapRequestEvent = await signEvent(zapRequest);
+				const encoded = encodeURI(JSON.stringify(zapRequestEvent));
+				stage = 'url';
+				detail = {
+					pubkey,
+					lud16: metadata?.content?.lud16,
+					lud06: metadata?.content?.lud06
+				};
+				const zapUrl = await metadata?.zapUrl();
+				if (!zapUrl) {
+					throw new Error('Zap URL not found');
 				}
+				const endpoint = new URL(zapUrl);
+				endpoint.search = '';
+				endpoint.hash = '';
+				detail = endpoint.href;
+				stage = 'network';
+				const response = await fetch(`${zapUrl.href}?amount=${amount}&nostr=${encoded}`);
+				stage = 'http';
+				if (!response.ok) {
+					detail = {
+						endpoint: detail,
+						status: response.status,
+						body: await response.text()
+					};
+					throw new Error('Invoice endpoint returned an HTTP error');
+				}
+				stage = 'json';
+				const payment = await response.json();
+				stage = 'invalid';
+				detail = { endpoint: detail, response: payment };
+				if (typeof payment?.pr !== 'string' || payment.pr.trim() === '') {
+					throw new Error('Invoice response has no non-empty pr');
+				}
+				zapInvoice = payment.pr;
 			} catch (error) {
-				console.error('[NWC error]', error);
+				console.error('[zap invoice failed]', stage, error, detail);
+				invoiceError = stage;
+				return;
 			}
-		}
 
-		invoice = zapInvoice;
-		onZapped?.();
+			$history = [sats, ...$history].slice(0, 100);
+			const storage = new WebStorage(localStorage);
+			const walletConnectUri = storage.get('nostr-wallet-connect');
+			if (walletConnectUri !== null && walletConnectUri !== '') {
+				try {
+					const success = await zapWithWalletConnect(walletConnectUri, zapInvoice);
+					if (success) {
+						open = false;
+						onZapped?.();
+						return;
+					}
+				} catch (error) {
+					console.error('[NWC error]', error);
+				}
+			}
+			invoice = zapInvoice;
+			onZapped?.();
+		} finally {
+			sending = false;
+		}
 	}
 </script>
 
@@ -125,7 +151,10 @@
 					</article>
 				{/if}
 			</blockquote>
-			<form onsubmit={zap}>
+			<form onsubmit={zap} aria-busy={sending}>
+				{#if invoiceError}
+					<p role="alert">{$_(`zap.errors.${invoiceError}`)}</p>
+				{/if}
 				<div class="sats-input">
 					{#each satsList.slice(0, 5) as value}
 						<button type="button" onclick={() => (sats = value)}>
