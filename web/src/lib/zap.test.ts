@@ -88,7 +88,7 @@ describe('NWC communication lifecycle', () => {
 		const { payment } = await start();
 		expect(client.send).toHaveBeenCalledOnce();
 		respond();
-		await expect(payment).resolves.toBe(true);
+		await expect(payment).resolves.toBe('success');
 		expect(client.dispose).toHaveBeenCalledOnce();
 	});
 
@@ -102,7 +102,7 @@ describe('NWC communication lifecycle', () => {
 		);
 		const { payment } = await start();
 		respond();
-		await expect(payment).resolves.toBe(false);
+		await expect(payment).resolves.toBe('failed');
 		expect(alert).toHaveBeenCalledWith('No route');
 		expect(client.dispose).toHaveBeenCalledOnce();
 	});
@@ -125,7 +125,8 @@ describe('NWC communication lifecycle', () => {
 					sends.next({ ok: false });
 					break;
 			}
-			await expect(payment).resolves.toBe(false);
+			await expect(payment).resolves.toBe(failure === 'send rejected' ? 'failed' : 'unknown');
+			expect(alert).not.toHaveBeenCalled();
 			expect(client.dispose).toHaveBeenCalledOnce();
 		}
 	);
@@ -141,7 +142,7 @@ describe('NWC communication lifecycle', () => {
 			} else {
 				client[stage as 'setDefaultRelays' | 'use' | 'send'].mockImplementation(fail);
 			}
-			await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toBe(false);
+			await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toBe('failed');
 			expect(client.dispose).toHaveBeenCalledOnce();
 		}
 	);
@@ -152,7 +153,7 @@ describe('NWC communication lifecycle', () => {
 		responses.complete();
 		sends.next({ ok: false });
 		vi.advanceTimersByTime(10000);
-		await expect(payment).resolves.toBe(true);
+		await expect(payment).resolves.toBe('success');
 		expect(mocks.decrypt).toHaveBeenCalledOnce();
 		expect(client.dispose).toHaveBeenCalledOnce();
 	});
@@ -164,9 +165,9 @@ describe('NWC communication lifecycle', () => {
 		expect(alert).not.toHaveBeenCalled();
 		vi.advanceTimersByTime(1);
 		respond();
-		await expect(payment).resolves.toBe(false);
+		await expect(payment).resolves.toBe('unknown');
 		expect(mocks.decrypt).not.toHaveBeenCalled();
-		expect(alert).toHaveBeenCalledExactlyOnceWith('wallet.unknown');
+		expect(alert).not.toHaveBeenCalled();
 		expect(vi.getTimerCount()).toBe(0);
 		expect(client.dispose).toHaveBeenCalledOnce();
 	});
@@ -175,7 +176,24 @@ describe('NWC communication lifecycle', () => {
 		mocks.decrypt.mockRejectedValue(new Error('decrypt failed'));
 		const { payment } = await start();
 		respond();
-		await expect(payment).resolves.toBe(false);
+		await expect(payment).resolves.toBe('unknown');
 		expect(client.dispose).toHaveBeenCalledOnce();
 	});
 });
+
+it('classifies request creation failure before sending as failed', async () => {
+	mocks.request.mockRejectedValue(new Error('cannot encrypt'));
+	await expect(zapWithWalletConnect('uri', 'invoice')).resolves.toBe('failed');
+	expect(client.send).not.toHaveBeenCalled();
+});
+it.each(['not JSON', JSON.stringify({ result_type: 'pay_invoice', error: null, result: {} })])(
+	'treats an invalid wallet response as unknown: %s',
+	async (json) => {
+		mocks.decrypt.mockResolvedValue(json);
+		const { payment } = await start();
+		respond();
+		await expect(payment).resolves.toBe('unknown');
+		expect(alert).not.toHaveBeenCalled();
+		expect(client.dispose).toHaveBeenCalledOnce();
+	}
+);

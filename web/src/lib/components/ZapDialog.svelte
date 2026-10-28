@@ -30,6 +30,7 @@
 		if (!sending) {
 			invoice = '';
 			invoiceError = undefined;
+			paymentUnknown = false;
 			comment = '';
 			sats = $history.at(0) ?? 1;
 		}
@@ -44,6 +45,7 @@
 	let invoice = $state('');
 	let open = $state(false);
 	let sending = $state(false);
+	let paymentUnknown = $state(false);
 	type InvoiceError = 'signing' | 'url' | 'network' | 'http' | 'json' | 'invalid';
 	let invoiceError = $state<InvoiceError>();
 
@@ -62,6 +64,7 @@
 			return;
 		}
 		sending = true;
+		paymentUnknown = false;
 		invoiceError = undefined;
 		try {
 			let zapInvoice: string;
@@ -125,14 +128,16 @@
 			const walletConnectUri = storage.get('nostr-wallet-connect');
 			if (walletConnectUri !== null && walletConnectUri !== '') {
 				try {
-					const success = await zapWithWalletConnect(walletConnectUri, zapInvoice);
-					if (success) {
+					const result = await zapWithWalletConnect(walletConnectUri, zapInvoice);
+					if (result === 'success') {
 						open = false;
 						onZapped?.();
 						return;
 					}
+					paymentUnknown = result === 'unknown';
 				} catch (error) {
 					console.error('[NWC error]', error);
+					paymentUnknown = true;
 				}
 			}
 			invoice = zapInvoice;
@@ -184,6 +189,9 @@
 		{:else}
 			{@const url = `lightning:${invoice}`}
 			<section class="lnbc">
+				{#if paymentUnknown}
+					<p role="alert">{$_('zap.paymentUnknown')}</p>
+				{/if}
 				<div>
 					{#await QRCode.toDataURL(url) then dataUrl}
 						<a href={url} target="_blank" rel="noopener noreferrer">
@@ -192,7 +200,9 @@
 					{/await}
 				</div>
 				<div class="text">{invoice}</div>
-				<iframe src={url} title="Lightning" width="0" height="0"></iframe>
+				{#if !paymentUnknown}
+					<iframe src={url} title="Lightning" width="0" height="0"></iframe>
+				{/if}
 			</section>
 		{/if}
 	</article>

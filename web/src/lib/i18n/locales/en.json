@@ -534,6 +534,7 @@
 		"result": "View result"
 	},
 	"zap": {
+		"paymentUnknown": "The wallet payment result could not be confirmed. Your payment may already be complete. Check your wallet history before paying with the QR code.",
 		"title": "Zap",
 		"message": "Message (optional)",
 		"send": "Zap",
