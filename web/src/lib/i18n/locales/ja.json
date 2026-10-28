@@ -542,6 +542,12 @@
 			"http": "Invoice サービスでエラーが発生しました。しばらくしてから再試行してください。",
 			"json": "Invoice サービスの応答を読み取れませんでした。再試行してください。",
 			"invalid": "Invoice サービスから有効な Invoice が返されませんでした。再試行してください。"
+		},
+		"help": {
+			"title": "Zap とは？",
+			"description": "Zap は、Lightning Network を使って、投稿やユーザーにビットコイン（sats）を送る機能です。",
+			"support": "気に入った投稿への感謝や応援の気持ちを、少額の送金で伝えられます。",
+			"toggle": "Zap の説明を表示または非表示"
 		}
 	},
 	"timeline": {
