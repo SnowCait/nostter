@@ -54,7 +54,7 @@ export async function zapWithWalletConnect(uri: string, invoice: string): Promis
 					reject(new Error('NWC request rejected'));
 				}
 			},
-			error: (error) => reject(error)
+			error: reject
 		});
 		const walletEvent = await promise;
 		if (walletEvent === null) {
