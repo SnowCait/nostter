@@ -1,5 +1,7 @@
 name: Notify
 
+permissions: {}
+
 on:
   issues:
     types:
