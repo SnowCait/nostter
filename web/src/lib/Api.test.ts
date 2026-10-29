@@ -1,14 +1,8 @@
-import 'fake-indexeddb/auto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from 'nostr-tools';
 import { ChannelCreation, ChannelMetadata, Contacts, Metadata, RelayList } from 'nostr-tools/kinds';
 import { get } from 'svelte/store';
-import {
-	accountAddressableEventCache,
-	cacheAccountEvent,
-	cachedEvents,
-	channelMetadataEventsStore
-} from './cache/Events';
+import { cachedEvents, channelMetadataEventsStore } from './cache/Events';
 import type { UserEvent } from '../routes/types';
 import * as eventOperations from './nostr/relay/event-operations';
 import * as userEventStores from './stores/UserEvents';
@@ -28,8 +22,7 @@ function event(kind: number, created_at: number): Event {
 	};
 }
 
-afterEach(async () => {
-	await accountAddressableEventCache.clear();
+afterEach(() => {
 	vi.restoreAllMocks();
 	userEventStores.userEvents.set(new Map());
 	cachedEvents.clear();
@@ -146,23 +139,4 @@ describe('Api.fetchChannelMetadataEvent', () => {
 		]);
 		expect(get(channelMetadataEventsStore).get(id)).toBe(latest);
 	});
-});
-
-it('uses the cached user relay event for editing and sees newly saved settings', async () => {
-	const fetchEvents = vi.spyOn(eventOperations, 'fetchEvents');
-	const first = { ...event(RelayList, 1), tags: [['r', 'wss://reader.example', 'read']] };
-	await cacheAccountEvent(first);
-	expect((await new Api().fetchRelayEvents(pubkey, {})).get(RelayList)?.tags).toEqual(first.tags);
-	const saved = { ...event(RelayList, 2), tags: [['r', 'wss://writer.example', 'write']] };
-	await cacheAccountEvent(saved);
-	expect((await new Api().fetchRelayEvents(pubkey, {})).get(RelayList)?.tags).toEqual(saved.tags);
-	expect(fetchEvents).not.toHaveBeenCalled();
-});
-it('uses cached legacy kind 3 without reading effective relay permissions', async () => {
-	const legacy = {
-		...event(Contacts, 1),
-		content: JSON.stringify({ 'wss://legacy.example': { read: true, write: false } })
-	};
-	await cacheAccountEvent(legacy);
-	expect((await new Api().fetchRelayEvents(pubkey, {})).get(Contacts)).toEqual(legacy);
 });

@@ -1,4 +1,4 @@
-import { withReadExclusions } from '$lib/nostr/relay/read-exclusion';
+import '$lib/nostr/relay/read-exclusion';
 import { get } from 'svelte/store';
 import { _, locale, waitLocale } from 'svelte-i18n';
 import { browser } from '$app/environment';
@@ -11,7 +11,7 @@ import type { LayoutLoad } from './$types';
 export const load: LayoutLoad = async ({ url }) => {
 	await initialize();
 	if (browser) {
-		rxNostr.setDefaultRelays(withReadExclusions(applicationRelays(get(locale))));
+		rxNostr.setDefaultRelays(applicationRelays(get(locale)));
 		console.debug('[default relays]', rxNostr.getDefaultRelays());
 	}
 	await waitLocale();

@@ -8,6 +8,15 @@ export function clearReadExclusions(): void {
 	excluded.clear();
 }
 
+export function getRelaysForPublication(): Record<string, RelayEntry> {
+	return Object.fromEntries(
+		Object.entries(rxNostr.getDefaultRelays()).map(([url, relay]) => [
+			url,
+			{ ...relay, read: relay.read || excluded.has(relay.url) }
+		])
+	);
+}
+
 export function withReadExclusions(relays: RelayEntry[]): RelayEntry[] {
 	for (const url of excluded) {
 		if (!rxNostr.getDefaultRelay(url)) {
