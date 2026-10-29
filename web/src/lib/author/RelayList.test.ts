@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from 'nostr-tools';
 import { EMPTY } from 'rxjs';
 
-const { setDefaultRelays, use, cached } = vi.hoisted(() => ({
+const { setDefaultRelays, clearReadExclusions, use, cached } = vi.hoisted(() => ({
 	setDefaultRelays: vi.fn(),
+	clearReadExclusions: vi.fn(),
 	use: vi.fn(),
 	cached: new Map<string, Event>()
 }));
@@ -19,6 +20,8 @@ vi.mock('../timelines/MainTimeline', () => ({
 	tie: <T>(source: T): T => source
 }));
 
+vi.mock('$lib/nostr/relay/read-exclusion', () => ({ clearReadExclusions }));
+
 import { RelayList } from './RelayList';
 
 function event(kind: number, tags: string[][] = [], content = ''): Event {
@@ -27,6 +30,7 @@ function event(kind: number, tags: string[][] = [], content = ''): Event {
 
 beforeEach(() => {
 	setDefaultRelays.mockClear();
+	clearReadExclusions.mockClear();
 	use.mockReset().mockReturnValue(EMPTY);
 	cached.clear();
 });
@@ -61,6 +65,10 @@ describe('RelayList.apply', () => {
 		);
 
 		expect(setDefaultRelays).toHaveBeenCalledOnce();
+		expect(clearReadExclusions).toHaveBeenCalledOnce();
+		expect(clearReadExclusions.mock.invocationCallOrder[0]).toBeLessThan(
+			setDefaultRelays.mock.invocationCallOrder[0]
+		);
 		expect(setDefaultRelays).toHaveBeenCalledWith([
 			{ url: 'wss://both.example', read: true, write: true },
 			{ url: 'wss://read.example', read: true, write: false },
@@ -86,6 +94,10 @@ describe('RelayList.apply', () => {
 		);
 
 		expect(setDefaultRelays).toHaveBeenCalledOnce();
+		expect(clearReadExclusions).toHaveBeenCalledOnce();
+		expect(clearReadExclusions.mock.invocationCallOrder[0]).toBeLessThan(
+			setDefaultRelays.mock.invocationCallOrder[0]
+		);
 		expect(setDefaultRelays).toHaveBeenCalledWith([
 			{ url: 'wss://legacy.example', read: true, write: false }
 		]);
@@ -156,6 +168,7 @@ describe('RelayList.apply', () => {
 		);
 
 		expect(setDefaultRelays).not.toHaveBeenCalled();
+		expect(clearReadExclusions).not.toHaveBeenCalled();
 	});
 });
 

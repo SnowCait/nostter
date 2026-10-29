@@ -5,6 +5,7 @@ import { rxNostr, tie } from '../timelines/MainTimeline';
 import { parseLegacyRelayList } from '../nostr/protocol/nip24';
 import { parseRelayList } from '../nostr/protocol/nip65';
 import { metadataRelays } from '$lib/Constants';
+import { clearReadExclusions } from '$lib/nostr/relay/read-exclusion';
 
 export class RelayList {
 	public static async fetchEvents(pubkey: string): Promise<Map<number, Event>> {
@@ -64,12 +65,14 @@ export class RelayList {
 		const kind3 = eventsMap.get(3);
 		const relayList = parseRelayList(kind10002?.tags ?? []);
 		if (relayList.length > 0) {
+			clearReadExclusions();
 			rxNostr.setDefaultRelays(relayList);
 		} else if (kind3 !== undefined && kind3.content !== '') {
 			const legacyRelays = [...parseLegacyRelayList(kind3.content)].map(
 				([url, { read, write }]) => ({ url, read, write })
 			);
 			if (legacyRelays.length > 0) {
+				clearReadExclusions();
 				rxNostr.setDefaultRelays(legacyRelays);
 			}
 		}
