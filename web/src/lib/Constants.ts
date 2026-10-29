@@ -118,11 +118,6 @@ export const localizedRelays = {
 			url: 'wss://r.kojira.io/',
 			read: true,
 			write: true
-		},
-		{
-			url: 'wss://nrelay-jp.c-stellar.net/',
-			read: true,
-			write: true
 		}
 	]
 };
