@@ -171,8 +171,3 @@ describe('RelayList.fetchEvents', () => {
 		expect(use).toHaveBeenCalledOnce();
 	});
 });
-
-vi.mock('$lib/nostr/relay/read-exclusion', () => ({
-	withReadExclusions: (relays: unknown) => relays,
-	clearReadExclusions: vi.fn()
-}));

@@ -1,19 +1,12 @@
 <script lang="ts">
-	import { withReadExclusions } from '$lib/nostr/relay/read-exclusion';
 	import { isPublicRelayUrl } from '@nostter/nostr-kit';
-	import { _, locale } from 'svelte-i18n';
+	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import type { LayoutData } from '../$types';
 	import { appName } from '$lib/app';
 	import { Api } from '$lib/Api';
-	import {
-		metadataStore,
-		cacheAccountEvent,
-		accountAddressableEventCache
-	} from '$lib/cache/Events';
-	import { applicationRelays } from '$lib/nostr/relay/application-relays';
-	import { get } from 'svelte/store';
+	import { metadataStore } from '$lib/cache/Events';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { developerMode } from '$lib/stores/Preference';
 	import { kinds as Kind } from 'nostr-tools';
@@ -51,21 +44,11 @@
 
 		const api = new Api();
 
-		const cached =
-			pubkey === auth.pubkey
-				? await Promise.all(
-						[Kind.RelayList, Kind.Contacts].map((kind) =>
-							accountAddressableEventCache.get(pubkey, kind)
-						)
-					)
-				: [];
-		const events = cached.some(Boolean)
-			? new Map(cached.flatMap((event) => (event ? [[event.kind, event] as const] : [])))
-			: await api.fetchRelayEvents(pubkey, {
-					relays: data.relays,
-					defaultWriteRelays: pubkey === auth.pubkey,
-					defaultReadRelays: pubkey !== auth.pubkey
-				});
+		const events = await api.fetchRelayEvents(pubkey, {
+			relays: data.relays,
+			defaultWriteRelays: pubkey === auth.pubkey,
+			defaultReadRelays: pubkey !== auth.pubkey
+		});
 		console.log('[relay events]', events);
 		const kind10002 = events.get(Kind.RelayList);
 		const kind3 = events.get(Kind.Contacts);
@@ -78,7 +61,7 @@
 		} else {
 			console.warn('[relay events not found]');
 			if (pubkey === auth.pubkey) {
-				relays = applicationRelays(get(locale)).map((relay) => ({ ...relay }));
+				relays = Object.entries(rxNostr.getDefaultRelays()).map(([, config]) => config);
 			}
 		}
 		if (pubkey !== auth.pubkey) {
@@ -114,7 +97,7 @@
 			throw new Error('Not authenticated');
 		}
 
-		rxNostr.setDefaultRelays(withReadExclusions(relays));
+		rxNostr.setDefaultRelays(relays);
 
 		try {
 			const signer = auth.signer;
@@ -143,7 +126,6 @@
 				created_at: now()
 			});
 			await publishEvent(event);
-			await cacheAccountEvent(event);
 
 			if (saveToKind3) {
 				const contacts = new Contacts(accountPubkey);

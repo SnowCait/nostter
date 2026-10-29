@@ -1,4 +1,3 @@
-import { withReadExclusions } from '$lib/nostr/relay/read-exclusion';
 import { accountAddressableEventCache } from '$lib/cache/Events';
 import { kinds as Kind, type Event } from 'nostr-tools';
 import { createRxBackwardReq, latestEach, uniq } from 'rx-nostr';
@@ -65,13 +64,13 @@ export class RelayList {
 		const kind3 = eventsMap.get(3);
 		const relayList = parseRelayList(kind10002?.tags ?? []);
 		if (relayList.length > 0) {
-			rxNostr.setDefaultRelays(withReadExclusions(relayList));
+			rxNostr.setDefaultRelays(relayList);
 		} else if (kind3 !== undefined && kind3.content !== '') {
 			const legacyRelays = [...parseLegacyRelayList(kind3.content)].map(
 				([url, { read, write }]) => ({ url, read, write })
 			);
 			if (legacyRelays.length > 0) {
-				rxNostr.setDefaultRelays(withReadExclusions(legacyRelays));
+				rxNostr.setDefaultRelays(legacyRelays);
 			}
 		}
 	}

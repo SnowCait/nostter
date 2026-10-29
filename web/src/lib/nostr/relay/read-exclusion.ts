@@ -17,27 +17,6 @@ export function getRelaysForPublication(): Record<string, RelayEntry> {
 	);
 }
 
-export function withReadExclusions(relays: RelayEntry[]): RelayEntry[] {
-	for (const url of excluded) {
-		if (!rxNostr.getDefaultRelay(url)) {
-			excluded.delete(url);
-		}
-	}
-	return relays.map((relay) => {
-		const previousUrl = rxNostr.getDefaultRelay(relay.url)?.url ?? relay.url;
-		const wasExcluded = excluded.delete(previousUrl);
-		const state = rxNostr.getRelayStatus(relay.url)?.connection;
-		if (
-			relay.read &&
-			(wasExcluded || state === 'waiting-for-retrying' || state === 'retrying')
-		) {
-			excluded.add(relay.url);
-			return { ...relay, read: false };
-		}
-		return { ...relay };
-	});
-}
-
 rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 	const relay = rxNostr.getDefaultRelay(from);
 	if (!relay) {

@@ -906,6 +906,5 @@ describe('tryLogin', () => {
 
 vi.mock('$lib/nostr/relay/read-exclusion', () => ({
 	getRelaysForPublication: () => ({}),
-	withReadExclusions: (relays: unknown) => relays,
 	clearReadExclusions: vi.fn()
 }));
