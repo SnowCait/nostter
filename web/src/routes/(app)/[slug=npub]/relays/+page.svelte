@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { defaultRelaySettings } from '$lib/relay-client';
 	import { isPublicRelayUrl } from '@nostter/nostr-kit';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
@@ -7,7 +8,7 @@
 	import { appName } from '$lib/app';
 	import { Api } from '$lib/Api';
 	import { metadataStore } from '$lib/cache/Events';
-	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
+	import { metadataReqEmit } from '$lib/timelines/MainTimeline';
 	import { developerMode } from '$lib/stores/Preference';
 	import { kinds as Kind } from 'nostr-tools';
 	import { now } from 'rx-nostr';
@@ -61,7 +62,7 @@
 		} else {
 			console.warn('[relay events not found]');
 			if (pubkey === auth.pubkey) {
-				relays = Object.entries(rxNostr.getDefaultRelays()).map(([, config]) => config);
+				relays = Object.entries(defaultRelaySettings.get()).map(([, config]) => config);
 			}
 		}
 		if (pubkey !== auth.pubkey) {
@@ -97,7 +98,7 @@
 			throw new Error('Not authenticated');
 		}
 
-		rxNostr.setDefaultRelays(relays);
+		defaultRelaySettings.set(relays);
 
 		try {
 			const signer = auth.signer;

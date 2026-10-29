@@ -171,3 +171,7 @@ describe('RelayList.fetchEvents', () => {
 		expect(use).toHaveBeenCalledOnce();
 	});
 });
+
+vi.mock('$lib/relay-client', () => ({
+	defaultRelaySettings: { set: setDefaultRelays, reset: setDefaultRelays, get: vi.fn(() => ({})) }
+}));

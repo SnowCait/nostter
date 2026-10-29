@@ -1,3 +1,4 @@
+import { defaultRelaySettings } from '$lib/relay-client';
 import { get } from 'svelte/store';
 import { locale } from 'svelte-i18n';
 import { authorProfile } from './stores/Author';
@@ -36,7 +37,7 @@ async function disposeSigner(signer: SigningSigner | undefined): Promise<void> {
 
 export class Login {
 	public async saveBasicInfo(name: string, signer: BasicInfoSigner): Promise<void> {
-		console.debug('[relays]', rxNostr.getDefaultRelays());
+		console.debug('[relays]', defaultRelaySettings.get());
 
 		const pubkey = await signer.getPublicKey();
 		const user = {
@@ -59,7 +60,7 @@ export class Login {
 		const relayListEvent = await signer.signEvent({
 			kind: 10002,
 			content: '',
-			tags: Object.entries(rxNostr.getDefaultRelays()).map(([, { url, read, write }]) => {
+			tags: Object.entries(defaultRelaySettings.get()).map(([, { url, read, write }]) => {
 				const tag = ['r', url];
 				if (read && !write) {
 					tag.push('read');
@@ -201,7 +202,7 @@ export async function resetLoginState(): Promise<void> {
 	resetRegularMute();
 	resetKindMute();
 	pinnedNotes.reset();
-	rxNostr.setDefaultRelays(applicationRelays(get(locale)));
+	defaultRelaySettings.reset(applicationRelays(get(locale)));
 	await disposingSigner;
 }
 

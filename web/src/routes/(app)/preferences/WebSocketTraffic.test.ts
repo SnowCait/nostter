@@ -32,13 +32,11 @@ vi.mock('$lib/platform/browser/websocket-metrics', () => ({
 }));
 
 vi.mock('$lib/relay-client', () => ({
-	rxNostr: {
-		getDefaultRelays: ({ filter }: { filter: string }) =>
-			filter === 'read-all'
-				? Object.fromEntries(
-						mocks.readRelays.map((url) => [url, { url, read: true, write: true }])
-					)
-				: {}
+	defaultRelaySettings: {
+		get: () =>
+			Object.fromEntries(
+				mocks.readRelays.map((url) => [url, { url, read: true, write: true }])
+			)
 	}
 }));
 

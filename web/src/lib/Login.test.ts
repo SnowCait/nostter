@@ -903,3 +903,43 @@ describe('tryLogin', () => {
 		}
 	);
 });
+
+vi.mock('$lib/relay-client', () => ({
+	defaultRelaySettings: { set: setDefaultRelays, reset: setDefaultRelays, get: vi.fn(() => ({})) }
+}));
+
+it('publishes intended read permissions in kind 10002 during temporary exclusion', async () => {
+	const { Subject, EMPTY } = await import('rxjs');
+	const { createDefaultRelaySettings } = await import('./nostr/relay/default-relays');
+	const { defaultRelaySettings } = await import('./relay-client');
+	const { rxNostr } = await import('./timelines/MainTimeline');
+	const { Login } = await import('./Login');
+	const states = new Subject<import('rx-nostr').ConnectionStatePacket>();
+	let effective: import('./nostr/protocol/nip65').RelayEntry[] = [];
+	const settings = createDefaultRelaySettings({
+		setDefaultRelays: (relays: typeof effective) => {
+			effective = relays;
+		},
+		getDefaultRelay: (url: string) => effective.find((relay) => relay.url === url),
+		createConnectionStateObservable: () => states
+	} as unknown as import('rx-nostr').RxNostr);
+	settings.set([{ url: 'wss://reader.example', read: true, write: false }]);
+	states.next({ from: 'wss://reader.example', state: 'waiting-for-retrying' });
+	expect(effective[0].read).toBe(false);
+	vi.mocked(defaultRelaySettings.get).mockImplementation(() => settings.get());
+	vi.mocked(rxNostr.send).mockReturnValue(EMPTY);
+	const signEvent = vi.fn().mockImplementation(async (template) => ({
+		...template,
+		id: 'signed',
+		pubkey: 'a'.repeat(64),
+		sig: ''
+	}));
+	await new Login().saveBasicInfo('Alice', {
+		getPublicKey: async () => 'a'.repeat(64),
+		signEvent
+	});
+	expect(signEvent.mock.calls.find(([event]) => event.kind === 10002)?.[0].tags).toEqual([
+		['r', 'wss://reader.example', 'read']
+	]);
+	vi.mocked(defaultRelaySettings.get).mockReset().mockReturnValue({});
+});
