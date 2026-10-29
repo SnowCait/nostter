@@ -24,15 +24,8 @@
 	let summary = $derived(event?.tags.find(([t]) => t === 'summary')?.at(1) ?? '');
 	let link = $derived(new URL(`https://nostr.com/${data.slug}`));
 
-	afterNavigate(async () => {
+	afterNavigate(() => {
 		console.log('[naddr page]', data);
-
-		await Promise.allSettled(
-			data.relays.map((relay) =>
-				rxNostr.addDefaultRelays([{ url: relay, write: false, read: true }])
-			)
-		);
-		console.log('[naddr relays]', rxNostr.getAllRelayStatus());
 
 		const naddrReq = createRxOneshotReq({
 			filters: [
@@ -45,7 +38,12 @@
 		});
 
 		rxNostr
-			.use(naddrReq)
+			.use(naddrReq, {
+				on: {
+					defaultReadRelays: true,
+					relays: data.relays
+				}
+			})
 			.pipe(
 				tie,
 				uniq(),
