@@ -2,7 +2,7 @@ import { nip19, type Event, kinds as Kind } from 'nostr-tools';
 import { shouldReplaceCurrentEvent } from '@nostter/nostr-protocol';
 import { get } from 'svelte/store';
 import { saveMetadataEvent, userEvents } from './stores/UserEvents';
-import { channelMetadataEventsStore } from './cache/Events';
+import { accountAddressableEventCache, channelMetadataEventsStore } from './cache/Events';
 import { cachedEvents as newCachedEvents } from './cache/Events';
 import { fetchLastEvent } from './RxNostrHelper';
 import { fetchEvents } from './nostr/relay/event-operations';
@@ -13,6 +13,20 @@ export class Api {
 		pubkey: string,
 		on: RxNostrOnParams
 	): Promise<Map<number, Event>> {
+		const cached = await Promise.all(
+			[Kind.RelayList, Kind.Contacts].map((kind) =>
+				accountAddressableEventCache.get(pubkey, kind)
+			)
+		);
+		const relayEvents = new Map<number, Event>();
+		for (const event of cached) {
+			if (event) {
+				relayEvents.set(event.kind, event);
+			}
+		}
+		if (relayEvents.size > 0) {
+			return relayEvents;
+		}
 		const events = await fetchEvents(
 			[
 				{
@@ -23,7 +37,6 @@ export class Api {
 			on
 		);
 		console.debug('[relay events all]', events);
-		const relayEvents = new Map<number, Event>();
 		for (const event of events) {
 			if (!relayEvents.has(event.kind)) {
 				relayEvents.set(event.kind, event);

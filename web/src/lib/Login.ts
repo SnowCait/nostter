@@ -1,3 +1,4 @@
+import { withReadExclusions, clearReadExclusions } from '$lib/nostr/relay/read-exclusion';
 import { get } from 'svelte/store';
 import { locale } from 'svelte-i18n';
 import { authorProfile } from './stores/Author';
@@ -59,7 +60,7 @@ export class Login {
 		const relayListEvent = await signer.signEvent({
 			kind: 10002,
 			content: '',
-			tags: Object.entries(rxNostr.getDefaultRelays()).map(([, { url, read, write }]) => {
+			tags: applicationRelays(get(locale)).map(({ url, read, write }) => {
 				const tag = ['r', url];
 				if (read && !write) {
 					tag.push('read');
@@ -201,7 +202,8 @@ export async function resetLoginState(): Promise<void> {
 	resetRegularMute();
 	resetKindMute();
 	pinnedNotes.reset();
-	rxNostr.setDefaultRelays(applicationRelays(get(locale)));
+	clearReadExclusions();
+	rxNostr.setDefaultRelays(withReadExclusions(applicationRelays(get(locale))));
 	await disposingSigner;
 }
 

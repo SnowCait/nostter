@@ -1,12 +1,15 @@
 <script lang="ts">
+	import { withReadExclusions } from '$lib/nostr/relay/read-exclusion';
 	import { isPublicRelayUrl } from '@nostter/nostr-kit';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import type { LayoutData } from '../$types';
 	import { appName } from '$lib/app';
 	import { Api } from '$lib/Api';
-	import { metadataStore } from '$lib/cache/Events';
+	import { metadataStore, cacheAccountEvent } from '$lib/cache/Events';
+	import { applicationRelays } from '$lib/nostr/relay/application-relays';
+	import { get } from 'svelte/store';
 	import { metadataReqEmit, rxNostr } from '$lib/timelines/MainTimeline';
 	import { developerMode } from '$lib/stores/Preference';
 	import { kinds as Kind } from 'nostr-tools';
@@ -61,7 +64,7 @@
 		} else {
 			console.warn('[relay events not found]');
 			if (pubkey === auth.pubkey) {
-				relays = Object.entries(rxNostr.getDefaultRelays()).map(([, config]) => config);
+				relays = applicationRelays(get(locale)).map((relay) => ({ ...relay }));
 			}
 		}
 		if (pubkey !== auth.pubkey) {
@@ -97,7 +100,7 @@
 			throw new Error('Not authenticated');
 		}
 
-		rxNostr.setDefaultRelays(relays);
+		rxNostr.setDefaultRelays(withReadExclusions(relays));
 
 		try {
 			const signer = auth.signer;
@@ -125,6 +128,7 @@
 					.filter((x) => x.length > 0),
 				created_at: now()
 			});
+			await cacheAccountEvent(event);
 			await publishEvent(event);
 
 			if (saveToKind3) {

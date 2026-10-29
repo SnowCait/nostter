@@ -1,3 +1,4 @@
+import { withReadExclusions, clearReadExclusions } from '$lib/nostr/relay/read-exclusion';
 import { Author } from '$lib/Author';
 import { get } from 'svelte/store';
 import { locale } from 'svelte-i18n';
@@ -35,7 +36,8 @@ export async function prepareAccountInitialization(
 	const muteBaseline = regularMuteRevision();
 	const author = new Author(pubkey);
 
-	rxNostr.setDefaultRelays(applicationRelays(get(locale)));
+	clearReadExclusions();
+	rxNostr.setDefaultRelays(withReadExclusions(applicationRelays(get(locale))));
 	await author.fetchRelays();
 
 	const events = await author.fetchEvents();
