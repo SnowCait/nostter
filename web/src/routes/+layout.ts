@@ -1,3 +1,4 @@
+import '$lib/nostr/relay/read-exclusion';
 import { get } from 'svelte/store';
 import { _, locale, waitLocale } from 'svelte-i18n';
 import { browser } from '$app/environment';

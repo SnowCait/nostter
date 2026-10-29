@@ -903,3 +903,7 @@ describe('tryLogin', () => {
 		}
 	);
 });
+
+vi.mock('$lib/nostr/relay/read-exclusion', () => ({
+	clearReadExclusions: vi.fn()
+}));
