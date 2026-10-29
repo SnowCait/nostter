@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { relayReadExclusion } from '$lib/relay-client';
 	import { _ } from 'svelte-i18n';
 	import { error } from '@sveltejs/kit';
 	import type { Event } from 'nostr-tools';
@@ -29,7 +30,7 @@
 
 		await Promise.allSettled(
 			data.relays.map((relay) =>
-				rxNostr.addDefaultRelays([{ url: relay, write: false, read: true }])
+				relayReadExclusion.add({ url: relay, write: false, read: true })
 			)
 		);
 		console.log('[naddr relays]', rxNostr.getAllRelayStatus());

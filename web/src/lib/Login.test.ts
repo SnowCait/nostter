@@ -903,3 +903,7 @@ describe('tryLogin', () => {
 		}
 	);
 });
+
+vi.mock('$lib/relay-client', () => ({
+	relayReadExclusion: { set: setDefaultRelays, reset: setDefaultRelays }
+}));

@@ -171,3 +171,39 @@ describe('RelayList.fetchEvents', () => {
 		expect(use).toHaveBeenCalledOnce();
 	});
 });
+
+vi.mock('$lib/relay-client', () => ({
+	relayReadExclusion: { set: setDefaultRelays, reset: setDefaultRelays }
+}));
+
+it('keeps cached user relay tags intact while their effective reads are excluded', async () => {
+	const { Subject } = await import('rxjs');
+	const { createRelayReadExclusion } = await import('../nostr/relay/read-exclusion');
+	const states = new Subject<import('rx-nostr').ConnectionStatePacket>();
+	let effective: Record<string, import('../nostr/protocol/nip65').RelayEntry> = {};
+	const exclusion = createRelayReadExclusion({
+		getDefaultRelay: (url: string) => effective[url],
+		getDefaultRelays: () => effective,
+		getRelayStatus: () => ({ connection: 'connected' }),
+		createConnectionStateObservable: () => states,
+		setDefaultRelays: (
+			relays: typeof effective | import('../nostr/protocol/nip65').RelayEntry[]
+		) => {
+			effective = Array.isArray(relays)
+				? Object.fromEntries(relays.map((relay) => [relay.url, relay]))
+				: relays;
+		}
+	} as unknown as import('rx-nostr').RxNostr);
+	setDefaultRelays.mockImplementation(exclusion.set);
+	const pubkey = 'a'.repeat(64);
+	const userEvent = { ...event(10002, [['r', 'wss://reader.example', 'read']]), pubkey };
+	cached.set(`${pubkey}:10002`, userEvent);
+	RelayList.apply(await RelayList.fetchEvents(pubkey));
+	states.next({ from: 'wss://reader.example', state: 'waiting-for-retrying' });
+	expect(effective['wss://reader.example'].read).toBe(false);
+	expect((await RelayList.fetchEvents(pubkey)).get(10002)?.tags).toEqual([
+		['r', 'wss://reader.example', 'read']
+	]);
+	expect(use).not.toHaveBeenCalled();
+	setDefaultRelays.mockReset();
+});
