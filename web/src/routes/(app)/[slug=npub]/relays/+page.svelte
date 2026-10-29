@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { clearReadExclusions } from '$lib/nostr/relay/read-exclusion';
 	import { isPublicRelayUrl } from '@nostter/nostr-kit';
 	import { _ } from 'svelte-i18n';
 	import { afterNavigate } from '$app/navigation';
@@ -97,6 +98,7 @@
 			throw new Error('Not authenticated');
 		}
 
+		clearReadExclusions();
 		rxNostr.setDefaultRelays(relays);
 
 		try {
