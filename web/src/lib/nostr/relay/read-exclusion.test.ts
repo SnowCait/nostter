@@ -23,7 +23,7 @@ vi.mock('$lib/relay-client', async () => {
 	};
 });
 import { rxNostr } from '$lib/relay-client';
-import { clearReadExclusions, getRelaysForPublication } from './read-exclusion';
+import { clearReadExclusions } from './read-exclusion';
 const a = { url: 'wss://a', read: true, write: false };
 function apply(relays: RelayEntry[]) {
 	rxNostr.setDefaultRelays(relays);
@@ -68,10 +68,4 @@ it('ignores write-only, temporary and initial connection states', () => {
 	state('connecting');
 	state('dormant');
 	expect(mocks.config).toBe(config);
-});
-
-it('publishes intended permissions instead of temporary read exclusions', () => {
-	state('waiting-for-retrying');
-	expect(getRelaysForPublication()['wss://a']).toEqual(a);
-	expect(mocks.config['wss://a'].read).toBe(false);
 });
