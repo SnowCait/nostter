@@ -14,7 +14,6 @@ test.afterEach(async ({ page }, testInfo) => {
 		`${testInfo.project.name}-${testInfo.title}.png`
 	);
 	await page.screenshot({ path, fullPage: false, animations: 'disabled' });
-	await testInfo.attach(testInfo.title, { path, contentType: 'image/png' });
 });
 
 test('anonymous-top-page', async ({ page }) => {
