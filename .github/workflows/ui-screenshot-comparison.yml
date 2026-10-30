@@ -1,0 +1,110 @@
+name: UI screenshot comparison
+on:
+  workflow_run:
+    workflows: [Test]
+    types: [completed]
+permissions:
+  contents: read
+concurrency:
+  group: ui-comparison-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+jobs:
+  compare:
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      pr: ${{ steps.runs.outputs.pr }}
+      changed: ${{ steps.result.outputs.changed }}
+      artifact: ${{ steps.upload.outputs.artifact-url }}
+    steps:
+      # Only trusted default-branch code runs here, never the PR ref.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24.x"
+      - run: npm ci
+      - id: runs
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const {owner,repo}=context.repo;
+            const run=context.payload.workflow_run;
+            const prs=await github.paginate(github.rest.pulls.list,{owner,repo,state:'open',head:`${run.head_repository.owner.login}:${run.head_branch}`});
+            const pr=prs.find(p=>p.head.sha===run.head_sha && p.head.repo.id===run.head_repository.id);
+            if(!pr) throw new Error('No current PR for this Test run');
+            const {data}=await github.rest.actions.listWorkflowRuns({owner,repo,workflow_id:'test.yml',branch:'main',event:'push',status:'success',per_page:1});
+            const baseline=data.workflow_runs[0];
+            if(!baseline) throw new Error('No successful main baseline');
+            core.info(`Baseline: ${baseline.head_sha}, run ${baseline.id}`);
+            core.setOutput('baseline',baseline.id);
+            core.setOutput('pr',pr.number);
+      - name: Download existing screenshots
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BASELINE: ${{ steps.runs.outputs.baseline }}
+          CURRENT: ${{ github.event.workflow_run.id }}
+        run: |
+          gh run download "$BASELINE" --name ui-screenshots --dir web/test-results/ui-baseline
+          gh run download "$CURRENT" --name ui-screenshots --dir web/test-results/ui-current
+      - name: Compare saved PNGs with Playwright
+        continue-on-error: true
+        working-directory: web
+        run: npx playwright test --config=playwright.compare.config.ts
+      - id: result
+        name: Read Playwright result
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync, appendFileSync} from 'node:fs';
+          const report=JSON.parse(readFileSync('web/test-results/ui-report.json','utf8'));
+          if(report.errors.length || report.stats.expected + report.stats.unexpected === 0) throw new Error('Comparison unavailable');
+          appendFileSync(process.env.GITHUB_OUTPUT, `changed=${report.stats.unexpected > 0}\n`);
+          JS
+      - id: upload
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ui-screenshot-comparison
+          path: |
+            web/test-results/ui-report/
+            web/test-results/ui-baseline/
+            web/test-results/ui-current/
+  notify:
+    needs: compare
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR: ${{ needs.compare.outputs.pr }}
+          CHANGED: ${{ needs.compare.outputs.changed }}
+          ARTIFACT: ${{ needs.compare.outputs.artifact }}
+        with:
+          script: |
+            const {owner,repo}=context.repo;
+            const source=context.payload.workflow_run;
+            const issue_number=Number(process.env.PR);
+            const pr=(await github.rest.pulls.get({owner,repo,pull_number:issue_number})).data;
+            if(pr.state!=='open'||pr.head.sha!==source.head_sha) return;
+            const runs=await github.paginate(github.rest.actions.listWorkflowRuns,{owner,repo,workflow_id:'test.yml',event:'pull_request',head_sha:source.head_sha});
+            if(runs.some(r=>r.id>source.id || (r.id===source.id && r.run_attempt>source.run_attempt))) return;
+            const marker='<!-- nostter-playwright-ui-comparison -->';
+            const comments=await github.paginate(github.rest.issues.listComments,{owner,repo,issue_number});
+            const existing=comments.find(c=>c.user.login==='github-actions[bot]'&&c.body.startsWith(marker));
+            if(process.env.CHANGED==='false') {
+              if(existing) await github.rest.issues.deleteComment({owner,repo,comment_id:existing.id});
+            } else if(process.env.CHANGED==='true') {
+              const body=`${marker}\nUI screenshot differences detected.\n\n[Download the Playwright report and images](${process.env.ARTIFACT}) (open ui-report/index.html).`;
+              if(existing) await github.rest.issues.updateComment({owner,repo,comment_id:existing.id,body});
+              else await github.rest.issues.createComment({owner,repo,issue_number,body});
+            }
