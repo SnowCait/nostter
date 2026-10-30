@@ -1,0 +1,97 @@
+name: UI screenshot differences
+on:
+  workflow_run:
+    workflows: [Test]
+    types: [completed]
+permissions:
+  contents: read
+concurrency:
+  group: ui-screenshots-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+jobs:
+  compare:
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      pr: ${{ steps.baseline.outputs.pr }}
+      head: ${{ steps.baseline.outputs.head }}
+      sha: ${{ steps.baseline.outputs.sha }}
+      baseline: ${{ steps.baseline.outputs.baseline }}
+      changes: ${{ steps.compare.outputs.changes }}
+      artifact: ${{ steps.upload.outputs.artifact-url }}
+    steps:
+      # workflow_run checks out trusted default-branch code, never the PR ref.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.x'
+      - run: npm ci
+      - id: baseline
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: await require('./.github/scripts/prepare-ui-comparison.cjs')({github,context,core})
+      - name: Download screenshots
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BASELINE: ${{ steps.baseline.outputs.baseline }}
+          CURRENT: ${{ github.event.workflow_run.id }}
+        run: |
+          gh run download "$BASELINE" --name ui-screenshots --dir comparison/before
+          gh run download "$CURRENT" --name ui-screenshots --dir comparison/after
+      - id: compare
+        run: node .github/scripts/ui-screenshots.mjs compare comparison/before comparison/after comparison/diff comparison/changes.json
+      - id: upload
+        if: steps.compare.outputs.changes != '[]'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ui-screenshot-differences
+          path: comparison/
+  notify:
+    needs: compare
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR: ${{ needs.compare.outputs.pr }}
+          HEAD: ${{ needs.compare.outputs.head }}
+          BASE_SHA: ${{ needs.compare.outputs.sha }}
+          BASE_RUN: ${{ needs.compare.outputs.baseline }}
+          CHANGES: ${{ needs.compare.outputs.changes }}
+          ARTIFACT: ${{ needs.compare.outputs.artifact }}
+        with:
+          script: |
+            const {owner,repo}=context.repo;
+            const issue_number=Number(process.env.PR);
+            const pr=(await github.rest.pulls.get({owner,repo,pull_number:issue_number})).data;
+            if(pr.state!=='open'||pr.head.sha!==process.env.HEAD) return;
+            const source=context.payload.workflow_run;
+            const runs=await github.paginate(github.rest.actions.listWorkflowRuns,{owner,repo,workflow_id:'test.yml',event:'pull_request',head_sha:process.env.HEAD});
+            if(runs.some(r=>r.id>source.id || (r.id===source.id && r.run_attempt>source.run_attempt))) return;
+            const marker='<!-- nostter-ui-screenshots -->';
+            const comments=await github.paginate(github.rest.issues.listComments,{owner,repo,issue_number});
+            const existing=comments.find(c=>c.user.login==='github-actions[bot]'&&c.body.startsWith(marker));
+            const changes=JSON.parse(process.env.CHANGES);
+            if(!changes.length) {
+              if(existing) await github.rest.issues.deleteComment({owner,repo,comment_id:existing.id});
+              return;
+            }
+            if(!process.env.ARTIFACT) throw new Error('Missing diff artifact');
+            const files=changes.map(c=>{
+              if(!/^[a-zA-Z0-9_/-]+\.(desktop|mobile)\.png$/.test(c.file)||!['added','deleted','changed'].includes(c.kind)) throw new Error('Invalid comparison result');
+              return `- ${c.file} (${c.kind})`;
+            }).join('\n');
+            const body=`${marker}\nUI screenshot differences\n\n${files}\n\nBaseline: ${process.env.BASE_SHA} ([run ${process.env.BASE_RUN}](https://github.com/${owner}/${repo}/actions/runs/${process.env.BASE_RUN}))\n\n[Before / After / Diff artifact](${process.env.ARTIFACT})`;
+            if(existing) await github.rest.issues.updateComment({owner,repo,comment_id:existing.id,body});
+            else await github.rest.issues.createComment({owner,repo,issue_number,body});

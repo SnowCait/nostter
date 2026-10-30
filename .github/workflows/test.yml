@@ -2,6 +2,11 @@ name: Test
 
 on:
   pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   nostr-kit:
@@ -54,6 +59,7 @@ jobs:
         with:
           node-version: "24.x"
       - run: npm ci
+      - run: node --test .github/scripts/*.test.mjs
       - run: npm test -w web
 
   e2e-test:
@@ -80,6 +86,9 @@ jobs:
       - run: npm run test:e2e -w web
         env:
           E2E_RELAY_URL: ws://127.0.0.1:8080/
+
+      - name: Record screenshot inventory
+        run: node .github/scripts/ui-screenshots.mjs manifest web/test-results/ui-screenshots
 
       - name: Upload UI screenshots
         if: always()
