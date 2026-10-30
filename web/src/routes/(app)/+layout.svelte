@@ -117,11 +117,10 @@
 					const visibleAt = now();
 					if (visibleAt - hiddenAt >= 300) {
 						restoreReadExclusions();
-						for (const relay of Object.values(rxNostr.getDefaultRelays())) {
-							if (
-								relay.read &&
-								rxNostr.getRelayStatus(relay.url)?.connection === 'error'
-							) {
+						for (const relay of Object.values(
+							rxNostr.getDefaultRelays({ filter: 'read-all' })
+						)) {
+							if (rxNostr.getRelayStatus(relay.url)?.connection === 'error') {
 								rxNostr.reconnect(relay.url);
 							}
 						}
