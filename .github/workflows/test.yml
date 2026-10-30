@@ -80,3 +80,10 @@ jobs:
       - run: npm run test:e2e -w web
         env:
           E2E_RELAY_URL: ws://127.0.0.1:8080/
+
+      - name: Upload UI screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ui-screenshots
+          path: web/test-results/ui-screenshots/
