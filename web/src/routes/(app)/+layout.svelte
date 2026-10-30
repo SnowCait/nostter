@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { now } from 'rx-nostr';
+	import { rxNostr } from '$lib/relay-client';
+	import { restoreReadExclusions } from '$lib/nostr/relay/read-exclusion';
 	import { WebStorage } from '$lib/WebStorage';
 	import { timeline as homeTimeline } from '$lib/timelines/HomeTimeline';
 	import Notice from '$lib/components/Notice.svelte';
@@ -113,6 +115,17 @@
 			case 'visible': {
 				if (hiddenAt !== undefined) {
 					const visibleAt = now();
+					if (visibleAt - hiddenAt >= 300) {
+						restoreReadExclusions();
+						for (const relay of Object.values(rxNostr.getDefaultRelays())) {
+							if (
+								relay.read &&
+								rxNostr.getRelayStatus(relay.url)?.connection === 'error'
+							) {
+								rxNostr.reconnect(relay.url);
+							}
+						}
+					}
 					if (visibleAt - hiddenAt > fetchMinutes(auth.followees.length) * 60) {
 						notifiedEventItems.set([]);
 						void fetchLastNotification();

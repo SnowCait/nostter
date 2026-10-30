@@ -23,7 +23,7 @@ vi.mock('$lib/relay-client', async () => {
 	};
 });
 import { rxNostr } from '$lib/relay-client';
-import { clearReadExclusions } from './read-exclusion';
+import { clearReadExclusions, restoreReadExclusions } from './read-exclusion';
 const a = { url: 'wss://a', read: true, write: false };
 function apply(relays: RelayEntry[]) {
 	rxNostr.setDefaultRelays(relays);
@@ -68,4 +68,43 @@ it('ignores write-only, temporary and initial connection states', () => {
 	state('connecting');
 	state('dormant');
 	expect(mocks.config).toBe(config);
+});
+
+it('restores all current exclusions in one update while preserving write permissions', () => {
+	const b = { url: 'wss://b', read: true, write: true };
+	const writeOnly = { url: 'wss://write', read: false, write: true };
+	apply([a, b, writeOnly]);
+	state('waiting-for-retrying');
+	state('waiting-for-retrying', b.url);
+	vi.mocked(rxNostr.setDefaultRelays).mockClear();
+	restoreReadExclusions();
+	expect(mocks.config).toEqual({ [a.url]: a, [b.url]: b, [writeOnly.url]: writeOnly });
+	expect(rxNostr.setDefaultRelays).toHaveBeenCalledTimes(1);
+
+	vi.mocked(rxNostr.setDefaultRelays).mockClear();
+	state('connected');
+	restoreReadExclusions();
+	expect(rxNostr.setDefaultRelays).not.toHaveBeenCalled();
+});
+
+it('does not re-add removed exclusions or retain their tracking after restoration', () => {
+	state('waiting-for-retrying');
+	apply([]);
+	vi.mocked(rxNostr.setDefaultRelays).mockClear();
+	restoreReadExclusions();
+	expect(mocks.config).toEqual({});
+	expect(rxNostr.setDefaultRelays).not.toHaveBeenCalled();
+	apply([{ ...a, read: false }]);
+	state('connected');
+	expect(mocks.config[a.url].read).toBe(false);
+});
+
+it('does not restore exclusions cleared for an account switch', () => {
+	state('waiting-for-retrying');
+	clearReadExclusions();
+	expect(mocks.config[a.url].read).toBe(false);
+	vi.mocked(rxNostr.setDefaultRelays).mockClear();
+	restoreReadExclusions();
+	expect(mocks.config[a.url].read).toBe(false);
+	expect(rxNostr.setDefaultRelays).not.toHaveBeenCalled();
 });
