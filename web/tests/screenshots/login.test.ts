@@ -1,3 +1,4 @@
+import { parse, resolve } from 'node:path';
 import { expect, test } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
@@ -9,10 +10,9 @@ test.afterEach(async ({ page }, testInfo) => {
 	if (testInfo.status !== 'passed') {
 		return;
 	}
-	const path = testInfo.outputPath(
-		'ui-screenshots',
-		`${testInfo.project.name}-${testInfo.title}.png`
-	);
+	const screen = testInfo.project.name.slice('screenshots-'.length);
+	const feature = parse(testInfo.file).name.replace(/\.test$/, '');
+	const path = resolve('ui-screenshots', feature, `${testInfo.title}.${screen}.png`);
 	await page.screenshot({ path, fullPage: false, animations: 'disabled' });
 });
 
