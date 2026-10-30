@@ -8,8 +8,7 @@ const esbuildCssMinifier = {
 	config: () => ({ build: { cssMinify: 'esbuild' as const } })
 };
 
-export default defineConfig(({ mode }) => ({
-	resolve: { conditions: mode === 'test' ? ['browser'] : undefined },
+export default defineConfig({
 	build: {
 		minify: 'esbuild',
 		sourcemap: true
@@ -23,9 +22,6 @@ export default defineConfig(({ mode }) => ({
 		visualizer({ emitFile: true, template: 'markdown' })
 	],
 	test: {
-		environmentOptions: {
-			happyDOM: { settings: { handleDisabledFileLoadingAsSuccess: true } }
-		},
 		include: ['src/**/*.{test,spec}.{js,ts}']
 	}
-}));
+});
