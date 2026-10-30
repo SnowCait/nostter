@@ -88,7 +88,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "quarterly"
+      interval: "monthly"
     cooldown:
       default-days: 14
     groups:
