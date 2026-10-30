@@ -7,6 +7,22 @@ export function clearReadExclusions(): void {
 	excluded.clear();
 }
 
+export function restoreReadExclusions(): void {
+	const relays = rxNostr.getDefaultRelays();
+	let changed = false;
+	for (const url of excluded) {
+		const relay = relays[url];
+		if (relay && !relay.read) {
+			relays[url] = { ...relay, read: true };
+			changed = true;
+		}
+	}
+	excluded.clear();
+	if (changed) {
+		rxNostr.setDefaultRelays(relays);
+	}
+}
+
 rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 	const relay = rxNostr.getDefaultRelay(from);
 	if (!relay) {
