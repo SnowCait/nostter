@@ -12,7 +12,12 @@ test.afterEach(async ({ page }, testInfo) => {
 	}
 	const screen = testInfo.project.name.slice('screenshots-'.length);
 	const feature = parse(testInfo.file).name.replace(/\.test$/, '');
-	const path = resolve('ui-screenshots', feature, `${testInfo.title}.${screen}.png`);
+	const path = resolve(
+		testInfo.project.outputDir,
+		'ui-screenshots',
+		feature,
+		`${testInfo.title}.${screen}.png`
+	);
 	await page.screenshot({ path, fullPage: false, animations: 'disabled' });
 });
 
