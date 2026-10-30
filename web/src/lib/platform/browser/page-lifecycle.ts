@@ -19,14 +19,27 @@ function wasDiscarded(): boolean | undefined {
 	return (document as DiscardableDocument).wasDiscarded;
 }
 
-export function observePageLifecycle(): () => void {
-	const onFreeze = () => log('freeze');
-	const onResume = () => log('resume');
-	const onVisibilityChange = () => log('visibilitychange', document.visibilityState);
-	const onPageHide = (event: PageTransitionEvent) =>
+export function observePageLifecycle(onEvent: (event: Event) => void): () => void {
+	const onFreeze = (event: Event) => {
+		log('freeze');
+		onEvent(event);
+	};
+	const onResume = (event: Event) => {
+		log('resume');
+		onEvent(event);
+	};
+	const onVisibilityChange = (event: Event) => {
+		log('visibilitychange', document.visibilityState);
+		onEvent(event);
+	};
+	const onPageHide = (event: PageTransitionEvent) => {
 		log('pagehide', { persisted: event.persisted });
-	const onPageShow = (event: PageTransitionEvent) =>
+		onEvent(event);
+	};
+	const onPageShow = (event: PageTransitionEvent) => {
 		log('pageshow', { persisted: event.persisted });
+		onEvent(event);
+	};
 
 	log('init', {
 		visibilityState: document.visibilityState,

@@ -101,47 +101,55 @@
 		}, 4500); // 3 times
 	}
 
-	function onVisibilityChange() {
+	function onLifecycleEvent(event: Event) {
 		if (!auth.isAuthenticated) {
 			hiddenAt = undefined;
 			return;
 		}
-
-		switch (document.visibilityState) {
-			case 'hidden': {
-				hiddenAt = now();
-				break;
-			}
-			case 'visible': {
-				if (hiddenAt !== undefined) {
-					const visibleAt = now();
-					if (visibleAt - hiddenAt >= 300) {
-						restoreReadExclusions();
-						for (const relay of Object.values(
-							rxNostr.getDefaultRelays({ filter: 'read-all' })
-						)) {
-							if (rxNostr.getRelayStatus(relay.url)?.connection === 'error') {
-								rxNostr.reconnect(relay.url);
-							}
-						}
-					}
-					if (visibleAt - hiddenAt > fetchMinutes(auth.followees.length) * 60) {
-						notifiedEventItems.set([]);
-						void fetchLastNotification();
-						homeTimeline.clear();
-						homeTimeline.older();
-					} else if (visibleAt > hiddenAt) {
-						homeTimeline.retrieve(visibleAt, hiddenAt);
-					}
+		if (event.type === 'visibilitychange' && document.visibilityState === 'hidden') {
+			hiddenAt = now();
+			return;
+		}
+		const force =
+			event.type === 'resume' ||
+			(event.type === 'pageshow' && (event as PageTransitionEvent).persisted);
+		if (
+			event.type === 'freeze' ||
+			(event.type === 'pagehide' && (event as PageTransitionEvent).persisted)
+		) {
+			hiddenAt ??= now();
+			return;
+		}
+		if (event.type === 'visibilitychange' && document.visibilityState !== 'visible') {
+			return;
+		}
+		const startedAt = hiddenAt;
+		hiddenAt = undefined;
+		if (startedAt === undefined) {
+			return;
+		}
+		const visibleAt = now();
+		if (force || visibleAt - startedAt >= 300) {
+			restoreReadExclusions();
+			for (const relay of Object.values(rxNostr.getDefaultRelays({ filter: 'read-all' }))) {
+				if (rxNostr.getRelayStatus(relay.url)?.connection === 'error') {
+					rxNostr.reconnect(relay.url);
 				}
-				break;
 			}
+		}
+		if (visibleAt - startedAt > fetchMinutes(auth.followees.length) * 60) {
+			notifiedEventItems.set([]);
+			void fetchLastNotification();
+			homeTimeline.clear();
+			homeTimeline.older();
+		} else if (visibleAt > startedAt) {
+			homeTimeline.retrieve(visibleAt, startedAt);
 		}
 	}
 
 	onMount(() => {
 		subscribeSystemTheme();
-		return observePageLifecycle();
+		return observePageLifecycle(onLifecycleEvent);
 	});
 
 	let initialized = false;
@@ -169,7 +177,6 @@
 </script>
 
 <svelte:window onkeydown={keyboardShortcut} />
-<svelte:document onvisibilitychange={onVisibilityChange} />
 
 <svelte:head>
 	<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
