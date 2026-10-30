@@ -41,7 +41,6 @@
 	];
 	let konamiIndex = 0;
 	let hiddenAt: number | undefined;
-	let forceRecovery = false;
 
 	function keyboardShortcut(event: KeyboardEvent) {
 		const element = event.target as HTMLElement;
@@ -105,31 +104,30 @@
 	function onLifecycleEvent(event: Event) {
 		if (!auth.isAuthenticated) {
 			hiddenAt = undefined;
-			forceRecovery = false;
-			return;
-		}
-		if (event.type === 'freeze' || event.type === 'pagehide') {
-			hiddenAt ??= now();
-			// Mark before restoration: visibilitychange can precede resume/pageshow.
-			forceRecovery ||= event.type === 'freeze' || (event as PageTransitionEvent).persisted;
 			return;
 		}
 		if (event.type === 'visibilitychange' && document.visibilityState === 'hidden') {
-			hiddenAt ??= now();
-		}
-		if (hiddenAt === undefined) {
+			hiddenAt = now();
 			return;
 		}
-		forceRecovery ||=
+		const force =
 			event.type === 'resume' ||
 			(event.type === 'pageshow' && (event as PageTransitionEvent).persisted);
-		if (document.visibilityState !== 'visible') {
+		if (
+			event.type === 'freeze' ||
+			(event.type === 'pagehide' && (event as PageTransitionEvent).persisted)
+		) {
+			hiddenAt ??= now();
+			return;
+		}
+		if (event.type === 'visibilitychange' && document.visibilityState !== 'visible') {
 			return;
 		}
 		const startedAt = hiddenAt;
 		hiddenAt = undefined;
-		const force = forceRecovery;
-		forceRecovery = false;
+		if (startedAt === undefined) {
+			return;
+		}
 		const visibleAt = now();
 		if (force || visibleAt - startedAt >= 300) {
 			restoreReadExclusions();
