@@ -165,7 +165,7 @@
 			<Dialog.Content class="card channel-details-panel">
 				<Dialog.Title class="channel-details-a11y">{$_('channel.about')}</Dialog.Title>
 				<Dialog.Description class="channel-details-a11y"
-					>{metadata?.name ?? ''}</Dialog.Description
+					>View the channel description and creator.</Dialog.Description
 				>
 				<div class="details-body">
 					<div class="details-head">
