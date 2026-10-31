@@ -65,9 +65,6 @@
 	<Dialog.Portal>
 		<Dialog.Overlay class="channel-create-overlay" />
 		<Dialog.Content class="card channel-create-panel">
-			<Dialog.Description class="channel-create-a11y"
-				>Enter the channel name, description, and picture.</Dialog.Description
-			>
 			<div class="dialog-content">
 				<Dialog.Title
 					>{#snippet child({ props })}<h2 {...props}>
@@ -127,16 +124,6 @@
 		max-height: calc(100dvh - 2rem);
 		border-radius: var(--radius);
 		cursor: default;
-	}
-	:global(.channel-create-a11y) {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
 	}
 	.dialog-content {
 		margin: 0.5rem;
