@@ -136,8 +136,12 @@ describe('upload filename privacy', () => {
 			for (const [mime, extension] of [
 				['image/jpeg', 'jpg'],
 				['image/png', 'png'],
+				['image/apng', 'apng'],
+				['image/bmp', 'bmp'],
 				['audio/mpeg', 'mp3'],
+				['audio/aac', 'aac'],
 				['video/mp4', 'mp4'],
+				['video/x-msvideo', 'avi'],
 				['', 'bin'],
 				['image/webp', 'webp'],
 				['application/unknown', 'bin']
