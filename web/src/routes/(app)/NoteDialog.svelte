@@ -99,9 +99,6 @@
 			{#snippet child({ props })}
 				<div {...props} hidden={!dialogOpen}>
 					<Dialog.Title class="note-a11y">{$_('post')}</Dialog.Title>
-					<Dialog.Description class="note-a11y"
-						>Write a note, reply, or quote before posting.</Dialog.Description
-					>
 					<div class="dialog-content">
 						<button
 							class="clear close clickable active"

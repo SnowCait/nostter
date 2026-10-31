@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Dialog } from 'bits-ui';
+	import { _ } from 'svelte-i18n';
 	import Img from './Img.svelte';
 	import { IconX } from '@tabler/icons-svelte-runes';
 	import Swiper from 'swiper';
@@ -67,11 +68,8 @@
 		>
 			{#snippet child({ props })}
 				<div {...props} class="media-dialog" hidden={!open}>
-					<Dialog.Title class="media-viewer-a11y">Media viewer</Dialog.Title>
-					<Dialog.Description class="media-viewer-a11y"
-						>View and zoom attached images.</Dialog.Description
-					>
-					<button class="close" onclick={close} aria-label="Close">
+					<Dialog.Title class="media-viewer-a11y">{$_('media.title')}</Dialog.Title>
+					<button class="close" onclick={close} aria-label={$_('editor.close.button')}>
 						<IconX size="2rem" />
 					</button>
 					<div class="swiper swiper-{id}">
@@ -90,9 +88,15 @@
 								</div>
 							{/each}
 						</div>
-						<button type="button" class="swiper-button-prev" aria-label="Previous image"
+						<button
+							type="button"
+							class="swiper-button-prev"
+							aria-label={$_('media.previous_image')}
 						></button>
-						<button type="button" class="swiper-button-next" aria-label="Next image"
+						<button
+							type="button"
+							class="swiper-button-next"
+							aria-label={$_('media.next_image')}
 						></button>
 					</div>
 				</div>
