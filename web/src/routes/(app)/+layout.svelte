@@ -110,9 +110,6 @@
 			hiddenAt = now();
 			return;
 		}
-		const force =
-			event.type === 'resume' ||
-			(event.type === 'pageshow' && (event as PageTransitionEvent).persisted);
 		if (
 			event.type === 'freeze' ||
 			(event.type === 'pagehide' && (event as PageTransitionEvent).persisted)
@@ -129,12 +126,10 @@
 			return;
 		}
 		const visibleAt = now();
-		if (force || visibleAt - startedAt >= 300) {
-			restoreReadExclusions();
-			for (const relay of Object.values(rxNostr.getDefaultRelays({ filter: 'read-all' }))) {
-				if (rxNostr.getRelayStatus(relay.url)?.connection === 'error') {
-					rxNostr.reconnect(relay.url);
-				}
+		restoreReadExclusions();
+		for (const relay of Object.values(rxNostr.getDefaultRelays({ filter: 'read-all' }))) {
+			if (rxNostr.getRelayStatus(relay.url)?.connection === 'error') {
+				rxNostr.reconnect(relay.url);
 			}
 		}
 		if (visibleAt - startedAt > fetchMinutes(auth.followees.length) * 60) {
