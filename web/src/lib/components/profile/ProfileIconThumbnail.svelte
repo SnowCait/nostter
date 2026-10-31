@@ -23,9 +23,6 @@
 		<Dialog.Overlay class="profile-image-overlay" />
 		<Dialog.Content class="profile-image-panel">
 			<Dialog.Title class="profile-image-a11y">{$_('profile.picture')}</Dialog.Title>
-			<Dialog.Description class="profile-image-a11y"
-				>View the full-size profile picture.</Dialog.Description
-			>
 			<ProfileIcon {pubkey} width="auto" height="auto" />
 		</Dialog.Content>
 	</Dialog.Portal>
