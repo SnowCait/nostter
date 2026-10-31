@@ -17,7 +17,7 @@ jobs:
       contents: read
       actions: read
     outputs:
-      changed: ${{ steps.result.outputs.changed }}
+      changed: ${{ steps.playwright.outcome == 'failure' }}
       artifact: ${{ steps.upload.outputs.artifact-url }}
     steps:
       # Only trusted default-branch code runs here, never the PR ref.
@@ -44,18 +44,10 @@ jobs:
           gh run download "$baseline" --name ui-screenshots --dir web/test-results/ui-baseline
           gh run download "$current" --name ui-screenshots --dir web/test-results/ui-current
       - name: Compare saved PNGs with Playwright
+        id: playwright
         continue-on-error: true
         working-directory: web
         run: npx playwright test --config=playwright.compare.config.ts
-      - id: result
-        name: Read Playwright result
-        run: |
-          node --input-type=module <<'JS'
-          import {readFileSync, appendFileSync} from 'node:fs';
-          const report=JSON.parse(readFileSync('web/test-results/ui-report.json','utf8'));
-          if(report.errors.length || report.stats.expected + report.stats.unexpected === 0) throw new Error('Comparison unavailable');
-          appendFileSync(process.env.GITHUB_OUTPUT, `changed=${report.stats.unexpected > 0}\n`);
-          JS
       - id: upload
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
