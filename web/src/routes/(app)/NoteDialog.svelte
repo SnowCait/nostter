@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Dialog } from 'bits-ui';
+	import { tick } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import type * as Nostr from 'nostr-typedef';
@@ -14,7 +16,7 @@
 	let replyTo = $state<EventItem>();
 	let quotes = $state<Nostr.Event[]>([]);
 
-	let dialog = $state<HTMLDialogElement>();
+	let dialogOpen = $state(false);
 	let composer = $state<NoteComposer>();
 
 	export async function open(request: NoteDialogOpenRequest = {}): Promise<void> {
@@ -41,23 +43,12 @@
 			content = request.content;
 		}
 
-		if (dialog === undefined || dialog.open) {
+		if (dialogOpen) {
 			return;
 		}
-		dialog.showModal();
+		dialogOpen = true;
+		await tick();
 		await composer?.focus();
-	}
-
-	function tryClose(e: MouseEvent): void {
-		if (emojiPickerOpen || !dialog?.open) {
-			return;
-		}
-
-		const element = (e.target as Element).closest('.dialog-content');
-		console.debug('[dialog try close]', element, dialog);
-		if (element === null && dialog !== undefined) {
-			closeIfNotEmpty();
-		}
 	}
 
 	function closed(): void {
@@ -74,7 +65,7 @@
 		}
 		const composerHasAttachments = composer?.hasAttachments() ?? false;
 		if ((content === '' && !composerHasAttachments) || confirm($_('editor.close.confirm'))) {
-			dialog?.close();
+			void closeDialog();
 		}
 	}
 
@@ -84,39 +75,87 @@
 	}
 
 	async function closeDialog(): Promise<void> {
-		dialog?.close();
+		closed();
+		dialogOpen = false;
 	}
 </script>
 
-<dialog bind:this={dialog} onclick={tryClose} onclose={closed} oncancel={closeIfNotEmpty}>
-	<div class="dialog-content">
-		<button
-			class="clear close clickable active"
-			onclick={closeIfNotEmpty}
-			disabled={composerBusy}
-			title="{$_('editor.close.button')} (Esc)"
+<Dialog.Root bind:open={dialogOpen}>
+	<Dialog.Portal>
+		<Dialog.Overlay class="note-overlay" />
+		<Dialog.Content
+			class="note-panel"
+			forceMount
+			onOpenAutoFocus={(event) => event.preventDefault()}
+			onEscapeKeydown={closeIfNotEmpty}
+			onInteractOutside={(event) => {
+				if (emojiPickerOpen) {
+					event.preventDefault();
+				} else {
+					closeIfNotEmpty(event);
+				}
+			}}
 		>
-			<IconX />
-		</button>
-		<NoteComposer
-			bind:this={composer}
-			bind:content
-			{replyTo}
-			{quotes}
-			bind:busy={composerBusy}
-			onSent={handleSent}
-			afterPost={closeDialog}
-		/>
-	</div>
-</dialog>
+			{#snippet child({ props })}
+				<div {...props} hidden={!dialogOpen}>
+					<Dialog.Title class="note-a11y">{$_('post')}</Dialog.Title>
+					<div class="dialog-content">
+						<button
+							class="clear close clickable active"
+							onclick={closeIfNotEmpty}
+							disabled={composerBusy}
+							title="{$_('editor.close.button')} (Esc)"
+						>
+							<IconX />
+						</button>
+						<NoteComposer
+							bind:this={composer}
+							bind:content
+							{replyTo}
+							{quotes}
+							bind:busy={composerBusy}
+							onSent={handleSent}
+							afterPost={closeDialog}
+						/>
+					</div>
+				</div>
+			{/snippet}
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
 
 <style>
-	dialog {
+	:global(.note-overlay) {
+		position: fixed;
+		inset: 0;
+		z-index: 1000;
+		background: rgb(0 0 0 / 40%);
+		cursor: default;
+	}
+	:global(.note-a11y) {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	:global(.note-panel) {
+		position: fixed;
+		left: 50%;
+		z-index: 1001;
+		max-height: calc(100dvh - 2rem);
+		cursor: default;
 		border: var(--border);
 		border-radius: var(--radius);
 		max-width: 600px;
-		margin: 1rem auto;
-		z-index: 1;
+		top: 1rem;
+		transform: translateX(-50%);
+		background: var(--surface);
+		color: var(--surface-foreground);
 		width: 100%;
 		overflow: visible;
 	}
@@ -129,7 +168,7 @@
 	}
 
 	@media screen and (max-width: 600px) {
-		dialog {
+		:global(.note-panel) {
 			width: 90%;
 		}
 	}
