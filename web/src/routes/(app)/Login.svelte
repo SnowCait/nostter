@@ -216,9 +216,6 @@
 								<Dialog.Title class="login-a11y"
 									>{$_('login.create_account')}</Dialog.Title
 								>
-								<Dialog.Description class="login-a11y"
-									>Create a Nostr account.</Dialog.Description
-								>
 								<div class="dialog-content">
 									{#if page.url.hostname === 'nostter.vercel.app'}
 										<div>
@@ -296,9 +293,6 @@
 							<Dialog.Overlay class="login-overlay" />
 							<Dialog.Content class="card login-panel">
 								<Dialog.Title class="login-a11y">{$_('login.login')}</Dialog.Title>
-								<Dialog.Description class="login-a11y"
-									>Choose a browser extension, bunker, or key to sign in.</Dialog.Description
-								>
 								<div class="dialog-content">
 									<article class="login-modal-content">
 										<section>
