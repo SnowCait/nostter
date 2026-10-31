@@ -19,7 +19,7 @@
 	import { getListTitle } from '$lib/List';
 	import { getEventAddress } from '$lib/nostr/protocol/event-address';
 	import { clearListTimelineIfActive } from '$lib/timelines/ListTimeline';
-	import ModalDialog from '../ModalDialog.svelte';
+	import { Dialog } from 'bits-ui';
 	import { auth } from '$lib/auth.svelte';
 
 	interface Props {
@@ -113,38 +113,92 @@
 	}
 </script>
 
-<ModalDialog bind:open onclose={save}>
-	<article>
-		<h2>{$_('lists.title')}</h2>
-		<table>
-			<tbody>
-				{#each lists as list}
-					<tr>
-						<td>{getListTitle(list.tags)}</td>
-						{#await contains(getPeopleListCapabilities, pubkey, list)}
-							<td><input type="checkbox" checked={false} disabled /></td>
-						{:then contained}
-							<td>
-								<input
-									type="checkbox"
-									checked={contained}
-									onchange={(e) => toggled(e, list)}
-									disabled={$processing}
-								/>
-							</td>
-						{/await}
-					</tr>
-				{/each}
-				<tr>
-					<td><input type="text" bind:value={title} /></td>
-					<td><button onclick={create}>{$_('lists.create')}</button></td>
-				</tr>
-			</tbody>
-		</table>
-	</article>
-</ModalDialog>
+<Dialog.Root
+	bind:open
+	onOpenChangeComplete={(isOpen) => {
+		if (!isOpen) {
+			void save();
+		}
+	}}
+>
+	<Dialog.Portal>
+		<Dialog.Overlay class="people-list-overlay" />
+		<Dialog.Content class="card people-list-panel">
+			<Dialog.Description class="people-list-a11y"
+				>Choose the lists that should contain this person.</Dialog.Description
+			>
+			<div class="dialog-content">
+				<article>
+					<Dialog.Title
+						>{#snippet child({ props })}<h2 {...props}>
+								{$_('lists.title')}
+							</h2>{/snippet}</Dialog.Title
+					>
+					<table>
+						<tbody>
+							{#each lists as list}
+								<tr>
+									<td>{getListTitle(list.tags)}</td>
+									{#await contains(getPeopleListCapabilities, pubkey, list)}
+										<td><input type="checkbox" checked={false} disabled /></td>
+									{:then contained}
+										<td>
+											<input
+												type="checkbox"
+												checked={contained}
+												onchange={(e) => toggled(e, list)}
+												disabled={$processing}
+											/>
+										</td>
+									{/await}
+								</tr>
+							{/each}
+							<tr>
+								<td><input type="text" bind:value={title} /></td>
+								<td><button onclick={create}>{$_('lists.create')}</button></td>
+							</tr>
+						</tbody>
+					</table>
+				</article>
+			</div>
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
 
 <style>
+	:global(.people-list-overlay) {
+		position: fixed;
+		inset: 0;
+		z-index: 1000;
+		background: rgb(0 0 0 / 40%);
+		cursor: default;
+	}
+	:global(.people-list-panel) {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 1001;
+		width: max-content;
+		max-width: calc(100vw - 2rem);
+		max-height: calc(100dvh - 2rem);
+		border-radius: var(--radius);
+		cursor: default;
+	}
+	:global(.people-list-a11y) {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	.dialog-content {
+		margin: 0.5rem;
+	}
+
 	tr {
 		height: 2rem;
 	}
