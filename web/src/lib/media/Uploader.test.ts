@@ -151,6 +151,7 @@ describe('upload filename privacy', () => {
 				});
 				await getMediaUploader().upload(original);
 				const sent = upload.mock.lastCall![0] as File;
+				expect(sent).toBeInstanceOf(File);
 				expect(sent.name).toBe(`upload.${extension}`);
 				expect(sent.type).toBe(mime);
 				expect(new Uint8Array(await sent.arrayBuffer())).toEqual(
@@ -158,7 +159,11 @@ describe('upload filename privacy', () => {
 				);
 			}
 			await getMediaUploader().upload(new Blob(['crop'], { type: 'image/png' }));
-			expect((upload.mock.lastCall![0] as File).name).toBe('upload.png');
+			const cropped = upload.mock.lastCall![0] as File;
+			expect(cropped).toBeInstanceOf(File);
+			expect(cropped.name).toBe('upload.png');
+			expect(cropped.type).toBe('image/png');
+			expect(await cropped.text()).toBe('crop');
 		}
 	);
 	it('returns the original attachment reference and supports retry after failure', async () => {

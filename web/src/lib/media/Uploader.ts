@@ -8,7 +8,7 @@ import { defaultBlossomServerUrl } from '$lib/Constants';
 import type { Signer } from '$lib/nostr/signing/signer';
 import { Blossom } from './Blossom';
 import { FileStorageServer } from './FileStorageServer';
-import type { Media } from './Media';
+import type { Media, MediaResult } from './Media';
 
 function createMediaUploader(
 	preference: MediaUploaderPreference,
@@ -20,7 +20,7 @@ function createMediaUploader(
 	return new Blossom(new URL(preference.server), signEvent);
 }
 
-export function getMediaUploader(): Media {
+export function getMediaUploader(): { upload(file: Blob): Promise<MediaResult> } {
 	if (auth.pubkey === undefined) {
 		throw new Error('Cannot get media uploader without an authenticated session');
 	}
