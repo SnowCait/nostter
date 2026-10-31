@@ -191,7 +191,7 @@
 			<Dialog.Content class="card profile-crop-panel">
 				<Dialog.Title class="profile-crop-a11y">{$_('profile.picture')}</Dialog.Title>
 				<Dialog.Description class="profile-crop-a11y"
-					>Crop the selected image before uploading it.</Dialog.Description
+					>{$_('media.upload.crop_description')}</Dialog.Description
 				>
 				<div class="dialog-content">
 					<div class="crop">
