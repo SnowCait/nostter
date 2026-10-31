@@ -468,6 +468,7 @@
 			}
 		},
 		"upload": {
+			"crop_description": "Crop the selected image before uploading it.",
 			"failed": "Failed to upload.",
 			"apply": "Apply"
 		}
