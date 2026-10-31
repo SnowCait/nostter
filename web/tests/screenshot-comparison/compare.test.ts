@@ -5,9 +5,7 @@ import { expect, test } from '@playwright/test';
 const baseline = resolve('test-results/ui-baseline');
 const current = resolve('test-results/ui-current');
 const images = (directory: string) =>
-	readdirSync(directory, { recursive: true })
-		.map(String)
-		.filter((file) => file.endsWith('.png'));
+	readdirSync(directory, { recursive: true }).filter((file) => file.endsWith('.png'));
 const before = images(baseline);
 const after = images(current);
 if (!before.length || !after.length) {
