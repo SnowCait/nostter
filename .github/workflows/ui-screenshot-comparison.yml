@@ -16,9 +16,7 @@ jobs:
     permissions:
       contents: read
       actions: read
-      pull-requests: read
     outputs:
-      pr: ${{ steps.runs.outputs.pr }}
       changed: ${{ steps.result.outputs.changed }}
       artifact: ${{ steps.upload.outputs.artifact-url }}
     steps:
@@ -31,26 +29,11 @@ jobs:
           node-version: "24.x"
       - run: npm ci
       - name: Download existing screenshots
-        id: runs
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -o pipefail
-
-          head=$(jq -r '
-            .workflow_run | "\(.head_repository.owner.login):\(.head_branch)"
-          ' "$GITHUB_EVENT_PATH")
-          pr=$(
-            gh api "repos/$GH_REPO/pulls" --method GET --paginate \
-              -f state=open -f head="$head" -f per_page=100 |
-            jq -s --slurpfile event "$GITHUB_EVENT_PATH" '
-              $event[0].workflow_run as $run |
-              add |
-              map(select(.head.sha == $run.head_sha and .head.repo.id == $run.head_repository.id)) |
-              first.number // error("No current PR for this Test run")
-            '
-          )
 
           baseline=$(
             gh run list --workflow test.yml --branch main \
@@ -60,8 +43,6 @@ jobs:
           current=$(jq -r '.workflow_run.id' "$GITHUB_EVENT_PATH")
           gh run download "$baseline" --name ui-screenshots --dir web/test-results/ui-baseline
           gh run download "$current" --name ui-screenshots --dir web/test-results/ui-current
-
-          echo "pr=$pr" >> "$GITHUB_OUTPUT"
       - name: Compare saved PNGs with Playwright
         continue-on-error: true
         working-directory: web
@@ -96,22 +77,31 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          PR: ${{ needs.compare.outputs.pr }}
         run: |
           set -o pipefail
 
-          head=$(jq -r '.workflow_run.head_sha' "$GITHUB_EVENT_PATH")
-          current_head=$(
-            gh api "repos/$GH_REPO/pulls/$PR" \
-              --jq 'select(.state == "open") | .head.sha'
+          head_ref=$(jq -r '
+            .workflow_run | "\(.head_repository.owner.login):\(.head_branch)"
+          ' "$GITHUB_EVENT_PATH")
+          pr=$(
+            gh api "repos/$GH_REPO/pulls" --method GET --paginate \
+              -f state=open -f head="$head_ref" -f per_page=100 |
+            jq -s --slurpfile event "$GITHUB_EVENT_PATH" '
+              $event[0].workflow_run as $run |
+              add |
+              map(select(.head.sha == $run.head_sha and .head.repo.id == $run.head_repository.id)) |
+              first.number // empty
+            '
           )
-          if [ "$current_head" != "$head" ]; then
+
+          if [ -z "$pr" ]; then
             exit 0
           fi
 
+          head_sha=$(jq -r '.workflow_run.head_sha' "$GITHUB_EVENT_PATH")
           has_newer_run=$(
             gh api "repos/$GH_REPO/actions/workflows/test.yml/runs" --method GET --paginate \
-              -f event=pull_request -f head_sha="$head" -f per_page=100 |
+              -f event=pull_request -f head_sha="$head_sha" -f per_page=100 |
             jq -s --slurpfile event "$GITHUB_EVENT_PATH" '
               $event[0].workflow_run as $run |
               any(.[].workflow_runs[];
@@ -124,12 +114,12 @@ jobs:
             exit 0
           fi
 
-          echo "current=true" >> "$GITHUB_OUTPUT"
+          echo "pr=$pr" >> "$GITHUB_OUTPUT"
       - uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
-        if: steps.current.outputs.current == 'true'
+        if: steps.current.outputs.pr != ''
         with:
           header: nostter-playwright-ui-comparison
-          number_force: ${{ needs.compare.outputs.pr }}
+          number_force: ${{ steps.current.outputs.pr }}
           delete: ${{ needs.compare.outputs.changed == 'false' }}
           message: |
             UI screenshot differences detected.
