@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Dialog } from 'bits-ui';
 	import { npubEncode, neventEncode } from 'nostr-tools/nip19';
 	import { _ } from 'svelte-i18n';
 	import { page } from '$app/state';
@@ -39,7 +40,7 @@
 		}
 	});
 
-	let detailsDialog = $state<HTMLDialogElement>();
+	let detailsOpen = $state(false);
 	let brokenImage = $state(false);
 
 	let muted = $derived($muteEventIds.includes(channelId));
@@ -67,104 +68,10 @@
 	}
 </script>
 
-<header>
-	<div class="bar">
-		<div class="identity">
-			<div class="avatar">
-				{#if metadata?.picture && !brokenImage}
-					<img
-						src={metadata.picture}
-						alt=""
-						decoding="async"
-						onerror={() => (brokenImage = true)}
-					/>
-				{:else}
-					<div class="placeholder"><IconMessages size={22} /></div>
-				{/if}
-			</div>
-			<h1>{metadata?.name ?? ''}</h1>
-			{#if hasDetails}
-				<button
-					class="clear details-trigger"
-					title={$_('channel.about')}
-					onclick={() => detailsDialog?.showModal()}
-				>
-					<IconInfoCircle />
-				</button>
-			{/if}
-		</div>
-
-		{#if auth.signer !== undefined}
-			<ChannelStarButton {channelId} />
-		{/if}
-		<button class="clear menu-trigger" title={$_('channel.menu')} use:melt={$trigger}>
-			<IconDots />
-		</button>
-		<div use:melt={$overlay} class="overlay"></div>
-		<div use:melt={$menu} class="menu">
-			{#if navigator.canShare !== undefined}
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div use:melt={$item} onclick={onShare} class="item">
-					<div class="icon"><IconLink size={18} /></div>
-					<div>{$_('actions.share.button')}</div>
-				</div>
-			{:else}
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div use:melt={$item} onclick={() => copy(url)} class="item">
-					<div class="icon"><IconLink size={18} /></div>
-					<div>{$_('actions.copy_url.button')}</div>
-				</div>
-			{/if}
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div use:melt={$item} onclick={() => copy(nevent)} class="item">
-				<div class="icon"><IconClipboard size={18} /></div>
-				<div>{$_('actions.copy_id.button')}</div>
-			</div>
-			{#if auth.signer !== undefined}
-				<div use:melt={$separator} class="separator"></div>
-				{#if muted}
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div
-						use:melt={$item}
-						onclick={() => unmute(getMuteCapabilities(), 'e', channelId)}
-						class="item undo"
-					>
-						<div class="icon"><IconVolumeOff size={18} /></div>
-						<div>{$_('actions.unmute.button')}</div>
-					</div>
-				{:else}
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div
-						use:melt={$item}
-						onclick={() => mute(getMuteCapabilities(), 'e', channelId)}
-						class="item"
-					>
-						<div class="icon"><IconVolumeOff size={18} /></div>
-						<div>{$_('actions.mute.button')}</div>
-					</div>
-				{/if}
-			{/if}
-		</div>
-	</div>
-</header>
-
-{#if hasDetails}
-	<dialog
-		bind:this={detailsDialog}
-		class="details"
-		onclick={(e) => {
-			if (e.target === detailsDialog) {
-				detailsDialog.close();
-			}
-		}}
-	>
-		<div class="details-body">
-			<div class="details-head">
+<Dialog.Root bind:open={detailsOpen}>
+	<header>
+		<div class="bar">
+			<div class="identity">
 				<div class="avatar">
 					{#if metadata?.picture && !brokenImage}
 						<img
@@ -177,21 +84,152 @@
 						<div class="placeholder"><IconMessages size={22} /></div>
 					{/if}
 				</div>
-				<h2>{metadata?.name ?? ''}</h2>
+				<h1>{metadata?.name ?? ''}</h1>
+				{#if hasDetails}
+					<Dialog.Trigger>
+						{#snippet child({ props })}
+							<button
+								{...props}
+								class="clear details-trigger"
+								title={$_('channel.about')}
+							>
+								<IconInfoCircle />
+							</button>
+						{/snippet}
+					</Dialog.Trigger>
+				{/if}
 			</div>
-			{#if creatorPubkey !== undefined}
-				<a class="creator" href="/{npubEncode(creatorPubkey)}">
-					<OnelineProfile pubkey={creatorPubkey} />
-				</a>
+
+			{#if auth.signer !== undefined}
+				<ChannelStarButton {channelId} />
 			{/if}
-			{#if metadata?.about}
-				<div class="about"><Content content={metadata.about} tags={[]} /></div>
-			{/if}
+			<button class="clear menu-trigger" title={$_('channel.menu')} use:melt={$trigger}>
+				<IconDots />
+			</button>
+			<div use:melt={$overlay} class="overlay"></div>
+			<div use:melt={$menu} class="menu">
+				{#if navigator.canShare !== undefined}
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div use:melt={$item} onclick={onShare} class="item">
+						<div class="icon"><IconLink size={18} /></div>
+						<div>{$_('actions.share.button')}</div>
+					</div>
+				{:else}
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div use:melt={$item} onclick={() => copy(url)} class="item">
+						<div class="icon"><IconLink size={18} /></div>
+						<div>{$_('actions.copy_url.button')}</div>
+					</div>
+				{/if}
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div use:melt={$item} onclick={() => copy(nevent)} class="item">
+					<div class="icon"><IconClipboard size={18} /></div>
+					<div>{$_('actions.copy_id.button')}</div>
+				</div>
+				{#if auth.signer !== undefined}
+					<div use:melt={$separator} class="separator"></div>
+					{#if muted}
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div
+							use:melt={$item}
+							onclick={() => unmute(getMuteCapabilities(), 'e', channelId)}
+							class="item undo"
+						>
+							<div class="icon"><IconVolumeOff size={18} /></div>
+							<div>{$_('actions.unmute.button')}</div>
+						</div>
+					{:else}
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div
+							use:melt={$item}
+							onclick={() => mute(getMuteCapabilities(), 'e', channelId)}
+							class="item"
+						>
+							<div class="icon"><IconVolumeOff size={18} /></div>
+							<div>{$_('actions.mute.button')}</div>
+						</div>
+					{/if}
+				{/if}
+			</div>
 		</div>
-	</dialog>
-{/if}
+	</header>
+
+	{#if hasDetails}
+		<Dialog.Portal>
+			<Dialog.Overlay class="channel-details-overlay" />
+			<Dialog.Content class="card channel-details-panel">
+				<Dialog.Title class="channel-details-a11y">{$_('channel.about')}</Dialog.Title>
+				<Dialog.Description class="channel-details-a11y"
+					>{metadata?.name ?? ''}</Dialog.Description
+				>
+				<div class="details-body">
+					<div class="details-head">
+						<div class="avatar">
+							{#if metadata?.picture && !brokenImage}
+								<img
+									src={metadata.picture}
+									alt=""
+									decoding="async"
+									onerror={() => (brokenImage = true)}
+								/>
+							{:else}
+								<div class="placeholder"><IconMessages size={22} /></div>
+							{/if}
+						</div>
+						<h2>{metadata?.name ?? ''}</h2>
+					</div>
+					{#if creatorPubkey !== undefined}
+						<a class="creator" href="/{npubEncode(creatorPubkey)}">
+							<OnelineProfile pubkey={creatorPubkey} />
+						</a>
+					{/if}
+					{#if metadata?.about}
+						<div class="about"><Content content={metadata.about} tags={[]} /></div>
+					{/if}
+				</div>
+			</Dialog.Content>
+		</Dialog.Portal>
+	{/if}
+</Dialog.Root>
 
 <style>
+	:global(.channel-details-overlay) {
+		position: fixed;
+		inset: 0;
+		z-index: 1000;
+		background: rgb(0 0 0 / 40%);
+		cursor: default;
+	}
+	:global(.channel-details-panel) {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 1001;
+		width: max-content;
+		max-width: min(90vw, 28rem);
+		padding: 0;
+		border: var(--default-border);
+		max-height: calc(100dvh - 2rem);
+		border-radius: var(--radius);
+		cursor: default;
+	}
+	:global(.channel-details-a11y) {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
 	header {
 		position: sticky;
 		top: 0;
@@ -260,13 +298,6 @@
 	.menu-trigger {
 		color: var(--accent-gray);
 		flex-shrink: 0;
-	}
-
-	.details {
-		padding: 0;
-		border: var(--default-border);
-		border-radius: var(--radius);
-		max-width: min(90vw, 28rem);
 	}
 
 	.details-body {

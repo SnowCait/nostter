@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Dialog } from 'melt/builders';
+	import { Dialog } from 'bits-ui';
 	import Img from './Img.svelte';
 	import { IconX } from '@tabler/icons-svelte-runes';
 	import Swiper from 'swiper';
@@ -15,26 +15,24 @@
 	const id = $props.id();
 
 	let swiper: Swiper | undefined;
-	const dialog = new Dialog({
-		closeOnOutsideClick: false,
-		onOpenChange: (open) => {
-			if (!open) {
-				return;
-			}
-			if (swiper === undefined) {
-				swiper = new Swiper(`.swiper-${id}`, {
-					zoom: true,
-					modules: [Navigation, Zoom],
-					navigation: {
-						nextEl: '.swiper-button-next',
-						prevEl: '.swiper-button-prev'
-					}
-				});
-			}
-			const index = urls.findIndex((u) => u.href === url.href);
-			swiper.slideTo(index >= 0 ? index : 0, 0);
+	let open = $state(false);
+	function opened(isOpen: boolean): void {
+		if (!isOpen) {
+			return;
 		}
-	});
+		if (swiper === undefined) {
+			swiper = new Swiper(`.swiper-${id}`, {
+				zoom: true,
+				modules: [Navigation, Zoom],
+				navigation: {
+					nextEl: '.swiper-button-next',
+					prevEl: '.swiper-button-prev'
+				}
+			});
+		}
+		const index = urls.findIndex((u) => u.href === url.href);
+		swiper.slideTo(index >= 0 ? index : 0, 0);
+	}
 
 	onDestroy(() => swiper?.destroy());
 
@@ -47,41 +45,90 @@
 		) {
 			return;
 		}
-		dialog.open = false;
+		open = false;
 	}
 </script>
 
-<button class="clear" {...dialog.trigger}>
-	<Img {url} />
-</button>
+<Dialog.Root bind:open onOpenChangeComplete={opened}>
+	<Dialog.Trigger>
+		{#snippet child({ props })}
+			<button {...props} class="clear" aria-label={url.href}>
+				<Img {url} />
+			</button>
+		{/snippet}
+	</Dialog.Trigger>
 
-<dialog {...dialog.content} onclick={close} class="media-dialog" autofocus>
-	<div class="swiper swiper-{id}">
-		<div class="swiper-wrapper">
-			{#each urls as url}
-				<div class="swiper-slide">
-					<div class="swiper-zoom-container">
-						<img
-							src={url.href}
-							alt={url.href}
-							class:single={urls.length === 1}
-							loading="lazy"
-							decoding="async"
-						/>
+	<Dialog.Portal>
+		<Dialog.Overlay class="media-viewer-overlay" />
+		<Dialog.Content
+			forceMount
+			onclick={close}
+			onInteractOutside={(event) => event.preventDefault()}
+		>
+			{#snippet child({ props })}
+				<div {...props} class="media-dialog" hidden={!open}>
+					<Dialog.Title class="media-viewer-a11y">Media viewer</Dialog.Title>
+					<Dialog.Description class="media-viewer-a11y"
+						>View and zoom attached images.</Dialog.Description
+					>
+					<button class="close" onclick={close} aria-label="Close">
+						<IconX size="2rem" />
+					</button>
+					<div class="swiper swiper-{id}">
+						<div class="swiper-wrapper">
+							{#each urls as url}
+								<div class="swiper-slide">
+									<div class="swiper-zoom-container">
+										<img
+											src={url.href}
+											alt={url.href}
+											class:single={urls.length === 1}
+											loading="lazy"
+											decoding="async"
+										/>
+									</div>
+								</div>
+							{/each}
+						</div>
+						<button type="button" class="swiper-button-prev" aria-label="Previous image"
+						></button>
+						<button type="button" class="swiper-button-next" aria-label="Next image"
+						></button>
 					</div>
 				</div>
-			{/each}
-		</div>
-		<div class="swiper-button-prev"></div>
-		<div class="swiper-button-next"></div>
-	</div>
-	<button class="close" onclick={close}>
-		<IconX size="2rem" />
-	</button>
-</dialog>
+			{/snippet}
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
 
 <style>
-	dialog {
+	:global(.media-viewer-overlay) {
+		position: fixed;
+		inset: 0;
+		z-index: 2000;
+		background: rgb(0 0 0 / 90%);
+		cursor: default;
+	}
+	:global(.media-viewer-a11y) {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	.media-dialog {
+		position: fixed;
+		inset: 0;
+		z-index: 2001;
+		margin: 0;
+		padding: 0;
+		border: none;
+		background: transparent;
+		outline: none;
+		cursor: default;
 		--close-button-size: 3rem;
 		--close-button-offset: 0.5rem;
 		--viewer-safe-top: env(safe-area-inset-top, 0px);
@@ -96,6 +143,18 @@
 	.swiper-zoom-container {
 		width: 100%;
 		height: 100%;
+	}
+
+	.swiper-button-prev,
+	.swiper-button-next {
+		background: none;
+		border: none;
+		padding: 0;
+	}
+
+	.swiper-button-prev:hover,
+	.swiper-button-next:hover {
+		opacity: 1;
 	}
 
 	button.close {
