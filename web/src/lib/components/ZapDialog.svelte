@@ -10,7 +10,7 @@
 	import type { Signer } from '$lib/nostr/signing/signer';
 	import { zapWithWalletConnect, type NwcPaymentResult } from '$lib/Zap';
 	import { metadataStore } from '$lib/cache/Events';
-	import ModalDialog from '$lib/components/ModalDialog.svelte';
+	import { Dialog } from 'bits-ui';
 	import { EventItem } from '$lib/Items';
 	import EventComponent from './items/EventComponent.svelte';
 	import ProfileIcon from './profile/ProfileIcon.svelte';
@@ -153,95 +153,141 @@
 	}
 </script>
 
-<ModalDialog bind:open>
-	<article>
-		<div class="title">
-			<span aria-hidden="true"><IconBolt size={20} /></span>
-			<h1>{$_('zap.title')}</h1>
-			<button
-				type="button"
-				class="help-toggle"
-				aria-label={$_('zap.help.toggle')}
-				aria-expanded={helpOpen}
-				onclick={() => (helpOpen = !helpOpen)}
-			>
-				<IconHelpCircle size={22} />
-			</button>
-		</div>
-		{#if helpOpen}
-			<aside class="help">
-				<h2>
-					<span aria-hidden="true"><IconInfoCircle size={18} /></span>
-					{$_('zap.help.title')}
-				</h2>
-				<p>{$_('zap.help.description')}</p>
-				<p>{$_('zap.help.support')}</p>
-			</aside>
-		{/if}
-		{#if invoice === ''}
-			<blockquote>
-				{#if item}
-					<EventComponent {item} readonly={true} />
-				{:else}
-					<article class="profile timeline-item">
-						<div>
-							<ProfileIcon {pubkey} width="48px" height="48px" />
-						</div>
-						<div>
-							<ProfileName {pubkey} />
-						</div>
-					</article>
-				{/if}
-			</blockquote>
-			<form onsubmit={zap} aria-busy={sending}>
-				{#if invoiceError}
-					<p role="alert">{$_(`zap.errors.${invoiceError}`)}</p>
-				{/if}
-				<div class="sats-input">
-					{#each satsList.slice(0, 5) as value}
-						<button type="button" onclick={() => (sats = value)}>
-							{value.toLocaleString()}
+<Dialog.Root bind:open>
+	<Dialog.Portal>
+		<Dialog.Overlay class="zap-overlay" />
+		<Dialog.Content class="card zap-panel">
+			<Dialog.Description class="zap-a11y">{$_('zap.help.description')}</Dialog.Description>
+			<div class="dialog-content">
+				<article>
+					<div class="title">
+						<span aria-hidden="true"><IconBolt size={20} /></span>
+						<Dialog.Title level={1}
+							>{#snippet child({ props })}<h1 {...props}>
+									{$_('zap.title')}
+								</h1>{/snippet}</Dialog.Title
+						>
+						<button
+							type="button"
+							class="help-toggle"
+							aria-label={$_('zap.help.toggle')}
+							aria-expanded={helpOpen}
+							onclick={() => (helpOpen = !helpOpen)}
+						>
+							<IconHelpCircle size={22} />
 						</button>
-					{/each}
-				</div>
-				<div>
-					<input type="number" bind:value={sats} />
-					<span>sats</span>
-				</div>
-				<div>
-					<textarea placeholder={$_('zap.message')} bind:value={comment}></textarea>
-				</div>
-				<input type="submit" value={$_('zap.send')} disabled={sending} />
-			</form>
-		{:else}
-			{@const url = `lightning:${invoice}`}
-			<section class="lnbc">
-				{#if paymentResult?.status === 'unknown'}
-					<p role="alert">{$_('zap.paymentUnknown')}</p>
-				{:else if paymentResult?.status === 'failed'}
-					<p role="alert">
-						{paymentResult.message?.trim()
-							? paymentResult.message
-							: $_('zap.paymentFailed')}
-					</p>
-				{/if}
-				<div>
-					{#await QRCode.toDataURL(url) then dataUrl}
-						<a href={url} target="_blank" rel="noopener noreferrer">
-							<img src={dataUrl} alt="" />
-						</a>
-					{/await}
-				</div>
-				<div class="text">{invoice}</div>
-				{#if paymentResult?.status !== 'unknown'}
-					<iframe src={url} title="Lightning" width="0" height="0"></iframe>
-				{/if}
-			</section>
-		{/if}
-	</article>
-</ModalDialog>
+					</div>
+					{#if helpOpen}
+						<aside class="help">
+							<h2>
+								<span aria-hidden="true"><IconInfoCircle size={18} /></span>
+								{$_('zap.help.title')}
+							</h2>
+							<p>{$_('zap.help.description')}</p>
+							<p>{$_('zap.help.support')}</p>
+						</aside>
+					{/if}
+					{#if invoice === ''}
+						<blockquote>
+							{#if item}
+								<EventComponent {item} readonly={true} />
+							{:else}
+								<article class="profile timeline-item">
+									<div>
+										<ProfileIcon {pubkey} width="48px" height="48px" />
+									</div>
+									<div>
+										<ProfileName {pubkey} />
+									</div>
+								</article>
+							{/if}
+						</blockquote>
+						<form onsubmit={zap} aria-busy={sending}>
+							{#if invoiceError}
+								<p role="alert">{$_(`zap.errors.${invoiceError}`)}</p>
+							{/if}
+							<div class="sats-input">
+								{#each satsList.slice(0, 5) as value}
+									<button type="button" onclick={() => (sats = value)}>
+										{value.toLocaleString()}
+									</button>
+								{/each}
+							</div>
+							<div>
+								<input type="number" bind:value={sats} />
+								<span>sats</span>
+							</div>
+							<div>
+								<textarea placeholder={$_('zap.message')} bind:value={comment}
+								></textarea>
+							</div>
+							<input type="submit" value={$_('zap.send')} disabled={sending} />
+						</form>
+					{:else}
+						{@const url = `lightning:${invoice}`}
+						<section class="lnbc">
+							{#if paymentResult?.status === 'unknown'}
+								<p role="alert">{$_('zap.paymentUnknown')}</p>
+							{:else if paymentResult?.status === 'failed'}
+								<p role="alert">
+									{paymentResult.message?.trim()
+										? paymentResult.message
+										: $_('zap.paymentFailed')}
+								</p>
+							{/if}
+							<div>
+								{#await QRCode.toDataURL(url) then dataUrl}
+									<a href={url} target="_blank" rel="noopener noreferrer">
+										<img src={dataUrl} alt="" />
+									</a>
+								{/await}
+							</div>
+							<div class="text">{invoice}</div>
+							{#if paymentResult?.status !== 'unknown'}
+								<iframe src={url} title="Lightning" width="0" height="0"></iframe>
+							{/if}
+						</section>
+					{/if}
+				</article>
+			</div>
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
 
 <style>
+	:global(.zap-overlay) {
+		position: fixed;
+		inset: 0;
+		z-index: 1000;
+		background: rgb(0 0 0 / 40%);
+		cursor: default;
+	}
+	:global(.zap-panel) {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 1001;
+		width: max-content;
+		max-width: calc(100vw - 2rem);
+		max-height: calc(100dvh - 2rem);
+		border-radius: var(--radius);
+		cursor: default;
+	}
+	:global(.zap-a11y) {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	.dialog-content {
+		margin: 0.5rem;
+	}
+
 	article {
 		margin: 1rem;
 	}
