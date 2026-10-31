@@ -10,7 +10,7 @@
 	import { gotoAfterLogin } from '$lib/post-login-navigation';
 	import { WebStorage } from '$lib/WebStorage';
 	import { setLoginStatus } from '$lib/stores/LoginStatus';
-	import ModalDialog from '$lib/components/ModalDialog.svelte';
+	import { Dialog } from 'bits-ui';
 	import NostterLogo from '$lib/components/logo/NostterLogo.svelte';
 
 	let nostr: Nostr.Nip07.Nostr | undefined = $state();
@@ -115,7 +115,6 @@
 	}
 
 	function createAccount(): void {
-		showCreateAccountDialog = true;
 		const seckey = generateSecretKey();
 		key = nip19.nsecEncode(seckey);
 		console.log('[pubkey]', getPublicKey(seckey));
@@ -142,10 +141,6 @@
 			registering = false;
 			await resetLoginState();
 		}
-	}
-
-	function showLogin(): void {
-		showLoginDialog = true;
 	}
 
 	onMount(async () => {
@@ -209,50 +204,73 @@
 
 			<div class="actions">
 				<section>
-					<button onclick={createAccount}>{$_('login.create_account')}</button>
-					<ModalDialog bind:open={showCreateAccountDialog}>
-						{#if page.url.hostname === 'nostter.vercel.app'}
-							<div>
-								Site has been moved to <a href="https://nostter.app/">
-									https://nostter.app/
-								</a>
-							</div>
-						{:else}
-							<div>
-								<h2>{$_('login.create_account')}</h2>
-								<article>
-									<form method="dialog" onsubmit={register}>
+					<Dialog.Root bind:open={showCreateAccountDialog}>
+						<Dialog.Trigger onclick={createAccount}
+							>{#snippet child({ props })}<button {...props}
+									>{$_('login.create_account')}</button
+								>{/snippet}</Dialog.Trigger
+						>
+						<Dialog.Portal>
+							<Dialog.Overlay class="login-overlay" />
+							<Dialog.Content class="card login-panel">
+								<Dialog.Title class="login-a11y"
+									>{$_('login.create_account')}</Dialog.Title
+								>
+								<Dialog.Description class="login-a11y"
+									>Create a Nostr account.</Dialog.Description
+								>
+								<div class="dialog-content">
+									{#if page.url.hostname === 'nostter.vercel.app'}
 										<div>
-											<input
-												type="text"
-												name="name"
-												placeholder={$_('login.name')}
-												bind:value={name}
-												disabled={registering}
-											/>
+											Site has been moved to <a href="https://nostter.app/">
+												https://nostter.app/
+											</a>
 										</div>
-										<div class="hidden">
-											<input type="password" bind:value={key} readonly />
-										</div>
+									{:else}
 										<div>
-											<button
-												type="submit"
-												class="submit-button"
-												disabled={loginBusy}
-												aria-busy={registering}
-											>
-												{#if registering}
-													<span class="button-spinner" aria-hidden="true"
-													></span>
-												{/if}
-												<span>{$_('login.create')}</span>
-											</button>
+											<h2>{$_('login.create_account')}</h2>
+											<article>
+												<form onsubmit={register}>
+													<div>
+														<input
+															type="text"
+															name="name"
+															placeholder={$_('login.name')}
+															bind:value={name}
+															disabled={registering}
+														/>
+													</div>
+													<div class="hidden">
+														<input
+															type="password"
+															bind:value={key}
+															readonly
+														/>
+													</div>
+													<div>
+														<button
+															type="submit"
+															class="submit-button"
+															disabled={loginBusy}
+															aria-busy={registering}
+														>
+															{#if registering}
+																<span
+																	class="button-spinner"
+																	aria-hidden="true"
+																></span>
+															{/if}
+															<span>{$_('login.create')}</span>
+														</button>
+													</div>
+												</form>
+											</article>
 										</div>
-									</form>
-								</article>
-							</div>
-						{/if}
-					</ModalDialog>
+									{/if}
+								</div>
+							</Dialog.Content>
+						</Dialog.Portal>
+					</Dialog.Root>
 				</section>
 
 				<section>
@@ -268,113 +286,135 @@
 				</div>
 
 				<section>
-					<button class="button-outlined" onclick={showLogin}>{$_('login.login')}</button>
-					<ModalDialog bind:open={showLoginDialog}>
-						<article class="login-modal-content">
-							<section>
-								<p class="login-recommend">{$_('login.recommended')}</p>
-								{#if nostr === undefined}
-									<p>
-										Please install <a
-											href="https://github.com/nostr-protocol/nips/blob/master/07.md#implementation"
-											target="_blank"
-											rel="noopener noreferrer"
-										>
-											Browser Extension
-										</a>
-									</p>
-								{/if}
-								<div>
-									<button
-										onclick={loginWithNip07}
-										class="submit-button"
-										disabled={loginBusy || nostr === undefined}
-										aria-busy={loggingInWith === 'nip07'}
-									>
-										{#if loggingInWith === 'nip07'}
-											<span class="button-spinner" aria-hidden="true"></span>
-										{/if}
-										<span>{$_('login.browser_extension')}</span>
-									</button>
+					<Dialog.Root bind:open={showLoginDialog}>
+						<Dialog.Trigger
+							>{#snippet child({ props })}<button {...props} class="button-outlined"
+									>{$_('login.login')}</button
+								>{/snippet}</Dialog.Trigger
+						>
+						<Dialog.Portal>
+							<Dialog.Overlay class="login-overlay" />
+							<Dialog.Content class="card login-panel">
+								<Dialog.Title class="login-a11y">{$_('login.login')}</Dialog.Title>
+								<Dialog.Description class="login-a11y"
+									>Choose a browser extension, bunker, or key to sign in.</Dialog.Description
+								>
+								<div class="dialog-content">
+									<article class="login-modal-content">
+										<section>
+											<p class="login-recommend">{$_('login.recommended')}</p>
+											{#if nostr === undefined}
+												<p>
+													Please install <a
+														href="https://github.com/nostr-protocol/nips/blob/master/07.md#implementation"
+														target="_blank"
+														rel="noopener noreferrer"
+													>
+														Browser Extension
+													</a>
+												</p>
+											{/if}
+											<div>
+												<button
+													onclick={loginWithNip07}
+													class="submit-button"
+													disabled={loginBusy || nostr === undefined}
+													aria-busy={loggingInWith === 'nip07'}
+												>
+													{#if loggingInWith === 'nip07'}
+														<span
+															class="button-spinner"
+															aria-hidden="true"
+														></span>
+													{/if}
+													<span>{$_('login.browser_extension')}</span>
+												</button>
+											</div>
+										</section>
+
+										<div class="divider-with-message">
+											<div></div>
+											<p>{$_('or')}</p>
+											<div></div>
+										</div>
+
+										<section>
+											<p class="login-recommend">{$_('login.recommended')}</p>
+											<form onsubmit={loginWithNip46}>
+												<div>
+													<input
+														type="text"
+														bind:value={bunker}
+														placeholder="bunker://..."
+														disabled={loggingInWith !== undefined}
+														required
+													/>
+												</div>
+
+												<div>
+													<button
+														type="submit"
+														class="submit-button"
+														disabled={loginBusy}
+														aria-busy={loggingInWith === 'nip46'}
+													>
+														{#if loggingInWith === 'nip46'}
+															<span
+																class="button-spinner"
+																aria-hidden="true"
+															></span>
+														{/if}
+														<span>{$_('login.bunker')}</span>
+													</button>
+												</div>
+											</form>
+											{#if failedToLogin}
+												<p>{$_('login.failed')}</p>
+											{/if}
+										</section>
+
+										<div class="divider-with-message">
+											<div></div>
+											<p>{$_('or')}</p>
+											<div></div>
+										</div>
+
+										<section>
+											<form onsubmit={loginWithKey}>
+												<div>
+													<input
+														type="password"
+														bind:value={key}
+														placeholder="npub or nsec"
+														pattern="^(npub|nsec)1[a-z0-9]+$"
+														disabled={loggingInWith !== undefined}
+														required
+													/>
+												</div>
+
+												<div>
+													<button
+														type="submit"
+														class="submit-button"
+														disabled={loginBusy}
+														aria-busy={loggingInWith === 'key'}
+													>
+														{#if loggingInWith === 'key'}
+															<span
+																class="button-spinner"
+																aria-hidden="true"
+															></span>
+														{/if}
+														<span>{$_('login.key')}</span>
+													</button>
+												</div>
+											</form>
+										</section>
+									</article>
 								</div>
-							</section>
-
-							<div class="divider-with-message">
-								<div></div>
-								<p>{$_('or')}</p>
-								<div></div>
-							</div>
-
-							<section>
-								<p class="login-recommend">{$_('login.recommended')}</p>
-								<form method="dialog" onsubmit={loginWithNip46}>
-									<div>
-										<input
-											type="text"
-											bind:value={bunker}
-											placeholder="bunker://..."
-											disabled={loggingInWith !== undefined}
-											required
-										/>
-									</div>
-
-									<div>
-										<button
-											type="submit"
-											class="submit-button"
-											disabled={loginBusy}
-											aria-busy={loggingInWith === 'nip46'}
-										>
-											{#if loggingInWith === 'nip46'}
-												<span class="button-spinner" aria-hidden="true"
-												></span>
-											{/if}
-											<span>{$_('login.bunker')}</span>
-										</button>
-									</div>
-								</form>
-								{#if failedToLogin}
-									<p>{$_('login.failed')}</p>
-								{/if}
-							</section>
-
-							<div class="divider-with-message">
-								<div></div>
-								<p>{$_('or')}</p>
-								<div></div>
-							</div>
-
-							<section>
-								<form method="dialog" onsubmit={loginWithKey}>
-									<div>
-										<input
-											type="password"
-											bind:value={key}
-											placeholder="npub or nsec"
-											pattern="^(npub|nsec)1[a-z0-9]+$"
-											disabled={loggingInWith !== undefined}
-											required
-										/>
-									</div>
-
-									<div>
-										<button
-											type="submit"
-											class="submit-button"
-											disabled={loginBusy}
-											aria-busy={loggingInWith === 'key'}
-										>
-											{#if loggingInWith === 'key'}
-												<span class="button-spinner" aria-hidden="true"
-												></span>
-											{/if}
-											<span>{$_('login.key')}</span>
-										</button>
-									</div>
-								</form>
-							</section>
-						</article>
-					</ModalDialog>
+							</Dialog.Content>
+						</Dialog.Portal>
+					</Dialog.Root>
 				</section>
 			</div>
 		</div>
@@ -392,6 +432,39 @@
 </footer>
 
 <style>
+	:global(.login-overlay) {
+		position: fixed;
+		inset: 0;
+		z-index: 1000;
+		background: rgb(0 0 0 / 40%);
+		cursor: default;
+	}
+	:global(.login-panel) {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 1001;
+		width: max-content;
+		max-width: calc(100vw - 2rem);
+		max-height: calc(100dvh - 2rem);
+		border-radius: var(--radius);
+		cursor: default;
+	}
+	:global(.login-a11y) {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	.dialog-content {
+		margin: 0.5rem;
+	}
+
 	h2 {
 		font-size: 2rem;
 	}
