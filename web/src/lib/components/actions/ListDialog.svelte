@@ -124,9 +124,7 @@
 	<Dialog.Portal>
 		<Dialog.Overlay class="people-list-overlay" />
 		<Dialog.Content class="card people-list-panel">
-			<Dialog.Description class="people-list-a11y"
-				>Choose the lists that should contain this person.</Dialog.Description
-			>
+			<Dialog.Description class="people-list-a11y">{$_('lists.edit')}</Dialog.Description>
 			<div class="dialog-content">
 				<article>
 					<Dialog.Title
