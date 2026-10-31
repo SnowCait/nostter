@@ -16,7 +16,7 @@ const config: PlaywrightTestConfig = {
 		locale: 'en-US'
 	},
 	projects: [
-		{ name: 'e2e', testIgnore: 'screenshots/**' },
+		{ name: 'e2e', testIgnore: ['screenshots/**', 'screenshot-comparison/**'] },
 		{
 			name: 'screenshots-desktop',
 			testMatch: 'screenshots/**/*.test.ts',

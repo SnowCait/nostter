@@ -2,6 +2,11 @@ name: Test
 
 on:
   pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   nostr-kit:
