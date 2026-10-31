@@ -30,32 +30,38 @@ jobs:
         with:
           node-version: "24.x"
       - run: npm ci
-      - id: runs
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          head=$(jq -r '.workflow_run | "\(.head_repository.owner.login):\(.head_branch)"' "$GITHUB_EVENT_PATH")
-          pr=$(gh api --method GET --paginate "repos/$GH_REPO/pulls" -f state=open -f head="$head" -f per_page=100 |
-            jq -s --slurpfile event "$GITHUB_EVENT_PATH" '
-              $event[0].workflow_run as $run | add |
-              map(select(.head.sha == $run.head_sha and .head.repo.id == $run.head_repository.id)) |
-              first | .number // error("No current PR for this Test run")')
-          baseline=$(gh run list --workflow test.yml --branch main --event push --status success --limit 1 \
-            --json databaseId,headSha --jq '.[0] // error("No successful main baseline")')
-          printf 'Baseline: %s\n' "$baseline"
-          echo "pr=$pr" >> "$GITHUB_OUTPUT"
-          jq -r '"baseline=\(.databaseId)"' <<< "$baseline" >> "$GITHUB_OUTPUT"
       - name: Download existing screenshots
+        id: runs
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          BASELINE: ${{ steps.runs.outputs.baseline }}
-          CURRENT: ${{ github.event.workflow_run.id }}
         run: |
-          gh run download "$BASELINE" --name ui-screenshots --dir web/test-results/ui-baseline
-          gh run download "$CURRENT" --name ui-screenshots --dir web/test-results/ui-current
+          set -o pipefail
+
+          head=$(jq -r '
+            .workflow_run | "\(.head_repository.owner.login):\(.head_branch)"
+          ' "$GITHUB_EVENT_PATH")
+          pr=$(
+            gh api "repos/$GH_REPO/pulls" --method GET --paginate \
+              -f state=open -f head="$head" -f per_page=100 |
+            jq -s --slurpfile event "$GITHUB_EVENT_PATH" '
+              $event[0].workflow_run as $run |
+              add |
+              map(select(.head.sha == $run.head_sha and .head.repo.id == $run.head_repository.id)) |
+              first.number // error("No current PR for this Test run")
+            '
+          )
+
+          baseline=$(
+            gh run list --workflow test.yml --branch main \
+              --event push --status success --limit 1 \
+              --json databaseId --jq '.[0].databaseId // error("No successful main baseline")'
+          )
+          current=$(jq -r '.workflow_run.id' "$GITHUB_EVENT_PATH")
+          gh run download "$baseline" --name ui-screenshots --dir web/test-results/ui-baseline
+          gh run download "$current" --name ui-screenshots --dir web/test-results/ui-current
+
+          echo "pr=$pr" >> "$GITHUB_OUTPUT"
       - name: Compare saved PNGs with Playwright
         continue-on-error: true
         working-directory: web
@@ -87,23 +93,37 @@ jobs:
       pull-requests: write
     steps:
       - id: current
-        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR: ${{ needs.compare.outputs.pr }}
         run: |
-          pr=$(gh api "repos/$GH_REPO/pulls/$PR")
-          jq -e --slurpfile event "$GITHUB_EVENT_PATH" '
-            .state == "open" and .head.sha == $event[0].workflow_run.head_sha
-          ' <<< "$pr" > /dev/null || exit 0
-          head=$(jq -r '.head.sha' <<< "$pr")
-          newer=$(gh api --method GET --paginate "repos/$GH_REPO/actions/workflows/test.yml/runs" \
-            -f event=pull_request -f head_sha="$head" -f per_page=100 |
+          set -o pipefail
+
+          head=$(jq -r '.workflow_run.head_sha' "$GITHUB_EVENT_PATH")
+          current_head=$(
+            gh api "repos/$GH_REPO/pulls/$PR" \
+              --jq 'select(.state == "open") | .head.sha'
+          )
+          if [ "$current_head" != "$head" ]; then
+            exit 0
+          fi
+
+          has_newer_run=$(
+            gh api "repos/$GH_REPO/actions/workflows/test.yml/runs" --method GET --paginate \
+              -f event=pull_request -f head_sha="$head" -f per_page=100 |
             jq -s --slurpfile event "$GITHUB_EVENT_PATH" '
               $event[0].workflow_run as $run |
-              any(.[].workflow_runs[]; .id > $run.id or (.id == $run.id and .run_attempt > $run.run_attempt))')
-          test "$newer" = false || exit 0
+              any(.[].workflow_runs[];
+                .id > $run.id or
+                (.id == $run.id and .run_attempt > $run.run_attempt)
+              )
+            '
+          )
+          if [ "$has_newer_run" = true ]; then
+            exit 0
+          fi
+
           echo "current=true" >> "$GITHUB_OUTPUT"
       - uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         if: steps.current.outputs.current == 'true'
