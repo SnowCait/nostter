@@ -2,6 +2,7 @@
 	import QRCode from 'qrcode';
 	import IconQrcode from '@tabler/icons-svelte-runes/icons/qrcode';
 	import { Dialog } from 'bits-ui';
+	import { _ } from 'svelte-i18n';
 
 	interface Props {
 		identifier: string;
@@ -11,24 +12,19 @@
 
 	let nativeUrl = $derived(`nostr:${identifier}`);
 	let webUrl = $derived(`web+nostr:${identifier}`);
-
-	let open = $state(false);
 </script>
 
-<Dialog.Root bind:open>
+<Dialog.Root>
 	<Dialog.Trigger>
 		{#snippet child({ props })}
-			<button {...props} class="clear" aria-label="QR code"><IconQrcode /></button>
+			<button {...props} class="clear" aria-label={$_('qrcode.title')}><IconQrcode /></button>
 		{/snippet}
 	</Dialog.Trigger>
 
 	<Dialog.Portal>
 		<Dialog.Overlay class="qrcode-overlay" />
 		<Dialog.Content class="card qrcode-panel">
-			<Dialog.Title class="qrcode-a11y">QR code</Dialog.Title>
-			<Dialog.Description class="qrcode-a11y"
-				>Open this Nostr identifier in a native or web app.</Dialog.Description
-			>
+			<Dialog.Title class="qrcode-a11y">{$_('qrcode.title')}</Dialog.Title>
 			<div class="dialog-content">
 				<article>
 					<section>

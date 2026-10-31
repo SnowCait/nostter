@@ -492,6 +492,7 @@
 		"caution": "Caution"
 	},
 	"qrcode": {
+		"title": "QR code",
 		"scan": "Load profile from QR code"
 	},
 	"profile": {
