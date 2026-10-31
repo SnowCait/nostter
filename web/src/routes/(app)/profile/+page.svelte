@@ -11,7 +11,7 @@
 	import { appName } from '$lib/app';
 	import { authorProfile, metadataEvent } from '$lib/stores/Author';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
-	import ModalDialog from '$lib/components/ModalDialog.svelte';
+	import { Dialog } from 'bits-ui';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { storeMetadata } from '$lib/cache/Events';
 	import { auth } from '$lib/auth.svelte';
@@ -178,15 +178,38 @@
 <h1>{$_('pages.profile_edit')}</h1>
 
 {#if $authorProfile}
-	<ModalDialog bind:open onclose={close}>
-		<div class="crop">
-			<Cropper image={url} aspect={1} maxZoom={10} oncropcomplete={onCropComplete} />
-		</div>
+	<Dialog.Root
+		bind:open
+		onOpenChangeComplete={(isOpen) => {
+			if (!isOpen) {
+				close();
+			}
+		}}
+	>
+		<Dialog.Portal>
+			<Dialog.Overlay class="profile-crop-overlay" />
+			<Dialog.Content class="card profile-crop-panel">
+				<Dialog.Title class="profile-crop-a11y">{$_('profile.picture')}</Dialog.Title>
+				<Dialog.Description class="profile-crop-a11y"
+					>Crop the selected image before uploading it.</Dialog.Description
+				>
+				<div class="dialog-content">
+					<div class="crop">
+						<Cropper
+							image={url}
+							aspect={1}
+							maxZoom={10}
+							oncropcomplete={onCropComplete}
+						/>
+					</div>
 
-		<form class="apply" onsubmit={applyCrop}>
-			<input type="submit" value={$_('media.upload.apply')} />
-		</form>
-	</ModalDialog>
+					<form class="apply" onsubmit={applyCrop}>
+						<input type="submit" value={$_('media.upload.apply')} />
+					</form>
+				</div>
+			</Dialog.Content>
+		</Dialog.Portal>
+	</Dialog.Root>
 
 	<form class="card" onsubmit={save}>
 		<div class="banner">
@@ -272,6 +295,39 @@
 {/if}
 
 <style>
+	:global(.profile-crop-overlay) {
+		position: fixed;
+		inset: 0;
+		z-index: 1000;
+		background: rgb(0 0 0 / 40%);
+		cursor: default;
+	}
+	:global(.profile-crop-panel) {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 1001;
+		width: max-content;
+		max-width: calc(100vw - 2rem);
+		max-height: calc(100dvh - 2rem);
+		border-radius: var(--radius);
+		cursor: default;
+	}
+	:global(.profile-crop-a11y) {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	.dialog-content {
+		margin: 0.5rem;
+	}
+
 	div {
 		margin-bottom: 1rem;
 	}
