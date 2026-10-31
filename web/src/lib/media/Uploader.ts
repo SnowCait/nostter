@@ -8,7 +8,7 @@ import { defaultBlossomServerUrl } from '$lib/Constants';
 import type { Signer } from '$lib/nostr/signing/signer';
 import { Blossom } from './Blossom';
 import { FileStorageServer } from './FileStorageServer';
-import type { Media } from './Media';
+import type { Media, MediaResult } from './Media';
 
 function createMediaUploader(
 	preference: MediaUploaderPreference,
@@ -20,7 +20,7 @@ function createMediaUploader(
 	return new Blossom(new URL(preference.server), signEvent);
 }
 
-export function getMediaUploader(): Media {
+export function getMediaUploader(): { upload(file: Blob): Promise<MediaResult> } {
 	if (auth.pubkey === undefined) {
 		throw new Error('Cannot get media uploader without an authenticated session');
 	}
@@ -32,7 +32,40 @@ export function getMediaUploader(): Media {
 		type: 'blossom',
 		server: defaultBlossomServerUrl
 	};
-	return createMediaUploader(preference, (template) => signer.signEvent(template));
+	const uploader = createMediaUploader(preference, (template) => signer.signEvent(template));
+	return {
+		upload: (file) => {
+			const extensions: Record<string, string> = {
+				'image/jpeg': 'jpg',
+				'image/png': 'png',
+				'image/apng': 'apng',
+				'image/bmp': 'bmp',
+				'image/gif': 'gif',
+				'image/webp': 'webp',
+				'image/avif': 'avif',
+				'image/heic': 'heic',
+				'image/heif': 'heif',
+				'image/svg+xml': 'svg',
+				'audio/mpeg': 'mp3',
+				'audio/aac': 'aac',
+				'audio/mp4': 'm4a',
+				'audio/ogg': 'ogg',
+				'audio/opus': 'opus',
+				'audio/wav': 'wav',
+				'audio/x-wav': 'wav',
+				'audio/webm': 'webm',
+				'audio/flac': 'flac',
+				'video/mp4': 'mp4',
+				'video/x-msvideo': 'avi',
+				'video/webm': 'webm',
+				'video/ogg': 'ogv',
+				'video/quicktime': 'mov',
+				'video/x-matroska': 'mkv'
+			};
+			const extension = extensions[file.type] ?? 'bin';
+			return uploader.upload(new File([file], `upload.${extension}`, { type: file.type }));
+		}
+	};
 }
 
 export async function uploadFiles(

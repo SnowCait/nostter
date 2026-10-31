@@ -23,7 +23,7 @@
 	let open = $state(false);
 	let url = $state('');
 	let pixels: Pixels | undefined;
-	let complete: (value: File | PromiseLike<File | undefined> | undefined) => void;
+	let complete: (value: Blob | PromiseLike<Blob | undefined> | undefined) => void;
 
 	$effect(() => {
 		if (auth.isReady && auth.pubkey === undefined) {
@@ -31,7 +31,7 @@
 		}
 	});
 
-	async function crop(file: File): Promise<File | undefined> {
+	async function crop(file: File): Promise<Blob | undefined> {
 		console.debug('[profile picture crop]', file);
 		return new Promise((resolve) => {
 			complete = resolve;
@@ -71,7 +71,7 @@
 			canvas.height = pixels.height;
 			ctx.putImageData(data, 0, 0);
 			ctx.canvas.toBlob((file) => {
-				complete(file as File);
+				complete(file ?? undefined);
 				open = false;
 			});
 		});
