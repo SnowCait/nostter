@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AccountLocalPreferences } from '$lib/preferences/AccountLocalPreferences';
 
-const { preferences, blossomConstructor, fileStorageConstructor, signEvent, session } = vi.hoisted(
-	() => ({
+const { preferences, blossomConstructor, fileStorageConstructor, signEvent, session, upload } =
+	vi.hoisted(() => ({
 		preferences: (() => {
 			let value: AccountLocalPreferences = {};
 			return {
@@ -18,9 +18,9 @@ const { preferences, blossomConstructor, fileStorageConstructor, signEvent, sess
 		blossomConstructor: vi.fn(),
 		fileStorageConstructor: vi.fn(),
 		signEvent: vi.fn(),
+		upload: vi.fn(),
 		session: { signer: undefined as { signEvent: () => Promise<unknown> } | undefined }
-	})
-);
+	}));
 
 vi.mock('$lib/preferences/AccountLocalPreferences', () => ({
 	getAccountLocalPreferences: () => preferences
@@ -30,6 +30,7 @@ vi.mock('./Blossom', () => ({
 		constructor(server: URL, signingCapability: unknown) {
 			blossomConstructor(server, signingCapability);
 		}
+		upload = upload;
 	}
 }));
 vi.mock('$lib/Constants', () => ({
@@ -40,6 +41,7 @@ vi.mock('./FileStorageServer', () => ({
 		constructor(server: string, signingCapability: unknown) {
 			fileStorageConstructor(server, signingCapability);
 		}
+		upload = upload;
 	}
 }));
 vi.mock('$lib/auth.svelte', () => ({
@@ -51,7 +53,7 @@ vi.mock('$lib/auth.svelte', () => ({
 	}
 }));
 
-import { getMediaUploader } from './Uploader';
+import { getMediaUploader, uploadFiles } from './Uploader';
 
 describe('getMediaUploader', () => {
 	beforeEach(() => {
@@ -118,5 +120,49 @@ describe('getMediaUploader', () => {
 		session.signer = undefined;
 
 		expect(() => getMediaUploader()).toThrow('without a signing session');
+	});
+});
+
+describe('upload filename privacy', () => {
+	beforeEach(() => {
+		session.signer = { signEvent };
+		upload.mockReset();
+		upload.mockResolvedValue({ url: 'https://media.example/file', data: {} });
+	});
+	it.each(['blossom', 'nip96'] as const)(
+		'sanitizes files sent through %s, preserving bytes and MIME',
+		async (type) => {
+			preferences.set({ mediaUploader: { type, server: 'https://upload.example' } });
+			for (const [mime, extension] of [
+				['image/jpeg', 'jpg'],
+				['image/png', 'png'],
+				['audio/mpeg', 'mp3'],
+				['video/mp4', 'mp4'],
+				['', 'bin'],
+				['image/webp', 'webp'],
+				['application/unknown', 'bin']
+			]) {
+				const original = new File([new Uint8Array([0, 17, 255])], 'Alice-private.png', {
+					type: mime
+				});
+				await getMediaUploader().upload(original);
+				const sent = upload.mock.lastCall![0] as File;
+				expect(sent.name).toBe(`upload.${extension}`);
+				expect(sent.type).toBe(mime);
+				expect(new Uint8Array(await sent.arrayBuffer())).toEqual(
+					new Uint8Array([0, 17, 255])
+				);
+			}
+			await getMediaUploader().upload(new Blob(['crop'], { type: 'image/png' }));
+			expect((upload.mock.lastCall![0] as File).name).toBe('upload.png');
+		}
+	);
+	it('returns the original attachment reference and supports retry after failure', async () => {
+		preferences.set({ mediaUploader: { type: 'blossom', server: 'https://upload.example' } });
+		const file = new File(['x'], 'Alice.png', { type: 'image/png' });
+		upload.mockRejectedValueOnce(new Error('offline'));
+		expect(await uploadFiles([file])).toEqual([{ file, url: undefined }]);
+		expect(await uploadFiles([file])).toEqual([{ file, url: 'https://media.example/file' }]);
+		expect(upload.mock.calls.map(([sent]) => sent.name)).toEqual(['upload.png', 'upload.png']);
 	});
 });

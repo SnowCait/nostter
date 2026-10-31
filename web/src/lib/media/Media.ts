@@ -1,5 +1,5 @@
 export interface Media {
-	upload(file: File): Promise<MediaResult>;
+	upload(file: Blob): Promise<MediaResult>;
 }
 
 export type MediaResult = {
