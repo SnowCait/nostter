@@ -27,7 +27,7 @@
 		"@types/qrcode": "^1.5.6",
 		"@types/twitter-text": "^3.1.10",
 		"esbuild": "^0.28.2",
-		"eslint-plugin-svelte": "^3.23.0",
+		"eslint-plugin-svelte": "^3.23.1",
 		"fake-indexeddb": "^6.2.5",
 		"html5-qrcode": "^2.3.8",
 		"nostr-typedef": "^0.13.0",
