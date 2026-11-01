@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isHttpUrl, isSimplexSmpUrl } from './url';
+import { isAllowedLinkScheme, isHttpUrl, isSimplexSmpUrl } from './url';
 
 describe('isHttpUrl', () => {
 	it.each([
@@ -23,5 +23,23 @@ describe('isSimplexSmpUrl', () => {
 		['SMP hostname without a number', 'https://smp.simplex.im', false]
 	])('identifies %s', (_description, value, expected) => {
 		expect(isSimplexSmpUrl(new URL(value))).toBe(expected);
+	});
+});
+
+describe('isAllowedLinkScheme', () => {
+	it.each([
+		['http://example.com', true],
+		['https://example.com', true],
+		['spotify:track:123', true],
+		['custom-app:resource', true],
+		['javascript:alert(1)', false],
+		['data:text/html,example', false],
+		['JaVaScRiPt:alert(1)', false],
+		['DaTa:text/html,example', false],
+		['java\nscript:alert(1)', false],
+		['da\tta:text/html,example', false],
+		['not a URI', false]
+	])('checks %s', (value, expected) => {
+		expect(isAllowedLinkScheme(URL.parse(value))).toBe(expected);
 	});
 });
