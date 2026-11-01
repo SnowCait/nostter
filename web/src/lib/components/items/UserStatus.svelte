@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Item } from '$lib/Items';
+	import { isAllowedLinkScheme } from '$lib/url';
 	import EventMetadata from '$lib/components/EventMetadata.svelte';
 	import Content from '$lib/components/Content.svelte';
 	import IconUser from '@tabler/icons-svelte-runes/icons/user';
@@ -19,6 +20,7 @@
 	let link = $derived(
 		item.event.tags.find(([tagName, url]) => tagName === 'r' && url !== undefined)?.at(1)
 	);
+	let url = $derived(link === undefined ? null : URL.parse(link));
 </script>
 
 <EventMetadata {item} {createdAtFormat} {full}>
@@ -35,10 +37,14 @@
 		<section>
 			<Content content={item.event.content} tags={item.event.tags} />
 			{#if link !== undefined}
-				<a href={link} target="_blank" rel="noopener noreferrer">
-					<IconLink size="1rem" />
+				{#if url && isAllowedLinkScheme(url)}
+					<a href={url.href} target="_blank" rel="noopener noreferrer">
+						<IconLink size="1rem" />
+						<span>{link}</span>
+					</a>
+				{:else}
 					<span>{link}</span>
-				</a>
+				{/if}
 			{/if}
 		</section>
 	{/snippet}
