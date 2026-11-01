@@ -34,6 +34,8 @@ describe('isAllowedLinkScheme', () => {
 		['custom-app:resource', true],
 		['javascript:alert(1)', false],
 		['data:text/html,example', false],
+		['vbscript:msgbox(1)', false],
+		['VbScRiPt:msgbox(1)', false],
 		['JaVaScRiPt:alert(1)', false],
 		['DaTa:text/html,example', false],
 		['java\nscript:alert(1)', false],
