@@ -13,7 +13,13 @@ import {
 	type LazyFilter
 } from 'rx-nostr';
 import { tap, bufferTime } from 'rxjs';
-import { addressRegexp, filterLimitItems, hexRegexp, timeout } from '$lib/Constants';
+import {
+	addressRegexp,
+	filterLimitItems,
+	hexRegexp,
+	metadataRelays,
+	timeout
+} from '$lib/Constants';
 import { filterTags } from '$lib/EventHelper';
 import { getEventAddress, parseEventAddress } from '$lib/nostr/protocol/event-address';
 import { Metadata, type EventItem } from '$lib/Items';
@@ -276,7 +282,9 @@ function requestReplaceableReferences(event: Nostr.Event): void {
 }
 
 rxNostr
-	.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()))
+	.use(metadataReq.pipe(bufferTime(1000, null, 10), batch()), {
+		on: { defaultReadRelays: true, relays: metadataRelays }
+	})
 	.pipe(
 		tie,
 		uniq(),
