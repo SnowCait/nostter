@@ -1,10 +1,11 @@
 import { get } from 'svelte/store';
 import type { Event } from 'nostr-tools';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { filterLimitItems } from '$lib/Constants';
+import { filterLimitItems, metadataRelays } from '$lib/Constants';
 import { Metadata } from '$lib/Items';
 
 const testState = vi.hoisted(() => ({
+	useOptions: [] as unknown[],
 	requests: [] as Array<{
 		emit: ReturnType<typeof vi.fn>;
 		pipe: ReturnType<typeof vi.fn>;
@@ -33,11 +34,14 @@ vi.mock('$lib/relay-client', () => ({
 			pipe: vi.fn(() => ({ subscribe: vi.fn() }))
 		})),
 		getDefaultRelays: vi.fn(() => ({})),
-		use: vi.fn(() => ({
-			pipe: vi.fn(() => ({
-				subscribe: vi.fn()
-			}))
-		}))
+		use: vi.fn((_request, options) => {
+			testState.useOptions.push(options);
+			return {
+				pipe: vi.fn(() => ({
+					subscribe: vi.fn()
+				}))
+			};
+		})
 	}
 }));
 
@@ -86,6 +90,12 @@ beforeEach(() => {
 });
 
 describe('metadataReqEmit', () => {
+	it('uses default read relays and metadata relays', () => {
+		expect(testState.useOptions[0]).toEqual({
+			on: { defaultReadRelays: true, relays: metadataRelays }
+		});
+	});
+
 	it('requests cached metadata once per session and deduplicates an input', async () => {
 		const pubkey = 'cached-pubkey';
 		metadataStore.set(new Map([[pubkey, new Metadata(event(pubkey))]]));
