@@ -1,3 +1,6 @@
+import { preprocessMeltUI, sequence } from '@melt-ui/pp';
+import adapter from '@sveltejs/adapter-cloudflare';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 import { visualizer } from 'rollup-plugin-visualizer';
@@ -17,7 +20,10 @@ export default defineConfig({
 		__GIT_SHA__: JSON.stringify(process.env.WORKERS_CI_COMMIT_SHA ?? '')
 	},
 	plugins: [
-		sveltekit(),
+		sveltekit({
+			preprocess: sequence([vitePreprocess({}), preprocessMeltUI()]),
+			adapter: adapter({ platformProxy: { persist: false } })
+		}),
 		esbuildCssMinifier,
 		visualizer({ emitFile: true, template: 'markdown' })
 	],
