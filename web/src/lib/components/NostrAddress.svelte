@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { nip05 } from 'nostr-tools';
+	import { queryProfile } from '$lib/Nip05';
 	import { Popover } from 'bits-ui';
 	import {
 		diagnoseNostrAddress,
@@ -109,7 +109,7 @@
 		{:else}
 			<span class="address">{normalizedNip05}</span>
 		{/if}
-		{#await nip05.queryProfile(normalizedNip05) then pointer}
+		{#await queryProfile(normalizedNip05) then pointer}
 			{#if pointer === null}
 				<span class="status">
 					<IconAlertTriangle color="orange" />
