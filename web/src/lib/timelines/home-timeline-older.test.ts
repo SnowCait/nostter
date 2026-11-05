@@ -23,7 +23,7 @@ vi.mock('rx-nostr', async (importOriginal) => ({
 	createRxBackwardReq: mocks.createRxBackwardReq
 }));
 vi.mock('./MainTimeline', () => ({
-	rxNostr: { use: mocks.use },
+	rxNostr: { use: mocks.use, getDefaultRelays: () => ({}) },
 	tie: <T>(source: T): T => source,
 	referencesReqEmit: vi.fn(),
 	storeSeenOn: vi.fn()

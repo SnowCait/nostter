@@ -147,6 +147,11 @@
 		return observePageLifecycle(onLifecycleEvent);
 	});
 
+	$effect(() => {
+		void auth.pubkey;
+		return () => homeTimeline.cancelRecovery();
+	});
+
 	let initialized = false;
 	$effect(() => {
 		if (!auth.isAuthenticated || initialized) {

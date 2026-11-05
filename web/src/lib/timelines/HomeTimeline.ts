@@ -9,7 +9,7 @@ import {
 	uniq,
 	type LazyFilter
 } from 'rx-nostr';
-import { filter, share, tap, type Subscription } from 'rxjs';
+import { filter, share, tap, Subscription } from 'rxjs';
 import type * as Nostr from 'nostr-typedef';
 import { referencesReqEmit, rxNostr, storeSeenOn, tie } from './MainTimeline';
 import { filterAndCacheNewerAccountEvents } from '$lib/cache/account-event-cache-stream';
@@ -365,12 +365,56 @@ export class HomeTimeline extends NewTimeline {
 	// Number of bounded backward REQs started since the last clear
 	#olderStartedCount = 0;
 
+	#recovery = new Subscription();
+
+	cancelRecovery(): void {
+		this.#recovery.unsubscribe();
+		this.#recovery = new Subscription();
+	}
+
+	// Keep bounded windows only for relays that could not finish while disconnected.
+	#recoverOnReconnect(
+		filters: LazyFilter[],
+		relays: string[],
+		notify: boolean,
+		accountPubkey: string | undefined
+	): void {
+		if (auth.pubkey !== accountPubkey) {
+			return;
+		}
+		const pending = new Set(
+			relays.filter((url) => rxNostr.getRelayStatus(url)?.connection !== 'connected')
+		);
+		if (pending.size === 0) {
+			return;
+		}
+		const subscription = rxNostr
+			.createConnectionStateObservable()
+			.subscribe(({ from, state }) => {
+				if (auth.pubkey !== accountPubkey) {
+					subscription.unsubscribe();
+					return;
+				}
+				if (state !== 'connected' || !pending.delete(from)) {
+					return;
+				}
+				if (pending.size === 0) {
+					subscription.unsubscribe();
+				}
+				if (rxNostr.getDefaultRelay(from)?.read) {
+					this.#retrieve(filters, [from], notify);
+				}
+			});
+		this.#recovery.add(subscription);
+	}
+
 	get loading(): boolean {
 		return this.#olderOperations.size >= maxOlderInFlight;
 	}
 
 	clear(): void {
 		super.clear();
+		this.cancelRecovery();
 		for (const subscription of [...this.#olderOperations, ...this.#fetchEnoughSubscriptions]) {
 			subscription.unsubscribe();
 		}
@@ -406,6 +450,10 @@ export class HomeTimeline extends NewTimeline {
 		this.#olderCursor = since;
 		this.#olderStartedCount++;
 
+		const filters = this.#createBackwardFilters(until, since);
+		const relays = Object.keys(rxNostr.getDefaultRelays({ filter: 'read-all' }));
+		const recovery = this.#recovery;
+		const accountPubkey = auth.pubkey;
 		const pubkeys = new Set<string>();
 		const req = createRxBackwardReq();
 		const subscription = rxNostr
@@ -434,6 +482,9 @@ export class HomeTimeline extends NewTimeline {
 				complete: () => {
 					this.#olderOperations.delete(subscription);
 					console.debug('[home timeline older complete]', count);
+					if (!recovery.closed) {
+						this.#recoverOnReconnect(filters, relays, false, accountPubkey);
+					}
 					userStatusReqEmit([...pubkeys]);
 					// After a sparse first load the sentinel may stay intersecting, so the UI won't request the second one.
 					// The count is still 1 only if this is the first REQ and the second one hasn't started.
@@ -468,7 +519,6 @@ export class HomeTimeline extends NewTimeline {
 				}
 			});
 		this.#olderOperations.add(subscription);
-		const filters = this.#createBackwardFilters(until, since);
 		console.debug('[home timeline older REQ]', filters);
 		req.emit(filters);
 		req.over();
@@ -568,19 +618,24 @@ export class HomeTimeline extends NewTimeline {
 	}
 
 	public retrieve(until: number, since: number): void {
+		this.#retrieve(this.#createBackwardFilters(until, since));
+	}
+
+	#retrieve(filters: LazyFilter[], relays?: string[], notify = true): void {
 		const accountPubkey = auth.pubkey;
 		if (accountPubkey === undefined) {
 			throw new Error('Not authenticated');
 		}
 
+		const targets = relays ?? Object.keys(rxNostr.getDefaultRelays({ filter: 'read-all' }));
 		const pubkeys = new Set<string>();
 		const req = createRxBackwardReq();
-		rxNostr
-			.use(req)
+		const subscription = rxNostr
+			.use(req, relays === undefined ? undefined : { relays })
 			.pipe(
 				tie,
 				uniq(),
-				filter(({ event }) => !this.hasEvent(event.id)),
+				filter(({ event }) => auth.pubkey === accountPubkey && !this.hasEvent(event.id)),
 				tap(({ event }) => {
 					referencesReqEmit(event);
 					authorActionReqEmit(event);
@@ -596,17 +651,22 @@ export class HomeTimeline extends NewTimeline {
 					if (this.latestId === undefined) {
 						this.latestId = event.id;
 					}
-					this.#insertNotifiedEvent(event, accountPubkey);
+					if (notify) {
+						this.#insertNotifiedEvent(event, accountPubkey);
+					}
 				},
 				complete: async () => {
 					console.debug('[home timeline retrieve complete]');
+					if (relays === undefined && auth.pubkey === accountPubkey) {
+						this.#recoverOnReconnect(filters, targets, notify, accountPubkey);
+					}
 					userStatusReqEmit([...pubkeys]);
 				},
 				error: (error) => {
 					console.error('[home timeline load retrieve error]', error);
 				}
 			});
-		const filters = this.#createBackwardFilters(until, since);
+		this.#recovery.add(subscription);
 		console.debug('[home timeline retrieve REQ]', filters);
 		req.emit(filters);
 		req.over();
