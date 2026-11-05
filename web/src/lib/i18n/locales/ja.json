@@ -491,6 +491,7 @@
 		"caution": "注意"
 	},
 	"qrcode": {
+		"title": "QR コード",
 		"scan": "QR コードからプロフィールを読み込む"
 	},
 	"profile": {
