@@ -1,11 +1,13 @@
 import path from 'node:path';
+import { loadConfig } from '@sveltejs/load-config';
 import svelte from 'eslint-plugin-svelte';
 import commonConfig, {
 	defineConfig,
 	includeIgnoreFile,
 	typescriptParser
 } from '../eslint.config.mjs';
-import svelteConfig from './svelte.config.js';
+
+const svelteConfig = (await loadConfig('./', { traverse: false }))?.config;
 
 export default defineConfig([
 	includeIgnoreFile(path.resolve(import.meta.dirname, '.gitignore'), {
