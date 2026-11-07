@@ -22,9 +22,7 @@ test.afterEach(async ({ page }, testInfo) => {
 		path,
 		fullPage: false,
 		animations: 'disabled',
-		...(testInfo.title === 'anonymous-top-page' && {
-			mask: [page.locator('.hero-message > img')]
-		})
+		mask: [page.locator('.hero-message > img')]
 	});
 });
 
