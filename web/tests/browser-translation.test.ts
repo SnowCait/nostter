@@ -163,6 +163,8 @@ test('unmount aborts an in-flight translation without showing a late result', as
 	});
 	await page.getByRole('button', { name: 'Show translation', exact: true }).click();
 	await expect.poll(() => page.evaluate(() => 'finishTranslation' in globalThis)).toBe(true);
+	await expect(page.getByText('Preparing models…', { exact: true })).toHaveCount(0);
+	await expect(page.getByText('Translating…', { exact: true })).toBeVisible();
 	await page.evaluate(async () => {
 		const controls = globalThis as unknown as {
 			removeTranslation(): Promise<void>;
@@ -174,4 +176,66 @@ test('unmount aborts an in-flight translation without showing a late result', as
 	await expect.poll(() => page.evaluate(() => 'translationAborted' in globalThis)).toBe(true);
 	await expect(page.locator('.translation')).toHaveCount(0);
 	await expect(page.getByText('Late result')).toHaveCount(0);
+});
+
+test('shows model preparation for both models, then translation without progress percentages', async ({
+	page
+}) => {
+	await setup(page);
+	await expect(page.getByRole('button', { name: 'Show translation', exact: true })).toBeVisible();
+	await page.evaluate(() => {
+		Object.assign(globalThis, {
+			LanguageDetector: {
+				availability: async () => 'downloadable',
+				create: () =>
+					new Promise((resolve) => {
+						Object.assign(globalThis, {
+							finishDetector: () =>
+								resolve({
+									detect: async () => [
+										{ detectedLanguage: 'fr', confidence: 0.99 }
+									],
+									destroy() {}
+								})
+						});
+					})
+			},
+			Translator: {
+				availability: async () => 'downloadable',
+				create: () =>
+					new Promise((resolve) => {
+						Object.assign(globalThis, {
+							finishModel: () =>
+								resolve({
+									translate: () =>
+										new Promise((resolveText) => {
+											Object.assign(globalThis, {
+												finishText: () => resolveText('Hello everyone')
+											});
+										}),
+									destroy() {}
+								})
+						});
+					})
+			}
+		});
+	});
+	await page.getByRole('button', { name: 'Show translation', exact: true }).click();
+	await expect(page.getByText('Preparing models…', { exact: true })).toHaveCount(0);
+	await page
+		.getByRole('dialog')
+		.getByRole('button', { name: 'Start translation', exact: true })
+		.click();
+	await expect(page.getByText('Preparing models…', { exact: true })).toBeVisible();
+	await expect(page.locator('progress')).toHaveCount(0);
+	await page.evaluate('finishDetector()');
+	await expect.poll(() => page.evaluate(() => 'finishModel' in globalThis)).toBe(true);
+	await expect(page.getByRole('dialog')).toHaveCount(0);
+	await expect(page.getByText('Preparing models…', { exact: true })).toBeVisible();
+	await page.evaluate('finishModel()');
+	await expect(page.getByText('Preparing models…', { exact: true })).toHaveCount(0);
+	await expect(page.getByText('Translating…', { exact: true })).toBeVisible();
+	await page.evaluate('finishText()');
+	await expect(page.locator('.result')).toHaveText('Hello everyone');
+	await expect(page.getByText('Translating…', { exact: true })).toHaveCount(0);
 });

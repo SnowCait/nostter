@@ -29,6 +29,38 @@ function fixture(availability: Availability = 'available', language = 'en', conf
 	return { api, detector, translator };
 }
 describe('browser translation', () => {
+	it('hides the control and avoids model creation when detection availability is unknown', async () => {
+		const { api } = fixture(null);
+		expect(await shouldOfferTranslation(api, 'Hello', 'ja')).toBe(false);
+		expect(api.LanguageDetector.create).not.toHaveBeenCalled();
+		const prepare = vi.fn();
+		await expect(
+			translateInBrowser(api, 'Hello', 'ja', {
+				prepare,
+				chooseSource: async () => 'en',
+				translating: () => {},
+				signal: new AbortController().signal
+			})
+		).rejects.toThrow('unavailable');
+		expect(prepare).not.toHaveBeenCalled();
+	});
+	it('does not offer or execute translation for an unknown language pair', async () => {
+		const { api } = fixture();
+		api.Translator.availability = vi.fn(async () => null);
+		expect(await shouldOfferTranslation(api, 'Hello', 'ja')).toBe(false);
+		const translating = vi.fn();
+		await expect(
+			translateInBrowser(api, 'Hello', 'ja', {
+				prepare: (_, create) => create(),
+				chooseSource: async () => 'en',
+				translating,
+				signal: new AbortController().signal
+			})
+		).rejects.toThrow('unavailable');
+		expect(api.Translator.create).not.toHaveBeenCalled();
+		expect(translating).not.toHaveBeenCalled();
+	});
+
 	it('uses the actual UI fallback for unsupported system languages', () => {
 		expect(displayLanguage('fr-FR')).toBe('en');
 		expect(displayLanguage('ja-JP')).toBe('ja');
@@ -56,7 +88,7 @@ describe('browser translation', () => {
 		await translateInBrowser(api, 'Hello', 'en', {
 			chooseSource,
 			prepare: (_, create) => create(),
-			progress: () => {},
+			translating: () => {},
 			signal: new AbortController().signal
 		});
 		expect(chooseSource).toHaveBeenCalledOnce();
@@ -72,7 +104,7 @@ describe('browser translation', () => {
 			translateInBrowser(api, 'Hello', 'en', {
 				chooseSource,
 				prepare: (_, create) => create(),
-				progress: () => {},
+				translating: () => {},
 				signal: new AbortController().signal
 			})
 		).rejects.toThrow('same');
@@ -86,7 +118,7 @@ describe('browser translation', () => {
 			translateInBrowser(api, 'Hello', 'ja', {
 				chooseSource: async () => 'fr',
 				prepare: (_, create) => create(),
-				progress: () => {},
+				translating: () => {},
 				signal: new AbortController().signal
 			})
 		).rejects.toThrow('unavailable');
@@ -104,7 +136,7 @@ describe('browser translation', () => {
 					abort.abort();
 					return instance;
 				},
-				progress: () => {},
+				translating: () => {},
 				signal: abort.signal
 			})
 		).rejects.toThrow();
@@ -123,7 +155,7 @@ describe('browser translation', () => {
 			translateInBrowser(api, 'Hello', 'ja', {
 				chooseSource: async () => 'fr',
 				prepare: (_, create) => create(),
-				progress: () => {},
+				translating: () => {},
 				signal: controller.signal
 			})
 		).rejects.toThrow();
@@ -144,7 +176,7 @@ describe('browser translation', () => {
 			await translateInBrowser(api, 'Hello', 'ja', {
 				chooseSource: async () => 'fr',
 				prepare: (_, create) => create(),
-				progress: () => {},
+				translating: () => {},
 				signal: new AbortController().signal
 			})
 		).toBe('<script>translated</script>');

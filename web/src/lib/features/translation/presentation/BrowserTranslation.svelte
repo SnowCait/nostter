@@ -6,8 +6,7 @@
 		browserTranslationApis,
 		displayLanguage,
 		shouldOfferTranslation,
-		translateInBrowser,
-		type Availability
+		translateInBrowser
 	} from '../application/browser-translation';
 
 	let { text }: { text: string } = $props();
@@ -17,7 +16,7 @@
 	let result = $state('');
 	let shown = $state(true);
 	let error = $state('');
-	let progress = $state<number>();
+	let phase = $state<'preparing' | 'translating'>();
 	let dialog = $state(false);
 	let downloading = $state(false);
 	let continuation = $state<() => void>();
@@ -78,9 +77,9 @@
 		try {
 			const translated = await translateInBrowser(api, text, target, {
 				signal,
-				progress: (value) => {
+				translating: () => {
 					if (!signal.aborted) {
-						progress = value;
+						phase = 'translating';
 					}
 				},
 				chooseSource: async () => {
@@ -88,7 +87,7 @@
 					await waitForInput();
 					return Intl.getCanonicalLocales(sourceLanguage)[0];
 				},
-				prepare: async (availability: Availability, create) => {
+				prepare: async (availability, create) => {
 					signal.throwIfAborted();
 					if (availability !== 'available' && !confirmed) {
 						downloading = availability === 'downloading';
@@ -97,6 +96,9 @@
 						confirmed = true;
 					}
 					try {
+						if (availability !== 'available') {
+							phase = 'preparing';
+						}
 						return await create();
 					} catch (cause) {
 						signal.throwIfAborted();
@@ -105,8 +107,16 @@
 						if (!(cause instanceof DOMException) || cause.name !== 'NotAllowedError') {
 							throw cause;
 						}
+						phase = undefined;
 						await waitForInput();
-						return create();
+						if (availability !== 'available') {
+							phase = 'preparing';
+						}
+						return await create();
+					} finally {
+						if (!signal.aborted) {
+							phase = undefined;
+						}
 					}
 				}
 			});
@@ -123,7 +133,7 @@
 			if (operation === current) {
 				operation = undefined;
 				busy = false;
-				progress = undefined;
+				phase = undefined;
 			}
 		}
 	}
@@ -139,13 +149,7 @@
 			onclick={() => (result ? (shown = !shown) : start())}
 			disabled={busy}
 		>
-			{$_(
-				busy
-					? 'translation.working'
-					: result && shown
-						? 'translation.hide'
-						: 'translation.show'
-			)}
+			{$_(result && shown ? 'translation.hide' : 'translation.show')}
 		</button>
 		{#if choosingSource}
 			<form
@@ -170,7 +174,7 @@
 			<button onclick={continuation}>{$_('translation.continue')}</button>
 		{/if}
 		<div aria-live="polite">
-			{#if progress !== undefined}<progress value={progress} max="1"></progress>{/if}
+			{#if phase}<p>{$_('translation.' + phase)}</p>{/if}
 			{#if error}<p>{$_('translation.' + error)}</p>{/if}
 			{#if result && shown}
 				<p>{$_('translation.title')}</p>

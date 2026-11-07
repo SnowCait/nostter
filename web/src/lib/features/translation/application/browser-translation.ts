@@ -1,8 +1,5 @@
-export type Availability = 'available' | 'downloadable' | 'downloading' | 'unavailable';
-type Monitor = {
-	addEventListener(type: 'downloadprogress', listener: (event: { loaded: number }) => void): void;
-};
-type Options = { signal?: AbortSignal; monitor?: (monitor: Monitor) => void };
+export type Availability = 'available' | 'downloadable' | 'downloading' | 'unavailable' | null;
+type Options = { signal?: AbortSignal };
 export type Detection = { detectedLanguage: string; confidence: number };
 type Detector = {
 	detect(text: string, options?: { signal?: AbortSignal }): Promise<Detection[]>;
@@ -60,7 +57,7 @@ export async function shouldOfferTranslation(
 	signal?: AbortSignal
 ): Promise<boolean> {
 	const availability = await api.LanguageDetector.availability();
-	if (availability === 'unavailable') {
+	if (availability === null || availability === 'unavailable') {
 		return false;
 	}
 	if (availability !== 'available') {
@@ -76,12 +73,11 @@ export async function shouldOfferTranslation(
 		if (source.split('-')[0] === target) {
 			return false;
 		}
-		return (
-			(await api.Translator.availability({
-				sourceLanguage: source,
-				targetLanguage: target
-			})) !== 'unavailable'
-		);
+		const pairAvailability = await api.Translator.availability({
+			sourceLanguage: source,
+			targetLanguage: target
+		});
+		return pairAvailability !== null && pairAvailability !== 'unavailable';
 	} finally {
 		if (!signal?.aborted) {
 			detector.destroy();
@@ -95,27 +91,21 @@ export async function translateInBrowser(
 	target: string,
 	hooks: {
 		prepare(
-			availability: Availability,
+			availability: Exclude<Availability, null | 'unavailable'>,
 			create: () => Promise<Detector | Translator>
 		): Promise<Detector | Translator>;
 		chooseSource(): Promise<string>;
-		progress(value: number): void;
+		translating(): void;
 		signal: AbortSignal;
 	}
 ): Promise<string> {
-	const monitor = (monitor: Monitor) =>
-		monitor.addEventListener('downloadprogress', (event) => {
-			if (!hooks.signal.aborted) {
-				hooks.progress(event.loaded);
-			}
-		});
 	const detectorAvailability = await api.LanguageDetector.availability();
-	if (detectorAvailability === 'unavailable') {
+	if (detectorAvailability === null || detectorAvailability === 'unavailable') {
 		throw new Error('unavailable');
 	}
 	hooks.signal.throwIfAborted();
 	const detector = (await hooks.prepare(detectorAvailability, () =>
-		api.LanguageDetector.create({ monitor, signal: hooks.signal })
+		api.LanguageDetector.create({ signal: hooks.signal })
 	)) as Detector;
 	let source: string | undefined;
 	try {
@@ -137,14 +127,15 @@ export async function translateInBrowser(
 	const pair = { sourceLanguage: source, targetLanguage: target };
 	const availability = await api.Translator.availability(pair);
 	hooks.signal.throwIfAborted();
-	if (availability === 'unavailable') {
+	if (availability === null || availability === 'unavailable') {
 		throw new Error('unavailable');
 	}
 	const translator = (await hooks.prepare(availability, () =>
-		api.Translator.create({ ...pair, monitor, signal: hooks.signal })
+		api.Translator.create({ ...pair, signal: hooks.signal })
 	)) as Translator;
 	try {
 		hooks.signal.throwIfAborted();
+		hooks.translating();
 		const result = await translator.translate(text, { signal: hooks.signal });
 		hooks.signal.throwIfAborted();
 		return result;

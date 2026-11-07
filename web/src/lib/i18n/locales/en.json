@@ -603,7 +603,6 @@
 		"description": "This feature is experimental. Translations may be inaccurate.\n\nTranslation runs on your device. Using this feature may require downloading translation models.",
 		"show": "Show translation",
 		"hide": "Hide translation",
-		"working": "Translating…",
 		"continue": "Continue preparing models",
 		"cancel": "Cancel",
 		"start": "Start translation",
@@ -611,6 +610,8 @@
 		"same": "This post is already in the display language.",
 		"unavailable": "Translation is unavailable for this language.",
 		"failed": "Translation failed. Please try again.",
-		"source": "Detection is uncertain. Enter the source language code."
+		"source": "Detection is uncertain. Enter the source language code.",
+		"preparing": "Preparing models…",
+		"translating": "Translating…"
 	}
 }
