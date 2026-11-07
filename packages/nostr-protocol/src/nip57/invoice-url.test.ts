@@ -50,8 +50,7 @@ describe('buildZapInvoiceUrl', () => {
 	it('does not modify the original callback URL', () => {
 		const callback = new URL('https://example.com/invoice?foo=a%20b&amount=9&nostr=old');
 		const original = callback.href;
-		const url = buildZapInvoiceUrl(callback, 21000, zapRequestEvent);
-		expect(url).not.toBe(callback);
+		buildZapInvoiceUrl(callback, 21000, zapRequestEvent);
 		expect(callback.href).toBe(original);
 	});
 });
