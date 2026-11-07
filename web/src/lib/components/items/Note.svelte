@@ -5,6 +5,7 @@
 	import IconMessages from '@tabler/icons-svelte-runes/icons/messages';
 	import { Api } from '$lib/Api';
 	import { onMount } from 'svelte';
+	import { Content as ContentParser } from '$lib/Content';
 	import Content from '$lib/components/Content.svelte';
 	import { isReply } from '$lib/EventHelper';
 	import { parseChannelMetadata } from '$lib/nostr/protocol/nip28';
@@ -18,7 +19,8 @@
 	import { inThread } from '$lib/Thread';
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import Foldable from '$lib/components/shared/Foldable.svelte';
-	import { _ } from 'svelte-i18n';
+	import BrowserTranslation from '$lib/features/translation/presentation/BrowserTranslation.svelte';
+	import { _, locale } from 'svelte-i18n';
 	import SeenOnRelayIcons from '../SeenOnRelayIcons.svelte';
 	import { seenOnRelayIcon } from '$lib/SeenOnRelayIcon';
 	import { showVia } from '$lib/ShowVia';
@@ -30,6 +32,7 @@
 		readonly: boolean;
 		createdAtFormat?: 'auto' | 'time';
 		full?: boolean;
+		translationEnabled?: boolean;
 		clientLinks?: ReadonlyMap<string, URL>;
 	}
 
@@ -38,6 +41,7 @@
 		readonly = $bindable(),
 		createdAtFormat = 'auto',
 		full = false,
+		translationEnabled = false,
 		clientLinks
 	}: Props = $props();
 
@@ -156,6 +160,17 @@
 						{/if}
 					</div>
 				</Foldable>
+				{#if translationEnabled && Number(item.event.kind) !== 1063}
+					{@const text =
+						warningContent.status === 'shown'
+							? warningContent.content
+							: item.event.content}
+					{#if ContentParser.parse(text, item.event.tags).some((token) => ['text', 'hashtag', 'nip'].includes(token.type) && /\p{L}/u.test(token.text))}
+						{#key item.event.id + text + $locale}
+							<BrowserTranslation {text} />
+						{/key}
+					{/if}
+				{/if}
 			{/if}
 			{#if item.event.kind === Kind.ChannelMessage && channelId !== undefined}
 				<div class="channel">

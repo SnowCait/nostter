@@ -431,7 +431,13 @@
 	{#if item === undefined}
 		<NotFound />
 	{:else}
-		<EventComponent {item} readonly={false} full={true} {clientLinks} />
+		<EventComponent
+			{item}
+			readonly={false}
+			full={true}
+			translationEnabled={true}
+			{clientLinks}
+		/>
 	{/if}
 </div>
 
