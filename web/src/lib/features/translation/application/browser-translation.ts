@@ -41,13 +41,27 @@ export function browserTranslationApis(): TranslationApis | undefined {
 export function confidentLanguage(results: Detection[]): string | undefined {
 	const best = results[0];
 	return best && best.confidence >= 0.8 && best.detectedLanguage !== 'und'
-		? best.detectedLanguage
+		? translationLanguage(best.detectedLanguage)
 		: undefined;
 }
 
-export function displayLanguage(locale: string | null | undefined): string {
-	// These are the registered UI dictionaries; other locales use the English fallback.
-	return locale?.split('-')[0] === 'ja' ? 'ja' : 'en';
+function translationLanguage(tag: string): string {
+	const locale = new Intl.Locale(tag);
+	// Chrome distinguishes Chinese scripts; infer the script from a region when omitted.
+	const script =
+		locale.script ?? (locale.language === 'zh' ? locale.maximize().script : undefined);
+	if (locale.language === 'zh' && script === 'Hans') {
+		return 'zh';
+	}
+	return script ? locale.language + '-' + script : locale.language;
+}
+
+export function preferredTranslationLanguage(preferences: {
+	languages?: readonly string[];
+	language?: string;
+}): string | undefined {
+	const tag = preferences.languages?.[0] || preferences.language;
+	return tag ? translationLanguage(tag) : undefined;
 }
 
 export async function shouldOfferTranslation(
@@ -70,7 +84,7 @@ export async function shouldOfferTranslation(
 		if (!source) {
 			return true;
 		}
-		if (source.split('-')[0] === target) {
+		if (source === target) {
 			return false;
 		}
 		const pairAvailability = await api.Translator.availability({
@@ -119,7 +133,7 @@ export async function translateInBrowser(
 	if (!source) {
 		return;
 	}
-	if (source.split('-')[0] === target) {
+	if (source === target) {
 		throw new Error('same');
 	}
 	const pair = { sourceLanguage: source, targetLanguage: target };

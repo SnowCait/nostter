@@ -4,7 +4,7 @@ import en from '$lib/i18n/locales/en.json';
 import ja from '$lib/i18n/locales/ja.json';
 import { describe, expect, it, vi } from 'vitest';
 import {
-	displayLanguage,
+	preferredTranslationLanguage,
 	shouldOfferTranslation,
 	translateInBrowser,
 	type TranslationApis,
@@ -65,9 +65,49 @@ describe('browser translation', () => {
 		expect(translating).not.toHaveBeenCalled();
 	});
 
-	it('uses the actual UI fallback for unsupported system languages', () => {
-		expect(displayLanguage('fr-FR')).toBe('en');
-		expect(displayLanguage('ja-JP')).toBe('ja');
+	it.each([
+		['ja-JP', 'ja'],
+		['en-US', 'en'],
+		['fr-FR', 'fr'],
+		['zh-CN', 'zh'],
+		['zh-SG', 'zh'],
+		['zh-Hans', 'zh'],
+		['zh-TW', 'zh-Hant'],
+		['zh-HK', 'zh-Hant'],
+		['zh-Hant-TW', 'zh-Hant'],
+		['sr-Latn-RS', 'sr-Latn']
+	])('uses the browser preference %s as %s', (tag, expected) => {
+		expect(preferredTranslationLanguage({ languages: [tag, 'en'], language: 'en' })).toBe(
+			expected
+		);
+	});
+	it('uses navigator.language only when the preference list is empty and never guesses', () => {
+		expect(preferredTranslationLanguage({ languages: [], language: 'fr-FR' })).toBe('fr');
+		expect(preferredTranslationLanguage({ languages: [] })).toBeUndefined();
+	});
+	it.each([
+		['en-US', 'en'],
+		['zh-Hans', 'zh'],
+		['zh-TW', 'zh-Hant']
+	])('does not offer translation for normalized matching source %s', async (source, target) => {
+		const { api } = fixture('available', source);
+		expect(await shouldOfferTranslation(api, 'Text', target)).toBe(false);
+		expect(api.Translator.availability).not.toHaveBeenCalled();
+	});
+	it('keeps simplified and traditional Chinese as different language pairs', async () => {
+		const { api } = fixture('available', 'zh-Hans');
+		expect(await shouldOfferTranslation(api, 'Text', 'zh-Hant')).toBe(true);
+		await translateInBrowser(api, 'Text', 'zh-Hant', {
+			prepare: (_, create) => create(),
+			translating: () => {},
+			signal: new AbortController().signal
+		});
+		expect(api.Translator.create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				sourceLanguage: 'zh',
+				targetLanguage: 'zh-Hant'
+			})
+		);
 	});
 	it.each(['downloadable', 'downloading'] as const)(
 		'offers translation without creating a %s detector',

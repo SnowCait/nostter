@@ -13,9 +13,11 @@ test.beforeAll(async () => {
 				import { mount, unmount } from 'svelte';
 				import { init, addMessages } from 'svelte-i18n';
 				import messages from './src/lib/i18n/locales/en.json';
+				import japanese from './src/lib/i18n/locales/ja.json';
 				import Component from './src/lib/features/translation/presentation/BrowserTranslation.svelte';
 				addMessages('en', messages);
-				await init({ initialLocale: 'en', fallbackLocale: 'en' });
+				addMessages('ja', japanese);
+				await init({ initialLocale: globalThis.translationUiLanguage ?? 'en', fallbackLocale: 'en' });
 				const instance = mount(Component, { target: document.body, props: { text: 'Bonjour tout le monde', getDisplayName: () => undefined } });
 				globalThis.removeTranslation = () => unmount(instance);
 			`,
@@ -55,26 +57,51 @@ test.beforeAll(async () => {
 	});
 	bundle = result.outputFiles[0].text;
 });
-async function setup(page: import('@playwright/test').Page, uncertain = false) {
+async function setup(
+	page: import('@playwright/test').Page,
+	uncertain = false,
+	preferences?: { ui: string; browser: string; source: string }
+) {
 	await page.setContent('<html><body></body></html>');
 	await page.addStyleTag({ content: await readFile(root + '/src/app.css', 'utf8') });
 	await page.evaluate(
-		({ uncertain }) => {
-			const state = { aborted: false, translations: 0 };
+		({ uncertain, preferences }) => {
+			if (preferences) {
+				Object.defineProperty(navigator, 'languages', {
+					configurable: true,
+					value: [preferences.browser]
+				});
+				Object.defineProperty(navigator, 'language', {
+					configurable: true,
+					value: preferences.browser
+				});
+				Object.assign(globalThis, { translationUiLanguage: preferences.ui });
+			}
+			const state = { aborted: false, translations: 0, target: '' };
 			Object.assign(globalThis, {
 				translationTest: state,
 				LanguageDetector: {
 					availability: async () => 'available',
 					create: async () => ({
 						detect: async () => [
-							{ detectedLanguage: 'fr', confidence: uncertain ? 0.2 : 0.99 }
+							{
+								detectedLanguage: preferences?.source ?? 'fr',
+								confidence: uncertain ? 0.2 : 0.99
+							}
 						],
 						destroy() {}
 					})
 				},
 				Translator: {
 					availability: async () => 'downloadable',
-					create: async ({ signal }: { signal: AbortSignal }) => {
+					create: async ({
+						signal,
+						targetLanguage
+					}: {
+						signal: AbortSignal;
+						targetLanguage: string;
+					}) => {
+						state.target = targetLanguage;
 						signal.addEventListener('abort', () => {
 							state.aborted = true;
 						});
@@ -89,7 +116,7 @@ async function setup(page: import('@playwright/test').Page, uncertain = false) {
 				}
 			});
 		},
-		{ uncertain }
+		{ uncertain, preferences }
 	);
 	await page.addScriptTag({ content: bundle, type: 'module' });
 }
@@ -284,4 +311,40 @@ test('model confirmation fits a narrow screen in both themes', async ({ page }) 
 		await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
 		await expect(dialog).toHaveCount(0);
 	}
+});
+
+for (const [ui, browser, target] of [
+	['ja', 'en-US', 'en'],
+	['en', 'ja-JP', 'ja'],
+	['en', 'fr-FR', 'fr']
+]) {
+	test('uses browser ' + browser + ' independently of UI ' + ui, async ({ page }) => {
+		await setup(page, false, { ui, browser, source: 'de' });
+		const toggle = page.locator('.translation-toggle');
+		await expect(toggle).toHaveText(ui === 'ja' ? '翻訳を表示' : 'Show translation');
+		await toggle.click();
+		await page.getByRole('dialog').getByRole('button').last().click();
+		await expect(page.locator('.result')).toHaveAttribute('lang', target);
+		expect(
+			await page.evaluate(
+				() =>
+					(globalThis as unknown as { translationTest: { target: string } })
+						.translationTest.target
+			)
+		).toBe(target);
+	});
+}
+test('clears an old translation when the browser preference changes', async ({ page }) => {
+	await setup(page, false, { ui: 'en', browser: 'en-US', source: 'de' });
+	await page.locator('.translation-toggle').click();
+	await page.getByRole('dialog').getByRole('button').last().click();
+	await expect(page.locator('.result')).toHaveAttribute('lang', 'en');
+	await page.evaluate(() => {
+		Object.defineProperty(navigator, 'languages', { configurable: true, value: ['ja-JP'] });
+		window.dispatchEvent(new Event('languagechange'));
+	});
+	await expect(page.locator('.result')).toHaveCount(0);
+	await page.locator('.translation-toggle').click();
+	await page.getByRole('dialog').getByRole('button').last().click();
+	await expect(page.locator('.result')).toHaveAttribute('lang', 'ja');
 });

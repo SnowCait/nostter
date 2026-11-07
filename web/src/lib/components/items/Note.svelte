@@ -20,7 +20,7 @@
 	import { getSeenOnRelays } from '$lib/timelines/MainTimeline';
 	import Foldable from '$lib/components/shared/Foldable.svelte';
 	import BrowserTranslation from '$lib/features/translation/presentation/BrowserTranslation.svelte';
-	import { _, locale } from 'svelte-i18n';
+	import { _ } from 'svelte-i18n';
 	import SeenOnRelayIcons from '../SeenOnRelayIcons.svelte';
 	import { seenOnRelayIcon } from '$lib/SeenOnRelayIcon';
 	import { showVia } from '$lib/ShowVia';
@@ -166,7 +166,7 @@
 							? warningContent.content
 							: item.event.content}
 					{#if ContentParser.parse(text, item.event.tags).some((token) => token.type === 'text' && /\p{L}/u.test(token.text))}
-						{#key item.event.id + text + $locale}
+						{#key item.event.id + text}
 							<BrowserTranslation
 								{text}
 								getDisplayName={(pubkey) => $metadataStore.get(pubkey)?.displayName}

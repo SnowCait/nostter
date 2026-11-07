@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { _, locale } from 'svelte-i18n';
+	import { _ } from 'svelte-i18n';
 	import IconExternalLink from '@tabler/icons-svelte-runes/icons/external-link';
 	import { googleTranslationUrl } from '../application/google-translation';
 	import { Dialog } from 'bits-ui';
 	import {
 		browserTranslationApis,
-		displayLanguage,
+		preferredTranslationLanguage,
 		shouldOfferTranslation,
 		translateInBrowser
 	} from '../application/browser-translation';
@@ -15,7 +15,7 @@
 		text,
 		getDisplayName
 	}: { text: string; getDisplayName: (pubkey: string) => string | undefined } = $props();
-	const target = $derived(displayLanguage($locale));
+	let target = $state<string>();
 	let offered = $state(false);
 	let busy = $state(false);
 	let result = $state('');
@@ -27,12 +27,28 @@
 	let continuation = $state<() => void>();
 
 	let fallback = $state(false);
-	const lifetime = new AbortController();
 	let operation: AbortController | undefined;
 	onMount(() => {
+		const updateTarget = () => {
+			target = preferredTranslationLanguage(navigator);
+		};
+		updateTarget();
+		window.addEventListener('languagechange', updateTarget);
+		return () => window.removeEventListener('languagechange', updateTarget);
+	});
+	$effect(() => {
+		const translationTarget = target;
+		offered = false;
+		result = '';
+		error = '';
+		fallback = false;
+		if (!translationTarget) {
+			return;
+		}
+		const lifetime = new AbortController();
 		const api = browserTranslationApis();
 		if (api) {
-			void shouldOfferTranslation(api, text, target, lifetime.signal)
+			void shouldOfferTranslation(api, text, translationTarget, lifetime.signal)
 				.then((value) => {
 					if (!lifetime.signal.aborted) {
 						offered = value;
@@ -48,7 +64,7 @@
 
 	async function start() {
 		const api = browserTranslationApis();
-		if (!api || busy) {
+		if (!api || busy || !target) {
 			return;
 		}
 		const current = new AbortController();
