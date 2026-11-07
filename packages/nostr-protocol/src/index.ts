@@ -5,3 +5,4 @@ export {
 	type Nip05Identifier
 } from './nip05/identifier.js';
 export { parsePayInvoiceResponse, type PayInvoiceResponse } from './nip47/pay-invoice-response.js';
+export { buildZapInvoiceUrl } from './nip57/invoice-url.js';

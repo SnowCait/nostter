@@ -82,6 +82,16 @@ if (identifier) {
 
 Both functions are pure and do not make HTTP requests.
 
+### NIP-57 invoice URLs
+
+`buildZapInvoiceUrl(callback: string | URL, amount: number, zapRequestEvent: Event): URL` builds an invoice request URL with an amount in millisatoshis and a signed Zap request event. It replaces existing `amount` and `nostr` parameters, preserves other parameter values, and leaves the callback URL unchanged. Query encoding is normalized by `URLSearchParams`.
+
+```ts
+import { buildZapInvoiceUrl } from '@nostter/nostr-protocol';
+
+const invoiceUrl = buildZapInvoiceUrl(callback, 21000, signedZapRequest);
+```
+
 ## Development and distribution
 
 From the repository root:
