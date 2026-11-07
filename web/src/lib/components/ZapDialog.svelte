@@ -84,7 +84,7 @@
 						: { event: item.event, amount, comment, relays }
 				);
 				const zapRequestEvent = await signEvent(zapRequest);
-				const encoded = encodeURI(JSON.stringify(zapRequestEvent));
+				const zapRequestJson = JSON.stringify(zapRequestEvent);
 				stage = 'url';
 				detail = {
 					pubkey,
@@ -99,8 +99,23 @@
 				endpoint.search = '';
 				endpoint.hash = '';
 				detail = endpoint.href;
+				const requestUrl = new URL(zapUrl);
+				const existing = requestUrl.search
+					? requestUrl.search
+							.slice(1)
+							.split('&')
+							.filter((part) => {
+								const key = new URLSearchParams(`?${part}`).keys().next().value;
+								return key !== 'amount' && key !== 'nostr';
+							})
+					: [];
+				const params = new URLSearchParams({
+					amount: String(amount),
+					nostr: zapRequestJson
+				});
+				requestUrl.search = [...existing, params.toString()].join('&');
 				stage = 'network';
-				const response = await fetch(`${zapUrl.href}?amount=${amount}&nostr=${encoded}`);
+				const response = await fetch(requestUrl);
 				stage = 'http';
 				if (!response.ok) {
 					detail = {
