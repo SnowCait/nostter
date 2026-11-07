@@ -425,13 +425,24 @@
 	<h1>{$_('pages.thread')}</h1>
 </header>
 
-<TimelineView items={replyToEventItems} readonly={false} showLoading={false} />
+<TimelineView
+	items={replyToEventItems}
+	readonly={false}
+	showLoading={false}
+	translationEnabled={true}
+/>
 
 <div bind:this={focusedElement} class="card">
 	{#if item === undefined}
 		<NotFound />
 	{:else}
-		<EventComponent {item} readonly={false} full={true} {clientLinks} />
+		<EventComponent
+			{item}
+			readonly={false}
+			full={true}
+			translationEnabled={true}
+			{clientLinks}
+		/>
 	{/if}
 </div>
 
@@ -513,7 +524,12 @@
 	</div>
 </nav>
 
-<TimelineView items={repliedToEventItems} readonly={false} showLoading={false} />
+<TimelineView
+	items={repliedToEventItems}
+	readonly={false}
+	showLoading={false}
+	translationEnabled={true}
+/>
 
 <style>
 	section {

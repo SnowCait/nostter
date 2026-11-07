@@ -28,10 +28,18 @@
 		readonly: boolean;
 		createdAtFormat?: 'auto' | 'time';
 		full?: boolean;
+		translationEnabled?: boolean;
 		clientLinks?: ReadonlyMap<string, URL>;
 	}
 
-	let { item, readonly, createdAtFormat = 'auto', full = false, clientLinks }: Props = $props();
+	let {
+		item,
+		readonly,
+		createdAtFormat = 'auto',
+		full = false,
+		translationEnabled = false,
+		clientLinks
+	}: Props = $props();
 
 	const parentEvents = getContext<Nostr.Event[] | undefined>('events') ?? [];
 	// svelte-ignore state_referenced_locally
@@ -71,5 +79,5 @@
 {:else if Number(item.event.kind) === 30315}
 	<UserStatus {item} {createdAtFormat} {full} />
 {:else}
-	<Note {item} {readonly} {createdAtFormat} {full} {clientLinks} />
+	<Note {item} {readonly} {createdAtFormat} {full} {clientLinks} {translationEnabled} />
 {/if}

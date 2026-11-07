@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createDropdownMenu, melt } from '@melt-ui/svelte';
+	import { googleTranslationUrl } from '$lib/features/translation/application/google-translation';
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { ChannelMessage, ShortTextNote } from 'nostr-tools/kinds';
@@ -157,32 +158,12 @@
 	}
 
 	function onTranslate(): void {
-		const text = event.content
-			.replaceAll(
-				/\bnostr:((npub|nprofile)1[023456789acdefghjklmnpqrstuvwxyz]{6,})\b/g,
-				(_, bech32: string, prefix: string) => {
-					try {
-						const result = nip19.decode(bech32);
-						if (result.type !== 'npub' && result.type !== 'nprofile') {
-							throw new Error('logic error');
-						}
-						const pubkey = result.type === 'npub' ? result.data : result.data.pubkey;
-						const metadata = get(metadataStore).get(pubkey);
-						if (metadata === undefined) {
-							throw new Error('not found');
-						}
-						return `@${metadata.displayName}`;
-					} catch {
-						return `@${bech32.substring(0, prefix.length + '1'.length + 7)}`;
-					}
-				}
-			)
-			.replaceAll(
-				/\bnostr:(?<bech32>(nevent|note)1[023456789acdefghjklmnpqrstuvwxyz]{6,})\b/g,
-				'https://nostter.app/$<bech32>'
-			);
 		open(
-			$_('thread.translation.url').replace('{0}', encodeURIComponent(text)),
+			googleTranslationUrl(
+				event.content,
+				$_('thread.translation.url'),
+				(pubkey) => get(metadataStore).get(pubkey)?.displayName
+			),
 			'_blank',
 			'noopener,noreferrer'
 		);

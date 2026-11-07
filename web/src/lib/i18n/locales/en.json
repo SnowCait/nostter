@@ -597,5 +597,23 @@
 	"fold": {
 		"fold": "Undo",
 		"unfold": "View more"
+	},
+	"translation": {
+		"title": "In-browser translation",
+		"description": "Translation runs on your device. On first use, translation models may need to be downloaded.",
+		"show": "Show translation",
+		"hide": "Hide translation",
+		"continue": "Continue preparing models",
+		"cancel": "Cancel",
+		"start": "Start translation",
+		"downloading": "Models are downloading. Continue?",
+		"same": "This post is already in the target language.",
+		"unavailable": "Translation is unavailable for this language.",
+		"failed": "Translation failed. Please try again.",
+		"preparing": "Preparing models…",
+		"translating": "Translating…",
+		"caution": "This feature is experimental. Translations may be inaccurate.",
+		"undetected": "The language of this post could not be detected.",
+		"google": "Open in Google Translate"
 	}
 }
