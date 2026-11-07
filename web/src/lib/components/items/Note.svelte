@@ -165,7 +165,7 @@
 						warningContent.status === 'shown'
 							? warningContent.content
 							: item.event.content}
-					{#if ContentParser.parse(text, item.event.tags).some((token) => ['text', 'hashtag', 'nip'].includes(token.type) && /\p{L}/u.test(token.text))}
+					{#if ContentParser.parse(text, item.event.tags).some((token) => token.type === 'text' && /\p{L}/u.test(token.text))}
 						{#key item.event.id + text + $locale}
 							<BrowserTranslation {text} />
 						{/key}

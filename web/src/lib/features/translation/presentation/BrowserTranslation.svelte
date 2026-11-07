@@ -177,7 +177,6 @@
 			{#if phase}<p>{$_('translation.' + phase)}</p>{/if}
 			{#if error}<p>{$_('translation.' + error)}</p>{/if}
 			{#if result && shown}
-				<p>{$_('translation.title')}</p>
 				<p class="result" lang={target}>{result}</p>
 			{/if}
 		</div>
