@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { nip57 } from 'nostr-tools';
+	import { buildZapInvoiceUrl } from '@nostter/nostr-protocol';
 	import QRCode from 'qrcode';
 	import IconBolt from '@tabler/icons-svelte-runes/icons/bolt';
 	import IconInfoCircle from '@tabler/icons-svelte-runes/icons/info-circle';
@@ -84,7 +85,6 @@
 						: { event: item.event, amount, comment, relays }
 				);
 				const zapRequestEvent = await signEvent(zapRequest);
-				const encoded = encodeURI(JSON.stringify(zapRequestEvent));
 				stage = 'url';
 				detail = {
 					pubkey,
@@ -99,8 +99,9 @@
 				endpoint.search = '';
 				endpoint.hash = '';
 				detail = endpoint.href;
+				const requestUrl = buildZapInvoiceUrl(zapUrl, amount, zapRequestEvent);
 				stage = 'network';
-				const response = await fetch(`${zapUrl.href}?amount=${amount}&nostr=${encoded}`);
+				const response = await fetch(requestUrl);
 				stage = 'http';
 				if (!response.ok) {
 					detail = {
