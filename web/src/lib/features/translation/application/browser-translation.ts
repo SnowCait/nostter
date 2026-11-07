@@ -136,9 +136,15 @@ export async function translateInBrowser(
 	try {
 		hooks.signal.throwIfAborted();
 		hooks.translating();
-		const result = await translator.translate(text, { signal: hooks.signal });
-		hooks.signal.throwIfAborted();
-		return result;
+		const parts = text.split(/(\r?\n)/);
+		for (let index = 0; index < parts.length; index++) {
+			hooks.signal.throwIfAborted();
+			if (parts[index].trim()) {
+				parts[index] = await translator.translate(parts[index], { signal: hooks.signal });
+				hooks.signal.throwIfAborted();
+			}
+		}
+		return parts.join('');
 	} finally {
 		if (!hooks.signal.aborted) {
 			translator.destroy();

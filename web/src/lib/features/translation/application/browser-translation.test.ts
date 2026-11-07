@@ -13,7 +13,9 @@ function fixture(availability: Availability = 'available', language = 'en', conf
 		destroy: vi.fn()
 	};
 	const translator = {
-		translate: vi.fn(async () => '<script>translated</script>'),
+		translate: vi.fn<(text: string, options?: { signal?: AbortSignal }) => Promise<string>>(
+			async () => '<script>translated</script>'
+		),
 		destroy: vi.fn()
 	};
 	const api: TranslationApis = {
@@ -152,7 +154,7 @@ describe('browser translation', () => {
 			return 'stale';
 		});
 		await expect(
-			translateInBrowser(api, 'Hello', 'ja', {
+			translateInBrowser(api, 'Hello\nLater', 'ja', {
 				chooseSource: async () => 'fr',
 				prepare: (_, create) => create(),
 				translating: () => {},
@@ -162,12 +164,63 @@ describe('browser translation', () => {
 		expect(api.LanguageDetector.create).toHaveBeenCalledWith(
 			expect.objectContaining({ signal: controller.signal })
 		);
-		expect(detector.detect).toHaveBeenCalledWith('Hello', { signal: controller.signal });
+		expect(detector.detect).toHaveBeenCalledWith('Hello\nLater', { signal: controller.signal });
 		expect(api.Translator.create).toHaveBeenCalledWith(
 			expect.objectContaining({ signal: controller.signal })
 		);
 		expect(translator.translate).toHaveBeenCalledWith('Hello', { signal: controller.signal });
+		expect(translator.translate).toHaveBeenCalledOnce();
 		expect(translator.destroy).not.toHaveBeenCalled();
+	});
+
+	it.each([
+		{ text: 'First', expected: '[First]', lines: ['First'] },
+		{ text: 'First\nSecond', expected: '[First]\n[Second]', lines: ['First', 'Second'] },
+		{
+			text: '\nFirst\n\n \t\nSecond\n',
+			expected: '\n[First]\n\n \t\n[Second]\n',
+			lines: ['First', 'Second']
+		},
+		{
+			text: '\r\nFirst\r\n\nSecond\r\n',
+			expected: '\r\n[First]\r\n\n[Second]\r\n',
+			lines: ['First', 'Second']
+		}
+	])('preserves line separators and whitespace in $text', async ({ text, expected, lines }) => {
+		const { api, detector, translator } = fixture();
+		translator.translate.mockImplementation(async (line) => '[' + line + ']');
+		const signal = new AbortController().signal;
+		expect(
+			await translateInBrowser(api, text, 'ja', {
+				chooseSource: async () => 'fr',
+				prepare: (_, create) => create(),
+				translating: () => {},
+				signal
+			})
+		).toBe(expected);
+		expect(detector.detect).toHaveBeenCalledExactlyOnceWith(text, { signal });
+		expect(api.Translator.create).toHaveBeenCalledOnce();
+		expect(translator.translate.mock.calls).toEqual(lines.map((line) => [line, { signal }]));
+		expect(translator.destroy).toHaveBeenCalledOnce();
+	});
+	it('waits for each line and rejects the whole translation if a later line fails', async () => {
+		const { api, translator } = fixture();
+		const first = Promise.withResolvers<string>();
+		translator.translate
+			.mockImplementationOnce(() => first.promise)
+			.mockRejectedValueOnce(new Error('translation failed'));
+		const result = translateInBrowser(api, 'First\nSecond\nThird', 'ja', {
+			chooseSource: async () => 'fr',
+			prepare: (_, create) => create(),
+			translating: () => {},
+			signal: new AbortController().signal
+		});
+		const rejected = expect(result).rejects.toThrow('translation failed');
+		await vi.waitFor(() => expect(translator.translate).toHaveBeenCalledOnce());
+		first.resolve('Translated first');
+		await rejected;
+		expect(translator.translate.mock.calls.map(([line]) => line)).toEqual(['First', 'Second']);
+		expect(translator.destroy).toHaveBeenCalledOnce();
 	});
 
 	it('checks pair availability and destroys instances while returning plain text', async () => {
