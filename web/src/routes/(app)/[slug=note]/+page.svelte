@@ -425,7 +425,12 @@
 	<h1>{$_('pages.thread')}</h1>
 </header>
 
-<TimelineView items={replyToEventItems} readonly={false} showLoading={false} />
+<TimelineView
+	items={replyToEventItems}
+	readonly={false}
+	showLoading={false}
+	translationEnabled={true}
+/>
 
 <div bind:this={focusedElement} class="card">
 	{#if item === undefined}
@@ -519,7 +524,12 @@
 	</div>
 </nav>
 
-<TimelineView items={repliedToEventItems} readonly={false} showLoading={false} />
+<TimelineView
+	items={repliedToEventItems}
+	readonly={false}
+	showLoading={false}
+	translationEnabled={true}
+/>
 
 <style>
 	section {

@@ -17,6 +17,7 @@
 		showLoading?: boolean;
 		createdAtFormat?: 'auto' | 'time';
 		full?: boolean;
+		translationEnabled?: boolean;
 		canTransition?: boolean;
 	}
 
@@ -27,6 +28,7 @@
 		showLoading = true,
 		createdAtFormat = 'auto',
 		full = false,
+		translationEnabled = false,
 		canTransition = true
 	}: Props = $props();
 
@@ -68,7 +70,13 @@
 					onmousedown={(e) => preventMiddleClickDefault(e, canTransition)}
 					onmouseup={(e) => navigateTo(e, data.event, canTransition)}
 				>
-					<EventComponent item={data} {readonly} {createdAtFormat} {full} />
+					<EventComponent
+						item={data}
+						{readonly}
+						{createdAtFormat}
+						{full}
+						{translationEnabled}
+					/>
 				</div>
 			{/snippet}
 		</WindowVirtualizer>

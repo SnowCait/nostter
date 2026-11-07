@@ -15,10 +15,18 @@ test.beforeAll(async () => {
 				import messages from './src/lib/i18n/locales/en.json';
 				import japanese from './src/lib/i18n/locales/ja.json';
 				import Component from './src/lib/features/translation/presentation/BrowserTranslation.svelte';
+				import { navigateTo, preventMiddleClickDefault } from './src/lib/EventNavigation';
+				const container = document.createElement('div');
+				container.id = 'timeline-post';
+				document.body.append(container);
+				const event = { kind: 1, id: 'b'.repeat(64), pubkey: 'a'.repeat(64), tags: [] };
+				container.onmousedown = mouseEvent => preventMiddleClickDefault(mouseEvent);
+				container.onmouseup = mouseEvent => navigateTo(mouseEvent, event);
+				globalThis.translationNavigations = 0;
 				addMessages('en', messages);
 				addMessages('ja', japanese);
 				await init({ initialLocale: globalThis.translationUiLanguage ?? 'en', fallbackLocale: 'en' });
-				const instance = mount(Component, { target: document.body, props: { text: 'Bonjour tout le monde', getDisplayName: () => undefined } });
+				const instance = mount(Component, { target: container, props: { text: 'Bonjour tout le monde', getDisplayName: () => undefined } });
 				globalThis.removeTranslation = () => unmount(instance);
 			`,
 			resolveDir: root,
@@ -32,6 +40,28 @@ test.beforeAll(async () => {
 			{
 				name: 'svelte',
 				setup(builder) {
+					const navigationMocks = {
+						'$app/navigation':
+							'export const goto = () => { globalThis.translationNavigations++; };',
+						'$lib/EventHelper': 'export const filterTags = () => [];',
+						'$lib/nostr/protocol/nip28':
+							'export const findChannelId = () => undefined;',
+						'$lib/timelines/MainTimeline': 'export const getSeenOnRelays = () => [];',
+						'$lib/components/EmojiPicker.svelte':
+							'export const emojiPickerOpen = false;',
+						'$lib/auth.svelte': 'export const auth = {};',
+						'$lib/platform/browser/mouse-button':
+							'export const MouseButton = { Left: 0, Middle: 1 };'
+					};
+					builder.onResolve({ filter: /^\$(app|lib)\// }, (args) => ({
+						path: args.path,
+						namespace: 'navigation-test'
+					}));
+					builder.onLoad({ filter: /.*/, namespace: 'navigation-test' }, ({ path }) => ({
+						contents: navigationMocks[path as keyof typeof navigationMocks],
+						loader: 'js'
+					}));
+
 					builder.onLoad({ filter: /\.svelte$/ }, async ({ path }) => ({
 						contents: compile(await readFile(path, 'utf8'), {
 							filename: path,
@@ -153,6 +183,30 @@ test('text control, all dialog cancellation paths, and retry without an extra cl
 	await page.getByRole('button', { name: 'Start translation', exact: true }).click();
 	await expect(page.locator('.result')).toHaveText('Hello everyone');
 	await expect(page.getByRole('button', { name: 'Continue preparing models' })).toHaveCount(0);
+});
+
+test('translation controls do not navigate their enclosing timeline post', async ({ page }) => {
+	await setup(page);
+	const navigations = () =>
+		page.evaluate(
+			() =>
+				(globalThis as unknown as { translationNavigations: number }).translationNavigations
+		);
+	await page.getByRole('button', { name: 'Show translation', exact: true }).click();
+	await page
+		.getByRole('dialog')
+		.getByRole('button', { name: 'Start translation', exact: true })
+		.click();
+	await expect(page.locator('.result')).toBeVisible();
+	await page.getByRole('button', { name: 'Hide translation', exact: true }).click();
+	await page.getByRole('button', { name: 'Show translation', exact: true }).click();
+	expect(await navigations()).toBe(0);
+	await page
+		.getByRole('button', { name: 'Hide translation', exact: true })
+		.click({ button: 'middle' });
+	expect(await navigations()).toBe(0);
+	await page.locator('#timeline-post').dispatchEvent('mouseup', { button: 0 });
+	await expect.poll(navigations).toBe(1);
 });
 
 test('uncertain detection offers Google Translate without opening it automatically', async ({
