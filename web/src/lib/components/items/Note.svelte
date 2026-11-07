@@ -148,7 +148,7 @@
 			{:else}
 				<Foldable maxHeightRem={30} enabled={!full}>
 					<div class="content">
-						{#if Number(item.event.kind) === 1063}
+						{#if Number(item.event.kind) === Kind.FileMetadata}
 							<Nip94 event={item.event} />
 						{:else}
 							<Content
@@ -160,7 +160,7 @@
 						{/if}
 					</div>
 				</Foldable>
-				{#if translationEnabled && Number(item.event.kind) !== 1063}
+				{#if translationEnabled && Number(item.event.kind) !== Kind.FileMetadata}
 					{@const text =
 						warningContent.status === 'shown'
 							? warningContent.content
