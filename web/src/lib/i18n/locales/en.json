@@ -607,7 +607,7 @@
 		"cancel": "Cancel",
 		"start": "Start translation",
 		"downloading": "Models are downloading. Continue?",
-		"same": "This post is already in the display language.",
+		"same": "This post is already in the target language.",
 		"unavailable": "Translation is unavailable for this language.",
 		"failed": "Translation failed. Please try again.",
 		"preparing": "Preparing models…",
