@@ -18,7 +18,14 @@ test.afterEach(async ({ page }, testInfo) => {
 		feature,
 		`${testInfo.title}.${screen}.png`
 	);
-	await page.screenshot({ path, fullPage: false, animations: 'disabled' });
+	await page.screenshot({
+		path,
+		fullPage: false,
+		animations: 'disabled',
+		...(testInfo.title === 'anonymous-top-page' && {
+			mask: [page.locator('.hero-message > img')]
+		})
+	});
 });
 
 test('anonymous-top-page', async ({ page }) => {
