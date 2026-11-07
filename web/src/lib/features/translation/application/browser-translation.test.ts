@@ -49,27 +49,42 @@ describe('browser translation', () => {
 			true
 		);
 	});
-	it('does not translate uncertain or same-language results', async () => {
-		for (const [language, confidence, message] of [
-			['en', 0.99, 'same'],
-			['fr', 0.2, 'uncertain']
-		] as const) {
-			const { api } = fixture('available', language, confidence);
-			await expect(
-				translateInBrowser(api, 'Hello', 'en', {
-					prepare: (_, create) => create(),
-					progress: () => {},
-					signal: new AbortController().signal
-				})
-			).rejects.toThrow(message);
-			expect(api.Translator.create).not.toHaveBeenCalled();
-		}
+
+	it('asks for a source only for uncertain detection and uses the user choice', async () => {
+		const { api } = fixture('available', 'en', 0.2);
+		const chooseSource = vi.fn(async () => 'fr');
+		await translateInBrowser(api, 'Hello', 'en', {
+			chooseSource,
+			prepare: (_, create) => create(),
+			progress: () => {},
+			signal: new AbortController().signal
+		});
+		expect(chooseSource).toHaveBeenCalledOnce();
+		expect(api.Translator.availability).toHaveBeenCalledWith({
+			sourceLanguage: 'fr',
+			targetLanguage: 'en'
+		});
+	});
+	it('does not translate confidently detected same-language results', async () => {
+		const { api } = fixture();
+		const chooseSource = vi.fn(async () => 'fr');
+		await expect(
+			translateInBrowser(api, 'Hello', 'en', {
+				chooseSource,
+				prepare: (_, create) => create(),
+				progress: () => {},
+				signal: new AbortController().signal
+			})
+		).rejects.toThrow('same');
+		expect(chooseSource).not.toHaveBeenCalled();
+		expect(api.Translator.create).not.toHaveBeenCalled();
 	});
 	it('does not create a translator for an unavailable pair', async () => {
 		const { api, detector } = fixture();
 		api.Translator.availability = vi.fn(async () => 'unavailable' as const);
 		await expect(
 			translateInBrowser(api, 'Hello', 'ja', {
+				chooseSource: async () => 'fr',
 				prepare: (_, create) => create(),
 				progress: () => {},
 				signal: new AbortController().signal
@@ -78,11 +93,12 @@ describe('browser translation', () => {
 		expect(api.Translator.create).not.toHaveBeenCalled();
 		expect(detector.destroy).toHaveBeenCalledOnce();
 	});
-	it('destroys a model that finishes preparing after navigation', async () => {
+	it('does not use or destroy again a model aborted during preparation', async () => {
 		const { api, detector } = fixture();
 		const abort = new AbortController();
 		await expect(
 			translateInBrowser(api, 'Hello', 'ja', {
+				chooseSource: async () => 'fr',
 				prepare: async (_, create) => {
 					const instance = await create();
 					abort.abort();
@@ -92,14 +108,41 @@ describe('browser translation', () => {
 				signal: abort.signal
 			})
 		).rejects.toThrow();
-		expect(detector.destroy).toHaveBeenCalledOnce();
+		expect(detector.destroy).not.toHaveBeenCalled();
 		expect(detector.detect).not.toHaveBeenCalled();
+	});
+
+	it('forwards cancellation to browser operations and discards a result completed after abort', async () => {
+		const { api, translator, detector } = fixture();
+		const controller = new AbortController();
+		translator.translate.mockImplementation(async () => {
+			controller.abort();
+			return 'stale';
+		});
+		await expect(
+			translateInBrowser(api, 'Hello', 'ja', {
+				chooseSource: async () => 'fr',
+				prepare: (_, create) => create(),
+				progress: () => {},
+				signal: controller.signal
+			})
+		).rejects.toThrow();
+		expect(api.LanguageDetector.create).toHaveBeenCalledWith(
+			expect.objectContaining({ signal: controller.signal })
+		);
+		expect(detector.detect).toHaveBeenCalledWith('Hello', { signal: controller.signal });
+		expect(api.Translator.create).toHaveBeenCalledWith(
+			expect.objectContaining({ signal: controller.signal })
+		);
+		expect(translator.translate).toHaveBeenCalledWith('Hello', { signal: controller.signal });
+		expect(translator.destroy).not.toHaveBeenCalled();
 	});
 
 	it('checks pair availability and destroys instances while returning plain text', async () => {
 		const { api, detector, translator } = fixture();
 		expect(
 			await translateInBrowser(api, 'Hello', 'ja', {
+				chooseSource: async () => 'fr',
 				prepare: (_, create) => create(),
 				progress: () => {},
 				signal: new AbortController().signal

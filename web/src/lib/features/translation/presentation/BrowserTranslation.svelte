@@ -21,22 +21,25 @@
 	let dialog = $state(false);
 	let downloading = $state(false);
 	let continuation = $state<() => void>();
-	let rejectPreparation: ((reason: Error) => void) | undefined;
-	const abort = new AbortController();
+
+	let choosingSource = $state(false);
+	let sourceLanguage = $state('');
+	const lifetime = new AbortController();
+	let operation: AbortController | undefined;
 	onMount(() => {
 		const api = browserTranslationApis();
 		if (api) {
-			void shouldOfferTranslation(api, text, target)
+			void shouldOfferTranslation(api, text, target, lifetime.signal)
 				.then((value) => {
-					if (!abort.signal.aborted) {
+					if (!lifetime.signal.aborted) {
 						offered = value;
 					}
 				})
 				.catch(() => {});
 		}
 		return () => {
-			abort.abort();
-			continuation = undefined;
+			lifetime.abort();
+			operation?.abort();
 		};
 	});
 
@@ -45,68 +48,97 @@
 		if (!api || busy) {
 			return;
 		}
+		const current = new AbortController();
+		operation = current;
+		const signal = current.signal;
 		busy = true;
 		error = '';
 		let confirmed = false;
+
+		async function waitForInput() {
+			try {
+				await new Promise<void>((resolve, reject) => {
+					const onAbort = () => reject(signal.reason);
+					signal.addEventListener('abort', onAbort, { once: true });
+					continuation = () => {
+						signal.removeEventListener('abort', onAbort);
+						continuation = undefined;
+						resolve();
+					};
+				});
+				signal.throwIfAborted();
+			} finally {
+				if (operation === current) {
+					continuation = undefined;
+					dialog = false;
+					choosingSource = false;
+				}
+			}
+		}
 		try {
-			result = await translateInBrowser(api, text, target, {
-				signal: abort.signal,
+			const translated = await translateInBrowser(api, text, target, {
+				signal,
 				progress: (value) => {
-					progress = value;
+					if (!signal.aborted) {
+						progress = value;
+					}
+				},
+				chooseSource: async () => {
+					choosingSource = true;
+					await waitForInput();
+					return Intl.getCanonicalLocales(sourceLanguage)[0];
 				},
 				prepare: async (availability: Availability, create) => {
-					abort.signal.throwIfAborted();
-					const needsConfirmation = availability !== 'available' && !confirmed;
-					if (
-						needsConfirmation ||
-						(!navigator.userActivation.isActive && availability !== 'available')
-					) {
+					signal.throwIfAborted();
+					if (availability !== 'available' && !confirmed) {
 						downloading = availability === 'downloading';
-						dialog = needsConfirmation;
-						return await new Promise((resolve, reject) => {
-							rejectPreparation = reject;
-							const onAbort = () => reject(abort.signal.reason);
-							abort.signal.addEventListener('abort', onAbort, { once: true });
-							continuation = () => {
-								abort.signal.removeEventListener('abort', onAbort);
-								continuation = undefined;
-								dialog = false;
-								confirmed = true;
-								// Invoke create directly from the click, preserving user activation.
-								create().then(resolve, reject);
-							};
-						});
+						dialog = true;
+						await waitForInput();
+						confirmed = true;
 					}
-					return create();
+					try {
+						return await create();
+					} catch (cause) {
+						signal.throwIfAborted();
+						// Translator downloads can still require transient activation.
+						// Retry only after the API actually rejects, rather than predicting it.
+						if (!(cause instanceof DOMException) || cause.name !== 'NotAllowedError') {
+							throw cause;
+						}
+						await waitForInput();
+						return create();
+					}
 				}
 			});
-			shown = true;
+			if (!signal.aborted) {
+				result = translated;
+				shown = true;
+			}
 		} catch (cause) {
-			if (!abort.signal.aborted) {
+			if (!signal.aborted) {
 				const code = cause instanceof Error ? cause.message : '';
-				error = ['same', 'uncertain', 'unavailable', 'cancelled'].includes(code)
-					? code
-					: 'failed';
+				error = ['same', 'unavailable'].includes(code) ? code : 'failed';
 			}
 		} finally {
-			if (!abort.signal.aborted) {
+			if (operation === current) {
+				operation = undefined;
 				busy = false;
 				progress = undefined;
 			}
 		}
 	}
 	function cancel() {
-		dialog = false;
-		rejectPreparation?.(new Error('cancelled'));
-
-		busy = false;
-		continuation = undefined;
+		operation?.abort();
 	}
 </script>
 
 {#if offered}
 	<div class="translation">
-		<button onclick={() => (result ? (shown = !shown) : start())} disabled={busy}>
+		<button
+			class="translation-toggle"
+			onclick={() => (result ? (shown = !shown) : start())}
+			disabled={busy}
+		>
 			{$_(
 				busy
 					? 'translation.working'
@@ -115,7 +147,26 @@
 						: 'translation.show'
 			)}
 		</button>
-		{#if continuation && !dialog}
+		{#if choosingSource}
+			<form
+				onsubmit={(event) => {
+					event.preventDefault();
+					continuation?.();
+				}}
+			>
+				<label>
+					{$_('translation.source')}
+					<input
+						bind:value={sourceLanguage}
+						required
+						pattern={'[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*'}
+						placeholder="en, ja, fr…"
+					/>
+				</label>
+				<button type="submit">{$_('translation.start')}</button>
+				<button type="button" onclick={cancel}>{$_('translation.cancel')}</button>
+			</form>
+		{:else if continuation && !dialog}
 			<button onclick={continuation}>{$_('translation.continue')}</button>
 		{/if}
 		<div aria-live="polite">
@@ -153,6 +204,26 @@
 <style>
 	.translation {
 		margin-top: 0.5rem;
+	}
+	button.translation-toggle {
+		background: transparent;
+		border: 0;
+		border-radius: 0;
+		padding: 0;
+		color: var(--blue);
+		font-size: 0.85em;
+		font-weight: normal;
+	}
+	button.translation-toggle:hover:not(:disabled) {
+		text-decoration: underline;
+		opacity: 1;
+	}
+	button.translation-toggle:focus-visible {
+		outline: 2px solid var(--blue);
+		outline-offset: 3px;
+	}
+	button.translation-toggle:disabled {
+		cursor: default;
 	}
 	.result {
 		white-space: pre-wrap;

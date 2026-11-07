@@ -1,0 +1,177 @@
+import { test, expect } from '@playwright/test';
+import { build, transform } from 'esbuild';
+import { compile, compileModule } from 'svelte/compiler';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+
+const root = fileURLToPath(new URL('..', import.meta.url));
+let bundle: string;
+test.beforeAll(async () => {
+	const result = await build({
+		stdin: {
+			contents: `
+				import { mount, unmount } from 'svelte';
+				import { init, addMessages } from 'svelte-i18n';
+				import messages from './src/lib/i18n/locales/en.json';
+				import Component from './src/lib/features/translation/presentation/BrowserTranslation.svelte';
+				addMessages('en', messages);
+				await init({ initialLocale: 'en', fallbackLocale: 'en' });
+				const instance = mount(Component, { target: document.body, props: { text: 'Bonjour tout le monde' } });
+				globalThis.removeTranslation = () => unmount(instance);
+			`,
+			resolveDir: root,
+			loader: 'ts'
+		},
+		bundle: true,
+		write: false,
+		format: 'esm',
+		conditions: ['browser'],
+		plugins: [
+			{
+				name: 'svelte',
+				setup(builder) {
+					builder.onLoad({ filter: /\.svelte$/ }, async ({ path }) => ({
+						contents: compile(await readFile(path, 'utf8'), {
+							filename: path,
+							generate: 'client',
+							css: 'injected'
+						}).js.code,
+						loader: 'js'
+					}));
+					builder.onLoad({ filter: /\.svelte\.(ts|js)$/ }, async ({ path }) => ({
+						contents: compileModule(
+							(
+								await transform(await readFile(path, 'utf8'), {
+									loader: path.endsWith('.ts') ? 'ts' : 'js'
+								})
+							).code,
+							{ filename: path, generate: 'client' }
+						).js.code,
+						loader: 'js'
+					}));
+				}
+			}
+		]
+	});
+	bundle = result.outputFiles[0].text;
+});
+async function setup(page: import('@playwright/test').Page, uncertain = false) {
+	await page.setContent('<html><body></body></html>');
+	await page.addStyleTag({ content: await readFile(root + '/src/app.css', 'utf8') });
+	await page.evaluate(
+		({ uncertain }) => {
+			const state = { aborted: false, translations: 0 };
+			Object.assign(globalThis, {
+				translationTest: state,
+				LanguageDetector: {
+					availability: async () => 'available',
+					create: async () => ({
+						detect: async () => [
+							{ detectedLanguage: 'fr', confidence: uncertain ? 0.2 : 0.99 }
+						],
+						destroy() {}
+					})
+				},
+				Translator: {
+					availability: async () => 'downloadable',
+					create: async ({ signal }: { signal: AbortSignal }) => {
+						signal.addEventListener('abort', () => {
+							state.aborted = true;
+						});
+						return {
+							translate: async () => {
+								state.translations++;
+								return 'Hello everyone';
+							},
+							destroy() {}
+						};
+					}
+				}
+			});
+		},
+		{ uncertain }
+	);
+	await page.addScriptTag({ content: bundle, type: 'module' });
+}
+test('text control, all dialog cancellation paths, and retry without an extra click', async ({
+	page
+}) => {
+	await setup(page);
+	const show = page.getByRole('button', { name: 'Show translation', exact: true });
+	await expect(show).toBeVisible();
+	expect(
+		await show.evaluate((element) => {
+			const style = getComputedStyle(element);
+			return [style.backgroundColor, style.paddingTop, style.borderRadius];
+		})
+	).toEqual(['rgba(0, 0, 0, 0)', '0px', '0px']);
+	for (const method of ['button', 'escape', 'outside']) {
+		await show.click();
+		await expect(page.getByRole('dialog')).toBeVisible();
+		if (method === 'button') {
+			await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+		}
+		if (method === 'escape') {
+			await page.keyboard.press('Escape');
+		}
+		if (method === 'outside') {
+			await page.mouse.click(1, 1);
+		}
+		await expect(page.getByRole('dialog')).toHaveCount(0);
+		await expect(show).toBeEnabled();
+		await expect(page.locator('.translation')).not.toContainText('translation.cancelled');
+		await expect(page.locator('.translation')).not.toContainText('failed');
+	}
+	await show.click();
+	await page.getByRole('button', { name: 'Start translation', exact: true }).click();
+	await expect(page.locator('.result')).toHaveText('Hello everyone');
+	await expect(page.getByRole('button', { name: 'Continue preparing models' })).toHaveCount(0);
+});
+test('uncertain detection lets the user supply a source language', async ({ page }) => {
+	await setup(page, true);
+	await page.getByRole('button', { name: 'Show translation', exact: true }).click();
+	await page.getByLabel('Detection is uncertain. Enter the source language code.').fill('fr');
+	await page.getByRole('button', { name: 'Start translation', exact: true }).click();
+	await expect(page.getByRole('dialog')).toBeVisible();
+	await page
+		.getByRole('dialog')
+		.getByRole('button', { name: 'Start translation', exact: true })
+		.click();
+	await expect(page.locator('.result')).toHaveText('Hello everyone');
+});
+
+test('unmount aborts an in-flight translation without showing a late result', async ({ page }) => {
+	await setup(page);
+	await page.evaluate(() => {
+		Object.assign(globalThis, {
+			Translator: {
+				availability: async () => 'available',
+				create: async ({ signal }: { signal: AbortSignal }) => ({
+					translate: () =>
+						new Promise<string>((resolve) => {
+							Object.assign(globalThis, {
+								finishTranslation: () => resolve('Late result')
+							});
+							signal.addEventListener('abort', () => {
+								Object.assign(globalThis, { translationAborted: true });
+							});
+						}),
+					destroy() {}
+				})
+			}
+		});
+	});
+	await page.getByRole('button', { name: 'Show translation', exact: true }).click();
+	await expect.poll(() => page.evaluate(() => 'finishTranslation' in globalThis)).toBe(true);
+	await page.evaluate(async () => {
+		const controls = globalThis as unknown as {
+			removeTranslation(): Promise<void>;
+			finishTranslation(): void;
+		};
+		await controls.removeTranslation();
+		controls.finishTranslation();
+	});
+	await expect.poll(() => page.evaluate(() => 'translationAborted' in globalThis)).toBe(true);
+	await expect(page.locator('.translation')).toHaveCount(0);
+	await expect(page.getByText('Late result')).toHaveCount(0);
+});

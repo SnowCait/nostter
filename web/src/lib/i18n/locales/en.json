@@ -609,9 +609,8 @@
 		"start": "Start translation",
 		"downloading": "Models are downloading. Continue?",
 		"same": "This post is already in the display language.",
-		"uncertain": "The language could not be detected with sufficient confidence.",
 		"unavailable": "Translation is unavailable for this language.",
-		"cancelled": "",
-		"failed": "Translation failed. Please try again."
+		"failed": "Translation failed. Please try again.",
+		"source": "Detection is uncertain. Enter the source language code."
 	}
 }
