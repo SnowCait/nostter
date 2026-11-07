@@ -22,7 +22,7 @@ test.afterEach(async ({ page }, testInfo) => {
 		path,
 		fullPage: false,
 		animations: 'disabled',
-		style: '.hero-message > img { visibility: hidden !important; }'
+		style: '.hero-message > img { visibility: hidden; }'
 	});
 });
 
