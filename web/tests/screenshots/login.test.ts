@@ -22,7 +22,7 @@ test.afterEach(async ({ page }, testInfo) => {
 		path,
 		fullPage: false,
 		animations: 'disabled',
-		mask: [page.locator('.hero-message > img')]
+		style: '.hero-message > img { visibility: hidden !important; }'
 	});
 });
 
