@@ -1,5 +1,11 @@
 import { googleTranslationUrl } from './google-translation';
-import { npubEncode, nprofileEncode, noteEncode, neventEncode } from 'nostr-tools/nip19';
+import {
+	npubEncode,
+	nprofileEncode,
+	noteEncode,
+	neventEncode,
+	naddrEncode
+} from 'nostr-tools/nip19';
 import en from '$lib/i18n/locales/en.json';
 import ja from '$lib/i18n/locales/ja.json';
 import { describe, expect, it, vi } from 'vitest';
@@ -42,6 +48,7 @@ describe('browser translation', () => {
 		const prepare = vi.fn();
 		await expect(
 			translateInBrowser(api, 'Hello', 'ja', {
+				getDisplayName: () => undefined,
 				prepare,
 				translating: () => {},
 				signal: new AbortController().signal
@@ -56,6 +63,7 @@ describe('browser translation', () => {
 		const translating = vi.fn();
 		await expect(
 			translateInBrowser(api, 'Hello', 'ja', {
+				getDisplayName: () => undefined,
 				prepare: (_, create) => create(),
 				translating,
 				signal: new AbortController().signal
@@ -98,6 +106,7 @@ describe('browser translation', () => {
 		const { api } = fixture('available', 'zh-Hans');
 		expect(await shouldOfferTranslation(api, 'Text', 'zh-Hant')).toBe(true);
 		await translateInBrowser(api, 'Text', 'zh-Hant', {
+			getDisplayName: () => undefined,
 			prepare: (_, create) => create(),
 			translating: () => {},
 			signal: new AbortController().signal
@@ -130,6 +139,7 @@ describe('browser translation', () => {
 		const { api, detector } = fixture('available', 'en', 0.2);
 		expect(
 			await translateInBrowser(api, 'Hello', 'en', {
+				getDisplayName: () => undefined,
 				prepare: (_, create) => create(),
 				translating: () => {},
 				signal: new AbortController().signal
@@ -142,6 +152,7 @@ describe('browser translation', () => {
 		const { api } = fixture();
 		await expect(
 			translateInBrowser(api, 'Hello', 'en', {
+				getDisplayName: () => undefined,
 				prepare: (_, create) => create(),
 				translating: () => {},
 				signal: new AbortController().signal
@@ -154,6 +165,7 @@ describe('browser translation', () => {
 		api.Translator.availability = vi.fn(async () => 'unavailable' as const);
 		await expect(
 			translateInBrowser(api, 'Hello', 'ja', {
+				getDisplayName: () => undefined,
 				prepare: (_, create) => create(),
 				translating: () => {},
 				signal: new AbortController().signal
@@ -167,6 +179,7 @@ describe('browser translation', () => {
 		const abort = new AbortController();
 		await expect(
 			translateInBrowser(api, 'Hello', 'ja', {
+				getDisplayName: () => undefined,
 				prepare: async (_, create) => {
 					const instance = await create();
 					abort.abort();
@@ -189,6 +202,7 @@ describe('browser translation', () => {
 		});
 		await expect(
 			translateInBrowser(api, 'Hello\nLater', 'ja', {
+				getDisplayName: () => undefined,
 				prepare: (_, create) => create(),
 				translating: () => {},
 				signal: controller.signal
@@ -225,6 +239,7 @@ describe('browser translation', () => {
 		const signal = new AbortController().signal;
 		expect(
 			await translateInBrowser(api, text, 'ja', {
+				getDisplayName: () => undefined,
 				prepare: (_, create) => create(),
 				translating: () => {},
 				signal
@@ -242,6 +257,7 @@ describe('browser translation', () => {
 			.mockImplementationOnce(() => first.promise)
 			.mockRejectedValueOnce(new Error('translation failed'));
 		const result = translateInBrowser(api, 'First\nSecond\nThird', 'ja', {
+			getDisplayName: () => undefined,
 			prepare: (_, create) => create(),
 			translating: () => {},
 			signal: new AbortController().signal
@@ -258,6 +274,7 @@ describe('browser translation', () => {
 		const { api, detector, translator } = fixture();
 		expect(
 			await translateInBrowser(api, 'Hello', 'ja', {
+				getDisplayName: () => undefined,
 				prepare: (_, create) => create(),
 				translating: () => {},
 				signal: new AbortController().signal
@@ -272,44 +289,54 @@ describe('browser translation', () => {
 	});
 });
 
-describe('shared Google translation links', () => {
-	it.each([en, ja])(
-		'preserves reference replacements, encoding and the locale URL',
-		(messages) => {
-			const pubkey = 'a'.repeat(64);
-			const npub = npubEncode(pubkey);
-			const nprofile = nprofileEncode({ pubkey });
-			const note = noteEncode('b'.repeat(64));
-			const nevent = neventEncode({ id: 'b'.repeat(64) });
-			const text =
-				'Hello & #日本語\nnostr:' +
-				npub +
-				' nostr:' +
-				nprofile +
-				' nostr:' +
-				note +
-				' nostr:' +
-				nevent;
-			const expected =
-				'Hello & #日本語\n@Name & 日本語 @Name & 日本語 https://nostter.app/' +
-				note +
-				' https://nostter.app/' +
-				nevent;
+describe('shared translation text', () => {
+	it('uses the same reference conversions for both methods while detecting the original text', async () => {
+		const pubkey = 'a'.repeat(64);
+		const npub = npubEncode(pubkey);
+		const profile = nprofileEncode({ pubkey });
+		const missingNpub = npubEncode('c'.repeat(64));
+		const missingProfile = nprofileEncode({ pubkey: 'c'.repeat(64) });
+		const note = noteEncode('b'.repeat(64));
+		const event = neventEncode({ id: 'b'.repeat(64) });
+		const address = naddrEncode({ kind: 30023, pubkey, identifier: 'article' });
+		const text = [
+			'Hello & #日本語 nostr:' + npub + ' nostr:' + profile,
+			'nostr:' + missingNpub + ' nostr:' + missingProfile,
+			'',
+			'nostr:' + note + ' nostr:' + event,
+			'https://example.com/ nostr:' + address + ' Plain words',
+			'  '
+		].join('\r\n');
+		const expectedLines = [
+			'Hello & #日本語 @Name & 日本語 @Name & 日本語',
+			'@' + missingNpub.substring(0, 12) + ' @' + missingProfile.substring(0, 16),
+			'',
+			'https://nostter.app/' + note + ' https://nostter.app/' + event,
+			'https://example.com/ nostr:' + address + ' Plain words',
+			'  '
+		];
+		const expected = expectedLines.join('\r\n');
+		const getDisplayName = (key: string) => (key === pubkey ? 'Name & 日本語' : undefined);
+		for (const messages of [en, ja]) {
 			expect(
-				googleTranslationUrl(text, messages.thread.translation.url, () => 'Name & 日本語')
+				googleTranslationUrl(text, messages.thread.translation.url, getDisplayName)
 			).toBe(messages.thread.translation.url.replace('{0}', encodeURIComponent(expected)));
-			expect(
-				googleTranslationUrl(
-					'nostr:' + npub,
-					messages.thread.translation.url,
-					() => undefined
-				)
-			).toBe(
-				messages.thread.translation.url.replace(
-					'{0}',
-					encodeURIComponent('@' + npub.substring(0, 12))
-				)
-			);
 		}
-	);
+		const { api, detector, translator } = fixture();
+		translator.translate.mockImplementation(async (line) => line);
+		const signal = new AbortController().signal;
+		expect(
+			await translateInBrowser(api, text, 'ja', {
+				getDisplayName,
+				prepare: (_, create) => create(),
+				translating: () => {},
+				signal
+			})
+		).toBe(expected);
+		expect(detector.detect).toHaveBeenCalledExactlyOnceWith(text, { signal });
+		expect(translator.translate.mock.calls).toEqual(
+			expectedLines.filter((line) => line.trim()).map((line) => [line, { signal }])
+		);
+		expect(api.Translator.create).toHaveBeenCalledOnce();
+	});
 });

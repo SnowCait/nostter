@@ -1,3 +1,5 @@
+import { prepareTranslationText } from '../domain/translation-text';
+
 export type Availability = 'available' | 'downloadable' | 'downloading' | 'unavailable' | null;
 type Options = { signal?: AbortSignal };
 export type Detection = { detectedLanguage: string; confidence: number };
@@ -108,6 +110,7 @@ export async function translateInBrowser(
 			availability: Exclude<Availability, null | 'unavailable'>,
 			create: () => Promise<Detector | Translator>
 		): Promise<Detector | Translator>;
+		getDisplayName(pubkey: string): string | undefined;
 		translating(): void;
 		signal: AbortSignal;
 	}
@@ -148,7 +151,7 @@ export async function translateInBrowser(
 	try {
 		hooks.signal.throwIfAborted();
 		hooks.translating();
-		const parts = text.split(/(\r?\n)/);
+		const parts = prepareTranslationText(text, hooks.getDisplayName).split(/(\r?\n)/);
 		for (let index = 0; index < parts.length; index++) {
 			hooks.signal.throwIfAborted();
 			if (parts[index].trim()) {

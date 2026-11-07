@@ -97,6 +97,7 @@
 		try {
 			const translated = await translateInBrowser(api, text, target, {
 				signal,
+				getDisplayName,
 				translating: () => {
 					if (!signal.aborted) {
 						phase = 'translating';
