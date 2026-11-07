@@ -8,6 +8,7 @@
 	import { rxNostr } from '$lib/relay-client';
 	import { persistedStore } from '$lib/platform/storage/persisted-store';
 	import { WebStorage } from '$lib/WebStorage';
+	import { copy } from '$lib/platform/browser/clipboard';
 	import type { Signer } from '$lib/nostr/signing/signer';
 	import { zapWithWalletConnect, type NwcPaymentResult } from '$lib/Zap';
 	import { metadataStore } from '$lib/cache/Events';
@@ -35,6 +36,7 @@
 		if (!sending) {
 			invoice = '';
 			invoiceError = undefined;
+			invoiceDetails = undefined;
 			paymentResult = undefined;
 			comment = '';
 			sats = $history.at(0) ?? 1;
@@ -54,6 +56,7 @@
 	let paymentResult = $state<NwcPaymentResult>();
 	type InvoiceError = 'signing' | 'url' | 'network' | 'http' | 'json' | 'invalid';
 	let invoiceError = $state<InvoiceError>();
+	let invoiceDetails = $state<string>();
 
 	$effect(() => {
 		const counts = new Map<number, number>();
@@ -72,10 +75,14 @@
 		sending = true;
 		paymentResult = undefined;
 		invoiceError = undefined;
+		invoiceDetails = undefined;
 		try {
 			let zapInvoice: string;
 			let stage: InvoiceError = 'signing';
-			let detail: unknown;
+			let callback: string | undefined;
+			let status: number | undefined;
+			let contentType: string | null = null;
+			let body: string | undefined;
 			try {
 				const amount = sats * 1000;
 				const relays = Object.keys(rxNostr.getDefaultRelays({ filter: 'write-all' }));
@@ -86,41 +93,46 @@
 				);
 				const zapRequestEvent = await signEvent(zapRequest);
 				stage = 'url';
-				detail = {
-					pubkey,
-					lud16: metadata?.content?.lud16,
-					lud06: metadata?.content?.lud06
-				};
 				const zapUrl = await metadata?.zapUrl();
 				if (!zapUrl) {
 					throw new Error('Zap URL not found');
 				}
-				const endpoint = new URL(zapUrl);
-				endpoint.search = '';
-				endpoint.hash = '';
-				detail = endpoint.href;
+				callback = zapUrl.href;
 				const requestUrl = buildZapInvoiceUrl(zapUrl, amount, zapRequestEvent);
 				stage = 'network';
 				const response = await fetch(requestUrl);
 				stage = 'http';
+				status = response.status;
+				if (response.ok) {
+					stage = 'json';
+				}
+				contentType = response.headers.get('content-type');
+				body = await response.text();
 				if (!response.ok) {
-					detail = {
-						endpoint: detail,
-						status: response.status,
-						body: await response.text()
-					};
 					throw new Error('Invoice endpoint returned an HTTP error');
 				}
 				stage = 'json';
-				const payment = await response.json();
+				const payment = JSON.parse(body);
 				stage = 'invalid';
-				detail = { endpoint: detail, response: payment };
 				if (typeof payment?.pr !== 'string' || payment.pr.trim() === '') {
 					throw new Error('Invoice response has no non-empty pr');
 				}
 				zapInvoice = payment.pr;
 			} catch (error) {
-				console.error('[zap invoice failed]', stage, error, detail);
+				console.error('[zap invoice failed]', stage, error);
+				invoiceDetails = [
+					`Stage: ${stage}`,
+					error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+					callback && `Callback URL: ${callback}`,
+					status !== undefined && `HTTP status: ${status}`,
+					contentType && `Content-Type: ${contentType}`,
+					body !== undefined && `Response body:\n${body}`
+				]
+					.filter(
+						(value) =>
+							value !== false && value !== undefined && value !== null && value !== ''
+					)
+					.join('\n');
 				invoiceError = stage;
 				return;
 			}
@@ -197,6 +209,13 @@
 			<form onsubmit={zap} aria-busy={sending}>
 				{#if invoiceError}
 					<p role="alert">{$_(`zap.errors.${invoiceError}`)}</p>
+					<details>
+						<summary>{$_('zap.errorDetails')}</summary>
+						<pre>{invoiceDetails}</pre>
+						<button type="button" onclick={() => invoiceDetails && copy(invoiceDetails)}
+							>{$_('zap.copyDetails')}</button
+						>
+					</details>
 				{/if}
 				<div class="sats-input">
 					{#each satsList.slice(0, 5) as value}
@@ -315,6 +334,18 @@
 
 	.help p + p {
 		margin-top: 0.5rem;
+	}
+
+	details {
+		min-width: 0;
+		max-width: 100%;
+	}
+
+	details pre {
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		max-height: 20rem;
+		overflow: auto;
 	}
 
 	.lnbc .text {
