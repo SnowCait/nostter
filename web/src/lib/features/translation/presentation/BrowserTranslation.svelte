@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { _, locale } from 'svelte-i18n';
+	import IconExternalLink from '@tabler/icons-svelte-runes/icons/external-link';
+	import { googleTranslationUrl } from '../application/google-translation';
 	import { Dialog } from 'bits-ui';
 	import {
 		browserTranslationApis,
@@ -9,7 +11,10 @@
 		translateInBrowser
 	} from '../application/browser-translation';
 
-	let { text }: { text: string } = $props();
+	let {
+		text,
+		getDisplayName
+	}: { text: string; getDisplayName: (pubkey: string) => string | undefined } = $props();
 	const target = $derived(displayLanguage($locale));
 	let offered = $state(false);
 	let busy = $state(false);
@@ -21,8 +26,7 @@
 	let downloading = $state(false);
 	let continuation = $state<() => void>();
 
-	let choosingSource = $state(false);
-	let sourceLanguage = $state('');
+	let fallback = $state(false);
 	const lifetime = new AbortController();
 	let operation: AbortController | undefined;
 	onMount(() => {
@@ -52,6 +56,7 @@
 		const signal = current.signal;
 		busy = true;
 		error = '';
+		fallback = false;
 		let confirmed = false;
 
 		async function waitForInput() {
@@ -70,7 +75,6 @@
 				if (operation === current) {
 					continuation = undefined;
 					dialog = false;
-					choosingSource = false;
 				}
 			}
 		}
@@ -81,11 +85,6 @@
 					if (!signal.aborted) {
 						phase = 'translating';
 					}
-				},
-				chooseSource: async () => {
-					choosingSource = true;
-					await waitForInput();
-					return Intl.getCanonicalLocales(sourceLanguage)[0];
 				},
 				prepare: async (availability, create) => {
 					signal.throwIfAborted();
@@ -121,7 +120,8 @@
 				}
 			});
 			if (!signal.aborted) {
-				result = translated;
+				fallback = translated === undefined;
+				result = translated ?? '';
 				shown = true;
 			}
 		} catch (cause) {
@@ -151,30 +151,23 @@
 		>
 			{$_(result && shown ? 'translation.hide' : 'translation.show')}
 		</button>
-		{#if choosingSource}
-			<form
-				onsubmit={(event) => {
-					event.preventDefault();
-					continuation?.();
-				}}
-			>
-				<label>
-					{$_('translation.source')}
-					<input
-						bind:value={sourceLanguage}
-						required
-						pattern={'[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*'}
-						placeholder="en, ja, fr…"
-					/>
-				</label>
-				<button type="submit">{$_('translation.start')}</button>
-				<button type="button" onclick={cancel}>{$_('translation.cancel')}</button>
-			</form>
-		{:else if continuation && !dialog}
+		{#if continuation && !dialog}
 			<button onclick={continuation}>{$_('translation.continue')}</button>
 		{/if}
 		<div aria-live="polite">
 			{#if phase}<p>{$_('translation.' + phase)}</p>{/if}
+			{#if fallback}
+				<p>{$_('translation.undetected')}</p>
+				<a
+					class="fallback-link"
+					href={googleTranslationUrl(text, $_('thread.translation.url'), getDisplayName)}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					{$_('translation.google')}
+					<IconExternalLink size={16} />
+				</a>
+			{/if}
 			{#if error}<p>{$_('translation.' + error)}</p>{/if}
 			{#if result && shown}
 				<p class="result" lang={target}>{result}</p>
@@ -193,13 +186,16 @@
 	<Dialog.Portal>
 		<Dialog.Overlay class="translation-overlay" />
 		<Dialog.Content class="translation-dialog card">
-			<Dialog.Title>{$_('translation.title')}</Dialog.Title>
+			<Dialog.Title class="translation-dialog-title">{$_('translation.title')}</Dialog.Title>
 			<Dialog.Description class="translation-description"
 				>{$_('translation.description')}</Dialog.Description
 			>
+			<p class="translation-caution">{$_('translation.caution')}</p>
 			{#if downloading}<p>{$_('translation.downloading')}</p>{/if}
-			<button onclick={cancel}>{$_('translation.cancel')}</button>
-			<button onclick={continuation}>{$_('translation.start')}</button>
+			<div class="translation-dialog-actions">
+				<button class="button-outlined" onclick={cancel}>{$_('translation.cancel')}</button>
+				<button onclick={continuation}>{$_('translation.start')}</button>
+			</div>
 		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>
@@ -243,11 +239,56 @@
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
-		width: min(90vw, 30rem);
-		padding: 1rem;
+		width: min(calc(100vw - 2rem), 30rem);
+		max-height: calc(100dvh - 2rem);
+		overflow-y: auto;
+		box-sizing: border-box;
+		color: var(--surface-foreground);
+		background: var(--surface);
+		padding: 1.5rem;
 		z-index: 11;
 	}
+
+	:global(.translation-dialog-title) {
+		margin: 0 0 1rem;
+		font-size: 1.25rem;
+		font-weight: 700;
+	}
 	:global(.translation-description) {
-		white-space: pre-line;
+		margin: 0;
+		line-height: 1.6;
+	}
+	.translation-caution {
+		color: var(--secondary-accent);
+		font-size: 0.875rem;
+		line-height: 1.6;
+		margin: 0.75rem 0 0;
+	}
+	.translation-dialog-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.75rem;
+		margin-top: 1.5rem;
+	}
+	.translation-dialog-actions button {
+		padding: 0.6rem 1rem;
+	}
+	.fallback-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: var(--blue);
+		text-decoration: underline;
+	}
+	@media (max-width: 360px) {
+		:global(.translation-dialog) {
+			padding: 1rem;
+		}
+		.translation-dialog-actions {
+			gap: 0.5rem;
+		}
+		.translation-dialog-actions button {
+			padding: 0.6rem 0.75rem;
+		}
 	}
 </style>

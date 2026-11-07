@@ -94,11 +94,10 @@ export async function translateInBrowser(
 			availability: Exclude<Availability, null | 'unavailable'>,
 			create: () => Promise<Detector | Translator>
 		): Promise<Detector | Translator>;
-		chooseSource(): Promise<string>;
 		translating(): void;
 		signal: AbortSignal;
 	}
-): Promise<string> {
+): Promise<string | undefined> {
 	const detectorAvailability = await api.LanguageDetector.availability();
 	if (detectorAvailability === null || detectorAvailability === 'unavailable') {
 		throw new Error('unavailable');
@@ -118,8 +117,7 @@ export async function translateInBrowser(
 	}
 	hooks.signal.throwIfAborted();
 	if (!source) {
-		source = await hooks.chooseSource();
-		hooks.signal.throwIfAborted();
+		return;
 	}
 	if (source.split('-')[0] === target) {
 		throw new Error('same');

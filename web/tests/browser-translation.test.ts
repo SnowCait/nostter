@@ -16,7 +16,7 @@ test.beforeAll(async () => {
 				import Component from './src/lib/features/translation/presentation/BrowserTranslation.svelte';
 				addMessages('en', messages);
 				await init({ initialLocale: 'en', fallbackLocale: 'en' });
-				const instance = mount(Component, { target: document.body, props: { text: 'Bonjour tout le monde' } });
+				const instance = mount(Component, { target: document.body, props: { text: 'Bonjour tout le monde', getDisplayName: () => undefined } });
 				globalThis.removeTranslation = () => unmount(instance);
 			`,
 			resolveDir: root,
@@ -127,17 +127,32 @@ test('text control, all dialog cancellation paths, and retry without an extra cl
 	await expect(page.locator('.result')).toHaveText('Hello everyone');
 	await expect(page.getByRole('button', { name: 'Continue preparing models' })).toHaveCount(0);
 });
-test('uncertain detection lets the user supply a source language', async ({ page }) => {
+
+test('uncertain detection offers Google Translate without opening it automatically', async ({
+	page
+}) => {
 	await setup(page, true);
+	const popups: import('@playwright/test').Page[] = [];
+	page.on('popup', (popup) => popups.push(popup));
 	await page.getByRole('button', { name: 'Show translation', exact: true }).click();
-	await page.getByLabel('Detection is uncertain. Enter the source language code.').fill('fr');
-	await page.getByRole('button', { name: 'Start translation', exact: true }).click();
-	await expect(page.getByRole('dialog')).toBeVisible();
-	await page
-		.getByRole('dialog')
-		.getByRole('button', { name: 'Start translation', exact: true })
-		.click();
-	await expect(page.locator('.result')).toHaveText('Hello everyone');
+	await expect(page.getByText('The language of this post could not be detected.')).toBeVisible();
+	await expect(page.locator('input, form')).toHaveCount(0);
+	const link = page.getByRole('link', { name: 'Open in Google Translate' });
+	await expect(link).toBeVisible();
+	await expect(link).toHaveAttribute('target', '_blank');
+	await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+	const href = await link.getAttribute('href');
+	const url = new URL(href!);
+	expect(url.searchParams.get('text')).toBe('Bonjour tout le monde');
+	expect(href).toBe(
+		'https://translate.google.com/?sl=auto&text=Bonjour%20tout%20le%20monde&op=translate'
+	);
+	expect(popups).toHaveLength(0);
+	// Abort the external request while still checking that the user opens a new tab.
+	await page.context().route('https://translate.google.com/**', (route) => route.abort());
+	const popup = page.waitForEvent('popup');
+	await link.click();
+	await (await popup).close();
 });
 
 test('unmount aborts an in-flight translation without showing a late result', async ({ page }) => {
@@ -238,4 +253,35 @@ test('shows model preparation for both models, then translation without progress
 	await page.evaluate('finishText()');
 	await expect(page.locator('.result')).toHaveText('Hello everyone');
 	await expect(page.getByText('Translating…', { exact: true })).toHaveCount(0);
+});
+
+test('model confirmation fits a narrow screen in both themes', async ({ page }) => {
+	await page.setViewportSize({ width: 320, height: 640 });
+	await setup(page);
+	for (const theme of ['light', 'dark']) {
+		await page.evaluate(
+			(theme) => document.documentElement.classList.toggle('dark', theme === 'dark'),
+			theme
+		);
+		await page.getByRole('button', { name: 'Show translation', exact: true }).click();
+		const dialog = page.getByRole('dialog');
+		await expect(
+			dialog.getByRole('heading', { name: 'In-browser translation', exact: true })
+		).toBeVisible();
+		await expect(
+			dialog.getByText('This feature is experimental. Translations may be inaccurate.')
+		).toBeVisible();
+		const box = await dialog.boundingBox();
+		expect(box!.x).toBeGreaterThanOrEqual(0);
+		expect(box!.x + box!.width).toBeLessThanOrEqual(320);
+		expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
+			true
+		);
+		for (const name of ['Cancel', 'Start translation']) {
+			const action = await dialog.getByRole('button', { name, exact: true }).boundingBox();
+			expect(action!.x + action!.width).toBeLessThanOrEqual(box!.x + box!.width);
+		}
+		await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+		await expect(dialog).toHaveCount(0);
+	}
 });

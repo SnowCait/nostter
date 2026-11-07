@@ -1,3 +1,7 @@
+import { googleTranslationUrl } from './google-translation';
+import { npubEncode, nprofileEncode, noteEncode, neventEncode } from 'nostr-tools/nip19';
+import en from '$lib/i18n/locales/en.json';
+import ja from '$lib/i18n/locales/ja.json';
 import { describe, expect, it, vi } from 'vitest';
 import {
 	displayLanguage,
@@ -39,7 +43,6 @@ describe('browser translation', () => {
 		await expect(
 			translateInBrowser(api, 'Hello', 'ja', {
 				prepare,
-				chooseSource: async () => 'en',
 				translating: () => {},
 				signal: new AbortController().signal
 			})
@@ -54,7 +57,6 @@ describe('browser translation', () => {
 		await expect(
 			translateInBrowser(api, 'Hello', 'ja', {
 				prepare: (_, create) => create(),
-				chooseSource: async () => 'en',
 				translating,
 				signal: new AbortController().signal
 			})
@@ -84,33 +86,27 @@ describe('browser translation', () => {
 		);
 	});
 
-	it('asks for a source only for uncertain detection and uses the user choice', async () => {
-		const { api } = fixture('available', 'en', 0.2);
-		const chooseSource = vi.fn(async () => 'fr');
-		await translateInBrowser(api, 'Hello', 'en', {
-			chooseSource,
-			prepare: (_, create) => create(),
-			translating: () => {},
-			signal: new AbortController().signal
-		});
-		expect(chooseSource).toHaveBeenCalledOnce();
-		expect(api.Translator.availability).toHaveBeenCalledWith({
-			sourceLanguage: 'fr',
-			targetLanguage: 'en'
-		});
+	it('returns a fallback for uncertain detection without preparing a translator', async () => {
+		const { api, detector } = fixture('available', 'en', 0.2);
+		expect(
+			await translateInBrowser(api, 'Hello', 'en', {
+				prepare: (_, create) => create(),
+				translating: () => {},
+				signal: new AbortController().signal
+			})
+		).toBeUndefined();
+		expect(api.Translator.create).not.toHaveBeenCalled();
+		expect(detector.destroy).toHaveBeenCalledOnce();
 	});
 	it('does not translate confidently detected same-language results', async () => {
 		const { api } = fixture();
-		const chooseSource = vi.fn(async () => 'fr');
 		await expect(
 			translateInBrowser(api, 'Hello', 'en', {
-				chooseSource,
 				prepare: (_, create) => create(),
 				translating: () => {},
 				signal: new AbortController().signal
 			})
 		).rejects.toThrow('same');
-		expect(chooseSource).not.toHaveBeenCalled();
 		expect(api.Translator.create).not.toHaveBeenCalled();
 	});
 	it('does not create a translator for an unavailable pair', async () => {
@@ -118,7 +114,6 @@ describe('browser translation', () => {
 		api.Translator.availability = vi.fn(async () => 'unavailable' as const);
 		await expect(
 			translateInBrowser(api, 'Hello', 'ja', {
-				chooseSource: async () => 'fr',
 				prepare: (_, create) => create(),
 				translating: () => {},
 				signal: new AbortController().signal
@@ -132,7 +127,6 @@ describe('browser translation', () => {
 		const abort = new AbortController();
 		await expect(
 			translateInBrowser(api, 'Hello', 'ja', {
-				chooseSource: async () => 'fr',
 				prepare: async (_, create) => {
 					const instance = await create();
 					abort.abort();
@@ -155,7 +149,6 @@ describe('browser translation', () => {
 		});
 		await expect(
 			translateInBrowser(api, 'Hello\nLater', 'ja', {
-				chooseSource: async () => 'fr',
 				prepare: (_, create) => create(),
 				translating: () => {},
 				signal: controller.signal
@@ -192,7 +185,6 @@ describe('browser translation', () => {
 		const signal = new AbortController().signal;
 		expect(
 			await translateInBrowser(api, text, 'ja', {
-				chooseSource: async () => 'fr',
 				prepare: (_, create) => create(),
 				translating: () => {},
 				signal
@@ -210,7 +202,6 @@ describe('browser translation', () => {
 			.mockImplementationOnce(() => first.promise)
 			.mockRejectedValueOnce(new Error('translation failed'));
 		const result = translateInBrowser(api, 'First\nSecond\nThird', 'ja', {
-			chooseSource: async () => 'fr',
 			prepare: (_, create) => create(),
 			translating: () => {},
 			signal: new AbortController().signal
@@ -227,7 +218,6 @@ describe('browser translation', () => {
 		const { api, detector, translator } = fixture();
 		expect(
 			await translateInBrowser(api, 'Hello', 'ja', {
-				chooseSource: async () => 'fr',
 				prepare: (_, create) => create(),
 				translating: () => {},
 				signal: new AbortController().signal
@@ -240,4 +230,46 @@ describe('browser translation', () => {
 		expect(detector.destroy).toHaveBeenCalledOnce();
 		expect(translator.destroy).toHaveBeenCalledOnce();
 	});
+});
+
+describe('shared Google translation links', () => {
+	it.each([en, ja])(
+		'preserves reference replacements, encoding and the locale URL',
+		(messages) => {
+			const pubkey = 'a'.repeat(64);
+			const npub = npubEncode(pubkey);
+			const nprofile = nprofileEncode({ pubkey });
+			const note = noteEncode('b'.repeat(64));
+			const nevent = neventEncode({ id: 'b'.repeat(64) });
+			const text =
+				'Hello & #日本語\nnostr:' +
+				npub +
+				' nostr:' +
+				nprofile +
+				' nostr:' +
+				note +
+				' nostr:' +
+				nevent;
+			const expected =
+				'Hello & #日本語\n@Name & 日本語 @Name & 日本語 https://nostter.app/' +
+				note +
+				' https://nostter.app/' +
+				nevent;
+			expect(
+				googleTranslationUrl(text, messages.thread.translation.url, () => 'Name & 日本語')
+			).toBe(messages.thread.translation.url.replace('{0}', encodeURIComponent(expected)));
+			expect(
+				googleTranslationUrl(
+					'nostr:' + npub,
+					messages.thread.translation.url,
+					() => undefined
+				)
+			).toBe(
+				messages.thread.translation.url.replace(
+					'{0}',
+					encodeURIComponent('@' + npub.substring(0, 12))
+				)
+			);
+		}
+	);
 });

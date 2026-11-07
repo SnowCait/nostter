@@ -167,7 +167,10 @@
 							: item.event.content}
 					{#if ContentParser.parse(text, item.event.tags).some((token) => token.type === 'text' && /\p{L}/u.test(token.text))}
 						{#key item.event.id + text + $locale}
-							<BrowserTranslation {text} />
+							<BrowserTranslation
+								{text}
+								getDisplayName={(pubkey) => $metadataStore.get(pubkey)?.displayName}
+							/>
 						{/key}
 					{/if}
 				{/if}

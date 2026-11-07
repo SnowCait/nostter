@@ -599,8 +599,8 @@
 		"unfold": "View more"
 	},
 	"translation": {
-		"title": "In-browser translation (experimental)",
-		"description": "This feature is experimental. Translations may be inaccurate.\n\nTranslation runs on your device. Using this feature may require downloading translation models.",
+		"title": "In-browser translation",
+		"description": "Translation runs on your device. On first use, translation models may need to be downloaded.",
 		"show": "Show translation",
 		"hide": "Hide translation",
 		"continue": "Continue preparing models",
@@ -610,8 +610,10 @@
 		"same": "This post is already in the display language.",
 		"unavailable": "Translation is unavailable for this language.",
 		"failed": "Translation failed. Please try again.",
-		"source": "Detection is uncertain. Enter the source language code.",
 		"preparing": "Preparing models…",
-		"translating": "Translating…"
+		"translating": "Translating…",
+		"caution": "This feature is experimental. Translations may be inaccurate.",
+		"undetected": "The language of this post could not be detected.",
+		"google": "Open in Google Translate"
 	}
 }
