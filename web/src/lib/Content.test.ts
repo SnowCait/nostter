@@ -150,6 +150,17 @@ describe('parse test', () => {
 			{ type: 'url', text: 'https://link.amazon/', start: 0 }
 		]);
 	});
+	it.each([
+		['前 https://example.com/', '前 ', 2, ''],
+		['前：https://example.com/', '前：', 2, ''],
+		['前（https://example.com/）', '前（', 2, '）']
+	])('detects URL after Japanese delimiter: %s', (input, prefix, start, suffix) => {
+		expect(Content.parse(input)).toStrictEqual([
+			{ type: 'text', text: prefix, start: 0 },
+			{ type: 'url', text: 'https://example.com/', start },
+			...(suffix ? [{ type: 'text' as const, text: suffix, start: start + 20 }] : [])
+		]);
+	});
 	it.each(['mailto:a@example.com', 'ftp://example.com/', '//example.com/'])(
 		'leaves unsupported URL form as text: %s',
 		(text) => {
