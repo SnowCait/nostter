@@ -132,6 +132,32 @@ describe('parse test', () => {
 			{ type: 'url', text: 'http://example.com/', start: 0 }
 		] as const satisfies readonly Token[]);
 	});
+	it('url punctuation and Japanese boundaries', () => {
+		expect(Content.parse('前https://example.com/a?x=1&y=two#part、後!')).toStrictEqual([
+			{ type: 'text', text: '前', start: 0 },
+			{ type: 'url', text: 'https://example.com/a?x=1&y=two#part', start: 1 },
+			{ type: 'text', text: '、後!', start: 37 }
+		]);
+		expect(
+			Content.parse('https://example.com/a,b. 次 https://example.com/x?y=z。')
+		).toStrictEqual([
+			{ type: 'url', text: 'https://example.com/a,b', start: 0 },
+			{ type: 'text', text: '. 次 ', start: 23 },
+			{ type: 'url', text: 'https://example.com/x?y=z', start: 27 },
+			{ type: 'text', text: '。', start: 52 }
+		]);
+	});
+	it('url quotes and non-target strings', () => {
+		expect(
+			Content.parse('"https://example.com/" and example.com and a@example.com')
+		).toStrictEqual([
+			{
+				type: 'text',
+				text: '"https://example.com/" and example.com and a@example.com',
+				start: 0
+			}
+		]);
+	});
 	it('url in JSON', () => {
 		expect(Content.parse('{"key":"https://example.com/"}')).toStrictEqual([
 			{ type: 'text', text: '{"key":"https://example.com/"}', start: 0 }
