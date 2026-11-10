@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { now } from 'rx-nostr';
 	import { rxNostr } from '$lib/relay-client';
-	import { restoreReadExclusions } from '$lib/nostr/relay/read-exclusion';
+	import {
+		restoreReadExclusions,
+		setReadExclusionsEnabled
+	} from '$lib/nostr/relay/read-exclusion';
 	import { WebStorage } from '$lib/WebStorage';
 	import { timeline as homeTimeline } from '$lib/timelines/HomeTimeline';
 	import Notice from '$lib/components/Notice.svelte';
@@ -144,7 +147,11 @@
 
 	onMount(() => {
 		subscribeSystemTheme();
-		return observePageLifecycle(onLifecycleEvent);
+		const stop = observePageLifecycle(onLifecycleEvent, setReadExclusionsEnabled);
+		return () => {
+			stop();
+			setReadExclusionsEnabled(false);
+		};
 	});
 
 	let initialized = false;
