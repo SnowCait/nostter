@@ -1,7 +1,7 @@
 import { nip19 } from 'nostr-tools';
 import { unique } from './array';
 import escapeStringRegexp from 'escape-string-regexp';
-import twitter from 'twitter-text';
+import { LinkifyIt } from 'linkify-it';
 import { emojisetAddressRegexp } from './Constants';
 import { shortcodeRegexp } from './nostr/protocol/nip30';
 
@@ -53,13 +53,18 @@ type NipToken = {
 export type Token =
 	TextToken | ReferenceToken | HashtagToken | EmojiToken | UrlToken | RelayToken | NipToken;
 
+const linkify = new LinkifyIt({ fuzzyLink: false, fuzzyEmail: false })
+	.add('mailto:', null)
+	.add('ftp:', null)
+	.add('//', null);
+
 export class Content {
 	static parse(content: string, tags: string[][] = []): Token[] {
 		if (content.length === 0) {
 			return [];
 		}
 
-		const urls = twitter.extractUrlsWithIndices(content, { extractUrlsWithoutProtocol: false });
+		const urls = linkify.match(content) ?? [];
 
 		const hashtags = unique(
 			tags
@@ -73,10 +78,10 @@ export class Content {
 		const foundTokens: Token[] = [];
 		foundTokens.push(
 			...urls
-				.map(({ url, indices }): UrlToken => ({
+				.map(({ raw, index }): UrlToken => ({
 					type: 'url',
-					text: url,
-					start: indices[0]
+					text: raw,
+					start: index
 				}))
 				.filter((token) => token.start === 0 || content[token.start - 1] !== '"') // ignore URLs in JSON
 		);
