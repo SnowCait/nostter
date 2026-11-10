@@ -134,9 +134,7 @@ describe('parse test', () => {
 	});
 	it('url punctuation and Japanese boundaries', () => {
 		expect(Content.parse('前https://example.com/a?x=1&y=two#part、後!')).toStrictEqual([
-			{ type: 'text', text: '前', start: 0 },
-			{ type: 'url', text: 'https://example.com/a?x=1&y=two#part', start: 1 },
-			{ type: 'text', text: '、後!', start: 37 }
+			{ type: 'text', text: '前https://example.com/a?x=1&y=two#part、後!', start: 0 }
 		]);
 		expect(
 			Content.parse('https://example.com/a,b. 次 https://example.com/x?y=z。')
@@ -145,6 +143,35 @@ describe('parse test', () => {
 			{ type: 'text', text: '. 次 ', start: 23 },
 			{ type: 'url', text: 'https://example.com/x?y=z', start: 27 },
 			{ type: 'text', text: '。', start: 52 }
+		]);
+	});
+	it('url with amazon TLD', () => {
+		expect(Content.parse('https://link.amazon/')).toStrictEqual([
+			{ type: 'url', text: 'https://link.amazon/', start: 0 }
+		]);
+	});
+	it.each([
+		['前 https://example.com/', '前 ', 2, ''],
+		['前：https://example.com/', '前：', 2, ''],
+		['前（https://example.com/）', '前（', 2, '）']
+	])('detects URL after Japanese delimiter: %s', (input, prefix, start, suffix) => {
+		expect(Content.parse(input)).toStrictEqual([
+			{ type: 'text', text: prefix, start: 0 },
+			{ type: 'url', text: 'https://example.com/', start },
+			...(suffix ? [{ type: 'text' as const, text: suffix, start: start + 20 }] : [])
+		]);
+	});
+	it.each(['mailto:a@example.com', 'ftp://example.com/', '//example.com/'])(
+		'leaves unsupported URL form as text: %s',
+		(text) => {
+			expect(Content.parse(text)).toStrictEqual([{ type: 'text', text, start: 0 }]);
+		}
+	);
+	it('preserves URL source text and UTF-16 offsets', () => {
+		expect(Content.parse('😀 HTTPS://example.com/日本語。')).toStrictEqual([
+			{ type: 'text', text: '😀 ', start: 0 },
+			{ type: 'url', text: 'HTTPS://example.com/日本語', start: 3 },
+			{ type: 'text', text: '。', start: 26 }
 		]);
 	});
 	it('url quotes and non-target strings', () => {
