@@ -170,6 +170,18 @@ describe('parse test', () => {
 			{ type: 'text', text: ')', start: 25 }
 		] as const satisfies readonly Token[]);
 	});
+	it('url with balanced parentheses', () => {
+		expect(Content.parse('https://example.com/a(b)c')).toStrictEqual([
+			{ type: 'url', text: 'https://example.com/a(b)c', start: 0 }
+		]);
+	});
+	it('url within JSON string text', () => {
+		expect(Content.parse('{"url":"see https://example.com/ here"}')).toStrictEqual([
+			{ type: 'text', text: '{"url":"see ', start: 0 },
+			{ type: 'url', text: 'https://example.com/', start: 12 },
+			{ type: 'text', text: ' here"}', start: 32 }
+		]);
+	});
 	it('nip', () => {
 		expect(Content.parse('NIP-01')).toStrictEqual([
 			{ type: 'nip', text: 'NIP-01', start: 0 }
