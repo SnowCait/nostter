@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolveProfileDisplayName } from '$lib/components/profile/profile-display-name';
 	import { onDestroy, onMount, tick } from 'svelte';
 	import type { Event } from 'nostr-tools';
 	import { npubEncode } from 'nostr-tools/nip19';
@@ -15,7 +16,6 @@
 	import { rxNostr } from '$lib/timelines/MainTimeline';
 	import { findCustomEmojiSetAddress } from '$lib/author/CustomEmojis';
 	import { metadataStore } from '$lib/cache/Events';
-	import { alternativeName } from '$lib/Items';
 	import EmojiPicker from '$lib/components/EmojiPicker.svelte';
 	import type { PickerEmoji } from '$lib/Emoji';
 	import MediaPicker from '$lib/components/MediaPicker.svelte';
@@ -45,7 +45,7 @@
 	let composerLocked = $derived(posting || localAttachments.uploading);
 	let replyName = $derived(
 		replyTo !== undefined
-			? ($metadataStore.get(replyTo.pubkey)?.displayName ?? alternativeName(replyTo.pubkey))
+			? resolveProfileDisplayName(replyTo.pubkey, $metadataStore.get(replyTo.pubkey)).text
 			: ''
 	);
 

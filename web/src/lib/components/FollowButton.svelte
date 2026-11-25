@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { resolveProfileDisplayName } from '$lib/components/profile/profile-display-name';
 	import { _ } from 'svelte-i18n';
 	import { follow, unfollow } from '$lib/author/Follow';
 	import { auth } from '$lib/auth.svelte';
 	import { metadataStore } from '$lib/cache/Events';
-	import { alternativeName } from '$lib/Items';
 	import type { Signer } from '$lib/nostr/signing/signer';
 
 	interface Props {
@@ -43,7 +43,7 @@
 
 		const metadata = $metadataStore.get(pubkey);
 
-		if (!confirm(`Unfollow @${metadata?.displayName ?? alternativeName(pubkey)}?`)) {
+		if (!confirm(`Unfollow @${resolveProfileDisplayName(pubkey, metadata).text}?`)) {
 			console.log('Unfollow is cancelled');
 			return;
 		}

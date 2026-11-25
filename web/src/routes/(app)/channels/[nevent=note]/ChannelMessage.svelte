@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { resolveProfileDisplayName } from '$lib/components/profile/profile-display-name';
 	import type * as Nostr from 'nostr-typedef';
 	import type { Event } from 'nostr-tools';
 	import { npubEncode } from 'nostr-tools/nip19';
 	import { _ } from 'svelte-i18n';
 	import { IconMessageCircle, IconBolt } from '@tabler/icons-svelte-runes';
 	import { metadataStore } from '$lib/cache/Events';
-	import { alternativeName, EventItem } from '$lib/Items';
+	import { EventItem } from '$lib/Items';
 	import { sendReaction } from '$lib/author/Reaction';
 	import Content from '$lib/components/Content.svelte';
 	import CreatedAt from '$lib/components/CreatedAt.svelte';
@@ -28,7 +29,7 @@
 	let { event, compact = false, selected = false, onReply, onSelect }: Props = $props();
 
 	let metadata = $derived($metadataStore.get(event.pubkey));
-	let name = $derived(metadata?.displayName || alternativeName(event.pubkey));
+	let name = $derived(resolveProfileDisplayName(event.pubkey, metadata).text);
 	let npub = $derived(npubEncode(event.pubkey));
 	let eventItem = $derived(new EventItem(event));
 

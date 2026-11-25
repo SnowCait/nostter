@@ -494,6 +494,17 @@
 	"qrcode": {
 		"scan": "Load profile from QR code"
 	},
+	"nickname": {
+		"set": "Set nickname",
+		"edit": "Edit nickname",
+		"label": "Nickname",
+		"description": "Only you can see this nickname. It is saved in this browser.",
+		"save": "Save",
+		"delete": "Delete",
+		"cancel": "Cancel",
+		"failed": "Could not update the nickname. Please try again.",
+		"profile_menu": "Profile menu"
+	},
 	"profile": {
 		"name": "@Name",
 		"display_name": "Display Name",

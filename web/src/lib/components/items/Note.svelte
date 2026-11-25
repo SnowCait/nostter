@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getPrivateNickname } from '$lib/features/private-nicknames/application/private-nicknames.svelte';
 	import { kinds as Kind, nip19 } from 'nostr-tools';
 	import type { EventItem, Item } from '$lib/Items';
 	import { eventItemStore, metadataStore } from '$lib/cache/Events';
@@ -86,6 +87,24 @@
 			channelName = parseChannelMetadata(channelMetadataEvent)?.name;
 		}
 	});
+	function publicReplyName(pubkey: string): string {
+		const metadata = $metadataStore.get(pubkey);
+		const name = metadata?.content?.name;
+		if (name !== undefined && name !== '') {
+			return name;
+		}
+		const displayName = metadata?.content?.display_name;
+		if (displayName !== undefined && displayName !== '') {
+			return displayName;
+		}
+
+		try {
+			return nip19.npubEncode(pubkey).substring(0, 'npub1'.length + 7);
+		} catch (error) {
+			console.error('[npub encode error]', pubkey, error);
+			return '-';
+		}
+	}
 </script>
 
 {#if eventItem.replyToId && !$inThread}
@@ -104,26 +123,7 @@
 					<span>
 						@{eventItem.replyToPubkeys
 							.slice(0, full ? Infinity : 10)
-							.map((pubkey) => {
-								const metadata = $metadataStore.get(pubkey);
-								const name = metadata?.content?.name;
-								if (name !== undefined && name !== '') {
-									return name;
-								}
-								const displayName = metadata?.content?.display_name;
-								if (displayName !== undefined && displayName !== '') {
-									return displayName;
-								}
-
-								try {
-									return nip19
-										.npubEncode(pubkey)
-										.substring(0, 'npub1'.length + 7);
-								} catch (error) {
-									console.error('[npub encode error]', pubkey, error);
-									return '-';
-								}
-							})
+							.map((pubkey) => getPrivateNickname(pubkey) ?? publicReplyName(pubkey))
 							.join(' @')}
 					</span>
 					{#if !full && eventItem.replyToPubkeys.length > 10}

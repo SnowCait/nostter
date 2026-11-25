@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ProfileDisplayName from '$lib/components/profile/ProfileDisplayName.svelte';
 	import { nip19 } from 'nostr-tools';
 	import FollowButton from '$lib/components/FollowButton.svelte';
 	import { auth } from '$lib/auth.svelte';
@@ -26,7 +27,7 @@
 	<div class="text">
 		<div class="row">
 			<div class="display_name">
-				<EmojifiedContent content={metadata.displayName} tags={metadata.event.tags} />
+				<ProfileDisplayName pubkey={metadata.event.pubkey} {metadata} />
 			</div>
 			{#if metadata.content?.name || metadata.content?.display_name || metadata.normalizedNip05}
 				<div class="name">

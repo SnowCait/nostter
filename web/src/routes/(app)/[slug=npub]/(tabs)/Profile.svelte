@@ -1,4 +1,8 @@
 <script lang="ts">
+	import { getPrivateNickname } from '$lib/features/private-nicknames/application/private-nicknames.svelte';
+	import ProfileDisplayName from '$lib/components/profile/ProfileDisplayName.svelte';
+	import IconPencil from '@tabler/icons-svelte-runes/icons/pencil';
+	import NicknameDialog from '$lib/features/private-nicknames/presentation/NicknameDialog.svelte';
 	import type { Event } from 'nostr-tools/core';
 	import { npubEncode } from 'nostr-tools/nip19';
 	import { _ } from 'svelte-i18n';
@@ -36,6 +40,9 @@
 	}
 
 	let { slug, pubkey, metadata, relays }: Props = $props();
+
+	let nickname = $derived(getPrivateNickname(pubkey));
+	let nicknameDialogOpen = $state(false);
 
 	let isOwnProfile = $derived(pubkey === auth.pubkey);
 	let followList: Event | null | undefined = $state();
@@ -134,7 +141,10 @@
 					</div>
 				{/if}
 				<div>
-					<ProfileMenuButton {pubkey} />
+					<ProfileMenuButton
+						{pubkey}
+						onEditNickname={() => (nicknameDialogOpen = true)}
+					/>
 				</div>
 				{#if auth.signer !== undefined}
 					{#if pubkey === auth.pubkey}
@@ -146,12 +156,24 @@
 			</div>
 		</div>
 		<h1>
-			{#if metadata !== undefined}
-				<EmojifiedContent content={metadata.displayName} tags={metadata.event.tags} />
-			{:else}
-				{alternativeName(pubkey)}
+			<ProfileDisplayName {pubkey} {metadata} />
+			{#if nickname !== undefined}
+				<button
+					type="button"
+					class="clear edit-nickname"
+					aria-label={$_('nickname.edit')}
+					title={$_('nickname.edit')}
+					onclick={() => (nicknameDialogOpen = true)}
+				>
+					<IconPencil size={18} />
+				</button>
 			{/if}
 		</h1>
+		{#if nickname !== undefined && metadata !== undefined}
+			<div class="public-display-name">
+				<EmojifiedContent content={metadata.displayName} tags={metadata.event.tags} />
+			</div>
+		{/if}
 		<div class="user-name-wrapper">
 			<h2>
 				<span>@</span>
@@ -218,7 +240,19 @@
 	{/if}
 </div>
 
+<NicknameDialog {pubkey} bind:open={nicknameDialogOpen} />
+
 <style>
+	.edit-nickname {
+		margin-inline-start: 0.5rem;
+		color: var(--accent-gray);
+	}
+
+	.profile h1 {
+		align-items: center;
+		overflow-wrap: anywhere;
+	}
+
 	.banner {
 		width: calc(100% + 2rem);
 		height: 200px;

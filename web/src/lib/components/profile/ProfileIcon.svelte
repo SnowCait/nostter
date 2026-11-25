@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getPrivateNickname } from '$lib/features/private-nicknames/application/private-nicknames.svelte';
 	import { metadataStore } from '$lib/cache/Events';
 	import { robohash } from '$lib/Items';
 
@@ -12,7 +13,7 @@
 	let { pubkey, width = '100%', height = '100%', tooltip = true }: Props = $props();
 
 	let metadata = $derived($metadataStore.get(pubkey));
-	let name = $derived(metadata?.displayName ?? '');
+	let name = $derived(getPrivateNickname(pubkey) ?? metadata?.displayName ?? '');
 
 	const onError = (event: Event) => {
 		const img = event.target as HTMLImageElement;
