@@ -78,7 +78,7 @@ test('private nicknames update across displays and survive clearing the event ca
 
 	await page.getByRole('button', { name: 'Profile menu' }).click();
 	await page.getByRole('menuitem', { name: 'Edit nickname' }).click();
-	await editor.getByRole('button', { name: 'Delete nickname' }).click();
+	await editor.getByRole('button', { name: 'Delete', exact: true }).click();
 	await expect(heading).toHaveText('Public Name');
 	await expect(relayPage.getByRole('heading', { level: 1 })).toContainText('Public Name');
 	await expect(post.getByText('Public Name', { exact: true })).toBeVisible();

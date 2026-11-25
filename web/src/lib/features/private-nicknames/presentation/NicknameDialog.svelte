@@ -53,10 +53,12 @@
 			escapeKeydownBehavior={saving ? 'ignore' : 'close'}
 			interactOutsideBehavior={saving ? 'ignore' : 'close'}
 		>
-			<Dialog.Title>
+			<Dialog.Title level={2} class="nickname-title">
 				{$_(nickname === undefined ? 'nickname.set' : 'nickname.edit')}
 			</Dialog.Title>
-			<Dialog.Description>{$_('nickname.description')}</Dialog.Description>
+			<Dialog.Description class="nickname-description">
+				{$_('nickname.description')}
+			</Dialog.Description>
 			<form
 				onsubmit={(event) => {
 					event.preventDefault();
@@ -74,16 +76,27 @@
 				{/if}
 				<div class="actions">
 					{#if nickname !== undefined}
-						<button type="button" disabled={saving} onclick={() => update(true)}>
+						<button
+							type="button"
+							class="delete"
+							disabled={saving}
+							onclick={() => update(true)}
+						>
 							{$_('nickname.delete')}
 						</button>
 					{/if}
-					<Dialog.Close type="button" disabled={saving}
-						>{$_('nickname.cancel')}</Dialog.Close
-					>
-					<button type="submit" disabled={saving || !draft.trim()}>
-						{$_('nickname.save')}
-					</button>
+					<div class="submit-actions">
+						<Dialog.Close type="button" class="rounded-button" disabled={saving}>
+							{$_('nickname.cancel')}
+						</Dialog.Close>
+						<button
+							type="submit"
+							class="rounded-button primary"
+							disabled={saving || !draft.trim()}
+						>
+							{$_('nickname.save')}
+						</button>
+					</div>
 				</div>
 			</form>
 		</Dialog.Content>
@@ -106,16 +119,63 @@
 		width: min(24rem, calc(100% - 2rem));
 	}
 
+	:global(.nickname-title) {
+		margin-block-end: 0.5rem;
+		font-size: 1.25rem;
+		font-weight: 700;
+	}
+
+	:global(.nickname-description) {
+		margin-block-end: 1rem;
+		color: var(--accent-gray);
+	}
+
 	label {
 		display: grid;
 		gap: 0.25rem;
 	}
 
+	input {
+		min-width: 0;
+	}
+
+	[role='alert'] {
+		margin-block-start: 0.5rem;
+	}
+
 	.actions {
 		display: flex;
 		flex-wrap: wrap;
-		justify-content: flex-end;
+		align-items: center;
+		gap: 0.5rem 1rem;
+		margin-block-start: 1.25rem;
+	}
+
+	.submit-actions {
+		display: flex;
 		gap: 0.5rem;
-		margin-top: 1rem;
+		margin-inline-start: auto;
+		white-space: nowrap;
+	}
+
+	.delete {
+		min-height: 36px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: var(--accent-gray);
+		font-weight: inherit;
+		text-decoration: underline;
+		text-underline-offset: 0.15em;
+	}
+
+	.delete:hover {
+		color: var(--accent);
+		opacity: 1;
+	}
+
+	.delete:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
 	}
 </style>
