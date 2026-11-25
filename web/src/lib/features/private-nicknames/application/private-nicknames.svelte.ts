@@ -10,7 +10,7 @@ const db = new Dexie('private-nicknames') as Dexie & {
 };
 db.version(1).stores({ nicknames: 'pubkey' });
 
-let nicknames = $state.raw<ReadonlyMap<string, string>>(new Map());
+let nicknames = $state.raw<ReadonlyMap<string, string>>();
 
 export function observePrivateNicknames(): () => void {
 	const subscription = liveQuery(() => db.nicknames.toArray()).subscribe({
@@ -22,8 +22,12 @@ export function observePrivateNicknames(): () => void {
 	return () => subscription.unsubscribe();
 }
 
+export function privateNicknamesReady(): boolean {
+	return nicknames !== undefined;
+}
+
 export function getPrivateNickname(pubkey: string): string | undefined {
-	return nicknames.get(pubkey);
+	return nicknames?.get(pubkey);
 }
 
 export async function savePrivateNickname(pubkey: string, nickname: string): Promise<void> {

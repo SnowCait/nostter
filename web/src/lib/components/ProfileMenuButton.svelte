@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { getPrivateNickname } from '$lib/features/private-nicknames/application/private-nicknames.svelte';
+	import {
+		getPrivateNickname,
+		privateNicknamesReady
+	} from '$lib/features/private-nicknames/application/private-nicknames.svelte';
 	import { resolveProfileDisplayName } from '$lib/components/profile/profile-display-name';
 	import IconPencil from '@tabler/icons-svelte-runes/icons/pencil';
 	import { _ } from 'svelte-i18n';
@@ -242,12 +245,16 @@
 </button>
 <div use:melt={$overlay} class="overlay"></div>
 <div use:melt={$menu} class="menu">
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div use:melt={$item} onclick={onEditNickname} class="item">
-		<div class="icon"><IconPencil /></div>
-		<div>{$_(getPrivateNickname(pubkey) === undefined ? 'nickname.set' : 'nickname.edit')}</div>
-	</div>
+	{#if privateNicknamesReady()}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div use:melt={$item} onclick={onEditNickname} class="item">
+			<div class="icon"><IconPencil /></div>
+			<div>
+				{$_(getPrivateNickname(pubkey) === undefined ? 'nickname.set' : 'nickname.edit')}
+			</div>
+		</div>
+	{/if}
 	{#if auth.signer !== undefined}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->

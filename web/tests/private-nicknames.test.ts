@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { finalizeEvent, generateSecretKey, kinds, nip19, Relay } from 'nostr-tools';
+import { finalizeEvent, generateSecretKey, getPublicKey, kinds, nip19, Relay } from 'nostr-tools';
 import { e2eRelayUrl } from './e2e-relay-url';
 
 test('private nicknames update across displays and survive clearing the event cache', async ({
@@ -84,4 +84,54 @@ test('private nicknames update across displays and survive clearing the event ca
 	await expect(post.getByText('Public Name', { exact: true })).toBeVisible();
 	await page.reload();
 	await expect(heading).toHaveText('Public Name');
+});
+
+test('waits for saved nicknames before offering to edit them', async ({ page, context }) => {
+	await context.route('https://**/*', (route) => route.abort());
+	const npub = nip19.npubEncode(getPublicKey(generateSecretKey()));
+	await page.goto('/' + npub);
+
+	const menu = page.getByRole('button', { name: 'Profile menu' });
+	await menu.click();
+	await page.getByRole('menuitem', { name: 'Set nickname' }).click();
+	const dialog = page.getByRole('dialog');
+	await dialog.getByRole('textbox', { name: 'Nickname' }).fill('Saved nickname');
+	await dialog.getByRole('button', { name: 'Save', exact: true }).click();
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Saved nickname');
+
+	await page.addInitScript(() => {
+		const open = IDBFactory.prototype.open;
+		IDBFactory.prototype.open = function (name, version) {
+			const request = open.call(this, name, version);
+			if (name === 'private-nicknames') {
+				// Hold Dexie's open notification until the test checks the menu.
+				request.addEventListener(
+					'success',
+					(event) => {
+						event.stopImmediatePropagation();
+						window.addEventListener(
+							'release-nickname-open',
+							() => request.dispatchEvent(new Event('success')),
+							{ once: true }
+						);
+						document.documentElement.dataset.nicknameOpenHeld = 'true';
+					},
+					{ once: true }
+				);
+			}
+			return request;
+		};
+	});
+
+	await page.reload();
+	await expect(page.locator('html')).toHaveAttribute('data-nickname-open-held', 'true');
+	await menu.click();
+	await expect(page.getByRole('menuitem', { name: 'Copy ID (npub)' })).toBeVisible();
+	await expect(page.getByRole('menuitem', { name: /^(Set|Edit) nickname$/ })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Edit nickname' })).toHaveCount(0);
+	await expect(dialog).toHaveCount(0);
+
+	await page.evaluate(() => window.dispatchEvent(new Event('release-nickname-open')));
+	await page.getByRole('menuitem', { name: 'Edit nickname' }).click();
+	await expect(dialog.getByRole('textbox', { name: 'Nickname' })).toHaveValue('Saved nickname');
 });
