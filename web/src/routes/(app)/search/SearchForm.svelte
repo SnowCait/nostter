@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getPrivateNickname } from '$lib/features/private-nicknames/application/private-nicknames.svelte';
 	import { unique } from '$lib/array';
 	import {
 		buildSearchQuery,
@@ -331,7 +332,7 @@
 			<div use:melt={$fromRoot} class="tags-input">
 				{#each $fromTags as tag (tag.id)}
 					<div use:melt={$fromTag(tag)} class="tag">
-						{alternativeName(tag.id)}
+						{getPrivateNickname(tag.id) ?? alternativeName(tag.id)}
 						<button type="button" use:melt={$fromDelete(tag)} class="delete">×</button>
 					</div>
 				{/each}
@@ -349,7 +350,7 @@
 			<div use:melt={$toRoot} class="tags-input">
 				{#each $toTags as tag (tag.id)}
 					<div use:melt={$toTag(tag)} class="tag">
-						{alternativeName(tag.id)}
+						{getPrivateNickname(tag.id) ?? alternativeName(tag.id)}
 						<button type="button" use:melt={$toDelete(tag)} class="delete">×</button>
 					</div>
 				{/each}

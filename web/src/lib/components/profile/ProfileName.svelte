@@ -1,6 +1,6 @@
 <script lang="ts">
+	import ProfileDisplayName from '$lib/components/profile/ProfileDisplayName.svelte';
 	import { metadataStore } from '$lib/cache/Events';
-	import { alternativeName } from '$lib/Items';
 	import EmojifiedContent from '../EmojifiedContent.svelte';
 
 	interface Props {
@@ -14,11 +14,7 @@
 </script>
 
 <span class="display_name">
-	{#if metadata !== undefined}
-		<EmojifiedContent content={metadata.displayName} tags={metadata.event.tags} />
-	{:else}
-		<span>{alternativeName(pubkey)}</span>
-	{/if}
+	<ProfileDisplayName {pubkey} {metadata} />
 </span>
 {#if !displayNameOnly && metadata !== undefined && metadata.displayName !== metadata.name}
 	<span class="name">

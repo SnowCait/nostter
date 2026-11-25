@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { getPrivateNickname } from '$lib/features/private-nicknames/application/private-nicknames.svelte';
+	import { resolveProfileDisplayName } from '$lib/components/profile/profile-display-name';
+	import IconPencil from '@tabler/icons-svelte-runes/icons/pencil';
 	import { _ } from 'svelte-i18n';
 	import { nip19 } from 'nostr-tools';
 	import { goto } from '$app/navigation';
@@ -14,7 +17,6 @@
 	import { mutePubkeys } from '$lib/stores/Author';
 	import { developerMode } from '$lib/stores/Preference';
 	import { copy } from '$lib/platform/browser/clipboard';
-	import { alternativeName } from '$lib/Items';
 	import IconDots from '@tabler/icons-svelte-runes/icons/dots';
 	import IconList from '@tabler/icons-svelte-runes/icons/list';
 	import IconClipboard from '@tabler/icons-svelte-runes/icons/clipboard';
@@ -31,9 +33,10 @@
 
 	interface Props {
 		pubkey: string;
+		onEditNickname: () => void;
 	}
 
-	let { pubkey }: Props = $props();
+	let { pubkey, onEditNickname }: Props = $props();
 
 	const {
 		elements: { menu, item, trigger, overlay, separator }
@@ -122,7 +125,7 @@
 	async function onUnfollow(): Promise<void> {
 		console.log('[unfollow]');
 
-		if (!confirm(`Unfollow @${metadata?.displayName ?? alternativeName(pubkey)}?`)) {
+		if (!confirm(`Unfollow @${resolveProfileDisplayName(pubkey, metadata).text}?`)) {
 			console.log('[unfollow cancelled]');
 			return;
 		}
@@ -234,11 +237,17 @@
 	}
 </script>
 
-<button class="clear" use:melt={$trigger}>
+<button class="clear" aria-label={$_('nickname.profile_menu')} use:melt={$trigger}>
 	<IconDots />
 </button>
 <div use:melt={$overlay} class="overlay"></div>
 <div use:melt={$menu} class="menu">
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div use:melt={$item} onclick={onEditNickname} class="item">
+		<div class="icon"><IconPencil /></div>
+		<div>{$_(getPrivateNickname(pubkey) === undefined ? 'nickname.set' : 'nickname.edit')}</div>
+	</div>
 	{#if auth.signer !== undefined}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->

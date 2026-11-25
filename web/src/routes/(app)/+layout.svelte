@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { observePrivateNicknames } from '$lib/features/private-nicknames/application/private-nicknames.svelte';
 	import { now } from 'rx-nostr';
 	import { rxNostr } from '$lib/relay-client';
 	import { restoreReadExclusions } from '$lib/nostr/relay/read-exclusion';
@@ -141,6 +142,8 @@
 			homeTimeline.retrieve(visibleAt, startedAt);
 		}
 	}
+
+	$effect(observePrivateNicknames);
 
 	onMount(() => {
 		subscribeSystemTheme();

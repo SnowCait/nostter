@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getPrivateNickname } from '$lib/features/private-nicknames/application/private-nicknames.svelte';
 	import { clearReadExclusions } from '$lib/nostr/relay/read-exclusion';
 	import { isPublicRelayUrl } from '@nostter/nostr-kit';
 	import { _ } from 'svelte-i18n';
@@ -30,6 +31,7 @@
 
 	let pubkey = $derived(data.pubkey);
 	let metadata = $derived($metadataStore.get(pubkey));
+	let displayName = $derived(getPrivateNickname(pubkey) ?? metadata?.displayName);
 
 	let relays: { url: string; read: boolean; write: boolean }[] = $state([]);
 	let editable = $state(false);
@@ -155,8 +157,10 @@
 </svelte:head>
 
 <h1>
+	{#if displayName !== undefined}
+		<span class="display-name">{displayName}</span>
+	{/if}
 	{#if metadata !== undefined}
-		<span class="display-name">{metadata.displayName}</span>
 		<span class="name">(@{metadata.name})</span>
 	{/if}
 	<span>{$_('pages.relays')}</span>

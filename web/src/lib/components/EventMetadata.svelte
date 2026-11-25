@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { type EventItem, type Item, alternativeName } from '$lib/Items';
+	import ProfileDisplayName from '$lib/components/profile/ProfileDisplayName.svelte';
+	import { type EventItem, type Item } from '$lib/Items';
 	import { metadataStore } from '$lib/cache/Events';
 	import { showUserStatus } from '$lib/preferences/UserStatus';
 	import UserStatus from './UserStatus.svelte';
@@ -36,11 +37,7 @@
 	<div class="note">
 		<div class="user">
 			<div class="display_name">
-				{#if metadata !== undefined}
-					<EmojifiedContent content={metadata.displayName} tags={metadata.event.tags} />
-				{:else}
-					<span>{alternativeName(item.event.pubkey)}</span>
-				{/if}
+				<ProfileDisplayName pubkey={item.event.pubkey} {metadata} />
 			</div>
 			{#if metadata !== undefined && metadata.displayName !== metadata.name}
 				<div class="name">
