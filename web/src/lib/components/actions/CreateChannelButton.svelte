@@ -5,7 +5,7 @@
 	import type { ChannelMetadata } from '$lib/nostr/protocol/nip28';
 	import type { Signer } from '$lib/nostr/signing/signer';
 	import { rxNostr } from '$lib/timelines/MainTimeline';
-	import ModalDialog from '../ModalDialog.svelte';
+	import { Dialog } from 'bits-ui';
 
 	interface Props {
 		signEvent: Signer['signEvent'];
@@ -59,36 +59,76 @@
 	}
 </script>
 
-<button onclick={() => (open = true)}>{$_('public_chat.create_channel')}</button>
+<Dialog.Root bind:open>
+	<Dialog.Trigger>{$_('public_chat.create_channel')}</Dialog.Trigger>
 
-<ModalDialog bind:open>
-	<h2>{$_('public_chat.create_channel')}</h2>
-	<form onsubmit={createChannel}>
-		<div>
-			<label>
-				<div>{$_('public_chat.channel.name')}</div>
-				<div><input type="text" bind:value={name} required /></div>
-			</label>
-		</div>
-		<div>
-			<label>
-				<div>{$_('public_chat.channel.about')}</div>
-				<div><textarea bind:value={about}></textarea></div>
-			</label>
-		</div>
-		<div>
-			<label>
-				<div>{$_('public_chat.channel.picture')}</div>
-				<div><input type="text" bind:value={picture} placeholder="https://" /></div>
-			</label>
-		</div>
-		<div>
-			<input type="submit" value={$_('public_chat.create')} disabled={!creatable} />
-		</div>
-	</form>
-</ModalDialog>
+	<Dialog.Portal>
+		<Dialog.Overlay class="channel-create-overlay" />
+		<Dialog.Content class="card channel-create-panel">
+			<div class="dialog-content">
+				<Dialog.Title
+					>{#snippet child({ props })}<h2 {...props}>
+							{$_('public_chat.create_channel')}
+						</h2>{/snippet}</Dialog.Title
+				>
+				<form onsubmit={createChannel}>
+					<div>
+						<label>
+							<div>{$_('public_chat.channel.name')}</div>
+							<div><input type="text" bind:value={name} required /></div>
+						</label>
+					</div>
+					<div>
+						<label>
+							<div>{$_('public_chat.channel.about')}</div>
+							<div><textarea bind:value={about}></textarea></div>
+						</label>
+					</div>
+					<div>
+						<label>
+							<div>{$_('public_chat.channel.picture')}</div>
+							<div>
+								<input type="text" bind:value={picture} placeholder="https://" />
+							</div>
+						</label>
+					</div>
+					<div>
+						<input
+							type="submit"
+							value={$_('public_chat.create')}
+							disabled={!creatable}
+						/>
+					</div>
+				</form>
+			</div>
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
 
 <style>
+	:global(.channel-create-overlay) {
+		position: fixed;
+		inset: 0;
+		z-index: 1000;
+		background: rgb(0 0 0 / 40%);
+		cursor: default;
+	}
+	:global(.channel-create-panel) {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 1001;
+		width: max-content;
+		max-width: calc(100vw - 2rem);
+		max-height: calc(100dvh - 2rem);
+		border-radius: var(--radius);
+		cursor: default;
+	}
+	.dialog-content {
+		margin: 0.5rem;
+	}
+
 	form > div {
 		margin: 0.5rem auto;
 	}
