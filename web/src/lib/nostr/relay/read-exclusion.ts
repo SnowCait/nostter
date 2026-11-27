@@ -2,6 +2,17 @@ import { rxNostr } from '$lib/relay-client';
 
 // Only relays whose intended read permission is true enter this set.
 const excluded = new Set<string>();
+let enabled = false;
+
+export function setReadExclusionsEnabled(value: boolean): void {
+	if (enabled === value) {
+		return;
+	}
+	enabled = value;
+	if (!enabled) {
+		restoreReadExclusions();
+	}
+}
 
 export function clearReadExclusions(): void {
 	excluded.clear();
@@ -28,7 +39,7 @@ rxNostr.createConnectionStateObservable().subscribe(({ from, state }) => {
 	if (!relay) {
 		return;
 	}
-	if (state === 'waiting-for-retrying' && relay.read) {
+	if (enabled && state === 'waiting-for-retrying' && relay.read) {
 		excluded.add(relay.url);
 		rxNostr.setDefaultRelays({
 			...rxNostr.getDefaultRelays(),

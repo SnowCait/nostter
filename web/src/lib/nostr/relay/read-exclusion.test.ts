@@ -23,7 +23,12 @@ vi.mock('$lib/relay-client', async () => {
 	};
 });
 import { rxNostr } from '$lib/relay-client';
-import { clearReadExclusions, restoreReadExclusions } from './read-exclusion';
+import { observePageLifecycle } from '$lib/platform/browser/page-lifecycle';
+import {
+	clearReadExclusions,
+	restoreReadExclusions,
+	setReadExclusionsEnabled
+} from './read-exclusion';
 const a = { url: 'wss://a', read: true, write: false };
 function apply(relays: RelayEntry[]) {
 	rxNostr.setDefaultRelays(relays);
@@ -33,6 +38,7 @@ function state(state: ConnectionState, from = a.url) {
 }
 beforeEach(() => {
 	clearReadExclusions();
+	setReadExclusionsEnabled(true);
 	mocks.config = {};
 	apply([a, { url: 'wss://write', read: false, write: true }]);
 });
@@ -108,3 +114,59 @@ it('does not restore exclusions cleared for an account switch', () => {
 	expect(mocks.config[a.url].read).toBe(false);
 	expect(rxNostr.setDefaultRelays).not.toHaveBeenCalled();
 });
+
+it('restores on suspension, ignores retries while suspended, and excludes again after resuming', () => {
+	state('waiting-for-retrying');
+	vi.mocked(rxNostr.setDefaultRelays).mockClear();
+	setReadExclusionsEnabled(false);
+	setReadExclusionsEnabled(false);
+	expect(mocks.config[a.url]).toEqual(a);
+	expect(rxNostr.setDefaultRelays).toHaveBeenCalledTimes(1);
+	vi.mocked(rxNostr.setDefaultRelays).mockClear();
+	state('waiting-for-retrying');
+	setReadExclusionsEnabled(true);
+	setReadExclusionsEnabled(true);
+	expect(rxNostr.setDefaultRelays).not.toHaveBeenCalled();
+	state('waiting-for-retrying');
+	expect(mocks.config[a.url]).toEqual({ ...a, read: false });
+});
+
+it('keeps account changes authoritative while suspended', () => {
+	state('waiting-for-retrying');
+	clearReadExclusions();
+	apply([{ ...a, read: false }]);
+	setReadExclusionsEnabled(false);
+	setReadExclusionsEnabled(true);
+	state('waiting-for-retrying');
+	state('connected');
+	expect(mocks.config[a.url]).toEqual({ ...a, read: false });
+});
+
+it.each(['visibilitychange', 'freeze', 'pagehide'])(
+	'restores and suspends exclusions on lifecycle %s',
+	(event) => {
+		const doc = new EventTarget();
+		const win = new EventTarget();
+		let visibility = 'visible';
+		Object.defineProperty(doc, 'visibilityState', { get: () => visibility });
+		Object.assign(doc, { hasFocus: () => true });
+		vi.stubGlobal('document', doc);
+		vi.stubGlobal('window', win);
+		const stop = observePageLifecycle(() => {}, setReadExclusionsEnabled);
+		try {
+			state('waiting-for-retrying');
+			visibility = 'hidden';
+			(event === 'pagehide' ? win : doc).dispatchEvent(new Event(event));
+			expect(mocks.config[a.url]).toEqual(a);
+			state('waiting-for-retrying');
+			expect(mocks.config[a.url]).toEqual(a);
+			visibility = 'visible';
+			win.dispatchEvent(new Event('focus'));
+			state('waiting-for-retrying');
+			expect(mocks.config[a.url]).toEqual({ ...a, read: false });
+		} finally {
+			stop();
+			vi.unstubAllGlobals();
+		}
+	}
+);

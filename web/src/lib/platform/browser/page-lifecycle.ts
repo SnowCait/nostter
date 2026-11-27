@@ -19,26 +19,56 @@ function wasDiscarded(): boolean | undefined {
 	return (document as DiscardableDocument).wasDiscarded;
 }
 
-export function observePageLifecycle(onEvent: (event: Event) => void): () => void {
+export function observePageLifecycle(
+	onEvent: (event: Event) => void,
+	onForegroundChange?: (foreground: boolean) => void
+): () => void {
+	if (typeof document === 'undefined' || typeof window === 'undefined') {
+		return () => {};
+	}
+
+	let foreground = document.visibilityState === 'visible';
+	onForegroundChange?.(foreground);
+	const notify = (event: Event) => {
+		let next = foreground;
+		if (event.type === 'freeze' || event.type === 'pagehide') {
+			next = false;
+		} else if (event.type === 'visibilitychange') {
+			next = document.visibilityState === 'visible';
+		} else if (document.visibilityState === 'hidden') {
+			next = false;
+		} else if (document.hasFocus()) {
+			// Auxiliary events alone cannot establish visibility after a stop.
+			next = true;
+		}
+		if (next !== foreground) {
+			foreground = next;
+			onForegroundChange?.(foreground);
+		}
+		// Focus is an auxiliary trigger for foreground detection only.
+		if (event.type !== 'focus') {
+			onEvent(event);
+		}
+	};
 	const onFreeze = (event: Event) => {
 		log('freeze');
-		onEvent(event);
+		notify(event);
 	};
 	const onResume = (event: Event) => {
 		log('resume');
-		onEvent(event);
+		notify(event);
 	};
 	const onVisibilityChange = (event: Event) => {
 		log('visibilitychange', document.visibilityState);
-		onEvent(event);
+		notify(event);
 	};
 	const onPageHide = (event: PageTransitionEvent) => {
 		log('pagehide', { persisted: event.persisted });
-		onEvent(event);
+		notify(event);
 	};
 	const onPageShow = (event: PageTransitionEvent) => {
 		log('pageshow', { persisted: event.persisted });
-		onEvent(event);
+		notify(event);
 	};
 
 	log('init', {
@@ -51,6 +81,7 @@ export function observePageLifecycle(onEvent: (event: Event) => void): () => voi
 	document.addEventListener('visibilitychange', onVisibilityChange);
 	window.addEventListener('pagehide', onPageHide);
 	window.addEventListener('pageshow', onPageShow);
+	window.addEventListener('focus', notify);
 
 	return () => {
 		document.removeEventListener('freeze', onFreeze);
@@ -58,5 +89,6 @@ export function observePageLifecycle(onEvent: (event: Event) => void): () => voi
 		document.removeEventListener('visibilitychange', onVisibilityChange);
 		window.removeEventListener('pagehide', onPageHide);
 		window.removeEventListener('pageshow', onPageShow);
+		window.removeEventListener('focus', notify);
 	};
 }
