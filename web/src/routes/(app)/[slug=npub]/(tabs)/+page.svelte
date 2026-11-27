@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { nip05 } from 'nostr-tools';
+	import { queryProfile as queryNip05Profile } from '$lib/Nip05';
 	import { afterNavigate, replaceState } from '$app/navigation';
 	import { metadataStore, storeMetadata } from '$lib/cache/Events';
 	import { metadataReqEmit, referencesReqEmit } from '$lib/timelines/MainTimeline';
@@ -47,7 +47,7 @@
 			return;
 		}
 
-		nip05.queryProfile(normalizedNip05).then((pointer) => {
+		queryNip05Profile(normalizedNip05).then((pointer) => {
 			if (pointer !== null) {
 				replaceState(`/${normalizedNip05}`, {});
 				slug = normalizedNip05;
