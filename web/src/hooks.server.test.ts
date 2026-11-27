@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RequestEvent } from '@sveltejs/kit';
-import { gitShaPlaceholder, handleError, httpStatusLogging } from './hooks.server';
+import { locale } from 'svelte-i18n';
+import { get } from 'svelte/store';
+import { gitShaPlaceholder, lang, handleError, httpStatusLogging } from './hooks.server';
 
 vi.mock('$lib/build', () => ({ gitSha: '0123456789abcdef' }));
 
@@ -182,5 +184,37 @@ describe('handleError', () => {
 
 		expect(error).not.toHaveBeenCalled();
 		expect(result).toStrictEqual({ message: 'Not Found' });
+	});
+});
+
+describe('HTML lang attribute', () => {
+	const initialLocale = get(locale);
+
+	afterEach(() => {
+		locale.set(initialLocale);
+	});
+
+	it.each([
+		['ja', 'ja'],
+		['zh-Hant-TW', 'zh-Hant-TW'],
+		[null, 'en'],
+		['en" onload="alert(1)', 'en&quot; onload=&quot;alert(1)'],
+		['en"><script>alert(1)</script>', 'en&quot;>&lt;script>alert(1)&lt;/script>'],
+		['en&quot;&<', 'en&amp;quot;&amp;&lt;'],
+		["en$&$`$'", "en$&amp;$`$'"]
+	])('safely embeds locale %s', async (current, expected) => {
+		locale.set(current);
+		const resolve: Resolve = async (_, options) => {
+			const html = await options?.transformPageChunk?.({
+				html: '<html lang="%lang%"></html>',
+				done: true
+			});
+			return new Response(html);
+		};
+
+		const response = await lang({ event: createEvent(), resolve });
+
+		expect(await response.text()).toBe(`<html lang="${expected}"></html>`);
+		expect(get(locale)).toBe(current);
 	});
 });

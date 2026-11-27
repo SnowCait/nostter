@@ -13,9 +13,15 @@ const i18n: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-const lang: Handle = ({ event, resolve }) => {
+export const lang: Handle = ({ event, resolve }) => {
 	return resolve(event, {
-		transformPageChunk: ({ html }) => html.replace('%lang%', get(locale) ?? 'en')
+		transformPageChunk: ({ html }) =>
+			html.replace('%lang%', () =>
+				(get(locale) ?? 'en')
+					.replaceAll('&', '&amp;')
+					.replaceAll('"', '&quot;')
+					.replaceAll('<', '&lt;')
+			)
 	});
 };
 
