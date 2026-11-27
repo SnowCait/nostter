@@ -453,6 +453,8 @@
 		"others": "その他"
 	},
 	"media": {
+		"previous_image": "前の画像",
+		"next_image": "次の画像",
 		"title": "メディア",
 		"attachments": {
 			"title": "添付メディア",

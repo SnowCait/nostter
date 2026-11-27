@@ -454,6 +454,8 @@
 		"others": "Others"
 	},
 	"media": {
+		"previous_image": "Previous image",
+		"next_image": "Next image",
 		"title": "Media",
 		"attachments": {
 			"title": "Attachments",
